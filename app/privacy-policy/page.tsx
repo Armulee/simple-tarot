@@ -1,5 +1,22 @@
+import type { Metadata } from "next"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
+
+export const metadata: Metadata = {
+    title: "Privacy Policy - Your Data Protection & Privacy Rights | Asking Fate",
+    description: "Learn how Asking Fate protects your privacy and personal information when using our AI tarot reading service. Read our comprehensive privacy policy.",
+    keywords: "privacy policy, data protection, AI tarot privacy, personal information security, tarot reading privacy, user data protection",
+    openGraph: {
+        title: "Privacy Policy - Your Data Protection & Privacy Rights",
+        description: "Learn how Asking Fate protects your privacy and personal information when using our AI tarot reading service.",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Privacy Policy - Your Data Protection & Privacy Rights",
+        description: "Learn how Asking Fate protects your privacy and personal information when using our AI tarot reading service.",
+    },
+}
 
 export default function PrivacyPage() {
     return (

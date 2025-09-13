@@ -1,68 +1,30 @@
-"use client"
-
-import type React from "react"
-
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import type { Metadata } from "next"
 import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import Link from "next/link"
 import { Mail, MessageCircle, Clock } from "lucide-react"
+import ContactForm from "@/components/contact/contact-form"
+import ContactNavigation from "@/components/contact/contact-navigation"
+
+export const metadata: Metadata = {
+    title: "Contact Us - Get Help with Your AI Tarot Reading | Asking Fate",
+    description: "Have questions about your AI tarot reading experience? Contact our support team for assistance with your cosmic journey and spiritual guidance.",
+    keywords: "tarot reading support, AI tarot help, spiritual guidance contact, tarot reading questions, customer support",
+    openGraph: {
+        title: "Contact Us - Get Help with Your AI Tarot Reading",
+        description: "Have questions about your AI tarot reading experience? Contact our support team for assistance.",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Contact Us - Get Help with Your AI Tarot Reading",
+        description: "Have questions about your AI tarot reading experience? Contact our support team for assistance.",
+    },
+}
 
 export default function ContactPage() {
-    const [formData, setFormData] = useState({
-        name: "",
-        email: "",
-        subject: "",
-        message: "",
-    })
-    const [isSubmitting, setIsSubmitting] = useState(false)
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setIsSubmitting(true)
-
-        // Simulate form submission
-        await new Promise((resolve) => setTimeout(resolve, 1500))
-
-        console.log("Contact form submitted:", formData)
-        alert("Thank you for your message! We'll get back to you soon.")
-
-        // Reset form
-        setFormData({ name: "", email: "", subject: "", message: "" })
-        setIsSubmitting(false)
-    }
-
-    const updateFormData = (field: string, value: string) => {
-        setFormData((prev) => ({ ...prev, [field]: value }))
-    }
-
     return (
         <div className='min-h-screen relative overflow-hidden'>
             {/* Navigation */}
-            <nav className='relative z-10 flex items-center justify-between p-6 backdrop-blur-sm bg-card/10 border-b border-border/20'>
-                <Link href='/' className='flex items-center space-x-2'>
-                    <div className='w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center'>
-                        <span className='text-primary font-serif font-bold'>
-                            ✦
-                        </span>
-                    </div>
-                    <h1 className='font-serif font-bold text-xl text-foreground'>
-                        Asking Fate
-                    </h1>
-                </Link>
-
-                <div className='flex items-center space-x-4'>
-                    <Link
-                        href='/'
-                        className='text-muted-foreground hover:text-foreground transition-colors'
-                    >
-                        Back to Home
-                    </Link>
-                </div>
-            </nav>
+            <ContactNavigation />
 
             <main className='relative z-10 max-w-4xl mx-auto px-6 py-16'>
                 <div className='space-y-12'>
@@ -79,114 +41,7 @@ export default function ContactPage() {
 
                     <div className='grid md:grid-cols-2 gap-12'>
                         {/* Contact Form */}
-                        <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20'>
-                            <form onSubmit={handleSubmit} className='space-y-6'>
-                                <div className='space-y-4'>
-                                    <div className='grid grid-cols-2 gap-4'>
-                                        <div className='space-y-2'>
-                                            <Label
-                                                htmlFor='name'
-                                                className='text-sm font-medium'
-                                            >
-                                                Name
-                                            </Label>
-                                            <Input
-                                                id='name'
-                                                type='text'
-                                                placeholder='Your name'
-                                                value={formData.name}
-                                                onChange={(e) =>
-                                                    updateFormData(
-                                                        "name",
-                                                        e.target.value
-                                                    )
-                                                }
-                                                className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 floating-input'
-                                                required
-                                            />
-                                        </div>
-                                        <div className='space-y-2'>
-                                            <Label
-                                                htmlFor='email'
-                                                className='text-sm font-medium'
-                                            >
-                                                Email
-                                            </Label>
-                                            <Input
-                                                id='email'
-                                                type='email'
-                                                placeholder='your@email.com'
-                                                value={formData.email}
-                                                onChange={(e) =>
-                                                    updateFormData(
-                                                        "email",
-                                                        e.target.value
-                                                    )
-                                                }
-                                                className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 floating-input'
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className='space-y-2'>
-                                        <Label
-                                            htmlFor='subject'
-                                            className='text-sm font-medium'
-                                        >
-                                            Subject
-                                        </Label>
-                                        <Input
-                                            id='subject'
-                                            type='text'
-                                            placeholder='What can we help you with?'
-                                            value={formData.subject}
-                                            onChange={(e) =>
-                                                updateFormData(
-                                                    "subject",
-                                                    e.target.value
-                                                )
-                                            }
-                                            className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 floating-input'
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className='space-y-2'>
-                                        <Label
-                                            htmlFor='message'
-                                            className='text-sm font-medium'
-                                        >
-                                            Message
-                                        </Label>
-                                        <Textarea
-                                            id='message'
-                                            placeholder='Tell us more about your question or concern...'
-                                            value={formData.message}
-                                            onChange={(e) =>
-                                                updateFormData(
-                                                    "message",
-                                                    e.target.value
-                                                )
-                                            }
-                                            className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 min-h-[120px] resize-none floating-input'
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <Button
-                                    type='submit'
-                                    disabled={isSubmitting}
-                                    size='lg'
-                                    className='w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 card-glow'
-                                >
-                                    {isSubmitting
-                                        ? "Sending Message..."
-                                        : "Send Message"}
-                                </Button>
-                            </form>
-                        </Card>
+                        <ContactForm />
 
                         {/* Contact Information */}
                         <div className='space-y-6'>

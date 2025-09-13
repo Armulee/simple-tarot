@@ -1,9 +1,24 @@
-"use client"
-
+import type { Metadata } from "next"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
 import { Brain, Heart, Sparkles, Users, Zap, Shield } from "lucide-react"
+
+export const metadata: Metadata = {
+    title: "About - AI Tarot Reading Technology | Asking Fate",
+    description: "Discover how Asking Fate blends centuries-old tarot traditions with cutting-edge AI technology to provide personalized cosmic guidance and spiritual insights.",
+    keywords: "AI tarot technology, tarot reading history, spiritual guidance AI, mystical traditions, tarot card interpretation technology",
+    openGraph: {
+        title: "About - AI Tarot Reading Technology",
+        description: "Discover how we blend ancient tarot wisdom with modern AI technology for personalized spiritual guidance.",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "About - AI Tarot Reading Technology",
+        description: "Discover how we blend ancient tarot wisdom with modern AI technology for personalized spiritual guidance.",
+    },
+}
 
 export default function AboutPage() {
     return (
