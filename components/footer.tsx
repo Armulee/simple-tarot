@@ -25,7 +25,8 @@ export default function Footer() {
                         </span>
                     </button>
                     <div className='flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6'>
-                        <div className='grid grid-cols-2 md:flex md:space-x-6 gap-4 md:gap-0 text-sm text-muted-foreground text-center md:text-left'>
+                        {/* Desktop only: Legal links */}
+                        <div className='hidden md:flex md:space-x-6 text-sm text-muted-foreground'>
                             <Link
                                 href='/privacy-policy'
                                 className='hover:text-foreground transition-colors'
