@@ -4,17 +4,17 @@ import Link from "next/link"
 
 export const metadata: Metadata = {
     title: "Terms of Service - AI Tarot Reading Terms & Conditions | Asking Fate",
-    description: "Read the terms of service for Asking Fate's AI-powered tarot reading platform. Understand your rights and responsibilities when using our spiritual guidance service.",
+    description: "Read the terms of service for Asking Fate&apos;s AI-powered tarot reading platform. Understand your rights and responsibilities when using our spiritual guidance service.",
     keywords: "terms of service, terms and conditions, AI tarot terms, tarot reading terms, service agreement, user agreement",
     openGraph: {
         title: "Terms of Service - AI Tarot Reading Terms & Conditions",
-        description: "Read the terms of service for Asking Fate's AI-powered tarot reading platform and understand your rights and responsibilities.",
+        description: "Read the terms of service for Asking Fate&apos;s AI-powered tarot reading platform and understand your rights and responsibilities.",
         type: "website",
     },
     twitter: {
         card: "summary_large_image",
         title: "Terms of Service - AI Tarot Reading Terms & Conditions",
-        description: "Read the terms of service for Asking Fate's AI-powered tarot reading platform and understand your rights and responsibilities.",
+        description: "Read the terms of service for Asking Fate&apos;s AI-powered tarot reading platform and understand your rights and responsibilities.",
     },
 }
 

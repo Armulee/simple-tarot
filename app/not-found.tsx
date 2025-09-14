@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 
 export const metadata: Metadata = {
   title: "Page Not Found - 404 | Asking Fate",
-  description: "The page you're looking for doesn't exist. Return to our AI tarot reading homepage to continue your spiritual journey.",
+  description: "The page you&apos;re looking for doesn&apos;t exist. Return to our AI tarot reading homepage to continue your spiritual journey.",
   robots: "noindex, nofollow",
 }
 
@@ -31,8 +31,8 @@ export default function NotFound() {
                 Page Not Found
               </h2>
               <p className='text-xl text-muted-foreground max-w-lg mx-auto'>
-                The cosmic path you're seeking has vanished into the stars. 
-                Let's guide you back to your spiritual journey.
+                The cosmic path you&apos;re seeking has vanished into the stars. 
+                Let&apos;s guide you back to your spiritual journey.
               </p>
             </div>
 
