@@ -194,9 +194,9 @@ export default function SuggestionPromptCard({
         onSuggestionClick(suggestion)
     }
 
-    const handleSlideChange = useCallback(() => {
+    const handleUserInteraction = useCallback(() => {
         if (swiperRef.current) {
-            // Stop autoplay immediately when user manually slides
+            // Stop autoplay immediately when user interacts
             swiperRef.current.autoplay.stop()
             
             // Clear any existing timeout
@@ -305,7 +305,10 @@ export default function SuggestionPromptCard({
                         onSwiper={(swiper) => {
                             swiperRef.current = swiper
                         }}
-                        onSlideChange={handleSlideChange}
+                        onTouchStart={handleUserInteraction}
+                        onTouchMove={handleUserInteraction}
+                        onMouseDown={handleUserInteraction}
+                        onSliderMove={handleUserInteraction}
                         modules={[Autoplay, FreeMode]}
                         spaceBetween={12}
                         slidesPerView='auto'
