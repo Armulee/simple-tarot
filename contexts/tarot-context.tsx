@@ -34,14 +34,12 @@ export interface TarotContextType {
 
     // Current step in the reading process
     currentStep:
-        | "question"
         | "reading-type"
         | "card-selection"
         | "ad-viewing"
         | "interpretation"
     setCurrentStep: (
         step:
-            | "question"
             | "reading-type"
             | "card-selection"
             | "ad-viewing"
@@ -51,7 +49,6 @@ export interface TarotContextType {
     // Interpretation result
     interpretation: string | null
     setInterpretation: (interpretation: string | null) => void
-
 
     // Reset function
     resetReading: () => void
@@ -67,12 +64,8 @@ export function TarotProvider({ children }: { children: ReactNode }) {
     const [readingType, setReadingType] = useState<ReadingType | null>(null)
     const [selectedCards, setSelectedCards] = useState<TarotCard[]>([])
     const [currentStep, setCurrentStep] = useState<
-        | "question"
-        | "reading-type"
-        | "card-selection"
-        | "ad-viewing"
-        | "interpretation"
-    >("question")
+        "reading-type" | "card-selection" | "ad-viewing" | "interpretation"
+    >("reading-type")
     const [interpretation, setInterpretation] = useState<string | null>(null)
     const [isClearing, setIsClearing] = useState(false)
     const pathname = usePathname()

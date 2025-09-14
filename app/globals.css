@@ -378,6 +378,19 @@
   animation: float 6s ease-in-out infinite;
 }
 
+.suggestion-swiper {
+  padding: 0 8px;
+}
+
+.swiper-free-mode > .swiper-wrapper {
+  transition-timing-function: linear !important;
+}
+
+.suggestion-swiper .swiper-slide {
+  transition-timing-function: linear;
+  width: auto !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

@@ -12,16 +12,20 @@ export default function QuestionInput({
     label = "Your question",
     placeholder,
     defaultValue,
+    value,
+    onChange,
     followUp = false,
 }: {
     id?: string
     label?: string
     placeholder?: string
     defaultValue?: string
+    value?: string
+    onChange?: (value: string) => void
     followUp?: boolean
 }) {
     const pathname = usePathname()
-    const [question, setQuestion] = useState("")
+    const [internalQuestion, setInternalQuestion] = useState("")
     const [isSmallDevice, setIsSmallDevice] = useState(false)
     const router = useRouter()
     const {
@@ -36,17 +40,22 @@ export default function QuestionInput({
         clearReadingStorage,
     } = useTarot()
 
+    // Use controlled value if provided, otherwise use internal state
+    const question = value !== undefined ? value : internalQuestion
+    const setQuestion = onChange || setInternalQuestion
+
     const handleStartReading = () => {
-        const value = (question || "").trim() || (defaultValue || "").trim()
-        if (value) {
+        const currentValue =
+            (question || "").trim() || (defaultValue || "").trim()
+        if (currentValue) {
             if (followUp) {
-                handleFollowUpQuestion(value)
+                handleFollowUpQuestion(currentValue)
             } else {
                 // This is a new reading (not follow-up), clear localStorage and reset state
                 clearReadingStorage()
-                
+
                 // Set new question and navigate
-                setContextQuestion(value)
+                setContextQuestion(currentValue)
                 setCurrentStep("reading-type")
                 if (pathname !== "/reading") {
                     router.push("/reading")
@@ -126,6 +135,7 @@ export default function QuestionInput({
                     placeholder={placeholder}
                     className='relative z-10 w-full pl-4 pr-15 py-2 text-white placeholder:text-white/70 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 focus:border-primary/60 focus:ring-2 focus:ring-primary/40 rounded-2xl resize-y shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] resize-none'
                     onChange={(e) => setQuestion(e.target.value)}
+                    value={question}
                     defaultValue={defaultValue}
                     onKeyDown={handleKeyDown}
                     // style={{

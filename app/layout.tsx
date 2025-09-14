@@ -8,6 +8,7 @@ import { Navbar } from "@/components/navbar"
 import "./globals.css"
 import Footer from "@/components/footer"
 import CosmicStars from "@/components/cosmic-stars"
+import { Toaster } from "sonner"
 
 /* Updated fonts to match mystical design brief */
 const playfairDisplay = Playfair_Display({
@@ -65,6 +66,12 @@ export default function RootLayout({
                     </div>
                 </TarotProvider>
                 <Analytics />
+                <Toaster
+                    position='top-center'
+                    theme='dark'
+                    richColors
+                    closeButton
+                />
             </body>
         </html>
     )

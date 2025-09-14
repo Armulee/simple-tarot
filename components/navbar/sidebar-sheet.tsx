@@ -7,6 +7,8 @@ import {
     ChevronDown,
     ChevronUp,
     Sparkles,
+    Shield,
+    FileText,
 } from "lucide-react"
 import { useState } from "react"
 import {
@@ -24,11 +26,6 @@ interface SidebarSheetProps {
 
 export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
     const [mysticalOpen, setMysticalOpen] = useState(true)
-
-    const sidebarLinks = [
-        { href: "/", label: "Home", Icon: Home },
-        { href: "/about", label: "About", Icon: Info },
-    ] as const
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
@@ -56,30 +53,26 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                 </SheetHeader>
                 <nav>
                     <ul className='flex flex-col space-y-1 p-1'>
-                        {/* Start Reading Button */}
-                        <li className='pb-2 border-b border-white/10 mb-2'>
+                        <li>
                             <Link
-                                href='/reading'
-                                className='flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-white/10 text-white/90 border border-white/10 hover:bg-white/15 transition'
+                                href='/'
+                                className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
                                 onClick={() => onOpenChange(false)}
                             >
-                                <Sparkles className='w-4 h-4' />
-                                <span>Start Reading</span>
+                                <Home className='w-4 h-4' />
+                                <span>Home</span>
                             </Link>
                         </li>
-
-                        {sidebarLinks.map(({ href, label, Icon }) => (
-                            <li key={href}>
-                                <Link
-                                    href={href}
-                                    className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
-                                    onClick={() => onOpenChange(false)}
-                                >
-                                    <Icon className='w-4 h-4' />
-                                    <span>{label}</span>
-                                </Link>
-                            </li>
-                        ))}
+                        <li>
+                            <Link
+                                href='/about'
+                                className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
+                                onClick={() => onOpenChange(false)}
+                            >
+                                <Info className='w-4 h-4' />
+                                <span>About</span>
+                            </Link>
+                        </li>
 
                         {/* Active Service Dropdown */}
                         <li>
@@ -129,6 +122,27 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                     )}
                                 </ul>
                             )}
+                        </li>
+
+                        <li>
+                            <Link
+                                href='/privacy-policy'
+                                className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
+                                onClick={() => onOpenChange(false)}
+                            >
+                                <Shield className='w-4 h-4' />
+                                <span>Privacy Policy</span>
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                href='/terms-of-service'
+                                className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
+                                onClick={() => onOpenChange(false)}
+                            >
+                                <FileText className='w-4 h-4' />
+                                <span>Terms of Service</span>
+                            </Link>
                         </li>
                     </ul>
                 </nav>

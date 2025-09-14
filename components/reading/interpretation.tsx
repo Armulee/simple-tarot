@@ -11,6 +11,7 @@ import { TarotCard, useTarot } from "@/contexts/tarot-context"
 import { useRouter } from "next/navigation"
 import QuestionInput from "../question-input"
 import { CardImage } from "../card-image"
+import { isFollowUpQuestion, getCleanQuestionText } from "@/lib/question-utils"
 
 export default function Interpretation() {
     const router = useRouter()
@@ -312,8 +313,16 @@ If the interpretation is too generic, add more details to make it more specific.
                                 </h1>
                                 <Sparkles className='w-6 h-6 text-primary' />
                             </div>
+                            {isFollowUpQuestion(question) && (
+                                <Badge
+                                    variant='secondary'
+                                    className='bg-primary/20 text-primary border-primary/30'
+                                >
+                                    Follow up
+                                </Badge>
+                            )}
                             <p className='text-muted-foreground italic'>
-                                &ldquo;{question}&rdquo;
+                                &ldquo;{getCleanQuestionText(question)}&rdquo;
                             </p>
 
                             {/* Card Images with Badges on Top */}
