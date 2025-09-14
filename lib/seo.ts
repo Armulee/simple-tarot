@@ -159,19 +159,6 @@ export const pageMetadata = {
     url: '/contact',
   }),
   
-  signin: generatePageMetadata({
-    title: 'Sign In - Access Your AI Tarot Reading Account',
-    description: 'Sign in to your Asking Fate account to continue your cosmic journey and access your personalized AI tarot reading history and spiritual guidance.',
-    keywords: ['sign in', 'tarot reading account', 'AI tarot login', 'spiritual guidance account'],
-    url: '/signin',
-  }),
-  
-  signup: generatePageMetadata({
-    title: 'Sign Up - Create Your AI Tarot Reading Account',
-    description: 'Join Asking Fate and create your free account to start your cosmic journey with personalized AI tarot readings and spiritual guidance.',
-    keywords: ['sign up', 'create account', 'tarot reading registration', 'AI tarot account'],
-    url: '/signup',
-  }),
   
   privacy: generatePageMetadata({
     title: 'Privacy Policy - Your Data Protection & Privacy Rights',

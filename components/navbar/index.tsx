@@ -3,10 +3,8 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
-import { Menu, ChevronDown, BookOpen, LogIn, Sparkles } from "lucide-react"
+import { Menu, ChevronDown, BookOpen, Sparkles } from "lucide-react"
 import { SidebarSheet } from "./sidebar-sheet"
-import { UserProfile } from "@/components/user-profile"
-import { useAuth } from "@/hooks/use-auth"
 import {
     Sheet,
     SheetContent,
@@ -19,7 +17,6 @@ import mysticalServices from "./mystical-services"
 export function Navbar() {
     const [open, setOpen] = useState(false)
     const [mysticalOpen, setMysticalOpen] = useState(false)
-    const { user, loading } = useAuth()
 
     return (
         <nav className='fixed top-0 left-0 right-0 z-50 bg-card/5 backdrop-blur-sm border-b border-border/20'>
@@ -133,21 +130,17 @@ export function Navbar() {
                             </SheetContent>
                         </Sheet>
 
-                        {/* Desktop only: User Profile / Sign In button */}
+                        {/* Desktop only: Reading Button */}
                         <div className='hidden md:block'>
-                            {!loading && user ? (
-                                <UserProfile variant='desktop' />
-                            ) : (
-                                <Link href='/signin'>
-                                    <Button
-                                        variant='outline'
-                                        className='flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-white/10 text-white/90 border border-white/10 hover:bg-white/15 transition'
-                                    >
-                                        <LogIn className='w-4 h-4' />
-                                        Sign In
-                                    </Button>
-                                </Link>
-                            )}
+                            <Link href='/reading'>
+                                <Button
+                                    variant='outline'
+                                    className='flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-white/10 text-white/90 border border-white/10 hover:bg-white/15 transition'
+                                >
+                                    <Sparkles className='w-4 h-4' />
+                                    Start Reading
+                                </Button>
+                            </Link>
                         </div>
                     </div>
                 </div>

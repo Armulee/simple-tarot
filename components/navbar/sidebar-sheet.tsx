@@ -7,7 +7,6 @@ import {
     ChevronDown,
     ChevronUp,
     Sparkles,
-    LogIn,
 } from "lucide-react"
 import { useState } from "react"
 import {
@@ -16,9 +15,6 @@ import {
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { UserProfileDropdown } from "@/components/user-profile-dropdown"
-import { useAuth } from "@/hooks/use-auth"
 import mysticalServices from "./mystical-services"
 
 interface SidebarSheetProps {
@@ -27,22 +23,7 @@ interface SidebarSheetProps {
 }
 
 export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
-    const { user, loading } = useAuth()
     const [mysticalOpen, setMysticalOpen] = useState(true)
-
-    const getUserInitials = () => {
-        const name =
-            user?.user_metadata?.name || user?.email?.split("@")[0] || "U"
-        return name.charAt(0).toUpperCase()
-    }
-
-    const getUserName = () => {
-        return user?.user_metadata?.name || user?.email?.split("@")[0] || "User"
-    }
-
-    const getUserAvatar = () => {
-        return user?.user_metadata?.avatar_url || ""
-    }
 
     const sidebarLinks = [
         { href: "/", label: "Home", Icon: Home },
@@ -75,42 +56,16 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                 </SheetHeader>
                 <nav>
                     <ul className='flex flex-col space-y-1 p-1'>
-                        {/* Sign In / User Profile at the top */}
+                        {/* Start Reading Button */}
                         <li className='pb-2 border-b border-white/10 mb-2'>
-                            {!loading && user ? (
-                                <UserProfileDropdown
-                                    onClose={() => onOpenChange(false)}
-                                >
-                                    <div className='flex items-center gap-3 p-3 rounded-lg bg-white/10 border border-white/10 hover:bg-white/15 transition-colors cursor-pointer'>
-                                        <Avatar className='w-10 h-10'>
-                                            <AvatarImage
-                                                src={getUserAvatar()}
-                                                alt={getUserName()}
-                                            />
-                                            <AvatarFallback className='bg-primary/20 text-primary font-semibold'>
-                                                {getUserInitials()}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <div className='flex-1 min-w-0'>
-                                            <p className='text-sm font-medium text-white truncate'>
-                                                {getUserName()}
-                                            </p>
-                                            <p className='text-xs text-white/70 truncate'>
-                                                {user.email}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </UserProfileDropdown>
-                            ) : (
-                                <Link
-                                    href='/signin'
-                                    className='flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-white/10 text-white/90 border border-white/10 hover:bg-white/15 transition'
-                                    onClick={() => onOpenChange(false)}
-                                >
-                                    <LogIn className='w-4 h-4' />
-                                    <span>Sign In</span>
-                                </Link>
-                            )}
+                            <Link
+                                href='/reading'
+                                className='flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-white/10 text-white/90 border border-white/10 hover:bg-white/15 transition'
+                                onClick={() => onOpenChange(false)}
+                            >
+                                <Sparkles className='w-4 h-4' />
+                                <span>Start Reading</span>
+                            </Link>
                         </li>
 
                         {sidebarLinks.map(({ href, label, Icon }) => (
