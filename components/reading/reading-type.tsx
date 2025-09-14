@@ -3,7 +3,7 @@ import { Pencil } from "lucide-react"
 import { Button } from "../ui/button"
 import { Card } from "../ui/card"
 import { useTarot } from "@/contexts/tarot-context"
-import { ReadingConfig } from "@/app/reading/page"
+import { ReadingConfig } from "./reading-page-content"
 
 export default function ReadingType({
     readingConfig,

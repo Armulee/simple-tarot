@@ -3,7 +3,7 @@ import { TarotCard, useTarot } from "@/contexts/tarot-context"
 import { Button } from "../../ui/button"
 import { Card } from "../../ui/card"
 import { Pencil } from "lucide-react"
-import { ReadingConfig } from "@/app/reading/page"
+import { ReadingConfig } from "../reading-page-content"
 import { CircularCardSpread } from "./circular-card-spread"
 
 export default function CardSelection({
