@@ -210,7 +210,7 @@ export function CustomTimePicker({
 
     return (
         <div className={cn("space-y-2", className)}>
-            <Label className='text-white/80 text-sm font-medium'>{label}</Label>
+            {/* <Label className='text-white/80 text-sm font-medium'>{label}</Label> */}
             <div className='relative' ref={containerRef}>
                 <Popover open={isOpen} onOpenChange={setIsOpen}>
                     <PopoverTrigger asChild>
@@ -219,10 +219,15 @@ export function CustomTimePicker({
                             role='combobox'
                             aria-expanded={isOpen}
                             className={cn(
-                                "w-full justify-between bg-white/5 border-2 border-white/20 text-white hover:bg-white/10 hover:border-white/30",
+                                "w-full justify-between text-white backdrop-blur-md",
+                                "bg-white/5 border-2 border-white/10 hover:border-white/20",
+                                "hover:bg-white/10 transition-all duration-300 rounded-xl",
+                                "shadow-sm hover:shadow-cosmic-purple/20 focus-visible:ring-2 focus-visible:ring-cosmic-purple/30",
+                                "min-h-[84px] py-5 px-4",
                                 isDragging &&
-                                    "border-cosmic-purple bg-white/10 scale-105",
-                                isOpen && "border-cosmic-purple bg-white/10"
+                                    "border-cosmic-purple/60 ring-2 ring-cosmic-purple/30 bg-white/10 scale-[1.02]",
+                                isOpen &&
+                                    "border-cosmic-purple/60 ring-2 ring-cosmic-purple/30 bg-white/10"
                             )}
                             onClick={handleClick}
                             onDoubleClick={handleDoubleClick}
@@ -239,11 +244,11 @@ export function CustomTimePicker({
                                         onChange={handleInputChange}
                                         onBlur={handleInputBlur}
                                         onKeyDown={handleInputKeyDown}
-                                        className='text-lg font-bold text-white bg-transparent border-none outline-none text-center w-full h-auto p-0'
+                                        className='text-3xl font-bold text-white bg-transparent border-none outline-none text-center w-full h-auto p-0 tracking-wider'
                                         maxLength={placeholder.length}
                                     />
                                 ) : (
-                                    <div className='text-lg font-bold text-white'>
+                                    <div className='text-3xl font-bold text-white tracking-wider'>
                                         {displayValue}
                                     </div>
                                 )}
@@ -255,10 +260,10 @@ export function CustomTimePicker({
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent
-                        className='w-full p-0 bg-black/90 backdrop-blur-sm border-white/20'
+                        className='w-72 p-0 bg-black/80 backdrop-blur-xl border-white/10 rounded-xl shadow-2xl ring-1 ring-white/10'
                         align='start'
                     >
-                        <div className='max-h-48 overflow-y-auto' ref={listRef}>
+                        <div className='max-h-56 overflow-y-auto' ref={listRef}>
                             {numbers.map((num) => (
                                 <Button
                                     key={num}
@@ -266,7 +271,8 @@ export function CustomTimePicker({
                                     data-value={num}
                                     onClick={() => handleNumberClick(num)}
                                     className={cn(
-                                        "w-full justify-center text-white hover:bg-white/10",
+                                        "w-full justify-center text-white/90 hover:text-white",
+                                        "hover:bg-white/10 rounded-none",
                                         num === currentValue &&
                                             "bg-cosmic-purple/20 text-cosmic-purple font-semibold"
                                     )}

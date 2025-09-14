@@ -131,7 +131,7 @@ export function LocationSelector({
                                 variant='outline'
                                 role='combobox'
                                 aria-expanded={isCountryOpen}
-                                className='w-full justify-between bg-white/5 border-2 border-white/20 text-white hover:bg-white/10 hover:border-white/30'
+                                className='w-full justify-between text-white backdrop-blur-md bg-white/5 border-2 border-white/10 hover:border-white/20 hover:bg-white/10 transition-all duration-300 rounded-xl shadow-sm hover:shadow-cosmic-purple/20'
                             >
                                 <span
                                     className={
@@ -146,7 +146,7 @@ export function LocationSelector({
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent
-                            className='w-full p-0 bg-black/90 backdrop-blur-sm border-white/20'
+                            className='w-72 p-0 bg-black/80 backdrop-blur-xl border-white/10 rounded-xl shadow-2xl ring-1 ring-white/10'
                             align='start'
                         >
                             <div className='p-2'>
@@ -157,10 +157,15 @@ export function LocationSelector({
                                     onChange={(e) =>
                                         setSearchCountry(e.target.value)
                                     }
-                                    className='w-full bg-white/5 border-white/20 text-white placeholder-white/50'
+                                    className='w-full bg-white/5 border-white/10 focus-visible:ring-cosmic-purple/30 text-white placeholder-white/50 rounded-lg'
                                 />
                             </div>
-                            <div className='max-h-48 overflow-y-auto'>
+                            <div className='max-h-60 overflow-y-auto'>
+                                {filteredCountries.length === 0 && (
+                                    <div className='px-3 py-6 text-center text-white/60 text-sm'>
+                                        No countries found
+                                    </div>
+                                )}
                                 {filteredCountries.map((country) => (
                                     <Button
                                         key={country.shortName}
@@ -169,7 +174,7 @@ export function LocationSelector({
                                             handleCountrySelect(country.name)
                                         }
                                         className={cn(
-                                            "w-full justify-start text-white hover:bg-white/10",
+                                            "w-full justify-start text-white/90 hover:text-white hover:bg-white/10 rounded-none",
                                             selectedCountry === country.name &&
                                                 "bg-cosmic-purple/20 text-cosmic-purple font-semibold"
                                         )}
@@ -195,7 +200,7 @@ export function LocationSelector({
                                 aria-expanded={isStateOpen}
                                 disabled={!selectedCountry}
                                 className={cn(
-                                    "w-full justify-between bg-white/5 border-2 border-white/20 text-white hover:bg-white/10 hover:border-white/30",
+                                    "w-full justify-between text-white backdrop-blur-md bg-white/5 border-2 border-white/10 hover:border-white/20 hover:bg-white/10 transition-all duration-300 rounded-xl shadow-sm hover:shadow-cosmic-purple/20",
                                     !selectedCountry &&
                                         "opacity-50 cursor-not-allowed"
                                 )}
@@ -221,7 +226,7 @@ export function LocationSelector({
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent
-                            className='w-full p-0 bg-black/90 backdrop-blur-sm border-white/20'
+                            className='w-72 p-0 bg-black/80 backdrop-blur-xl border-white/10 rounded-xl shadow-2xl ring-1 ring-white/10'
                             align='start'
                         >
                             <div className='p-2'>
@@ -232,10 +237,17 @@ export function LocationSelector({
                                     onChange={(e) =>
                                         setSearchState(e.target.value)
                                     }
-                                    className='w-full bg-white/5 border-white/20 text-white placeholder-white/50'
+                                    className='w-full bg-white/5 border-white/10 focus-visible:ring-cosmic-purple/30 text-white placeholder-white/50 rounded-lg'
                                 />
                             </div>
-                            <div className='max-h-48 overflow-y-auto'>
+                            <div className='max-h-60 overflow-y-auto'>
+                                {filteredStates.length === 0 && (
+                                    <div className='px-3 py-6 text-center text-white/60 text-sm'>
+                                        {selectedCountry
+                                            ? "No states found"
+                                            : "Select a country first"}
+                                    </div>
+                                )}
                                 {filteredStates.map((state) => (
                                     <Button
                                         key={state.shortName}
@@ -244,7 +256,7 @@ export function LocationSelector({
                                             handleStateSelect(state.name)
                                         }
                                         className={cn(
-                                            "w-full justify-start text-white hover:bg-white/10",
+                                            "w-full justify-start text-white/90 hover:text-white hover:bg-white/10 rounded-none",
                                             selectedState === state.name &&
                                                 "bg-cosmic-purple/20 text-cosmic-purple font-semibold"
                                         )}

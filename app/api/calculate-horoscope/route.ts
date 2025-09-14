@@ -1,48 +1,72 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
+import { BirthChartGenerator } from "vedic-astrology-api/lib/utils/birthchart"
 
-// Temporarily disable swisseph for build compatibility
-// import swe from "swisseph"
+import {
+    calculatePlanetaryPositions,
+    calculateAscendant,
+    createDate,
+} from "vedic-astrology-api/lib/utils/common"
 
-// swe.swe_set_ephe_path("public/ephe")
+export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url)
 
-// ตั้งค่า sidereal zodiac + ayanamsa แบบ Lahiri
-// swe.swe_set_sid_mode(swe.SE_SIDM_LAHIRI, 0, 0)
-
-export async function GET(req: NextRequest) {
-    const { searchParams } = new URL(req.url)
-    const date = searchParams.get("date")
-    const time = searchParams.get("time")
+    const day = searchParams.get("day")
+    const month = searchParams.get("month")
+    const year = searchParams.get("year")
+    const hour = searchParams.get("hour")
+    const minute = searchParams.get("minute")
+    const timezone = searchParams.get("timezone")
     const lat = searchParams.get("lat")
-    const lon = searchParams.get("lon")
+    const lng = searchParams.get("lng")
 
-    if (!date || !time || !lat || !lon) {
+    if (
+        !day ||
+        !month ||
+        !year ||
+        !hour ||
+        !minute ||
+        timezone == null ||
+        !lat ||
+        !lng
+    ) {
         return NextResponse.json(
-            { error: "Missing parameters" },
+            { error: "Missing required query parameters" },
             { status: 400 }
         )
     }
 
-    const result = getThaiAscendant(
-        date,
-        time,
-        parseFloat(lat),
-        parseFloat(lon)
+    // Create instance
+    const birthChartGenerator = new BirthChartGenerator()
+
+    // Create date (library expects numeric values)
+    const date = createDate(
+        parseInt(year),
+        parseInt(month),
+        parseInt(day),
+        parseInt(hour),
+        parseInt(minute),
+        parseFloat(timezone)
     )
 
-    return NextResponse.json(result)
-}
+    // Get planetary positions
+    const { positions } = calculatePlanetaryPositions(
+        date,
+        Number(lat),
+        Number(lng)
+    )
+    const ascendant = calculateAscendant(date, Number(lat), Number(lng))
 
-export function getThaiAscendant(
-    date: string,
-    time: string,
-    lat: number,
-    lon: number
-) {
-    // Temporarily return mock data for build compatibility
-    // TODO: Re-enable swisseph functionality
-    return {
-        ascDegree: "0.00",
-        sign: "เมษ",
-        degree: "0.00",
-    }
+    // Generate chart
+    const birthChart = birthChartGenerator.generateBirthChart(
+        positions,
+        ascendant
+    )
+
+    return NextResponse.json(
+        {
+            houses: birthChart.houses,
+            planets: birthChart.planets,
+        },
+        { status: 200 }
+    )
 }
