@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useCallback, useEffect } from "react"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { Autoplay, FreeMode } from "swiper/modules"
 import { Badge } from "./ui/badge"
@@ -184,14 +184,43 @@ export default function SuggestionPromptCard({
     onSuggestionClick,
 }: SuggestionPromptCardProps) {
     const swiperRef = useRef<SwiperType | null>(null)
+    const pauseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const [selectedCategory, setSelectedCategory] = useState<Category>(
         categories[0]
     )
-    const [showPrompts, setShowPrompts] = useState(true)
+    const [showPrompts, setShowPrompts] = useState(false)
 
     const handleSuggestionClick = (suggestion: string) => {
         onSuggestionClick(suggestion)
     }
+
+    const handleUserInteraction = useCallback(() => {
+        if (swiperRef.current) {
+            // Stop autoplay immediately when user interacts
+            swiperRef.current.autoplay.stop()
+            
+            // Clear any existing timeout
+            if (pauseTimeoutRef.current) {
+                clearTimeout(pauseTimeoutRef.current)
+            }
+            
+            // Set a new timeout to resume autoplay after 3 seconds
+            pauseTimeoutRef.current = setTimeout(() => {
+                if (swiperRef.current) {
+                    swiperRef.current.autoplay.start()
+                }
+            }, 3000)
+        }
+    }, [])
+
+    // Cleanup timeout on unmount or category change
+    useEffect(() => {
+        return () => {
+            if (pauseTimeoutRef.current) {
+                clearTimeout(pauseTimeoutRef.current)
+            }
+        }
+    }, [selectedCategory])
 
     return (
         <div className='w-full max-w-6xl mx-auto'>
@@ -276,6 +305,10 @@ export default function SuggestionPromptCard({
                         onSwiper={(swiper) => {
                             swiperRef.current = swiper
                         }}
+                        onTouchStart={handleUserInteraction}
+                        onTouchMove={handleUserInteraction}
+                        onMouseDown={handleUserInteraction}
+                        onSliderMove={handleUserInteraction}
                         modules={[Autoplay, FreeMode]}
                         spaceBetween={12}
                         slidesPerView='auto'

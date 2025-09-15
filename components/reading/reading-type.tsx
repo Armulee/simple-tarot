@@ -1,13 +1,11 @@
 "use client"
-import { Pencil } from "lucide-react"
-import { Button } from "../ui/button"
 import { Card } from "../ui/card"
 import { Badge } from "../ui/badge"
 import { useTarot } from "@/contexts/tarot-context"
 import { ReadingConfig } from "../../app/reading/page"
-import { useRouter } from "next/navigation"
-import { isFollowUpQuestion, getCleanQuestionText } from "@/lib/question-utils"
+import { isFollowUpQuestion } from "@/lib/question-utils"
 import { useEffect } from "react"
+import EditableQuestion from "./editable-question"
 
 export default function ReadingType({
     readingConfig,
@@ -18,15 +16,10 @@ export default function ReadingType({
         currentStep,
         setCurrentStep,
         question,
+        setQuestion,
         readingType,
         setReadingType,
     } = useTarot()
-    const router = useRouter()
-
-    const handleEditQuestion = () => {
-        // Navigate to homepage - the question is already in context
-        router.push("/")
-    }
 
     const handleReadingTypeSelect = (
         type: "simple" | "intermediate" | "advanced"
@@ -46,33 +39,10 @@ export default function ReadingType({
             {currentStep === "reading-type" && (
                 <div className='space-y-8 animate-fade-in'>
                     <Card className='px-6 pt-12 pb-6 border-0'>
-                        <div className='text-center space-y-2'>
-                            <div className='flex items-center justify-center gap-2 relative'>
-                                <h2 className='font-serif font-semibold text-xl relative'>
-                                    {isFollowUpQuestion(question) && (
-                                        <Badge
-                                            variant='secondary'
-                                            className='absolute -top-6 -left-8 -rotate-12 bg-primary/20 text-white border-white/30'
-                                        >
-                                            Follow up
-                                        </Badge>
-                                    )}
-                                    Question
-                                </h2>
-                                <Button
-                                    onClick={handleEditQuestion}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='h-8 w-8 p-0 hover:bg-primary/10'
-                                >
-                                    <Pencil className='h-4 w-4 text-muted-foreground hover:text-primary' />
-                                </Button>
-                            </div>
-
-                            <p className='text-muted-foreground italic'>
-                                &ldquo;{getCleanQuestionText(question)}&rdquo;
-                            </p>
-                        </div>
+                        <EditableQuestion
+                            question={question}
+                            onQuestionChange={setQuestion}
+                        />
                     </Card>
 
                     {isFollowUpQuestion(question) ? (
