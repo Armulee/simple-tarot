@@ -347,6 +347,45 @@
       "twitterDescription": "อ่านข้อกำหนดในการให้บริการของ Asking Fate และทำความเข้าใจสิทธิและหน้าที่ของคุณ"
     }
   }
+  ,
+  "Auth": {
+    "SignIn": {
+      "title": "ยินดีต้อนรับกลับ",
+      "subtitle": "ลงชื่อเข้าเพื่อเดินทางสู่จักรวาลต่อ",
+      "google": "ลงชื่อเข้าใช้ด้วย Google",
+      "emailLabel": "อีเมล",
+      "emailPlaceholder": "กรอกอีเมลของคุณ",
+      "passwordLabel": "รหัสผ่าน",
+      "passwordPlaceholder": "กรอกรหัสผ่านของคุณ",
+      "forgot": "ลืมรหัสผ่าน?",
+      "button": "ลงชื่อเข้าใช้",
+      "buttonLoading": "กำลังลงชื่อเข้าใช้...",
+      "signupPrompt": "ยังไม่มีบัญชีใน Asking Fate?",
+      "signupLink": "สร้างบัญชี"
+    },
+    "SignUp": {
+      "title": "เข้าร่วมจักรวาล",
+      "subtitle": "สร้างบัญชีของคุณและเริ่มต้นการเดินทางลี้ลับ",
+      "google": "สมัครด้วย Google",
+      "success": "สร้างบัญชีสำเร็จ! โปรดตรวจสอบอีเมลเพื่อยืนยันบัญชี กำลังพาไปยังหน้าลงชื่อเข้าใช้...",
+      "nameLabel": "ชื่อ-นามสกุล",
+      "namePlaceholder": "กรอกชื่อ-นามสกุล",
+      "emailLabel": "อีเมล",
+      "emailPlaceholder": "กรอกอีเมลของคุณ",
+      "passwordLabel": "รหัสผ่าน",
+      "passwordPlaceholder": "สร้างรหัสผ่าน",
+      "confirmPasswordLabel": "ยืนยันรหัสผ่าน",
+      "confirmPasswordPlaceholder": "ยืนยันรหัสผ่านของคุณ",
+      "agreePrefix": "ฉันยอมรับ",
+      "terms": "ข้อกำหนดในการให้บริการ",
+      "and": "และ",
+      "privacy": "นโยบายความเป็นส่วนตัว",
+      "button": "สร้างบัญชี",
+      "buttonLoading": "กำลังสร้างบัญชี...",
+      "signinPrompt": "มีบัญชีอยู่แล้ว?",
+      "signinLink": "ลงชื่อเข้าใช้"
+    }
+  }
 }
 
 

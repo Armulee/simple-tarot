@@ -13,8 +13,10 @@ import { Link } from "@/i18n/navigation"
 import { GoogleSignInButton } from "@/components/auth/google-signin-button"
 import { AuthDivider } from "@/components/auth/auth-divider"
 import { useAuth } from "@/hooks/use-auth"
+import { useTranslations } from "next-intl"
 
 export default function SignUpPage() {
+    const t = useTranslations("Auth.SignUp")
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -71,7 +73,7 @@ export default function SignUpPage() {
     }
 
     return (
-        <div className='w-full max-w-md space-y-8'>
+        <div className='w-full mx-auto max-w-md space-y-8'>
             {/* Header */}
             <div className='text-center space-y-4'>
                 <div className='w-16 h-16 mx-auto rounded-full bg-secondary/20 flex items-center justify-center float-animation'>
@@ -81,18 +83,11 @@ export default function SignUpPage() {
                 </div>
                 <div className='space-y-2'>
                     <h1 className='font-serif font-bold text-3xl text-balance'>
-                        Join the Cosmos
+                        {t("title")}
                     </h1>
-                    <p className='text-muted-foreground'>
-                        Create your account and begin your mystical journey
-                    </p>
+                    <p className='text-muted-foreground'>{t("subtitle")}</p>
                 </div>
             </div>
-
-            {/* Google Sign Up */}
-            <GoogleSignInButton>Sign up with Google</GoogleSignInButton>
-
-            <AuthDivider />
 
             {/* Sign Up Form */}
             <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20 card-glow'>
@@ -103,8 +98,7 @@ export default function SignUpPage() {
                 )}
                 {success && (
                     <div className='mb-4 p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md'>
-                        Account created successfully! Please check your email to
-                        verify your account. Redirecting to sign-in...
+                        {t("success")}
                     </div>
                 )}
                 <form onSubmit={handleSubmit} className='space-y-6'>
@@ -114,13 +108,13 @@ export default function SignUpPage() {
                                 htmlFor='name'
                                 className='text-sm font-medium'
                             >
-                                Full Name
+                                {t("nameLabel")}
                             </Label>
                             <div className='relative'>
                                 <Input
                                     id='name'
                                     type='text'
-                                    placeholder='Enter your full name'
+                                    placeholder={t("namePlaceholder")}
                                     value={formData.name}
                                     onChange={(e) =>
                                         updateFormData("name", e.target.value)
@@ -136,13 +130,13 @@ export default function SignUpPage() {
                                 htmlFor='email'
                                 className='text-sm font-medium'
                             >
-                                Email Address
+                                {t("emailLabel")}
                             </Label>
                             <div className='relative'>
                                 <Input
                                     id='email'
                                     type='email'
-                                    placeholder='Enter your email'
+                                    placeholder={t("emailPlaceholder")}
                                     value={formData.email}
                                     onChange={(e) =>
                                         updateFormData("email", e.target.value)
@@ -158,13 +152,13 @@ export default function SignUpPage() {
                                 htmlFor='password'
                                 className='text-sm font-medium'
                             >
-                                Password
+                                {t("passwordLabel")}
                             </Label>
                             <div className='relative'>
                                 <Input
                                     id='password'
                                     type='password'
-                                    placeholder='Create a password'
+                                    placeholder={t("passwordPlaceholder")}
                                     value={formData.password}
                                     onChange={(e) =>
                                         updateFormData(
@@ -183,13 +177,15 @@ export default function SignUpPage() {
                                 htmlFor='confirmPassword'
                                 className='text-sm font-medium'
                             >
-                                Confirm Password
+                                {t("confirmPasswordLabel")}
                             </Label>
                             <div className='relative'>
                                 <Input
                                     id='confirmPassword'
                                     type='password'
-                                    placeholder='Confirm your password'
+                                    placeholder={t(
+                                        "confirmPasswordPlaceholder"
+                                    )}
                                     value={formData.confirmPassword}
                                     onChange={(e) =>
                                         updateFormData(
@@ -204,7 +200,7 @@ export default function SignUpPage() {
                         </div>
                     </div>
 
-                    <div className='flex items-center space-x-2'>
+                    <div className='flex items-start space-x-2'>
                         <Checkbox
                             id='terms'
                             checked={formData.agreeToTerms}
@@ -214,26 +210,28 @@ export default function SignUpPage() {
                                     checked as boolean
                                 )
                             }
-                            className='border-border/30 data-[state=checked]:bg-secondary data-[state=checked]:border-secondary'
+                            className='mt-0.5 border-border data-[state=checked]:bg-secondary data-[state=checked]:border-secondary flex-shrink-0'
                         />
                         <Label
                             htmlFor='terms'
-                            className='text-sm text-muted-foreground'
+                            className='text-sm text-muted-foreground leading-relaxed'
                         >
-                            I agree to the{" "}
-                            <Link
-                                href='/terms'
-                                className='text-secondary hover:text-secondary/80 transition-colors'
-                            >
-                                Terms of Service
-                            </Link>{" "}
-                            and{" "}
-                            <Link
-                                href='/privacy'
-                                className='text-secondary hover:text-secondary/80 transition-colors'
-                            >
-                                Privacy Policy
-                            </Link>
+                            <span className='whitespace-nowrap'>
+                                {t("agreePrefix")}{" "}
+                                <Link
+                                    href='/terms-of-service'
+                                    className='text-secondary hover:text-secondary/80 transition-colors whitespace-normal'
+                                >
+                                    {t("terms")}
+                                </Link>{" "}
+                                {t("and")}{" "}
+                                <Link
+                                    href='/privacy-policy'
+                                    className='text-secondary hover:text-secondary/80 transition-colors whitespace-normal'
+                                >
+                                    {t("privacy")}
+                                </Link>
+                            </span>
                         </Label>
                     </div>
 
@@ -242,7 +240,7 @@ export default function SignUpPage() {
                         disabled={isLoading}
                         className='w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground py-6 text-lg card-glow'
                     >
-                        {isLoading ? "Creating Account..." : "Create Account"}
+                        {isLoading ? t("buttonLoading") : t("button")}
                     </Button>
                 </form>
             </Card>
@@ -250,12 +248,12 @@ export default function SignUpPage() {
             {/* Sign In Link */}
             <div className='text-center'>
                 <p className='text-muted-foreground'>
-                    Already have an account?{" "}
+                    {t("signinPrompt")}{" "}
                     <Link
                         href='/signin'
                         className='text-secondary hover:text-secondary/80 transition-colors font-medium'
                     >
-                        Sign in
+                        {t("signinLink")}
                     </Link>
                 </p>
             </div>

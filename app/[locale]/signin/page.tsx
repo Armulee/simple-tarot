@@ -12,8 +12,10 @@ import { Link } from "@/i18n/navigation"
 import { GoogleSignInButton } from "@/components/auth/google-signin-button"
 import { AuthDivider } from "@/components/auth/auth-divider"
 import { useAuth } from "@/hooks/use-auth"
+import { useTranslations } from "next-intl"
 
 export default function SignInPage() {
+    const t = useTranslations("Auth.SignIn")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [isLoading, setIsLoading] = useState(false)
@@ -53,16 +55,14 @@ export default function SignInPage() {
                 </div>
                 <div className='space-y-2'>
                     <h1 className='font-serif font-bold text-3xl text-balance'>
-                        Welcome Back
+                        {t("title")}
                     </h1>
-                    <p className='text-muted-foreground'>
-                        Sign in to continue your cosmic journey
-                    </p>
+                    <p className='text-muted-foreground'>{t("subtitle")}</p>
                 </div>
             </div>
 
             {/* Google Sign In */}
-            <GoogleSignInButton />
+            <GoogleSignInButton>{t("google")}</GoogleSignInButton>
 
             <AuthDivider />
 
@@ -80,13 +80,13 @@ export default function SignInPage() {
                                 htmlFor='email'
                                 className='text-sm font-medium'
                             >
-                                Email Address
+                                {t("emailLabel")}
                             </Label>
                             <div className='relative'>
                                 <Input
                                     id='email'
                                     type='email'
-                                    placeholder='Enter your email'
+                                    placeholder={t("emailPlaceholder")}
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 floating-input'
@@ -101,13 +101,13 @@ export default function SignInPage() {
                                 htmlFor='password'
                                 className='text-sm font-medium'
                             >
-                                Password
+                                {t("passwordLabel")}
                             </Label>
                             <div className='relative'>
                                 <Input
                                     id='password'
                                     type='password'
-                                    placeholder='Enter your password'
+                                    placeholder={t("passwordPlaceholder")}
                                     value={password}
                                     onChange={(e) =>
                                         setPassword(e.target.value)
@@ -125,7 +125,7 @@ export default function SignInPage() {
                             href='/forgot-password'
                             className='text-primary hover:text-primary/80 transition-colors'
                         >
-                            Forgot password?
+                            {t("forgot")}
                         </Link>
                     </div>
 
@@ -134,7 +134,7 @@ export default function SignInPage() {
                         disabled={isLoading}
                         className='w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-lg card-glow'
                     >
-                        {isLoading ? "Signing In..." : "Sign In"}
+                        {isLoading ? t("buttonLoading") : t("button")}
                     </Button>
                 </form>
             </Card>
@@ -142,12 +142,12 @@ export default function SignInPage() {
             {/* Sign Up Link */}
             <div className='text-center'>
                 <p className='text-muted-foreground'>
-                    New to ดูดวง.ai?{" "}
+                    {t("signupPrompt")}{" "}
                     <Link
                         href='/signup'
                         className='text-primary hover:text-primary/80 transition-colors font-medium'
                     >
-                        Create an account
+                        {t("signupLink")}
                     </Link>
                 </p>
             </div>

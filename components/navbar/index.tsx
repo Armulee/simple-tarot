@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import { SidebarSheet } from "./sidebar-sheet"
 import { UserProfile } from "@/components/user-profile"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/use-auth"
 import {
     Sheet,
@@ -41,6 +42,14 @@ export function Navbar({ locale }: { locale: string }) {
     const pathname = usePathname()
     const [mysticalOpen, setMysticalOpen] = useState(false)
     const { user, loading } = useAuth()
+    const meta = (user?.user_metadata ?? {}) as {
+        avatar_url?: string
+        picture?: string
+        name?: string
+    }
+    const avatarSrc = meta.avatar_url || meta.picture || undefined
+    const displayName = meta.name || user?.email?.split("@")[0] || "User"
+    const initial = displayName.charAt(0).toUpperCase()
 
     return (
         <nav className='fixed top-0 left-0 right-0 z-50 bg-card/5 backdrop-blur-sm border-b border-border/20'>
@@ -48,7 +57,7 @@ export function Navbar({ locale }: { locale: string }) {
                 <div className='flex justify-between items-center h-16'>
                     {/* Left: Mobile menu button / Desktop brand */}
                     <div className='flex items-center'>
-                        {/* Mobile: menu button */}
+                        {/* Mobile: menu button or user avatar */}
                         <Button
                             variant='ghost'
                             size='icon'
@@ -56,7 +65,19 @@ export function Navbar({ locale }: { locale: string }) {
                             onClick={() => setOpen(true)}
                             aria-label='Open menu'
                         >
-                            <Menu className='h-6 w-6' />
+                            {!loading && user ? (
+                                <Avatar className='w-8 h-8'>
+                                    <AvatarImage
+                                        src={avatarSrc}
+                                        alt={displayName}
+                                    />
+                                    <AvatarFallback className='bg-primary/20 text-primary font-semibold text-sm'>
+                                        {initial}
+                                    </AvatarFallback>
+                                </Avatar>
+                            ) : (
+                                <Menu className='h-6 w-6' />
+                            )}
                         </Button>
 
                         {/* Desktop: brand */}
@@ -204,6 +225,20 @@ export function Navbar({ locale }: { locale: string }) {
                                 </Link>
                             )}
                         </div>
+
+                        {/* Mobile: Sign-in icon button (hidden when logged in) */}
+                        {!loading && !user && (
+                            <Link href='/signin' className='md:hidden'>
+                                <Button
+                                    variant='outline'
+                                    size='icon'
+                                    className='text-white border-white/30 hover:bg-white/10 rounded-full'
+                                    aria-label='Sign in'
+                                >
+                                    <LogIn className='w-4 h-4' />
+                                </Button>
+                            </Link>
+                        )}
                     </div>
                 </div>
             </div>

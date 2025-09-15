@@ -347,6 +347,45 @@
       "twitterDescription": "Read the terms of service for Asking Fate's AI-powered tarot reading platform and understand your rights and responsibilities."
     }
   }
+  ,
+  "Auth": {
+    "SignIn": {
+      "title": "Welcome Back",
+      "subtitle": "Sign in to continue your cosmic journey",
+      "google": "Sign in with Google",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "Enter your email",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "forgot": "Forgot password?",
+      "button": "Sign In",
+      "buttonLoading": "Signing In...",
+      "signupPrompt": "New to Asking Fate?",
+      "signupLink": "Create an account"
+    },
+    "SignUp": {
+      "title": "Join the Cosmos",
+      "subtitle": "Create your account and begin your mystical journey",
+      "google": "Sign up with Google",
+      "success": "Account created successfully! Please check your email to verify your account. Redirecting to sign-in...",
+      "nameLabel": "Full Name",
+      "namePlaceholder": "Enter your full name",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "Enter your email",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Create a password",
+      "confirmPasswordLabel": "Confirm Password",
+      "confirmPasswordPlaceholder": "Confirm your password",
+      "agreePrefix": "I agree to the",
+      "terms": "Terms of Service",
+      "and": "and",
+      "privacy": "Privacy Policy",
+      "button": "Create Account",
+      "buttonLoading": "Creating Account...",
+      "signinPrompt": "Already have an account?",
+      "signinLink": "Sign in"
+    }
+  }
 }
 
 

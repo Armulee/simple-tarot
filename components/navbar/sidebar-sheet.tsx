@@ -9,6 +9,8 @@ import {
     ChevronUp,
     Sparkles,
     LogIn,
+    ShieldCheck,
+    FileText,
 } from "lucide-react"
 import { useState } from "react"
 import {
@@ -30,6 +32,9 @@ interface SidebarSheetProps {
 export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
     const { user, loading } = useAuth()
     const [mysticalOpen, setMysticalOpen] = useState(true)
+    const t = useTranslations("Sidebar")
+    const s = useTranslations("Services")
+    const a = useTranslations("Auth.SignIn")
 
     const getUserInitials = () => {
         const name =
@@ -44,11 +49,6 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
     const getUserAvatar = () => {
         return user?.user_metadata?.avatar_url || ""
     }
-
-    const sidebarLinks = [
-        { href: "/", label: "Home", Icon: Home },
-        { href: "/about", label: "About", Icon: Info },
-    ] as const
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
@@ -109,23 +109,31 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                     onClick={() => onOpenChange(false)}
                                 >
                                     <LogIn className='w-4 h-4' />
-                                    <span>Sign In</span>
+                                    <span>{a("button")}</span>
                                 </Link>
                             )}
                         </li>
 
-                        {sidebarLinks.map(({ href, label, Icon }) => (
-                            <li key={href}>
-                                <Link
-                                    href={href}
-                                    className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
-                                    onClick={() => onOpenChange(false)}
-                                >
-                                    <Icon className='w-4 h-4' />
-                                    <span>{label}</span>
-                                </Link>
-                            </li>
-                        ))}
+                        <li>
+                            <Link
+                                href={"/"}
+                                className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
+                                onClick={() => onOpenChange(false)}
+                            >
+                                <Home className='w-4 h-4' />
+                                <span>{t("home")}</span>
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                href={"/about"}
+                                className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
+                                onClick={() => onOpenChange(false)}
+                            >
+                                <Info className='w-4 h-4' />
+                                <span>{t("about")}</span>
+                            </Link>
+                        </li>
 
                         {/* Active Service Dropdown */}
                         <li>
@@ -134,7 +142,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                 className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors w-full'
                             >
                                 <Sparkles className='w-4 h-4' />
-                                <span>Services</span>
+                                <span>{t("services")}</span>
                                 {mysticalOpen ? (
                                     <ChevronUp className='w-4 h-4 ml-auto' />
                                 ) : (
@@ -144,12 +152,12 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                             {mysticalOpen && (
                                 <ul className='ml-4 mt-1 space-y-1'>
                                     {mysticalServices.map(
-                                        ({ href, label, Icon, available }) => (
-                                            <li key={label}>
+                                        ({ id, href, Icon, available }) => (
+                                            <li key={id}>
                                                 {available ? (
                                                     <Link
                                                         href={
-                                                            label === "Tarot"
+                                                            id === "tarot"
                                                                 ? "/"
                                                                 : href
                                                         }
@@ -159,14 +167,14 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                         }
                                                     >
                                                         <Icon className='w-4 h-4' />
-                                                        <span>{label}</span>
+                                                        <span>{s(id)}</span>
                                                     </Link>
                                                 ) : (
                                                     <div className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light/50 cursor-not-allowed opacity-60'>
                                                         <Icon className='w-4 h-4' />
-                                                        <span>{label}</span>
+                                                        <span>{s(id)}</span>
                                                         <span className='ml-auto text-xs bg-white/10 px-2 py-1 rounded-full'>
-                                                            Coming Soon
+                                                            {t("comingSoon")}
                                                         </span>
                                                     </div>
                                                 )}
@@ -175,6 +183,27 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                     )}
                                 </ul>
                             )}
+                        </li>
+
+                        <li>
+                            <Link
+                                href={"/privacy-policy"}
+                                className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
+                                onClick={() => onOpenChange(false)}
+                            >
+                                <ShieldCheck className='w-4 h-4' />
+                                <span>{t("privacyPolicy")}</span>
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                href={"/terms-of-service"}
+                                className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
+                                onClick={() => onOpenChange(false)}
+                            >
+                                <FileText className='w-4 h-4' />
+                                <span>{t("termsOfService")}</span>
+                            </Link>
                         </li>
                     </ul>
                 </nav>
