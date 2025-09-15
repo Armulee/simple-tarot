@@ -6,7 +6,14 @@ import { usePathname, useRouter } from "@/i18n/navigation"
 import { routing } from "@/i18n/routing"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
-import { Menu, ChevronDown, BookOpen, LogIn, Sparkles } from "lucide-react"
+import {
+    Menu,
+    ChevronDown,
+    BookOpen,
+    LogIn,
+    Sparkles,
+    Check,
+} from "lucide-react"
 import { SidebarSheet } from "./sidebar-sheet"
 import { UserProfile } from "@/components/user-profile"
 import { useAuth } from "@/hooks/use-auth"
@@ -17,10 +24,18 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../ui/dropdown-menu"
 import mysticalServices from "./mystical-services"
+import { useTranslations as useSidebarTranslations } from "next-intl"
 
 export function Navbar({ locale }: { locale: string }) {
     const t = useTranslations("Navbar")
+    const s = useSidebarTranslations("Services")
     const [open, setOpen] = useState(false)
     const router = useRouter()
     const pathname = usePathname()
@@ -55,24 +70,24 @@ export function Navbar({ locale }: { locale: string }) {
                                 </span>
                             </div>
                             <span className='font-playfair text-xl font-bold text-white group-hover:text-cosmic-purple transition-colors'>
-                                Asking Fate
+                                {t("brand")}
                             </span>
                         </Link>
                     </div>
 
-                    {/* Right side: User Profile / Sign In button and Active Service Sheet */}
-                    <div className='flex items-center space-x-6'>
+                    {/* Right side: Navigation links, Language dropdown, and Auth */}
+                    <div className='flex items-center space-x-3'>
                         <Link
                             href='/'
-                            className='text-cosmic-light hover:text-white transition-colors'
+                            className='hidden md:block text-cosmic-light hover:text-white transition-colors'
                         >
-                            Home
+                            {t("home")}
                         </Link>
                         <Link
                             href='/about'
-                            className='text-cosmic-light hover:text-white transition-colors'
+                            className='hidden md:block text-cosmic-light hover:text-white transition-colors'
                         >
-                            About
+                            {t("about")}
                         </Link>
                         <Sheet
                             open={mysticalOpen}
@@ -84,7 +99,7 @@ export function Navbar({ locale }: { locale: string }) {
                                     className='inline-flex items-center space-x-2 text-white hover:bg-white/10 px-4 py-2 rounded-md transition-colors'
                                 >
                                     <Sparkles className='h-4 w-4' />
-                                    <span>Tarot</span>
+                                    <span>{s("tarot")}</span>
                                     <ChevronDown className='h-4 w-4' />
                                 </Button>
                             </SheetTrigger>
@@ -95,17 +110,17 @@ export function Navbar({ locale }: { locale: string }) {
                                 <SheetHeader>
                                     <SheetTitle className='flex items-center space-x-2 text-white'>
                                         <BookOpen className='h-5 w-5' />
-                                        <span>Tarot</span>
+                                        <span>{s("tarot")}</span>
                                     </SheetTitle>
                                 </SheetHeader>
                                 <div className='mt-8 space-y-2'>
                                     {mysticalServices.map(
-                                        ({ href, label, Icon, available }) => (
-                                            <div key={label}>
+                                        ({ id, href, Icon, available }) => (
+                                            <div key={id}>
                                                 {available ? (
                                                     <Link
                                                         href={
-                                                            label === "Tarot"
+                                                            id === "tarot"
                                                                 ? "/"
                                                                 : href
                                                         }
@@ -118,14 +133,14 @@ export function Navbar({ locale }: { locale: string }) {
                                                     >
                                                         <Icon className='h-5 w-5 text-primary' />
                                                         <span className='font-medium'>
-                                                            {label}
+                                                            {s(id)}
                                                         </span>
                                                     </Link>
                                                 ) : (
                                                     <div className='flex items-center space-x-3 px-4 py-3 rounded-lg text-white/50 cursor-not-allowed opacity-60'>
                                                         <Icon className='h-5 w-5' />
                                                         <span className='font-medium'>
-                                                            {label}
+                                                            {s(id)}
                                                         </span>
                                                         <span className='ml-auto text-xs bg-white/10 px-2 py-1 rounded-full'>
                                                             Coming Soon
@@ -138,6 +153,40 @@ export function Navbar({ locale }: { locale: string }) {
                                 </div>
                             </SheetContent>
                         </Sheet>
+
+                        {/* Language Dropdown */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant='outline'
+                                    size='sm'
+                                    className='text-white border-white/30 hover:bg-white/10'
+                                    aria-label='Change language'
+                                >
+                                    {locale.toUpperCase()}{" "}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className='w-24 bg-card/95 backdrop-blur-md border-border/30'>
+                                {routing.locales.map((loc) => (
+                                    <DropdownMenuItem
+                                        key={loc}
+                                        onClick={() =>
+                                            router.replace(pathname, {
+                                                locale: loc,
+                                            })
+                                        }
+                                        className='cursor-pointer'
+                                    >
+                                        <span className='flex-grow'>
+                                            {loc.toUpperCase()}
+                                        </span>
+                                        {locale === loc && (
+                                            <Check className='ml-2 h-4 w-4' />
+                                        )}
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
 
                         {/* Desktop only: User Profile / Sign In button */}
                         <div className='hidden md:block'>
