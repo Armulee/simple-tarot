@@ -6,6 +6,8 @@ import {
     useEffect,
     useState,
     type ReactNode,
+    type Dispatch,
+    type SetStateAction,
 } from "react"
 import { usePathname } from "next/navigation"
 
@@ -21,8 +23,8 @@ export interface TarotCard {
 
 export interface TarotContextType {
     // Question state
-    question: string
-    setQuestion: (question: string) => void
+    question: string | null
+    setQuestion: Dispatch<SetStateAction<string | null>>
 
     // Reading type state
     readingType: ReadingType | null
@@ -50,6 +52,12 @@ export interface TarotContextType {
     interpretation: string | null
     setInterpretation: (interpretation: string | null) => void
 
+    // Follow-up state
+    isFollowUp: boolean
+    followUpQuestion: string | null
+    setIsFollowUp: (value: boolean) => void
+    setFollowUpQuestion: (value: string | null) => void
+
     // Reset function
     resetReading: () => void
 
@@ -60,13 +68,17 @@ export interface TarotContextType {
 const TarotContext = createContext<TarotContextType | undefined>(undefined)
 
 export function TarotProvider({ children }: { children: ReactNode }) {
-    const [question, setQuestion] = useState("")
+    const [question, setQuestion] = useState<string | null>(null)
     const [readingType, setReadingType] = useState<ReadingType | null>(null)
     const [selectedCards, setSelectedCards] = useState<TarotCard[]>([])
     const [currentStep, setCurrentStep] = useState<
         "reading-type" | "card-selection" | "ad-viewing" | "interpretation"
     >("reading-type")
     const [interpretation, setInterpretation] = useState<string | null>(null)
+    const [isFollowUp, setIsFollowUp] = useState(false)
+    const [followUpQuestion, setFollowUpQuestion] = useState<string | null>(
+        null
+    )
     const [isClearing, setIsClearing] = useState(false)
     const pathname = usePathname()
 
@@ -78,6 +90,8 @@ export function TarotProvider({ children }: { children: ReactNode }) {
         setSelectedCards([])
         setCurrentStep("reading-type")
         setInterpretation(null)
+        setIsFollowUp(false)
+        setFollowUpQuestion(null)
     }
 
     const clearReadingStorage = () => {
@@ -95,38 +109,48 @@ export function TarotProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    // Restore reading state when entering /reading
+    // Restore reading state when entering /reading (supports locale prefixes)
     useEffect(() => {
         if (typeof window === "undefined") return
-        if (!pathname || !pathname.startsWith("/reading")) return
+        if (!pathname || !pathname.includes("/reading")) return
         try {
             const raw = localStorage.getItem(STORAGE_KEY)
-            if (!raw) return
-            const data = JSON.parse(raw) as {
-                question?: string
-                readingType?: ReadingType | null
-                selectedCards?: TarotCard[]
-                currentStep?: TarotContextType["currentStep"]
-                interpretation?: string | null
+            if (raw) {
+                const data = JSON.parse(raw) as {
+                    question?: string
+                    readingType?: ReadingType | null
+                    selectedCards?: TarotCard[]
+                    currentStep?: TarotContextType["currentStep"]
+                    interpretation?: string | null
+                    isFollowUp?: boolean
+                    followUpQuestion?: string | null
+                }
+                if (data.question !== undefined) setQuestion(data.question)
+                if (data.readingType !== undefined)
+                    setReadingType(data.readingType ?? null)
+                if (Array.isArray(data.selectedCards))
+                    setSelectedCards(data.selectedCards)
+                if (data.currentStep) setCurrentStep(data.currentStep)
+                if (data.interpretation !== undefined)
+                    setInterpretation(data.interpretation ?? null)
+                if (data.isFollowUp !== undefined)
+                    setIsFollowUp(!!data.isFollowUp)
+                if (data.followUpQuestion !== undefined)
+                    setFollowUpQuestion(data.followUpQuestion ?? null)
             }
-            if (data.question !== undefined) setQuestion(data.question)
-            if (data.readingType !== undefined)
-                setReadingType(data.readingType ?? null)
-            if (Array.isArray(data.selectedCards))
-                setSelectedCards(data.selectedCards)
-            if (data.currentStep) setCurrentStep(data.currentStep)
-            if (data.interpretation !== undefined)
-                setInterpretation(data.interpretation ?? null)
         } catch {
             // ignore corrupt storage
         }
+        // If nothing was restored, explicitly mark as empty to allow guard to decide
+        setQuestion((prev) => (prev === null ? "" : prev))
     }, [pathname])
 
-    // Persist reading state while on /reading
+    // Persist reading state while on /reading (supports locale prefixes)
     useEffect(() => {
         if (typeof window === "undefined") return
-        if (!pathname || !pathname.startsWith("/reading")) return
+        if (!pathname || !pathname.includes("/reading")) return
         if (isClearing) return // Don't save during clearing process
+        if (question === null) return // Skip until hydration completes
         try {
             const payload = JSON.stringify({
                 question,
@@ -134,6 +158,8 @@ export function TarotProvider({ children }: { children: ReactNode }) {
                 selectedCards,
                 currentStep,
                 interpretation,
+                isFollowUp,
+                followUpQuestion,
             })
             localStorage.setItem(STORAGE_KEY, payload)
         } catch {
@@ -145,6 +171,8 @@ export function TarotProvider({ children }: { children: ReactNode }) {
         selectedCards,
         currentStep,
         interpretation,
+        isFollowUp,
+        followUpQuestion,
         pathname,
         isClearing,
     ])
@@ -165,6 +193,10 @@ export function TarotProvider({ children }: { children: ReactNode }) {
                 setCurrentStep,
                 interpretation,
                 setInterpretation,
+                isFollowUp,
+                followUpQuestion,
+                setIsFollowUp,
+                setFollowUpQuestion,
                 resetReading,
                 clearReadingStorage,
             }}

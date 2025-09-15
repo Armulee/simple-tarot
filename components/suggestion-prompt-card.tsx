@@ -23,6 +23,7 @@ import {
     ChevronUp,
 } from "lucide-react"
 import type { Swiper as SwiperType } from "swiper"
+import { useTranslations } from "next-intl"
 
 // Import Swiper styles
 import "swiper/css"
@@ -35,7 +36,7 @@ interface SuggestionPromptCardProps {
 
 interface Category {
     id: string
-    name: string
+    // name: string
     icon: React.ReactNode
     color: string
     bgColor: string
@@ -47,7 +48,6 @@ interface Category {
 const categories: Category[] = [
     {
         id: "daily-life",
-        name: "Daily Life",
         icon: <Star className='w-4 h-4 text-amber-400' />,
         color: "text-amber-400",
         bgColor: "bg-amber-500/20",
@@ -66,7 +66,6 @@ const categories: Category[] = [
     },
     {
         id: "work-career",
-        name: "Work & Career",
         icon: <Briefcase className='w-4 h-4 text-blue-400' />,
         color: "text-blue-400",
         bgColor: "bg-blue-500/20",
@@ -85,7 +84,6 @@ const categories: Category[] = [
     },
     {
         id: "financial",
-        name: "Financial",
         icon: <DollarSign className='w-4 h-4 text-green-400' />,
         color: "text-green-400",
         bgColor: "bg-green-500/20",
@@ -104,7 +102,6 @@ const categories: Category[] = [
     },
     {
         id: "love-romance",
-        name: "Love & Romance",
         icon: <Heart className='w-4 h-4 text-pink-400' />,
         color: "text-pink-400",
         bgColor: "bg-pink-500/20",
@@ -123,7 +120,6 @@ const categories: Category[] = [
     },
     {
         id: "family",
-        name: "Family",
         icon: <Home className='w-4 h-4 text-orange-400' />,
         color: "text-orange-400",
         bgColor: "bg-orange-500/20",
@@ -142,7 +138,6 @@ const categories: Category[] = [
     },
     {
         id: "friendship-relationships",
-        name: "Friendship & Relationships",
         icon: <Users className='w-4 h-4 text-purple-400' />,
         color: "text-purple-400",
         bgColor: "bg-purple-500/20",
@@ -161,7 +156,6 @@ const categories: Category[] = [
     },
     {
         id: "personal-growth",
-        name: "Personal Growth",
         icon: <Brain className='w-4 h-4 text-indigo-400' />,
         color: "text-indigo-400",
         bgColor: "bg-indigo-500/20",
@@ -183,6 +177,8 @@ const categories: Category[] = [
 export default function SuggestionPromptCard({
     onSuggestionClick,
 }: SuggestionPromptCardProps) {
+    const t = useTranslations("Prompts")
+
     const swiperRef = useRef<SwiperType | null>(null)
     const [selectedCategory, setSelectedCategory] = useState<Category>(
         categories[0]
@@ -201,7 +197,7 @@ export default function SuggestionPromptCard({
                     <div className='flex items-center gap-2 flex-shrink-0'>
                         <Sparkles className='w-4 h-4 text-secondary' />
                         <h3 className='text-sm font-medium text-white/70 whitespace-nowrap'>
-                            An inspiring prompts
+                            {t("title")}
                         </h3>
                     </div>
                     <Select
@@ -233,11 +229,15 @@ export default function SuggestionPromptCard({
                                         <>
                                             {selectedCategory.icon}
                                             <span className='truncate'>
-                                                {selectedCategory.name}
+                                                {t(
+                                                    `categories.${selectedCategory.id}.name`
+                                                )}
                                             </span>
                                         </>
                                     ) : (
-                                        <span className='truncate'>Show</span>
+                                        <span className='truncate'>
+                                            {t("show")}
+                                        </span>
                                     )}
                                 </div>
                             </SelectValue>
@@ -249,7 +249,7 @@ export default function SuggestionPromptCard({
                             >
                                 <div className='flex items-center gap-2'>
                                     <ChevronUp className='w-4 h-4' />
-                                    Hide
+                                    {t("hide")}
                                 </div>
                             </SelectItem>
                             {categories.map((category) => (
@@ -260,7 +260,7 @@ export default function SuggestionPromptCard({
                                 >
                                     <div className='flex items-center gap-2'>
                                         {category.icon}
-                                        {category.name}
+                                        {t(`categories.${category.id}.name`)}
                                     </div>
                                 </SelectItem>
                             ))}
@@ -307,7 +307,9 @@ export default function SuggestionPromptCard({
                                     }
                                     className={`cursor-pointer px-4 py-2 text-xs font-medium bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 backdrop-blur-sm transition-all duration-300 whitespace-nowrap ${selectedCategory.borderColor} hover:${selectedCategory.color} hover:bg-gradient-to-r hover:from-indigo-500/30 hover:via-purple-500/30 hover:to-cyan-500/30 hover:${selectedCategory.borderColor} shadow-[0_4px_15px_-5px_rgba(56,189,248,0.25)] hover:shadow-[0_8px_25px_-8px_rgba(56,189,248,0.35)]`}
                                 >
-                                    {question}
+                                    {t(
+                                        `categories.${selectedCategory.id}.questions.${index}`
+                                    )}
                                 </Badge>
                             </SwiperSlide>
                         ))}

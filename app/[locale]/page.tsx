@@ -4,30 +4,33 @@ import HomeQuestionWrapper from "@/components/home-question-wrapper"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Suspense } from "react"
+import { useTranslations } from "next-intl"
+import { getTranslations } from "next-intl/server"
 
-export const metadata: Metadata = {
-    title: "AI Tarot Reading - Ask Questions About Your Destiny | Asking Fate",
-    description:
-        "Get free AI-powered tarot card readings and spiritual guidance. Ask any question about your destiny and receive personalized insights from our advanced AI tarot system.",
-    keywords:
-        "AI tarot reading, free tarot cards, spiritual guidance, destiny questions, tarot card interpretation, AI-powered divination",
-    openGraph: {
-        title: "AI Tarot Reading - Ask Questions About Your Destiny",
-        description:
-            "Get free AI-powered tarot card readings and spiritual guidance. Ask any question about your destiny.",
-        type: "website",
-        url: "https://askingfate.com",
-        siteName: "Asking Fate",
-    },
-    twitter: {
-        card: "summary_large_image",
-        title: "AI Tarot Reading - Ask Questions About Your Destiny",
-        description:
-            "Get free AI-powered tarot card readings and spiritual guidance. Ask any question about your destiny.",
-    },
+export async function generateMetadata(): Promise<Metadata> {
+    const t = await getTranslations("Meta.Home")
+    const s = await getTranslations("Meta.Site")
+    return {
+        title: t("title"),
+        description: t("description"),
+        keywords: t("keywords"),
+        openGraph: {
+            title: t("ogTitle"),
+            description: t("ogDescription"),
+            type: "website",
+            url: s("url"),
+            siteName: s("siteName"),
+        },
+        twitter: {
+            card: "summary_large_image",
+            title: t("twitterTitle"),
+            description: t("twitterDescription"),
+        },
+    }
 }
 
 export default function HomePage() {
+    const t = useTranslations("Home")
     return (
         <section className='relative z-10 flex flex-col items-center justify-center h-[calc(100vh-180px)] px-6 text-center'>
             <div className='max-w-4xl w-full mx-auto space-y-8'>
@@ -35,15 +38,15 @@ export default function HomePage() {
                 <div className='space-y-4'>
                     <h1 className='font-serif font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-balance h-20 sm:h-24 md:h-28 lg:h-32'>
                         <TypewriterText
-                            text='Ask me anything'
+                            text={t("hero.line1")}
                             speed={60}
                             className='text-white'
                         />
                         <br />
                         <TypewriterText
-                            text='about your destiny'
+                            text={t("hero.line2")}
                             speed={60}
-                            delay={60 * "Ask me anything".length}
+                            delay={60 * t("hero.line1").length}
                             className='text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'
                         />
                     </h1>
@@ -63,7 +66,7 @@ export default function HomePage() {
                         size='lg'
                         className='border-border/30 hover:bg-card/20 backdrop-blur-sm px-8 py-6 text-lg bg-transparent'
                     >
-                        <Link href='/about'>Learn More</Link>
+                        <Link href='/about'>{t("learnMore")}</Link>
                     </Button>
                 </div>
             </div>

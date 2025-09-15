@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { useTarot } from "@/contexts/tarot-context"
 import AutoHeightTextarea from "./ui/auto-height-textarea"
+import { useTranslations } from "next-intl"
 
 export default function QuestionInput({
     id = "question-input",
@@ -24,6 +25,7 @@ export default function QuestionInput({
     onChange?: (value: string) => void
     followUp?: boolean
 }) {
+    const t = useTranslations("QuestionInput")
     const pathname = usePathname()
     const [internalQuestion, setInternalQuestion] = useState("")
     const [isSmallDevice, setIsSmallDevice] = useState(false)
@@ -34,6 +36,8 @@ export default function QuestionInput({
         setReadingType,
         setSelectedCards,
         setInterpretation,
+        setIsFollowUp,
+        setFollowUpQuestion,
         question: lastQuestion,
         selectedCards: lastCards,
         interpretation: lastInterpretation,
@@ -56,7 +60,25 @@ export default function QuestionInput({
 
                 // Set new question and navigate
                 setContextQuestion(currentValue)
+                setIsFollowUp(false)
+                setFollowUpQuestion(null)
                 setCurrentStep("reading-type")
+
+                // Persist immediately so /reading can restore after navigation/reload
+                try {
+                    const payload = JSON.stringify({
+                        question: currentValue,
+                        readingType: null,
+                        selectedCards: [],
+                        currentStep: "reading-type",
+                        interpretation: null,
+                        isFollowUp: false,
+                        followUpQuestion: null,
+                    })
+                    localStorage.setItem("reading-state-v1", payload)
+                } catch {
+                    // ignore
+                }
                 if (pathname !== "/reading") {
                     router.push("/reading")
                 }
@@ -64,7 +86,7 @@ export default function QuestionInput({
         }
     }
 
-    const handleFollowUpQuestion = (followUpQuestion: string) => {
+    const handleFollowUpQuestion = (fuQuestion: string) => {
         // Backup current reading data for follow-up context
         try {
             const backupData = {
@@ -84,12 +106,29 @@ export default function QuestionInput({
         // DON'T clear localStorage - preserve the reading state
         // The reading state will be updated with the new follow-up data
 
-        // Set up for follow-up reading
-        setContextQuestion(`[Follow up question]: ${followUpQuestion}`)
+        // Set up for follow-up reading without mutating the main question
+        setIsFollowUp(true)
+        setFollowUpQuestion(fuQuestion)
         setReadingType("simple") // Set to simple (single card) reading
         setSelectedCards([]) // Clear previous cards
         setInterpretation(null) // Clear previous interpretation
         setCurrentStep("card-selection") // Go to card selection
+
+        // Persist follow-up state immediately
+        try {
+            const payload = JSON.stringify({
+                question: lastQuestion,
+                readingType: "simple",
+                selectedCards: [],
+                currentStep: "card-selection",
+                interpretation: null,
+                isFollowUp: true,
+                followUpQuestion: fuQuestion,
+            })
+            localStorage.setItem("reading-state-v1", payload)
+        } catch {
+            // ignore
+        }
     }
 
     // Detect small devices
@@ -131,20 +170,12 @@ export default function QuestionInput({
                 <AutoHeightTextarea
                     id={id}
                     name={id}
-                    // rows={currentRows}
-                    placeholder={placeholder}
+                    placeholder={placeholder || t("placeholder")}
                     className='relative z-10 w-full pl-4 pr-15 py-2 text-white placeholder:text-white/70 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 focus:border-primary/60 focus:ring-2 focus:ring-primary/40 rounded-2xl resize-y shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] resize-none'
                     onChange={(e) => setQuestion(e.target.value)}
                     value={question}
                     defaultValue={defaultValue}
                     onKeyDown={handleKeyDown}
-                    // style={{
-                    //     minHeight: `${currentRows * 1.5}rem`,
-                    //     height: `${currentRows * 1.5}rem`,
-                    //     maxHeight: currentRows >= 5 ? "120px" : "auto",
-                    //     overflowY: currentRows >= 5 ? "auto" : "hidden",
-                    //     lineHeight: "1.5rem",
-                    // }}
                 />
                 <Button
                     onClick={handleStartReading}

@@ -18,6 +18,7 @@ import {
     SheetTitle,
 } from "@/components/ui/sheet"
 import mysticalServices from "./mystical-services"
+import { useTranslations } from "next-intl"
 
 interface SidebarSheetProps {
     open: boolean
@@ -25,6 +26,8 @@ interface SidebarSheetProps {
 }
 
 export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
+    const t = useTranslations("Sidebar")
+    const s = useTranslations("Services")
     const [mysticalOpen, setMysticalOpen] = useState(true)
 
     return (
@@ -60,7 +63,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                 onClick={() => onOpenChange(false)}
                             >
                                 <Home className='w-4 h-4' />
-                                <span>Home</span>
+                                <span>{t("home")}</span>
                             </Link>
                         </li>
                         <li>
@@ -70,7 +73,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                 onClick={() => onOpenChange(false)}
                             >
                                 <Info className='w-4 h-4' />
-                                <span>About</span>
+                                <span>{t("about")}</span>
                             </Link>
                         </li>
 
@@ -81,7 +84,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                 className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors w-full'
                             >
                                 <Sparkles className='w-4 h-4' />
-                                <span>Services</span>
+                                <span>{t("services")}</span>
                                 {mysticalOpen ? (
                                     <ChevronUp className='w-4 h-4 ml-auto' />
                                 ) : (
@@ -91,7 +94,13 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                             {mysticalOpen && (
                                 <ul className='ml-4 mt-1 space-y-1'>
                                     {mysticalServices.map(
-                                        ({ href, label, Icon, available }) => (
+                                        ({
+                                            href,
+                                            label,
+                                            Icon,
+                                            available,
+                                            id,
+                                        }) => (
                                             <li key={label}>
                                                 {available ? (
                                                     <Link
@@ -106,14 +115,14 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                         }
                                                     >
                                                         <Icon className='w-4 h-4' />
-                                                        <span>{label}</span>
+                                                        <span>{s(id)}</span>
                                                     </Link>
                                                 ) : (
                                                     <div className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light/50 cursor-not-allowed opacity-60'>
                                                         <Icon className='w-4 h-4' />
-                                                        <span>{label}</span>
+                                                        <span>{s(id)}</span>
                                                         <span className='ml-auto text-xs bg-white/10 px-2 py-1 rounded-full'>
-                                                            Coming Soon
+                                                            {t("comingSoon")}
                                                         </span>
                                                     </div>
                                                 )}
@@ -131,7 +140,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                 onClick={() => onOpenChange(false)}
                             >
                                 <Shield className='w-4 h-4' />
-                                <span>Privacy Policy</span>
+                                <span>{t("privacyPolicy")}</span>
                             </Link>
                         </li>
                         <li>
@@ -141,7 +150,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                 onClick={() => onOpenChange(false)}
                             >
                                 <FileText className='w-4 h-4' />
-                                <span>Terms of Service</span>
+                                <span>{t("termsOfService")}</span>
                             </Link>
                         </li>
                     </ul>

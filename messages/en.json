@@ -1,0 +1,352 @@
+{
+  "Navbar": {
+    "brand": "Asking Fate",
+    "home": "Home",
+    "about": "About"
+  },
+
+  "Sidebar": {
+    "services": "Services",
+    "comingSoon": "Coming Soon",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "home": "Home",
+    "about": "About"
+  },
+
+  "Services": {
+    "tarot": "Tarot",
+    "astrology": "Astrology",
+    "namelogy": "Namelogy",
+    "numerology": "Numerology",
+    "luckyColors": "Lucky Colors"
+  },
+
+  "Home": {
+    "hero": {
+      "line1": "Ask me anything",
+      "line2": "about your destiny"
+    },
+    "learnMore": "Learn More"
+  },
+
+  "QuestionInput": {
+    "label": "Your question",
+    "placeholder": "Type your question..."
+  },
+
+  "Prompts": {
+    "title": "An inspiring prompts",
+    "show": "Show",
+    "hide": "Hide",
+    "selectCategory": "Select a category",
+    "categories": {
+      "daily-life": {
+        "name": "Daily Life",
+        "questions": [
+          "How can I find more balance in my life?",
+          "What do I need to let go of?",
+          "How can I make better decisions?",
+          "What is the universe trying to tell me?",
+          "What should I focus on today?",
+          "How can I improve my daily routine?",
+          "What habits should I change?",
+          "How can I be more mindful?"
+        ]
+      },
+      "work-career": {
+        "name": "Work & Career",
+        "questions": [
+          "What should I focus on in my career right now?",
+          "Should I take this new opportunity?",
+          "How can I advance in my current role?",
+          "What skills should I develop?",
+          "Is it time for a career change?",
+          "How can I improve my work relationships?",
+          "What is blocking my professional growth?",
+          "Should I start my own business?"
+        ]
+      },
+      "financial": {
+        "name": "Financial",
+        "questions": [
+          "How can I improve my financial situation?",
+          "Should I make this investment?",
+          "What is my financial future looking like?",
+          "How can I save more money?",
+          "Is this the right time to buy a house?",
+          "What financial goals should I set?",
+          "How can I reduce my expenses?",
+          "Should I change my investment strategy?"
+        ]
+      },
+      "love-romance": {
+        "name": "Love & Romance",
+        "questions": [
+          "What should I know about my love life?",
+          "Is this person right for me?",
+          "How can I attract the right partner?",
+          "Should I confess my feelings?",
+          "What is blocking my romantic life?",
+          "How can I improve my current relationship?",
+          "Is it time to move on?",
+          "What does my future hold in love?"
+        ]
+      },
+      "family": {
+        "name": "Family",
+        "questions": [
+          "How can I improve my family relationships?",
+          "What does my family need from me?",
+          "How can I resolve family conflicts?",
+          "Should I have this difficult conversation?",
+          "What is my role in the family?",
+          "How can I support my family better?",
+          "What family patterns should I break?",
+          "How can I create better family harmony?"
+        ]
+      },
+      "friendship-relationships": {
+        "name": "Friendship & Relationships",
+        "questions": [
+          "How can I improve my relationships?",
+          "Should I end this friendship?",
+          "How can I make new friends?",
+          "What is causing relationship problems?",
+          "How can I be a better friend?",
+          "Should I trust this person?",
+          "How can I resolve this conflict?",
+          "What boundaries should I set?"
+        ]
+      },
+      "personal-growth": {
+        "name": "Personal Growth",
+        "questions": [
+          "What is blocking my personal growth?",
+          "How can I overcome my current challenges?",
+          "What is my soul's purpose?",
+          "How can I develop my intuition?",
+          "What limiting beliefs should I release?",
+          "How can I build more confidence?",
+          "What spiritual path should I follow?",
+          "How can I find inner peace?"
+        ]
+      }
+    }
+  },
+
+  "About": {
+    "hero": {
+      "title1": "Where Ancient Wisdom",
+      "title2": "Meets Modern AI",
+      "subtitle": "Discover how we blend centuries-old tarot traditions with cutting-edge artificial intelligence to provide you with personalized cosmic guidance."
+    },
+    "features": {
+      "ai": {
+        "title": "AI-Powered Insights",
+        "desc": "Advanced AI interprets your cards with personalized, meaningful guidance"
+      },
+      "cosmic": {
+        "title": "Cosmic Experience",
+        "desc": "Immerse yourself in a beautiful galaxy-themed interface with smooth animations"
+      },
+      "personal": {
+        "title": "Personal Journey",
+        "desc": "Each reading is tailored to your unique questions and spiritual path"
+      }
+    },
+    "story": {
+      "title": "Our Spiritual Journey",
+      "p1": "Asking Fate was born from a deep reverence for the mystical arts and a vision to make ancient wisdom accessible to everyone. We believe that the universe speaks to us through symbols, and tarot cards have been humanity's way of interpreting these cosmic messages for centuries.",
+      "p2": "Our journey began with a simple question: How can we honor the sacred tradition of tarot while making it more accessible and insightful for modern seekers?"
+    },
+    "aiSection": {
+      "title": "Advanced AI Technology",
+      "p1": "Our AI system has been trained on thousands of traditional tarot interpretations, symbolic meanings, and archetypal patterns. It doesn't just provide generic readings—it analyzes your specific question, considers the unique combination of cards drawn, and generates personalized insights.",
+      "p2": "The AI understands the nuanced relationships between cards, their positions, and the context of your inquiry to deliver guidance that feels both authentic and deeply personal."
+    },
+    "values": {
+      "respectfulTradition": {
+        "title": "Respectful Tradition",
+        "description": "We honor the sacred origins of tarot while making it accessible to modern seekers on their spiritual journey."
+      },
+      "personalizedGuidance": {
+        "title": "Personalized Guidance",
+        "description": "Every reading is unique to you, your question, and your current life circumstances for meaningful insights."
+      },
+      "inclusiveCommunity": {
+        "title": "Inclusive Community",
+        "description": "We welcome seekers from all backgrounds and beliefs, creating a safe space for spiritual exploration."
+      }
+    },
+    "cta": {
+      "title": "Ready to Begin Your Journey?",
+      "desc": "Join thousands of seekers who have discovered deeper insights about their path through our AI-powered tarot readings.",
+      "primary": "Start Your First Reading",
+      "secondary": "Start Reading"
+    }
+  },
+
+  "Contact": {
+    "title": "Get in Touch",
+    "intro": "Have questions about your cosmic journey? We're here to help guide you through the stars.",
+    "email": {
+      "title": "Email Support",
+      "desc": "Send us an email and we'll respond within 24 hours during business days.",
+      "label": "support@cosmictarot.com"
+    },
+    "chat": {
+      "title": "Live Chat",
+      "desc": "Chat with our support team in real-time for immediate assistance.",
+      "availability": "Available 9 AM - 6 PM EST"
+    },
+    "response": {
+      "title": "Response Time",
+      "desc": "We typically respond to all inquiries within 24 hours. Premium subscribers receive priority support."
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "q1Title": "How accurate are the AI readings?",
+      "q1Desc": "Our AI provides insights based on traditional tarot symbolism, but readings are for guidance and entertainment.",
+      "q2Title": "Is the service free to use?",
+      "q2Desc": "Our service is completely free to use. No subscriptions or payments required."
+    }
+  },
+
+  "PrivacyPolicy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated"
+  },
+
+  "TermsOfService": {
+    "title": "Terms of Service",
+    "backToHome": "Back to Home",
+    "lastUpdated": "Last updated"
+  },
+  
+  "Reading": {
+    "types": {
+      "simple": {
+        "title": "Simple Reading",
+        "description": "One card for focused guidance"
+      },
+      "intermediate": {
+        "title": "Intermediate Reading",
+        "description": "Two cards for deeper insight"
+      },
+      "advanced": {
+        "title": "Advanced Reading",
+        "description": "Three cards for comprehensive guidance"
+      }
+    }
+  },
+
+  "ReadingPage": {
+    "questionHeading": "Question",
+    "followUp": {
+      "badge": "Follow up",
+      "title": "Follow-up Reading",
+      "desc": "Follow-up questions use a simple single-card reading for focused guidance",
+      "simple": "Simple Reading - 1 Card"
+    },
+    "chooseType": {
+      "title": "Choose Your Reading Type",
+      "desc": "Select the depth of guidance you seek"
+    },
+    "chooseCards": {
+      "title": "Choose Your Cards",
+      "desc": "Trust your intuition and select from the cosmic spread",
+      "reversed": "Reversed",
+      "selectFromSpread": "{count, plural, one {Select # card from the cosmic spread} other {Select # cards from the cosmic spread}}",
+      "selectedCount": "{selected} of {total} selected"
+    },
+    "interpretation": {
+      "title": "Your Cosmic Interpretation",
+      "sectionTitle": "Cosmic Guidance",
+      "sectionSubtitle": "Generated by AI with ancient wisdom",
+      "error": "Failed to generate interpretation. Please try again.",
+      "loading": {
+        "title": "Consulting the cosmic realm...",
+        "subtitle": "The cards are revealing their secrets..."
+      },
+      "actions": {
+        "share": "Share",
+        "copy": "Copy",
+        "copied": "Copied",
+        "download": "Download"
+      },
+      "buttons": {
+        "regenerate": "Regenerate Reading",
+        "newReading": "New Reading"
+      },
+      "followUp": {
+        "label": "Ask a follow up question",
+        "placeholder": "Type your follow up question here..."
+      },
+      "disclaimer": "This interpretation is generated by AI for entertainment and guidance purposes. Trust your intuition and use this reading as one perspective on your journey."
+    }
+  },
+
+  "Meta": {
+    "Site": {
+      "siteName": "Asking Fate",
+      "url": "https://askingfate.com"
+    },
+    "Home": {
+      "title": "AI Tarot Reading - Ask Questions About Your Destiny | Asking Fate",
+      "description": "Get free AI-powered tarot card readings and spiritual guidance. Ask any question about your destiny and receive personalized insights from our advanced AI tarot system.",
+      "keywords": "AI tarot reading, free tarot cards, spiritual guidance, destiny questions, tarot card interpretation, AI-powered divination",
+      "ogTitle": "AI Tarot Reading - Ask Questions About Your Destiny",
+      "ogDescription": "Get free AI-powered tarot card readings and spiritual guidance. Ask any question about your destiny.",
+      "twitterTitle": "AI Tarot Reading - Ask Questions About Your Destiny",
+      "twitterDescription": "Get free AI-powered tarot card readings and spiritual guidance. Ask any question about your destiny."
+    },
+    "About": {
+      "title": "About - AI Tarot Reading Technology | Asking Fate",
+      "description": "Discover how Asking Fate blends centuries-old tarot traditions with cutting-edge AI technology to provide personalized cosmic guidance and spiritual insights.",
+      "keywords": "AI tarot technology, tarot reading history, spiritual guidance AI, mystical traditions, tarot card interpretation technology",
+      "ogTitle": "About - AI Tarot Reading Technology",
+      "ogDescription": "Discover how we blend ancient tarot wisdom with modern AI technology for personalized spiritual guidance.",
+      "twitterTitle": "About - AI Tarot Reading Technology",
+      "twitterDescription": "Discover how we blend ancient tarot wisdom with modern AI technology for personalized spiritual guidance."
+    },
+    "Reading": {
+      "title": "AI Tarot Card Reading - Get Your Free Reading | Asking Fate",
+      "description": "Get a personalized AI tarot card reading for free. Ask your question and receive detailed interpretations with spiritual guidance from our advanced AI system.",
+      "keywords": "tarot card reading, AI tarot reading, free tarot reading, tarot card interpretation, spiritual guidance, tarot reading online",
+      "ogTitle": "AI Tarot Card Reading - Get Your Free Reading",
+      "ogDescription": "Get a personalized AI tarot card reading for free. Ask your question and receive detailed interpretations.",
+      "twitterTitle": "AI Tarot Card Reading - Get Your Free Reading",
+      "twitterDescription": "Get a personalized AI tarot card reading for free. Ask your question and receive detailed interpretations."
+    },
+    "Contact": {
+      "title": "Contact Us - Get Help with Your AI Tarot Reading | Asking Fate",
+      "description": "Have questions about your AI tarot reading experience? Contact our support team for assistance with your cosmic journey and spiritual guidance.",
+      "keywords": "tarot reading support, AI tarot help, spiritual guidance contact, tarot reading questions, customer support",
+      "ogTitle": "Contact Us - Get Help with Your AI Tarot Reading",
+      "ogDescription": "Have questions about your AI tarot reading experience? Contact our support team for assistance.",
+      "twitterTitle": "Contact Us - Get Help with Your AI Tarot Reading",
+      "twitterDescription": "Have questions about your AI tarot reading experience? Contact our support team for assistance."
+    },
+    "PrivacyPolicy": {
+      "title": "Privacy Policy - Your Data Protection & Privacy Rights | Asking Fate",
+      "description": "Learn how Asking Fate protects your privacy and personal information when using our AI tarot reading service. Read our comprehensive privacy policy.",
+      "keywords": "privacy policy, data protection, AI tarot privacy, personal information security, tarot reading privacy, user data protection",
+      "ogTitle": "Privacy Policy - Your Data Protection & Privacy Rights",
+      "ogDescription": "Learn how Asking Fate protects your privacy and personal information when using our AI tarot reading service.",
+      "twitterTitle": "Privacy Policy - Your Data Protection & Privacy Rights",
+      "twitterDescription": "Learn how Asking Fate protects your privacy and personal information when using our AI tarot reading service."
+    },
+    "TermsOfService": {
+      "title": "Terms of Service - AI Tarot Reading Terms & Conditions | Asking Fate",
+      "description": "Read the terms of service for Asking Fate's AI-powered tarot reading platform. Understand your rights and responsibilities when using our spiritual guidance service.",
+      "keywords": "terms of service, terms and conditions, AI tarot terms, tarot reading terms, service agreement, user agreement",
+      "ogTitle": "Terms of Service - AI Tarot Reading Terms & Conditions",
+      "ogDescription": "Read the terms of service for Asking Fate's AI-powered tarot reading platform and understand your rights and responsibilities.",
+      "twitterTitle": "Terms of Service - AI Tarot Reading Terms & Conditions",
+      "twitterDescription": "Read the terms of service for Asking Fate's AI-powered tarot reading platform and understand your rights and responsibilities."
+    }
+  }
+}
+
+

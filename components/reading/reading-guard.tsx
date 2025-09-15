@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { useTarot } from "@/contexts/tarot-context"
 import { toast } from "sonner"
+import BrandLoader from "@/components/brand-loader"
 
 interface ReadingGuardProps {
     children: ReactNode
@@ -15,6 +16,10 @@ export default function ReadingGuard({ children }: ReadingGuardProps) {
 
     useEffect(() => {
         // Check if there's no question and redirect to homepage
+        if (question === null) {
+            // Hydrating from localStorage: do nothing yet
+            return
+        }
         if (!question || question.trim() === "") {
             toast.info("Please ask a question first", {
                 description: "Redirecting to homepage to input your question",
@@ -28,10 +33,12 @@ export default function ReadingGuard({ children }: ReadingGuardProps) {
         }
     }, [question, router])
 
-    // If no question, don't render children (will redirect)
-    if (!question || question.trim() === "") {
-        return null
+    // If hydrating, show a centered brand loader
+    if (question === null) {
+        return <BrandLoader />
     }
+    // If no question after hydration, allow effect to redirect
+    if (!question || question.trim() === "") return null
 
     // Render children if question exists
     return (

@@ -1,5 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
+import { NextIntlClientProvider } from "next-intl"
 import { Playfair_Display, Source_Sans_3 } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
@@ -9,6 +10,10 @@ import "./globals.css"
 import Footer from "@/components/footer"
 import CosmicStars from "@/components/cosmic-stars"
 import { Toaster } from "sonner"
+import { hasLocale } from "next-intl"
+import { routing } from "@/i18n/routing"
+import { notFound } from "next/navigation"
+import { getMessages } from "next-intl/server"
 
 /* Updated fonts to match mystical design brief */
 const playfairDisplay = Playfair_Display({
@@ -44,27 +49,36 @@ export const viewport = {
     themeColor: "#0a0a1a",
 }
 
-export default function RootLayout({
+export default async function RootLayout({
     children,
+    params,
 }: Readonly<{
     children: React.ReactNode
+    params: Promise<{ locale: string }>
 }>) {
+    // Ensure that the incoming `locale` is valid
+    const { locale } = await params
+    const messages = await getMessages()
+    if (!hasLocale(routing.locales, locale)) {
+        notFound()
+    }
     return (
-        <html lang='en'>
+        <html lang={locale}>
             <body
                 className={`font-sans ${sourceSans.variable} ${playfairDisplay.variable}`}
             >
                 <CosmicStars />
-
-                <TarotProvider>
-                    <div className='min-h-screen flex flex-col home-gradient'>
-                        <Navbar />
-                        <main className='pt-16 md:min-h-[calc(100dvh-65px)] min-h-[calc(100dvh-65px-4rem)] relative overflow-hidden'>
-                            <Suspense fallback={null}>{children}</Suspense>
-                        </main>
-                        <Footer />
-                    </div>
-                </TarotProvider>
+                <NextIntlClientProvider messages={messages} locale={locale}>
+                    <TarotProvider>
+                        <div className='min-h-screen flex flex-col home-gradient'>
+                            <Navbar />
+                            <main className='pt-16 md:min-h-[calc(100dvh-65px)] min-h-[calc(100dvh-65px-4rem)] relative overflow-hidden'>
+                                <Suspense fallback={null}>{children}</Suspense>
+                            </main>
+                            <Footer />
+                        </div>
+                    </TarotProvider>
+                </NextIntlClientProvider>
                 <Analytics />
                 <Toaster
                     position='top-center'

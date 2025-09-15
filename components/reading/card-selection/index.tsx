@@ -4,22 +4,25 @@ import { Button } from "../../ui/button"
 import { Card } from "../../ui/card"
 import { Badge } from "../../ui/badge"
 import { Pencil } from "lucide-react"
-import { ReadingConfig } from "../../../app/reading/page"
+import { ReadingConfig } from "../../../app/[locale]/reading/page"
 import { CircularCardSpread } from "./circular-card-spread"
 import { useRouter } from "next/navigation"
 import { isFollowUpQuestion, getCleanQuestionText } from "@/lib/question-utils"
+import { useTranslations } from "next-intl"
 
 export default function CardSelection({
     readingConfig,
 }: {
     readingConfig: ReadingConfig
 }) {
+    const t = useTranslations("ReadingPage")
     const {
         currentStep,
         setCurrentStep,
         question,
         readingType,
         setSelectedCards,
+        isFollowUp,
     } = useTarot()
     const router = useRouter()
 
@@ -58,15 +61,17 @@ export default function CardSelection({
                         <div className='text-center space-y-2'>
                             <div className='flex items-center justify-center gap-2 relative'>
                                 <h2 className='font-serif font-semibold text-xl relative'>
-                                    {isFollowUpQuestion(question) && (
+                                    {isFollowUpQuestion(question || "", {
+                                        isFollowUp,
+                                    }) && (
                                         <Badge
                                             variant='secondary'
                                             className='absolute -top-6 -left-8 -rotate-12 bg-primary/20 text-white border-white/30'
                                         >
-                                            Follow up
+                                            {t("followUp.badge")}
                                         </Badge>
                                     )}
-                                    Question
+                                    {t("questionHeading")}
                                 </h2>
                                 <Button
                                     onClick={handleEditQuestion}
@@ -78,16 +83,16 @@ export default function CardSelection({
                                 </Button>
                             </div>
                             <p className='text-muted-foreground italic'>
-                                &ldquo;{getCleanQuestionText(question)}&rdquo;
+                                &ldquo;{getCleanQuestionText(question || "")}&rdquo;
                             </p>
                             <Badge
                                 className={`text-sm text-primary bg-transparent border-primary/50 ${
-                                    isFollowUpQuestion(question)
+                                    isFollowUpQuestion(question || "")
                                         ? "cursor-default"
                                         : "cursor-pointer hover:bg-primary/10 transition-colors"
                                 }`}
                                 onClick={
-                                    isFollowUpQuestion(question)
+                                    isFollowUpQuestion(question || "")
                                         ? undefined
                                         : handleBackToReadingType
                                 }
@@ -101,11 +106,15 @@ export default function CardSelection({
                     <div className='space-y-6'>
                         <div className='text-center space-y-2'>
                             <h2 className='font-serif font-bold text-2xl'>
-                                Choose Your Cards
+                                {t("chooseCards.title", {
+                                    default: "Choose Your Cards",
+                                })}
                             </h2>
                             <p className='text-muted-foreground'>
-                                Trust your intuition and select from the cosmic
-                                spread
+                                {t("chooseCards.desc", {
+                                    default:
+                                        "Trust your intuition and select from the cosmic spread",
+                                })}
                             </p>
                         </div>
 

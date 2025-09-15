@@ -6,10 +6,24 @@ import { useState } from "react"
 import { Menu } from "lucide-react"
 import { SidebarSheet } from "./sidebar-sheet"
 import MysticalServicesSheet from "./mystical-services-sheet"
+import { useLocale, useTranslations } from "next-intl"
+import { usePathname, useRouter } from "@/i18n/navigation"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Check } from "lucide-react"
+import { locales as supportedLocales } from "@/i18n/request"
 
 export function Navbar() {
+    const locale = useLocale()
+    const t = useTranslations("Navbar")
     const [open, setOpen] = useState(false)
     const [mysticalOpen, setMysticalOpen] = useState(false)
+    const router = useRouter()
+    const pathname = usePathname()
 
     return (
         <nav className='fixed top-0 left-0 right-0 z-50 bg-card/5 backdrop-blur-sm border-b border-border/20'>
@@ -39,29 +53,65 @@ export function Navbar() {
                                 </span>
                             </div>
                             <span className='font-playfair text-xl font-bold text-white group-hover:text-cosmic-purple transition-colors'>
-                                Asking Fate
+                                {t("brand")}
                             </span>
                         </Link>
                     </div>
 
                     {/* Right side: User Profile / Sign In button and Active Service Sheet */}
-                    <div className='flex items-center space-x-6'>
+                    <div className='flex items-center gap-x-3'>
                         <Link
                             href='/'
                             className='hidden md:block text-cosmic-light hover:text-white transition-colors'
                         >
-                            Home
+                            {t("home")}
                         </Link>
                         <Link
                             href='/about'
                             className='hidden md:block text-cosmic-light hover:text-white transition-colors'
                         >
-                            About
+                            {t("about")}
                         </Link>
                         <MysticalServicesSheet
                             mysticalOpen={mysticalOpen}
                             setMysticalOpen={setMysticalOpen}
                         />
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    size='sm'
+                                    variant='outline'
+                                    className='text-white cursor-pointer select-none'
+                                    aria-label='Change language'
+                                >
+                                    {locale.toUpperCase()}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                align='end'
+                                className='min-w-32'
+                            >
+                                {supportedLocales.map((loc) => (
+                                    <DropdownMenuItem
+                                        key={loc}
+                                        onClick={() =>
+                                            router.replace(
+                                                { pathname },
+                                                { locale: loc }
+                                            )
+                                        }
+                                        className='flex items-center justify-between'
+                                    >
+                                        <span>
+                                            {loc === "en" ? "English" : "ไทย"}
+                                        </span>
+                                        {loc === locale && (
+                                            <Check className='h-4 w-4' />
+                                        )}
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
             </div>

@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
+import { useTranslations } from "next-intl"
 
 interface TarotCard {
     name: string
@@ -102,6 +103,7 @@ export function CircularCardSpread({
     cardsToSelect,
     onCardsSelected,
 }: CircularCardSpreadProps) {
+    const t = useTranslations("ReadingPage.chooseCards")
     const [selectedCards, setSelectedCards] = useState<TarotCard[]>([])
     const [shuffledDeck, setShuffledDeck] = useState<TarotCard[]>([])
 
@@ -231,7 +233,7 @@ export function CircularCardSpread({
                                         </div>
                                         {card.isReversed && (
                                             <div className='text-[6px] text-muted-foreground mt-1'>
-                                                Reversed
+                                                {t("reversed")}
                                             </div>
                                         )}
                                     </div>
@@ -250,11 +252,13 @@ export function CircularCardSpread({
 
             <div className='text-center mt-8 space-y-2'>
                 <p className='text-lg font-medium'>
-                    Select {cardsToSelect} card{cardsToSelect > 1 ? "s" : ""}{" "}
-                    from the cosmic spread
+                    {t("selectFromSpread", { count: cardsToSelect })}
                 </p>
                 <p className='text-sm text-muted-foreground'>
-                    {selectedCards.length} of {cardsToSelect} selected
+                    {t("selectedCount", {
+                        selected: selectedCards.length,
+                        total: cardsToSelect,
+                    })}
                 </p>
             </div>
         </div>

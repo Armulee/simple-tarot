@@ -3,21 +3,25 @@ import { Card } from "@/components/ui/card"
 import { Mail, MessageCircle, Clock } from "lucide-react"
 import ContactForm from "@/components/contact/contact-form"
 import ContactNavigation from "@/components/contact/contact-navigation"
+import { getTranslations } from "next-intl/server"
 
-export const metadata: Metadata = {
-    title: "Contact Us - Get Help with Your AI Tarot Reading | Asking Fate",
-    description: "Have questions about your AI tarot reading experience? Contact our support team for assistance with your cosmic journey and spiritual guidance.",
-    keywords: "tarot reading support, AI tarot help, spiritual guidance contact, tarot reading questions, customer support",
-    openGraph: {
-        title: "Contact Us - Get Help with Your AI Tarot Reading",
-        description: "Have questions about your AI tarot reading experience? Contact our support team for assistance.",
-        type: "website",
-    },
-    twitter: {
-        card: "summary_large_image",
-        title: "Contact Us - Get Help with Your AI Tarot Reading",
-        description: "Have questions about your AI tarot reading experience? Contact our support team for assistance.",
-    },
+export async function generateMetadata(): Promise<Metadata> {
+    const t = await getTranslations("Meta.Contact")
+    return {
+        title: t("title"),
+        description: t("description"),
+        keywords: t("keywords"),
+        openGraph: {
+            title: t("ogTitle"),
+            description: t("ogDescription"),
+            type: "website",
+        },
+        twitter: {
+            card: "summary_large_image",
+            title: t("twitterTitle"),
+            description: t("twitterDescription"),
+        },
+    }
 }
 
 export default function ContactPage() {
@@ -128,8 +132,9 @@ export default function ContactPage() {
                                                 Is the service free to use?
                                             </h4>
                                             <p className='text-muted-foreground text-sm'>
-                                                Our service is completely free to use. 
-                                                No subscriptions or payments required.
+                                                Our service is completely free
+                                                to use. No subscriptions or
+                                                payments required.
                                             </p>
                                         </div>
                                     </div>

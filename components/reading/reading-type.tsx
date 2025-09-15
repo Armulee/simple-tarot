@@ -4,22 +4,25 @@ import { Button } from "../ui/button"
 import { Card } from "../ui/card"
 import { Badge } from "../ui/badge"
 import { useTarot } from "@/contexts/tarot-context"
-import { ReadingConfig } from "../../app/reading/page"
+import { ReadingConfig } from "../../app/[locale]/reading/page"
 import { useRouter } from "next/navigation"
 import { isFollowUpQuestion, getCleanQuestionText } from "@/lib/question-utils"
 import { useEffect } from "react"
+import { useTranslations } from "next-intl"
 
 export default function ReadingType({
     readingConfig,
 }: {
     readingConfig: ReadingConfig
 }) {
+    const t = useTranslations("ReadingPage")
     const {
         currentStep,
         setCurrentStep,
         question,
         readingType,
         setReadingType,
+        isFollowUp,
     } = useTarot()
     const router = useRouter()
 
@@ -37,7 +40,7 @@ export default function ReadingType({
 
     // For follow-up questions, automatically go to card selection
     useEffect(() => {
-        if (isFollowUpQuestion(question) && readingType === "simple") {
+        if (isFollowUpQuestion(question || "") && readingType === "simple") {
             setCurrentStep("card-selection")
         }
     }, [question, readingType, setCurrentStep])
@@ -49,15 +52,17 @@ export default function ReadingType({
                         <div className='text-center space-y-2'>
                             <div className='flex items-center justify-center gap-2 relative'>
                                 <h2 className='font-serif font-semibold text-xl relative'>
-                                    {isFollowUpQuestion(question) && (
+                                    {isFollowUpQuestion(question || "", {
+                                        isFollowUp,
+                                    }) && (
                                         <Badge
                                             variant='secondary'
                                             className='absolute -top-6 -left-8 -rotate-12 bg-primary/20 text-white border-white/30'
                                         >
-                                            Follow up
+                                            {t("followUp.badge")}
                                         </Badge>
                                     )}
-                                    Question
+                                    {t("questionHeading")}
                                 </h2>
                                 <Button
                                     onClick={handleEditQuestion}
@@ -70,27 +75,26 @@ export default function ReadingType({
                             </div>
 
                             <p className='text-muted-foreground italic'>
-                                &ldquo;{getCleanQuestionText(question)}&rdquo;
+                                &ldquo;{getCleanQuestionText(question || "")}&rdquo;
                             </p>
                         </div>
                     </Card>
 
-                    {isFollowUpQuestion(question) ? (
+                    {isFollowUpQuestion(question || "", { isFollowUp }) ? (
                         <div className='space-y-6'>
                             <div className='text-center space-y-4'>
                                 <h2 className='font-serif font-bold text-2xl'>
-                                    Follow-up Reading
+                                    {t("followUp.title")}
                                 </h2>
                                 <p className='text-muted-foreground'>
-                                    Follow-up questions use a simple single-card
-                                    reading for focused guidance
+                                    {t("followUp.desc")}
                                 </p>
                                 <div className='flex justify-center'>
                                     <Badge
                                         variant='secondary'
                                         className='bg-primary/20 text-primary border-primary/30 px-4 py-2'
                                     >
-                                        Simple Reading - 1 Card
+                                        {t("followUp.simple")}
                                     </Badge>
                                 </div>
                             </div>
@@ -99,10 +103,10 @@ export default function ReadingType({
                         <div className='space-y-6'>
                             <div className='text-center space-y-2'>
                                 <h2 className='font-serif font-bold text-2xl'>
-                                    Choose Your Reading Type
+                                    {t("chooseType.title")}
                                 </h2>
                                 <p className='text-muted-foreground'>
-                                    Select the depth of guidance you seek
+                                    {t("chooseType.desc")}
                                 </p>
                             </div>
 
