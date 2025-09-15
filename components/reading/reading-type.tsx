@@ -75,7 +75,8 @@ export default function ReadingType({
                             </div>
 
                             <p className='text-muted-foreground italic'>
-                                &ldquo;{getCleanQuestionText(question || "")}&rdquo;
+                                &ldquo;{getCleanQuestionText(question || "")}
+                                &rdquo;
                             </p>
                         </div>
                     </Card>

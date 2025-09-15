@@ -326,7 +326,8 @@ If the interpretation is too generic, add more details to make it more specific.
                                 </Badge>
                             )}
                             <p className='text-muted-foreground italic'>
-                                &ldquo;{getCleanQuestionText(question || "")}&rdquo;
+                                &ldquo;{getCleanQuestionText(question || "")}
+                                &rdquo;
                             </p>
 
                             {/* Card Images with Badges on Top */}

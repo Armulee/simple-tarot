@@ -83,7 +83,8 @@ export default function CardSelection({
                                 </Button>
                             </div>
                             <p className='text-muted-foreground italic'>
-                                &ldquo;{getCleanQuestionText(question || "")}&rdquo;
+                                &ldquo;{getCleanQuestionText(question || "")}
+                                &rdquo;
                             </p>
                             <Badge
                                 className={`text-sm text-primary bg-transparent border-primary/50 ${
