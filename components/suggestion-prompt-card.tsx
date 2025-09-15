@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { Autoplay, FreeMode } from "swiper/modules"
 import { Badge } from "./ui/badge"
@@ -184,10 +184,38 @@ export default function SuggestionPromptCard({
         categories[0]
     )
     const [showPrompts, setShowPrompts] = useState(true)
+    const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     const handleSuggestionClick = (suggestion: string) => {
         onSuggestionClick(suggestion)
     }
+
+    const handleSwiperInteraction = () => {
+        const swiper = swiperRef.current
+        if (!swiper) return
+
+        // Pause autoplay
+        swiper.autoplay?.pause()
+
+        // Clear any existing timeout
+        if (pauseTimeoutRef.current) {
+            clearTimeout(pauseTimeoutRef.current)
+        }
+
+        // Resume autoplay after 3 seconds
+        pauseTimeoutRef.current = setTimeout(() => {
+            swiper.autoplay?.resume()
+        }, 3000)
+    }
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (pauseTimeoutRef.current) {
+                clearTimeout(pauseTimeoutRef.current)
+            }
+        }
+    }, [])
 
     return (
         <div className='w-full max-w-6xl mx-auto'>
@@ -276,6 +304,12 @@ export default function SuggestionPromptCard({
                         onSwiper={(swiper) => {
                             swiperRef.current = swiper
                         }}
+                        onTouchStart={handleSwiperInteraction}
+                        onTouchMove={handleSwiperInteraction}
+                        onTouchEnd={handleSwiperInteraction}
+                        onMouseDown={handleSwiperInteraction}
+                        onMouseMove={handleSwiperInteraction}
+                        onMouseUp={handleSwiperInteraction}
                         modules={[Autoplay, FreeMode]}
                         spaceBetween={12}
                         slidesPerView='auto'
