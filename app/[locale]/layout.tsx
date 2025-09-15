@@ -5,6 +5,7 @@ import { Playfair_Display, Source_Sans_3 } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import { TarotProvider } from "@/contexts/tarot-context"
+import { AuthProvider } from "@/contexts/auth-context"
 import { Navbar } from "@/components/navbar"
 import "./globals.css"
 import Footer from "@/components/footer"
@@ -69,15 +70,17 @@ export default async function RootLayout({
             >
                 <CosmicStars />
                 <NextIntlClientProvider messages={messages} locale={locale}>
-                    <TarotProvider>
-                        <div className='min-h-screen flex flex-col home-gradient'>
-                            <Navbar />
-                            <main className='pt-16 md:min-h-[calc(100dvh-65px)] min-h-[calc(100dvh-65px-4rem)] relative overflow-hidden'>
-                                <Suspense fallback={null}>{children}</Suspense>
-                            </main>
-                            <Footer />
-                        </div>
-                    </TarotProvider>
+                    <AuthProvider>
+                        <TarotProvider>
+                            <div className='min-h-screen flex flex-col home-gradient'>
+                                <Navbar locale={locale} />
+                                <main className='pt-16 md:min-h-[calc(100dvh-65px)] min-h-[calc(100dvh-65px-4rem)] relative overflow-hidden'>
+                                    <Suspense fallback={null}>{children}</Suspense>
+                                </main>
+                                <Footer />
+                            </div>
+                        </TarotProvider>
+                    </AuthProvider>
                 </NextIntlClientProvider>
                 <Analytics />
                 <Toaster
