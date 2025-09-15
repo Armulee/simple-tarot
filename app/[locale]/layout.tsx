@@ -3,6 +3,8 @@ import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { I18nProvider } from "@/contexts/i18n-context"
 import { Locale } from '@/lib/i18n'
+import { Navbar } from "@/components/navbar"
+import Footer from "@/components/footer"
 
 interface LocaleLayoutProps {
   children: React.ReactNode
@@ -26,7 +28,13 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider messages={messages}>
       <I18nProvider initialLocale={locale as Locale} messages={messages}>
-        {children}
+        <div className='min-h-screen flex flex-col home-gradient'>
+          <Navbar />
+          <main className='pt-16 md:min-h-[calc(100dvh-65px)] min-h-[calc(100dvh-65px-4rem)] relative overflow-hidden'>
+            {children}
+          </main>
+          <Footer />
+        </div>
       </I18nProvider>
     </NextIntlClientProvider>
   )

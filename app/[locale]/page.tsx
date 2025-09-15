@@ -13,6 +13,7 @@ interface HomePageProps {
 export async function generateMetadata({ params }: HomePageProps): Promise<Metadata> {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'metadata' })
+  const tCommon = await getTranslations({ locale, namespace: 'common' })
   
   return {
     title: t('homeTitle'),
@@ -23,7 +24,7 @@ export async function generateMetadata({ params }: HomePageProps): Promise<Metad
       description: t('homeDescription'),
       type: "website",
       url: "https://askingfate.com",
-      siteName: t('common.brandName'),
+      siteName: tCommon('brandName'),
     },
     twitter: {
       card: "summary_large_image",
