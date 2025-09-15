@@ -2,7 +2,7 @@
 import { Card } from "../ui/card"
 import { Badge } from "../ui/badge"
 import { useTarot } from "@/contexts/tarot-context"
-import { ReadingConfig } from "../../app/reading/page"
+import { ReadingConfig } from "./reading-page-client"
 import { isFollowUpQuestion } from "@/lib/question-utils"
 import { useEffect } from "react"
 import EditableQuestion from "./editable-question"

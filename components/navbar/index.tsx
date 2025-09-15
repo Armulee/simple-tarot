@@ -6,10 +6,14 @@ import { useState } from "react"
 import { Menu } from "lucide-react"
 import { SidebarSheet } from "./sidebar-sheet"
 import MysticalServicesSheet from "./mystical-services-sheet"
+import { useTranslations } from 'next-intl'
+import { useI18n } from '@/contexts/i18n-context'
 
 export function Navbar() {
     const [open, setOpen] = useState(false)
     const [mysticalOpen, setMysticalOpen] = useState(false)
+    const t = useTranslations()
+    const { locale } = useI18n()
 
     return (
         <nav className='fixed top-0 left-0 right-0 z-50 bg-card/5 backdrop-blur-sm border-b border-border/20'>
@@ -30,7 +34,7 @@ export function Navbar() {
 
                         {/* Desktop: brand */}
                         <Link
-                            href='/'
+                            href={`/${locale}`}
                             className='hidden md:flex items-center space-x-2 group px-2 py-1 rounded-md hover:bg-white/5'
                         >
                             <div className='w-8 h-8 bg-gradient-to-br from-cosmic-purple to-cosmic-blue rounded-full flex items-center justify-center group-hover:scale-110 transition-transform'>
@@ -39,7 +43,7 @@ export function Navbar() {
                                 </span>
                             </div>
                             <span className='font-playfair text-xl font-bold text-white group-hover:text-cosmic-purple transition-colors'>
-                                Asking Fate
+                                {t('common.brandName')}
                             </span>
                         </Link>
                     </div>
@@ -47,16 +51,16 @@ export function Navbar() {
                     {/* Right side: User Profile / Sign In button and Active Service Sheet */}
                     <div className='flex items-center space-x-6'>
                         <Link
-                            href='/'
+                            href={`/${locale}`}
                             className='hidden md:block text-cosmic-light hover:text-white transition-colors'
                         >
-                            Home
+                            {t('common.home')}
                         </Link>
                         <Link
-                            href='/about'
+                            href={`/${locale}/about`}
                             className='hidden md:block text-cosmic-light hover:text-white transition-colors'
                         >
-                            About
+                            {t('common.about')}
                         </Link>
                         <MysticalServicesSheet
                             mysticalOpen={mysticalOpen}

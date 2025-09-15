@@ -6,10 +6,12 @@ import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { useTarot } from "@/contexts/tarot-context"
 import AutoHeightTextarea from "./ui/auto-height-textarea"
+import { useTranslations } from 'next-intl'
+import { useI18n } from '@/contexts/i18n-context'
 
 export default function QuestionInput({
     id = "question-input",
-    label = "Your question",
+    label,
     placeholder,
     defaultValue,
     value,
@@ -24,6 +26,8 @@ export default function QuestionInput({
     onChange?: (value: string) => void
     followUp?: boolean
 }) {
+    const t = useTranslations()
+    const { locale } = useI18n()
     const pathname = usePathname()
     const [internalQuestion, setInternalQuestion] = useState("")
     const [isSmallDevice, setIsSmallDevice] = useState(false)
@@ -57,8 +61,8 @@ export default function QuestionInput({
                 // Set new question and navigate
                 setContextQuestion(currentValue)
                 setCurrentStep("reading-type")
-                if (pathname !== "/reading") {
-                    router.push("/reading")
+                if (!pathname.includes("/reading")) {
+                    router.push(`/${locale}/reading`)
                 }
             }
         }
@@ -124,7 +128,7 @@ export default function QuestionInput({
     return (
         <div className='w-full mb-6 text-left'>
             <Label htmlFor={id} className='block mb-2 text-lg'>
-                {label}
+                {label || t('home.yourQuestion')}
             </Label>
             <div className='relative group w-full'>
                 <div className='pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(120%_120%_at_0%_0%,rgba(99,102,241,0.18),rgba(168,85,247,0.12)_35%,rgba(34,211,238,0.10)_70%,transparent_80%)] blur-xl opacity-90 group-focus-within:opacity-0 transition-opacity' />

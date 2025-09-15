@@ -9,6 +9,8 @@ import {
 } from "../ui/sheet"
 import mysticalServices from "./mystical-services"
 import Link from "next/link"
+import { useTranslations } from 'next-intl'
+import { useI18n } from '@/contexts/i18n-context'
 
 export default function MysticalServicesSheet({
     mysticalOpen,
@@ -17,6 +19,8 @@ export default function MysticalServicesSheet({
     mysticalOpen: boolean
     setMysticalOpen: (open: boolean) => void
 }) {
+    const t = useTranslations()
+    const { locale } = useI18n()
     return (
         <Sheet open={mysticalOpen} onOpenChange={setMysticalOpen}>
             <SheetTrigger asChild>
@@ -25,7 +29,7 @@ export default function MysticalServicesSheet({
                     className='inline-flex items-center space-x-2 text-white hover:bg-white/10 px-4 py-2 rounded-md transition-colors !mr-0'
                 >
                     <Sparkles className='h-4 w-4' />
-                    <span>Tarot</span>
+                    <span>{t('common.tarot')}</span>
                     <ChevronDown className='h-4 w-4' />
                 </Button>
             </SheetTrigger>
@@ -36,7 +40,7 @@ export default function MysticalServicesSheet({
                 <SheetHeader>
                     <SheetTitle className='flex items-center space-x-2 text-white'>
                         <Sparkles className='h-5 w-5' />
-                        <span>Services</span>
+                        <span>{t('common.services')}</span>
                     </SheetTitle>
                 </SheetHeader>
                 <div className='mt-8 space-y-2'>
@@ -45,7 +49,7 @@ export default function MysticalServicesSheet({
                             <div key={label}>
                                 {available ? (
                                     <Link
-                                        href={href}
+                                        href={`/${locale}${href}`}
                                         className='flex items-center space-x-3 px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors group'
                                         onClick={() => setMysticalOpen(false)}
                                     >
@@ -61,7 +65,7 @@ export default function MysticalServicesSheet({
                                             {label}
                                         </span>
                                         <span className='ml-auto text-xs bg-white/10 px-2 py-1 rounded-full'>
-                                            Coming Soon
+                                            {t('common.comingSoon')}
                                         </span>
                                     </div>
                                 )}

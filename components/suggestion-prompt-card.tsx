@@ -23,6 +23,8 @@ import {
     ChevronUp,
 } from "lucide-react"
 import type { Swiper as SwiperType } from "swiper"
+import { useTranslations } from 'next-intl'
+import { useMessages } from 'next-intl'
 
 // Import Swiper styles
 import "swiper/css"
@@ -44,147 +46,97 @@ interface Category {
     questions: string[]
 }
 
-const categories: Category[] = [
-    {
-        id: "daily-life",
-        name: "Daily Life",
-        icon: <Star className='w-4 h-4 text-amber-400' />,
-        color: "text-amber-400",
-        bgColor: "bg-amber-500/20",
-        borderColor: "border-amber-400/50",
-        hoverColor: "hover:bg-amber-500/30",
-        questions: [
-            "How can I find more balance in my life?",
-            "What do I need to let go of?",
-            "How can I make better decisions?",
-            "What is the universe trying to tell me?",
-            "What should I focus on today?",
-            "How can I improve my daily routine?",
-            "What habits should I change?",
-            "How can I be more mindful?",
-        ],
-    },
-    {
-        id: "work-career",
-        name: "Work & Career",
-        icon: <Briefcase className='w-4 h-4 text-blue-400' />,
-        color: "text-blue-400",
-        bgColor: "bg-blue-500/20",
-        borderColor: "border-blue-400/50",
-        hoverColor: "hover:bg-blue-500/30",
-        questions: [
-            "What should I focus on in my career right now?",
-            "Should I take this new opportunity?",
-            "How can I advance in my current role?",
-            "What skills should I develop?",
-            "Is it time for a career change?",
-            "How can I improve my work relationships?",
-            "What is blocking my professional growth?",
-            "Should I start my own business?",
-        ],
-    },
-    {
-        id: "financial",
-        name: "Financial",
-        icon: <DollarSign className='w-4 h-4 text-green-400' />,
-        color: "text-green-400",
-        bgColor: "bg-green-500/20",
-        borderColor: "border-green-400/50",
-        hoverColor: "hover:bg-green-500/30",
-        questions: [
-            "How can I improve my financial situation?",
-            "Should I make this investment?",
-            "What is my financial future looking like?",
-            "How can I save more money?",
-            "Is this the right time to buy a house?",
-            "What financial goals should I set?",
-            "How can I reduce my expenses?",
-            "Should I change my investment strategy?",
-        ],
-    },
-    {
-        id: "love-romance",
-        name: "Love & Romance",
-        icon: <Heart className='w-4 h-4 text-pink-400' />,
-        color: "text-pink-400",
-        bgColor: "bg-pink-500/20",
-        borderColor: "border-pink-400/50",
-        hoverColor: "hover:bg-pink-500/30",
-        questions: [
-            "What should I know about my love life?",
-            "Is this person right for me?",
-            "How can I attract the right partner?",
-            "Should I confess my feelings?",
-            "What is blocking my romantic life?",
-            "How can I improve my current relationship?",
-            "Is it time to move on?",
-            "What does my future hold in love?",
-        ],
-    },
-    {
-        id: "family",
-        name: "Family",
-        icon: <Home className='w-4 h-4 text-orange-400' />,
-        color: "text-orange-400",
-        bgColor: "bg-orange-500/20",
-        borderColor: "border-orange-400/50",
-        hoverColor: "hover:bg-orange-500/30",
-        questions: [
-            "How can I improve my family relationships?",
-            "What does my family need from me?",
-            "How can I resolve family conflicts?",
-            "Should I have this difficult conversation?",
-            "What is my role in the family?",
-            "How can I support my family better?",
-            "What family patterns should I break?",
-            "How can I create better family harmony?",
-        ],
-    },
-    {
-        id: "friendship-relationships",
-        name: "Friendship & Relationships",
-        icon: <Users className='w-4 h-4 text-purple-400' />,
-        color: "text-purple-400",
-        bgColor: "bg-purple-500/20",
-        borderColor: "border-purple-400/50",
-        hoverColor: "hover:bg-purple-500/30",
-        questions: [
-            "How can I improve my relationships?",
-            "Should I end this friendship?",
-            "How can I make new friends?",
-            "What is causing relationship problems?",
-            "How can I be a better friend?",
-            "Should I trust this person?",
-            "How can I resolve this conflict?",
-            "What boundaries should I set?",
-        ],
-    },
-    {
-        id: "personal-growth",
-        name: "Personal Growth",
-        icon: <Brain className='w-4 h-4 text-indigo-400' />,
-        color: "text-indigo-400",
-        bgColor: "bg-indigo-500/20",
-        borderColor: "border-indigo-400/50",
-        hoverColor: "hover:bg-indigo-500/30",
-        questions: [
-            "What is blocking my personal growth?",
-            "How can I overcome my current challenges?",
-            "What is my soul's purpose?",
-            "How can I develop my intuition?",
-            "What limiting beliefs should I release?",
-            "How can I build more confidence?",
-            "What spiritual path should I follow?",
-            "How can I find inner peace?",
-        ],
-    },
-]
+// Helper function to get questions array
+function getQuestions(messages: Record<string, unknown>, category: string): string[] {
+    const suggestions = messages.suggestions as Record<string, unknown>
+    const questions = suggestions.questions as Record<string, string[]>
+    return questions[category] || []
+}
+
+// Function to create categories with translations
+function createCategories(t: (key: string) => string, messages: Record<string, unknown>): Category[] {
+    return [
+        {
+            id: "daily-life",
+            name: t('suggestions.dailyLife'),
+            icon: <Star className='w-4 h-4 text-amber-400' />,
+            color: "text-amber-400",
+            bgColor: "bg-amber-500/20",
+            borderColor: "border-amber-400/50",
+            hoverColor: "hover:bg-amber-500/30",
+            questions: getQuestions(messages, 'dailyLife'),
+        },
+        {
+            id: "work-career",
+            name: t('suggestions.workCareer'),
+            icon: <Briefcase className='w-4 h-4 text-blue-400' />,
+            color: "text-blue-400",
+            bgColor: "bg-blue-500/20",
+            borderColor: "border-blue-400/50",
+            hoverColor: "hover:bg-blue-500/30",
+            questions: getQuestions(messages, 'workCareer'),
+        },
+        {
+            id: "financial",
+            name: t('suggestions.financial'),
+            icon: <DollarSign className='w-4 h-4 text-green-400' />,
+            color: "text-green-400",
+            bgColor: "bg-green-500/20",
+            borderColor: "border-green-400/50",
+            hoverColor: "hover:bg-green-500/30",
+            questions: getQuestions(messages, 'financial'),
+        },
+        {
+            id: "love-romance",
+            name: t('suggestions.loveRomance'),
+            icon: <Heart className='w-4 h-4 text-pink-400' />,
+            color: "text-pink-400",
+            bgColor: "bg-pink-500/20",
+            borderColor: "border-pink-400/50",
+            hoverColor: "hover:bg-pink-500/30",
+            questions: getQuestions(messages, 'loveRomance'),
+        },
+        {
+            id: "family",
+            name: t('suggestions.family'),
+            icon: <Home className='w-4 h-4 text-orange-400' />,
+            color: "text-orange-400",
+            bgColor: "bg-orange-500/20",
+            borderColor: "border-orange-400/50",
+            hoverColor: "hover:bg-orange-500/30",
+            questions: getQuestions(messages, 'family'),
+        },
+        {
+            id: "friendship-relationships",
+            name: t('suggestions.friendshipRelationships'),
+            icon: <Users className='w-4 h-4 text-purple-400' />,
+            color: "text-purple-400",
+            bgColor: "bg-purple-500/20",
+            borderColor: "border-purple-400/50",
+            hoverColor: "hover:bg-purple-500/30",
+            questions: getQuestions(messages, 'friendshipRelationships'),
+        },
+        {
+            id: "personal-growth",
+            name: t('suggestions.personalGrowth'),
+            icon: <Brain className='w-4 h-4 text-indigo-400' />,
+            color: "text-indigo-400",
+            bgColor: "bg-indigo-500/20",
+            borderColor: "border-indigo-400/50",
+            hoverColor: "hover:bg-indigo-500/30",
+            questions: getQuestions(messages, 'personalGrowth'),
+        },
+    ]
+}
 
 export default function SuggestionPromptCard({
     onSuggestionClick,
 }: SuggestionPromptCardProps) {
     const swiperRef = useRef<SwiperType | null>(null)
     const pauseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const t = useTranslations()
+    const messages = useMessages()
+    const categories = createCategories(t, messages)
     const [selectedCategory, setSelectedCategory] = useState<Category>(
         categories[0]
     )
@@ -230,7 +182,7 @@ export default function SuggestionPromptCard({
                     <div className='flex items-center gap-2 flex-shrink-0'>
                         <Sparkles className='w-4 h-4 text-secondary' />
                         <h3 className='text-sm font-medium text-white/70 whitespace-nowrap'>
-                            An inspiring prompts
+                            {t('home.inspiringPrompts')}
                         </h3>
                     </div>
                     <Select
@@ -266,7 +218,7 @@ export default function SuggestionPromptCard({
                                             </span>
                                         </>
                                     ) : (
-                                        <span className='truncate'>Show</span>
+                                        <span className='truncate'>{t('common.show')}</span>
                                     )}
                                 </div>
                             </SelectValue>
@@ -278,7 +230,7 @@ export default function SuggestionPromptCard({
                             >
                                 <div className='flex items-center gap-2'>
                                     <ChevronUp className='w-4 h-4' />
-                                    Hide
+                                    {t('common.hide')}
                                 </div>
                             </SelectItem>
                             {categories.map((category) => (

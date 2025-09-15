@@ -2,7 +2,7 @@
 import { TarotCard, useTarot } from "@/contexts/tarot-context"
 import { Card } from "../../ui/card"
 import { Badge } from "../../ui/badge"
-import { ReadingConfig } from "../../../app/reading/page"
+import { ReadingConfig } from "../reading-page-client"
 import { CircularCardSpread } from "./circular-card-spread"
 import { isFollowUpQuestion } from "@/lib/question-utils"
 import EditableQuestion from "../editable-question"

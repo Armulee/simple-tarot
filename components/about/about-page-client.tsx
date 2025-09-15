@@ -1,26 +1,19 @@
-import type { Metadata } from "next"
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
 import { Brain, Heart, Sparkles, Users, Zap, Shield } from "lucide-react"
+import { useTranslations } from 'next-intl'
+import { Locale } from '@/lib/i18n'
 
-export const metadata: Metadata = {
-    title: "About - AI Tarot Reading Technology | Asking Fate",
-    description: "Discover how Asking Fate blends centuries-old tarot traditions with cutting-edge AI technology to provide personalized cosmic guidance and spiritual insights.",
-    keywords: "AI tarot technology, tarot reading history, spiritual guidance AI, mystical traditions, tarot card interpretation technology",
-    openGraph: {
-        title: "About - AI Tarot Reading Technology",
-        description: "Discover how we blend ancient tarot wisdom with modern AI technology for personalized spiritual guidance.",
-        type: "website",
-    },
-    twitter: {
-        card: "summary_large_image",
-        title: "About - AI Tarot Reading Technology",
-        description: "Discover how we blend ancient tarot wisdom with modern AI technology for personalized spiritual guidance.",
-    },
+interface AboutPageClientProps {
+    locale: Locale
 }
 
-export default function AboutPage() {
+export default function AboutPageClient({ locale }: AboutPageClientProps) {
+    const t = useTranslations()
+    
     return (
         <div className='min-h-screen relative overflow-hidden'>
             <main className='relative z-10 max-w-4xl mx-auto px-6 py-16'>
@@ -28,15 +21,13 @@ export default function AboutPage() {
                 <div className='text-center space-y-8 mb-12'>
                     <div className='space-y-4'>
                         <h1 className='font-serif font-bold text-4xl md:text-5xl text-balance'>
-                            Where Ancient Wisdom
+                            {t('about.title')}
                             <span className='block text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'>
-                                Meets Modern AI
+                                {t('about.subtitle')}
                             </span>
                         </h1>
                         <p className='text-xl text-muted-foreground max-w-2xl mx-auto text-pretty'>
-                            Discover how we blend centuries-old tarot traditions
-                            with cutting-edge artificial intelligence to provide
-                            you with personalized cosmic guidance.
+                            {t('about.description')}
                         </p>
                     </div>
                 </div>
@@ -49,11 +40,10 @@ export default function AboutPage() {
                                 <span className='text-2xl'>🔮</span>
                             </div>
                             <h3 className='font-serif font-semibold text-lg'>
-                                AI-Powered Insights
+                                {t('about.aiPoweredInsights')}
                             </h3>
                             <p className='text-muted-foreground text-sm'>
-                                Advanced AI interprets your cards with
-                                personalized, meaningful guidance
+                                {t('about.aiPoweredDescription')}
                             </p>
                         </div>
                     </Card>
@@ -64,11 +54,10 @@ export default function AboutPage() {
                                 <span className='text-2xl'>✨</span>
                             </div>
                             <h3 className='font-serif font-semibold text-lg'>
-                                Cosmic Experience
+                                {t('about.cosmicExperience')}
                             </h3>
                             <p className='text-muted-foreground text-sm'>
-                                Immerse yourself in a beautiful galaxy-themed
-                                interface with smooth animations
+                                {t('about.cosmicDescription')}
                             </p>
                         </div>
                     </Card>
@@ -79,11 +68,10 @@ export default function AboutPage() {
                                 <span className='text-2xl'>🌟</span>
                             </div>
                             <h3 className='font-serif font-semibold text-lg'>
-                                Personal Journey
+                                {t('about.personalJourney')}
                             </h3>
                             <p className='text-muted-foreground text-sm'>
-                                Each reading is tailored to your unique
-                                questions and spiritual path
+                                {t('about.personalDescription')}
                             </p>
                         </div>
                     </Card>
@@ -98,22 +86,13 @@ export default function AboutPage() {
                                     <Heart className='w-8 h-8 text-primary' />
                                 </div>
                                 <h2 className='font-serif font-bold text-2xl'>
-                                    Our Spiritual Journey
+                                    {t('about.ourSpiritualJourney')}
                                 </h2>
                                 <p className='text-muted-foreground leading-relaxed'>
-                                    Asking Fate was born from a deep reverence for
-                                    the mystical arts and a vision to make
-                                    ancient wisdom accessible to everyone. We
-                                    believe that the universe speaks to us
-                                    through symbols, and tarot cards have been
-                                    humanity&apos;s way of interpreting these
-                                    cosmic messages for centuries.
+                                    {t('about.spiritualDescription1')}
                                 </p>
                                 <p className='text-muted-foreground leading-relaxed'>
-                                    Our journey began with a simple question:
-                                    How can we honor the sacred tradition of
-                                    tarot while making it more accessible and
-                                    insightful for modern seekers?
+                                    {t('about.spiritualDescription2')}
                                 </p>
                             </div>
                             <div className='relative'>
@@ -155,10 +134,10 @@ export default function AboutPage() {
                                     </div>
                                     <div className='grid grid-cols-2 gap-3'>
                                         {[
-                                            "Neural Networks",
-                                            "Pattern Recognition",
-                                            "Symbolic Analysis",
-                                            "Contextual Understanding",
+                                            t('about.neuralNetworks'),
+                                            t('about.patternRecognition'),
+                                            t('about.symbolicAnalysis'),
+                                            t('about.contextualUnderstanding'),
                                         ].map((tech, index) => (
                                             <div
                                                 key={tech}
@@ -180,23 +159,13 @@ export default function AboutPage() {
                                     <Brain className='w-8 h-8 text-secondary' />
                                 </div>
                                 <h2 className='font-serif font-bold text-2xl'>
-                                    Advanced AI Technology
+                                    {t('about.advancedAITechnology')}
                                 </h2>
                                 <p className='text-muted-foreground leading-relaxed'>
-                                    Our AI system has been trained on thousands
-                                    of traditional tarot interpretations,
-                                    symbolic meanings, and archetypal patterns.
-                                    It doesn&apos;t just provide generic
-                                    readings—it analyzes your specific question,
-                                    considers the unique combination of cards
-                                    drawn, and generates personalized insights.
+                                    {t('about.aiDescription1')}
                                 </p>
                                 <p className='text-muted-foreground leading-relaxed'>
-                                    The AI understands the nuanced relationships
-                                    between cards, their positions, and the
-                                    context of your inquiry to deliver guidance
-                                    that feels both authentic and deeply
-                                    personal.
+                                    {t('about.aiDescription2')}
                                 </p>
                             </div>
                         </div>
@@ -207,21 +176,18 @@ export default function AboutPage() {
                         {[
                             {
                                 icon: Shield,
-                                title: "Respectful Tradition",
-                                description:
-                                    "We honor the sacred origins of tarot while making it accessible to modern seekers on their spiritual journey.",
+                                title: t('about.respectfulTradition'),
+                                description: t('about.respectfulDescription'),
                             },
                             {
                                 icon: Sparkles,
-                                title: "Personalized Guidance",
-                                description:
-                                    "Every reading is unique to you, your question, and your current life circumstances for meaningful insights.",
+                                title: t('about.personalizedGuidance'),
+                                description: t('about.personalizedDescription'),
                             },
                             {
                                 icon: Users,
-                                title: "Inclusive Community",
-                                description:
-                                    "We welcome seekers from all backgrounds and beliefs, creating a safe space for spiritual exploration.",
+                                title: t('about.inclusiveCommunity'),
+                                description: t('about.inclusiveDescription'),
                             },
                         ].map((value) => {
                             const IconComponent = value.icon
@@ -251,12 +217,10 @@ export default function AboutPage() {
                         <div className='space-y-6'>
                             <div className='space-y-3'>
                                 <h2 className='font-serif font-bold text-2xl'>
-                                    Ready to Begin Your Journey?
+                                    {t('about.readyToBegin')}
                                 </h2>
                                 <p className='text-muted-foreground max-w-2xl mx-auto'>
-                                    Join thousands of seekers who have
-                                    discovered deeper insights about their path
-                                    through our AI-powered tarot readings.
+                                    {t('about.readyDescription')}
                                 </p>
                             </div>
                             <div className='flex flex-col sm:flex-row gap-4 justify-center'>
@@ -265,8 +229,8 @@ export default function AboutPage() {
                                     size='lg'
                                     className='bg-primary hover:bg-primary/90 text-primary-foreground px-8 card-glow'
                                 >
-                                    <Link href='/reading'>
-                                        Start Your First Reading
+                                    <Link href={`/${locale}/reading`}>
+                                        {t('reading.startYourFirstReading')}
                                     </Link>
                                 </Button>
                                 <Button
@@ -275,7 +239,7 @@ export default function AboutPage() {
                                     size='lg'
                                     className='border-border/30 hover:bg-card/20 bg-transparent px-8'
                                 >
-                                    <Link href='/reading'>Start Reading</Link>
+                                    <Link href={`/${locale}/reading`}>{t('reading.startReading')}</Link>
                                 </Button>
                             </div>
                         </div>

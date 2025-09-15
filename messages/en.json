@@ -1,0 +1,153 @@
+{
+  "common": {
+    "brandName": "Asking Fate",
+    "home": "Home",
+    "about": "About",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "allRightsReserved": "All rights reserved",
+    "learnMore": "Learn More",
+    "show": "Show",
+    "hide": "Hide",
+    "comingSoon": "Coming Soon",
+    "tarot": "Tarot",
+    "services": "Services"
+  },
+  "home": {
+    "title": "Ask me anything",
+    "subtitle": "about your destiny",
+    "yourQuestion": "Your question",
+    "inspiringPrompts": "An inspiring prompts"
+  },
+  "reading": {
+    "simpleReading": "Simple Reading",
+    "simpleDescription": "One card for focused guidance",
+    "intermediateReading": "Intermediate Reading", 
+    "intermediateDescription": "Two cards for deeper insight",
+    "advancedReading": "Advanced Reading",
+    "advancedDescription": "Three cards for comprehensive guidance",
+    "startYourFirstReading": "Start Your First Reading",
+    "startReading": "Start Reading"
+  },
+  "about": {
+    "title": "Where Ancient Wisdom",
+    "subtitle": "Meets Modern AI",
+    "description": "Discover how we blend centuries-old tarot traditions with cutting-edge artificial intelligence to provide you with personalized cosmic guidance.",
+    "aiPoweredInsights": "AI-Powered Insights",
+    "aiPoweredDescription": "Advanced AI interprets your cards with personalized, meaningful guidance",
+    "cosmicExperience": "Cosmic Experience",
+    "cosmicDescription": "Immerse yourself in a beautiful galaxy-themed interface with smooth animations",
+    "personalJourney": "Personal Journey",
+    "personalDescription": "Each reading is unique to you, your question, and your current life circumstances for meaningful insights",
+    "ourSpiritualJourney": "Our Spiritual Journey",
+    "spiritualDescription1": "Asking Fate was born from a deep reverence for the mystical arts and a vision to make ancient wisdom accessible to everyone. We believe that the universe speaks to us through symbols, and tarot cards have been humanity's way of interpreting these cosmic messages for centuries.",
+    "spiritualDescription2": "Our journey began with a simple question: How can we honor the sacred tradition of tarot while making it more accessible and insightful for modern seekers?",
+    "advancedAITechnology": "Advanced AI Technology",
+    "aiDescription1": "Our AI system has been trained on thousands of traditional tarot interpretations, symbolic meanings, and archetypal patterns. It doesn't just provide generic readings—it analyzes your specific question, considers the unique combination of cards drawn, and generates personalized insights.",
+    "aiDescription2": "The AI understands the nuanced relationships between cards, their positions, and the context of your inquiry to deliver guidance that feels both authentic and deeply personal.",
+    "respectfulTradition": "Respectful Tradition",
+    "respectfulDescription": "We honor the sacred origins of tarot while making it accessible to modern seekers on their spiritual journey.",
+    "personalizedGuidance": "Personalized Guidance", 
+    "personalizedDescription": "Every reading is unique to you, your question, and your current life circumstances for meaningful insights.",
+    "inclusiveCommunity": "Inclusive Community",
+    "inclusiveDescription": "We welcome seekers from all backgrounds and beliefs, creating a safe space for spiritual exploration.",
+    "readyToBegin": "Ready to Begin Your Journey?",
+    "readyDescription": "Join thousands of seekers who have discovered deeper insights about their path through our AI-powered tarot readings.",
+    "neuralNetworks": "Neural Networks",
+    "patternRecognition": "Pattern Recognition", 
+    "symbolicAnalysis": "Symbolic Analysis",
+    "contextualUnderstanding": "Contextual Understanding"
+  },
+  "suggestions": {
+    "dailyLife": "Daily Life",
+    "workCareer": "Work & Career",
+    "financial": "Financial",
+    "loveRomance": "Love & Romance",
+    "family": "Family",
+    "friendshipRelationships": "Friendship & Relationships",
+    "personalGrowth": "Personal Growth",
+    "questions": {
+      "dailyLife": [
+        "How can I find more balance in my life?",
+        "What do I need to let go of?",
+        "How can I make better decisions?",
+        "What is the universe trying to tell me?",
+        "What should I focus on today?",
+        "How can I improve my daily routine?",
+        "What habits should I change?",
+        "How can I be more mindful?"
+      ],
+      "workCareer": [
+        "What should I focus on in my career right now?",
+        "Should I take this new opportunity?",
+        "How can I advance in my current role?",
+        "What skills should I develop?",
+        "Is it time for a career change?",
+        "How can I improve my work relationships?",
+        "What is blocking my professional growth?",
+        "Should I start my own business?"
+      ],
+      "financial": [
+        "How can I improve my financial situation?",
+        "Should I make this investment?",
+        "What is my financial future looking like?",
+        "How can I save more money?",
+        "Is this the right time to buy a house?",
+        "What financial goals should I set?",
+        "How can I reduce my expenses?",
+        "Should I change my investment strategy?"
+      ],
+      "loveRomance": [
+        "What should I know about my love life?",
+        "Is this person right for me?",
+        "How can I attract the right partner?",
+        "Should I confess my feelings?",
+        "What is blocking my romantic life?",
+        "How can I improve my current relationship?",
+        "Is it time to move on?",
+        "What does my future hold in love?"
+      ],
+      "family": [
+        "How can I improve my family relationships?",
+        "What does my family need from me?",
+        "How can I resolve family conflicts?",
+        "Should I have this difficult conversation?",
+        "What is my role in the family?",
+        "How can I support my family better?",
+        "What family patterns should I break?",
+        "How can I create better family harmony?"
+      ],
+      "friendshipRelationships": [
+        "How can I improve my relationships?",
+        "Should I end this friendship?",
+        "How can I make new friends?",
+        "What is causing relationship problems?",
+        "How can I be a better friend?",
+        "Should I trust this person?",
+        "How can I resolve this conflict?",
+        "What boundaries should I set?"
+      ],
+      "personalGrowth": [
+        "What is blocking my personal growth?",
+        "How can I overcome my current challenges?",
+        "What is my soul's purpose?",
+        "How can I develop my intuition?",
+        "What limiting beliefs should I release?",
+        "How can I build more confidence?",
+        "What spiritual path should I follow?",
+        "How can I find inner peace?"
+      ]
+    }
+  },
+  "metadata": {
+    "homeTitle": "AI Tarot Reading - Ask Questions About Your Destiny | Asking Fate",
+    "homeDescription": "Get free AI-powered tarot card readings and spiritual guidance. Ask any question about your destiny and receive personalized insights from our advanced AI tarot system.",
+    "homeKeywords": "AI tarot reading, free tarot cards, spiritual guidance, destiny questions, tarot card interpretation, AI-powered divination",
+    "aboutTitle": "About - AI Tarot Reading Technology | Asking Fate",
+    "aboutDescription": "Discover how Asking Fate blends centuries-old tarot traditions with cutting-edge AI technology to provide personalized cosmic guidance and spiritual insights.",
+    "aboutKeywords": "AI tarot technology, tarot reading history, spiritual guidance AI, mystical traditions, tarot card interpretation technology",
+    "readingTitle": "AI Tarot Card Reading - Get Your Free Reading | Asking Fate",
+    "readingDescription": "Get a personalized AI tarot card reading for free. Ask your question and receive detailed interpretations with spiritual guidance from our advanced AI system.",
+    "readingKeywords": "tarot card reading, AI tarot reading, free tarot reading, tarot card interpretation, spiritual guidance, tarot reading online"
+  }
+}
