@@ -188,7 +188,7 @@ export default function SuggestionPromptCard({
     const [selectedCategory, setSelectedCategory] = useState<Category>(
         categories[0]
     )
-    const [showPrompts, setShowPrompts] = useState(true)
+    const [showPrompts, setShowPrompts] = useState(false)
 
     const handleSuggestionClick = (suggestion: string) => {
         onSuggestionClick(suggestion)
