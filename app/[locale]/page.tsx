@@ -4,9 +4,7 @@ import HomeQuestionWrapper from "@/components/home-question-wrapper"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Suspense } from "react"
-import { useTranslations } from 'next-intl'
 import { getTranslations } from 'next-intl/server'
-import { Locale } from '@/lib/i18n'
 
 interface HomePageProps {
   params: Promise<{ locale: string }>
@@ -37,13 +35,8 @@ export async function generateMetadata({ params }: HomePageProps): Promise<Metad
 
 export default async function HomePage({ params }: HomePageProps) {
     const { locale } = await params
-    return (
-        <HomePageClient locale={locale as Locale} />
-    )
-}
-
-function HomePageClient({ locale }: { locale: Locale }) {
-    const t = useTranslations()
+    const t = await getTranslations({ locale, namespace: 'home' })
+    const tCommon = await getTranslations({ locale, namespace: 'common' })
     
     return (
         <section className='relative z-10 flex flex-col items-center justify-center h-[calc(100vh-180px)] px-6 text-center'>
@@ -52,15 +45,15 @@ function HomePageClient({ locale }: { locale: Locale }) {
                 <div className='space-y-4'>
                     <h1 className='font-serif font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-balance h-20 sm:h-24 md:h-28 lg:h-32'>
                         <TypewriterText
-                            text={t('home.title')}
+                            text={t('title')}
                             speed={60}
                             className='text-white'
                         />
                         <br />
                         <TypewriterText
-                            text={t('home.subtitle')}
+                            text={t('subtitle')}
                             speed={60}
-                            delay={60 * t('home.title').length}
+                            delay={60 * t('title').length}
                             className='text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'
                         />
                     </h1>
@@ -80,7 +73,7 @@ function HomePageClient({ locale }: { locale: Locale }) {
                         size='lg'
                         className='border-border/30 hover:bg-card/20 backdrop-blur-sm px-8 py-6 text-lg bg-transparent'
                     >
-                        <Link href={`/${locale}/about`}>{t('common.learnMore')}</Link>
+                        <Link href={`/${locale}/about`}>{tCommon('learnMore')}</Link>
                     </Button>
                 </div>
             </div>

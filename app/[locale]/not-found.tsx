@@ -3,7 +3,7 @@ import NotFoundClient from "@/components/not-found-client"
 import { Locale } from '@/lib/i18n'
 
 interface NotFoundPageProps {
-  params: Promise<{ locale: string }>
+  params?: Promise<{ locale: string }>
 }
 
 export const metadata: Metadata = {
@@ -12,9 +12,24 @@ export const metadata: Metadata = {
   robots: "noindex, nofollow",
 }
 
+// Force dynamic rendering to avoid prerendering issues
+export const dynamic = 'force-dynamic'
+
 export default async function NotFound({ params }: NotFoundPageProps) {
-  const { locale } = await params
+  // Handle case where params might not be available during prerendering
+  let locale: Locale = 'en' // Default fallback
+  
+  try {
+    if (params) {
+      const resolvedParams = await params
+      locale = (resolvedParams?.locale as Locale) || 'en'
+    }
+  } catch (error) {
+    console.warn('Could not resolve params in not-found page:', error)
+    locale = 'en'
+  }
+  
   return (
-    <NotFoundClient locale={locale as Locale} />
+    <NotFoundClient locale={locale} />
   )
 }
