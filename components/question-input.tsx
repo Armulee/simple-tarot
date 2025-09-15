@@ -31,6 +31,7 @@ export default function QuestionInput({
     const pathname = usePathname()
     const [internalQuestion, setInternalQuestion] = useState("")
     const [isSmallDevice, setIsSmallDevice] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
     const router = useRouter()
     const {
         setQuestion: setContextQuestion,
@@ -49,9 +50,13 @@ export default function QuestionInput({
     const setQuestion = onChange || setInternalQuestion
 
     const handleStartReading = () => {
+        if (isLoading) return // Prevent multiple rapid clicks
+        
         const currentValue =
             (question || "").trim() || (defaultValue || "").trim()
         if (currentValue) {
+            setIsLoading(true)
+            
             if (followUp) {
                 handleFollowUpQuestion(currentValue)
             } else {
@@ -62,9 +67,15 @@ export default function QuestionInput({
                 setContextQuestion(currentValue)
                 setCurrentStep("reading-type")
                 if (!pathname.includes("/reading")) {
-                    router.push(`/${locale}/reading`)
+                    // Use replace instead of push to prevent back button issues
+                    router.replace(`/${locale}/reading`)
                 }
             }
+            
+            // Reset loading state after navigation
+            setTimeout(() => {
+                setIsLoading(false)
+            }, 1000)
         }
     }
 
@@ -152,7 +163,7 @@ export default function QuestionInput({
                 />
                 <Button
                     onClick={handleStartReading}
-                    disabled={!question.trim() && !defaultValue}
+                    disabled={(!question.trim() && !defaultValue) || isLoading}
                     size='lg'
                     variant='ghost'
                     className='absolute bottom-0 right-0 z-20 bg-transparent hover:bg-transparent border-0 text-lg disabled:opacity-30 disabled:cursor-not-allowed text-indigo-300 hover:text-white'
