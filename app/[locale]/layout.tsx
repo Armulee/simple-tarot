@@ -75,7 +75,9 @@ export default async function RootLayout({
                             <div className='min-h-screen flex flex-col home-gradient'>
                                 <Navbar locale={locale} />
                                 <main className='pt-16 md:min-h-[calc(100dvh-65px)] min-h-[calc(100dvh-65px-4rem)] relative overflow-hidden'>
-                                    <Suspense fallback={null}>{children}</Suspense>
+                                    <Suspense fallback={null}>
+                                        {children}
+                                    </Suspense>
                                 </main>
                                 <Footer />
                             </div>
