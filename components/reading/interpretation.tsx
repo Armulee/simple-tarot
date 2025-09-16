@@ -316,23 +316,21 @@ If the interpretation is too generic, add more details to make it more specific.
                         </div>
 
                         <div className='text-center space-y-6 relative z-10'>
-                            <div className='flex items-center justify-center space-x-2'>
+                            <div className='flex items-center justify-center space-x-2 relative'>
                                 <Sparkles className='w-6 h-6 text-primary' />
-                                <h1 className='font-serif font-bold text-2xl'>
+                                <h1 className='font-serif font-bold text-2xl relative'>
+                                    {isFollowUp && (
+                                        <Badge
+                                            variant='secondary'
+                                            className='absolute -top-6 -left-8 -rotate-12 bg-primary/20 text-white border-white/30'
+                                        >
+                                            {t("followUp.badge")}
+                                        </Badge>
+                                    )}
                                     {t("title")}
                                 </h1>
                                 <Sparkles className='w-6 h-6 text-primary' />
                             </div>
-                            {isFollowUp && (
-                                <Badge
-                                    variant='secondary'
-                                    className='bg-primary/20 text-primary border-primary/30'
-                                >
-                                    {t("followUpBadge", {
-                                        default: "Follow up",
-                                    })}
-                                </Badge>
-                            )}
                             <p className='text-muted-foreground italic'>
                                 &ldquo;{getCleanQuestionText(isFollowUp && followUpQuestion ? followUpQuestion : question || "")}
                                 &rdquo;
