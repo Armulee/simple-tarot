@@ -183,7 +183,7 @@ export default function SuggestionPromptCard({
     const [selectedCategory, setSelectedCategory] = useState<Category>(
         categories[0]
     )
-    const [showPrompts, setShowPrompts] = useState(true)
+    const [showPrompts, setShowPrompts] = useState(false)
     const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     const handleSuggestionClick = (suggestion: string) => {
@@ -251,24 +251,24 @@ export default function SuggestionPromptCard({
                                     : "bg-white/5 border-white/20 text-white/70 hover:bg-white/10"
                             }`}
                         >
-                            <SelectValue>
-                                <div className='flex items-center gap-2 text-xs min-w-0'>
-                                    {showPrompts ? (
-                                        <>
-                                            {selectedCategory.icon}
-                                            <span className='truncate'>
-                                                {t(
-                                                    `categories.${selectedCategory.id}.name`
-                                                )}
-                                            </span>
-                                        </>
-                                    ) : (
+                        <SelectValue placeholder={t("selectCategory")}>
+                            <div className='flex items-center gap-2 text-xs min-w-0'>
+                                {showPrompts ? (
+                                    <>
+                                        {selectedCategory.icon}
                                         <span className='truncate'>
-                                            {t("show")}
+                                            {t(
+                                                `categories.${selectedCategory.id}.name`
+                                            )}
                                         </span>
-                                    )}
-                                </div>
-                            </SelectValue>
+                                    </>
+                                ) : (
+                                    <span className='truncate'>
+                                        {t("selectCategory")}
+                                    </span>
+                                )}
+                            </div>
+                        </SelectValue>
                         </SelectTrigger>
                         <SelectContent className='backdrop-blur-sm border-white/20'>
                             <SelectItem

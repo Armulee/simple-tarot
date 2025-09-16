@@ -25,12 +25,15 @@ export default function Interpretation() {
         lastInterpretation: string
         pureQuestion: string
     } | null>(null)
+    const [isFollowUpMode, setIsFollowUpMode] = useState(false)
     const {
         currentStep,
         question,
         selectedCards,
         interpretation,
         setInterpretation,
+        isFollowUp,
+        followUpQuestion,
     } = useTarot()
     const { completion, isLoading, error, complete } = useCompletion({
         // api: "/api/interpret-cards/mockup",
@@ -46,23 +49,19 @@ export default function Interpretation() {
             let prompt: string
 
             // Check if this is a follow-up question
-            if (question.startsWith("[Follow up question]:")) {
-                const pureQuestion = question
-                    .replace("[Follow up question]:", "")
-                    .trim()
-
+            if (isFollowUp && followUpQuestion) {
                 if (followUpData) {
                     prompt = `From last question: ${followUpData.lastQuestion}
 last cards: ${followUpData.lastCards.map((c) => c.meaning).join(", ")} 
 last interpretation: ${followUpData.lastInterpretation}
 
-Answer this follow up question: ${pureQuestion}
+Answer this follow up question: ${followUpQuestion}
 The user picked up cards: ${selectedCards.map((c) => c.meaning).join(", ")}
 
 Provide a concise interpretation that addresses the follow-up question while considering the previous reading context. Keep it positive and uplifting. Answer as a paragraph. No more than 100 words.`
                 } else {
                     // Fallback if followUpData is not available
-                    prompt = `Question: "${pureQuestion}"
+                    prompt = `Question: "${followUpQuestion}"
 Cards: ${selectedCards.map((c) => c.meaning).join(", ")}
 
 From this information, provide a concise interpretation of the cards that directly addresses the user's question. If the interpretation is harm user's feeling, tone it down to be more positive and uplifting. Answer it as paragraph. No more than 100 words.`
@@ -90,7 +89,7 @@ If the interpretation is too generic, add more details to make it more specific.
 
             await complete(prompt)
         },
-        [complete, followUpData]
+        [complete, followUpData, isFollowUp, followUpQuestion]
     )
 
     const shareImage = async () => {
@@ -219,8 +218,9 @@ If the interpretation is too generic, add more details to make it more specific.
 
     // Effect to capture follow-up data when a follow-up question is detected
     useEffect(() => {
-        if (question && question.startsWith("[Follow up question]:")) {
+        if (isFollowUp && followUpQuestion) {
             // This is a follow-up question, we need to capture the previous reading data
+            setIsFollowUpMode(true)
             const STORAGE_KEY = "reading-state-v1"
             try {
                 const raw = localStorage.getItem(STORAGE_KEY + "-backup")
@@ -230,9 +230,7 @@ If the interpretation is too generic, add more details to make it more specific.
                         lastQuestion: data.question || "",
                         lastCards: data.selectedCards || [],
                         lastInterpretation: data.interpretation || "",
-                        pureQuestion: question
-                            .replace("[Follow up question]:", "")
-                            .trim(),
+                        pureQuestion: followUpQuestion,
                     })
                     // Clean up the backup data after using it
                     localStorage.removeItem(STORAGE_KEY + "-backup")
@@ -242,8 +240,18 @@ If the interpretation is too generic, add more details to make it more specific.
             }
             // Reset the hasInitiated flag for follow-up questions
             hasInitiated.current = false
+        } else {
+            // Not a follow-up question, reset follow-up mode
+            setIsFollowUpMode(false)
         }
-    }, [question])
+    }, [isFollowUp, followUpQuestion])
+
+    // Reset follow-up mode when we have a new interpretation
+    useEffect(() => {
+        if (interpretation && isFollowUpMode) {
+            setIsFollowUpMode(false)
+        }
+    }, [interpretation, isFollowUpMode])
 
     return (
         <>
@@ -308,25 +316,23 @@ If the interpretation is too generic, add more details to make it more specific.
                         </div>
 
                         <div className='text-center space-y-6 relative z-10'>
-                            <div className='flex items-center justify-center space-x-2'>
+                            <div className='flex items-center justify-center space-x-2 relative'>
                                 <Sparkles className='w-6 h-6 text-primary' />
-                                <h1 className='font-serif font-bold text-2xl'>
+                                <h1 className='font-serif font-bold text-2xl relative'>
+                                    {isFollowUp && (
+                                        <Badge
+                                            variant='secondary'
+                                            className='absolute -top-6 -left-8 -rotate-12 bg-primary/20 text-white border-white/30'
+                                        >
+                                            {t("followUp.badge")}
+                                        </Badge>
+                                    )}
                                     {t("title")}
                                 </h1>
                                 <Sparkles className='w-6 h-6 text-primary' />
                             </div>
-                            {isFollowUpQuestion(question || "") && (
-                                <Badge
-                                    variant='secondary'
-                                    className='bg-primary/20 text-primary border-primary/30'
-                                >
-                                    {t("followUpBadge", {
-                                        default: "Follow up",
-                                    })}
-                                </Badge>
-                            )}
                             <p className='text-muted-foreground italic'>
-                                &ldquo;{getCleanQuestionText(question || "")}
+                                &ldquo;{getCleanQuestionText(isFollowUp && followUpQuestion ? followUpQuestion : question || "")}
                                 &rdquo;
                             </p>
 
@@ -420,7 +426,7 @@ If the interpretation is too generic, add more details to make it more specific.
                                     <>
                                         {/* Interpretation */}
                                         <div className='text-foreground leading-relaxed whitespace-pre-wrap mb-4'>
-                                            {interpretation ?? completion}
+                                            {interpretation ?? (isFollowUpMode ? "" : completion)}
                                         </div>
                                     </>
                                 )}

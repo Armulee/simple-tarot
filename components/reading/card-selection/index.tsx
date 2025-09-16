@@ -7,7 +7,7 @@ import { Pencil } from "lucide-react"
 import { ReadingConfig } from "../../../app/[locale]/reading/page"
 import { CircularCardSpread } from "./circular-card-spread"
 import { useRouter } from "next/navigation"
-import { isFollowUpQuestion, getCleanQuestionText } from "@/lib/question-utils"
+import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
 
 export default function CardSelection({
@@ -22,7 +22,10 @@ export default function CardSelection({
         question,
         readingType,
         setSelectedCards,
+        setInterpretation,
+        clearInterpretationState,
         isFollowUp,
+        followUpQuestion,
     } = useTarot()
     const router = useRouter()
 
@@ -39,6 +42,9 @@ export default function CardSelection({
     const handleCardsSelected = (
         cards: { name: string; isReversed: boolean }[]
     ) => {
+        // Clear old interpretation state and localStorage when new cards are selected
+        clearInterpretationState()
+        
         // Convert to TarotCard format
         const tarotCards: TarotCard[] = cards.map((card, index) => ({
             id: index + 1,
@@ -61,9 +67,7 @@ export default function CardSelection({
                         <div className='text-center space-y-2'>
                             <div className='flex items-center justify-center gap-2 relative'>
                                 <h2 className='font-serif font-semibold text-xl relative'>
-                                    {isFollowUpQuestion(question || "", {
-                                        isFollowUp,
-                                    }) && (
+                                    {isFollowUp && (
                                         <Badge
                                             variant='secondary'
                                             className='absolute -top-6 -left-8 -rotate-12 bg-primary/20 text-white border-white/30'
@@ -83,17 +87,17 @@ export default function CardSelection({
                                 </Button>
                             </div>
                             <p className='text-muted-foreground italic'>
-                                &ldquo;{getCleanQuestionText(question || "")}
+                                &ldquo;{getCleanQuestionText(isFollowUp && followUpQuestion ? followUpQuestion : question || "")}
                                 &rdquo;
                             </p>
                             <Badge
                                 className={`text-sm text-primary bg-transparent border-primary/50 ${
-                                    isFollowUpQuestion(question || "")
+                                    isFollowUp
                                         ? "cursor-default"
                                         : "cursor-pointer hover:bg-primary/10 transition-colors"
                                 }`}
                                 onClick={
-                                    isFollowUpQuestion(question || "")
+                                    isFollowUp
                                         ? undefined
                                         : handleBackToReadingType
                                 }

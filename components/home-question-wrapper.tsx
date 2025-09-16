@@ -1,14 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { useTarot } from "@/contexts/tarot-context"
 import QuestionInput from "./question-input"
 import SuggestionPromptCard from "./suggestion-prompt-card"
 import { useTranslations } from "next-intl"
 
 export default function HomeQuestionWrapper() {
-    const { question } = useTarot()
-    const [inputValue, setInputValue] = useState(question || "")
+    const [inputValue, setInputValue] = useState("")
     const t = useTranslations("QuestionInput")
 
     const handleSuggestionClick = (suggestion: string) => {
