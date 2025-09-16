@@ -391,6 +391,37 @@
   width: auto !important;
 }
 
+/* Linear Card Spread Swiper Styles */
+.linear-card-spread {
+  padding: 1rem 0;
+  overflow: visible;
+  overscroll-behavior-x: none;
+}
+
+.linear-card-spread .swiper-slide {
+  width: auto !important;
+  margin-right: 0;
+}
+
+.linear-card-spread .swiper-wrapper {
+  align-items: center;
+}
+
+.linear-card-spread .swiper-container {
+  overflow: visible;
+}
+
+/* Overlapping cards effect */
+.linear-card-spread .swiper-slide {
+  position: relative;
+}
+
+/* Smooth scrolling for freeMode */
+.linear-card-spread .swiper-slide-shadow-left,
+.linear-card-spread .swiper-slide-shadow-right {
+  display: none;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

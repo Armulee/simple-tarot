@@ -386,19 +386,22 @@ If the interpretation is too generic, add more details to make it more specific.
                                                         <div
                                                             className='w-2 h-2 bg-primary rounded-full animate-bounce'
                                                             style={{
-                                                                animationDelay: "0ms",
+                                                                animationDelay:
+                                                                    "0ms",
                                                             }}
                                                         ></div>
                                                         <div
                                                             className='w-2 h-2 bg-primary rounded-full animate-bounce'
                                                             style={{
-                                                                animationDelay: "150ms",
+                                                                animationDelay:
+                                                                    "150ms",
                                                             }}
                                                         ></div>
                                                         <div
                                                             className='w-2 h-2 bg-primary rounded-full animate-bounce'
                                                             style={{
-                                                                animationDelay: "300ms",
+                                                                animationDelay:
+                                                                    "300ms",
                                                             }}
                                                         ></div>
                                                     </div>
@@ -434,7 +437,9 @@ If the interpretation is too generic, add more details to make it more specific.
                                                             <Button
                                                                 key={id}
                                                                 type='button'
-                                                                onClick={onClick}
+                                                                onClick={
+                                                                    onClick
+                                                                }
                                                                 className={`relative group h-10 px-4 rounded-full border backdrop-blur-md shadow-[0_10px_20px_-10px_rgba(56,189,248,0.35)] transition-all text-sm ${className}`}
                                                             >
                                                                 <span className='pointer-events-none absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 bg-white/10 blur-[1.5px] transition-opacity'></span>
@@ -464,7 +469,9 @@ If the interpretation is too generic, add more details to make it more specific.
                                                 </Button>
                                                 <Button
                                                     type='button'
-                                                    onClick={() => router.push("/")}
+                                                    onClick={() =>
+                                                        router.push("/")
+                                                    }
                                                     size='lg'
                                                     className='bg-white/5 border border-white/20 hover:bg-white/10 hover:border-white/30 text-white px-6 rounded-full shadow-sm'
                                                 >

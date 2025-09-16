@@ -1,13 +1,13 @@
 "use client"
-import { Pencil } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Pencil, Check, X } from "lucide-react"
 import { Button } from "../ui/button"
 import { Card } from "../ui/card"
 import { Badge } from "../ui/badge"
+import { Input } from "../ui/input"
 import { useTarot } from "@/contexts/tarot-context"
 import { ReadingConfig } from "../../app/[locale]/reading/page"
-import { useRouter } from "next/navigation"
 import { isFollowUpQuestion, getCleanQuestionText } from "@/lib/question-utils"
-import { useEffect } from "react"
 import { useTranslations } from "next-intl"
 
 export default function ReadingType({
@@ -20,15 +20,46 @@ export default function ReadingType({
         currentStep,
         setCurrentStep,
         question,
+        setQuestion,
         readingType,
         setReadingType,
         isFollowUp,
+        followUpQuestion,
+        setFollowUpQuestion,
     } = useTarot()
-    const router = useRouter()
+
+    // State for inline editing
+    const [isEditingQuestion, setIsEditingQuestion] = useState(false)
+    const [editingQuestion, setEditingQuestion] = useState("")
 
     const handleEditQuestion = () => {
-        // Navigate to homepage - the question is already in context
-        router.push("/")
+        // Start inline editing
+        const currentQuestion =
+            isFollowUp && followUpQuestion ? followUpQuestion : question || ""
+        setEditingQuestion(currentQuestion)
+        setIsEditingQuestion(true)
+    }
+
+    const handleSaveQuestion = () => {
+        if (isFollowUp) {
+            setFollowUpQuestion(editingQuestion)
+        } else {
+            setQuestion(editingQuestion)
+        }
+        setIsEditingQuestion(false)
+    }
+
+    const handleCancelEdit = () => {
+        setIsEditingQuestion(false)
+        setEditingQuestion("")
+    }
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === "Enter") {
+            handleSaveQuestion()
+        } else if (e.key === "Escape") {
+            handleCancelEdit()
+        }
     }
 
     const handleReadingTypeSelect = (
@@ -64,20 +95,61 @@ export default function ReadingType({
                                     )}
                                     {t("questionHeading")}
                                 </h2>
-                                <Button
-                                    onClick={handleEditQuestion}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='h-8 w-8 p-0 hover:bg-primary/10'
-                                >
-                                    <Pencil className='h-4 w-4 text-muted-foreground hover:text-primary' />
-                                </Button>
+                                {!isEditingQuestion && (
+                                    <Button
+                                        onClick={handleEditQuestion}
+                                        variant='ghost'
+                                        size='sm'
+                                        className='h-8 w-8 p-0 hover:bg-primary/10'
+                                    >
+                                        <Pencil className='h-4 w-4 text-muted-foreground hover:text-primary' />
+                                    </Button>
+                                )}
                             </div>
 
-                            <p className='text-muted-foreground italic'>
-                                &ldquo;{getCleanQuestionText(question || "")}
-                                &rdquo;
-                            </p>
+                            {isEditingQuestion ? (
+                                <div className='space-y-3'>
+                                    <Input
+                                        value={editingQuestion}
+                                        onChange={(e) =>
+                                            setEditingQuestion(e.target.value)
+                                        }
+                                        onKeyDown={handleKeyDown}
+                                        className='text-center text-muted-foreground italic border-primary/50 focus:border-primary'
+                                        placeholder='Enter your question...'
+                                        autoFocus
+                                    />
+                                    <div className='flex justify-center gap-2'>
+                                        <Button
+                                            onClick={handleSaveQuestion}
+                                            size='sm'
+                                            className='h-8 px-3'
+                                        >
+                                            <Check className='h-4 w-4 mr-1' />
+                                            Save
+                                        </Button>
+                                        <Button
+                                            onClick={handleCancelEdit}
+                                            variant='outline'
+                                            size='sm'
+                                            className='h-8 px-3'
+                                        >
+                                            <X className='h-4 w-4 mr-1' />
+                                            Cancel
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <p className='text-muted-foreground italic'>
+                                    &ldquo;
+                                    {getCleanQuestionText(
+                                        isFollowUp && followUpQuestion
+                                            ? followUpQuestion
+                                            : question || ""
+                                    )}
+                                    &rdquo;
+                                </p>
+                            )}
                         </div>
                     </Card>
 

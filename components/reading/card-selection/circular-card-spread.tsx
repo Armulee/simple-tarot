@@ -105,66 +105,129 @@ export function CircularCardSpread({
 }: CircularCardSpreadProps) {
     const t = useTranslations("ReadingPage.chooseCards")
     const [selectedCards, setSelectedCards] = useState<TarotCard[]>([])
-    const [shuffledDeck, setShuffledDeck] = useState<TarotCard[]>([])
+    const [firstSpread, setFirstSpread] = useState<TarotCard[]>([])
+    const [secondSpread, setSecondSpread] = useState<TarotCard[]>([])
+    const [activeSpread, setActiveSpread] = useState<"first" | "second">(
+        "first"
+    )
 
     useEffect(() => {
-        const createShuffledDeck = () => {
+        const createShuffledDecks = () => {
             const deck = [...TAROT_DECK]
-            const shuffled: TarotCard[] = []
+            const firstDeck: TarotCard[] = []
+            const secondDeck: TarotCard[] = []
 
-            for (let i = 0; i < 52; i++) {
+            // Create first spread with 39 cards
+            for (let i = 0; i < 39; i++) {
                 if (deck.length === 0) break
 
                 const randomIndex = Math.floor(Math.random() * deck.length)
                 const cardName = deck.splice(randomIndex, 1)[0]
 
-                shuffled.push({
+                firstDeck.push({
                     name: cardName,
                     isReversed: Math.random() < 0.5,
                     position: i,
                 })
             }
 
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1))
-                ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+            // Create second spread with remaining cards (39 cards)
+            for (let i = 0; i < 39; i++) {
+                if (deck.length === 0) break
+
+                const randomIndex = Math.floor(Math.random() * deck.length)
+                const cardName = deck.splice(randomIndex, 1)[0]
+
+                secondDeck.push({
+                    name: cardName,
+                    isReversed: Math.random() < 0.5,
+                    position: i,
+                })
             }
 
-            return shuffled
+            // Shuffle both arrays for extra randomness
+            const shuffleArray = (arr: TarotCard[]) => {
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1))
+                    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+                }
+                return arr
+            }
+
+            return {
+                first: shuffleArray(firstDeck),
+                second: shuffleArray(secondDeck),
+            }
         }
 
-        setShuffledDeck(createShuffledDeck())
+        const { first, second } = createShuffledDecks()
+        setFirstSpread(first)
+        setSecondSpread(second)
     }, [])
 
     const handleCardClick = (card: TarotCard) => {
         if (selectedCards.some((selected) => selected.name === card.name)) {
+            // If clicking on already selected card, deselect it
             setSelectedCards((prev) =>
                 prev.filter((selected) => selected.name !== card.name)
             )
         } else if (selectedCards.length < cardsToSelect) {
-            const newSelected = [...selectedCards, card]
-            setSelectedCards(newSelected)
-
-            if (newSelected.length === cardsToSelect) {
-                setTimeout(
-                    () =>
-                        onCardsSelected(
-                            newSelected.map((c) => ({
-                                name: c.name,
-                                isReversed: c.isReversed,
-                            }))
-                        ),
-                    500
-                )
-            }
+            // If we haven't reached the limit, add the card
+            setSelectedCards((prev) => [...prev, card])
+        } else {
+            // If we've reached the limit, replace the last selected card
+            setSelectedCards((prev) => {
+                const newSelected = [...prev]
+                newSelected[newSelected.length - 1] = card
+                return newSelected
+            })
         }
     }
 
+    const handleConfirmSelection = () => {
+        if (selectedCards.length === cardsToSelect) {
+            onCardsSelected(
+                selectedCards.map((c) => ({
+                    name: c.name,
+                    isReversed: c.isReversed,
+                }))
+            )
+        }
+    }
+
+    const currentSpread = activeSpread === "first" ? firstSpread : secondSpread
+
     return (
-        <div className='relative w-full max-w-4xl mx-auto'>
+        <div className='relative w-full max-w-6xl mx-auto'>
+            {/* Spread Selection Buttons */}
+            <div className='flex justify-center mb-8'>
+                <div className='inline-flex items-center bg-card/50 rounded-lg p-1 border border-border/30'>
+                    <button
+                        onClick={() => setActiveSpread("first")}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                            activeSpread === "first"
+                                ? "bg-primary text-primary-foreground shadow-sm"
+                                : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                        }`}
+                    >
+                        First Spread
+                    </button>
+                    <button
+                        onClick={() => setActiveSpread("second")}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                            activeSpread === "second"
+                                ? "bg-primary text-primary-foreground shadow-sm"
+                                : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                        }`}
+                    >
+                        Second Spread
+                    </button>
+                </div>
+            </div>
+
             <div className='relative w-full aspect-square max-w-md mx-auto min-h-[400px]'>
-                {shuffledDeck.map((card, index) => {
-                    const angle = (index * 360) / shuffledDeck.length
+                {currentSpread.map((card, index) => {
+                    const angle = (index * 360) / currentSpread.length
                     const radius = 140
                     const x = Math.cos((angle - 90) * (Math.PI / 180)) * radius
                     const y = Math.sin((angle - 90) * (Math.PI / 180)) * radius
@@ -250,16 +313,31 @@ export function CircularCardSpread({
                 })}
             </div>
 
-            <div className='text-center mt-8 space-y-2'>
-                <p className='text-lg font-medium'>
-                    {t("selectFromSpread", { count: cardsToSelect })}
-                </p>
-                <p className='text-sm text-muted-foreground'>
-                    {t("selectedCount", {
-                        selected: selectedCards.length,
-                        total: cardsToSelect,
-                    })}
-                </p>
+            <div className='text-center mt-8 space-y-4'>
+                <div className='space-y-2'>
+                    <p className='text-lg font-medium'>
+                        {t("selectFromSpread", { count: cardsToSelect })}
+                    </p>
+                    <p className='text-sm text-muted-foreground'>
+                        {t("selectedCount", {
+                            selected: selectedCards.length,
+                            total: cardsToSelect,
+                        })}
+                    </p>
+                    <p className='text-xs text-muted-foreground'>
+                        Switch between spreads to explore different cards. Click
+                        on a new card to replace your current selection.
+                    </p>
+                </div>
+
+                {selectedCards.length === cardsToSelect && (
+                    <button
+                        onClick={handleConfirmSelection}
+                        className='px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors shadow-lg'
+                    >
+                        Confirm Selection
+                    </button>
+                )}
             </div>
         </div>
     )

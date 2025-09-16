@@ -1,0 +1,670 @@
+"use client"
+
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Sparkles, RefreshCcw, Loader2, Stars } from "lucide-react"
+import { FaShareNodes, FaCopy, FaDownload, FaCheck } from "react-icons/fa6"
+import { useEffect, useRef, useState, useCallback } from "react"
+import { useCompletion } from "@ai-sdk/react"
+import { TarotCard, useTarot } from "@/contexts/tarot-context"
+import { useRouter } from "next/navigation"
+import QuestionInput from "../question-input"
+import { CardImage } from "../card-image"
+import { getCleanQuestionText } from "@/lib/question-utils"
+import { useTranslations } from "next-intl"
+
+export default function Interpretation() {
+    const t = useTranslations("ReadingPage.interpretation")
+    const router = useRouter()
+    const [finish, setFinish] = useState(false)
+    const [copied, setCopied] = useState(false)
+    const [followUpData, setFollowUpData] = useState<{
+        lastQuestion: string
+        lastCards: TarotCard[]
+        lastInterpretation: string
+        pureQuestion: string
+    } | null>(null)
+    const [isFollowUpMode, setIsFollowUpMode] = useState(false)
+    const {
+        currentStep,
+        question,
+        selectedCards,
+        interpretation,
+        setInterpretation,
+        isFollowUp,
+        followUpQuestion,
+    } = useTarot()
+    const { completion, isLoading, error, complete } = useCompletion({
+        // api: "/api/interpret-cards/mockup",
+        api: "/api/interpret-cards/question",
+        onFinish: (_, completion) => {
+            setFinish(true)
+            setInterpretation(completion)
+        },
+    })
+
+    const getInterpretation = useCallback(
+        async (question: string, selectedCards: TarotCard[]) => {
+            let prompt: string
+
+            // Check if this is a follow-up question
+            if (isFollowUp && followUpQuestion) {
+                if (followUpData) {
+                    prompt = `From last question: ${followUpData.lastQuestion}
+last cards: ${followUpData.lastCards.map((c) => c.meaning).join(", ")} 
+last interpretation: ${followUpData.lastInterpretation}
+
+Answer this follow up question: ${followUpQuestion}
+The user picked up cards: ${selectedCards.map((c) => c.meaning).join(", ")}
+
+Provide a concise interpretation that addresses the follow-up question while considering the previous reading context. Keep it positive and uplifting. Answer as a paragraph. No more than 100 words.`
+                } else {
+                    // Fallback if followUpData is not available
+                    prompt = `Question: "${followUpQuestion}"
+Cards: ${selectedCards.map((c) => c.meaning).join(", ")}
+
+From this information, provide a concise interpretation of the cards that directly addresses the user's question. If the interpretation is harm user's feeling, tone it down to be more positive and uplifting. Answer it as paragraph. No more than 100 words.`
+                }
+            } else {
+                // Regular interpretation
+                prompt = `Question: "${question}"
+Cards: ${selectedCards.map((c) => c.meaning).join(", ")}
+
+From this information, provide a concise interpretation of the cards that directly addresses the user's question. If the interpretation is harm user's feeling, tone it down to be more positive and uplifting. Answer it as paragraph. No more than 100 words.
+
+If the interpretation is too negative, tone it down to be more positive and uplifting.
+
+If the interpretation is too positive, tone it down to be more realistic and down to earth.
+
+If the interpretation is too vague, add more details to make it more specific.
+
+If the interpretation is too long, shorten it to be more concise.
+
+If the interpretation is too short, add more details to make it more specific.
+
+If the interpretation is too generic, add more details to make it more specific.
+`
+            }
+
+            await complete(prompt)
+        },
+        [complete, followUpData, isFollowUp, followUpQuestion]
+    )
+
+    const shareImage = async () => {
+        try {
+            const res = await fetch("/api/share-image", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    question,
+                    cards: selectedCards.map((c) => c.meaning),
+                    interpretation: interpretation ?? completion,
+                    width: 1080,
+                    height: 1350,
+                }),
+            })
+            const blob = await res.blob()
+            const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
+            const filename = `reading-${timestamp}.png`
+            const file = new File([blob], filename, { type: "image/png" })
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: "Asking Fate Reading",
+                })
+                return
+            }
+            // Fallback to download if files can't be shared
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement("a")
+            a.href = url
+            a.download = filename
+            document.body.appendChild(a)
+            a.click()
+            a.remove()
+            URL.revokeObjectURL(url)
+        } catch (e) {
+            console.error(e)
+        }
+    }
+
+    const handleCopy = async () => {
+        const textOnly = (interpretation ?? completion) || ""
+        await navigator.clipboard.writeText(textOnly)
+        setCopied(true)
+        window.setTimeout(() => setCopied(false), 1500)
+    }
+
+    const handleDownload = async () => {
+        try {
+            const res = await fetch("/api/share-image", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    question,
+                    cards: selectedCards.map((c) => c.meaning),
+                    interpretation: interpretation ?? completion,
+                    width: 1080,
+                    height: 1350,
+                }),
+            })
+            const blob = await res.blob()
+            const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
+            const filename = `reading-${timestamp}.png`
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement("a")
+            a.href = url
+            a.download = filename
+            document.body.appendChild(a)
+            a.click()
+            a.remove()
+            URL.revokeObjectURL(url)
+        } catch (e) {
+            console.error(e)
+        }
+    }
+
+    const handleRegenerate = () => {
+        if (isLoading) return
+        setFinish(false)
+        setInterpretation(null)
+        hasInitiated.current = false
+    }
+
+    const shareButtons = [
+        {
+            id: "share",
+            Icon: FaShareNodes,
+            label: t("actions.share"),
+            className:
+                "border-white/20 text-white bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 hover:from-indigo-500/30 hover:via-purple-500/30 hover:to-cyan-500/30",
+            onClick: shareImage,
+        },
+        {
+            id: "copy",
+            Icon: copied ? FaCheck : FaCopy,
+            label: copied ? t("actions.copied") : t("actions.copy"),
+            className:
+                "border-white/20 text-white bg-white/10 hover:bg-white/20",
+            onClick: handleCopy,
+        },
+        {
+            id: "download",
+            Icon: FaDownload,
+            label: t("actions.download"),
+            className:
+                "border-cyan-400/30 text-white bg-cyan-400/15 hover:bg-cyan-400/25",
+            onClick: handleDownload,
+        },
+    ]
+
+    const hasInitiated = useRef(false)
+    useEffect(() => {
+        // Auto-submit when we have question and cards, but only once
+        if (
+            question &&
+            selectedCards.length > 0 &&
+            !interpretation &&
+            !hasInitiated.current
+        ) {
+            getInterpretation(question, selectedCards)
+            hasInitiated.current = true
+        }
+    }, [question, selectedCards, interpretation, getInterpretation])
+
+    // Effect to capture follow-up data when a follow-up question is detected
+    useEffect(() => {
+        if (isFollowUp && followUpQuestion) {
+            // This is a follow-up question, we need to capture the previous reading data
+            setIsFollowUpMode(true)
+            const STORAGE_KEY = "reading-state-v1"
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY + "-backup")
+                if (raw) {
+                    const data = JSON.parse(raw)
+                    setFollowUpData({
+                        lastQuestion: data.question || "",
+                        lastCards: data.selectedCards || [],
+                        lastInterpretation: data.interpretation || "",
+                        pureQuestion: followUpQuestion,
+                    })
+                    // Clean up the backup data after using it
+                    localStorage.removeItem(STORAGE_KEY + "-backup")
+                }
+            } catch (e) {
+                console.error("Failed to load follow-up data:", e)
+            }
+            // Reset the hasInitiated flag for follow-up questions
+            hasInitiated.current = false
+        } else {
+            // Not a follow-up question, reset follow-up mode
+            setIsFollowUpMode(false)
+        }
+    }, [isFollowUp, followUpQuestion])
+
+    // Reset follow-up mode when we have a new interpretation
+    useEffect(() => {
+        if (interpretation && isFollowUpMode) {
+            setIsFollowUpMode(false)
+        }
+    }, [interpretation, isFollowUpMode])
+
+    return (
+        <>
+            {currentStep === "interpretation" && (
+                <div className='space-y-8'>
+                    {/* Header - Mobile: Stacked, Desktop: Side by side */}
+                    <Card className='px-6 pt-10 pb-6 border-0 relative overflow-hidden'>
+                        {/* Background card images with aura - only show on mobile */}
+                        <div className='absolute inset-0 pointer-events-none lg:hidden'>
+                            {selectedCards.map((card, index) => {
+                                const positions = [
+                                    {
+                                        top: "10%",
+                                        left: "5%",
+                                        transform: "rotate(-15deg)",
+                                    },
+                                    {
+                                        top: "15%",
+                                        right: "8%",
+                                        transform: "rotate(20deg)",
+                                    },
+                                    {
+                                        bottom: "20%",
+                                        left: "10%",
+                                        transform: "rotate(-10deg)",
+                                    },
+                                    {
+                                        bottom: "15%",
+                                        right: "12%",
+                                        transform: "rotate(25deg)",
+                                    },
+                                    {
+                                        top: "50%",
+                                        left: "2%",
+                                        transform: "rotate(-5deg)",
+                                    },
+                                    {
+                                        top: "60%",
+                                        right: "5%",
+                                        transform: "rotate(15deg)",
+                                    },
+                                ]
+                                const position =
+                                    positions[index % positions.length]
+
+                                return (
+                                    <div
+                                        key={`bg-${index}`}
+                                        className='absolute opacity-20'
+                                        style={position}
+                                    >
+                                        <CardImage
+                                            card={card}
+                                            size='sm'
+                                            showAura={true}
+                                            showLabel={false}
+                                            className='scale-75'
+                                        />
+                                    </div>
+                                )
+                            })}
+                        </div>
+
+                        {/* Mobile Layout - Stacked */}
+                        <div className='lg:hidden text-center space-y-6 relative z-10'>
+                            <div className='flex items-center justify-center space-x-2 relative'>
+                                <Sparkles className='w-6 h-6 text-primary' />
+                                <h1 className='font-serif font-bold text-2xl relative'>
+                                    {isFollowUp && (
+                                        <Badge
+                                            variant='secondary'
+                                            className='absolute -top-6 -left-8 -rotate-12 bg-primary/20 text-white border-white/30'
+                                        >
+                                            {t("followUp.badge")}
+                                        </Badge>
+                                    )}
+                                    {t("title")}
+                                </h1>
+                                <Sparkles className='w-6 h-6 text-primary' />
+                            </div>
+                            <p className='text-muted-foreground italic'>
+                                &ldquo;
+                                {getCleanQuestionText(
+                                    isFollowUp && followUpQuestion
+                                        ? followUpQuestion
+                                        : question || ""
+                                )}
+                                &rdquo;
+                            </p>
+
+                            {/* Card Images with Badges - Larger on Mobile */}
+                            <div className='flex flex-wrap gap-8 justify-center'>
+                                {selectedCards.map((card, index) => (
+                                    <div
+                                        key={index}
+                                        className='flex flex-col items-center gap-4'
+                                    >
+                                        {/* Badge on top */}
+                                        <Badge
+                                            variant='secondary'
+                                            className='bg-secondary/20 text-secondary border-secondary/30 text-sm px-3 py-1'
+                                        >
+                                            {card.meaning}
+                                        </Badge>
+
+                                        {/* Card Image - Larger size on mobile */}
+                                        <CardImage
+                                            card={card}
+                                            size='lg'
+                                            showAura={true}
+                                            showLabel={false}
+                                            className='hover:scale-105 transition-transform duration-200'
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Desktop Layout - Side by Side */}
+                        <div className='hidden lg:flex lg:items-start lg:gap-12 lg:min-h-[400px]'>
+                            {/* Left Side - Cards */}
+                            <div className='flex-1 space-y-6'>
+                                <div className='text-center space-y-4'>
+                                    <div className='flex items-center justify-center space-x-2 relative'>
+                                        <Sparkles className='w-6 h-6 text-primary' />
+                                        <h1 className='font-serif font-bold text-2xl relative'>
+                                            {isFollowUp && (
+                                                <Badge
+                                                    variant='secondary'
+                                                    className='absolute -top-6 -left-8 -rotate-12 bg-primary/20 text-white border-white/30'
+                                                >
+                                                    {t("followUp.badge")}
+                                                </Badge>
+                                            )}
+                                            {t("title")}
+                                        </h1>
+                                        <Sparkles className='w-6 h-6 text-primary' />
+                                    </div>
+                                    <p className='text-muted-foreground italic'>
+                                        &ldquo;
+                                        {getCleanQuestionText(
+                                            isFollowUp && followUpQuestion
+                                                ? followUpQuestion
+                                                : question || ""
+                                        )}
+                                        &rdquo;
+                                    </p>
+                                </div>
+
+                                {/* Card Images - Larger on Desktop */}
+                                <div className='flex flex-wrap gap-6 justify-center'>
+                                    {selectedCards.map((card, index) => (
+                                        <div
+                                            key={index}
+                                            className='flex flex-col items-center gap-3'
+                                        >
+                                            {/* Badge on top */}
+                                            <Badge
+                                                variant='secondary'
+                                                className='bg-secondary/20 text-secondary border-secondary/30'
+                                            >
+                                                {card.meaning}
+                                            </Badge>
+
+                                            {/* Card Image - Large size on desktop */}
+                                            <CardImage
+                                                card={card}
+                                                size='lg'
+                                                showAura={true}
+                                                showLabel={false}
+                                                className='hover:scale-105 transition-transform duration-200 scale-125'
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Right Side - Interpretation */}
+                            <div className='flex-1 max-w-lg'>
+                                <div className='sticky top-6'>
+                                    <Card className='p-6 bg-card/10 backdrop-blur-sm border-border/20 card-glow'>
+                                        <div className='space-y-4'>
+                                            <div className='flex items-center space-x-3'>
+                                                <div className='w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center'>
+                                                    <Sparkles className='w-5 h-5 text-primary' />
+                                                </div>
+                                                <div>
+                                                    <h2 className='font-serif font-semibold text-xl'>
+                                                        {t("sectionTitle")}
+                                                    </h2>
+                                                    <p className='text-sm text-muted-foreground'>
+                                                        {t("sectionSubtitle")}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className='prose prose-invert max-w-none'>
+                                                {error ? (
+                                                    <div className='text-center space-y-4'>
+                                                        <p className='text-destructive'>
+                                                            {t("error")}
+                                                        </p>
+                                                    </div>
+                                                ) : isLoading ? (
+                                                    <div className='text-center space-y-6 py-8'>
+                                                        <div className='flex items-center justify-center space-x-3'>
+                                                            <Loader2 className='w-6 h-6 text-primary animate-spin' />
+                                                            <span className='text-muted-foreground'>
+                                                                {t(
+                                                                    "loading.title"
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                        <div className='space-y-2'>
+                                                            <div className='flex justify-center space-x-1'>
+                                                                <div
+                                                                    className='w-2 h-2 bg-primary rounded-full animate-bounce'
+                                                                    style={{
+                                                                        animationDelay:
+                                                                            "0ms",
+                                                                    }}
+                                                                ></div>
+                                                                <div
+                                                                    className='w-2 h-2 bg-primary rounded-full animate-bounce'
+                                                                    style={{
+                                                                        animationDelay:
+                                                                            "150ms",
+                                                                    }}
+                                                                ></div>
+                                                                <div
+                                                                    className='w-2 h-2 bg-primary rounded-full animate-bounce'
+                                                                    style={{
+                                                                        animationDelay:
+                                                                            "300ms",
+                                                                    }}
+                                                                ></div>
+                                                            </div>
+                                                            <p className='text-sm text-muted-foreground'>
+                                                                {t(
+                                                                    "loading.subtitle"
+                                                                )}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        {/* Interpretation */}
+                                                        <div className='text-foreground leading-relaxed whitespace-pre-wrap'>
+                                                            {interpretation ??
+                                                                (isFollowUpMode
+                                                                    ? ""
+                                                                    : completion)}
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </Card>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* AI Interpretation - Mobile Only */}
+                    <Card className='lg:hidden p-8 max-w-xl mx-auto bg-card/10 backdrop-blur-sm border-border/20 card-glow'>
+                        <div className='space-y-6'>
+                            <div className='flex items-center space-x-3'>
+                                <div className='w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center'>
+                                    <Sparkles className='w-5 h-5 text-primary' />
+                                </div>
+                                <div>
+                                    <h2 className='font-serif font-semibold text-xl'>
+                                        {t("sectionTitle")}
+                                    </h2>
+                                    <p className='text-sm text-muted-foreground'>
+                                        {t("sectionSubtitle")}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className='prose prose-invert max-w-none'>
+                                {error ? (
+                                    <div className='text-center space-y-4'>
+                                        <p className='text-destructive'>
+                                            {t("error")}
+                                        </p>
+                                    </div>
+                                ) : isLoading ? (
+                                    <div className='text-center space-y-6 py-8'>
+                                        <div className='flex items-center justify-center space-x-3'>
+                                            <Loader2 className='w-6 h-6 text-primary animate-spin' />
+                                            <span className='text-muted-foreground'>
+                                                {t("loading.title")}
+                                            </span>
+                                        </div>
+                                        <div className='space-y-2'>
+                                            <div className='flex justify-center space-x-1'>
+                                                <div
+                                                    className='w-2 h-2 bg-primary rounded-full animate-bounce'
+                                                    style={{
+                                                        animationDelay: "0ms",
+                                                    }}
+                                                ></div>
+                                                <div
+                                                    className='w-2 h-2 bg-primary rounded-full animate-bounce'
+                                                    style={{
+                                                        animationDelay: "150ms",
+                                                    }}
+                                                ></div>
+                                                <div
+                                                    className='w-2 h-2 bg-primary rounded-full animate-bounce'
+                                                    style={{
+                                                        animationDelay: "300ms",
+                                                    }}
+                                                ></div>
+                                            </div>
+                                            <p className='text-sm text-muted-foreground'>
+                                                {t("loading.subtitle")}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {/* Interpretation */}
+                                        <div className='text-foreground leading-relaxed whitespace-pre-wrap mb-4'>
+                                            {interpretation ??
+                                                (isFollowUpMode
+                                                    ? ""
+                                                    : completion)}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </Card>
+
+                    {(interpretation || finish || error) && (
+                        <>
+                            {/* Sharing - only show when not error */}
+                            {!error && (
+                                <div className='flex flex-wrap items-center justify-center gap-3'>
+                                    {shareButtons.map(
+                                        ({
+                                            id,
+                                            Icon,
+                                            className,
+                                            onClick,
+                                            label,
+                                        }) => (
+                                            <Button
+                                                key={id}
+                                                type='button'
+                                                onClick={onClick}
+                                                className={`relative group h-11 px-4 rounded-full border backdrop-blur-md shadow-[0_10px_20px_-10px_rgba(56,189,248,0.35)] transition-all ${className}`}
+                                            >
+                                                <span className='pointer-events-none absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 bg-white/10 blur-[1.5px] transition-opacity'></span>
+                                                <span className='relative z-10 flex items-center gap-2'>
+                                                    <Icon className='w-4 h-4' />
+                                                    <span className='text-sm font-medium'>
+                                                        {label}
+                                                    </span>
+                                                </span>
+                                            </Button>
+                                        )
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Action buttons - show when error, finished, or has interpretation (not while loading) */}
+                            {(error || finish || interpretation) && (
+                                <div className='flex flex-wrap items-center justify-center gap-3'>
+                                    <Button
+                                        type='button'
+                                        onClick={handleRegenerate}
+                                        disabled={isLoading}
+                                        size='lg'
+                                        className='bg-white/5 border border-white/20 hover:bg-white/10 hover:border-white/30 text-white px-8 rounded-full shadow-sm'
+                                    >
+                                        <RefreshCcw className='w-4 h-4 mr-2' />
+                                        {t("buttons.regenerate")}
+                                    </Button>
+                                    <Button
+                                        type='button'
+                                        onClick={() => router.push("/")}
+                                        size='lg'
+                                        className='bg-white/5 border border-white/20 hover:bg-white/10 hover:border-white/30 text-white px-8 rounded-full shadow-sm'
+                                    >
+                                        <Stars className='w-4 h-4 mr-2' />
+                                        {t("buttons.newReading")}
+                                    </Button>
+                                </div>
+                            )}
+
+                            {/* Follow-up question - only show when not error */}
+                            {!error && (
+                                <div className='max-w-xl mx-auto border-t border-border/20 pt-4'>
+                                    <QuestionInput
+                                        followUp={true}
+                                        id='follow-up-question'
+                                        label={t("followUp.label")}
+                                        placeholder={t("followUp.placeholder")}
+                                    />
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {/* Disclaimer */}
+                    <Card className='p-4 bg-card/5 backdrop-blur-sm border-border/10'>
+                        <p className='text-xs text-muted-foreground text-center'>
+                            {t("disclaimer")}
+                        </p>
+                    </Card>
+                </div>
+            )}
+        </>
+    )
+}

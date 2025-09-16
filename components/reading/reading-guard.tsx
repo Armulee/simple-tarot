@@ -42,7 +42,7 @@ export default function ReadingGuard({ children }: ReadingGuardProps) {
 
     // Render children if question exists
     return (
-        <div className='relative overflow-hidden relative z-10 max-w-4xl mx-auto px-6 pb-16'>
+        <div className='relative overflow-hidden relative z-10 max-w-4xl mx-auto pb-16'>
             {children}
         </div>
     )
