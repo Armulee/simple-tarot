@@ -280,6 +280,7 @@
         "newReading": "New Reading"
       },
       "followUp": {
+        "badge": "Follow up",
         "label": "Ask a follow up question",
         "placeholder": "Type your follow up question here..."
       },
