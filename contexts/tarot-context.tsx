@@ -63,6 +63,9 @@ export interface TarotContextType {
 
     // Clear localStorage function (for new readings)
     clearReadingStorage: () => void
+    
+    // Clear interpretation state and localStorage (for new card selections)
+    clearInterpretationState: () => void
 }
 
 const TarotContext = createContext<TarotContextType | undefined>(undefined)
@@ -105,6 +108,21 @@ export function TarotProvider({ children }: { children: ReactNode }) {
             setTimeout(() => setIsClearing(false), 100)
         } catch (e) {
             console.error("Failed to clear reading storage:", e)
+            setIsClearing(false)
+        }
+    }
+
+    const clearInterpretationState = () => {
+        try {
+            setIsClearing(true)
+            // Only clear interpretation-related localStorage data
+            localStorage.removeItem(STORAGE_KEY + "-backup")
+            // Clear interpretation state
+            setInterpretation(null)
+            // Reset the clearing flag after a brief delay
+            setTimeout(() => setIsClearing(false), 100)
+        } catch (e) {
+            console.error("Failed to clear interpretation state:", e)
             setIsClearing(false)
         }
     }
@@ -199,6 +217,7 @@ export function TarotProvider({ children }: { children: ReactNode }) {
                 setFollowUpQuestion,
                 resetReading,
                 clearReadingStorage,
+                clearInterpretationState,
             }}
         >
             {children}

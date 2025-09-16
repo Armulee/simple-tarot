@@ -22,6 +22,8 @@ export default function CardSelection({
         question,
         readingType,
         setSelectedCards,
+        setInterpretation,
+        clearInterpretationState,
         isFollowUp,
     } = useTarot()
     const router = useRouter()
@@ -39,6 +41,9 @@ export default function CardSelection({
     const handleCardsSelected = (
         cards: { name: string; isReversed: boolean }[]
     ) => {
+        // Clear old interpretation state and localStorage when new cards are selected
+        clearInterpretationState()
+        
         // Convert to TarotCard format
         const tarotCards: TarotCard[] = cards.map((card, index) => ({
             id: index + 1,
