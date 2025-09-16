@@ -25,6 +25,7 @@ export default function Interpretation() {
         lastInterpretation: string
         pureQuestion: string
     } | null>(null)
+    const [isFollowUpMode, setIsFollowUpMode] = useState(false)
     const {
         currentStep,
         question,
@@ -221,6 +222,7 @@ If the interpretation is too generic, add more details to make it more specific.
     useEffect(() => {
         if (question && question.startsWith("[Follow up question]:")) {
             // This is a follow-up question, we need to capture the previous reading data
+            setIsFollowUpMode(true)
             const STORAGE_KEY = "reading-state-v1"
             try {
                 const raw = localStorage.getItem(STORAGE_KEY + "-backup")
@@ -242,8 +244,18 @@ If the interpretation is too generic, add more details to make it more specific.
             }
             // Reset the hasInitiated flag for follow-up questions
             hasInitiated.current = false
+        } else {
+            // Not a follow-up question, reset follow-up mode
+            setIsFollowUpMode(false)
         }
     }, [question])
+
+    // Reset follow-up mode when we have a new interpretation
+    useEffect(() => {
+        if (interpretation && isFollowUpMode) {
+            setIsFollowUpMode(false)
+        }
+    }, [interpretation, isFollowUpMode])
 
     return (
         <>
@@ -420,7 +432,7 @@ If the interpretation is too generic, add more details to make it more specific.
                                     <>
                                         {/* Interpretation */}
                                         <div className='text-foreground leading-relaxed whitespace-pre-wrap mb-4'>
-                                            {interpretation ?? completion}
+                                            {interpretation ?? (isFollowUpMode ? "" : completion)}
                                         </div>
                                     </>
                                 )}
