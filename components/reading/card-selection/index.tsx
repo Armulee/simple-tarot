@@ -210,21 +210,25 @@ export default function CardSelection({
                                         onCardsSelected={handleCardsSelected}
                                     />
                                 ) : (
-                                    <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-                                        <CircularCardSpread
-                                            deferFinalization
-                                            cardsToSelect={readingConfig[readingType].cards}
-                                            onCardsSelected={handleCardsSelected}
-                                            onPartialSelect={(c, action) => handlePartialSelect(c, action)}
-                                            externalSelectedNames={externalNames}
-                                        />
-                                        <CircularCardSpread
-                                            deferFinalization
-                                            cardsToSelect={readingConfig[readingType].cards}
-                                            onCardsSelected={handleCardsSelected}
-                                            onPartialSelect={(c, action) => handlePartialSelect(c, action)}
-                                            externalSelectedNames={externalNames}
-                                        />
+                                    <div className='flex flex-col sm:flex-row gap-6 justify-center items-start'>
+                                        <div className='flex-1 max-w-md'>
+                                            <CircularCardSpread
+                                                deferFinalization
+                                                cardsToSelect={readingConfig[readingType].cards}
+                                                onCardsSelected={handleCardsSelected}
+                                                onPartialSelect={(c, action) => handlePartialSelect(c, action)}
+                                                externalSelectedNames={externalNames}
+                                            />
+                                        </div>
+                                        <div className='flex-1 max-w-md'>
+                                            <CircularCardSpread
+                                                deferFinalization
+                                                cardsToSelect={readingConfig[readingType].cards}
+                                                onCardsSelected={handleCardsSelected}
+                                                onPartialSelect={(c, action) => handlePartialSelect(c, action)}
+                                                externalSelectedNames={externalNames}
+                                            />
+                                        </div>
                                     </div>
                                 )}
                             </>

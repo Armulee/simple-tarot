@@ -3,7 +3,7 @@
 import React, { useMemo, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import { Swiper, SwiperSlide } from "swiper/react"
-import { FreeMode } from "swiper/modules"
+import { FreeMode, Mousewheel } from "swiper/modules"
 import "swiper/css"
 import "swiper/css/free-mode"
 import { SwipeUpOverlay } from "../swipe-up-overlay"
@@ -261,11 +261,24 @@ export function LinearCardSpread({
         <>
             <div className='w-full' ref={deckRef}>
                 <Swiper
-                    modules={[FreeMode]}
-                    freeMode={{ enabled: true, momentum: true }}
+                    modules={[FreeMode, Mousewheel]}
+                    freeMode={{ 
+                        enabled: true, 
+                        momentum: true,
+                        sticky: false
+                    }}
                     slidesPerView='auto'
                     spaceBetween={-40}
-                    grabCursor
+                    grabCursor={true}
+                    mousewheel={{
+                        enabled: true,
+                        forceToAxis: true,
+                        sensitivity: 1,
+                        releaseOnEdges: true
+                    }}
+                    scrollbar={{
+                        enabled: false
+                    }}
                     className='w-full px-4'
                 >
                 {deck.map((name, idx) => {
