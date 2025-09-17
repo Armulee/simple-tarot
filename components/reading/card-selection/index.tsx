@@ -210,27 +210,15 @@ export default function CardSelection({
                                         onCardsSelected={handleCardsSelected}
                                     />
                                 ) : (
-                                    <div className='flex flex-col sm:flex-row gap-6 justify-center items-start'>
-                                        <div className='flex-1 max-w-md'>
-                                            <CircularCardSpread
-                                                deckId="deck1"
-                                                deferFinalization
-                                                cardsToSelect={readingConfig[readingType].cards}
-                                                onCardsSelected={handleCardsSelected}
-                                                onPartialSelect={(c, action) => handlePartialSelect(c, action)}
-                                                externalSelectedNames={externalNames}
-                                            />
-                                        </div>
-                                        <div className='flex-1 max-w-md'>
-                                            <CircularCardSpread
-                                                deckId="deck2"
-                                                deferFinalization
-                                                cardsToSelect={readingConfig[readingType].cards}
-                                                onCardsSelected={handleCardsSelected}
-                                                onPartialSelect={(c, action) => handlePartialSelect(c, action)}
-                                                externalSelectedNames={externalNames}
-                                            />
-                                        </div>
+                                    <div className='flex justify-center'>
+                                        <CircularCardSpread
+                                            deckId="single"
+                                            deferFinalization
+                                            cardsToSelect={readingConfig[readingType].cards}
+                                            onCardsSelected={handleCardsSelected}
+                                            onPartialSelect={(c, action) => handlePartialSelect(c, action)}
+                                            externalSelectedNames={externalNames}
+                                        />
                                     </div>
                                 )}
                             </>

@@ -119,7 +119,6 @@ export function CircularCardSpread({
     const t = useTranslations("ReadingPage.chooseCards")
     const [selectedCards, setSelectedCards] = useState<TarotCard[]>([])
     const [shuffledDeck, setShuffledDeck] = useState<TarotCard[]>([])
-    const [showSwipeOverlay, setShowSwipeOverlay] = useState(false)
 
     useEffect(() => {
         const createShuffledDeck = () => {
@@ -137,8 +136,8 @@ export function CircularCardSpread({
                 ;[deck[i], deck[j]] = [deck[j], deck[i]]
             }
 
-            // Take only 39 cards for better performance
-            const selectedCards = deck.slice(0, 39)
+            // Take 78 cards for inner and outer circles
+            const selectedCards = deck.slice(0, 78)
             
             return selectedCards.map((cardName, index) => ({
                 name: cardName,
@@ -154,10 +153,12 @@ export function CircularCardSpread({
     const cardPositions = useMemo(() => {
         return shuffledDeck.map((card, index) => {
             const angle = (index * 360) / shuffledDeck.length
-            const radius = 140
+            // Split cards into inner (first 39) and outer (last 39) circles
+            const isInnerCircle = index < 39
+            const radius = isInnerCircle ? 100 : 180 // Inner circle smaller radius
             const x = Math.cos((angle - 90) * (Math.PI / 180)) * radius
             const y = Math.sin((angle - 90) * (Math.PI / 180)) * radius
-            return { angle, x, y }
+            return { angle, x, y, isInnerCircle }
         })
     }, [shuffledDeck])
 
@@ -182,38 +183,22 @@ export function CircularCardSpread({
                 return next
             })
         } else if (selectedCards.length < cardsToSelect) {
-            // Show swipe overlay for new card selection
-            setShowSwipeOverlay(true)
-        }
-    }
-
-    const handleCardSelect = (card: TarotCard) => {
-        const newSelected: TarotCard[] = [...selectedCards, card]
-        setSelectedCards(newSelected)
-        onPartialSelect?.(
-            { name: card.name, isReversed: card.isReversed },
-            "add",
-            newSelected.length
-        )
-
-        if (!deferFinalization && newSelected.length === cardsToSelect) {
-            setTimeout(
-                () =>
-                    onCardsSelected(
-                        newSelected.map((c) => ({
-                            name: c.name,
-                            isReversed: c.isReversed,
-                        }))
-                    ),
-                500
+            // Add card to selection
+            const newSelected: TarotCard[] = [...selectedCards, card]
+            setSelectedCards(newSelected)
+            onPartialSelect?.(
+                { name: card.name, isReversed: card.isReversed },
+                "add",
+                newSelected.length
             )
         }
     }
 
+
     // Memoize card rendering to prevent unnecessary re-renders
     const renderedCards = useMemo(() => {
         return shuffledDeck.map((card, index) => {
-            const { angle, x, y } = cardPositions[index]
+            const { angle, x, y, isInnerCircle } = cardPositions[index]
 
             const isSelected = selectedCards.some(
                 (selected) => selected.name === card.name
@@ -233,22 +218,22 @@ export function CircularCardSpread({
                         isExternallyTaken
                             ? "opacity-50 cursor-not-allowed"
                             : "cursor-pointer hover:scale-110"
-                    }`}
+                    } ${isInnerCircle ? "z-10" : "z-5"}`}
                     style={{
                         left: `calc(50% + ${x}px - 30px)`,
                         top: `calc(50% + ${y}px - 42px)`,
                         transform: `rotate(${angle}deg)`,
-                        zIndex: isSelected ? 10 : 1,
+                        zIndex: isSelected ? 20 : (isInnerCircle ? 10 : 5),
                     }}
                 >
                             <div className='relative'>
                                 <div
-                                    className={`w-16 h-24 rounded-[16px] bg-gradient-to-br from-[#15a6ff] via-[#b56cff] to-[#15a6ff] p-[2px] shadow-2xl select-none touch-none ${
+                                    className={`w-16 h-24 rounded-[16px] bg-gradient-to-br from-[#15a6ff] via-[#b56cff] to-[#15a6ff] p-[2px] shadow-2xl select-none ${
                                         isExternallyTaken ? "pointer-events-none" : "cursor-pointer"
                                     }`}
                                     onClick={() => !isExternallyTaken && handleCardClick(card)}
                                     role='button'
-                                    aria-label='Swipe up to select card'
+                                    aria-label='Click to select card'
                                 >
                                     <div className='w-full h-full rounded-[14px] bg-white p-[3px]'>
                                         <div
@@ -301,15 +286,30 @@ export function CircularCardSpread({
                     })}
                 </p>
                 <p className='text-xs text-muted-foreground'>
-                    {t("swipeUpToSelect")}
+                    Click on cards to select them
                 </p>
             </div>
+            
+            {/* Confirmation Button */}
+            {selectedCards.length > 0 && (
+                <div className='mt-6 flex justify-center'>
+                    <button
+                        onClick={() => {
+                            onCardsSelected(
+                                selectedCards.map((c) => ({
+                                    name: c.name,
+                                    isReversed: c.isReversed,
+                                }))
+                            )
+                        }}
+                        className='px-8 py-3 bg-gradient-to-r from-[#15a6ff] to-[#b56cff] text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105'
+                    >
+                        Confirm Selection ({selectedCards.length}/{cardsToSelect})
+                    </button>
+                </div>
+            )}
             </div>
             
-            <SwipeUpOverlay 
-                isVisible={showSwipeOverlay} 
-                onClose={() => setShowSwipeOverlay(false)}
-            />
         </>
     )
 }
