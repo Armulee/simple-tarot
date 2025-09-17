@@ -232,55 +232,35 @@ export function CircularCardSpread({
                                 transform: `rotate(${angle}deg)`,
                                 zIndex: isSelected ? 10 : 1,
                             }}
-                            onClick={() => !isExternallyTaken && handleCardClick(card)}
                         >
                             <div className='relative'>
                                 <div
-                                    className={`w-16 h-24 rounded-lg border-2 transition-all duration-500 ${
-                                        isSelected
-                                            ? "border-primary bg-primary/20 shadow-lg shadow-primary/50"
-                                            : "border-border/30 bg-card/80 hover:border-primary/50"
-                                    } backdrop-blur-sm flex items-center justify-center relative overflow-hidden`}
-                                    style={{
-                                        transform: isSelected
-                                            ? "rotateY(180deg)"
-                                            : "rotateY(0deg)",
-                                        transformStyle: "preserve-3d",
-                                    }}
+                                    className={`w-16 h-24 rounded-[16px] bg-gradient-to-br from-[#15a6ff] via-[#b56cff] to-[#15a6ff] p-[2px] shadow-2xl select-none touch-none ${
+                                        isExternallyTaken ? "pointer-events-none" : "cursor-pointer"
+                                    }`}
+                                    onClick={() => !isExternallyTaken && handleCardClick(card)}
+                                    role='button'
+                                    aria-label='Swipe up to select card'
                                 >
-                                    <div
-                                        className='absolute inset-0 flex items-center justify-center backface-hidden'
-                                        style={{ backfaceVisibility: "hidden" }}
-                                    >
-                                        <div className='w-full h-full bg-gradient-to-br from-purple-900/50 to-blue-900/50 rounded-lg flex items-center justify-center'>
-                                            <div className='text-2xl'>🌟</div>
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        className='absolute inset-0 flex flex-col items-center justify-center backface-hidden text-xs text-center p-1'
-                                        style={{
-                                            backfaceVisibility: "hidden",
-                                            transform: "rotateY(180deg)",
-                                        }}
-                                    >
+                                    <div className='w-full h-full rounded-[14px] bg-white p-[3px]'>
                                         <div
-                                            className={`text-primary mb-1 ${
-                                                card.isReversed
-                                                    ? "transform rotate-180"
-                                                    : ""
-                                            }`}
+                                            className='relative w-full h-full rounded-[12px] overflow-hidden border border-white/10 shadow-[inset_0_0_30px_rgba(0,0,0,0.6)]'
+                                            style={{
+                                                background:
+                                                    "linear-gradient(135deg, #05081a, #1a0b2e 60%, #3b0f4a), radial-gradient(circle at 30% 20%, #7b2cbf 0%, transparent 40%), radial-gradient(circle at 70% 80%, #00bcd4 0%, transparent 45%)",
+                                            }}
                                         >
-                                            ✦
-                                        </div>
-                                        <div className='text-[8px] leading-tight'>
-                                            {card.name}
-                                        </div>
-                                        {card.isReversed && (
-                                            <div className='text-[6px] text-muted-foreground mt-1'>
-                                                {t("reversed")}
+                                            <div
+                                                className='absolute inset-0 pointer-events-none'
+                                                style={{
+                                                    background:
+                                                        "radial-gradient(1px 1px at 20% 30%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 80% 60%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 40% 80%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 60% 20%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 75% 25%, #ffffff 99%, transparent 100%)",
+                                                }}
+                                            />
+                                            <div className='relative flex items-center justify-center h-full'>
+                                                <div className='text-amber-300 text-xl'>✷</div>
                                             </div>
-                                        )}
+                                        </div>
                                     </div>
                                 </div>
 
