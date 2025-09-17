@@ -1,4 +1,5 @@
 "use client"
+import React, { useMemo, useState } from "react"
 import { TarotCard, useTarot } from "@/contexts/tarot-context"
 import { Button } from "../../ui/button"
 import { Card } from "../../ui/card"
@@ -6,6 +7,8 @@ import { Badge } from "../../ui/badge"
 import { Pencil } from "lucide-react"
 import { ReadingConfig } from "../../../app/[locale]/reading/page"
 import { CircularCardSpread } from "./circular-card-spread"
+import LinearCardSpread from "./linear-card-spread"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { useRouter } from "next/navigation"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
@@ -22,12 +25,19 @@ export default function CardSelection({
         question,
         readingType,
         setSelectedCards,
-        setInterpretation,
         clearInterpretationState,
         isFollowUp,
         followUpQuestion,
     } = useTarot()
     const router = useRouter()
+    const isMobile = useIsMobile()
+
+    // Desktop-only spread mode selection; mobile is forced to linear
+    const [spreadMode, setSpreadMode] = useState<"circular" | "linear">("circular")
+
+    // Aggregated selection for dual circular spreads
+    const [aggSelected, setAggSelected] = useState<{ name: string; isReversed: boolean }[]>([])
+    const cardsToSelect = readingType ? readingConfig[readingType].cards : 1
 
     const handleEditQuestion = () => {
         // Navigate to homepage - the question is already in context
@@ -58,6 +68,32 @@ export default function CardSelection({
 
         setSelectedCards(tarotCards)
         setCurrentStep("interpretation")
+    }
+
+    const externalNames = useMemo(
+        () => aggSelected.map((c) => c.name),
+        [aggSelected]
+    )
+
+    const handlePartialSelect = (
+        card: { name: string; isReversed: boolean },
+        action: "add" | "remove"
+    ) => {
+        setAggSelected((prev) => {
+            let next = prev
+            if (action === "add") {
+                if (!prev.find((c) => c.name === card.name)) {
+                    next = [...prev, card]
+                }
+            } else {
+                next = prev.filter((c) => c.name !== card.name)
+            }
+            if (next.length === cardsToSelect) {
+                // finalize automatically
+                handleCardsSelected(next)
+            }
+            return next
+        })
     }
     return (
         <>
@@ -124,10 +160,52 @@ export default function CardSelection({
                         </div>
 
                         {readingType && (
-                            <CircularCardSpread
-                                cardsToSelect={readingConfig[readingType].cards}
-                                onCardsSelected={handleCardsSelected}
-                            />
+                            <>
+                                {/* Spread type selector - desktop only */}
+                                {!isMobile && (
+                                    <div className='flex items-center justify-center gap-2'>
+                                        <Button
+                                            variant={spreadMode === "circular" ? "default" : "outline"}
+                                            onClick={() => setSpreadMode("circular")}
+                                            className='rounded-full'
+                                        >
+                                            {t("chooseCards.circular", { default: "Circular" })}
+                                        </Button>
+                                        <Button
+                                            variant={spreadMode === "linear" ? "default" : "outline"}
+                                            onClick={() => setSpreadMode("linear")}
+                                            className='rounded-full'
+                                        >
+                                            {t("chooseCards.linear", { default: "Linear" })}
+                                        </Button>
+                                    </div>
+                                )}
+
+                                {/* Mobile: force linear */}
+                                {isMobile || spreadMode === "linear" ? (
+                                    <LinearCardSpread
+                                        cardsToSelect={readingConfig[readingType].cards}
+                                        onCardsSelected={handleCardsSelected}
+                                    />
+                                ) : (
+                                    <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+                                        <CircularCardSpread
+                                            deferFinalization
+                                            cardsToSelect={readingConfig[readingType].cards}
+                                            onCardsSelected={handleCardsSelected}
+                                            onPartialSelect={(c, action) => handlePartialSelect(c, action)}
+                                            externalSelectedNames={externalNames}
+                                        />
+                                        <CircularCardSpread
+                                            deferFinalization
+                                            cardsToSelect={readingConfig[readingType].cards}
+                                            onCardsSelected={handleCardsSelected}
+                                            onPartialSelect={(c, action) => handlePartialSelect(c, action)}
+                                            externalSelectedNames={externalNames}
+                                        />
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>

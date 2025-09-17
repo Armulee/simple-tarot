@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { useTranslations } from "next-intl"
 
 interface TarotCard {
@@ -97,11 +97,21 @@ const TAROT_DECK = [
 interface CircularCardSpreadProps {
     cardsToSelect: number
     onCardsSelected: (cards: { name: string; isReversed: boolean }[]) => void
+    deferFinalization?: boolean
+    onPartialSelect?: (
+        card: { name: string; isReversed: boolean },
+        action: "add" | "remove",
+        newSelectedCount: number
+    ) => void
+    externalSelectedNames?: string[]
 }
 
 export function CircularCardSpread({
     cardsToSelect,
     onCardsSelected,
+    deferFinalization = false,
+    onPartialSelect,
+    externalSelectedNames = [],
 }: CircularCardSpreadProps) {
     const t = useTranslations("ReadingPage.chooseCards")
     const [selectedCards, setSelectedCards] = useState<TarotCard[]>([])
@@ -137,15 +147,34 @@ export function CircularCardSpread({
     }, [])
 
     const handleCardClick = (card: TarotCard) => {
-        if (selectedCards.some((selected) => selected.name === card.name)) {
-            setSelectedCards((prev) =>
-                prev.filter((selected) => selected.name !== card.name)
-            )
-        } else if (selectedCards.length < cardsToSelect) {
-            const newSelected = [...selectedCards, card]
-            setSelectedCards(newSelected)
+        // Prevent picking duplicates that are already selected externally
+        if (
+            externalSelectedNames.includes(card.name) &&
+            !selectedCards.some((s) => s.name === card.name)
+        ) {
+            return
+        }
 
-            if (newSelected.length === cardsToSelect) {
+        if (selectedCards.some((selected: TarotCard) => selected.name === card.name)) {
+            setSelectedCards((prev: TarotCard[]) => {
+                const next = prev.filter((selected: TarotCard) => selected.name !== card.name)
+                onPartialSelect?.(
+                    { name: card.name, isReversed: card.isReversed },
+                    "remove",
+                    next.length
+                )
+                return next
+            })
+        } else if (selectedCards.length < cardsToSelect) {
+            const newSelected: TarotCard[] = [...selectedCards, card]
+            setSelectedCards(newSelected)
+            onPartialSelect?.(
+                { name: card.name, isReversed: card.isReversed },
+                "add",
+                newSelected.length
+            )
+
+            if (!deferFinalization && newSelected.length === cardsToSelect) {
                 setTimeout(
                     () =>
                         onCardsSelected(
@@ -177,17 +206,24 @@ export function CircularCardSpread({
                             (selected) => selected.name === card.name
                         ) + 1
 
+                    const isExternallyTaken =
+                        externalSelectedNames.includes(card.name) && !isSelected
+
                     return (
                         <div
                             key={`${card.name}-${index}`}
-                            className='absolute cursor-pointer transition-all duration-300 hover:scale-110'
+                            className={`absolute transition-all duration-300 ${
+                                isExternallyTaken
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : "cursor-pointer hover:scale-110"
+                            }`}
                             style={{
                                 left: `calc(50% + ${x}px - 30px)`,
                                 top: `calc(50% + ${y}px - 42px)`,
                                 transform: `rotate(${angle}deg)`,
                                 zIndex: isSelected ? 10 : 1,
                             }}
-                            onClick={() => handleCardClick(card)}
+                            onClick={() => !isExternallyTaken && handleCardClick(card)}
                         >
                             <div className='relative'>
                                 <div

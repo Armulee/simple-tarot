@@ -11,7 +11,7 @@ import { TarotCard, useTarot } from "@/contexts/tarot-context"
 import { useRouter } from "next/navigation"
 import QuestionInput from "../question-input"
 import { CardImage } from "../card-image"
-import { isFollowUpQuestion, getCleanQuestionText } from "@/lib/question-utils"
+import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
 
 export default function Interpretation() {
