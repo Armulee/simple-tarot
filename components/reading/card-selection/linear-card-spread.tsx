@@ -153,7 +153,7 @@ export function LinearCardSpread({
 
         // Aura when passed 3/4 height threshold
         const draggedUp = -translateY
-        const threshold = 0.75 * activeHeightRef.current
+        const threshold = 0.5 * activeHeightRef.current
         if (draggedUp >= threshold) {
             if (!auraOnRef.current && activeElRef.current) {
                 auraOnRef.current = true
@@ -185,7 +185,7 @@ export function LinearCardSpread({
             }
         }
         const draggedUp = -translateY
-        const threshold = 0.75 * height
+        const threshold = 0.5 * height
 
         if (elapsed >= 500 && draggedUp >= threshold) {
             const isReversed = Math.random() < 0.5
