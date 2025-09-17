@@ -192,6 +192,7 @@ export function CircularCardSpread({
                 "add",
                 newSelected.length
             )
+            // Don't auto-finalize - wait for confirm button
         }
     }
 
@@ -291,8 +292,8 @@ export function CircularCardSpread({
                 </p>
             </div>
             
-            {/* Confirmation Button */}
-            {selectedCards.length > 0 && (
+            {/* Confirmation Button - only show when required number of cards is selected */}
+            {selectedCards.length === cardsToSelect && (
                 <div className='mt-6 flex justify-center'>
                     <button
                         onClick={() => {

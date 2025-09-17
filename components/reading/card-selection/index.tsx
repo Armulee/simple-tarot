@@ -97,10 +97,7 @@ export default function CardSelection({
             } else {
                 next = prev.filter((c) => c.name !== card.name)
             }
-            if (next.length === cardsToSelect) {
-                // finalize automatically
-                handleCardsSelected(next)
-            }
+            // Don't auto-finalize - let the circular spread handle confirmation
             return next
         })
     }
@@ -213,7 +210,6 @@ export default function CardSelection({
                                     <div className='flex justify-center'>
                                         <CircularCardSpread
                                             deckId="single"
-                                            deferFinalization
                                             cardsToSelect={readingConfig[readingType].cards}
                                             onCardsSelected={handleCardsSelected}
                                             onPartialSelect={(c, action) => handlePartialSelect(c, action)}
