@@ -3,9 +3,10 @@
 import React, { useMemo, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import { Swiper, SwiperSlide } from "swiper/react"
-import { FreeMode } from "swiper/modules"
+import { FreeMode, Mousewheel } from "swiper/modules"
 import "swiper/css"
 import "swiper/css/free-mode"
+import { SwipeUpOverlay } from "../swipe-up-overlay"
 
 type BasicCard = {
     name: string
@@ -113,6 +114,7 @@ export function LinearCardSpread({
     const deck = useMemo(() => shuffle(TAROT_DECK), [])
     const [selected, setSelected] = useState<BasicCard[]>([])
     const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set())
+    const [showSwipeOverlay, setShowSwipeOverlay] = useState(false)
     const deckRef = useRef<HTMLDivElement | null>(null)
 
     // Active drag state for a slide
@@ -129,6 +131,11 @@ export function LinearCardSpread({
         if (next.length === cardsToSelect) {
             onCardsSelected(next)
         }
+    }
+
+    const handleCardClick = (name: string) => {
+        if (selectedNames.has(name)) return
+        setShowSwipeOverlay(true)
     }
 
     const handleDown = (
@@ -251,15 +258,29 @@ export function LinearCardSpread({
     const remaining = cardsToSelect - selected.length
 
     return (
-        <div className='w-full' ref={deckRef}>
-            <Swiper
-                modules={[FreeMode]}
-                freeMode={{ enabled: true, momentum: true }}
-                slidesPerView='auto'
-                spaceBetween={-40}
-                grabCursor
-                className='w-full px-4'
-            >
+        <>
+            <div className='w-full' ref={deckRef}>
+                <Swiper
+                    modules={[FreeMode, Mousewheel]}
+                    freeMode={{ 
+                        enabled: true, 
+                        momentum: true,
+                        sticky: false
+                    }}
+                    slidesPerView='auto'
+                    spaceBetween={-40}
+                    grabCursor={true}
+                    mousewheel={{
+                        enabled: true,
+                        forceToAxis: true,
+                        sensitivity: 1,
+                        releaseOnEdges: true
+                    }}
+                    scrollbar={{
+                        enabled: false
+                    }}
+                    className='w-full px-4'
+                >
                 {deck.map((name, idx) => {
                     const disabled = selectedNames.has(name)
                     return (
@@ -267,8 +288,9 @@ export function LinearCardSpread({
                             <div className='flex items-center justify-center h-[320px]'>
                                 <div
                                     className={`w-24 h-36 rounded-[16px] bg-gradient-to-br from-[#15a6ff] via-[#b56cff] to-[#15a6ff] p-[2px] shadow-2xl select-none touch-none ${
-                                        disabled ? "pointer-events-none" : ""
+                                        disabled ? "pointer-events-none" : "cursor-pointer"
                                     }`}
+                                    onClick={() => handleCardClick(name)}
                                     onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => {
                                         startXRef.current = e.clientX
                                         handleDown(e.clientY, e.currentTarget, name)
@@ -314,17 +336,23 @@ export function LinearCardSpread({
                         </SwiperSlide>
                     )
                 })}
-            </Swiper>
+                </Swiper>
 
-            <div className='mt-2 text-center space-y-1'>
-                <p className='text-sm text-muted-foreground'>
-                    {t("selectedCount", { selected: cardsToSelect - remaining, total: cardsToSelect })}
-                </p>
-                <p className='text-xs text-muted-foreground'>
-                    {t("swipeUpToSelect", { default: "Swipe up on a card to select" })}
-                </p>
+                <div className='mt-2 text-center space-y-1'>
+                    <p className='text-sm text-muted-foreground'>
+                        {t("selectedCount", { selected: cardsToSelect - remaining, total: cardsToSelect })}
+                    </p>
+                    <p className='text-xs text-muted-foreground'>
+                        {t("swipeUpToSelect")}
+                    </p>
+                </div>
             </div>
-        </div>
+            
+            <SwipeUpOverlay 
+                isVisible={showSwipeOverlay} 
+                onClose={() => setShowSwipeOverlay(false)}
+            />
+        </>
     )
 }
 

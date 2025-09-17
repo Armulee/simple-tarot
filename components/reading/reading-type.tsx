@@ -5,10 +5,10 @@ import { Card } from "../ui/card"
 import { Badge } from "../ui/badge"
 import { useTarot } from "@/contexts/tarot-context"
 import { ReadingConfig } from "../../app/[locale]/reading/page"
-import { useRouter } from "next/navigation"
 import { isFollowUpQuestion, getCleanQuestionText } from "@/lib/question-utils"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
+import { InlineQuestionEdit } from "./inline-question-edit"
 
 export default function ReadingType({
     readingConfig,
@@ -20,15 +20,24 @@ export default function ReadingType({
         currentStep,
         setCurrentStep,
         question,
+        setQuestion,
         readingType,
         setReadingType,
         isFollowUp,
     } = useTarot()
-    const router = useRouter()
+    const [isEditing, setIsEditing] = useState(false)
 
     const handleEditQuestion = () => {
-        // Navigate to homepage - the question is already in context
-        router.push("/")
+        setIsEditing(true)
+    }
+
+    const handleSaveQuestion = (newQuestion: string) => {
+        setQuestion(newQuestion)
+        setIsEditing(false)
+    }
+
+    const handleCancelEdit = () => {
+        setIsEditing(false)
     }
 
     const handleReadingTypeSelect = (
@@ -64,20 +73,30 @@ export default function ReadingType({
                                     )}
                                     {t("questionHeading")}
                                 </h2>
-                                <Button
-                                    onClick={handleEditQuestion}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='h-8 w-8 p-0 hover:bg-primary/10'
-                                >
-                                    <Pencil className='h-4 w-4 text-muted-foreground hover:text-primary' />
-                                </Button>
+                                {!isEditing && (
+                                    <Button
+                                        onClick={handleEditQuestion}
+                                        variant='ghost'
+                                        size='sm'
+                                        className='h-8 w-8 p-0 hover:bg-primary/10'
+                                    >
+                                        <Pencil className='h-4 w-4 text-muted-foreground hover:text-primary' />
+                                    </Button>
+                                )}
                             </div>
 
-                            <p className='text-muted-foreground italic'>
-                                &ldquo;{getCleanQuestionText(question || "")}
-                                &rdquo;
-                            </p>
+                            {isEditing ? (
+                                <InlineQuestionEdit
+                                    currentQuestion={question || ""}
+                                    onSave={handleSaveQuestion}
+                                    onCancel={handleCancelEdit}
+                                />
+                            ) : (
+                                <p className='text-muted-foreground italic'>
+                                    &ldquo;{getCleanQuestionText(question || "")}
+                                    &rdquo;
+                                </p>
+                            )}
                         </div>
                     </Card>
 

@@ -1,6 +1,7 @@
 "use client"
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { useTranslations } from "next-intl"
+import { SwipeUpOverlay } from "../swipe-up-overlay"
 
 interface TarotCard {
     name: string
@@ -104,6 +105,7 @@ interface CircularCardSpreadProps {
         newSelectedCount: number
     ) => void
     externalSelectedNames?: string[]
+    deckId?: string // Add deck ID to ensure unique decks
 }
 
 export function CircularCardSpread({
@@ -112,6 +114,7 @@ export function CircularCardSpread({
     deferFinalization = false,
     onPartialSelect,
     externalSelectedNames = [],
+    deckId = "default",
 }: CircularCardSpreadProps) {
     const t = useTranslations("ReadingPage.chooseCards")
     const [selectedCards, setSelectedCards] = useState<TarotCard[]>([])
@@ -119,32 +122,46 @@ export function CircularCardSpread({
 
     useEffect(() => {
         const createShuffledDeck = () => {
+            // Create a unique seed based on deckId to ensure different decks
+            const seed = deckId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+            const seededRandom = (seed: number) => {
+                const x = Math.sin(seed) * 10000
+                return x - Math.floor(x)
+            }
+
+            // Shuffle the full deck first
             const deck = [...TAROT_DECK]
-            const shuffled: TarotCard[] = []
-
-            for (let i = 0; i < 52; i++) {
-                if (deck.length === 0) break
-
-                const randomIndex = Math.floor(Math.random() * deck.length)
-                const cardName = deck.splice(randomIndex, 1)[0]
-
-                shuffled.push({
-                    name: cardName,
-                    isReversed: Math.random() < 0.5,
-                    position: i,
-                })
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(seededRandom(seed + i) * (i + 1))
+                ;[deck[i], deck[j]] = [deck[j], deck[i]]
             }
 
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1))
-                ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
-            }
-
-            return shuffled
+            // Take 78 cards for inner and outer circles
+            const selectedCards = deck.slice(0, 78)
+            
+            return selectedCards.map((cardName, index) => ({
+                name: cardName,
+                isReversed: seededRandom(seed + index + 1000) < 0.5,
+                position: index,
+            }))
         }
 
         setShuffledDeck(createShuffledDeck())
-    }, [])
+    }, [deckId])
+
+    // Memoize card positions to prevent recalculation on every render
+    const cardPositions = useMemo(() => {
+        return shuffledDeck.map((card, index) => {
+            // Split cards into inner (first 39) and outer (last 39) circles
+            const isInnerCircle = index < 39
+            const cardsInCircle = 39
+            const angle = (index % cardsInCircle) * (360 / cardsInCircle)
+            const radius = isInnerCircle ? 100 : 180 // Inner circle smaller radius
+            const x = Math.cos((angle - 90) * (Math.PI / 180)) * radius
+            const y = Math.sin((angle - 90) * (Math.PI / 180)) * radius
+            return { angle, x, y, isInnerCircle }
+        })
+    }, [shuffledDeck])
 
     const handleCardClick = (card: TarotCard) => {
         // Prevent picking duplicates that are already selected externally
@@ -155,6 +172,7 @@ export function CircularCardSpread({
             return
         }
 
+        // If card is already selected, deselect it
         if (selectedCards.some((selected: TarotCard) => selected.name === card.name)) {
             setSelectedCards((prev: TarotCard[]) => {
                 const next = prev.filter((selected: TarotCard) => selected.name !== card.name)
@@ -166,6 +184,7 @@ export function CircularCardSpread({
                 return next
             })
         } else if (selectedCards.length < cardsToSelect) {
+            // Add card to selection
             const newSelected: TarotCard[] = [...selectedCards, card]
             setSelectedCards(newSelected)
             onPartialSelect?.(
@@ -173,105 +192,70 @@ export function CircularCardSpread({
                 "add",
                 newSelected.length
             )
-
-            if (!deferFinalization && newSelected.length === cardsToSelect) {
-                setTimeout(
-                    () =>
-                        onCardsSelected(
-                            newSelected.map((c) => ({
-                                name: c.name,
-                                isReversed: c.isReversed,
-                            }))
-                        ),
-                    500
-                )
-            }
+            // Don't auto-finalize - wait for confirm button
         }
     }
 
-    return (
-        <div className='relative w-full max-w-4xl mx-auto'>
-            <div className='relative w-full aspect-square max-w-md mx-auto min-h-[400px]'>
-                {shuffledDeck.map((card, index) => {
-                    const angle = (index * 360) / shuffledDeck.length
-                    const radius = 140
-                    const x = Math.cos((angle - 90) * (Math.PI / 180)) * radius
-                    const y = Math.sin((angle - 90) * (Math.PI / 180)) * radius
 
-                    const isSelected = selectedCards.some(
-                        (selected) => selected.name === card.name
-                    )
-                    const selectionOrder =
-                        selectedCards.findIndex(
-                            (selected) => selected.name === card.name
-                        ) + 1
+    // Memoize card rendering to prevent unnecessary re-renders
+    const renderedCards = useMemo(() => {
+        return shuffledDeck.map((card, index) => {
+            const { angle, x, y, isInnerCircle } = cardPositions[index]
 
-                    const isExternallyTaken =
-                        externalSelectedNames.includes(card.name) && !isSelected
+            const isSelected = selectedCards.some(
+                (selected) => selected.name === card.name
+            )
+            const selectionOrder =
+                selectedCards.findIndex(
+                    (selected) => selected.name === card.name
+                ) + 1
 
-                    return (
-                        <div
-                            key={`${card.name}-${index}`}
-                            className={`absolute transition-all duration-300 ${
-                                isExternallyTaken
-                                    ? "opacity-50 cursor-not-allowed"
-                                    : "cursor-pointer hover:scale-110"
-                            }`}
-                            style={{
-                                left: `calc(50% + ${x}px - 30px)`,
-                                top: `calc(50% + ${y}px - 42px)`,
-                                transform: `rotate(${angle}deg)`,
-                                zIndex: isSelected ? 10 : 1,
-                            }}
-                            onClick={() => !isExternallyTaken && handleCardClick(card)}
-                        >
+            const isExternallyTaken =
+                externalSelectedNames.includes(card.name) && !isSelected
+
+            return (
+                <div
+                    key={`${card.name}-${index}-${deckId}`}
+                    className={`absolute transition-all duration-300 ${
+                        isExternallyTaken
+                            ? "opacity-50 cursor-not-allowed"
+                            : "cursor-pointer hover:scale-110"
+                    } ${isInnerCircle ? "z-10" : "z-5"}`}
+                    style={{
+                        left: `calc(50% + ${x}px - 30px)`,
+                        top: `calc(50% + ${y}px - 42px)`,
+                        transform: `rotate(${angle}deg)`,
+                        zIndex: isSelected ? 20 : (isInnerCircle ? 10 : 5),
+                    }}
+                >
                             <div className='relative'>
                                 <div
-                                    className={`w-16 h-24 rounded-lg border-2 transition-all duration-500 ${
-                                        isSelected
-                                            ? "border-primary bg-primary/20 shadow-lg shadow-primary/50"
-                                            : "border-border/30 bg-card/80 hover:border-primary/50"
-                                    } backdrop-blur-sm flex items-center justify-center relative overflow-hidden`}
-                                    style={{
-                                        transform: isSelected
-                                            ? "rotateY(180deg)"
-                                            : "rotateY(0deg)",
-                                        transformStyle: "preserve-3d",
-                                    }}
+                                    className={`w-16 h-24 rounded-[16px] bg-gradient-to-br from-[#15a6ff] via-[#b56cff] to-[#15a6ff] p-[2px] shadow-2xl select-none ${
+                                        isExternallyTaken ? "pointer-events-none" : "cursor-pointer"
+                                    }`}
+                                    onClick={() => !isExternallyTaken && handleCardClick(card)}
+                                    role='button'
+                                    aria-label='Click to select card'
                                 >
-                                    <div
-                                        className='absolute inset-0 flex items-center justify-center backface-hidden'
-                                        style={{ backfaceVisibility: "hidden" }}
-                                    >
-                                        <div className='w-full h-full bg-gradient-to-br from-purple-900/50 to-blue-900/50 rounded-lg flex items-center justify-center'>
-                                            <div className='text-2xl'>🌟</div>
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        className='absolute inset-0 flex flex-col items-center justify-center backface-hidden text-xs text-center p-1'
-                                        style={{
-                                            backfaceVisibility: "hidden",
-                                            transform: "rotateY(180deg)",
-                                        }}
-                                    >
+                                    <div className='w-full h-full rounded-[14px] bg-white p-[3px]'>
                                         <div
-                                            className={`text-primary mb-1 ${
-                                                card.isReversed
-                                                    ? "transform rotate-180"
-                                                    : ""
-                                            }`}
+                                            className='relative w-full h-full rounded-[12px] overflow-hidden border border-white/10 shadow-[inset_0_0_30px_rgba(0,0,0,0.6)]'
+                                            style={{
+                                                background:
+                                                    "linear-gradient(135deg, #05081a, #1a0b2e 60%, #3b0f4a), radial-gradient(circle at 30% 20%, #7b2cbf 0%, transparent 40%), radial-gradient(circle at 70% 80%, #00bcd4 0%, transparent 45%)",
+                                            }}
                                         >
-                                            ✦
-                                        </div>
-                                        <div className='text-[8px] leading-tight'>
-                                            {card.name}
-                                        </div>
-                                        {card.isReversed && (
-                                            <div className='text-[6px] text-muted-foreground mt-1'>
-                                                {t("reversed")}
+                                            <div
+                                                className='absolute inset-0 pointer-events-none'
+                                                style={{
+                                                    background:
+                                                        "radial-gradient(1px 1px at 20% 30%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 80% 60%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 40% 80%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 60% 20%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 75% 25%, #ffffff 99%, transparent 100%)",
+                                                }}
+                                            />
+                                            <div className='relative flex items-center justify-center h-full'>
+                                                <div className='text-amber-300 text-xl'>✷</div>
                                             </div>
-                                        )}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -283,7 +267,14 @@ export function CircularCardSpread({
                             </div>
                         </div>
                     )
-                })}
+                })
+    }, [shuffledDeck, cardPositions, selectedCards, externalSelectedNames, deckId])
+
+    return (
+        <>
+            <div className='relative w-full max-w-4xl mx-auto'>
+            <div className='relative w-full aspect-square max-w-md mx-auto min-h-[400px]'>
+                {renderedCards}
             </div>
 
             <div className='text-center mt-8 space-y-2'>
@@ -296,7 +287,31 @@ export function CircularCardSpread({
                         total: cardsToSelect,
                     })}
                 </p>
+                <p className='text-xs text-muted-foreground'>
+                    Click on cards to select them
+                </p>
             </div>
-        </div>
+            
+            {/* Confirmation Button - only show when required number of cards is selected */}
+            {selectedCards.length === cardsToSelect && (
+                <div className='mt-6 flex justify-center'>
+                    <button
+                        onClick={() => {
+                            onCardsSelected(
+                                selectedCards.map((c) => ({
+                                    name: c.name,
+                                    isReversed: c.isReversed,
+                                }))
+                            )
+                        }}
+                        className='px-8 py-3 bg-gradient-to-r from-[#15a6ff] to-[#b56cff] text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105'
+                    >
+                        Confirm Selection ({selectedCards.length}/{cardsToSelect})
+                    </button>
+                </div>
+            )}
+            </div>
+            
+        </>
     )
 }
