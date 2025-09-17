@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect } from "react"
 import { useTranslations } from "next-intl"
+import { SwipeUpOverlay } from "../swipe-up-overlay"
 
 interface TarotCard {
     name: string
@@ -116,6 +117,7 @@ export function CircularCardSpread({
     const t = useTranslations("ReadingPage.chooseCards")
     const [selectedCards, setSelectedCards] = useState<TarotCard[]>([])
     const [shuffledDeck, setShuffledDeck] = useState<TarotCard[]>([])
+    const [showSwipeOverlay, setShowSwipeOverlay] = useState(false)
 
     useEffect(() => {
         const createShuffledDeck = () => {
@@ -155,6 +157,7 @@ export function CircularCardSpread({
             return
         }
 
+        // If card is already selected, deselect it
         if (selectedCards.some((selected: TarotCard) => selected.name === card.name)) {
             setSelectedCards((prev: TarotCard[]) => {
                 const next = prev.filter((selected: TarotCard) => selected.name !== card.name)
@@ -166,31 +169,37 @@ export function CircularCardSpread({
                 return next
             })
         } else if (selectedCards.length < cardsToSelect) {
-            const newSelected: TarotCard[] = [...selectedCards, card]
-            setSelectedCards(newSelected)
-            onPartialSelect?.(
-                { name: card.name, isReversed: card.isReversed },
-                "add",
-                newSelected.length
-            )
+            // Show swipe overlay for new card selection
+            setShowSwipeOverlay(true)
+        }
+    }
 
-            if (!deferFinalization && newSelected.length === cardsToSelect) {
-                setTimeout(
-                    () =>
-                        onCardsSelected(
-                            newSelected.map((c) => ({
-                                name: c.name,
-                                isReversed: c.isReversed,
-                            }))
-                        ),
-                    500
-                )
-            }
+    const handleCardSelect = (card: TarotCard) => {
+        const newSelected: TarotCard[] = [...selectedCards, card]
+        setSelectedCards(newSelected)
+        onPartialSelect?.(
+            { name: card.name, isReversed: card.isReversed },
+            "add",
+            newSelected.length
+        )
+
+        if (!deferFinalization && newSelected.length === cardsToSelect) {
+            setTimeout(
+                () =>
+                    onCardsSelected(
+                        newSelected.map((c) => ({
+                            name: c.name,
+                            isReversed: c.isReversed,
+                        }))
+                    ),
+                500
+            )
         }
     }
 
     return (
-        <div className='relative w-full max-w-4xl mx-auto'>
+        <>
+            <div className='relative w-full max-w-4xl mx-auto'>
             <div className='relative w-full aspect-square max-w-md mx-auto min-h-[400px]'>
                 {shuffledDeck.map((card, index) => {
                     const angle = (index * 360) / shuffledDeck.length
@@ -296,7 +305,16 @@ export function CircularCardSpread({
                         total: cardsToSelect,
                     })}
                 </p>
+                <p className='text-xs text-muted-foreground'>
+                    {t("swipeUpToSelect")}
+                </p>
             </div>
-        </div>
+            </div>
+            
+            <SwipeUpOverlay 
+                isVisible={showSwipeOverlay} 
+                onClose={() => setShowSwipeOverlay(false)} 
+            />
+        </>
     )
 }

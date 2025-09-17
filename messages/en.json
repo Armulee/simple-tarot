@@ -258,7 +258,8 @@
       "desc": "Trust your intuition and select from the cosmic spread",
       "reversed": "Reversed",
       "selectFromSpread": "{count, plural, one {Select # card from the cosmic spread} other {Select # cards from the cosmic spread}}",
-      "selectedCount": "{selected} of {total} selected"
+      "selectedCount": "{selected} of {total} selected",
+      "swipeUpToSelect": "Swipe up on a card to select"
     },
     "interpretation": {
       "title": "Your Cosmic Interpretation",

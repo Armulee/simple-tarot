@@ -258,7 +258,8 @@
       "desc": "เชื่อในสัญชาตญาณและเลือกจากวงล้อแห่งจักรวาล",
       "reversed": "Reversed",
       "selectFromSpread": "{count, plural, one {เลือก # ใบ จากวงล้อแห่งจักรวาล} other {เลือก # ใบ จากวงล้อแห่งจักรวาล}}",
-      "selectedCount": "{selected} จาก {total} ที่เลือกแล้ว"
+      "selectedCount": "{selected} จาก {total} ที่เลือกแล้ว",
+      "swipeUpToSelect": "ปัดขึ้นบนไพ่เพื่อเลือก"
     },
     "interpretation": {
       "title": "คำทำนายจากจักรวาลของคุณ",
