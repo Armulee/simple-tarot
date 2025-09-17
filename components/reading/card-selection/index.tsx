@@ -25,7 +25,6 @@ export default function CardSelection({
         question,
         readingType,
         setSelectedCards,
-        setInterpretation,
         clearInterpretationState,
         isFollowUp,
         followUpQuestion,

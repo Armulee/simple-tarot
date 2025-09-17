@@ -197,7 +197,7 @@ export function LinearCardSpread({
         return () => {
             document.removeEventListener(
                 "touchmove",
-                preventTouchScrollWhileDragging as any
+                preventTouchScrollWhileDragging as EventListener
             )
         }
     }, [])
