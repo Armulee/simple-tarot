@@ -193,19 +193,23 @@ export function LinearCardSpread({
                 freeMode={{ enabled: true, momentum: true }}
                 slidesPerView='auto'
                 spaceBetween={-40}
-                className='w-full px-6'
+                className='w-full px-4'
             >
                 {deck.map((name, idx) => {
                     const disabled = selectedNames.has(name)
                     return (
-                        <SwiperSlide key={`${name}-${idx}`} className='!w-20'>
-                            <div className='flex items-center justify-center h-[320px]'>
+                        <SwiperSlide key={`${name}-${idx}`} className='!w-28'>
+                            <div className='flex items-center justify-center h-[420px]'>
                                 <div
-                                    className={`w-16 h-24 rounded-xl border-2 backdrop-blur-sm flex items-center justify-center select-none touch-none transition-opacity ${
+                                    className={`w-24 h-36 rounded-xl border-2 backdrop-blur-sm flex items-center justify-center select-none touch-none transition-opacity ${
                                         disabled
                                             ? "opacity-40 pointer-events-none"
                                             : "opacity-100"
-                                    } ${disabled ? "border-border/20 bg-card/40" : "border-border/30 bg-card/80"}`}
+                                    } ${
+                                        disabled
+                                            ? "border-blue-300/20 bg-blue-600/20"
+                                            : "border-blue-300/40 bg-gradient-to-br from-blue-500/20 to-indigo-500/20"
+                                    }`}
                                     onMouseDown={(e: React.MouseEvent<HTMLDivElement>) =>
                                         handleDown(e.clientY, e.currentTarget, name)
                                     }
@@ -232,7 +236,7 @@ export function LinearCardSpread({
                 })}
             </Swiper>
 
-            <div className='mt-4 text-center space-y-1'>
+            <div className='mt-2 text-center space-y-1'>
                 <p className='text-sm text-muted-foreground'>
                     {t("selectedCount", { selected: cardsToSelect - remaining, total: cardsToSelect })}
                 </p>
