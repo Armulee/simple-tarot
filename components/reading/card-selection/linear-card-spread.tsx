@@ -190,7 +190,7 @@ export function LinearCardSpread({
                         <SwiperSlide key={`${name}-${idx}`} className='!w-28'>
                             <div className='flex items-center justify-center h-[320px]'>
                                 <div
-                                    className={`w-24 h-36 rounded-[14px] border-2 border-blue-900 bg-white p-[3px] shadow-2xl select-none touch-none ${
+                                    className={`w-24 h-36 rounded-[16px] bg-gradient-to-br from-[#15a6ff] via-[#b56cff] to-[#15a6ff] p-[2px] shadow-2xl select-none touch-none ${
                                         disabled ? "pointer-events-none" : ""
                                     }`}
                                     onMouseDown={(e: React.MouseEvent<HTMLDivElement>) =>
@@ -211,14 +211,25 @@ export function LinearCardSpread({
                                     role='button'
                                     aria-label='Swipe up to select card'
                                 >
-                                    <div className='relative w-full h-full rounded-[10px] bg-gradient-to-br from-[#0a1a3a] to-[#3b0f4a] border border-white/10 shadow-inner flex items-center justify-center'>
-                                        <div className='absolute inset-0 rounded-[10px] pointer-events-none'
+                                    <div className='w-full h-full rounded-[14px] bg-white p-[3px]'>
+                                        <div
+                                            className='relative w-full h-full rounded-[12px] overflow-hidden border border-white/10 shadow-[inset_0_0_30px_rgba(0,0,0,0.6)]'
                                             style={{
                                                 background:
-                                                    "radial-gradient(circle at 30% 20%, rgba(255,255,255,0.08), transparent 40%), radial-gradient(circle at 70% 80%, rgba(255,255,255,0.06), transparent 45%)",
+                                                    "linear-gradient(135deg, #05081a, #1a0b2e 60%, #3b0f4a), radial-gradient(circle at 30% 20%, #7b2cbf 0%, transparent 40%), radial-gradient(circle at 70% 80%, #00bcd4 0%, transparent 45%)",
                                             }}
-                                        />
-                                        <div className='text-amber-300 text-xl'>✷</div>
+                                        >
+                                            <div
+                                                className='absolute inset-0 pointer-events-none'
+                                                style={{
+                                                    background:
+                                                        "radial-gradient(1px 1px at 20% 30%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 80% 60%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 40% 80%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 60% 20%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 75% 25%, #ffffff 99%, transparent 100%)",
+                                                }}
+                                            />
+                                            <div className='relative flex items-center justify-center h-full'>
+                                                <div className='text-amber-300 text-xl'>✷</div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
