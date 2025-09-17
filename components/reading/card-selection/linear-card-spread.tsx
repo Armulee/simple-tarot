@@ -190,10 +190,8 @@ export function LinearCardSpread({
                         <SwiperSlide key={`${name}-${idx}`} className='!w-28'>
                             <div className='flex items-center justify-center h-[320px]'>
                                 <div
-                                    className={`w-24 h-36 rounded-xl border-2 backdrop-blur-sm flex items-center justify-center select-none touch-none ${
-                                        disabled
-                                            ? "pointer-events-none border-blue-900 bg-blue-900"
-                                            : "border-blue-900 bg-gradient-to-br from-blue-900 to-purple-900"
+                                    className={`w-24 h-36 rounded-[14px] border-2 border-blue-900 bg-white p-[3px] shadow-2xl select-none touch-none ${
+                                        disabled ? "pointer-events-none" : ""
                                     }`}
                                     onMouseDown={(e: React.MouseEvent<HTMLDivElement>) =>
                                         handleDown(e.clientY, e.currentTarget, name)
@@ -213,7 +211,15 @@ export function LinearCardSpread({
                                     role='button'
                                     aria-label='Swipe up to select card'
                                 >
-                                    <div className='text-2xl'>🌟</div>
+                                    <div className='relative w-full h-full rounded-[10px] bg-gradient-to-br from-[#0a1a3a] to-[#3b0f4a] border border-white/10 shadow-inner flex items-center justify-center'>
+                                        <div className='absolute inset-0 rounded-[10px] pointer-events-none'
+                                            style={{
+                                                background:
+                                                    "radial-gradient(circle at 30% 20%, rgba(255,255,255,0.08), transparent 40%), radial-gradient(circle at 70% 80%, rgba(255,255,255,0.06), transparent 45%)",
+                                            }}
+                                        />
+                                        <div className='text-amber-300 text-xl'>✷</div>
+                                    </div>
                                 </div>
                             </div>
                         </SwiperSlide>
