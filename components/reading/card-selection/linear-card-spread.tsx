@@ -195,12 +195,12 @@ export function LinearCardSpread({
                     const disabled = selectedNames.has(name)
                     return (
                         <SwiperSlide key={`${name}-${idx}`} className='!w-28'>
-                            <div className='flex items-center justify-center h-[420px]'>
+                            <div className='flex items-center justify-center h-[320px]'>
                                 <div
                                     className={`w-24 h-36 rounded-xl border-2 backdrop-blur-sm flex items-center justify-center select-none touch-none ${
                                         disabled
-                                            ? "pointer-events-none border-blue-300/20 bg-blue-600/20"
-                                            : "border-blue-300/40 bg-gradient-to-br from-blue-500/20 to-indigo-500/20"
+                                            ? "pointer-events-none border-blue-300 bg-blue-600"
+                                            : "border-blue-400 bg-gradient-to-br from-blue-500 to-indigo-600"
                                     }`}
                                     onMouseDown={(e: React.MouseEvent<HTMLDivElement>) =>
                                         handleDown(e.clientY, e.currentTarget, name)
