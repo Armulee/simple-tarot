@@ -1,7 +1,11 @@
 "use client"
 
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useMemo, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
+import { Swiper, SwiperSlide } from "swiper/react"
+import { FreeMode } from "swiper/modules"
+import "swiper/css"
+import "swiper/css/free-mode"
 
 type BasicCard = {
     name: string
@@ -107,148 +111,134 @@ export function LinearCardSpread({
 }) {
     const t = useTranslations("ReadingPage.chooseCards")
     const deck = useMemo(() => shuffle(TAROT_DECK), [])
-    const [currentIndex, setCurrentIndex] = useState(0)
     const [selected, setSelected] = useState<BasicCard[]>([])
+    const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set())
 
-    const cardRef = useRef<HTMLDivElement | null>(null)
+    // Active drag state for a slide
+    const activeElRef = useRef<HTMLDivElement | null>(null)
+    const activeNameRef = useRef<string | null>(null)
     const startYRef = useRef<number | null>(null)
-    const deltaYRef = useRef<number>(0)
-    const isDraggingRef = useRef(false)
 
-    useEffect(() => {
-        if (selected.length === cardsToSelect) {
-            onCardsSelected(selected)
-        }
-    }, [selected, cardsToSelect, onCardsSelected])
-
-    const handlePointerDown = (clientY: number) => {
-        isDraggingRef.current = true
-        startYRef.current = clientY
-        deltaYRef.current = 0
-        if (cardRef.current) {
-            cardRef.current.style.transition = "transform 0s, opacity 0s"
+    const finalizeIfDone = (next: BasicCard[]) => {
+        if (next.length === cardsToSelect) {
+            onCardsSelected(next)
         }
     }
 
-    const handlePointerMove = (clientY: number) => {
-        if (!isDraggingRef.current || startYRef.current === null) return
-        const deltaY = clientY - startYRef.current
-        deltaYRef.current = deltaY
-        if (cardRef.current) {
-            const translateY = Math.min(0, deltaY) // only allow upwards movement visually
-            const rotate = Math.max(-8, translateY / 20)
-            const opacity = Math.max(0.6, 1 + translateY / 300)
-            cardRef.current.style.transform = `translateY(${translateY}px) rotate(${rotate}deg)`
-            cardRef.current.style.opacity = `${opacity}`
-        }
+    const handleDown = (
+        eY: number,
+        el: HTMLDivElement,
+        name: string
+    ) => {
+        if (selectedNames.has(name)) return
+        activeElRef.current = el
+        activeNameRef.current = name
+        startYRef.current = eY
+        el.style.transition = "transform 0s, opacity 0s"
     }
 
-    const commitSelection = () => {
-        const name = deck[currentIndex]
-        const isReversed = Math.random() < 0.5
-        const next = [...selected, { name, isReversed }]
-        setSelected(next)
-        setCurrentIndex((i: number) => (i + 1) % deck.length)
-        if (cardRef.current) {
-            cardRef.current.style.transition = "transform 180ms ease, opacity 180ms ease"
-            cardRef.current.style.transform = "translateY(0) rotate(0deg)"
-            cardRef.current.style.opacity = "1"
-        }
+    const handleMove = (eY: number) => {
+        if (startYRef.current == null || !activeElRef.current) return
+        const deltaY = eY - startYRef.current
+        const translateY = Math.min(0, deltaY)
+        const rotate = Math.max(-8, translateY / 20)
+        const opacity = Math.max(0.6, 1 + translateY / 300)
+        activeElRef.current.style.transform = `translateY(${translateY}px) rotate(${rotate}deg)`
+        activeElRef.current.style.opacity = `${opacity}`
     }
 
-    const resetPosition = () => {
-        if (cardRef.current) {
-            cardRef.current.style.transition = "transform 180ms ease, opacity 180ms ease"
-            cardRef.current.style.transform = "translateY(0) rotate(0deg)"
-            cardRef.current.style.opacity = "1"
+    const handleUp = () => {
+        const el = activeElRef.current
+        const name = activeNameRef.current
+        if (!el || !name) return
+        const height = el.getBoundingClientRect().height
+        // read current translateY from transform string
+        const matrix = window.getComputedStyle(el).transform
+        let translateY = 0
+        if (matrix && matrix !== "none") {
+            const values = matrix.match(/-?\d+\.?\d*/g)
+            if (values && (values.length === 6 || values.length === 16)) {
+                // 2d or 3d matrix
+                translateY = parseFloat(values[values.length === 6 ? 5 : 13] || "0")
+            }
         }
-    }
-
-    const handlePointerUp = () => {
-        if (!isDraggingRef.current) return
-        isDraggingRef.current = false
-
-        const cardEl = cardRef.current
-        if (!cardEl) {
-            return
-        }
-
-        const height = cardEl.getBoundingClientRect().height
-        const draggedUp = -deltaYRef.current // positive when moved up
+        const draggedUp = -translateY
         if (draggedUp > height / 2) {
-            commitSelection()
+            const isReversed = Math.random() < 0.5
+            const next = [...selected, { name, isReversed }]
+            setSelected(next)
+            setSelectedNames((prev) => new Set(prev).add(name))
+            finalizeIfDone(next)
+            // Hide/restore element
+            el.style.transition = "transform 180ms ease, opacity 180ms ease"
+            el.style.transform = "translateY(-120%) rotate(-6deg)"
+            el.style.opacity = "0"
         } else {
-            resetPosition()
+            el.style.transition = "transform 180ms ease, opacity 180ms ease"
+            el.style.transform = "translateY(0) rotate(0deg)"
+            el.style.opacity = "1"
         }
-
+        // reset
+        activeElRef.current = null
+        activeNameRef.current = null
         startYRef.current = null
-        deltaYRef.current = 0
     }
-
-    const preventTouchScrollWhileDragging = (e: TouchEvent) => {
-        if (isDraggingRef.current) e.preventDefault()
-    }
-
-    useEffect(() => {
-        // Prevent page scroll while dragging on mobile
-        document.addEventListener("touchmove", preventTouchScrollWhileDragging, {
-            passive: false,
-        })
-        return () => {
-            document.removeEventListener(
-                "touchmove",
-                preventTouchScrollWhileDragging as EventListener
-            )
-        }
-    }, [])
 
     const remaining = cardsToSelect - selected.length
-    const currentName = deck[currentIndex]
 
     return (
-        <div className='w-full max-w-md mx-auto'>
-            <div className='relative h-[380px] flex items-center justify-center'>
-                <div
-                    ref={cardRef}
-                    className='w-40 h-64 rounded-xl border-2 border-border/30 bg-card/80 backdrop-blur-sm shadow-md shadow-black/20 flex items-center justify-center select-none touch-none'
-                    onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => handlePointerDown(e.clientY)}
-                    onMouseMove={(e: React.MouseEvent<HTMLDivElement>) => handlePointerMove(e.clientY)}
-                    onMouseUp={handlePointerUp}
-                    onMouseLeave={handlePointerUp}
-                    onTouchStart={(e: React.TouchEvent<HTMLDivElement>) => handlePointerDown(e.touches[0].clientY)}
-                    onTouchMove={(e: React.TouchEvent<HTMLDivElement>) => handlePointerMove(e.touches[0].clientY)}
-                    onTouchEnd={handlePointerUp}
-                    role='button'
-                    aria-label='Swipe up to select card'
-                >
-                    <div className='text-4xl'>🌟</div>
-                </div>
-
-                {/* Gesture indicator overlay on card */}
-                <div className='pointer-events-none absolute inset-0 flex items-end justify-center pb-4'>
-                    <div className='flex flex-col items-center gap-2 text-center'>
-                        <div className='relative w-10 h-10 rounded-full border border-white/20 bg-white/5 overflow-hidden'>
-                            <div className='absolute left-1/2 -translate-x-1/2 bottom-1 w-1.5 h-4 rounded bg-white/70 animate-pulse'></div>
-                            <div className='absolute left-1/2 -translate-x-1/2 bottom-1 w-1.5 h-1.5 rounded-full bg-white/90 animate-[bounce_1.2s_infinite]'></div>
-                        </div>
-                        <div className='text-xs text-muted-foreground'>
-                            {t("swipeUpToSelect", { default: "Swipe up to select" })}
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div className='w-full'>
+            <Swiper
+                modules={[FreeMode]}
+                freeMode={{ enabled: true, momentum: true }}
+                slidesPerView='auto'
+                spaceBetween={-40}
+                className='w-full px-6'
+            >
+                {deck.map((name, idx) => {
+                    const disabled = selectedNames.has(name)
+                    return (
+                        <SwiperSlide key={`${name}-${idx}`} className='!w-20'>
+                            <div className='flex items-center justify-center h-[320px]'>
+                                <div
+                                    className={`w-16 h-24 rounded-xl border-2 backdrop-blur-sm flex items-center justify-center select-none touch-none transition-opacity ${
+                                        disabled
+                                            ? "opacity-40 pointer-events-none"
+                                            : "opacity-100"
+                                    } ${disabled ? "border-border/20 bg-card/40" : "border-border/30 bg-card/80"}`}
+                                    onMouseDown={(e: React.MouseEvent<HTMLDivElement>) =>
+                                        handleDown(e.clientY, e.currentTarget, name)
+                                    }
+                                    onMouseMove={(e: React.MouseEvent<HTMLDivElement>) =>
+                                        handleMove(e.clientY)
+                                    }
+                                    onMouseUp={handleUp}
+                                    onMouseLeave={handleUp}
+                                    onTouchStart={(e: React.TouchEvent<HTMLDivElement>) =>
+                                        handleDown(e.touches[0].clientY, e.currentTarget, name)
+                                    }
+                                    onTouchMove={(e: React.TouchEvent<HTMLDivElement>) =>
+                                        handleMove(e.touches[0].clientY)
+                                    }
+                                    onTouchEnd={handleUp}
+                                    role='button'
+                                    aria-label='Swipe up to select card'
+                                >
+                                    <div className='text-2xl'>🌟</div>
+                                </div>
+                            </div>
+                        </SwiperSlide>
+                    )
+                })}
+            </Swiper>
 
             <div className='mt-4 text-center space-y-1'>
                 <p className='text-sm text-muted-foreground'>
                     {t("selectedCount", { selected: cardsToSelect - remaining, total: cardsToSelect })}
                 </p>
                 <p className='text-xs text-muted-foreground'>
-                    {t("hint", { default: "Drag the card upward past halfway to confirm" })}
+                    {t("swipeUpToSelect", { default: "Swipe up on a card to select" })}
                 </p>
-            </div>
-
-            <div className='sr-only' aria-live='polite'>
-                {t("currentCard", { default: "Current card" })}: {currentName}
             </div>
         </div>
     )
