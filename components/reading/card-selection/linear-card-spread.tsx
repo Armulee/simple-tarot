@@ -152,34 +152,16 @@ export function LinearCardSpread({
         auraOnRef.current = false
         verticalDragActiveRef.current = false
         el.style.transition = "transform 0s"
-        
-        // Add global event listeners for better mouse tracking
-        const handleGlobalMouseMove = (e: MouseEvent) => {
-            handleMove(e as any)
-        }
-        const handleGlobalMouseUp = () => {
-            handleUp()
-            document.removeEventListener('mousemove', handleGlobalMouseMove)
-            document.removeEventListener('mouseup', handleGlobalMouseUp)
-        }
-        
-        document.addEventListener('mousemove', handleGlobalMouseMove)
-        document.addEventListener('mouseup', handleGlobalMouseUp)
     }
 
     const handleMove = (
-        e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement> | MouseEvent
+        e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
     ) => {
-        if (startYRef.current == null || !activeElRef.current || !activeNameRef.current) return
-        
-        // Check if the card is still selected (not disabled)
-        if (selectedNames.has(activeNameRef.current)) {
-            handleUp()
-            return
-        }
-        
-        const currentY = "touches" in e ? e.touches[0].clientY : e.clientY
-        const currentX = "touches" in e ? e.touches[0].clientX : e.clientX
+        if (startYRef.current == null || !activeElRef.current) return
+        const currentY =
+            "touches" in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY
+        const currentX =
+            "touches" in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX
         if (startXRef.current == null) startXRef.current = currentX
         const deltaY = currentY - startYRef.current
         const deltaX = currentX - (startXRef.current ?? currentX)
@@ -297,11 +279,6 @@ export function LinearCardSpread({
                     scrollbar={{
                         enabled: false
                     }}
-                    allowTouchMove={true}
-                    simulateTouch={true}
-                    touchRatio={1}
-                    touchAngle={45}
-                    threshold={5}
                     className='w-full px-4'
                 >
                 {deck.map((name, idx) => {
@@ -318,23 +295,19 @@ export function LinearCardSpread({
                                         startXRef.current = e.clientX
                                         handleDown(e.clientY, e.currentTarget, name)
                                     }}
+                                    onMouseMove={(e: React.MouseEvent<HTMLDivElement>) =>
+                                        handleMove(e)
+                                    }
+                                    onMouseUp={handleUp}
+                                    onMouseLeave={handleUp}
                                     onTouchStart={(e: React.TouchEvent<HTMLDivElement>) => {
                                         startXRef.current = e.touches[0].clientX
                                         handleDown(e.touches[0].clientY, e.currentTarget, name)
-                                        
-                                        // Add global touch event listeners
-                                        const handleGlobalTouchMove = (e: TouchEvent) => {
-                                            handleMove(e as any)
-                                        }
-                                        const handleGlobalTouchEnd = () => {
-                                            handleUp()
-                                            document.removeEventListener('touchmove', handleGlobalTouchMove)
-                                            document.removeEventListener('touchend', handleGlobalTouchEnd)
-                                        }
-                                        
-                                        document.addEventListener('touchmove', handleGlobalTouchMove)
-                                        document.addEventListener('touchend', handleGlobalTouchEnd)
                                     }}
+                                    onTouchMove={(e: React.TouchEvent<HTMLDivElement>) =>
+                                        handleMove(e)
+                                    }
+                                    onTouchEnd={handleUp}
                                     role='button'
                                     aria-label='Swipe up to select card'
                                 >
