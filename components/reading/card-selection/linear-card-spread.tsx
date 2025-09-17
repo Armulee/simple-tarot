@@ -119,9 +119,11 @@ export function LinearCardSpread({
     const activeElRef = useRef<HTMLDivElement | null>(null)
     const activeNameRef = useRef<string | null>(null)
     const startYRef = useRef<number | null>(null)
+    const startXRef = useRef<number | null>(null)
     const startTimeRef = useRef<number | null>(null)
     const activeHeightRef = useRef<number>(0)
     const auraOnRef = useRef<boolean>(false)
+    const verticalDragActiveRef = useRef<boolean>(false)
 
     const finalizeIfDone = (next: BasicCard[]) => {
         if (next.length === cardsToSelect) {
@@ -141,12 +143,33 @@ export function LinearCardSpread({
         startTimeRef.current = Date.now()
         activeHeightRef.current = el.getBoundingClientRect().height
         auraOnRef.current = false
+        verticalDragActiveRef.current = false
         el.style.transition = "transform 0s"
     }
 
-    const handleMove = (eY: number) => {
+    const handleMove = (
+        e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
+    ) => {
         if (startYRef.current == null || !activeElRef.current) return
-        const deltaY = eY - startYRef.current
+        const currentY =
+            "touches" in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY
+        const currentX =
+            "touches" in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX
+        if (startXRef.current == null) startXRef.current = currentX
+        const deltaY = currentY - startYRef.current
+        const deltaX = currentX - (startXRef.current ?? currentX)
+
+        if (!verticalDragActiveRef.current) {
+            if (Math.abs(deltaY) > Math.abs(deltaX) + 10) {
+                verticalDragActiveRef.current = true
+            } else {
+                return // let Swiper handle horizontal drag
+            }
+        }
+
+        // From here on, treat as vertical drag and block Swiper
+        if ("stopPropagation" in e) e.stopPropagation()
+        if ("preventDefault" in e) e.preventDefault()
         const translateY = Math.min(0, deltaY)
         const rotate = Math.max(-8, translateY / 20)
         activeElRef.current.style.transform = `translateY(${translateY}px) rotate(${rotate}deg)`
@@ -172,6 +195,18 @@ export function LinearCardSpread({
         const el = activeElRef.current
         const name = activeNameRef.current
         if (!el || !name) return
+        if (!verticalDragActiveRef.current) {
+            // Not a vertical intent; let Swiper finish
+            // reset lightweight state
+            activeElRef.current = null
+            activeNameRef.current = null
+            startYRef.current = null
+            startXRef.current = null
+            startTimeRef.current = null
+            auraOnRef.current = false
+            verticalDragActiveRef.current = false
+            return
+        }
         const height = activeHeightRef.current || el.getBoundingClientRect().height
         const elapsed = startTimeRef.current ? Date.now() - startTimeRef.current : 0
 
@@ -207,8 +242,10 @@ export function LinearCardSpread({
         activeElRef.current = null
         activeNameRef.current = null
         startYRef.current = null
+        startXRef.current = null
         startTimeRef.current = null
         auraOnRef.current = false
+        verticalDragActiveRef.current = false
     }
 
     const remaining = cardsToSelect - selected.length
@@ -220,6 +257,7 @@ export function LinearCardSpread({
                 freeMode={{ enabled: true, momentum: true }}
                 slidesPerView='auto'
                 spaceBetween={-40}
+                grabCursor
                 className='w-full px-4'
             >
                 {deck.map((name, idx) => {
@@ -231,19 +269,21 @@ export function LinearCardSpread({
                                     className={`w-24 h-36 rounded-[16px] bg-gradient-to-br from-[#15a6ff] via-[#b56cff] to-[#15a6ff] p-[2px] shadow-2xl select-none touch-none ${
                                         disabled ? "pointer-events-none" : ""
                                     }`}
-                                    onMouseDown={(e: React.MouseEvent<HTMLDivElement>) =>
+                                    onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => {
+                                        startXRef.current = e.clientX
                                         handleDown(e.clientY, e.currentTarget, name)
-                                    }
+                                    }}
                                     onMouseMove={(e: React.MouseEvent<HTMLDivElement>) =>
-                                        handleMove(e.clientY)
+                                        handleMove(e)
                                     }
                                     onMouseUp={handleUp}
                                     onMouseLeave={handleUp}
-                                    onTouchStart={(e: React.TouchEvent<HTMLDivElement>) =>
+                                    onTouchStart={(e: React.TouchEvent<HTMLDivElement>) => {
+                                        startXRef.current = e.touches[0].clientX
                                         handleDown(e.touches[0].clientY, e.currentTarget, name)
-                                    }
+                                    }}
                                     onTouchMove={(e: React.TouchEvent<HTMLDivElement>) =>
-                                        handleMove(e.touches[0].clientY)
+                                        handleMove(e)
                                     }
                                     onTouchEnd={handleUp}
                                     role='button'
