@@ -213,6 +213,7 @@ export default function CardSelection({
                                     <div className='flex flex-col sm:flex-row gap-6 justify-center items-start'>
                                         <div className='flex-1 max-w-md'>
                                             <CircularCardSpread
+                                                deckId="deck1"
                                                 deferFinalization
                                                 cardsToSelect={readingConfig[readingType].cards}
                                                 onCardsSelected={handleCardsSelected}
@@ -222,6 +223,7 @@ export default function CardSelection({
                                         </div>
                                         <div className='flex-1 max-w-md'>
                                             <CircularCardSpread
+                                                deckId="deck2"
                                                 deferFinalization
                                                 cardsToSelect={readingConfig[readingType].cards}
                                                 onCardsSelected={handleCardsSelected}

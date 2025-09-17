@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import { SwipeUpOverlay } from "../swipe-up-overlay"
 
@@ -105,6 +105,7 @@ interface CircularCardSpreadProps {
         newSelectedCount: number
     ) => void
     externalSelectedNames?: string[]
+    deckId?: string // Add deck ID to ensure unique decks
 }
 
 export function CircularCardSpread({
@@ -113,6 +114,7 @@ export function CircularCardSpread({
     deferFinalization = false,
     onPartialSelect,
     externalSelectedNames = [],
+    deckId = "default",
 }: CircularCardSpreadProps) {
     const t = useTranslations("ReadingPage.chooseCards")
     const [selectedCards, setSelectedCards] = useState<TarotCard[]>([])
@@ -121,32 +123,43 @@ export function CircularCardSpread({
 
     useEffect(() => {
         const createShuffledDeck = () => {
+            // Create a unique seed based on deckId to ensure different decks
+            const seed = deckId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+            const seededRandom = (seed: number) => {
+                const x = Math.sin(seed) * 10000
+                return x - Math.floor(x)
+            }
+
+            // Shuffle the full deck first
             const deck = [...TAROT_DECK]
-            const shuffled: TarotCard[] = []
-
-            for (let i = 0; i < 52; i++) {
-                if (deck.length === 0) break
-
-                const randomIndex = Math.floor(Math.random() * deck.length)
-                const cardName = deck.splice(randomIndex, 1)[0]
-
-                shuffled.push({
-                    name: cardName,
-                    isReversed: Math.random() < 0.5,
-                    position: i,
-                })
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(seededRandom(seed + i) * (i + 1))
+                ;[deck[i], deck[j]] = [deck[j], deck[i]]
             }
 
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1))
-                ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
-            }
-
-            return shuffled
+            // Take only 39 cards for better performance
+            const selectedCards = deck.slice(0, 39)
+            
+            return selectedCards.map((cardName, index) => ({
+                name: cardName,
+                isReversed: seededRandom(seed + index + 1000) < 0.5,
+                position: index,
+            }))
         }
 
         setShuffledDeck(createShuffledDeck())
-    }, [])
+    }, [deckId])
+
+    // Memoize card positions to prevent recalculation on every render
+    const cardPositions = useMemo(() => {
+        return shuffledDeck.map((card, index) => {
+            const angle = (index * 360) / shuffledDeck.length
+            const radius = 140
+            const x = Math.cos((angle - 90) * (Math.PI / 180)) * radius
+            const y = Math.sin((angle - 90) * (Math.PI / 180)) * radius
+            return { angle, x, y }
+        })
+    }, [shuffledDeck])
 
     const handleCardClick = (card: TarotCard) => {
         // Prevent picking duplicates that are already selected externally
@@ -197,42 +210,37 @@ export function CircularCardSpread({
         }
     }
 
-    return (
-        <>
-            <div className='relative w-full max-w-4xl mx-auto'>
-            <div className='relative w-full aspect-square max-w-md mx-auto min-h-[400px]'>
-                {shuffledDeck.map((card, index) => {
-                    const angle = (index * 360) / shuffledDeck.length
-                    const radius = 140
-                    const x = Math.cos((angle - 90) * (Math.PI / 180)) * radius
-                    const y = Math.sin((angle - 90) * (Math.PI / 180)) * radius
+    // Memoize card rendering to prevent unnecessary re-renders
+    const renderedCards = useMemo(() => {
+        return shuffledDeck.map((card, index) => {
+            const { angle, x, y } = cardPositions[index]
 
-                    const isSelected = selectedCards.some(
-                        (selected) => selected.name === card.name
-                    )
-                    const selectionOrder =
-                        selectedCards.findIndex(
-                            (selected) => selected.name === card.name
-                        ) + 1
+            const isSelected = selectedCards.some(
+                (selected) => selected.name === card.name
+            )
+            const selectionOrder =
+                selectedCards.findIndex(
+                    (selected) => selected.name === card.name
+                ) + 1
 
-                    const isExternallyTaken =
-                        externalSelectedNames.includes(card.name) && !isSelected
+            const isExternallyTaken =
+                externalSelectedNames.includes(card.name) && !isSelected
 
-                    return (
-                        <div
-                            key={`${card.name}-${index}`}
-                            className={`absolute transition-all duration-300 ${
-                                isExternallyTaken
-                                    ? "opacity-50 cursor-not-allowed"
-                                    : "cursor-pointer hover:scale-110"
-                            }`}
-                            style={{
-                                left: `calc(50% + ${x}px - 30px)`,
-                                top: `calc(50% + ${y}px - 42px)`,
-                                transform: `rotate(${angle}deg)`,
-                                zIndex: isSelected ? 10 : 1,
-                            }}
-                        >
+            return (
+                <div
+                    key={`${card.name}-${index}-${deckId}`}
+                    className={`absolute transition-all duration-300 ${
+                        isExternallyTaken
+                            ? "opacity-50 cursor-not-allowed"
+                            : "cursor-pointer hover:scale-110"
+                    }`}
+                    style={{
+                        left: `calc(50% + ${x}px - 30px)`,
+                        top: `calc(50% + ${y}px - 42px)`,
+                        transform: `rotate(${angle}deg)`,
+                        zIndex: isSelected ? 10 : 1,
+                    }}
+                >
                             <div className='relative'>
                                 <div
                                     className={`w-16 h-24 rounded-[16px] bg-gradient-to-br from-[#15a6ff] via-[#b56cff] to-[#15a6ff] p-[2px] shadow-2xl select-none touch-none ${
@@ -272,7 +280,14 @@ export function CircularCardSpread({
                             </div>
                         </div>
                     )
-                })}
+                })
+    }, [shuffledDeck, cardPositions, selectedCards, externalSelectedNames, deckId])
+
+    return (
+        <>
+            <div className='relative w-full max-w-4xl mx-auto'>
+            <div className='relative w-full aspect-square max-w-md mx-auto min-h-[400px]'>
+                {renderedCards}
             </div>
 
             <div className='text-center mt-8 space-y-2'>
