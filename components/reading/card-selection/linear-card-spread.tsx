@@ -119,6 +119,9 @@ export function LinearCardSpread({
     const activeElRef = useRef<HTMLDivElement | null>(null)
     const activeNameRef = useRef<string | null>(null)
     const startYRef = useRef<number | null>(null)
+    const startTimeRef = useRef<number | null>(null)
+    const activeHeightRef = useRef<number>(0)
+    const auraOnRef = useRef<boolean>(false)
 
     const finalizeIfDone = (next: BasicCard[]) => {
         if (next.length === cardsToSelect) {
@@ -135,7 +138,10 @@ export function LinearCardSpread({
         activeElRef.current = el
         activeNameRef.current = name
         startYRef.current = eY
-        el.style.transition = "transform 0s, opacity 0s"
+        startTimeRef.current = Date.now()
+        activeHeightRef.current = el.getBoundingClientRect().height
+        auraOnRef.current = false
+        el.style.transition = "transform 0s"
     }
 
     const handleMove = (eY: number) => {
@@ -144,17 +150,44 @@ export function LinearCardSpread({
         const translateY = Math.min(0, deltaY)
         const rotate = Math.max(-8, translateY / 20)
         activeElRef.current.style.transform = `translateY(${translateY}px) rotate(${rotate}deg)`
+
+        // Aura when passed 3/4 height threshold
+        const draggedUp = -translateY
+        const threshold = 0.75 * activeHeightRef.current
+        if (draggedUp >= threshold) {
+            if (!auraOnRef.current && activeElRef.current) {
+                auraOnRef.current = true
+                activeElRef.current.style.boxShadow =
+                    "0 0 0 2px rgba(59,130,246,0.8), 0 0 24px 10px rgba(124,58,237,0.7), 0 0 60px 24px rgba(59,130,246,0.5)"
+                activeElRef.current.style.filter = "saturate(1.2) brightness(1.05)"
+            }
+        } else if (auraOnRef.current && activeElRef.current) {
+            auraOnRef.current = false
+            activeElRef.current.style.boxShadow = ""
+            activeElRef.current.style.filter = ""
+        }
     }
 
     const handleUp = () => {
         const el = activeElRef.current
         const name = activeNameRef.current
         if (!el || !name) return
-        const deckRect = deckRef.current?.getBoundingClientRect()
-        const cardRect = el.getBoundingClientRect()
-        const isFullyOutOfDeck = deckRect ? cardRect.bottom <= deckRect.top : false
+        const height = activeHeightRef.current || el.getBoundingClientRect().height
+        const elapsed = startTimeRef.current ? Date.now() - startTimeRef.current : 0
 
-        if (isFullyOutOfDeck) {
+        // Read current translateY from transform
+        const matrix = window.getComputedStyle(el).transform
+        let translateY = 0
+        if (matrix && matrix !== "none") {
+            const values = matrix.match(/-?\d+\.?\d*/g)
+            if (values && (values.length === 6 || values.length === 16)) {
+                translateY = parseFloat(values[values.length === 6 ? 5 : 13] || "0")
+            }
+        }
+        const draggedUp = -translateY
+        const threshold = 0.75 * height
+
+        if (elapsed >= 500 && draggedUp >= threshold) {
             const isReversed = Math.random() < 0.5
             const next = [...selected, { name, isReversed }]
             setSelected(next)
@@ -167,10 +200,15 @@ export function LinearCardSpread({
             el.style.transition = "transform 180ms ease"
             el.style.transform = "translateY(0) rotate(0deg)"
         }
+        // Clear aura if any
+        el.style.boxShadow = ""
+        el.style.filter = ""
         // reset
         activeElRef.current = null
         activeNameRef.current = null
         startYRef.current = null
+        startTimeRef.current = null
+        auraOnRef.current = false
     }
 
     const remaining = cardsToSelect - selected.length
