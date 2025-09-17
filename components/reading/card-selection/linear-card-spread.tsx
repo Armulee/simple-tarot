@@ -142,9 +142,7 @@ export function LinearCardSpread({
         const deltaY = eY - startYRef.current
         const translateY = Math.min(0, deltaY)
         const rotate = Math.max(-8, translateY / 20)
-        const opacity = Math.max(0.6, 1 + translateY / 300)
         activeElRef.current.style.transform = `translateY(${translateY}px) rotate(${rotate}deg)`
-        activeElRef.current.style.opacity = `${opacity}`
     }
 
     const handleUp = () => {
@@ -170,13 +168,11 @@ export function LinearCardSpread({
             setSelectedNames((prev) => new Set(prev).add(name))
             finalizeIfDone(next)
             // Hide/restore element
-            el.style.transition = "transform 180ms ease, opacity 180ms ease"
+            el.style.transition = "transform 180ms ease"
             el.style.transform = "translateY(-120%) rotate(-6deg)"
-            el.style.opacity = "0"
         } else {
-            el.style.transition = "transform 180ms ease, opacity 180ms ease"
+            el.style.transition = "transform 180ms ease"
             el.style.transform = "translateY(0) rotate(0deg)"
-            el.style.opacity = "1"
         }
         // reset
         activeElRef.current = null
@@ -201,13 +197,9 @@ export function LinearCardSpread({
                         <SwiperSlide key={`${name}-${idx}`} className='!w-28'>
                             <div className='flex items-center justify-center h-[420px]'>
                                 <div
-                                    className={`w-24 h-36 rounded-xl border-2 backdrop-blur-sm flex items-center justify-center select-none touch-none transition-opacity ${
+                                    className={`w-24 h-36 rounded-xl border-2 backdrop-blur-sm flex items-center justify-center select-none touch-none ${
                                         disabled
-                                            ? "opacity-40 pointer-events-none"
-                                            : "opacity-100"
-                                    } ${
-                                        disabled
-                                            ? "border-blue-300/20 bg-blue-600/20"
+                                            ? "pointer-events-none border-blue-300/20 bg-blue-600/20"
                                             : "border-blue-300/40 bg-gradient-to-br from-blue-500/20 to-indigo-500/20"
                                     }`}
                                     onMouseDown={(e: React.MouseEvent<HTMLDivElement>) =>
