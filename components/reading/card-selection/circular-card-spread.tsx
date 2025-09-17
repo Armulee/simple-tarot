@@ -152,9 +152,10 @@ export function CircularCardSpread({
     // Memoize card positions to prevent recalculation on every render
     const cardPositions = useMemo(() => {
         return shuffledDeck.map((card, index) => {
-            const angle = (index * 360) / shuffledDeck.length
             // Split cards into inner (first 39) and outer (last 39) circles
             const isInnerCircle = index < 39
+            const cardsInCircle = 39
+            const angle = (index % cardsInCircle) * (360 / cardsInCircle)
             const radius = isInnerCircle ? 100 : 180 // Inner circle smaller radius
             const x = Math.cos((angle - 90) * (Math.PI / 180)) * radius
             const y = Math.sin((angle - 90) * (Math.PI / 180)) * radius
