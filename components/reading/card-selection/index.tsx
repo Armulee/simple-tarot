@@ -9,9 +9,9 @@ import { ReadingConfig } from "../../../app/[locale]/reading/page"
 import { CircularCardSpread } from "./circular-card-spread"
 import LinearCardSpread from "./linear-card-spread"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { useRouter } from "next/navigation"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
+import { QuestionEditModal } from "../question-edit-modal"
 
 export default function CardSelection({
     readingConfig,
@@ -29,19 +29,18 @@ export default function CardSelection({
         isFollowUp,
         followUpQuestion,
     } = useTarot()
-    const router = useRouter()
     const isMobile = useIsMobile()
 
     // Desktop-only spread mode selection; mobile is forced to linear
     const [spreadMode, setSpreadMode] = useState<"circular" | "linear">("circular")
+    const [showEditModal, setShowEditModal] = useState(false)
 
     // Aggregated selection for dual circular spreads
     const [aggSelected, setAggSelected] = useState<{ name: string; isReversed: boolean }[]>([])
     const cardsToSelect = readingType ? readingConfig[readingType].cards : 1
 
     const handleEditQuestion = () => {
-        // Navigate to homepage - the question is already in context
-        router.push("/")
+        setShowEditModal(true)
     }
 
     const handleBackToReadingType = () => {
@@ -210,6 +209,12 @@ export default function CardSelection({
                     </div>
                 </div>
             )}
+            
+            <QuestionEditModal
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                currentQuestion={isFollowUp && followUpQuestion ? followUpQuestion : question || ""}
+            />
         </>
     )
 }

@@ -261,6 +261,16 @@
       "selectedCount": "{selected} of {total} selected",
       "swipeUpToSelect": "Swipe up on a card to select"
     },
+    "editQuestion": {
+      "title": "Edit Your Question",
+      "label": "Your Question",
+      "placeholder": "Ask your question to the cosmic realm...",
+      "hint": "Press Ctrl+Enter to save, Escape to cancel",
+      "reset": "Reset",
+      "cancel": "Cancel",
+      "save": "Save Changes",
+      "saving": "Saving..."
+    },
     "interpretation": {
       "title": "Your Cosmic Interpretation",
       "sectionTitle": "Cosmic Guidance",

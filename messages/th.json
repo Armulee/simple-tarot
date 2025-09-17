@@ -261,6 +261,16 @@
       "selectedCount": "{selected} จาก {total} ที่เลือกแล้ว",
       "swipeUpToSelect": "ปัดขึ้นบนไพ่เพื่อเลือก"
     },
+    "editQuestion": {
+      "title": "แก้ไขคำถามของคุณ",
+      "label": "คำถามของคุณ",
+      "placeholder": "ถามคำถามของคุณกับจักรวาล...",
+      "hint": "กด Ctrl+Enter เพื่อบันทึก, Escape เพื่อยกเลิก",
+      "reset": "รีเซ็ต",
+      "cancel": "ยกเลิก",
+      "save": "บันทึกการเปลี่ยนแปลง",
+      "saving": "กำลังบันทึก..."
+    },
     "interpretation": {
       "title": "คำทำนายจากจักรวาลของคุณ",
       "sectionTitle": "คำแนะนำจากจักรวาล",

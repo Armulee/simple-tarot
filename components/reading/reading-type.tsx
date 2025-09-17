@@ -5,10 +5,10 @@ import { Card } from "../ui/card"
 import { Badge } from "../ui/badge"
 import { useTarot } from "@/contexts/tarot-context"
 import { ReadingConfig } from "../../app/[locale]/reading/page"
-import { useRouter } from "next/navigation"
 import { isFollowUpQuestion, getCleanQuestionText } from "@/lib/question-utils"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
+import { QuestionEditModal } from "./question-edit-modal"
 
 export default function ReadingType({
     readingConfig,
@@ -24,11 +24,10 @@ export default function ReadingType({
         setReadingType,
         isFollowUp,
     } = useTarot()
-    const router = useRouter()
+    const [showEditModal, setShowEditModal] = useState(false)
 
     const handleEditQuestion = () => {
-        // Navigate to homepage - the question is already in context
-        router.push("/")
+        setShowEditModal(true)
     }
 
     const handleReadingTypeSelect = (
@@ -149,6 +148,12 @@ export default function ReadingType({
                     )}
                 </div>
             )}
+            
+            <QuestionEditModal
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                currentQuestion={question || ""}
+            />
         </>
     )
 }
