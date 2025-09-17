@@ -113,6 +113,7 @@ export function LinearCardSpread({
     const deck = useMemo(() => shuffle(TAROT_DECK), [])
     const [selected, setSelected] = useState<BasicCard[]>([])
     const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set())
+    const deckRef = useRef<HTMLDivElement | null>(null)
 
     // Active drag state for a slide
     const activeElRef = useRef<HTMLDivElement | null>(null)
@@ -149,19 +150,11 @@ export function LinearCardSpread({
         const el = activeElRef.current
         const name = activeNameRef.current
         if (!el || !name) return
-        const height = el.getBoundingClientRect().height
-        // read current translateY from transform string
-        const matrix = window.getComputedStyle(el).transform
-        let translateY = 0
-        if (matrix && matrix !== "none") {
-            const values = matrix.match(/-?\d+\.?\d*/g)
-            if (values && (values.length === 6 || values.length === 16)) {
-                // 2d or 3d matrix
-                translateY = parseFloat(values[values.length === 6 ? 5 : 13] || "0")
-            }
-        }
-        const draggedUp = -translateY
-        if (draggedUp > height / 2) {
+        const deckRect = deckRef.current?.getBoundingClientRect()
+        const cardRect = el.getBoundingClientRect()
+        const isFullyOutOfDeck = deckRect ? cardRect.bottom <= deckRect.top : false
+
+        if (isFullyOutOfDeck) {
             const isReversed = Math.random() < 0.5
             const next = [...selected, { name, isReversed }]
             setSelected(next)
@@ -183,7 +176,7 @@ export function LinearCardSpread({
     const remaining = cardsToSelect - selected.length
 
     return (
-        <div className='w-full'>
+        <div className='w-full' ref={deckRef}>
             <Swiper
                 modules={[FreeMode]}
                 freeMode={{ enabled: true, momentum: true }}
@@ -199,8 +192,8 @@ export function LinearCardSpread({
                                 <div
                                     className={`w-24 h-36 rounded-xl border-2 backdrop-blur-sm flex items-center justify-center select-none touch-none ${
                                         disabled
-                                            ? "pointer-events-none border-blue-300 bg-blue-600"
-                                            : "border-blue-400 bg-gradient-to-br from-blue-500 to-indigo-600"
+                                            ? "pointer-events-none border-blue-900 bg-blue-900"
+                                            : "border-blue-900 bg-gradient-to-br from-blue-900 to-purple-900"
                                     }`}
                                     onMouseDown={(e: React.MouseEvent<HTMLDivElement>) =>
                                         handleDown(e.clientY, e.currentTarget, name)
