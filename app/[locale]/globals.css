@@ -378,6 +378,19 @@
   animation: float 6s ease-in-out infinite;
 }
 
+/* Shuffle animation for cards */
+@keyframes shuffle-wiggle {
+  0% { transform: translateY(0) rotate(0deg); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+  20% { transform: translateY(-6px) rotate(-3deg); box-shadow: 0 12px 36px rgba(0,0,0,0.25); }
+  50% { transform: translateY(0) rotate(0deg); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+  80% { transform: translateY(-6px) rotate(3deg); box-shadow: 0 12px 36px rgba(0,0,0,0.25); }
+  100% { transform: translateY(0) rotate(0deg); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+}
+
+.animate-shuffle {
+  animation: shuffle-wiggle 480ms ease-in-out;
+}
+
 .suggestion-swiper {
   padding: 0 8px;
 }

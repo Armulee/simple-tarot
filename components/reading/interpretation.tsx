@@ -322,7 +322,7 @@ If the interpretation is too generic, add more details to make it more specific.
                                     {isFollowUp && (
                                         <Badge
                                             variant='secondary'
-                                            className='absolute -top-6 -left-8 -rotate-12 bg-primary/20 text-white border-white/30'
+                                            className='absolute -top-6 -left-8 -rotate-12 bg-accent/20 text-white border-white/30'
                                         >
                                             {t("followUp.badge")}
                                         </Badge>
@@ -332,7 +332,12 @@ If the interpretation is too generic, add more details to make it more specific.
                                 <Sparkles className='w-6 h-6 text-primary' />
                             </div>
                             <p className='text-muted-foreground italic'>
-                                &ldquo;{getCleanQuestionText(isFollowUp && followUpQuestion ? followUpQuestion : question || "")}
+                                &ldquo;
+                                {getCleanQuestionText(
+                                    isFollowUp && followUpQuestion
+                                        ? followUpQuestion
+                                        : question || ""
+                                )}
                                 &rdquo;
                             </p>
 
@@ -346,7 +351,7 @@ If the interpretation is too generic, add more details to make it more specific.
                                         {/* Badge on top */}
                                         <Badge
                                             variant='secondary'
-                                            className='bg-secondary/20 text-secondary border-secondary/30'
+                                            className='bg-accent/20 text-accent border-accent/30'
                                         >
                                             {card.meaning}
                                         </Badge>
@@ -426,7 +431,10 @@ If the interpretation is too generic, add more details to make it more specific.
                                     <>
                                         {/* Interpretation */}
                                         <div className='text-foreground leading-relaxed whitespace-pre-wrap mb-4'>
-                                            {interpretation ?? (isFollowUpMode ? "" : completion)}
+                                            {interpretation ??
+                                                (isFollowUpMode
+                                                    ? ""
+                                                    : completion)}
                                         </div>
                                     </>
                                 )}

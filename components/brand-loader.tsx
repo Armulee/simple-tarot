@@ -1,6 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
+import Image from "next/image"
 
 export default function BrandLoader({
     className,
@@ -20,10 +21,15 @@ export default function BrandLoader({
         >
             <div className='absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center gap-3 w-full'>
                 <div className='absolute inset-0 rounded-full bg-primary/20 blur-xl animate-pulse' />
-                <div className='w-14 h-14 relative rounded-full bg-white/20 flex items-center justify-center border border-primary/30 shadow-[0_10px_30px_-10px_rgba(99,102,241,0.35)]'>
-                    <span className='text-white font-serif text-xl animate-spin'>
-                        ✦
-                    </span>
+                <div className='w-14 h-14 relative rounded-full bg-white/20 flex items-center justify-center border border-primary/30 shadow-[0_10px_30px_-10px_rgba(99,102,241,0.35)] overflow-hidden'>
+                    <Image
+                        src='/assets/logo.png'
+                        alt='Asking Fate logo'
+                        width={40}
+                        height={40}
+                        className='animate-pulse object-contain'
+                        priority
+                    />
                 </div>
                 <div className='font-serif font-semibold text-white tracking-wide w-full'>
                     {label}

@@ -12,16 +12,24 @@ export async function POST(req: Request) {
             })
         }
 
-
         const result = streamText({
             model: MODEL,
             maxOutputTokens: 512,
-            system: `You are an expert tarot reader. Provide clear, concise, and mystical interpretations that directly address the user's question. Use the card's meaning as your guide, but do not explain the symbolism or card details. Focus only on delivering an insightful answer that feels intuitive and to the point.
+            system: `You are an expert tarot reader.
 
-CRITICAL INSTRUCTION: You MUST respond in the dominant language of the user's input. Identify the primary language used in the message and respond entirely in that language. Even if the user includes words or phrases from other languages, respond in the dominant language throughout your entire response.`,
+Your task: Answer the user's question directly and succinctly. Start with the direct answer in the first sentence. Avoid detours, disclaimers, or describing your process.
+
+Style: Clear, grounded, encouraging. Use 2–5 short sentences (max ~90 words).
+
+Constraints (default): Do not explain card symbolism, numerology, suits, spreads, upright/reversed meanings, or imagery. Do not list deep details of the cards. Mention cards only if essential and keep it brief.
+
+Override rule: If—and only if—the user explicitly requests those specifics in their question (e.g., asks for symbolism, spread mechanics, or card meanings in detail), you may include them briefly and only to the extent requested.
+
+Language: You MUST respond entirely in the dominant language of the user's input.`,
             prompt: `${prompt}
 
-IMPORTANT: Please respond in the dominant language of this message.`,
+IMPORTANT: Please respond in the dominant language of this message.
+Note: Only include card symbolism, spread mechanics, or detailed card meanings if the user's message explicitly asks for them. Otherwise, answer directly without those details.`,
         })
 
         // Wait for the provider's full response (contains usage)

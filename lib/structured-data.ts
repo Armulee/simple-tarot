@@ -22,7 +22,7 @@ export const websiteStructuredData = {
         url: "https://askingfate.com",
         logo: {
             "@type": "ImageObject",
-            url: "https://askingfate.com/icon.png",
+            url: "https://askingfate.com/assets/logo.png",
         },
     },
 }
@@ -32,7 +32,7 @@ export const organizationStructuredData = {
     "@type": "Organization",
     name: "Asking Fate",
     url: "https://askingfate.com",
-    logo: "https://askingfate.com/icon.png",
+    logo: "https://askingfate.com/assets/logo.png",
     description:
         "AI-powered tarot reading platform providing free spiritual guidance and personalized insights.",
     foundingDate: "2024",

@@ -7,6 +7,7 @@ import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { Save, X } from "lucide-react"
 import { toast } from "sonner"
+import { Textarea } from "../ui/textarea"
 
 interface InlineQuestionEditProps {
     currentQuestion: string
@@ -14,11 +15,15 @@ interface InlineQuestionEditProps {
     onSave: (newQuestion: string) => void
 }
 
-export function InlineQuestionEdit({ currentQuestion, onCancel, onSave }: InlineQuestionEditProps) {
+export function InlineQuestionEdit({
+    currentQuestion,
+    onCancel,
+    onSave,
+}: InlineQuestionEditProps) {
     const t = useTranslations("ReadingPage")
     const [editedQuestion, setEditedQuestion] = useState(currentQuestion)
     const [isLoading, setIsLoading] = useState(false)
-    const inputRef = useRef<HTMLInputElement>(null)
+    const inputRef = useRef<HTMLTextAreaElement>(null)
 
     // Focus the input when component mounts
     useEffect(() => {
@@ -53,7 +58,6 @@ export function InlineQuestionEdit({ currentQuestion, onCancel, onSave }: Inline
         }
     }
 
-
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "Escape") {
             onCancel()
@@ -63,46 +67,33 @@ export function InlineQuestionEdit({ currentQuestion, onCancel, onSave }: Inline
     }
 
     return (
-        <div className="space-y-4">
-            <div className="space-y-3">
-                <label className="text-sm font-medium text-muted-foreground">
-                    {t("editQuestion.label", { default: "Your Question" })}
-                </label>
-                <Input
+        <div className='space-y-4'>
+            <div className='space-y-3'>
+                <Textarea
                     ref={inputRef}
                     value={editedQuestion}
                     onChange={(e) => setEditedQuestion(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder={t("editQuestion.placeholder", { 
-                        default: "Ask your question to the cosmic realm..." 
+                    placeholder={t("editQuestion.placeholder", {
+                        default: "Ask your question to the cosmic realm...",
                     })}
-                    className="text-base"
+                    className='text-base max-w-72 resize-none min-h-10 rounded-2xl mx-auto'
                 />
-                <p className="text-xs text-muted-foreground">
-                    {t("editQuestion.hint", { 
-                        default: "Press Enter to save, Escape to cancel" 
-                    })}
-                </p>
             </div>
 
-            <div className="flex items-center justify-end gap-3">
-                <Button
-                    onClick={onCancel}
-                    variant="ghost"
-                    disabled={isLoading}
-                >
+            <div className='flex items-center justify-center gap-3'>
+                <Button onClick={onCancel} variant='ghost' disabled={isLoading}>
                     {t("editQuestion.cancel", { default: "Cancel" })}
                 </Button>
                 <Button
                     onClick={handleSave}
                     disabled={!editedQuestion.trim() || isLoading}
-                    className="flex items-center gap-2"
+                    className='flex items-center gap-2'
                 >
-                    <Save className="h-4 w-4" />
-                    {isLoading 
+                    <Save className='h-4 w-4' />
+                    {isLoading
                         ? t("editQuestion.saving", { default: "Saving..." })
-                        : t("editQuestion.save", { default: "Save Changes" })
-                    }
+                        : t("editQuestion.save", { default: "Save Changes" })}
                 </Button>
             </div>
         </div>

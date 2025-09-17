@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useTranslations } from "next-intl"
 import { usePathname, useRouter } from "@/i18n/navigation"
 import { routing } from "@/i18n/routing"
@@ -85,11 +86,14 @@ export function Navbar({ locale }: { locale: string }) {
                             href='/'
                             className='hidden md:flex items-center space-x-2 group px-2 py-1 rounded-md hover:bg-white/5'
                         >
-                            <div className='w-8 h-8 bg-gradient-to-br from-cosmic-purple to-cosmic-blue rounded-full flex items-center justify-center group-hover:scale-110 transition-transform'>
-                                <span className='text-white font-bold text-sm'>
-                                    ✦
-                                </span>
-                            </div>
+                            <Image
+                                src='/assets/logo.png'
+                                alt='Asking Fate logo'
+                                width={32}
+                                height={32}
+                                className='rounded-md object-contain group-hover:scale-110 transition-transform'
+                                priority
+                            />
                             <span className='font-playfair text-xl font-bold text-white group-hover:text-cosmic-purple transition-colors'>
                                 {t("brand")}
                             </span>

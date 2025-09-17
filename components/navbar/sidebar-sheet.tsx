@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useTranslations } from "next-intl"
 import {
     Home,
@@ -63,11 +64,14 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                             onClick={() => onOpenChange(false)}
                             className='flex items-center space-x-2 group'
                         >
-                            <div className='w-7 h-7 bg-gradient-to-br from-cosmic-purple to-cosmic-blue rounded-full flex items-center justify-center group-hover:scale-110 transition-transform'>
-                                <span className='text-white font-bold text-xs'>
-                                    ✦
-                                </span>
-                            </div>
+                            <Image
+                                src='/assets/logo.png'
+                                alt='Asking Fate logo'
+                                width={28}
+                                height={28}
+                                className='rounded-md object-contain group-hover:scale-110 transition-transform'
+                                priority
+                            />
                             <span className='font-playfair text-lg font-bold text-white group-hover:text-cosmic-purple transition-colors'>
                                 Asking Fate
                             </span>

@@ -255,13 +255,15 @@
     },
     "chooseCards": {
       "title": "เลือกไพ่ของคุณ",
-      "desc": "เชื่อในสัญชาตญาณและเลือกจากวงล้อแห่งจักรวาล",
+      "desc": "เชื่อในสัญชาตญาณและเลือก {amount} ใบ จากวงล้อแห่งจักรวาล",
       "reversed": "Reversed",
       "selectFromSpread": "{count, plural, one {เลือก # ใบ จากวงล้อแห่งจักรวาล} other {เลือก # ใบ จากวงล้อแห่งจักรวาล}}",
       "selectedCount": "{selected} จาก {total} ที่เลือกแล้ว",
       "swipeUpToSelect": "ปัดขึ้นบนไพ่เพื่อเลือก",
       "circular": "วงกลม",
-      "linear": "เส้นตรง"
+      "linear": "เส้นตรง",
+      "confirm": "ยืนยันการเลือก ({selected}/{total})",
+      "shuffle": "สับไพ่"
     },
     "editQuestion": {
       "title": "แก้ไขคำถามของคุณ",

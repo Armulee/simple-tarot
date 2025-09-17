@@ -93,7 +93,8 @@ export default function ReadingType({
                                 />
                             ) : (
                                 <p className='text-muted-foreground italic'>
-                                    &ldquo;{getCleanQuestionText(question || "")}
+                                    &ldquo;
+                                    {getCleanQuestionText(question || "")}
                                     &rdquo;
                                 </p>
                             )}
@@ -112,7 +113,7 @@ export default function ReadingType({
                                 <div className='flex justify-center'>
                                     <Badge
                                         variant='secondary'
-                                        className='bg-primary/20 text-primary border-primary/30 px-4 py-2'
+                                        className='bg-accent/20 text-accent border-accent/30 px-4 py-2'
                                     >
                                         {t("followUp.simple")}
                                     </Badge>

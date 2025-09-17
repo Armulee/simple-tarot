@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 
 export default function Footer() {
     return (
@@ -9,11 +10,13 @@ export default function Footer() {
                         href='/'
                         className='flex items-center space-x-2 group'
                     >
-                        <div className='w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center'>
-                            <span className='text-primary font-serif text-sm group-hover:scale-110 transition-transform'>
-                                ✦
-                            </span>
-                        </div>
+                        <Image
+                            src='/assets/logo.png'
+                            alt='Asking Fate logo'
+                            width={24}
+                            height={24}
+                            className='rounded-md object-contain group-hover:scale-110 transition-transform'
+                        />
                         <span className='font-serif font-semibold text-primary transition-colors'>
                             Asking Fate
                         </span>
