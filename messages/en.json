@@ -259,7 +259,9 @@
       "reversed": "Reversed",
       "selectFromSpread": "{count, plural, one {Select # card from the cosmic spread} other {Select # cards from the cosmic spread}}",
       "selectedCount": "{selected} of {total} selected",
-      "swipeUpToSelect": "Swipe up on a card to select"
+      "swipeUpToSelect": "Swipe up on a card to select",
+      "circular": "Circular",
+      "linear": "Linear"
     },
     "editQuestion": {
       "title": "Edit Your Question",

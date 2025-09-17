@@ -259,7 +259,9 @@
       "reversed": "Reversed",
       "selectFromSpread": "{count, plural, one {เลือก # ใบ จากวงล้อแห่งจักรวาล} other {เลือก # ใบ จากวงล้อแห่งจักรวาล}}",
       "selectedCount": "{selected} จาก {total} ที่เลือกแล้ว",
-      "swipeUpToSelect": "ปัดขึ้นบนไพ่เพื่อเลือก"
+      "swipeUpToSelect": "ปัดขึ้นบนไพ่เพื่อเลือก",
+      "circular": "วงกลม",
+      "linear": "เส้นตรง"
     },
     "editQuestion": {
       "title": "แก้ไขคำถามของคุณ",
