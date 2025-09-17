@@ -115,6 +115,12 @@ export function LinearCardSpread({
     const [selected, setSelected] = useState<BasicCard[]>([])
     const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set())
     const [showSwipeOverlay, setShowSwipeOverlay] = useState(false)
+    const [selectedCardPosition, setSelectedCardPosition] = useState<{
+        x: number
+        y: number
+        width: number
+        height: number
+    } | null>(null)
     const deckRef = useRef<HTMLDivElement | null>(null)
 
     // Active drag state for a slide
@@ -133,8 +139,16 @@ export function LinearCardSpread({
         }
     }
 
-    const handleCardClick = (name: string) => {
+    const handleCardClick = (name: string, event: React.MouseEvent<HTMLDivElement>) => {
         if (selectedNames.has(name)) return
+        
+        const rect = event.currentTarget.getBoundingClientRect()
+        setSelectedCardPosition({
+            x: rect.left,
+            y: rect.top,
+            width: rect.width,
+            height: rect.height
+        })
         setShowSwipeOverlay(true)
     }
 
@@ -277,7 +291,7 @@ export function LinearCardSpread({
                                     className={`w-24 h-36 rounded-[16px] bg-gradient-to-br from-[#15a6ff] via-[#b56cff] to-[#15a6ff] p-[2px] shadow-2xl select-none touch-none ${
                                         disabled ? "pointer-events-none" : "cursor-pointer"
                                     }`}
-                                    onClick={() => handleCardClick(name)}
+                                    onClick={(e) => handleCardClick(name, e)}
                                     onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => {
                                         startXRef.current = e.clientX
                                         handleDown(e.clientY, e.currentTarget, name)
@@ -337,7 +351,8 @@ export function LinearCardSpread({
             
             <SwipeUpOverlay 
                 isVisible={showSwipeOverlay} 
-                onClose={() => setShowSwipeOverlay(false)} 
+                onClose={() => setShowSwipeOverlay(false)}
+                cardPosition={selectedCardPosition || undefined}
             />
         </>
     )

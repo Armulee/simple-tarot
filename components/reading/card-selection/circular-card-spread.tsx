@@ -118,6 +118,12 @@ export function CircularCardSpread({
     const [selectedCards, setSelectedCards] = useState<TarotCard[]>([])
     const [shuffledDeck, setShuffledDeck] = useState<TarotCard[]>([])
     const [showSwipeOverlay, setShowSwipeOverlay] = useState(false)
+    const [selectedCardPosition, setSelectedCardPosition] = useState<{
+        x: number
+        y: number
+        width: number
+        height: number
+    } | null>(null)
 
     useEffect(() => {
         const createShuffledDeck = () => {
@@ -148,7 +154,7 @@ export function CircularCardSpread({
         setShuffledDeck(createShuffledDeck())
     }, [])
 
-    const handleCardClick = (card: TarotCard) => {
+    const handleCardClick = (card: TarotCard, event: React.MouseEvent<HTMLDivElement>) => {
         // Prevent picking duplicates that are already selected externally
         if (
             externalSelectedNames.includes(card.name) &&
@@ -169,7 +175,14 @@ export function CircularCardSpread({
                 return next
             })
         } else if (selectedCards.length < cardsToSelect) {
-            // Show swipe overlay for new card selection
+            // Capture card position and show swipe overlay
+            const rect = event.currentTarget.getBoundingClientRect()
+            setSelectedCardPosition({
+                x: rect.left,
+                y: rect.top,
+                width: rect.width,
+                height: rect.height
+            })
             setShowSwipeOverlay(true)
         }
     }
@@ -232,7 +245,7 @@ export function CircularCardSpread({
                                 transform: `rotate(${angle}deg)`,
                                 zIndex: isSelected ? 10 : 1,
                             }}
-                            onClick={() => !isExternallyTaken && handleCardClick(card)}
+                            onClick={(e) => !isExternallyTaken && handleCardClick(card, e)}
                         >
                             <div className='relative'>
                                 <div
@@ -313,7 +326,8 @@ export function CircularCardSpread({
             
             <SwipeUpOverlay 
                 isVisible={showSwipeOverlay} 
-                onClose={() => setShowSwipeOverlay(false)} 
+                onClose={() => setShowSwipeOverlay(false)}
+                cardPosition={selectedCardPosition || undefined}
             />
         </>
     )
