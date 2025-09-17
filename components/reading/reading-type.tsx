@@ -8,7 +8,7 @@ import { ReadingConfig } from "../../app/[locale]/reading/page"
 import { isFollowUpQuestion, getCleanQuestionText } from "@/lib/question-utils"
 import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
-import { QuestionEditModal } from "./question-edit-modal"
+import { InlineQuestionEdit } from "./inline-question-edit"
 
 export default function ReadingType({
     readingConfig,
@@ -20,14 +20,24 @@ export default function ReadingType({
         currentStep,
         setCurrentStep,
         question,
+        setQuestion,
         readingType,
         setReadingType,
         isFollowUp,
     } = useTarot()
-    const [showEditModal, setShowEditModal] = useState(false)
+    const [isEditing, setIsEditing] = useState(false)
 
     const handleEditQuestion = () => {
-        setShowEditModal(true)
+        setIsEditing(true)
+    }
+
+    const handleSaveQuestion = (newQuestion: string) => {
+        setQuestion(newQuestion)
+        setIsEditing(false)
+    }
+
+    const handleCancelEdit = () => {
+        setIsEditing(false)
     }
 
     const handleReadingTypeSelect = (
@@ -63,20 +73,30 @@ export default function ReadingType({
                                     )}
                                     {t("questionHeading")}
                                 </h2>
-                                <Button
-                                    onClick={handleEditQuestion}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='h-8 w-8 p-0 hover:bg-primary/10'
-                                >
-                                    <Pencil className='h-4 w-4 text-muted-foreground hover:text-primary' />
-                                </Button>
+                                {!isEditing && (
+                                    <Button
+                                        onClick={handleEditQuestion}
+                                        variant='ghost'
+                                        size='sm'
+                                        className='h-8 w-8 p-0 hover:bg-primary/10'
+                                    >
+                                        <Pencil className='h-4 w-4 text-muted-foreground hover:text-primary' />
+                                    </Button>
+                                )}
                             </div>
 
-                            <p className='text-muted-foreground italic'>
-                                &ldquo;{getCleanQuestionText(question || "")}
-                                &rdquo;
-                            </p>
+                            {isEditing ? (
+                                <InlineQuestionEdit
+                                    currentQuestion={question || ""}
+                                    onSave={handleSaveQuestion}
+                                    onCancel={handleCancelEdit}
+                                />
+                            ) : (
+                                <p className='text-muted-foreground italic'>
+                                    &ldquo;{getCleanQuestionText(question || "")}
+                                    &rdquo;
+                                </p>
+                            )}
                         </div>
                     </Card>
 
@@ -148,12 +168,6 @@ export default function ReadingType({
                     )}
                 </div>
             )}
-            
-            <QuestionEditModal
-                isOpen={showEditModal}
-                onClose={() => setShowEditModal(false)}
-                currentQuestion={question || ""}
-            />
         </>
     )
 }

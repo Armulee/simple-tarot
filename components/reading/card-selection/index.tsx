@@ -11,7 +11,7 @@ import LinearCardSpread from "./linear-card-spread"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
-import { QuestionEditModal } from "../question-edit-modal"
+import { InlineQuestionEdit } from "../inline-question-edit"
 
 export default function CardSelection({
     readingConfig,
@@ -23,6 +23,7 @@ export default function CardSelection({
         currentStep,
         setCurrentStep,
         question,
+        setQuestion,
         readingType,
         setSelectedCards,
         clearInterpretationState,
@@ -33,14 +34,23 @@ export default function CardSelection({
 
     // Desktop-only spread mode selection; mobile is forced to linear
     const [spreadMode, setSpreadMode] = useState<"circular" | "linear">("circular")
-    const [showEditModal, setShowEditModal] = useState(false)
+    const [isEditing, setIsEditing] = useState(false)
 
     // Aggregated selection for dual circular spreads
     const [aggSelected, setAggSelected] = useState<{ name: string; isReversed: boolean }[]>([])
     const cardsToSelect = readingType ? readingConfig[readingType].cards : 1
 
     const handleEditQuestion = () => {
-        setShowEditModal(true)
+        setIsEditing(true)
+    }
+
+    const handleSaveQuestion = (newQuestion: string) => {
+        setQuestion(newQuestion)
+        setIsEditing(false)
+    }
+
+    const handleCancelEdit = () => {
+        setIsEditing(false)
     }
 
     const handleBackToReadingType = () => {
@@ -112,34 +122,47 @@ export default function CardSelection({
                                     )}
                                     {t("questionHeading")}
                                 </h2>
-                                <Button
-                                    onClick={handleEditQuestion}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='h-8 w-8 p-0 hover:bg-primary/10'
-                                >
-                                    <Pencil className='h-4 w-4 text-muted-foreground hover:text-primary' />
-                                </Button>
+                                {!isEditing && (
+                                    <Button
+                                        onClick={handleEditQuestion}
+                                        variant='ghost'
+                                        size='sm'
+                                        className='h-8 w-8 p-0 hover:bg-primary/10'
+                                    >
+                                        <Pencil className='h-4 w-4 text-muted-foreground hover:text-primary' />
+                                    </Button>
+                                )}
                             </div>
-                            <p className='text-muted-foreground italic'>
-                                &ldquo;{getCleanQuestionText(isFollowUp && followUpQuestion ? followUpQuestion : question || "")}
-                                &rdquo;
-                            </p>
-                            <Badge
-                                className={`text-sm text-primary bg-transparent border-primary/50 ${
-                                    isFollowUp
-                                        ? "cursor-default"
-                                        : "cursor-pointer hover:bg-primary/10 transition-colors"
-                                }`}
-                                onClick={
-                                    isFollowUp
-                                        ? undefined
-                                        : handleBackToReadingType
-                                }
-                            >
-                                {readingType &&
-                                    readingConfig[readingType].title}
-                            </Badge>
+                            
+                            {isEditing ? (
+                                <InlineQuestionEdit
+                                    currentQuestion={isFollowUp && followUpQuestion ? followUpQuestion : question || ""}
+                                    onSave={handleSaveQuestion}
+                                    onCancel={handleCancelEdit}
+                                />
+                            ) : (
+                                <>
+                                    <p className='text-muted-foreground italic'>
+                                        &ldquo;{getCleanQuestionText(isFollowUp && followUpQuestion ? followUpQuestion : question || "")}
+                                        &rdquo;
+                                    </p>
+                                    <Badge
+                                        className={`text-sm text-primary bg-transparent border-primary/50 ${
+                                            isFollowUp
+                                                ? "cursor-default"
+                                                : "cursor-pointer hover:bg-primary/10 transition-colors"
+                                        }`}
+                                        onClick={
+                                            isFollowUp
+                                                ? undefined
+                                                : handleBackToReadingType
+                                        }
+                                    >
+                                        {readingType &&
+                                            readingConfig[readingType].title}
+                                    </Badge>
+                                </>
+                            )}
                         </div>
                     </Card>
 
@@ -209,12 +232,6 @@ export default function CardSelection({
                     </div>
                 </div>
             )}
-            
-            <QuestionEditModal
-                isOpen={showEditModal}
-                onClose={() => setShowEditModal(false)}
-                currentQuestion={isFollowUp && followUpQuestion ? followUpQuestion : question || ""}
-            />
         </>
     )
 }
