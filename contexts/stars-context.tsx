@@ -76,7 +76,7 @@ export interface StarsContextType {
     shareOnSocial: (platform: string, shareUrl?: string) => Promise<{ success: boolean; message: string; stars?: number }>
     useStarsForReading: (amount: number) => Promise<{ success: boolean; message: string; stars?: number }>
     getReferralCode: () => Promise<{ success: boolean; code?: string; message: string }>
-    useReferralCode: (code: string) => Promise<{ success: boolean; message: string; stars?: number }>
+    applyReferralCode: (code: string) => Promise<{ success: boolean; message: string; stars?: number }>
 
     // Transaction history
     transactions: StarTransaction[]
@@ -269,7 +269,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    const useReferralCode = async (code: string): Promise<{ success: boolean; message: string; stars?: number }> => {
+    const applyReferralCode = async (code: string): Promise<{ success: boolean; message: string; stars?: number }> => {
         if (!user) {
             return { success: false, message: "Please log in to use a referral code" }
         }
@@ -329,7 +329,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         shareOnSocial,
         useStarsForReading,
         getReferralCode,
-        useReferralCode,
+        applyReferralCode,
         transactions,
         loadTransactions,
         refreshStars,

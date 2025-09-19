@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
         const canClaimDaily = canClaimData || false
 
         // Get today's daily claim
-        const { data: dailyClaimData, error: dailyClaimError } = await supabase
+        const { data: dailyClaimData } = await supabase
             .from('daily_claims')
             .select('stars_claimed')
             .eq(userId ? 'user_id' : 'ip_address', userId || ipAddress)

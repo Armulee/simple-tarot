@@ -1,13 +1,14 @@
 import { streamText } from "ai"
 import { supabase } from "@/lib/supabase"
 import { getClientIP } from "@/lib/ip-utils"
+import { NextRequest } from "next/server"
 
 const MODEL = "openai/gpt-4o-mini"
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
         const { prompt, userId } = await req.json()
-        const ipAddress = getClientIP(req as any)
+        const ipAddress = getClientIP(req)
 
         if (!prompt) {
             return new Response("User prompt is required", {
@@ -74,7 +75,7 @@ Note: Only include card symbolism, spread mechanics, or detailed card meanings i
         })
 
         // Deduct stars after successful reading
-        const { data: deductStarsData, error: deductStarsError } = await supabase
+        const { error: deductStarsError } = await supabase
             .rpc('add_stars', {
                 p_user_id: userId || null,
                 p_ip_address: ipAddress,

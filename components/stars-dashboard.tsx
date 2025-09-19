@@ -17,9 +17,7 @@ export function StarsDashboard() {
         canClaimDaily, 
         dailyStarsClaimed, 
         dailyAdWatches, 
-        maxDailyAds,
-        transactions,
-        loadTransactions 
+        maxDailyAds
     } = useStars()
 
     return (

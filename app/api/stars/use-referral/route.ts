@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Add stars to referrer (person who created the code)
-        const { data: addReferrerStarsData, error: addReferrerStarsError } = await supabase
+        const { error: addReferrerStarsError } = await supabase
             .rpc('add_stars', {
                 p_user_id: referralData.referrer_id,
                 p_amount: starsPerReferral,

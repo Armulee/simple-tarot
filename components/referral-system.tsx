@@ -13,7 +13,7 @@ import { toast } from "sonner"
 
 export function ReferralSystem() {
     const { user } = useAuth()
-    const { getReferralCode, useReferralCode } = useStars()
+    const { getReferralCode, applyReferralCode } = useStars()
     const [referralCode, setReferralCode] = useState<string>("")
     const [inputCode, setInputCode] = useState("")
     const [isLoading, setIsLoading] = useState(false)
@@ -47,7 +47,7 @@ export function ReferralSystem() {
 
         setIsUsingCode(true)
         try {
-            const result = await useReferralCode(inputCode.trim())
+            const result = await applyReferralCode(inputCode.trim())
             if (result.success) {
                 toast.success(result.message)
                 setInputCode("")
@@ -123,7 +123,7 @@ export function ReferralSystem() {
                         Use Referral Code
                     </CardTitle>
                     <CardDescription>
-                        Enter a friend's referral code to earn 5 stars (and they'll get 5 too)!
+                        Enter a friend&apos;s referral code to earn 5 stars (and they&apos;ll get 5 too)!
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
