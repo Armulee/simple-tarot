@@ -73,7 +73,7 @@ export function StarsDashboard() {
     }
 
     const canWatchAd = dailyAdWatches < maxDailyAds
-    const showAdButton = stars < 2 && canWatchAd
+    const showAdButton = stars < 5 && canWatchAd
 
     const toggleAccordion = (id: string) => {
         setActiveAccordion(activeAccordion === id ? null : id)
