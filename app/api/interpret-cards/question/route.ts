@@ -1,14 +1,45 @@
 import { streamText } from "ai"
+import { supabase } from "@/lib/supabase"
+import { getClientIP } from "@/lib/ip-utils"
 
 const MODEL = "openai/gpt-4o-mini"
 
 export async function POST(req: Request) {
     try {
-        const { prompt } = await req.json()
+        const { prompt, userId } = await req.json()
+        const ipAddress = getClientIP(req as any)
 
         if (!prompt) {
             return new Response("User prompt is required", {
                 status: 400,
+            })
+        }
+
+        // Check if user has enough stars for reading (2 stars per reading)
+        const readingCost = 2
+        const { data: starsData, error: starsError } = await supabase
+            .rpc('get_or_create_user_stars', {
+                p_user_id: userId || null,
+                p_ip_address: ipAddress
+            })
+
+        if (starsError) {
+            console.error('Error getting user stars:', starsError)
+            return new Response("Failed to check stars balance", {
+                status: 500,
+            })
+        }
+
+        const currentStars = starsData?.[0]?.stars || 0
+        if (currentStars < readingCost) {
+            return new Response(JSON.stringify({
+                error: "Not enough stars",
+                message: `You need ${readingCost} stars for a reading. You have ${currentStars} stars.`,
+                stars: currentStars,
+                required: readingCost
+            }), {
+                status: 402, // Payment Required
+                headers: { 'Content-Type': 'application/json' }
             })
         }
 
@@ -41,6 +72,21 @@ Note: Only include card symbolism, spread mechanics, or detailed card meanings i
             $: cost?.toFixed(5),
             "฿": cost ? (cost * 35).toFixed(5) : 0,
         })
+
+        // Deduct stars after successful reading
+        const { data: deductStarsData, error: deductStarsError } = await supabase
+            .rpc('add_stars', {
+                p_user_id: userId || null,
+                p_ip_address: ipAddress,
+                p_amount: -readingCost, // Negative amount to deduct
+                p_transaction_type: 'reading_cost',
+                p_description: `Tarot reading - ${readingCost} stars`
+            })
+
+        if (deductStarsError) {
+            console.error('Error deducting stars:', deductStarsError)
+            // Don't fail the reading if stars deduction fails, just log it
+        }
 
         return result.toUIMessageStreamResponse()
     } catch (error) {

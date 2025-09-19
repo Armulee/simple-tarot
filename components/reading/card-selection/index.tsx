@@ -1,10 +1,11 @@
 "use client"
 import React, { useEffect, useMemo, useState } from "react"
 import { TarotCard, useTarot } from "@/contexts/tarot-context"
+import { useStars } from "@/contexts/stars-context"
 import { Button } from "../../ui/button"
 import { Card } from "../../ui/card"
 import { Badge } from "../../ui/badge"
-import { Pencil, RotateCw } from "lucide-react"
+import { Pencil, RotateCw, Star, AlertCircle } from "lucide-react"
 import { ReadingConfig } from "../../../app/[locale]/reading/page"
 import { CircularCardSpread } from "./circular-card-spread"
 import LinearCardSpread from "./linear-card-spread"
@@ -29,7 +30,11 @@ export default function CardSelection({
         clearInterpretationState,
         isFollowUp,
         followUpQuestion,
+        canAffordReading,
+        readingCost,
+        processReading,
     } = useTarot()
+    const { stars } = useStars()
     const isMobile = useIsMobile()
 
     // Desktop-only spread mode selection; mobile is forced to linear
@@ -74,9 +79,22 @@ export default function CardSelection({
         setSelectedCards([])
     }
 
-    const handleCardsSelected = (
+    const handleCardsSelected = async (
         cards: { name: string; isReversed: boolean }[]
     ) => {
+        // Check if user can afford the reading
+        if (!canAffordReading) {
+            // Show error or redirect to stars dashboard
+            return
+        }
+
+        // Process the reading (deduct stars)
+        const result = await processReading()
+        if (!result.success) {
+            // Handle error - maybe show a toast or modal
+            return
+        }
+
         // Clear old interpretation state and localStorage when new cards are selected
         clearInterpretationState()
 
@@ -223,6 +241,32 @@ export default function CardSelection({
                                     default: `Trust your intuition and select ${cardsToSelect} from the cosmic spread`,
                                 })}
                             </p>
+                            
+                            {/* Stars Cost Information */}
+                            <div className='flex items-center justify-center gap-2 mt-4'>
+                                <div className={`flex items-center gap-1 px-3 py-1.5 rounded-full ${
+                                    canAffordReading 
+                                        ? 'bg-yellow-500/20 border border-yellow-500/30' 
+                                        : 'bg-red-500/20 border border-red-500/30'
+                                }`}>
+                                    <Star className={`w-4 h-4 ${canAffordReading ? 'text-yellow-400' : 'text-red-400'}`} />
+                                    <span className={`text-sm font-semibold ${canAffordReading ? 'text-yellow-400' : 'text-red-400'}`}>
+                                        {readingCost} stars
+                                    </span>
+                                </div>
+                                <div className='text-sm text-muted-foreground'>
+                                    (You have {stars} stars)
+                                </div>
+                            </div>
+                            
+                            {!canAffordReading && (
+                                <div className='flex items-center justify-center gap-2 mt-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg'>
+                                    <AlertCircle className='w-4 h-4 text-red-400' />
+                                    <span className='text-sm text-red-400'>
+                                        Not enough stars for this reading. You need {readingCost} stars but have {stars}.
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         {readingType && (
@@ -282,14 +326,22 @@ export default function CardSelection({
                                                         aggSelected
                                                     )
                                                 }
-                                                className='px-8 py-3 bg-gradient-to-r from-[#15a6ff] to-[#b56cff] text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105'
+                                                disabled={!canAffordReading}
+                                                className={`px-8 py-3 font-semibold rounded-full shadow-lg transition-all duration-300 ${
+                                                    canAffordReading
+                                                        ? 'bg-gradient-to-r from-[#15a6ff] to-[#b56cff] text-white hover:shadow-xl hover:scale-105'
+                                                        : 'bg-gray-500/50 text-gray-300 cursor-not-allowed'
+                                                }`}
                                             >
-                                                {t("chooseCards.confirm", {
-                                                    selected:
-                                                        aggSelected.length,
-                                                    total: cardsToSelect,
-                                                    default: `Confirm Selection (${aggSelected.length}/${cardsToSelect})`,
-                                                })}
+                                                {canAffordReading ? (
+                                                    t("chooseCards.confirm", {
+                                                        selected: aggSelected.length,
+                                                        total: cardsToSelect,
+                                                        default: `Confirm Selection (${aggSelected.length}/${cardsToSelect})`,
+                                                    })
+                                                ) : (
+                                                    `Need ${readingCost} stars (You have ${stars})`
+                                                )}
                                             </Button>
                                         </div>
                                     )}

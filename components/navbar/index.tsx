@@ -19,6 +19,7 @@ import { SidebarSheet } from "./sidebar-sheet"
 import { UserProfile } from "@/components/user-profile"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/use-auth"
+import { StarsDisplay } from "@/components/stars-display"
 import {
     Sheet,
     SheetContent,
@@ -114,6 +115,15 @@ export function Navbar({ locale }: { locale: string }) {
                         >
                             {t("about")}
                         </Link>
+                        <Link
+                            href='/stars'
+                            className='hidden md:block text-cosmic-light hover:text-white transition-colors'
+                        >
+                            Stars
+                        </Link>
+                        
+                        {/* Stars Display */}
+                        <StarsDisplay showActions={false} className="hidden md:flex" />
                         <Sheet
                             open={mysticalOpen}
                             onOpenChange={setMysticalOpen}
