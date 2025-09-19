@@ -13,6 +13,7 @@ import {
     BookOpen,
     LogIn,
     Sparkles,
+    Star,
     Check,
 } from "lucide-react"
 import { SidebarSheet } from "./sidebar-sheet"
@@ -182,6 +183,16 @@ export function Navbar({ locale }: { locale: string }) {
                                             </div>
                                         )
                                     )}
+                                    
+                                    {/* Stars Link */}
+                                    <Link
+                                        href='/stars'
+                                        className='flex items-center space-x-3 px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors group'
+                                        onClick={() => setMysticalOpen(false)}
+                                    >
+                                        <Star className='h-5 w-5 text-yellow-400' />
+                                        <span className='font-medium'>Stars</span>
+                                    </Link>
                                 </div>
                             </SheetContent>
                         </Sheet>
@@ -220,8 +231,11 @@ export function Navbar({ locale }: { locale: string }) {
                             </DropdownMenuContent>
                         </DropdownMenu>
 
-                        {/* Stars Display */}
+                        {/* Stars Display - Desktop */}
                         <StarsDisplay showActions={false} className="hidden md:flex" />
+                        
+                        {/* Stars Display - Mobile */}
+                        <StarsDisplay showActions={false} className="md:hidden" />
 
                         {/* Desktop only: User Profile / Sign In button */}
                         <div className='hidden md:block'>
