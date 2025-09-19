@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useState } from "react"
 import { toast } from "sonner"
+import Link from "next/link"
 
 interface StarsDisplayProps {
     showActions?: boolean
@@ -65,11 +66,11 @@ export function StarsDisplay({ showActions = true, className = "" }: StarsDispla
 
     return (
         <div className={`flex items-center gap-3 ${className}`}>
-            {/* Stars Display */}
-            <div className="flex items-center gap-1 bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 px-3 py-1.5 rounded-full border border-yellow-400/30">
+            {/* Stars Display - Clickable */}
+            <Link href="/stars" className="flex items-center gap-1 bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 px-3 py-1.5 rounded-full border border-yellow-400/30 hover:from-yellow-400/30 hover:to-yellow-600/30 transition-all duration-200 cursor-pointer">
                 <Star className="w-4 h-4 text-yellow-400 fill-current" />
                 <span className="text-sm font-semibold text-yellow-400">{stars}</span>
-            </div>
+            </Link>
 
             {showActions && (
                 <div className="flex items-center gap-2">
