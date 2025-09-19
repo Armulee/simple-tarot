@@ -1,10 +1,11 @@
 "use client"
 import React, { useEffect, useMemo, useState } from "react"
 import { TarotCard, useTarot } from "@/contexts/tarot-context"
+import { useStars } from "@/contexts/stars-context"
 import { Button } from "../../ui/button"
 import { Card } from "../../ui/card"
 import { Badge } from "../../ui/badge"
-import { Pencil, RotateCw } from "lucide-react"
+import { Pencil, RotateCw, Star, AlertCircle } from "lucide-react"
 import { ReadingConfig } from "../../../app/[locale]/reading/page"
 import { CircularCardSpread } from "./circular-card-spread"
 import LinearCardSpread from "./linear-card-spread"
@@ -12,6 +13,17 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
 import { InlineQuestionEdit } from "../inline-question-edit"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import Link from "next/link"
 
 export default function CardSelection({
     readingConfig,
@@ -29,7 +41,11 @@ export default function CardSelection({
         clearInterpretationState,
         isFollowUp,
         followUpQuestion,
+        canAffordReading,
+        readingCost,
+        processReading,
     } = useTarot()
+    const { stars } = useStars()
     const isMobile = useIsMobile()
 
     // Desktop-only spread mode selection; mobile is forced to linear
@@ -37,6 +53,7 @@ export default function CardSelection({
         "circular"
     )
     const [isEditing, setIsEditing] = useState(false)
+    const [showInsufficientStarsDialog, setShowInsufficientStarsDialog] = useState(false)
     const linearShuffleRef = React.useRef<(() => void) | null>(null)
     const circularShuffleRef = React.useRef<(() => void) | null>(null)
 
@@ -74,9 +91,22 @@ export default function CardSelection({
         setSelectedCards([])
     }
 
-    const handleCardsSelected = (
+    const handleCardsSelected = async (
         cards: { name: string; isReversed: boolean }[]
     ) => {
+        // Check if user can afford the reading
+        if (!canAffordReading) {
+            setShowInsufficientStarsDialog(true)
+            return
+        }
+
+        // Process the reading (deduct stars)
+        const result = await processReading()
+        if (!result.success) {
+            // Handle error - maybe show a toast or modal
+            return
+        }
+
         // Clear old interpretation state and localStorage when new cards are selected
         clearInterpretationState()
 
@@ -223,6 +253,32 @@ export default function CardSelection({
                                     default: `Trust your intuition and select ${cardsToSelect} from the cosmic spread`,
                                 })}
                             </p>
+                            
+                            {/* Stars Cost Information */}
+                            <div className='flex items-center justify-center gap-2 mt-4'>
+                                <div className={`flex items-center gap-1 px-3 py-1.5 rounded-full ${
+                                    canAffordReading 
+                                        ? 'bg-yellow-500/20 border border-yellow-500/30' 
+                                        : 'bg-red-500/20 border border-red-500/30'
+                                }`}>
+                                    <Star className={`w-4 h-4 ${canAffordReading ? 'text-yellow-400' : 'text-red-400'}`} />
+                                    <span className={`text-sm font-semibold ${canAffordReading ? 'text-yellow-400' : 'text-red-400'}`}>
+                                        {readingCost} stars
+                                    </span>
+                                </div>
+                                <div className='text-sm text-muted-foreground'>
+                                    (You have {stars} stars)
+                                </div>
+                            </div>
+                            
+                            {!canAffordReading && (
+                                <div className='flex items-center justify-center gap-2 mt-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg'>
+                                    <AlertCircle className='w-4 h-4 text-red-400' />
+                                    <span className='text-sm text-red-400'>
+                                        Not enough stars for this reading. You need {readingCost} stars but have {stars}.
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         {readingType && (
@@ -282,14 +338,22 @@ export default function CardSelection({
                                                         aggSelected
                                                     )
                                                 }
-                                                className='px-8 py-3 bg-gradient-to-r from-[#15a6ff] to-[#b56cff] text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105'
+                                                disabled={!canAffordReading}
+                                                className={`px-8 py-3 font-semibold rounded-full shadow-lg transition-all duration-300 ${
+                                                    canAffordReading
+                                                        ? 'bg-gradient-to-r from-[#15a6ff] to-[#b56cff] text-white hover:shadow-xl hover:scale-105'
+                                                        : 'bg-gray-500/50 text-gray-300 cursor-not-allowed'
+                                                }`}
                                             >
-                                                {t("chooseCards.confirm", {
-                                                    selected:
-                                                        aggSelected.length,
-                                                    total: cardsToSelect,
-                                                    default: `Confirm Selection (${aggSelected.length}/${cardsToSelect})`,
-                                                })}
+                                                {canAffordReading ? (
+                                                    t("chooseCards.confirm", {
+                                                        selected: aggSelected.length,
+                                                        total: cardsToSelect,
+                                                        default: `Confirm Selection (${aggSelected.length}/${cardsToSelect})`,
+                                                    })
+                                                ) : (
+                                                    `Need ${readingCost} stars (You have ${stars})`
+                                                )}
                                             </Button>
                                         </div>
                                     )}
@@ -333,6 +397,35 @@ export default function CardSelection({
                     </div>
                 </div>
             )}
+
+            {/* Insufficient Stars Alert Dialog */}
+            <AlertDialog open={showInsufficientStarsDialog} onOpenChange={setShowInsufficientStarsDialog}>
+                <AlertDialogContent className="bg-card/95 backdrop-blur-sm border-white/20">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2 text-white">
+                            <AlertCircle className="w-5 h-5 text-red-400" />
+                            Insufficient Stars
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-white/70">
+                            You don&apos;t have enough stars to perform this tarot reading. 
+                            You need {readingCost} stars but currently have {stars} stars.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction asChild>
+                            <Link 
+                                href="/stars" 
+                                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white"
+                            >
+                                Go to Stars Dashboard
+                            </Link>
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     )
 }

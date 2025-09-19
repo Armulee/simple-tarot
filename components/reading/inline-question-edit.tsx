@@ -2,10 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react"
 import { useTranslations } from "next-intl"
-import { useTarot } from "@/contexts/tarot-context"
 import { Button } from "../ui/button"
-import { Input } from "../ui/input"
-import { Save, X } from "lucide-react"
+import { Save } from "lucide-react"
 import { toast } from "sonner"
 import { Textarea } from "../ui/textarea"
 

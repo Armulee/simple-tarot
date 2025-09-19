@@ -19,6 +19,7 @@ import { SidebarSheet } from "./sidebar-sheet"
 import { UserProfile } from "@/components/user-profile"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/use-auth"
+import { StarsDisplay } from "@/components/stars-display"
 import {
     Sheet,
     SheetContent,
@@ -212,6 +213,12 @@ export function Navbar({ locale }: { locale: string }) {
                                 ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
+
+                        {/* Stars Display - Desktop */}
+                        <StarsDisplay showActions={false} className="hidden md:flex" />
+                        
+                        {/* Stars Display - Mobile */}
+                        <StarsDisplay showActions={false} className="md:hidden" />
 
                         {/* Desktop only: User Profile / Sign In button */}
                         <div className='hidden md:block'>

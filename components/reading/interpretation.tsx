@@ -8,6 +8,7 @@ import { FaShareNodes, FaCopy, FaDownload, FaCheck } from "react-icons/fa6"
 import { useEffect, useRef, useState, useCallback } from "react"
 import { useCompletion } from "@ai-sdk/react"
 import { TarotCard, useTarot } from "@/contexts/tarot-context"
+import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import QuestionInput from "../question-input"
 import { CardImage } from "../card-image"
@@ -17,6 +18,7 @@ import { useTranslations } from "next-intl"
 export default function Interpretation() {
     const t = useTranslations("ReadingPage.interpretation")
     const router = useRouter()
+    const { user } = useAuth()
     const [finish, setFinish] = useState(false)
     const [copied, setCopied] = useState(false)
     const [followUpData, setFollowUpData] = useState<{
@@ -38,6 +40,9 @@ export default function Interpretation() {
     const { completion, isLoading, error, complete } = useCompletion({
         // api: "/api/interpret-cards/mockup",
         api: "/api/interpret-cards/question",
+        body: {
+            userId: user?.id || null,
+        },
         onFinish: (_, completion) => {
             setFinish(true)
             setInterpretation(completion)
@@ -87,9 +92,13 @@ If the interpretation is too generic, add more details to make it more specific.
 `
             }
 
-            await complete(prompt)
+            await complete(prompt, {
+                body: {
+                    userId: user?.id || null,
+                },
+            })
         },
-        [complete, followUpData, isFollowUp, followUpQuestion]
+        [complete, followUpData, isFollowUp, followUpQuestion, user]
     )
 
     const shareImage = async () => {

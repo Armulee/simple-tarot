@@ -10,6 +10,8 @@ import {
     type SetStateAction,
 } from "react"
 import { usePathname } from "next/navigation"
+import { useAuth } from "./auth-context"
+import { useStars } from "./stars-context"
 
 export type ReadingType = "simple" | "intermediate" | "advanced"
 
@@ -58,6 +60,11 @@ export interface TarotContextType {
     setIsFollowUp: (value: boolean) => void
     setFollowUpQuestion: (value: string | null) => void
 
+    // Stars integration
+    canAffordReading: boolean
+    readingCost: number
+    processReading: () => Promise<{ success: boolean; message: string }>
+
     // Reset function
     resetReading: () => void
 
@@ -71,6 +78,8 @@ export interface TarotContextType {
 const TarotContext = createContext<TarotContextType | undefined>(undefined)
 
 export function TarotProvider({ children }: { children: ReactNode }) {
+    const { user } = useAuth()
+    const { stars, useStarsForReading } = useStars()
     const [question, setQuestion] = useState<string | null>(null)
     const [readingType, setReadingType] = useState<ReadingType | null>(null)
     const [selectedCards, setSelectedCards] = useState<TarotCard[]>([])
@@ -84,6 +93,9 @@ export function TarotProvider({ children }: { children: ReactNode }) {
     )
     const [isClearing, setIsClearing] = useState(false)
     const pathname = usePathname()
+
+    const readingCost = 2
+    const canAffordReading = stars >= readingCost
 
     const STORAGE_KEY = "reading-state-v1"
 
@@ -124,6 +136,28 @@ export function TarotProvider({ children }: { children: ReactNode }) {
         } catch (e) {
             console.error("Failed to clear interpretation state:", e)
             setIsClearing(false)
+        }
+    }
+
+    const processReading = async (): Promise<{ success: boolean; message: string }> => {
+        if (!canAffordReading) {
+            return {
+                success: false,
+                message: `You need ${readingCost} stars for a reading. You have ${stars} stars.`
+            }
+        }
+
+        // Deduct stars before processing the reading
+        const result = await useStarsForReading(readingCost)
+        if (!result.success) {
+            return result
+        }
+
+        // Move to interpretation step
+        setCurrentStep("interpretation")
+        return {
+            success: true,
+            message: `Reading started! ${readingCost} stars deducted.`
         }
     }
 
@@ -215,6 +249,9 @@ export function TarotProvider({ children }: { children: ReactNode }) {
                 followUpQuestion,
                 setIsFollowUp,
                 setFollowUpQuestion,
+                canAffordReading,
+                readingCost,
+                processReading,
                 resetReading,
                 clearReadingStorage,
                 clearInterpretationState,
