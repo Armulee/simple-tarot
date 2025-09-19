@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { StarsDisplay } from "./stars-display"
 import { SocialSharing } from "./social-sharing"
 import { ReferralSystem } from "./referral-system"
-import { Star, Share2, Play, Clock, Users, Calendar, Zap } from "lucide-react"
+import { Star, Share2, Play, Clock, Users, Calendar, Zap, ChevronDown } from "lucide-react"
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
 
@@ -24,6 +24,7 @@ export function StarsDashboard() {
     
     const [timeUntilNextClaim, setTimeUntilNextClaim] = useState("")
     const [isWatchingAd, setIsWatchingAd] = useState(false)
+    const [activeAccordion, setActiveAccordion] = useState<string | null>(null)
 
     // Auto-claim daily stars when below 5 for logged-in users
     useEffect(() => {
@@ -73,6 +74,65 @@ export function StarsDashboard() {
 
     const canWatchAd = dailyAdWatches < maxDailyAds
     const showAdButton = stars < 2 && canWatchAd
+
+    const toggleAccordion = (id: string) => {
+        setActiveAccordion(activeAccordion === id ? null : id)
+    }
+
+    const earnStarsMethods = [
+        {
+            id: "daily-login",
+            icon: Calendar,
+            title: "Daily Login",
+            description: "Claim your daily stars just by visiting!",
+            rewards: [
+                { type: "Anonymous", amount: "5 stars", color: "bg-blue-500/20 text-blue-200" },
+                { type: "Logged in", amount: "10 stars", color: "bg-green-500/20 text-green-200" }
+            ],
+            details: "Simply visit the app daily to claim your free stars. Logged-in users get double the rewards!"
+        },
+        {
+            id: "watch-ads",
+            icon: Play,
+            title: "Watch Ads",
+            description: "Watch up to 10 ads per day for 2 stars each",
+            rewards: [
+                { type: "Per ad", amount: "2 stars", color: "bg-purple-500/20 text-purple-200" },
+                { type: "Daily max", amount: "20 stars", color: "bg-purple-500/20 text-purple-200" }
+            ],
+            details: "Watch short video ads to earn stars. You can watch up to 10 ads per day, earning 2 stars per ad for a maximum of 20 stars daily."
+        },
+        {
+            id: "social-sharing",
+            icon: Share2,
+            title: "Share Readings",
+            description: "Share your tarot readings on social media",
+            rewards: [
+                { type: "Per share", amount: "2 stars", color: "bg-pink-500/20 text-pink-200" }
+            ],
+            details: "Share your tarot reading results on social media platforms like Facebook, Twitter, or Instagram to earn 2 stars per share."
+        },
+        {
+            id: "referrals",
+            icon: Users,
+            title: "Invite Friends",
+            description: "Both you and your friend get 5 stars when they sign up",
+            rewards: [
+                { type: "Both users", amount: "5 stars each", color: "bg-green-500/20 text-green-200" }
+            ],
+            details: "Invite friends to join the app using your referral code. When they sign up, both you and your friend will receive 5 stars as a welcome bonus."
+        },
+        {
+            id: "reading-cost",
+            icon: Zap,
+            title: "Reading Cost",
+            description: "Each tarot reading costs stars",
+            rewards: [
+                { type: "Per reading", amount: "2 stars", color: "bg-yellow-500/20 text-yellow-200" }
+            ],
+            details: "Each tarot reading costs 2 stars. This is a small investment to unlock the wisdom of the cards and receive personalized guidance."
+        }
+    ]
 
     return (
         <div className="max-w-4xl mx-auto p-6 space-y-8">
@@ -138,7 +198,7 @@ export function StarsDashboard() {
                 </Card>
             )}
 
-            {/* Star Gaining Details - Moved below dashboard */}
+            {/* Star Gaining Details - Accordion */}
             <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
                 <CardHeader>
                     <CardTitle className="text-white text-xl">How to Earn Stars</CardTitle>
@@ -146,91 +206,56 @@ export function StarsDashboard() {
                         Multiple ways to earn stars and unlock unlimited tarot readings
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {/* Daily Login */}
-                        <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                            <div className="flex items-center gap-3 mb-2">
-                                <Calendar className="w-5 h-5 text-blue-400" />
-                                <h3 className="font-semibold text-white">Daily Login</h3>
+                <CardContent className="space-y-2">
+                    {earnStarsMethods.map((method) => {
+                        const Icon = method.icon
+                        const isActive = activeAccordion === method.id
+                        
+                        return (
+                            <div key={method.id} className="bg-white/5 rounded-lg border border-white/10 overflow-hidden">
+                                <button
+                                    onClick={() => toggleAccordion(method.id)}
+                                    className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Icon className="w-5 h-5 text-blue-400" />
+                                        <div className="text-left">
+                                            <h3 className="font-semibold text-white">{method.title}</h3>
+                                            <p className="text-sm text-white/70">{method.description}</p>
+                                        </div>
+                                    </div>
+                                    <ChevronDown 
+                                        className={`w-5 h-5 text-white/70 transition-transform duration-200 ${
+                                            isActive ? 'rotate-180' : ''
+                                        }`} 
+                                    />
+                                </button>
+                                
+                                {isActive && (
+                                    <div className="px-4 pb-4 border-t border-white/10">
+                                        <div className="pt-4 space-y-4">
+                                            {/* Rewards */}
+                                            <div className="flex flex-wrap gap-2">
+                                                {method.rewards.map((reward, index) => (
+                                                    <span 
+                                                        key={index}
+                                                        className={`text-xs px-2 py-1 rounded ${reward.color}`}
+                                                    >
+                                                        {reward.type}: {reward.amount}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            
+                                            {/* Details */}
+                                            <p className="text-sm text-white/70 leading-relaxed">
+                                                {method.details}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                            <p className="text-sm text-white/70 mb-2">
-                                Claim your daily stars just by visiting!
-                            </p>
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs bg-blue-500/20 text-blue-200 px-2 py-1 rounded">
-                                    Anonymous: 5 stars
-                                </span>
-                                <span className="text-xs bg-green-500/20 text-green-200 px-2 py-1 rounded">
-                                    Logged in: 10 stars
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Watch Ads */}
-                        <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                            <div className="flex items-center gap-3 mb-2">
-                                <Play className="w-5 h-5 text-purple-400" />
-                                <h3 className="font-semibold text-white">Watch Ads</h3>
-                            </div>
-                            <p className="text-sm text-white/70 mb-2">
-                                Watch up to 10 ads per day for 2 stars each
-                            </p>
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs bg-purple-500/20 text-purple-200 px-2 py-1 rounded">
-                                    Up to 20 stars/day
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Social Sharing */}
-                        <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                            <div className="flex items-center gap-3 mb-2">
-                                <Share2 className="w-5 h-5 text-pink-400" />
-                                <h3 className="font-semibold text-white">Share Readings</h3>
-                            </div>
-                            <p className="text-sm text-white/70 mb-2">
-                                Share your tarot readings on social media
-                            </p>
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs bg-pink-500/20 text-pink-200 px-2 py-1 rounded">
-                                    2 stars per share
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Referrals */}
-                        <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                            <div className="flex items-center gap-3 mb-2">
-                                <Users className="w-5 h-5 text-green-400" />
-                                <h3 className="font-semibold text-white">Invite Friends</h3>
-                            </div>
-                            <p className="text-sm text-white/70 mb-2">
-                                Both you and your friend get 5 stars when they sign up
-                            </p>
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs bg-green-500/20 text-green-200 px-2 py-1 rounded">
-                                    5 stars each
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Tarot Reading Cost */}
-                        <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                            <div className="flex items-center gap-3 mb-2">
-                                <Zap className="w-5 h-5 text-yellow-400" />
-                                <h3 className="font-semibold text-white">Reading Cost</h3>
-                            </div>
-                            <p className="text-sm text-white/70 mb-2">
-                                Each tarot reading costs stars
-                            </p>
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs bg-yellow-500/20 text-yellow-200 px-2 py-1 rounded">
-                                    2 stars per reading
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+                        )
+                    })}
                 </CardContent>
             </Card>
 
