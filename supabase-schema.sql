@@ -204,12 +204,29 @@ BEGIN
     WHERE us.ip_address = p_ip_address;
   END IF;
 
-  -- If no stars found, create new record
+  -- If no stars found, create new record with initial stars
   IF current_stars IS NULL THEN
     BEGIN
-      INSERT INTO public.user_stars (user_id, ip_address, stars)
-      VALUES (p_user_id, p_ip_address, 0)
-      RETURNING user_stars.stars INTO current_stars;
+      -- Give initial stars: 10 for logged-in users, 5 for anonymous users
+      DECLARE
+        initial_stars INTEGER := CASE WHEN p_user_id IS NOT NULL THEN 10 ELSE 5 END;
+      BEGIN
+        INSERT INTO public.user_stars (user_id, ip_address, stars)
+        VALUES (p_user_id, p_ip_address, initial_stars)
+        RETURNING user_stars.stars INTO current_stars;
+        
+        -- Record the initial stars as a daily claim
+        INSERT INTO public.daily_claims (user_id, ip_address, stars_claimed)
+        VALUES (p_user_id, p_ip_address, initial_stars);
+        
+        -- Record the transaction
+        INSERT INTO public.star_transactions (
+          user_id, ip_address, transaction_type, amount, description
+        ) VALUES (
+          p_user_id, p_ip_address, 'daily_claim', initial_stars, 
+          CASE WHEN p_user_id IS NOT NULL THEN 'Initial daily stars for logged-in user' ELSE 'Initial daily stars for anonymous user' END
+        );
+      END;
     EXCEPTION
       WHEN unique_violation THEN
         -- If there's a conflict, try to get the existing record
