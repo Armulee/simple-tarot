@@ -233,8 +233,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION public.add_stars(
   p_user_id UUID DEFAULT NULL,
   p_ip_address INET DEFAULT NULL,
-  p_amount INTEGER,
-  p_transaction_type TEXT,
+  p_amount INTEGER DEFAULT 0,
+  p_transaction_type TEXT DEFAULT 'manual',
   p_description TEXT DEFAULT NULL,
   p_reference_id UUID DEFAULT NULL
 )
