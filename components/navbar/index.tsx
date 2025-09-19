@@ -121,9 +121,6 @@ export function Navbar({ locale }: { locale: string }) {
                         >
                             Stars
                         </Link>
-                        
-                        {/* Stars Display */}
-                        <StarsDisplay showActions={false} className="hidden md:flex" />
                         <Sheet
                             open={mysticalOpen}
                             onOpenChange={setMysticalOpen}
@@ -222,6 +219,9 @@ export function Navbar({ locale }: { locale: string }) {
                                 ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
+
+                        {/* Stars Display */}
+                        <StarsDisplay showActions={false} className="hidden md:flex" />
 
                         {/* Desktop only: User Profile / Sign In button */}
                         <div className='hidden md:block'>
