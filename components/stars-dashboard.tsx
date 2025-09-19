@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { StarsDisplay } from "./stars-display"
 import { SocialSharing } from "./social-sharing"
 import { ReferralSystem } from "./referral-system"
-import { Star, Share2, Play, Clock, Users, Calendar, Zap, ChevronDown } from "lucide-react"
+import { Star, Share2, Play, Clock, Users, Calendar, Zap, ChevronDown, CreditCard } from "lucide-react"
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
 
@@ -77,6 +77,10 @@ export function StarsDashboard() {
 
     const toggleAccordion = (id: string) => {
         setActiveAccordion(activeAccordion === id ? null : id)
+    }
+
+    const handlePurchaseStars = () => {
+        toast.info("Star purchasing feature coming soon! Stay tuned for updates.")
     }
 
     const earnStarsMethods = [
@@ -169,6 +173,17 @@ export function StarsDashboard() {
                             <span>Next daily claim in: {timeUntilNextClaim}</span>
                         </div>
                     )}
+
+                    {/* Purchase Stars Button */}
+                    <div className="mt-6 flex justify-center">
+                        <Button
+                            onClick={handlePurchaseStars}
+                            className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                        >
+                            <CreditCard className="w-4 h-4 mr-2" />
+                            Purchase Stars
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
 
