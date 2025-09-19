@@ -13,6 +13,17 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
 import { InlineQuestionEdit } from "../inline-question-edit"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import Link from "next/link"
 
 export default function CardSelection({
     readingConfig,
@@ -42,6 +53,7 @@ export default function CardSelection({
         "circular"
     )
     const [isEditing, setIsEditing] = useState(false)
+    const [showInsufficientStarsDialog, setShowInsufficientStarsDialog] = useState(false)
     const linearShuffleRef = React.useRef<(() => void) | null>(null)
     const circularShuffleRef = React.useRef<(() => void) | null>(null)
 
@@ -84,7 +96,7 @@ export default function CardSelection({
     ) => {
         // Check if user can afford the reading
         if (!canAffordReading) {
-            // Show error or redirect to stars dashboard
+            setShowInsufficientStarsDialog(true)
             return
         }
 
@@ -385,6 +397,35 @@ export default function CardSelection({
                     </div>
                 </div>
             )}
+
+            {/* Insufficient Stars Alert Dialog */}
+            <AlertDialog open={showInsufficientStarsDialog} onOpenChange={setShowInsufficientStarsDialog}>
+                <AlertDialogContent className="bg-card/95 backdrop-blur-sm border-white/20">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2 text-white">
+                            <AlertCircle className="w-5 h-5 text-red-400" />
+                            Insufficient Stars
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-white/70">
+                            You don&apos;t have enough stars to perform this tarot reading. 
+                            You need {readingCost} stars but currently have {stars} stars.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction asChild>
+                            <Link 
+                                href="/stars" 
+                                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white"
+                            >
+                                Go to Stars Dashboard
+                            </Link>
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     )
 }
