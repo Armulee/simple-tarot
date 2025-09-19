@@ -135,6 +135,16 @@ export function StarsDashboard() {
                 { type: "Per reading", amount: "2 stars", color: "bg-yellow-500/20 text-yellow-200" }
             ],
             details: "Each tarot reading costs 2 stars. This is a small investment to unlock the wisdom of the cards and receive personalized guidance."
+        },
+        {
+            id: "purchase-stars",
+            icon: CreditCard,
+            title: "Purchase Stars",
+            description: "Buy stars directly with real money",
+            rewards: [
+                { type: "Coming Soon", amount: "Various packages", color: "bg-gray-500/20 text-gray-200" }
+            ],
+            details: "Purchase stars directly using real money for instant access to unlimited tarot readings. Various packages will be available to suit different needs and budgets. This feature is coming soon!"
         }
     ]
 
