@@ -206,11 +206,23 @@ BEGIN
 
   -- If no stars found, create new record
   IF current_stars IS NULL THEN
-    INSERT INTO public.user_stars (user_id, ip_address, stars)
-    VALUES (p_user_id, p_ip_address, 0)
-    ON CONFLICT (user_id) DO UPDATE SET stars = user_stars.stars
-    ON CONFLICT (ip_address) DO UPDATE SET stars = user_stars.stars
-    RETURNING user_stars.stars INTO current_stars;
+    BEGIN
+      INSERT INTO public.user_stars (user_id, ip_address, stars)
+      VALUES (p_user_id, p_ip_address, 0)
+      RETURNING user_stars.stars INTO current_stars;
+    EXCEPTION
+      WHEN unique_violation THEN
+        -- If there's a conflict, try to get the existing record
+        IF p_user_id IS NOT NULL THEN
+          SELECT us.stars INTO current_stars
+          FROM public.user_stars us
+          WHERE us.user_id = p_user_id;
+        ELSIF p_ip_address IS NOT NULL THEN
+          SELECT us.stars INTO current_stars
+          FROM public.user_stars us
+          WHERE us.ip_address = p_ip_address;
+        END IF;
+    END;
   END IF;
 
   RETURN QUERY SELECT current_stars;
@@ -230,15 +242,20 @@ RETURNS INTEGER AS $$
 DECLARE
   new_balance INTEGER;
 BEGIN
-  -- Update user stars
-  INSERT INTO public.user_stars (user_id, ip_address, stars)
-  VALUES (p_user_id, p_ip_address, p_amount)
-  ON CONFLICT (user_id) DO UPDATE SET 
-    stars = user_stars.stars + p_amount,
-    updated_at = NOW()
-  ON CONFLICT (ip_address) DO UPDATE SET 
-    stars = user_stars.stars + p_amount,
-    updated_at = NOW();
+  -- Update user stars - handle conflicts properly
+  IF p_user_id IS NOT NULL THEN
+    INSERT INTO public.user_stars (user_id, ip_address, stars)
+    VALUES (p_user_id, p_ip_address, p_amount)
+    ON CONFLICT (user_id) DO UPDATE SET 
+      stars = user_stars.stars + p_amount,
+      updated_at = NOW();
+  ELSIF p_ip_address IS NOT NULL THEN
+    INSERT INTO public.user_stars (user_id, ip_address, stars)
+    VALUES (p_user_id, p_ip_address, p_amount)
+    ON CONFLICT (ip_address) DO UPDATE SET 
+      stars = user_stars.stars + p_amount,
+      updated_at = NOW();
+  END IF;
 
   -- Get new balance
   SELECT stars INTO new_balance
