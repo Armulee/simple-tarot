@@ -106,6 +106,12 @@ export default async function RootLayout({
     }
     return (
         <html lang={locale}>
+            <head>
+                <meta
+                    name='google-adsense-account'
+                    content='ca-pub-9151677091179897'
+                />
+            </head>
             <body
                 className={`font-sans ${sourceSans.variable} ${playfairDisplay.variable}`}
             >
