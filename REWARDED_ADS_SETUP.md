@@ -1,28 +1,28 @@
-# Optimized Rewarded Ads Implementation Guide
+# Simplified Rewarded Ads Implementation Guide
 
 ## Overview
 
-This implementation adds optimized rewarded ads to the tarot reading flow with an alert dialog prompt and concurrent interpretation fetching for better user experience.
+This implementation adds rewarded ads to the tarot reading flow using a clean dialog-based approach integrated directly into the interpretation component.
 
 ## Features
 
-- **Alert Dialog Prompt**: Clean dialog interface explaining the ad viewing process
+- **Dialog-Based Interface**: Clean shadcn/ui dialog explaining the ad viewing process
 - **Remember Preference**: Checkbox to auto-play ads without showing the dialog again
 - **Concurrent Fetching**: Interpretation API call starts while user watches the ad
-- **Optimized UX**: Users get their reading immediately after ad completion
+- **Integrated Experience**: Ad dialog appears when step changes to interpretation
 - **Progress Tracking**: Visual progress bar and timing indicators
 - **Error Handling**: Graceful fallback if ads fail to load
 - **Internationalization**: Full support for English and Thai languages
 
-## Optimized Flow
+## Simplified Flow
 
 1. User asks a question
 2. User selects reading type (simple/intermediate/advanced)
 3. User selects their cards
-4. **NEW: Alert Dialog** - Shows ad viewing prompt with details
-5. **NEW: Concurrent Process** - Ad starts playing while interpretation API call begins
+4. **Step changes to interpretation** - Ad dialog appears automatically
+5. **Concurrent Process** - Ad starts playing while interpretation API call begins
 6. User watches ad with real-time progress tracking
-7. **Optimized**: User receives interpretation immediately after ad completion
+7. **Seamless**: User receives interpretation immediately after ad completion
 
 ## Configuration
 
@@ -81,28 +81,28 @@ Enhanced ad component that:
 - Handles concurrent interpretation loading
 - Provides immediate completion when ready
 
-### AdViewing Component (`/components/reading/ad-viewing.tsx`)
+### Interpretation Component (`/components/reading/interpretation.tsx`)
 
-Main orchestrator that:
-- Manages dialog and ad flow
-- Starts interpretation fetching concurrently
-- Handles user preferences and auto-play
-- Coordinates between dialog and ad components
+Main component that now includes:
+- Ad dialog management and display
+- Concurrent interpretation fetching
+- User preference handling and auto-play
+- Seamless integration of ad and interpretation flow
 
 ## Integration Points
 
 ### Tarot Context (`/contexts/tarot-context.tsx`)
 
-Added new step `"ad-viewing"` to the reading flow:
+Simplified to remove the separate ad-viewing step (ads are now handled within interpretation):
 ```typescript
-currentStep: "reading-type" | "card-selection" | "ad-viewing" | "interpretation"
+currentStep: "reading-type" | "card-selection" | "interpretation"
 ```
 
 ### Card Selection (`/components/reading/card-selection/index.tsx`)
 
-Modified to navigate to ad-viewing instead of directly to interpretation:
+Modified to navigate directly to interpretation (ads are handled within interpretation):
 ```typescript
-setCurrentStep("ad-viewing") // Instead of "interpretation"
+setCurrentStep("interpretation") // Ad dialog appears automatically
 ```
 
 ## User Experience Features

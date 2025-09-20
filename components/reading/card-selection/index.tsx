@@ -92,7 +92,7 @@ export default function CardSelection({
         }))
 
         setSelectedCards(tarotCards)
-        setCurrentStep("ad-viewing")
+        setCurrentStep("interpretation")
     }
 
     const externalNames = useMemo(

@@ -38,13 +38,11 @@ export interface TarotContextType {
     currentStep:
         | "reading-type"
         | "card-selection"
-        | "ad-viewing"
         | "interpretation"
     setCurrentStep: (
         step:
             | "reading-type"
             | "card-selection"
-            | "ad-viewing"
             | "interpretation"
     ) => void
 
@@ -75,7 +73,7 @@ export function TarotProvider({ children }: { children: ReactNode }) {
     const [readingType, setReadingType] = useState<ReadingType | null>(null)
     const [selectedCards, setSelectedCards] = useState<TarotCard[]>([])
     const [currentStep, setCurrentStep] = useState<
-        "reading-type" | "card-selection" | "ad-viewing" | "interpretation"
+        "reading-type" | "card-selection" | "interpretation"
     >("reading-type")
     const [interpretation, setInterpretation] = useState<string | null>(null)
     const [isFollowUp, setIsFollowUp] = useState(false)
