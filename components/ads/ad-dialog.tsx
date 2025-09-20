@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Play, Gift, Sparkles } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
-interface CustomAdDialogProps {
+interface AdDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onWatchAd: () => void;
@@ -16,37 +16,46 @@ interface CustomAdDialogProps {
 
 interface Star {
     id: number;
-    size: "1px" | "2px";
+    size: "1px" | "2px" | "3px";
     top: string;
     left: string;
     animation: string;
     duration: string;
+    color: string;
 }
 
 const generateRandomStars = (count: number = 30): Star[] => {
     const animations = [
-        "twinkle-1",
-        "twinkle-2",
-        "twinkle-3",
-        "twinkle-4",
-        "twinkle-5",
-        "twinkle-6",
-        "twinkle-7",
-        "twinkle-8",
+        "animate-pulse",
+        "animate-bounce",
+        "animate-ping",
+        "animate-spin",
     ];
-    const sizes: ("1px" | "2px")[] = ["1px", "2px"];
+    const sizes: ("1px" | "2px" | "3px")[] = ["1px", "2px", "3px"];
+    const colors = [
+        "#ffffff",
+        "#e0e7ff",
+        "#c7d2fe",
+        "#a5b4fc",
+        "#818cf8",
+        "#6366f1",
+        "#8b5cf6",
+        "#d946ef",
+        "#f97316",
+        "#fbbf24",
+    ];
     const durations = [
-        "3.2s",
-        "3.4s",
-        "3.6s",
-        "3.8s",
+        "2.0s",
+        "2.5s",
+        "3.0s",
+        "3.5s",
         "4.0s",
-        "4.2s",
-        "4.4s",
-        "4.6s",
-        "4.8s",
+        "4.5s",
         "5.0s",
-        "5.2s",
+        "5.5s",
+        "6.0s",
+        "6.5s",
+        "7.0s",
     ];
 
     return Array.from({ length: count }, (_, index) => ({
@@ -56,21 +65,22 @@ const generateRandomStars = (count: number = 30): Star[] => {
         left: `${Math.floor(Math.random() * 95) + 2}%`,
         animation: animations[Math.floor(Math.random() * animations.length)],
         duration: durations[Math.floor(Math.random() * durations.length)],
+        color: colors[Math.floor(Math.random() * colors.length)],
     }));
 };
 
-export default function CustomAdDialog({
+export default function AdDialog({
     open,
     onOpenChange,
     onWatchAd,
-}: CustomAdDialogProps) {
+}: AdDialogProps) {
     const t = useTranslations('ReadingPage.adViewingDialog');
     const [rememberPreference, setRememberPreference] = useState(false);
     const [mounted, setMounted] = useState(false);
     
     // Generate cosmic stars for the dialog background
     const stars = useMemo(
-        () => (mounted ? generateRandomStars(40) : []),
+        () => (mounted ? generateRandomStars(60) : []),
         [mounted]
     );
 
@@ -114,20 +124,22 @@ export default function CustomAdDialog({
 
     const dialogContent = (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                {/* Enhanced Overlay with Cosmic Stars - Opaque Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-black/95 via-purple-900/30 to-black/95 backdrop-blur-md">
+                {/* Enhanced Overlay with Cosmic Stars - Fully Opaque Background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-black via-purple-900 to-black">
                 {/* Cosmic Stars Background */}
                 <div className="absolute inset-0 pointer-events-none">
                     {stars.map((star) => (
                         <div
                             key={star.id}
-                            className="absolute bg-white rounded-full pointer-events-none"
+                            className={`absolute rounded-full pointer-events-none ${star.animation}`}
                             style={{
                                 width: star.size,
                                 height: star.size,
+                                backgroundColor: star.color,
                                 top: star.top,
                                 left: star.left,
-                                animation: `${star.animation} ${star.duration} ease-in-out infinite`,
+                                animationDuration: star.duration,
+                                boxShadow: `0 0 ${star.size} ${star.color}`,
                             }}
                         />
                     ))}

@@ -12,7 +12,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
 import { InlineQuestionEdit } from "../inline-question-edit"
-import CustomAdDialog from "@/components/ads/custom-ad-dialog"
+import AdDialog from "@/components/ads/ad-dialog"
 
 export default function CardSelection({
     readingConfig,
@@ -178,7 +178,7 @@ export default function CardSelection({
     return (
         <>
             {/* Ad Viewing Dialog */}
-            <CustomAdDialog
+            <AdDialog
                 open={showAdDialog}
                 onOpenChange={handleDialogClose}
                 onWatchAd={handleWatchAd}
