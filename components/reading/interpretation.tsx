@@ -194,8 +194,8 @@ If the interpretation is too generic, add more details to make it more specific.
         const interpretationPromise = getInterpretationAsync();
         setInterpretationPromise(interpretationPromise);
         
-        // Show the ad
-        setShowAd(true);
+        // Don't show ad here - it will be shown when interpretation component mounts
+        // setShowAd(true);
     }, [getInterpretationAsync, setCurrentStep]);
 
     const handleDialogClose = useCallback(() => {
@@ -252,7 +252,7 @@ If the interpretation is too generic, add more details to make it more specific.
             const autoPlayAds = localStorage.getItem('auto-play-ads') === 'true';
             
             if (autoPlayAds) {
-                // Auto-start the ad process
+                // Auto-start the ad process (which will show ads in interpretation component)
                 startAdProcess();
             } else {
                 // Show dialog
@@ -260,6 +260,14 @@ If the interpretation is too generic, add more details to make it more specific.
             }
         }
     }, [currentStep, startAdProcess]);
+
+    // Show ads when interpretation component is mounted and dialog was completed
+    useEffect(() => {
+        if (currentStep === 'interpretation' && hasInitiated.current && !showAdDialog && !showAd && !adCompleted) {
+            // Show the ad in the interpretation component
+            setShowAd(true);
+        }
+    }, [currentStep, showAdDialog, showAd, adCompleted]);
 
     // Effect to handle follow-up questions
     useEffect(() => {

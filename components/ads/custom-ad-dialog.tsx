@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Play, Clock, Gift, Sparkles } from 'lucide-react';
+import { Play, Gift, Sparkles } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 interface CustomAdDialogProps {
@@ -194,13 +194,6 @@ export default function CustomAdDialog({
                             </div>
                         </div>
 
-                        {/* Enhanced Ad duration info */}
-                        <div className="flex items-center justify-center space-x-3 p-4 bg-gradient-to-r from-muted/30 via-muted/20 to-muted/30 rounded-xl border border-white/10">
-                            <div className="p-2 bg-blue-500/20 rounded-lg">
-                                <Clock className="w-4 h-4 text-blue-400" />
-                            </div>
-                            <span className="text-sm font-medium text-foreground">{t('duration')}</span>
-                        </div>
 
                         {/* Enhanced Remember preference checkbox */}
                         <div className="flex items-center justify-center space-x-3 p-4 bg-gradient-to-r from-muted/20 via-muted/10 to-muted/20 rounded-xl border border-white/5">
