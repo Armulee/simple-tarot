@@ -5,31 +5,19 @@ import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Play, Eye, Clock, Gift } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { CardImage } from '@/components/card-image';
-import { TarotCard } from '@/contexts/tarot-context';
-import { getCleanQuestionText } from '@/lib/question-utils';
 
 interface CustomAdDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onWatchAd: () => void;
-    question: string | null;
-    selectedCards: TarotCard[];
-    isFollowUp?: boolean;
-    followUpQuestion?: string | null;
 }
 
 export default function CustomAdDialog({
     open,
     onOpenChange,
     onWatchAd,
-    question,
-    selectedCards,
-    isFollowUp,
-    followUpQuestion,
 }: CustomAdDialogProps) {
     const t = useTranslations('ReadingPage.adViewingDialog');
     const [rememberPreference, setRememberPreference] = useState(false);
@@ -78,53 +66,12 @@ export default function CustomAdDialog({
 
                     {/* Header */}
                     <div className="relative z-10 p-6 pb-4">
-                        <div className="flex items-center justify-center space-x-2 mb-4">
+                        <div className="flex items-center justify-center space-x-2 mb-6">
                             <Eye className="w-6 h-6 text-primary" />
                             <h2 className="font-serif font-bold text-xl text-center">
                                 {t('title')}
                             </h2>
                             <Eye className="w-6 h-6 text-primary" />
-                        </div>
-
-                        {/* Question preview */}
-                        <div className="text-center space-y-2 mb-6">
-                            <p className="text-sm text-muted-foreground">{t('questionLabel')}</p>
-                            <p className="text-sm italic text-foreground">
-                                &ldquo;
-                                {getCleanQuestionText(
-                                    isFollowUp && followUpQuestion
-                                        ? followUpQuestion
-                                        : question || ""
-                                )}
-                                &rdquo;
-                            </p>
-                        </div>
-
-                        {/* Selected cards preview */}
-                        <div className="space-y-3 mb-6">
-                            <p className="text-sm text-muted-foreground text-center">{t('selectedCards')}</p>
-                            <div className="flex flex-wrap gap-2 justify-center">
-                                {selectedCards.map((card, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex flex-col items-center gap-1"
-                                    >
-                                        <Badge
-                                            variant="secondary"
-                                            className="bg-accent/20 text-accent border-accent/30 text-xs"
-                                        >
-                                            {card.meaning}
-                                        </Badge>
-                                        <CardImage
-                                            card={card}
-                                            size="sm"
-                                            showAura={true}
-                                            showLabel={false}
-                                            className="opacity-80 scale-75"
-                                        />
-                                    </div>
-                                ))}
-                            </div>
                         </div>
                     </div>
 

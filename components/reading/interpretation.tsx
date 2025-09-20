@@ -281,10 +281,6 @@ If the interpretation is too generic, add more details to make it more specific.
                 open={showAdDialog}
                 onOpenChange={handleDialogClose}
                 onWatchAd={startAdProcess}
-                question={question}
-                selectedCards={selectedCards}
-                isFollowUp={isFollowUp}
-                followUpQuestion={followUpQuestion}
             />
 
             {/* Ad Viewing Screen */}
