@@ -67,6 +67,8 @@ export default function CustomAdDialog({
     const t = useTranslations('ReadingPage.adViewingDialog');
     const [rememberPreference, setRememberPreference] = useState(false);
     const [mounted, setMounted] = useState(false);
+    const [countdown, setCountdown] = useState(5); // 5 second countdown
+    const [isAutoPlaying, setIsAutoPlaying] = useState(false);
     
     // Generate cosmic stars for the dialog background
     const stars = useMemo(
@@ -78,6 +80,19 @@ export default function CustomAdDialog({
     useEffect(() => {
         setMounted(true);
     }, []);
+
+    // Autoplay countdown effect
+    useEffect(() => {
+        if (open && !isAutoPlaying && countdown > 0) {
+            const timer = setTimeout(() => {
+                setCountdown(prev => prev - 1);
+            }, 1000);
+            return () => clearTimeout(timer);
+        } else if (open && !isAutoPlaying && countdown === 0) {
+            setIsAutoPlaying(true);
+            onWatchAd();
+        }
+    }, [open, countdown, isAutoPlaying, onWatchAd]);
 
     // Load saved preference on mount
     useEffect(() => {
@@ -101,8 +116,8 @@ export default function CustomAdDialog({
 
     const dialogContent = (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            {/* Enhanced Overlay with Cosmic Stars */}
-            <div className="absolute inset-0 bg-gradient-to-br from-black/90 via-purple-900/20 to-black/90 backdrop-blur-sm">
+                {/* Enhanced Overlay with Cosmic Stars - Opaque Background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-black/95 via-purple-900/30 to-black/95 backdrop-blur-md">
                 {/* Cosmic Stars Background */}
                 <div className="absolute inset-0 pointer-events-none">
                     {stars.map((star) => (
@@ -218,14 +233,31 @@ export default function CustomAdDialog({
 
                     {/* Enhanced Footer */}
                     <div className="relative z-10 px-8 pb-8 space-y-4">
-                        {/* Enhanced Watch Ad Button */}
+                        {/* Autoplay Countdown Indicator */}
+                        {countdown > 0 && (
+                            <div className="text-center">
+                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-[#15a6ff]/20 to-[#b56cff]/20 border-2 border-primary/30 mb-2">
+                                    <span className="text-2xl font-bold text-primary animate-pulse">
+                                        {countdown}
+                                    </span>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                    Ad will start automatically
+                                </p>
+                            </div>
+                        )}
+                        
+                        {/* Enhanced Watch Ad Button with Autoplay */}
                         <Button
                             onClick={handleWatchAd}
-                            className="w-full h-12 bg-gradient-to-r from-[#15a6ff] via-[#8b5cf6] to-[#b56cff] hover:from-[#0ea5e9] hover:via-[#7c3aed] hover:to-[#a855f7] text-white font-semibold shadow-2xl hover:shadow-[#15a6ff]/25 transition-all duration-500 transform hover:scale-[1.02] relative overflow-hidden group"
+                            disabled={isAutoPlaying || countdown > 0}
+                            className="w-full h-12 bg-gradient-to-r from-[#15a6ff] via-[#8b5cf6] to-[#b56cff] hover:from-[#0ea5e9] hover:via-[#7c3aed] hover:to-[#a855f7] text-white font-semibold shadow-2xl hover:shadow-[#15a6ff]/25 transition-all duration-500 transform hover:scale-[1.02] relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
                             <Play className="w-5 h-5 mr-2 relative z-10" />
-                            <span className="relative z-10">{t('watchAd')}</span>
+                            <span className="relative z-10">
+                                {isAutoPlaying ? 'Starting...' : countdown > 0 ? `Auto-play in ${countdown}s` : t('watchAd')}
+                            </span>
                         </Button>
                         
                         {/* Enhanced Back Button */}
