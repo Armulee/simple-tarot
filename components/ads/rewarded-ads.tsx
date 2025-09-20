@@ -95,10 +95,12 @@ export default function RewardedAds({
         interpretationReady: false,
     });
     const [mounted, setMounted] = useState(false);
+    const [showSkipButton, setShowSkipButton] = useState(false);
     
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
     const interpretationRef = useRef<string | null>(null);
     const adManagerRef = useRef<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+    const skipButtonTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Generate cosmic stars for the background
     const stars = useMemo(
@@ -161,6 +163,10 @@ export default function RewardedAds({
     // Fallback to simulated ad when real ads fail
     const fallbackToSimulatedAd = useCallback(() => {
         console.log('Falling back to simulated ad');
+        if (skipButtonTimeoutRef.current) {
+            clearTimeout(skipButtonTimeoutRef.current);
+        }
+        setShowSkipButton(false);
         setAdState(prev => ({
             ...prev,
             status: 'ready',
@@ -246,6 +252,12 @@ export default function RewardedAds({
             fallbackToSimulatedAd();
         }, AD_CONFIG.AD_SETTINGS.AD_TIMEOUT); // 10 seconds timeout
 
+        // Show skip button after 15 seconds
+        skipButtonTimeoutRef.current = setTimeout(() => {
+            console.log('Showing skip button after 15 seconds');
+            setShowSkipButton(true);
+        }, 15000); // 15 seconds
+
         // Global timeout - if nothing happens in 30 seconds, complete the ad
         const globalTimeout = setTimeout(() => {
             console.log('Global ad timeout reached, completing ad automatically');
@@ -267,6 +279,10 @@ export default function RewardedAds({
                         console.log('Real ad loaded successfully');
                         clearTimeout(loadingTimeout); // Clear timeout since ad loaded
                         clearTimeout(globalTimeout); // Clear global timeout
+                        if (skipButtonTimeoutRef.current) {
+                            clearTimeout(skipButtonTimeoutRef.current);
+                        }
+                        setShowSkipButton(false);
                         setAdState(prev => ({
                             ...prev,
                             status: 'ready',
@@ -281,6 +297,10 @@ export default function RewardedAds({
                         console.error('Real ad failed to load:', error);
                         clearTimeout(loadingTimeout); // Clear timeout
                         clearTimeout(globalTimeout); // Clear global timeout
+                        if (skipButtonTimeoutRef.current) {
+                            clearTimeout(skipButtonTimeoutRef.current);
+                        }
+                        setShowSkipButton(false);
                         // Fallback to simulated ad on error
                         fallbackToSimulatedAd();
                     },
@@ -323,6 +343,10 @@ export default function RewardedAds({
         // Cleanup function
         return () => {
             clearTimeout(loadingTimeout);
+            clearTimeout(globalTimeout);
+            if (skipButtonTimeoutRef.current) {
+                clearTimeout(skipButtonTimeoutRef.current);
+            }
             if (adManagerRef.current) {
                 adManagerRef.current.destroy();
             }
@@ -369,7 +393,7 @@ export default function RewardedAds({
                         <div className="text-center space-y-2">
                             <p className="text-muted-foreground font-medium">{t('loading')}</p>
                             <p className="text-xs text-muted-foreground">Loading ad content...</p>
-                            <p className="text-xs text-muted-foreground">If this takes too long, we'll switch to a fallback</p>
+                            <p className="text-xs text-muted-foreground">If this takes too long, we&apos;ll switch to a fallback</p>
                         </div>
                         
                         {interpretationPromise && (
@@ -379,17 +403,22 @@ export default function RewardedAds({
                             </div>
                         )}
                         
-                        {/* Manual fallback button after a delay */}
-                        <div className="mt-4">
-                            <Button 
-                                onClick={fallbackToSimulatedAd}
-                                variant="outline"
-                                size="sm"
-                                className="text-xs opacity-70 hover:opacity-100"
-                            >
-                                Skip to Ad (Fallback)
-                            </Button>
-                        </div>
+                        {/* Manual fallback button after 15 seconds */}
+                        {showSkipButton && (
+                            <div className="mt-4 animate-in fade-in-50 duration-300">
+                                <Button 
+                                    onClick={fallbackToSimulatedAd}
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-xs bg-background/80 hover:bg-background border-primary/30 hover:border-primary/50"
+                                >
+                                    Skip to Ad (Fallback)
+                                </Button>
+                                <p className="text-xs text-muted-foreground mt-2">
+                                    Ad is taking longer than expected
+                                </p>
+                            </div>
+                        )}
                     </div>
                 );
             
