@@ -170,6 +170,21 @@ export default function RewardedAds({
         setTimeout(() => {
             startAd();
         }, 500);
+        
+        // Fallback timeout - if simulated ad doesn't start in 3 seconds, complete it
+        setTimeout(() => {
+            setAdState(prev => {
+                if (prev.status === 'ready') {
+                    console.log('Simulated ad timeout, completing automatically');
+                    return {
+                        ...prev,
+                        status: 'completed',
+                        progress: 100,
+                    };
+                }
+                return prev;
+            });
+        }, 3000);
     }, []);
 
     const startAd = () => {
@@ -225,6 +240,20 @@ export default function RewardedAds({
             return;
         }
 
+        // Set up timeout for ad loading
+        const loadingTimeout = setTimeout(() => {
+            console.log('Ad loading timeout reached, falling back to simulated ad');
+            fallbackToSimulatedAd();
+        }, AD_CONFIG.AD_SETTINGS.AD_TIMEOUT); // 10 seconds timeout
+
+        // Global timeout - if nothing happens in 30 seconds, complete the ad
+        const globalTimeout = setTimeout(() => {
+            console.log('Global ad timeout reached, completing ad automatically');
+            // Save that ads have been watched
+            localStorage.setItem('watchedAds', 'true');
+            onAdCompleted(interpretationRef.current || undefined);
+        }, 30000); // 30 seconds global timeout
+
         // Initialize Google Ad Manager
         const initializeRealAds = async () => {
             try {
@@ -236,6 +265,8 @@ export default function RewardedAds({
                 const callbacks: RewardedAdCallbacks = {
                     onAdLoaded: () => {
                         console.log('Real ad loaded successfully');
+                        clearTimeout(loadingTimeout); // Clear timeout since ad loaded
+                        clearTimeout(globalTimeout); // Clear global timeout
                         setAdState(prev => ({
                             ...prev,
                             status: 'ready',
@@ -248,6 +279,8 @@ export default function RewardedAds({
                     },
                     onAdFailedToLoad: (error: string) => {
                         console.error('Real ad failed to load:', error);
+                        clearTimeout(loadingTimeout); // Clear timeout
+                        clearTimeout(globalTimeout); // Clear global timeout
                         // Fallback to simulated ad on error
                         fallbackToSimulatedAd();
                     },
@@ -279,6 +312,7 @@ export default function RewardedAds({
 
             } catch (error) {
                 console.error('Failed to initialize real ads:', error);
+                clearTimeout(loadingTimeout); // Clear timeout
                 // Fallback to simulated ad
                 fallbackToSimulatedAd();
             }
@@ -288,6 +322,7 @@ export default function RewardedAds({
 
         // Cleanup function
         return () => {
+            clearTimeout(loadingTimeout);
             if (adManagerRef.current) {
                 adManagerRef.current.destroy();
             }
@@ -326,15 +361,35 @@ export default function RewardedAds({
         switch (adState.status) {
             case 'loading':
                 return (
-                    <div className="flex flex-col items-center justify-center space-y-4 py-8">
-                        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                        <p className="text-muted-foreground">{t('loading')}</p>
+                    <div className="flex flex-col items-center justify-center space-y-6 py-8">
+                        <div className="relative">
+                            <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                            <div className="absolute inset-0 w-12 h-12 border-2 border-primary/20 rounded-full animate-pulse" />
+                        </div>
+                        <div className="text-center space-y-2">
+                            <p className="text-muted-foreground font-medium">{t('loading')}</p>
+                            <p className="text-xs text-muted-foreground">Loading ad content...</p>
+                            <p className="text-xs text-muted-foreground">If this takes too long, we'll switch to a fallback</p>
+                        </div>
+                        
                         {interpretationPromise && (
                             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                                 <Zap className="w-4 h-4" />
                                 <span>{t('preparingReading')}</span>
                             </div>
                         )}
+                        
+                        {/* Manual fallback button after a delay */}
+                        <div className="mt-4">
+                            <Button 
+                                onClick={fallbackToSimulatedAd}
+                                variant="outline"
+                                size="sm"
+                                className="text-xs opacity-70 hover:opacity-100"
+                            >
+                                Skip to Ad (Fallback)
+                            </Button>
+                        </div>
                     </div>
                 );
             
