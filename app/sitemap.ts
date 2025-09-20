@@ -1,86 +1,102 @@
 import { MetadataRoute } from "next"
+import { getPathname } from "@/i18n/navigation"
+// import { routing } from "@/i18n/routing"
 
-export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = "https://askingfate.com"
-    const currentDate = new Date()
+const host = "https://askingfate.com"
 
-    // Static pages with high priority
-    const staticPages = [
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+    return [
         {
-            url: baseUrl,
-            lastModified: currentDate,
-            changeFrequency: "daily" as const,
-            priority: 1.0,
-        },
-        {
-            url: `${baseUrl}/reading`,
-            lastModified: currentDate,
-            changeFrequency: "daily" as const,
-            priority: 0.9,
-        },
-        {
-            url: `${baseUrl}/about`,
-            lastModified: currentDate,
-            changeFrequency: "weekly" as const,
-            priority: 0.8,
-        },
-        {
-            url: `${baseUrl}/contact`,
-            lastModified: currentDate,
-            changeFrequency: "monthly" as const,
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/privacy-policy`,
-            lastModified: currentDate,
-            changeFrequency: "yearly" as const,
-            priority: 0.4,
-        },
-        {
-            url: `${baseUrl}/terms-of-service`,
-            lastModified: currentDate,
-            changeFrequency: "yearly" as const,
-            priority: 0.4,
+            url: host,
+            lastModified: new Date(),
+            alternates: {
+                languages: {
+                    es: host + (await getPathname({ locale: "en", href: "/" })),
+                    de: host + (await getPathname({ locale: "th", href: "/" })),
+                },
+            },
         },
     ]
 
-    // Dynamic pages for different reading types
-    const readingTypes = [
-        {
-            url: `${baseUrl}/reading?type=simple`,
-            lastModified: currentDate,
-            changeFrequency: "weekly" as const,
-            priority: 0.8,
-        },
-        {
-            url: `${baseUrl}/reading?type=intermediate`,
-            lastModified: currentDate,
-            changeFrequency: "weekly" as const,
-            priority: 0.8,
-        },
-        {
-            url: `${baseUrl}/reading?type=advanced`,
-            lastModified: currentDate,
-            changeFrequency: "weekly" as const,
-            priority: 0.8,
-        },
-    ]
+    // const currentDate = new Date()
 
-    // FAQ and help pages (if they exist in the future)
-    const helpPages = [
-        {
-            url: `${baseUrl}/help`,
-            lastModified: currentDate,
-            changeFrequency: "monthly" as const,
-            priority: 0.6,
-        },
-        {
-            url: `${baseUrl}/faq`,
-            lastModified: currentDate,
-            changeFrequency: "monthly" as const,
-            priority: 0.6,
-        },
-    ]
+    // async function withAlternates(
+    //     href: string,
+    //     opts: {
+    //         changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"]
+    //         priority: number
+    //         lastModified?: Date
+    //     },
+    //     query?: string
+    // ) {
+    //     const urlDefault =
+    //         host +
+    //         (await getPathname({ locale: routing.defaultLocale, href })) +
+    //         (query || "")
+    //     const languages: Record<string, string> = {}
+    //     for (const locale of routing.locales) {
+    //         languages[locale] =
+    //             host + (await getPathname({ locale, href })) + (query || "")
+    //     }
+    //     return {
+    //         url: urlDefault === host + "/" ? host : urlDefault,
+    //         lastModified: opts.lastModified ?? currentDate,
+    //         changeFrequency: opts.changeFrequency,
+    //         priority: opts.priority,
+    //         alternates: {
+    //             languages,
+    //         },
+    //     } satisfies MetadataRoute.Sitemap[number]
+    // }
 
-    return [...staticPages, ...readingTypes, ...helpPages]
+    // const entries: MetadataRoute.Sitemap = [
+    //     await withAlternates("/", { changeFrequency: "daily", priority: 1 }),
+    //     await withAlternates("/reading", {
+    //         changeFrequency: "daily",
+    //         priority: 0.9,
+    //     }),
+    //     await withAlternates("/about", {
+    //         changeFrequency: "weekly",
+    //         priority: 0.8,
+    //     }),
+    //     await withAlternates("/contact", {
+    //         changeFrequency: "monthly",
+    //         priority: 0.7,
+    //     }),
+    //     await withAlternates("/privacy-policy", {
+    //         changeFrequency: "yearly",
+    //         priority: 0.4,
+    //     }),
+    //     await withAlternates("/terms-of-service", {
+    //         changeFrequency: "yearly",
+    //         priority: 0.4,
+    //     }),
+    //     // Dynamic reading types (query params)
+    //     await withAlternates(
+    //         "/reading",
+    //         { changeFrequency: "weekly", priority: 0.8 },
+    //         "?type=simple"
+    //     ),
+    //     await withAlternates(
+    //         "/reading",
+    //         { changeFrequency: "weekly", priority: 0.8 },
+    //         "?type=intermediate"
+    //     ),
+    //     await withAlternates(
+    //         "/reading",
+    //         { changeFrequency: "weekly", priority: 0.8 },
+    //         "?type=advanced"
+    //     ),
+    //     // Potential future pages
+    //     await withAlternates("/help", {
+    //         changeFrequency: "monthly",
+    //         priority: 0.6,
+    //     }),
+    //     await withAlternates("/faq", {
+    //         changeFrequency: "monthly",
+    //         priority: 0.6,
+    //     }),
+    // ]
+
+    // return entries
 }
