@@ -13,7 +13,7 @@ import QuestionInput from "../question-input"
 import { CardImage } from "../card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
-import OptimizedRewardedAd from "@/components/ads/optimized-rewarded-ad"
+import RewardedAds from "@/components/ads/rewarded-ads"
 
 export default function Interpretation() {
     const t = useTranslations("ReadingPage.interpretation")
@@ -267,7 +267,7 @@ If the interpretation is too generic, add more details to make it more specific.
             {/* Ad Viewing Screen */}
             {showAd && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <OptimizedRewardedAd
+                    <RewardedAds
                         onAdCompleted={handleAdCompleted}
                         onAdSkipped={handleAdSkipped}
                         onAdError={handleAdError}

@@ -8,7 +8,7 @@ import { Loader2, Play, CheckCircle, Clock, Sparkles, Zap } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { AD_CONFIG } from '@/lib/admob-config';
 
-interface OptimizedRewardedAdProps {
+interface RewardedAdsProps {
     onAdCompleted: (interpretationData?: string) => void;
     onAdSkipped?: () => void;
     onAdError?: (error: string) => void;
@@ -24,13 +24,13 @@ interface AdState {
     interpretationReady: boolean;
 }
 
-export default function OptimizedRewardedAd({ 
+export default function RewardedAds({ 
     onAdCompleted, 
     onAdSkipped, 
     onAdError,
     onStartInterpretation,
     interpretationPromise
-}: OptimizedRewardedAdProps) {
+}: RewardedAdsProps) {
     const t = useTranslations('ReadingPage.optimizedRewardedAd');
     const [adState, setAdState] = useState<AdState>({
         status: 'loading',
