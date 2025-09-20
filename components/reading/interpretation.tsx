@@ -26,7 +26,6 @@ export default function Interpretation() {
     const [showAd, setShowAd] = useState(false)
     const [interpretationPromise, setInterpretationPromise] = useState<Promise<string> | null>(null)
     const [adCompleted, setAdCompleted] = useState(false)
-    const [isFromCache, setIsFromCache] = useState(false)
     
     const {
         currentStep,
@@ -210,12 +209,10 @@ export default function Interpretation() {
         const cachedInterpretation = getCachedInterpretation(cacheKey);
         if (cachedInterpretation) {
             console.log('Using cached interpretation');
-            setIsFromCache(true);
             return cachedInterpretation;
         }
 
         console.log('Fetching new interpretation');
-        setIsFromCache(false);
         const prompt = `Question: "${currentQuestion}"
 Cards: ${selectedCards.map((c) => c.meaning).join(", ")}
 
@@ -529,16 +526,6 @@ If the interpretation is too generic, add more details to make it more specific.
                                                     ? ""
                                                     : completion)}
                                         </div>
-                                        
-                                        {/* Cache indicator */}
-                                        {isFromCache && (
-                                            <div className="flex items-center justify-center mb-4">
-                                                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-200">
-                                                    <Stars className="w-3 h-3 mr-1" />
-                                                    Cached Interpretation
-                                                </Badge>
-                                            </div>
-                                        )}
                                     </>
                                 )}
                             </div>
