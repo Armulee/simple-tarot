@@ -4,14 +4,16 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Play, CheckCircle, Clock, Sparkles } from 'lucide-react';
+import { Loader2, Play, CheckCircle, Clock, Sparkles, Zap } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { AD_CONFIG } from '@/lib/admob-config';
 
-interface RewardedAdProps {
-    onAdCompleted: () => void;
+interface OptimizedRewardedAdProps {
+    onAdCompleted: (interpretationData?: string) => void;
     onAdSkipped?: () => void;
     onAdError?: (error: string) => void;
+    onStartInterpretation?: () => void;
+    interpretationPromise?: Promise<string>;
 }
 
 interface AdState {
@@ -19,25 +21,56 @@ interface AdState {
     watchTime: number;
     progress: number;
     error?: string;
+    interpretationReady: boolean;
 }
 
-export default function RewardedAd({ onAdCompleted, onAdSkipped, onAdError }: RewardedAdProps) {
-    const t = useTranslations('ReadingPage.rewardedAd');
+export default function OptimizedRewardedAd({ 
+    onAdCompleted, 
+    onAdSkipped, 
+    onAdError,
+    onStartInterpretation,
+    interpretationPromise
+}: OptimizedRewardedAdProps) {
+    const t = useTranslations('ReadingPage.optimizedRewardedAd');
     const [adState, setAdState] = useState<AdState>({
         status: 'loading',
         watchTime: 0,
         progress: 0,
+        interpretationReady: false,
     });
     
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
-    const adContainerRef = useRef<HTMLDivElement>(null);
+    const interpretationRef = useRef<string | null>(null);
+
+    // Start interpretation fetching when component mounts
+    useEffect(() => {
+        if (interpretationPromise && onStartInterpretation) {
+            onStartInterpretation();
+            
+            interpretationPromise
+                .then((interpretation) => {
+                    interpretationRef.current = interpretation;
+                    setAdState(prev => ({
+                        ...prev,
+                        interpretationReady: true,
+                    }));
+                })
+                .catch(() => {
+                    console.error('Interpretation fetch failed');
+                    setAdState(prev => ({
+                        ...prev,
+                        interpretationReady: false,
+                    }));
+                });
+        }
+    }, [interpretationPromise, onStartInterpretation]);
 
     // Simulate ad loading
     useEffect(() => {
         const loadAd = async () => {
             try {
                 // Simulate loading time
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise(resolve => setTimeout(resolve, 1500));
                 
                 setAdState(prev => ({
                     ...prev,
@@ -101,7 +134,7 @@ export default function RewardedAd({ onAdCompleted, onAdSkipped, onAdError }: Re
 
     const handleAdComplete = () => {
         if (adState.watchTime >= AD_CONFIG.AD_SETTINGS.MIN_WATCH_TIME) {
-            onAdCompleted();
+            onAdCompleted(interpretationRef.current || undefined);
         } else {
             onAdError?.('Ad not watched completely');
         }
@@ -130,6 +163,12 @@ export default function RewardedAd({ onAdCompleted, onAdSkipped, onAdError }: Re
                     <div className="flex flex-col items-center justify-center space-y-4 py-8">
                         <Loader2 className="w-8 h-8 text-primary animate-spin" />
                         <p className="text-muted-foreground">{t('loading')}</p>
+                        {interpretationPromise && (
+                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                                <Zap className="w-4 h-4" />
+                                <span>{t('preparingReading')}</span>
+                            </div>
+                        )}
                     </div>
                 );
             
@@ -143,6 +182,24 @@ export default function RewardedAd({ onAdCompleted, onAdSkipped, onAdError }: Re
                             <h3 className="font-semibold text-lg">{t('ready.title')}</h3>
                             <p className="text-muted-foreground">{t('ready.description')}</p>
                         </div>
+                        
+                        {/* Show interpretation status */}
+                        {interpretationPromise && (
+                            <div className="flex items-center space-x-2 text-sm">
+                                {adState.interpretationReady ? (
+                                    <>
+                                        <CheckCircle className="w-4 h-4 text-green-500" />
+                                        <span className="text-green-600">{t('interpretationReady')}</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                                        <span className="text-primary">{t('preparingInterpretation')}</span>
+                                    </>
+                                )}
+                            </div>
+                        )}
+                        
                         <Button 
                             onClick={startAd}
                             className="px-8 py-3 bg-gradient-to-r from-[#15a6ff] to-[#b56cff] text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
@@ -180,6 +237,23 @@ export default function RewardedAd({ onAdCompleted, onAdSkipped, onAdError }: Re
                                 />
                             </div>
                         </div>
+
+                        {/* Show interpretation status while playing */}
+                        {interpretationPromise && (
+                            <div className="flex items-center space-x-2 text-sm">
+                                {adState.interpretationReady ? (
+                                    <>
+                                        <CheckCircle className="w-4 h-4 text-green-500" />
+                                        <span className="text-green-600">{t('interpretationReady')}</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                                        <span className="text-primary">{t('preparingInterpretation')}</span>
+                                    </>
+                                )}
+                            </div>
+                        )}
                         
                         <div className="flex gap-3">
                             <Button 
@@ -203,9 +277,28 @@ export default function RewardedAd({ onAdCompleted, onAdSkipped, onAdError }: Re
                             <h3 className="font-semibold text-lg text-green-600">{t('completed.title')}</h3>
                             <p className="text-muted-foreground">{t('completed.description')}</p>
                         </div>
+
+                        {/* Show interpretation status */}
+                        {interpretationPromise && (
+                            <div className="flex items-center space-x-2 text-sm">
+                                {adState.interpretationReady ? (
+                                    <>
+                                        <CheckCircle className="w-4 h-4 text-green-500" />
+                                        <span className="text-green-600">{t('interpretationReady')}</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                                        <span className="text-primary">{t('preparingInterpretation')}</span>
+                                    </>
+                                )}
+                            </div>
+                        )}
+                        
                         <Button 
                             onClick={handleAdComplete}
-                            className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                            disabled={interpretationPromise && !adState.interpretationReady}
+                            className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {t('completed.button')}
                         </Button>
@@ -265,7 +358,7 @@ export default function RewardedAd({ onAdCompleted, onAdSkipped, onAdError }: Re
                 </div>
 
                 {/* Ad content */}
-                <div ref={adContainerRef} className="min-h-[300px]">
+                <div className="min-h-[300px]">
                     {renderAdContent()}
                 </div>
 
@@ -275,6 +368,11 @@ export default function RewardedAd({ onAdCompleted, onAdSkipped, onAdError }: Re
                         <Badge variant="secondary" className="text-xs">
                             {t('reward')}
                         </Badge>
+                        {interpretationPromise && (
+                            <Badge variant="outline" className="text-xs">
+                                {t('optimized')}
+                            </Badge>
+                        )}
                     </div>
                 </div>
             </div>

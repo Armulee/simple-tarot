@@ -335,6 +335,53 @@
         "retry": "Retry",
         "skip": "Skip Ad"
       }
+    },
+    "adViewingDialog": {
+      "title": "Watch Ad to Unlock Your Reading",
+      "questionLabel": "Your Question:",
+      "selectedCards": "Selected Cards:",
+      "benefits": {
+        "title": "What You'll Get:",
+        "freeReading": "Complete tarot interpretation",
+        "detailedInterpretation": "Personalized cosmic guidance",
+        "supportService": "Help keep our service free"
+      },
+      "duration": "Ad Duration: ~30 seconds",
+      "rememberPreference": "Don't show this message again (auto-play ads)",
+      "disclaimer": "Watching this ad helps us provide free readings. You can skip if needed.",
+      "skip": "Skip Ad",
+      "watchAd": "Watch Ad"
+    },
+    "optimizedRewardedAd": {
+      "title": "Unlock Your Reading",
+      "subtitle": "Watch a short ad to reveal your cosmic guidance",
+      "reward": "Free Reading",
+      "optimized": "Optimized",
+      "loading": "Loading ad...",
+      "preparingReading": "Preparing your reading...",
+      "preparingInterpretation": "Preparing interpretation...",
+      "interpretationReady": "Interpretation ready!",
+      "ready": {
+        "title": "Ad Ready",
+        "description": "Click to start watching and unlock your reading",
+        "button": "Watch Ad"
+      },
+      "playing": {
+        "title": "Watching Ad",
+        "timeRemaining": "{seconds} seconds remaining",
+        "progress": "Progress",
+        "skip": "Skip"
+      },
+      "completed": {
+        "title": "Ad Completed!",
+        "description": "Thank you for watching. Your reading is now unlocked.",
+        "button": "Get My Reading"
+      },
+      "error": {
+        "title": "Ad Error",
+        "retry": "Retry",
+        "skip": "Skip Ad"
+      }
     }
   },
 

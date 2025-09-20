@@ -1,24 +1,28 @@
-# Rewarded Ads Implementation Guide
+# Optimized Rewarded Ads Implementation Guide
 
 ## Overview
 
-This implementation adds rewarded ads to the tarot reading flow. Users must watch a complete ad after selecting their cards and before receiving their interpretation.
+This implementation adds optimized rewarded ads to the tarot reading flow with an alert dialog prompt and concurrent interpretation fetching for better user experience.
 
 ## Features
 
-- **Custom Rewarded Ad Component**: Simulates a rewarded ad experience with progress tracking
-- **Ad Viewing Step**: New step between card selection and interpretation
-- **Progress Tracking**: Users must watch for a minimum duration to unlock their reading
+- **Alert Dialog Prompt**: Clean dialog interface explaining the ad viewing process
+- **Remember Preference**: Checkbox to auto-play ads without showing the dialog again
+- **Concurrent Fetching**: Interpretation API call starts while user watches the ad
+- **Optimized UX**: Users get their reading immediately after ad completion
+- **Progress Tracking**: Visual progress bar and timing indicators
 - **Error Handling**: Graceful fallback if ads fail to load
 - **Internationalization**: Full support for English and Thai languages
 
-## Flow
+## Optimized Flow
 
 1. User asks a question
 2. User selects reading type (simple/intermediate/advanced)
 3. User selects their cards
-4. **NEW: Ad viewing step** - User must watch a rewarded ad
-5. User receives their interpretation
+4. **NEW: Alert Dialog** - Shows ad viewing prompt with details
+5. **NEW: Concurrent Process** - Ad starts playing while interpretation API call begins
+6. User watches ad with real-time progress tracking
+7. **Optimized**: User receives interpretation immediately after ad completion
 
 ## Configuration
 
@@ -61,20 +65,29 @@ AD_SETTINGS: {
 
 ## Components
 
-### RewardedAd Component (`/components/ads/rewarded-ad.tsx`)
+### AdViewingDialog Component (`/components/ads/ad-viewing-dialog.tsx`)
 
-Main ad component that handles:
-- Ad loading simulation
-- Progress tracking
-- User interaction (play, skip)
-- Completion validation
+Alert dialog that:
+- Shows question and selected cards preview
+- Explains ad benefits and duration
+- Includes "Remember preference" checkbox
+- Provides clear call-to-action buttons
+
+### OptimizedRewardedAd Component (`/components/ads/optimized-rewarded-ad.tsx`)
+
+Enhanced ad component that:
+- Shows real-time interpretation fetching status
+- Displays progress tracking with timing
+- Handles concurrent interpretation loading
+- Provides immediate completion when ready
 
 ### AdViewing Component (`/components/reading/ad-viewing.tsx`)
 
-Wrapper component that:
-- Shows selected cards preview
-- Displays the rewarded ad
-- Handles ad completion and navigation
+Main orchestrator that:
+- Manages dialog and ad flow
+- Starts interpretation fetching concurrently
+- Handles user preferences and auto-play
+- Coordinates between dialog and ad components
 
 ## Integration Points
 
@@ -92,19 +105,30 @@ Modified to navigate to ad-viewing instead of directly to interpretation:
 setCurrentStep("ad-viewing") // Instead of "interpretation"
 ```
 
-## Customization
+## User Experience Features
 
-### Ad Duration
+### Remember Preference
 
-To change the ad duration, modify the `REWARDED_VIDEO_DURATION` in `admob-config.ts`.
+Users can check "Don't show this message again" to automatically start ads without the dialog:
+- Preference is saved in localStorage as `auto-play-ads`
+- Next time user goes through the flow, ads start automatically
+- Can be reset by clearing browser data or changing preference
 
-### Minimum Watch Time
+### Concurrent Processing
 
-To change how long users must watch to get the reward, modify `MIN_WATCH_TIME`.
+The system optimizes user experience by:
+- Starting interpretation API call when ad begins
+- Showing real-time status of interpretation preparation
+- Displaying "Interpretation ready!" when API call completes
+- Enabling immediate transition to results when ad finishes
 
-### Styling
+### Visual Feedback
 
-The ad components use Tailwind CSS and can be customized by modifying the className props.
+Enhanced user feedback includes:
+- Progress bar with percentage completion
+- Time remaining counter
+- Interpretation status indicators
+- Loading states and completion confirmations
 
 ## Testing
 
