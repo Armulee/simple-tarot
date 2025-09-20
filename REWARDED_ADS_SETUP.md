@@ -65,13 +65,14 @@ AD_SETTINGS: {
 
 ## Components
 
-### AdViewingDialog Component (`/components/ads/ad-viewing-dialog.tsx`)
+### CustomAdDialog Component (`/components/ads/custom-ad-dialog.tsx`)
 
-Alert dialog that:
-- Shows question and selected cards preview
-- Explains ad benefits and duration
-- Includes "Remember preference" checkbox
-- Provides clear call-to-action buttons
+Beautiful cosmic dialog that:
+- Shows cosmic stars background with twinkling animations
+- Displays ad benefits and rewards
+- Includes "Remember preference" checkbox for auto-play
+- Provides "Watch Ad" and "Back to Card Selection" options
+- Uses React portal for proper positioning
 
 ### OptimizedRewardedAd Component (`/components/ads/optimized-rewarded-ad.tsx`)
 
@@ -83,7 +84,7 @@ Enhanced ad component that:
 
 ### Interpretation Component (`/components/reading/interpretation.tsx`)
 
-Main component that now includes:
+Main component that orchestrates:
 - Ad dialog management and display
 - Concurrent interpretation fetching
 - User preference handling and auto-play
