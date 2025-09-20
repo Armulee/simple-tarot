@@ -106,12 +106,6 @@ export default async function RootLayout({
     }
     return (
         <html lang={locale}>
-            <head>
-                <meta
-                    name='monetag'
-                    content='19830385f9b011d473d6a40addc1d9f5'
-                />
-            </head>
             <body
                 className={`font-sans ${sourceSans.variable} ${playfairDisplay.variable}`}
             >

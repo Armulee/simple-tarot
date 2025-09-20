@@ -19,6 +19,7 @@ export default function CardSelection({
 }: {
     readingConfig: ReadingConfig
 }) {
+    const adsEnabled = process.env.NEXT_PUBLIC_ENABLED_AD === "true"
     const t = useTranslations("ReadingPage")
     const {
         currentStep,
@@ -47,7 +48,7 @@ export default function CardSelection({
     >([])
     const [spreadResetKey, setSpreadResetKey] = useState(0)
     const cardsToSelect = readingType ? readingConfig[readingType].cards : 1
-    
+
     // Ad dialog state
     const [showAdDialog, setShowAdDialog] = useState(false)
 
@@ -97,52 +98,58 @@ export default function CardSelection({
 
         setSelectedCards(tarotCards)
         // Clear watched ads localStorage when starting new card selection (including follow-ups)
-        localStorage.removeItem('watchedAds')
+        localStorage.removeItem("watchedAds")
         // Clear interpretation cache for new reading (only for non-follow-up readings)
         if (!isFollowUp) {
             clearInterpretationCache()
         }
-        
+
+        // If ads are disabled by env, go directly to interpretation
+        if (!adsEnabled) {
+            setCurrentStep("interpretation")
+            return
+        }
+
         // Check auto-play preference BEFORE setting any dialog state
-        const autoPlayAds = localStorage.getItem('auto-play-ads') === 'true';
-        
+        const autoPlayAds = localStorage.getItem("auto-play-ads") === "true"
+
         if (autoPlayAds) {
             // Skip dialog entirely and go directly to interpretation step
-            console.log('Auto-play ads enabled, skipping dialog');
-            setCurrentStep("interpretation");
+            console.log("Auto-play ads enabled, skipping dialog")
+            setCurrentStep("interpretation")
         } else {
             // Show ad dialog only if auto-play is disabled
-            console.log('Auto-play ads disabled, showing dialog');
-            setShowAdDialog(true);
+            console.log("Auto-play ads disabled, showing dialog")
+            setShowAdDialog(true)
         }
     }
 
     // Dialog handlers
     const handleWatchAd = () => {
-        setShowAdDialog(false);
-        setCurrentStep("interpretation");
-    };
+        setShowAdDialog(false)
+        setCurrentStep("interpretation")
+    }
 
     const handleDialogClose = () => {
-        setShowAdDialog(false);
+        setShowAdDialog(false)
         // Stay in card selection step
-    };
+    }
 
     // Clear interpretation cache for new readings
     const clearInterpretationCache = () => {
         try {
             // Remove all interpretation cache entries
-            const keys = Object.keys(localStorage);
-            keys.forEach(key => {
-                if (key.startsWith('interpretation_')) {
-                    localStorage.removeItem(key);
+            const keys = Object.keys(localStorage)
+            keys.forEach((key) => {
+                if (key.startsWith("interpretation_")) {
+                    localStorage.removeItem(key)
                 }
-            });
-            console.log('Interpretation cache cleared');
+            })
+            console.log("Interpretation cache cleared")
         } catch (error) {
-            console.error('Error clearing interpretation cache:', error);
+            console.error("Error clearing interpretation cache:", error)
         }
-    };
+    }
 
     const externalNames = useMemo(
         () => aggSelected.map((c) => c.name),
@@ -178,11 +185,13 @@ export default function CardSelection({
     return (
         <>
             {/* Ad Viewing Dialog */}
-            <AdDialog
-                open={showAdDialog}
-                onOpenChange={handleDialogClose}
-                onWatchAd={handleWatchAd}
-            />
+            {adsEnabled && (
+                <AdDialog
+                    open={showAdDialog}
+                    onOpenChange={handleDialogClose}
+                    onWatchAd={handleWatchAd}
+                />
+            )}
 
             {currentStep === "card-selection" && (
                 <div className='space-y-8 animate-fade-in'>

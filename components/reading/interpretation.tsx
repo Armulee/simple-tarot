@@ -14,6 +14,7 @@ import { CardImage } from "../card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
 import RewardedAds from "@/components/ads/rewarded-ads"
+import AdDialog from "@/components/ads/ad-dialog"
 
 export default function Interpretation() {
     const t = useTranslations("ReadingPage.interpretation")
@@ -21,12 +22,13 @@ export default function Interpretation() {
     const [finish, setFinish] = useState(false)
     const [copied, setCopied] = useState(false)
     const [isFollowUpMode, setIsFollowUpMode] = useState(false)
-    
+
     // Ad states
     const [showAd, setShowAd] = useState(false)
-    const [interpretationPromise, setInterpretationPromise] = useState<Promise<string> | null>(null)
+    const [interpretationPromise, setInterpretationPromise] =
+        useState<Promise<string> | null>(null)
     const [adCompleted, setAdCompleted] = useState(false)
-    
+
     const {
         currentStep,
         question,
@@ -45,7 +47,6 @@ export default function Interpretation() {
             setInterpretation(completion)
         },
     })
-
 
     const shareImage = async () => {
         try {
@@ -160,59 +161,87 @@ export default function Interpretation() {
     const hasInitiated = useRef(false)
 
     // Generate cache key based on question and selected cards
-    const generateCacheKey = useCallback((question: string, cards: { name: string; isReversed: boolean }[], isFollowUp: boolean, followUpQuestion?: string) => {
-        const cardsString = cards.map(card => `${card.name}${card.isReversed ? '_reversed' : ''}`).sort().join('_');
-        const baseKey = `interpretation_${btoa(question)}_${cardsString}`;
-        return isFollowUp ? `${baseKey}_followup_${btoa(followUpQuestion || '')}` : baseKey;
-    }, []);
+    const generateCacheKey = useCallback(
+        (
+            question: string,
+            cards: { name: string; isReversed: boolean }[],
+            isFollowUp: boolean,
+            followUpQuestion?: string
+        ) => {
+            const cardsString = cards
+                .map(
+                    (card) =>
+                        `${card.name}${card.isReversed ? "_reversed" : ""}`
+                )
+                .sort()
+                .join("_")
+            const baseKey = `interpretation_${btoa(question)}_${cardsString}`
+            return isFollowUp
+                ? `${baseKey}_followup_${btoa(followUpQuestion || "")}`
+                : baseKey
+        },
+        []
+    )
 
     // Check if interpretation exists in cache
-    const getCachedInterpretation = useCallback((cacheKey: string): string | null => {
-        try {
-            const cached = localStorage.getItem(cacheKey);
-            if (cached) {
-                const { interpretation, timestamp } = JSON.parse(cached);
-                // Cache valid for 24 hours
-                const isValid = Date.now() - timestamp < 24 * 60 * 60 * 1000;
-                return isValid ? interpretation : null;
+    const getCachedInterpretation = useCallback(
+        (cacheKey: string): string | null => {
+            try {
+                const cached = localStorage.getItem(cacheKey)
+                if (cached) {
+                    const { interpretation, timestamp } = JSON.parse(cached)
+                    // Cache valid for 24 hours
+                    const isValid = Date.now() - timestamp < 24 * 60 * 60 * 1000
+                    return isValid ? interpretation : null
+                }
+            } catch (error) {
+                console.error("Error reading cached interpretation:", error)
             }
-        } catch (error) {
-            console.error('Error reading cached interpretation:', error);
-        }
-        return null;
-    }, []);
+            return null
+        },
+        []
+    )
 
     // Save interpretation to cache
-    const saveInterpretationToCache = useCallback((cacheKey: string, interpretation: string) => {
-        try {
-            const cacheData = {
-                interpretation,
-                timestamp: Date.now()
-            };
-            localStorage.setItem(cacheKey, JSON.stringify(cacheData));
-        } catch (error) {
-            console.error('Error saving interpretation to cache:', error);
-        }
-    }, []);
+    const saveInterpretationToCache = useCallback(
+        (cacheKey: string, interpretation: string) => {
+            try {
+                const cacheData = {
+                    interpretation,
+                    timestamp: Date.now(),
+                }
+                localStorage.setItem(cacheKey, JSON.stringify(cacheData))
+            } catch (error) {
+                console.error("Error saving interpretation to cache:", error)
+            }
+        },
+        []
+    )
 
     const getInterpretationAsync = useCallback(async (): Promise<string> => {
-        const currentQuestion = isFollowUp && followUpQuestion ? followUpQuestion : question;
-        
+        const currentQuestion =
+            isFollowUp && followUpQuestion ? followUpQuestion : question
+
         if (!currentQuestion || selectedCards.length === 0) {
-            throw new Error('Missing question or cards');
+            throw new Error("Missing question or cards")
         }
 
         // Generate cache key
-        const cacheKey = generateCacheKey(currentQuestion, selectedCards, isFollowUp, followUpQuestion || undefined);
-        
+        const cacheKey = generateCacheKey(
+            currentQuestion,
+            selectedCards,
+            isFollowUp,
+            followUpQuestion || undefined
+        )
+
         // Check if interpretation exists in cache
-        const cachedInterpretation = getCachedInterpretation(cacheKey);
+        const cachedInterpretation = getCachedInterpretation(cacheKey)
         if (cachedInterpretation) {
-            console.log('Using cached interpretation');
-            return cachedInterpretation;
+            console.log("Using cached interpretation")
+            return cachedInterpretation
         }
 
-        console.log('Fetching new interpretation');
+        console.log("Fetching new interpretation")
         const prompt = `Question: "${currentQuestion}"
 Cards: ${selectedCards.map((c) => c.meaning).join(", ")}
 
@@ -223,100 +252,133 @@ If the interpretation is too positive, tone it down to be more realistic and dow
 If the interpretation is too vague, add more details to make it more specific.
 If the interpretation is too long, shorten it to be more concise.
 If the interpretation is too short, add more details to make it more specific.
-If the interpretation is too generic, add more details to make it more specific.`;
+If the interpretation is too generic, add more details to make it more specific.`
 
-        const result = await complete(prompt);
-        const interpretationResult = result || '';
-        
+        const result = await complete(prompt)
+        const interpretationResult = result || ""
+
         // Save to cache
         if (interpretationResult) {
-            saveInterpretationToCache(cacheKey, interpretationResult);
+            saveInterpretationToCache(cacheKey, interpretationResult)
         }
-        
-        return interpretationResult;
-    }, [complete, isFollowUp, followUpQuestion, question, selectedCards, generateCacheKey, getCachedInterpretation, saveInterpretationToCache]);
+
+        return interpretationResult
+    }, [
+        complete,
+        isFollowUp,
+        followUpQuestion,
+        question,
+        selectedCards,
+        generateCacheKey,
+        getCachedInterpretation,
+        saveInterpretationToCache,
+    ])
 
     const startAdProcess = useCallback(() => {
         // Start interpretation fetching
-        const interpretationPromise = getInterpretationAsync();
-        setInterpretationPromise(interpretationPromise);
-        
+        const interpretationPromise = getInterpretationAsync()
+        setInterpretationPromise(interpretationPromise)
+
         // Show the ad immediately
-        setShowAd(true);
-    }, [getInterpretationAsync]);
+        setShowAd(true)
+    }, [getInterpretationAsync])
 
+    const handleAdCompleted = useCallback(
+        (interpretationData?: string) => {
+            if (interpretationData) {
+                setInterpretation(interpretationData)
+            } else if (interpretationPromise) {
+                // Fallback: get interpretation from promise
+                interpretationPromise.then((interpretation) => {
+                    setInterpretation(interpretation)
+                })
+            }
 
-    const handleAdCompleted = useCallback((interpretationData?: string) => {
-        if (interpretationData) {
-            setInterpretation(interpretationData);
-        } else if (interpretationPromise) {
-            // Fallback: get interpretation from promise
-            interpretationPromise.then((interpretation) => {
-                setInterpretation(interpretation);
-            });
-        }
-        
-        // Ensure we stay in interpretation step
-        setCurrentStep("interpretation");
-        setShowAd(false);
-        setAdCompleted(true);
-    }, [interpretationPromise, setInterpretation, setCurrentStep]);
+            // Ensure we stay in interpretation step
+            setCurrentStep("interpretation")
+            setShowAd(false)
+            setAdCompleted(true)
+        },
+        [interpretationPromise, setInterpretation, setCurrentStep]
+    )
 
     const handleAdSkipped = useCallback(() => {
-        console.log('Ad was skipped');
+        console.log("Ad was skipped")
         // Ensure we stay in interpretation step
-        setCurrentStep("interpretation");
-        setShowAd(false);
+        setCurrentStep("interpretation")
+        setShowAd(false)
         // Still proceed with interpretation
         if (interpretationPromise) {
             interpretationPromise.then((interpretation) => {
-                setInterpretation(interpretation);
-            });
+                setInterpretation(interpretation)
+            })
         }
-        setAdCompleted(true);
-    }, [interpretationPromise, setInterpretation, setCurrentStep]);
+        setAdCompleted(true)
+    }, [interpretationPromise, setInterpretation, setCurrentStep])
 
-    const handleAdError = useCallback((error: string) => {
-        console.error('Ad error:', error);
-        // Ensure we stay in interpretation step
-        setCurrentStep("interpretation");
-        setShowAd(false);
-        // Still proceed with interpretation
-        if (interpretationPromise) {
-            interpretationPromise.then((interpretation) => {
-                setInterpretation(interpretation);
-            });
-        }
-        setAdCompleted(true);
-    }, [interpretationPromise, setInterpretation, setCurrentStep]);
-    
-    // Show ads when interpretation component mounts
+    const handleAdError = useCallback(
+        (error: string) => {
+            console.error("Ad error:", error)
+            // Ensure we stay in interpretation step
+            setCurrentStep("interpretation")
+            setShowAd(false)
+            // Still proceed with interpretation
+            if (interpretationPromise) {
+                interpretationPromise.then((interpretation) => {
+                    setInterpretation(interpretation)
+                })
+            }
+            setAdCompleted(true)
+        },
+        [interpretationPromise, setInterpretation, setCurrentStep]
+    )
+
+    const adsEnabled =
+        typeof process !== "undefined" &&
+        process.env.NEXT_PUBLIC_ENABLED_AD === "true"
+
+    // Show ads when interpretation component mounts (only if enabled)
     useEffect(() => {
-        if (currentStep === 'interpretation' && !hasInitiated.current) {
-            hasInitiated.current = true;
-            
+        if (!adsEnabled) return
+        if (currentStep === "interpretation" && !hasInitiated.current) {
+            hasInitiated.current = true
+
             // Always start the ad process when interpretation component mounts
-            startAdProcess();
+            startAdProcess()
         }
-    }, [currentStep, startAdProcess]);
+    }, [currentStep, startAdProcess, adsEnabled])
+
+    // When ads are disabled, fetch interpretation immediately and mark ad as completed
+    useEffect(() => {
+        if (adsEnabled) return
+        if (currentStep === "interpretation" && !hasInitiated.current) {
+            hasInitiated.current = true
+            setShowAd(false)
+            setAdCompleted(true)
+            const p = getInterpretationAsync()
+            setInterpretationPromise(p)
+            p.then((value) => {
+                setInterpretation(value)
+            })
+        }
+    }, [adsEnabled, currentStep, getInterpretationAsync, setInterpretation])
 
     // Reset component state for follow-up interpretations
     useEffect(() => {
         if (isFollowUp && followUpQuestion) {
             // Reset all component states for follow-up
-            hasInitiated.current = false;
-            setShowAd(false);
-            setInterpretationPromise(null);
-            setAdCompleted(false);
-            setIsFollowUpMode(true);
-            
-            console.log('Reset interpretation component for follow-up');
+            hasInitiated.current = false
+            setShowAd(false)
+            setInterpretationPromise(null)
+            setAdCompleted(false)
+            setIsFollowUpMode(true)
+
+            console.log("Reset interpretation component for follow-up")
         } else if (!isFollowUp && hasInitiated.current) {
             // Reset follow-up mode when not in follow-up
-            setIsFollowUpMode(false);
+            setIsFollowUpMode(false)
         }
-    }, [isFollowUp, followUpQuestion]);
-
+    }, [isFollowUp, followUpQuestion])
 
     // Reset follow-up mode when we have a new interpretation
     useEffect(() => {
@@ -327,19 +389,34 @@ If the interpretation is too generic, add more details to make it more specific.
 
     return (
         <>
-            {/* Ad Viewing Screen */}
-            {showAd && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <RewardedAds
-                        onAdCompleted={handleAdCompleted}
-                        onAdSkipped={handleAdSkipped}
-                        onAdError={handleAdError}
-                        onStartInterpretation={() => {
-                            console.log('Starting interpretation...');
+            {/* Ad Viewing - gated by env */}
+            {adsEnabled && (
+                <>
+                    {/* Pre-ad dialog to confirm watching */}
+                    <AdDialog
+                        open={showAd}
+                        onOpenChange={setShowAd}
+                        onWatchAd={() => {
+                            // Keep current flow; RewardedAds will auto-start/show
+                            // showAd remains true while RewardedAds is active
                         }}
-                        interpretationPromise={interpretationPromise || undefined}
                     />
-                </div>
+                    {showAd && (
+                        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
+                            <RewardedAds
+                                onAdCompleted={handleAdCompleted}
+                                onAdSkipped={handleAdSkipped}
+                                onAdError={handleAdError}
+                                onStartInterpretation={() => {
+                                    console.log("Starting interpretation...")
+                                }}
+                                interpretationPromise={
+                                    interpretationPromise || undefined
+                                }
+                            />
+                        </div>
+                    )}
+                </>
             )}
 
             {currentStep === "interpretation" && (
@@ -474,16 +551,20 @@ If the interpretation is too generic, add more details to make it more specific.
                                 </div>
                             </div>
                             <div className='prose prose-invert max-w-none'>
-                                {!adCompleted ? (
+                                {adsEnabled && !adCompleted ? (
                                     <div className='text-center space-y-6 py-8'>
                                         <div className='flex items-center justify-center space-x-3'>
                                             <Sparkles className='w-6 h-6 text-primary' />
                                             <span className='text-muted-foreground'>
-                                                {showAd ? t("adViewing.title") : t("loading.title")}
+                                                {showAd
+                                                    ? t("adViewing.title")
+                                                    : t("loading.title")}
                                             </span>
                                         </div>
                                         <p className='text-sm text-muted-foreground'>
-                                            {showAd ? t("adViewing.description") : t("loading.subtitle")}
+                                            {showAd
+                                                ? t("adViewing.description")
+                                                : t("loading.subtitle")}
                                         </p>
                                     </div>
                                 ) : error ? (
