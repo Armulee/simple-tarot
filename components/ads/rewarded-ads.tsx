@@ -65,30 +65,6 @@ export default function RewardedAds({
         }
     }, [interpretationPromise, onStartInterpretation]);
 
-    // Simulate ad loading
-    useEffect(() => {
-        const loadAd = async () => {
-            try {
-                // Simulate loading time
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                
-                setAdState(prev => ({
-                    ...prev,
-                    status: 'ready',
-                }));
-            } catch {
-                setAdState(prev => ({
-                    ...prev,
-                    status: 'error',
-                    error: 'Failed to load ad',
-                }));
-                onAdError?.('Failed to load ad');
-            }
-        };
-
-        loadAd();
-    }, [onAdError]);
-
     const startAd = () => {
         setAdState(prev => ({
             ...prev,
@@ -131,6 +107,35 @@ export default function RewardedAds({
             });
         }, 1000);
     };
+
+    // Simulate ad loading and autoplay
+    useEffect(() => {
+        const loadAndPlayAd = async () => {
+            try {
+                // Simulate loading time
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                setAdState(prev => ({
+                    ...prev,
+                    status: 'ready',
+                }));
+
+                // Auto-start the ad after a short delay
+                setTimeout(() => {
+                    startAd();
+                }, 500);
+            } catch {
+                setAdState(prev => ({
+                    ...prev,
+                    status: 'error',
+                    error: 'Failed to load ad',
+                }));
+                onAdError?.('Failed to load ad');
+            }
+        };
+
+        loadAndPlayAd();
+    }, [onAdError]);
 
     const handleAdComplete = () => {
         if (adState.watchTime >= AD_CONFIG.AD_SETTINGS.MIN_WATCH_TIME) {
@@ -176,11 +181,12 @@ export default function RewardedAds({
                 return (
                     <div className="flex flex-col items-center justify-center space-y-6 py-8">
                         <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center">
-                            <Play className="w-10 h-10 text-primary" />
+                            <Play className="w-10 h-10 text-primary animate-pulse" />
                         </div>
                         <div className="text-center space-y-2">
                             <h3 className="font-semibold text-lg">{t('ready.title')}</h3>
                             <p className="text-muted-foreground">{t('ready.description')}</p>
+                            <p className="text-sm text-primary font-medium">Ad will start automatically...</p>
                         </div>
                         
                         {/* Show interpretation status */}
