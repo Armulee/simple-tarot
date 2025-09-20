@@ -7,7 +7,7 @@ import { Sparkles, RefreshCcw, Loader2, Stars } from "lucide-react"
 import { FaShareNodes, FaCopy, FaDownload, FaCheck } from "react-icons/fa6"
 import { useEffect, useRef, useState, useCallback } from "react"
 import { useCompletion } from "@ai-sdk/react"
-import { TarotCard, useTarot } from "@/contexts/tarot-context"
+import { useTarot } from "@/contexts/tarot-context"
 import { useRouter } from "next/navigation"
 import QuestionInput from "../question-input"
 import { CardImage } from "../card-image"
@@ -268,7 +268,7 @@ If the interpretation is too generic, add more details to make it more specific.
 
     return (
         <>
-            {/* Ad Viewing Dialog */}
+            {/* Ad Viewing Dialog - Always rendered for proper positioning */}
             <AdViewingDialog
                 open={showAdDialog}
                 onOpenChange={setShowAdDialog}

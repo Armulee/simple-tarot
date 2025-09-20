@@ -60,7 +60,7 @@ export default function AdViewingDialog({
 
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
-            <AlertDialogContent className="max-w-md mx-auto border-0 relative overflow-hidden">
+            <AlertDialogContent className="max-w-md mx-auto border-0 relative overflow-hidden bg-red-500/20">
                 {/* Background effects */}
                 <div className="absolute inset-0 pointer-events-none">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
