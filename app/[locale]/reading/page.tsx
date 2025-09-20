@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import ReadingType from "@/components/reading/reading-type"
 import CardSelection from "@/components/reading/card-selection"
+import AdViewing from "@/components/reading/ad-viewing"
 import Interpretation from "@/components/reading/interpretation"
 import ReadingGuard from "@/components/reading/reading-guard"
 import { getTranslations } from "next-intl/server"
@@ -56,6 +57,7 @@ export default async function ReadingPage() {
         <ReadingGuard>
             <ReadingType readingConfig={readingConfig} />
             <CardSelection readingConfig={readingConfig} />
+            <AdViewing />
             <Interpretation />
         </ReadingGuard>
     )
