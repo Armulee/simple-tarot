@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,61 @@ import { Loader2, Play, CheckCircle, Clock, Sparkles, Zap } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { AD_CONFIG } from '@/lib/admob-config';
 import { createRewardedAd, RewardedAdCallbacks } from '@/lib/google-ad-manager';
+
+interface Star {
+    id: number;
+    size: "1px" | "2px" | "3px";
+    top: string;
+    left: string;
+    animation: string;
+    duration: string;
+    color: string;
+}
+
+const generateRandomStars = (count: number = 60): Star[] => {
+    const animations = [
+        "animate-pulse",
+        "animate-bounce",
+        "animate-ping",
+        "animate-spin",
+    ];
+    const sizes: ("1px" | "2px" | "3px")[] = ["1px", "2px", "3px"];
+    const colors = [
+        "#ffffff",
+        "#e0e7ff",
+        "#c7d2fe",
+        "#a5b4fc",
+        "#818cf8",
+        "#6366f1",
+        "#8b5cf6",
+        "#d946ef",
+        "#f97316",
+        "#fbbf24",
+    ];
+    const durations = [
+        "2.0s",
+        "2.5s",
+        "3.0s",
+        "3.5s",
+        "4.0s",
+        "4.5s",
+        "5.0s",
+        "5.5s",
+        "6.0s",
+        "6.5s",
+        "7.0s",
+    ];
+
+    return Array.from({ length: count }, (_, index) => ({
+        id: index + 1,
+        size: sizes[Math.floor(Math.random() * sizes.length)],
+        top: `${Math.floor(Math.random() * 95) + 2}%`,
+        left: `${Math.floor(Math.random() * 95) + 2}%`,
+        animation: animations[Math.floor(Math.random() * animations.length)],
+        duration: durations[Math.floor(Math.random() * durations.length)],
+        color: colors[Math.floor(Math.random() * colors.length)],
+    }));
+};
 
 interface RewardedAdsProps {
     onAdCompleted: (interpretationData?: string) => void;
@@ -39,10 +94,22 @@ export default function RewardedAds({
         progress: 0,
         interpretationReady: false,
     });
+    const [mounted, setMounted] = useState(false);
     
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
     const interpretationRef = useRef<string | null>(null);
     const adManagerRef = useRef<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+
+    // Generate cosmic stars for the background
+    const stars = useMemo(
+        () => (mounted ? generateRandomStars(60) : []),
+        [mounted]
+    );
+
+    // Ensure component is mounted on client side
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     // Start interpretation fetching when component mounts
     useEffect(() => {
@@ -442,13 +509,50 @@ export default function RewardedAds({
     };
 
     return (
-        <Card className="w-full max-w-md mx-auto border-0 relative overflow-hidden">
-            {/* Background effects */}
-            <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
-                <div className="absolute top-0 left-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-x-16 -translate-y-16" />
-                <div className="absolute bottom-0 right-0 w-32 h-32 bg-accent/10 rounded-full blur-3xl translate-x-16 translate-y-16" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Enhanced Overlay with Cosmic Stars - Fully Opaque Background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-black via-purple-900 to-black">
+                {/* Cosmic Stars Background */}
+                <div className="absolute inset-0 pointer-events-none">
+                    {stars.map((star) => (
+                        <div
+                            key={star.id}
+                            className={`absolute rounded-full pointer-events-none ${star.animation}`}
+                            style={{
+                                width: star.size,
+                                height: star.size,
+                                backgroundColor: star.color,
+                                top: star.top,
+                                left: star.left,
+                                animationDuration: star.duration,
+                                boxShadow: `0 0 ${star.size} ${star.color}`,
+                            }}
+                        />
+                    ))}
+                </div>
+                
+                {/* Cosmic gradient overlays */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-indigo-500/3 to-transparent" />
             </div>
+            
+            {/* Rewarded Ads Card */}
+            <Card className="relative z-[110] w-full max-w-md mx-auto border-0 overflow-hidden bg-gradient-to-br from-background/95 via-background/90 to-background/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl">
+                {/* Enhanced Background Effects */}
+                <div className="absolute inset-0 pointer-events-none">
+                    {/* Cosmic gradient backgrounds */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-blue-500/5 to-transparent" />
+                    
+                    {/* Floating cosmic orbs */}
+                    <div className="absolute top-0 left-0 w-40 h-40 bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-3xl -translate-x-20 -translate-y-20 animate-pulse" />
+                    <div className="absolute bottom-0 right-0 w-40 h-40 bg-gradient-to-br from-accent/20 to-transparent rounded-full blur-3xl translate-x-20 translate-y-20 animate-pulse" style={{ animationDelay: '1s' }} />
+                    
+                    {/* Sparkle effects */}
+                    <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
+                    <div className="absolute top-3/4 right-1/4 w-1 h-1 bg-accent rounded-full animate-ping" style={{ animationDelay: '1.5s' }} />
+                    <div className="absolute top-1/2 right-1/3 w-1.5 h-1.5 bg-white rounded-full animate-ping" style={{ animationDelay: '2s' }} />
+                </div>
             
             <div className="relative z-10 p-6">
                 {/* Header */}
@@ -480,6 +584,7 @@ export default function RewardedAds({
                     </div>
                 </div>
             </div>
-        </Card>
+            </Card>
+        </div>
     );
 }
