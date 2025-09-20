@@ -113,6 +113,21 @@ export default function RewardedAds({
         setMounted(true);
     }, []);
 
+    // Auto-complete when ad status becomes 'completed'
+    useEffect(() => {
+        if (adState.status === 'completed') {
+            // Small delay to show completion state briefly
+            const autoCompleteTimeout = setTimeout(() => {
+                console.log('Auto-completing ad and showing interpretation');
+                // Save that ads have been watched
+                localStorage.setItem('watchedAds', 'true');
+                onAdCompleted(interpretationRef.current || undefined);
+            }, 1500); // 1.5 second delay to show completion state
+
+            return () => clearTimeout(autoCompleteTimeout);
+        }
+    }, [adState.status, onAdCompleted]);
+
     // Start interpretation fetching when component mounts
     useEffect(() => {
         if (interpretationPromise && onStartInterpretation) {
@@ -353,15 +368,6 @@ export default function RewardedAds({
         };
     }, [onAdError, onAdCompleted, startRealAd, handleRealAdComplete, handleAdSkip, fallbackToSimulatedAd]);
 
-    const handleAdComplete = () => {
-        if (adState.watchTime >= AD_CONFIG.AD_SETTINGS.MIN_WATCH_TIME) {
-            // Save that ads have been watched
-            localStorage.setItem('watchedAds', 'true');
-            onAdCompleted(interpretationRef.current || undefined);
-        } else {
-            onAdError?.('Ad not watched completely');
-        }
-    };
 
     const handleSkip = () => {
         if (intervalRef.current) {
@@ -550,13 +556,16 @@ export default function RewardedAds({
                             </div>
                         )}
                         
-                        <Button 
-                            onClick={handleAdComplete}
-                            disabled={interpretationPromise && !adState.interpretationReady}
-                            className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {t('completed.button')}
-                        </Button>
+                        {/* Auto-completion message */}
+                        <div className="text-center space-y-2">
+                            <div className="flex items-center justify-center space-x-2">
+                                <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                                <span className="text-sm text-muted-foreground">Preparing your interpretation...</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                This will close automatically in a moment
+                            </p>
+                        </div>
                     </div>
                 );
             
