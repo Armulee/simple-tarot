@@ -14,7 +14,7 @@ import { Toaster } from "sonner"
 import { hasLocale } from "next-intl"
 import { routing } from "@/i18n/routing"
 import { notFound } from "next/navigation"
-import { getMessages } from "next-intl/server"
+import { getMessages, getTranslations } from "next-intl/server"
 
 /* Updated fonts to match mystical design brief */
 const playfairDisplay = Playfair_Display({
@@ -31,30 +31,57 @@ const sourceSans = Source_Sans_3({
     weight: ["400", "500", "600"],
 })
 
-export const metadata: Metadata = {
-    title: "Asking Fate - AI-Powered Mystical Guidance",
-    description:
-        "Discover your destiny with AI-powered tarot card interpretations in a stunning cosmic experience",
-    generator: "v0.app",
-    icons: {
-        icon: [
-            { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-            { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-            { url: "/favicon.ico", sizes: "any" }
-        ],
-        apple: [
-            { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }
-        ],
-        other: [
-            { url: "/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
-            { url: "/android-chrome-512x512.png", sizes: "512x512", type: "image/png" }
-        ]
-    },
-    other: {
-        "apple-mobile-web-app-capable": "yes",
-        "apple-mobile-web-app-status-bar-style": "black-translucent",
-        "apple-mobile-web-app-title": "Asking Fate",
-    },
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+    const { locale } = await params
+    const t = await getTranslations({ locale, namespace: "Meta.Layout" })
+    return {
+        title: t("title"),
+        description: t("description"),
+        generator: "v0.app",
+        icons: {
+            icon: [
+                {
+                    url: "/favicon-16x16.png",
+                    sizes: "16x16",
+                    type: "image/png",
+                },
+                {
+                    url: "/favicon-32x32.png",
+                    sizes: "32x32",
+                    type: "image/png",
+                },
+                { url: "/favicon.ico", sizes: "any" },
+            ],
+            apple: [
+                {
+                    url: "/apple-touch-icon.png",
+                    sizes: "180x180",
+                    type: "image/png",
+                },
+            ],
+            other: [
+                {
+                    url: "/android-chrome-192x192.png",
+                    sizes: "192x192",
+                    type: "image/png",
+                },
+                {
+                    url: "/android-chrome-512x512.png",
+                    sizes: "512x512",
+                    type: "image/png",
+                },
+            ],
+        },
+        other: {
+            "apple-mobile-web-app-capable": "yes",
+            "apple-mobile-web-app-status-bar-style": "black-translucent",
+            "apple-mobile-web-app-title": "Asking Fate",
+        },
+    }
 }
 
 export const viewport = {
@@ -79,6 +106,12 @@ export default async function RootLayout({
     }
     return (
         <html lang={locale}>
+            <head>
+                <meta
+                    name='monetag'
+                    content='19830385f9b011d473d6a40addc1d9f5'
+                />
+            </head>
             <body
                 className={`font-sans ${sourceSans.variable} ${playfairDisplay.variable}`}
             >

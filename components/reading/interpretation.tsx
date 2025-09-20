@@ -7,31 +7,33 @@ import { Sparkles, RefreshCcw, Loader2, Stars } from "lucide-react"
 import { FaShareNodes, FaCopy, FaDownload, FaCheck } from "react-icons/fa6"
 import { useEffect, useRef, useState, useCallback } from "react"
 import { useCompletion } from "@ai-sdk/react"
-import { TarotCard, useTarot } from "@/contexts/tarot-context"
+import { useTarot } from "@/contexts/tarot-context"
 import { useRouter } from "next/navigation"
 import QuestionInput from "../question-input"
 import { CardImage } from "../card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
+import RewardedAds from "@/components/ads/rewarded-ads"
 
 export default function Interpretation() {
     const t = useTranslations("ReadingPage.interpretation")
     const router = useRouter()
     const [finish, setFinish] = useState(false)
     const [copied, setCopied] = useState(false)
-    const [followUpData, setFollowUpData] = useState<{
-        lastQuestion: string
-        lastCards: TarotCard[]
-        lastInterpretation: string
-        pureQuestion: string
-    } | null>(null)
     const [isFollowUpMode, setIsFollowUpMode] = useState(false)
+    
+    // Ad states
+    const [showAd, setShowAd] = useState(false)
+    const [interpretationPromise, setInterpretationPromise] = useState<Promise<string> | null>(null)
+    const [adCompleted, setAdCompleted] = useState(false)
+    
     const {
         currentStep,
         question,
         selectedCards,
         interpretation,
         setInterpretation,
+        setCurrentStep,
         isFollowUp,
         followUpQuestion,
     } = useTarot()
@@ -44,53 +46,6 @@ export default function Interpretation() {
         },
     })
 
-    const getInterpretation = useCallback(
-        async (question: string, selectedCards: TarotCard[]) => {
-            let prompt: string
-
-            // Check if this is a follow-up question
-            if (isFollowUp && followUpQuestion) {
-                if (followUpData) {
-                    prompt = `From last question: ${followUpData.lastQuestion}
-last cards: ${followUpData.lastCards.map((c) => c.meaning).join(", ")} 
-last interpretation: ${followUpData.lastInterpretation}
-
-Answer this follow up question: ${followUpQuestion}
-The user picked up cards: ${selectedCards.map((c) => c.meaning).join(", ")}
-
-Provide a concise interpretation that addresses the follow-up question while considering the previous reading context. Keep it positive and uplifting. Answer as a paragraph. No more than 100 words.`
-                } else {
-                    // Fallback if followUpData is not available
-                    prompt = `Question: "${followUpQuestion}"
-Cards: ${selectedCards.map((c) => c.meaning).join(", ")}
-
-From this information, provide a concise interpretation of the cards that directly addresses the user's question. If the interpretation is harm user's feeling, tone it down to be more positive and uplifting. Answer it as paragraph. No more than 100 words.`
-                }
-            } else {
-                // Regular interpretation
-                prompt = `Question: "${question}"
-Cards: ${selectedCards.map((c) => c.meaning).join(", ")}
-
-From this information, provide a concise interpretation of the cards that directly addresses the user's question. If the interpretation is harm user's feeling, tone it down to be more positive and uplifting. Answer it as paragraph. No more than 100 words.
-
-If the interpretation is too negative, tone it down to be more positive and uplifting.
-
-If the interpretation is too positive, tone it down to be more realistic and down to earth.
-
-If the interpretation is too vague, add more details to make it more specific.
-
-If the interpretation is too long, shorten it to be more concise.
-
-If the interpretation is too short, add more details to make it more specific.
-
-If the interpretation is too generic, add more details to make it more specific.
-`
-            }
-
-            await complete(prompt)
-        },
-        [complete, followUpData, isFollowUp, followUpQuestion]
-    )
 
     const shareImage = async () => {
         try {
@@ -203,48 +158,165 @@ If the interpretation is too generic, add more details to make it more specific.
     ]
 
     const hasInitiated = useRef(false)
-    useEffect(() => {
-        // Auto-submit when we have question and cards, but only once
-        if (
-            question &&
-            selectedCards.length > 0 &&
-            !interpretation &&
-            !hasInitiated.current
-        ) {
-            getInterpretation(question, selectedCards)
-            hasInitiated.current = true
-        }
-    }, [question, selectedCards, interpretation, getInterpretation])
 
-    // Effect to capture follow-up data when a follow-up question is detected
+    // Generate cache key based on question and selected cards
+    const generateCacheKey = useCallback((question: string, cards: { name: string; isReversed: boolean }[], isFollowUp: boolean, followUpQuestion?: string) => {
+        const cardsString = cards.map(card => `${card.name}${card.isReversed ? '_reversed' : ''}`).sort().join('_');
+        const baseKey = `interpretation_${btoa(question)}_${cardsString}`;
+        return isFollowUp ? `${baseKey}_followup_${btoa(followUpQuestion || '')}` : baseKey;
+    }, []);
+
+    // Check if interpretation exists in cache
+    const getCachedInterpretation = useCallback((cacheKey: string): string | null => {
+        try {
+            const cached = localStorage.getItem(cacheKey);
+            if (cached) {
+                const { interpretation, timestamp } = JSON.parse(cached);
+                // Cache valid for 24 hours
+                const isValid = Date.now() - timestamp < 24 * 60 * 60 * 1000;
+                return isValid ? interpretation : null;
+            }
+        } catch (error) {
+            console.error('Error reading cached interpretation:', error);
+        }
+        return null;
+    }, []);
+
+    // Save interpretation to cache
+    const saveInterpretationToCache = useCallback((cacheKey: string, interpretation: string) => {
+        try {
+            const cacheData = {
+                interpretation,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+        } catch (error) {
+            console.error('Error saving interpretation to cache:', error);
+        }
+    }, []);
+
+    const getInterpretationAsync = useCallback(async (): Promise<string> => {
+        const currentQuestion = isFollowUp && followUpQuestion ? followUpQuestion : question;
+        
+        if (!currentQuestion || selectedCards.length === 0) {
+            throw new Error('Missing question or cards');
+        }
+
+        // Generate cache key
+        const cacheKey = generateCacheKey(currentQuestion, selectedCards, isFollowUp, followUpQuestion || undefined);
+        
+        // Check if interpretation exists in cache
+        const cachedInterpretation = getCachedInterpretation(cacheKey);
+        if (cachedInterpretation) {
+            console.log('Using cached interpretation');
+            return cachedInterpretation;
+        }
+
+        console.log('Fetching new interpretation');
+        const prompt = `Question: "${currentQuestion}"
+Cards: ${selectedCards.map((c) => c.meaning).join(", ")}
+
+From this information, provide a concise interpretation of the cards that directly addresses the user's question. If the interpretation is harm user's feeling, tone it down to be more positive and uplifting. Answer it as paragraph. No more than 100 words.
+
+If the interpretation is too negative, tone it down to be more positive and uplifting.
+If the interpretation is too positive, tone it down to be more realistic and down to earth.
+If the interpretation is too vague, add more details to make it more specific.
+If the interpretation is too long, shorten it to be more concise.
+If the interpretation is too short, add more details to make it more specific.
+If the interpretation is too generic, add more details to make it more specific.`;
+
+        const result = await complete(prompt);
+        const interpretationResult = result || '';
+        
+        // Save to cache
+        if (interpretationResult) {
+            saveInterpretationToCache(cacheKey, interpretationResult);
+        }
+        
+        return interpretationResult;
+    }, [complete, isFollowUp, followUpQuestion, question, selectedCards, generateCacheKey, getCachedInterpretation, saveInterpretationToCache]);
+
+    const startAdProcess = useCallback(() => {
+        // Start interpretation fetching
+        const interpretationPromise = getInterpretationAsync();
+        setInterpretationPromise(interpretationPromise);
+        
+        // Show the ad immediately
+        setShowAd(true);
+    }, [getInterpretationAsync]);
+
+
+    const handleAdCompleted = useCallback((interpretationData?: string) => {
+        if (interpretationData) {
+            setInterpretation(interpretationData);
+        } else if (interpretationPromise) {
+            // Fallback: get interpretation from promise
+            interpretationPromise.then((interpretation) => {
+                setInterpretation(interpretation);
+            });
+        }
+        
+        // Ensure we stay in interpretation step
+        setCurrentStep("interpretation");
+        setShowAd(false);
+        setAdCompleted(true);
+    }, [interpretationPromise, setInterpretation, setCurrentStep]);
+
+    const handleAdSkipped = useCallback(() => {
+        console.log('Ad was skipped');
+        // Ensure we stay in interpretation step
+        setCurrentStep("interpretation");
+        setShowAd(false);
+        // Still proceed with interpretation
+        if (interpretationPromise) {
+            interpretationPromise.then((interpretation) => {
+                setInterpretation(interpretation);
+            });
+        }
+        setAdCompleted(true);
+    }, [interpretationPromise, setInterpretation, setCurrentStep]);
+
+    const handleAdError = useCallback((error: string) => {
+        console.error('Ad error:', error);
+        // Ensure we stay in interpretation step
+        setCurrentStep("interpretation");
+        setShowAd(false);
+        // Still proceed with interpretation
+        if (interpretationPromise) {
+            interpretationPromise.then((interpretation) => {
+                setInterpretation(interpretation);
+            });
+        }
+        setAdCompleted(true);
+    }, [interpretationPromise, setInterpretation, setCurrentStep]);
+    
+    // Show ads when interpretation component mounts
+    useEffect(() => {
+        if (currentStep === 'interpretation' && !hasInitiated.current) {
+            hasInitiated.current = true;
+            
+            // Always start the ad process when interpretation component mounts
+            startAdProcess();
+        }
+    }, [currentStep, startAdProcess]);
+
+    // Reset component state for follow-up interpretations
     useEffect(() => {
         if (isFollowUp && followUpQuestion) {
-            // This is a follow-up question, we need to capture the previous reading data
-            setIsFollowUpMode(true)
-            const STORAGE_KEY = "reading-state-v1"
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY + "-backup")
-                if (raw) {
-                    const data = JSON.parse(raw)
-                    setFollowUpData({
-                        lastQuestion: data.question || "",
-                        lastCards: data.selectedCards || [],
-                        lastInterpretation: data.interpretation || "",
-                        pureQuestion: followUpQuestion,
-                    })
-                    // Clean up the backup data after using it
-                    localStorage.removeItem(STORAGE_KEY + "-backup")
-                }
-            } catch (e) {
-                console.error("Failed to load follow-up data:", e)
-            }
-            // Reset the hasInitiated flag for follow-up questions
-            hasInitiated.current = false
-        } else {
-            // Not a follow-up question, reset follow-up mode
-            setIsFollowUpMode(false)
+            // Reset all component states for follow-up
+            hasInitiated.current = false;
+            setShowAd(false);
+            setInterpretationPromise(null);
+            setAdCompleted(false);
+            setIsFollowUpMode(true);
+            
+            console.log('Reset interpretation component for follow-up');
+        } else if (!isFollowUp && hasInitiated.current) {
+            // Reset follow-up mode when not in follow-up
+            setIsFollowUpMode(false);
         }
-    }, [isFollowUp, followUpQuestion])
+    }, [isFollowUp, followUpQuestion]);
+
 
     // Reset follow-up mode when we have a new interpretation
     useEffect(() => {
@@ -255,6 +327,21 @@ If the interpretation is too generic, add more details to make it more specific.
 
     return (
         <>
+            {/* Ad Viewing Screen */}
+            {showAd && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <RewardedAds
+                        onAdCompleted={handleAdCompleted}
+                        onAdSkipped={handleAdSkipped}
+                        onAdError={handleAdError}
+                        onStartInterpretation={() => {
+                            console.log('Starting interpretation...');
+                        }}
+                        interpretationPromise={interpretationPromise || undefined}
+                    />
+                </div>
+            )}
+
             {currentStep === "interpretation" && (
                 <div className='space-y-8'>
                     {/* Header */}
@@ -387,7 +474,19 @@ If the interpretation is too generic, add more details to make it more specific.
                                 </div>
                             </div>
                             <div className='prose prose-invert max-w-none'>
-                                {error ? (
+                                {!adCompleted ? (
+                                    <div className='text-center space-y-6 py-8'>
+                                        <div className='flex items-center justify-center space-x-3'>
+                                            <Sparkles className='w-6 h-6 text-primary' />
+                                            <span className='text-muted-foreground'>
+                                                {showAd ? t("adViewing.title") : t("loading.title")}
+                                            </span>
+                                        </div>
+                                        <p className='text-sm text-muted-foreground'>
+                                            {showAd ? t("adViewing.description") : t("loading.subtitle")}
+                                        </p>
+                                    </div>
+                                ) : error ? (
                                     <div className='text-center space-y-4'>
                                         <p className='text-destructive'>
                                             {t("error")}
@@ -442,7 +541,7 @@ If the interpretation is too generic, add more details to make it more specific.
                         </div>
                     </Card>
 
-                    {(interpretation || finish || error) && (
+                    {adCompleted && (interpretation || finish || error) && (
                         <>
                             {/* Sharing - only show when not error */}
                             {!error && (
