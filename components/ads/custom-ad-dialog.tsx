@@ -88,15 +88,20 @@ export default function CustomAdDialog({
 
     const handlePreferenceChange = (checked: boolean) => {
         setRememberPreference(checked);
-        localStorage.setItem('auto-play-ads', checked.toString());
-        
-        // Clear watched ads localStorage when user sets preference to auto-play
-        if (checked) {
-            localStorage.removeItem('watchedAds');
-        }
+        // Don't save to localStorage here - only save when user actually watches ads
     };
 
     const handleWatchAd = () => {
+        // Save the preference to localStorage only when user actually watches ads
+        if (rememberPreference) {
+            localStorage.setItem('auto-play-ads', 'true');
+            // Clear watched ads localStorage when user sets preference to auto-play
+            localStorage.removeItem('watchedAds');
+        } else {
+            // If unchecked, remove the preference
+            localStorage.removeItem('auto-play-ads');
+        }
+        
         // Clear watched ads localStorage when user chooses to watch ads
         localStorage.removeItem('watchedAds');
         onWatchAd();
