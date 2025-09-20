@@ -96,10 +96,12 @@ export default function CardSelection({
         }))
 
         setSelectedCards(tarotCards)
-        // Clear watched ads localStorage when starting new card selection
+        // Clear watched ads localStorage when starting new card selection (including follow-ups)
         localStorage.removeItem('watchedAds')
-        // Clear interpretation cache for new reading
-        clearInterpretationCache()
+        // Clear interpretation cache for new reading (only for non-follow-up readings)
+        if (!isFollowUp) {
+            clearInterpretationCache()
+        }
         // Show ad dialog instead of going directly to interpretation
         setShowAdDialog(true)
     }

@@ -300,14 +300,23 @@ If the interpretation is too generic, add more details to make it more specific.
         }
     }, [currentStep, startAdProcess]);
 
-    // Effect to handle follow-up questions
+    // Reset component state for follow-up interpretations
     useEffect(() => {
         if (isFollowUp && followUpQuestion) {
-            setIsFollowUpMode(true)
-        } else {
-            setIsFollowUpMode(false)
+            // Reset all component states for follow-up
+            hasInitiated.current = false;
+            setShowAd(false);
+            setInterpretationPromise(null);
+            setAdCompleted(false);
+            setIsFollowUpMode(true);
+            
+            console.log('Reset interpretation component for follow-up');
+        } else if (!isFollowUp && hasInitiated.current) {
+            // Reset follow-up mode when not in follow-up
+            setIsFollowUpMode(false);
         }
-    }, [isFollowUp, followUpQuestion])
+    }, [isFollowUp, followUpQuestion]);
+
 
     // Reset follow-up mode when we have a new interpretation
     useEffect(() => {
