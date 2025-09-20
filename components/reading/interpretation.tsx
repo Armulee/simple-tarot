@@ -187,13 +187,16 @@ If the interpretation is too generic, add more details to make it more specific.
     const startAdProcess = useCallback(() => {
         setShowAdDialog(false);
         
+        // Ensure we're in interpretation step
+        setCurrentStep("interpretation");
+        
         // Start interpretation fetching
         const interpretationPromise = getInterpretationAsync();
         setInterpretationPromise(interpretationPromise);
         
         // Show the ad
         setShowAd(true);
-    }, [getInterpretationAsync]);
+    }, [getInterpretationAsync, setCurrentStep]);
 
     const handleDialogClose = useCallback(() => {
         // If user closes dialog without watching ad, go back to card selection
