@@ -96,6 +96,8 @@ export default function CardSelection({
         }))
 
         setSelectedCards(tarotCards)
+        // Clear watched ads localStorage when starting new card selection
+        localStorage.removeItem('watchedAds')
         // Show ad dialog instead of going directly to interpretation
         setShowAdDialog(true)
     }

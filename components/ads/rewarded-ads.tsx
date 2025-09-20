@@ -108,8 +108,17 @@ export default function RewardedAds({
         }, 1000);
     };
 
-    // Simulate ad loading and autoplay
+    // Check if ads have already been watched and skip if so
     useEffect(() => {
+        const watchedAds = localStorage.getItem('watchedAds');
+        if (watchedAds === 'true') {
+            // Ads already watched, skip directly to completion
+            console.log('Ads already watched, skipping...');
+            onAdCompleted();
+            return;
+        }
+
+        // Simulate ad loading and autoplay
         const loadAndPlayAd = async () => {
             try {
                 // Simulate loading time
@@ -125,6 +134,8 @@ export default function RewardedAds({
                     startAd();
                 }, 500);
             } catch {
+                // Save that ads have been watched (even if there was an error)
+                localStorage.setItem('watchedAds', 'true');
                 setAdState(prev => ({
                     ...prev,
                     status: 'error',
@@ -135,10 +146,12 @@ export default function RewardedAds({
         };
 
         loadAndPlayAd();
-    }, [onAdError]);
+    }, [onAdError, onAdCompleted]);
 
     const handleAdComplete = () => {
         if (adState.watchTime >= AD_CONFIG.AD_SETTINGS.MIN_WATCH_TIME) {
+            // Save that ads have been watched
+            localStorage.setItem('watchedAds', 'true');
             onAdCompleted(interpretationRef.current || undefined);
         } else {
             onAdError?.('Ad not watched completely');
@@ -149,6 +162,8 @@ export default function RewardedAds({
         if (intervalRef.current) {
             clearInterval(intervalRef.current);
         }
+        // Save that ads have been watched (even if skipped)
+        localStorage.setItem('watchedAds', 'true');
         onAdSkipped?.();
     };
 
