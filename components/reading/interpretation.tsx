@@ -13,7 +13,7 @@ import QuestionInput from "../question-input"
 import { CardImage } from "../card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
-import AdViewingDialog from "@/components/ads/ad-viewing-dialog"
+import CustomAdDialog from "@/components/ads/custom-ad-dialog"
 import OptimizedRewardedAd from "@/components/ads/optimized-rewarded-ad"
 
 export default function Interpretation() {
@@ -269,7 +269,7 @@ If the interpretation is too generic, add more details to make it more specific.
     return (
         <>
             {/* Ad Viewing Dialog - Always rendered for proper positioning */}
-            <AdViewingDialog
+            <CustomAdDialog
                 open={showAdDialog}
                 onOpenChange={setShowAdDialog}
                 onWatchAd={startAdProcess}
