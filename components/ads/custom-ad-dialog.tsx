@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -64,10 +63,7 @@ export default function CustomAdDialog({
     const dialogContent = (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             {/* Overlay */}
-            <div 
-                className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-                onClick={() => onOpenChange(false)}
-            />
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
             
             {/* Dialog Content */}
             <div className="relative z-[110] w-full max-w-md mx-auto bg-background border border-border rounded-lg shadow-xl">
@@ -79,13 +75,6 @@ export default function CustomAdDialog({
                         <div className="absolute bottom-0 right-0 w-32 h-32 bg-accent/10 rounded-full blur-3xl translate-x-16 translate-y-16" />
                     </div>
 
-                    {/* Close button */}
-                    <button
-                        onClick={() => onOpenChange(false)}
-                        className="absolute top-4 right-4 z-20 p-1 rounded-full hover:bg-muted/50 transition-colors"
-                    >
-                        <X className="w-5 h-5 text-muted-foreground" />
-                    </button>
 
                     {/* Header */}
                     <div className="relative z-10 p-6 pb-4">
@@ -182,21 +171,22 @@ export default function CustomAdDialog({
                     </div>
 
                     {/* Footer */}
-                    <div className="relative z-10 px-6 pb-6 flex space-x-2">
-                        <Button
-                            variant="outline"
-                            onClick={() => onOpenChange(false)}
-                            className="flex-1"
-                        >
-                            {t('skip')}
-                        </Button>
+                    <div className="relative z-10 px-6 pb-6 space-y-3">
                         <Button
                             onClick={handleWatchAd}
-                            className="flex-1 bg-gradient-to-r from-[#15a6ff] to-[#b56cff] hover:from-[#0ea5e9] hover:to-[#a855f7] text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                            className="w-full bg-gradient-to-r from-[#15a6ff] to-[#b56cff] hover:from-[#0ea5e9] hover:to-[#a855f7] text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                         >
                             <Play className="w-4 h-4 mr-2" />
                             {t('watchAd')}
                         </Button>
+                        <div className="text-center">
+                            <button
+                                onClick={() => onOpenChange(false)}
+                                className="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
+                            >
+                                {t('backToCardSelection')}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

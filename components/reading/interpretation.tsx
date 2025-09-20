@@ -35,6 +35,7 @@ export default function Interpretation() {
         selectedCards,
         interpretation,
         setInterpretation,
+        setCurrentStep,
         isFollowUp,
         followUpQuestion,
     } = useTarot()
@@ -194,6 +195,13 @@ If the interpretation is too generic, add more details to make it more specific.
         setShowAd(true);
     }, [getInterpretationAsync]);
 
+    const handleDialogClose = useCallback(() => {
+        // If user closes dialog without watching ad, go back to card selection
+        setShowAdDialog(false);
+        setCurrentStep("card-selection");
+        hasInitiated.current = false; // Reset so dialog can show again
+    }, [setCurrentStep]);
+
     const handleAdCompleted = useCallback((interpretationData?: string) => {
         if (interpretationData) {
             setInterpretation(interpretationData);
@@ -271,7 +279,7 @@ If the interpretation is too generic, add more details to make it more specific.
             {/* Ad Viewing Dialog - Always rendered for proper positioning */}
             <CustomAdDialog
                 open={showAdDialog}
-                onOpenChange={setShowAdDialog}
+                onOpenChange={handleDialogClose}
                 onWatchAd={startAdProcess}
                 question={question}
                 selectedCards={selectedCards}

@@ -350,6 +350,7 @@
       "rememberPreference": "Don't show this message again (auto-play ads)",
       "disclaimer": "Watching this ad helps us provide free readings. You can skip if needed.",
       "skip": "Skip Ad",
+      "backToCardSelection": "Back to Card Selection",
       "watchAd": "Watch Ad"
     },
     "optimizedRewardedAd": {
