@@ -102,8 +102,16 @@ export default function CardSelection({
         if (!isFollowUp) {
             clearInterpretationCache()
         }
-        // Show ad dialog instead of going directly to interpretation
-        setShowAdDialog(true)
+        
+        // Check auto-play preference
+        const autoPlayAds = localStorage.getItem('auto-play-ads') === 'true';
+        if (autoPlayAds) {
+            // Skip dialog and go directly to interpretation step
+            setCurrentStep("interpretation");
+        } else {
+            // Show ad dialog
+            setShowAdDialog(true);
+        }
     }
 
     // Dialog handlers
