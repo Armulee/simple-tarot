@@ -215,12 +215,16 @@ If the interpretation is too generic, add more details to make it more specific.
             });
         }
         
+        // Ensure we stay in interpretation step
+        setCurrentStep("interpretation");
         setShowAd(false);
         setAdCompleted(true);
-    }, [interpretationPromise, setInterpretation]);
+    }, [interpretationPromise, setInterpretation, setCurrentStep]);
 
     const handleAdSkipped = useCallback(() => {
         console.log('Ad was skipped');
+        // Ensure we stay in interpretation step
+        setCurrentStep("interpretation");
         setShowAd(false);
         // Still proceed with interpretation
         if (interpretationPromise) {
@@ -229,10 +233,12 @@ If the interpretation is too generic, add more details to make it more specific.
             });
         }
         setAdCompleted(true);
-    }, [interpretationPromise, setInterpretation]);
+    }, [interpretationPromise, setInterpretation, setCurrentStep]);
 
     const handleAdError = useCallback((error: string) => {
         console.error('Ad error:', error);
+        // Ensure we stay in interpretation step
+        setCurrentStep("interpretation");
         setShowAd(false);
         // Still proceed with interpretation
         if (interpretationPromise) {
@@ -241,7 +247,7 @@ If the interpretation is too generic, add more details to make it more specific.
             });
         }
         setAdCompleted(true);
-    }, [interpretationPromise, setInterpretation]);
+    }, [interpretationPromise, setInterpretation, setCurrentStep]);
     
     // Show ad dialog when entering interpretation step
     useEffect(() => {
