@@ -103,13 +103,16 @@ export default function CardSelection({
             clearInterpretationCache()
         }
         
-        // Check auto-play preference
+        // Check auto-play preference BEFORE setting any dialog state
         const autoPlayAds = localStorage.getItem('auto-play-ads') === 'true';
+        
         if (autoPlayAds) {
-            // Skip dialog and go directly to interpretation step
+            // Skip dialog entirely and go directly to interpretation step
+            console.log('Auto-play ads enabled, skipping dialog');
             setCurrentStep("interpretation");
         } else {
-            // Show ad dialog
+            // Show ad dialog only if auto-play is disabled
+            console.log('Auto-play ads disabled, showing dialog');
             setShowAdDialog(true);
         }
     }
