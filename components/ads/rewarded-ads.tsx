@@ -1,12 +1,13 @@
 "use client"
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Play, CheckCircle, Clock, Sparkles, Zap } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { AD_CONFIG } from '@/lib/admob-config';
+import { createRewardedAd, RewardedAdCallbacks } from '@/lib/google-ad-manager';
 
 interface RewardedAdsProps {
     onAdCompleted: (interpretationData?: string) => void;
@@ -41,6 +42,7 @@ export default function RewardedAds({
     
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
     const interpretationRef = useRef<string | null>(null);
+    const adManagerRef = useRef<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
 
     // Start interpretation fetching when component mounts
     useEffect(() => {
@@ -64,6 +66,44 @@ export default function RewardedAds({
                 });
         }
     }, [interpretationPromise, onStartInterpretation]);
+
+    // Helper functions for real ad handling
+    const startRealAd = useCallback(() => {
+        if (adManagerRef.current) {
+            adManagerRef.current.showAd();
+        }
+    }, []);
+
+    const handleRealAdComplete = useCallback(() => {
+        // Save that ads have been watched
+        localStorage.setItem('watchedAds', 'true');
+        setAdState(prev => ({
+            ...prev,
+            status: 'completed',
+            progress: 100,
+        }));
+        onAdCompleted(interpretationRef.current || undefined);
+    }, [onAdCompleted]);
+
+    const handleAdSkip = useCallback(() => {
+        // Save that ads have been watched (even if skipped)
+        localStorage.setItem('watchedAds', 'true');
+        onAdSkipped?.();
+    }, [onAdSkipped]);
+
+    // Fallback to simulated ad when real ads fail
+    const fallbackToSimulatedAd = useCallback(() => {
+        console.log('Falling back to simulated ad');
+        setAdState(prev => ({
+            ...prev,
+            status: 'ready',
+        }));
+
+        // Auto-start the simulated ad after a short delay
+        setTimeout(() => {
+            startAd();
+        }, 500);
+    }, []);
 
     const startAd = () => {
         setAdState(prev => ({
@@ -108,7 +148,7 @@ export default function RewardedAds({
         }, 1000);
     };
 
-    // Check if ads have already been watched and skip if so
+    // Initialize and load real Google Ad Manager ads
     useEffect(() => {
         const watchedAds = localStorage.getItem('watchedAds');
         if (watchedAds === 'true') {
@@ -118,35 +158,74 @@ export default function RewardedAds({
             return;
         }
 
-        // Simulate ad loading and autoplay
-        const loadAndPlayAd = async () => {
+        // Initialize Google Ad Manager
+        const initializeRealAds = async () => {
             try {
-                // Simulate loading time
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                
-                setAdState(prev => ({
-                    ...prev,
-                    status: 'ready',
-                }));
+                // Create real rewarded ad instance
+                const adUnitId = AD_CONFIG.getRewardedVideoId();
+                adManagerRef.current = createRewardedAd(adUnitId);
 
-                // Auto-start the ad after a short delay
-                setTimeout(() => {
-                    startAd();
-                }, 500);
-            } catch {
-                // Save that ads have been watched (even if there was an error)
-                localStorage.setItem('watchedAds', 'true');
-                setAdState(prev => ({
-                    ...prev,
-                    status: 'error',
-                    error: 'Failed to load ad',
-                }));
-                onAdError?.('Failed to load ad');
+                // Set up ad callbacks
+                const callbacks: RewardedAdCallbacks = {
+                    onAdLoaded: () => {
+                        console.log('Real ad loaded successfully');
+                        setAdState(prev => ({
+                            ...prev,
+                            status: 'ready',
+                        }));
+
+                        // Auto-start the ad after a short delay
+                        setTimeout(() => {
+                            startRealAd();
+                        }, 500);
+                    },
+                    onAdFailedToLoad: (error: string) => {
+                        console.error('Real ad failed to load:', error);
+                        // Fallback to simulated ad on error
+                        fallbackToSimulatedAd();
+                    },
+                    onAdStarted: () => {
+                        console.log('Real ad started playing');
+                        setAdState(prev => ({
+                            ...prev,
+                            status: 'playing',
+                        }));
+                    },
+                    onAdCompleted: () => {
+                        console.log('Real ad completed');
+                        handleRealAdComplete();
+                    },
+                    onAdClosed: () => {
+                        console.log('Real ad closed');
+                        handleAdSkip();
+                    },
+                    onUserEarnedReward: (reward) => {
+                        console.log('User earned reward:', reward);
+                        // Reward logic can be added here
+                    }
+                };
+
+                adManagerRef.current.setCallbacks(callbacks);
+
+                // Load the real ad
+                await adManagerRef.current.loadAd();
+
+            } catch (error) {
+                console.error('Failed to initialize real ads:', error);
+                // Fallback to simulated ad
+                fallbackToSimulatedAd();
             }
         };
 
-        loadAndPlayAd();
-    }, [onAdError, onAdCompleted]);
+        initializeRealAds();
+
+        // Cleanup function
+        return () => {
+            if (adManagerRef.current) {
+                adManagerRef.current.destroy();
+            }
+        };
+    }, [onAdError, onAdCompleted, startRealAd, handleRealAdComplete, handleAdSkip, fallbackToSimulatedAd]);
 
     const handleAdComplete = () => {
         if (adState.watchTime >= AD_CONFIG.AD_SETTINGS.MIN_WATCH_TIME) {
@@ -201,7 +280,11 @@ export default function RewardedAds({
                         <div className="text-center space-y-2">
                             <h3 className="font-semibold text-lg">{t('ready.title')}</h3>
                             <p className="text-muted-foreground">{t('ready.description')}</p>
-                            <p className="text-sm text-primary font-medium">Ad will start automatically...</p>
+                            <p className="text-sm text-primary font-medium">Real ad will start automatically...</p>
+                            <Badge variant="outline" className="text-xs">
+                                <Sparkles className="w-3 h-3 mr-1" />
+                                Google Ad Manager
+                            </Badge>
                         </div>
                         
                         {/* Show interpretation status */}
