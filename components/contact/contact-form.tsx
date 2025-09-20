@@ -24,7 +24,6 @@ export default function ContactForm() {
         // Simulate form submission
         await new Promise((resolve) => setTimeout(resolve, 1500))
 
-        console.log("Contact form submitted:", formData)
         alert("Thank you for your message! We'll get back to you soon.")
 
         // Reset form
@@ -54,10 +53,7 @@ export default function ContactForm() {
                                 placeholder='Your name'
                                 value={formData.name}
                                 onChange={(e) =>
-                                    updateFormData(
-                                        "name",
-                                        e.target.value
-                                    )
+                                    updateFormData("name", e.target.value)
                                 }
                                 className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 floating-input'
                                 required
@@ -76,10 +72,7 @@ export default function ContactForm() {
                                 placeholder='your@email.com'
                                 value={formData.email}
                                 onChange={(e) =>
-                                    updateFormData(
-                                        "email",
-                                        e.target.value
-                                    )
+                                    updateFormData("email", e.target.value)
                                 }
                                 className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 floating-input'
                                 required
@@ -100,10 +93,7 @@ export default function ContactForm() {
                             placeholder='What can we help you with?'
                             value={formData.subject}
                             onChange={(e) =>
-                                updateFormData(
-                                    "subject",
-                                    e.target.value
-                                )
+                                updateFormData("subject", e.target.value)
                             }
                             className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 floating-input'
                             required
@@ -122,10 +112,7 @@ export default function ContactForm() {
                             placeholder='Tell us more about your question or concern...'
                             value={formData.message}
                             onChange={(e) =>
-                                updateFormData(
-                                    "message",
-                                    e.target.value
-                                )
+                                updateFormData("message", e.target.value)
                             }
                             className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 min-h-[120px] resize-none floating-input'
                             required
@@ -139,9 +126,7 @@ export default function ContactForm() {
                     size='lg'
                     className='w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 card-glow'
                 >
-                    {isSubmitting
-                        ? "Sending Message..."
-                        : "Send Message"}
+                    {isSubmitting ? "Sending Message..." : "Send Message"}
                 </Button>
             </form>
         </Card>

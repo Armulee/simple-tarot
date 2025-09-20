@@ -31,6 +31,7 @@ export default function CardSelection({
         clearInterpretationState,
         isFollowUp,
         followUpQuestion,
+        setFollowUpQuestion,
     } = useTarot()
     const isMobile = useIsMobile()
 
@@ -66,7 +67,11 @@ export default function CardSelection({
     }
 
     const handleSaveQuestion = (newQuestion: string) => {
-        setQuestion(newQuestion)
+        if (isFollowUp) {
+            setFollowUpQuestion(newQuestion)
+        } else {
+            setQuestion(newQuestion)
+        }
         setIsEditing(false)
     }
 
@@ -115,11 +120,9 @@ export default function CardSelection({
 
         if (autoPlayAds) {
             // Skip dialog entirely and go directly to interpretation step
-            console.log("Auto-play ads enabled, skipping dialog")
             setCurrentStep("interpretation")
         } else {
             // Show ad dialog only if auto-play is disabled
-            console.log("Auto-play ads disabled, showing dialog")
             setShowAdDialog(true)
         }
     }
@@ -135,21 +138,8 @@ export default function CardSelection({
         // Stay in card selection step
     }
 
-    // Clear interpretation cache for new readings
-    const clearInterpretationCache = () => {
-        try {
-            // Remove all interpretation cache entries
-            const keys = Object.keys(localStorage)
-            keys.forEach((key) => {
-                if (key.startsWith("interpretation_")) {
-                    localStorage.removeItem(key)
-                }
-            })
-            console.log("Interpretation cache cleared")
-        } catch (error) {
-            console.error("Error clearing interpretation cache:", error)
-        }
-    }
+    // Clear interpretation cache for new readings - no-op (migrated to reading-state-v1)
+    const clearInterpretationCache = () => {}
 
     const externalNames = useMemo(
         () => aggSelected.map((c) => c.name),

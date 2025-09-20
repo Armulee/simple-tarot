@@ -218,7 +218,6 @@ export default function HoroscopeForm() {
                 setTimezone(resolved.timezone)
                 setLat(resolved.latitude.toFixed(6))
                 setLng(resolved.longitude.toFixed(6))
-                console.log("Fallback resolved location:", resolved)
             }
         }
     }, [country, stateProv, lat, lng])
@@ -234,9 +233,7 @@ export default function HoroscopeForm() {
             setTimezone(resolved.timezone)
             setLat(resolved.latitude.toFixed(6))
             setLng(resolved.longitude.toFixed(6))
-            console.log("Resolved location:", resolved)
         } else {
-            console.log("Failed to resolve location for:", country, stateProv)
         }
         // If resolution fails, keep current defaults
     }, [country, stateProv])
@@ -264,22 +261,6 @@ export default function HoroscopeForm() {
             min <= 59
         const validGeo = !!timezone && lat !== "" && lng !== ""
 
-        // Debug logging
-        console.log("Validation debug:", {
-            day,
-            month,
-            year,
-            hour,
-            minute,
-            timezone,
-            lat,
-            lng,
-            validDate,
-            validTime,
-            validGeo,
-            isValid: validDate && validTime && validGeo,
-        })
-
         return validDate && validTime && validGeo
     }, [day, month, year, hour, minute, timezone, lat, lng])
 
@@ -305,7 +286,6 @@ export default function HoroscopeForm() {
             if (!res.ok) throw new Error("Failed to calculate horoscope")
             const data = await res.json()
             setResult(data)
-            console.log(data)
         } catch (err) {
             setError(
                 err instanceof Error ? err.message : "Something went wrong"

@@ -33,14 +33,7 @@ Note: Only include card symbolism, spread mechanics, or detailed card meanings i
         })
 
         // Wait for the provider's full response (contains usage)
-        const usage = await result.usage
-        const cost = costPerUsage(usage.inputTokens, usage.outputTokens, MODEL)
-        console.log({
-            input: usage.inputTokens,
-            output: usage.outputTokens,
-            $: cost?.toFixed(5),
-            "฿": cost ? (cost * 35).toFixed(5) : 0,
-        })
+        // Optionally compute usage/cost here if needed
 
         return result.toUIMessageStreamResponse()
     } catch (error) {

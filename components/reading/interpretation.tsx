@@ -14,7 +14,7 @@ import { CardImage } from "../card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
 import RewardedAds from "@/components/ads/rewarded-ads"
-import AdDialog from "@/components/ads/ad-dialog"
+// import AdDialog from "@/components/ads/ad-dialog"
 
 export default function Interpretation() {
     const t = useTranslations("ReadingPage.interpretation")
@@ -160,63 +160,7 @@ export default function Interpretation() {
 
     const hasInitiated = useRef(false)
 
-    // Generate cache key based on question and selected cards
-    const generateCacheKey = useCallback(
-        (
-            question: string,
-            cards: { name: string; isReversed: boolean }[],
-            isFollowUp: boolean,
-            followUpQuestion?: string
-        ) => {
-            const cardsString = cards
-                .map(
-                    (card) =>
-                        `${card.name}${card.isReversed ? "_reversed" : ""}`
-                )
-                .sort()
-                .join("_")
-            const baseKey = `interpretation_${btoa(question)}_${cardsString}`
-            return isFollowUp
-                ? `${baseKey}_followup_${btoa(followUpQuestion || "")}`
-                : baseKey
-        },
-        []
-    )
-
-    // Check if interpretation exists in cache
-    const getCachedInterpretation = useCallback(
-        (cacheKey: string): string | null => {
-            try {
-                const cached = localStorage.getItem(cacheKey)
-                if (cached) {
-                    const { interpretation, timestamp } = JSON.parse(cached)
-                    // Cache valid for 24 hours
-                    const isValid = Date.now() - timestamp < 24 * 60 * 60 * 1000
-                    return isValid ? interpretation : null
-                }
-            } catch (error) {
-                console.error("Error reading cached interpretation:", error)
-            }
-            return null
-        },
-        []
-    )
-
-    // Save interpretation to cache
-    const saveInterpretationToCache = useCallback(
-        (cacheKey: string, interpretation: string) => {
-            try {
-                const cacheData = {
-                    interpretation,
-                    timestamp: Date.now(),
-                }
-                localStorage.setItem(cacheKey, JSON.stringify(cacheData))
-            } catch (error) {
-                console.error("Error saving interpretation to cache:", error)
-            }
-        },
-        []
-    )
+    // Removed old localStorage-based interpretation cache.
 
     const getInterpretationAsync = useCallback(async (): Promise<string> => {
         const currentQuestion =
@@ -226,22 +170,6 @@ export default function Interpretation() {
             throw new Error("Missing question or cards")
         }
 
-        // Generate cache key
-        const cacheKey = generateCacheKey(
-            currentQuestion,
-            selectedCards,
-            isFollowUp,
-            followUpQuestion || undefined
-        )
-
-        // Check if interpretation exists in cache
-        const cachedInterpretation = getCachedInterpretation(cacheKey)
-        if (cachedInterpretation) {
-            console.log("Using cached interpretation")
-            return cachedInterpretation
-        }
-
-        console.log("Fetching new interpretation")
         const prompt = `Question: "${currentQuestion}"
 Cards: ${selectedCards.map((c) => c.meaning).join(", ")}
 
@@ -256,23 +184,8 @@ If the interpretation is too generic, add more details to make it more specific.
 
         const result = await complete(prompt)
         const interpretationResult = result || ""
-
-        // Save to cache
-        if (interpretationResult) {
-            saveInterpretationToCache(cacheKey, interpretationResult)
-        }
-
         return interpretationResult
-    }, [
-        complete,
-        isFollowUp,
-        followUpQuestion,
-        question,
-        selectedCards,
-        generateCacheKey,
-        getCachedInterpretation,
-        saveInterpretationToCache,
-    ])
+    }, [complete, isFollowUp, followUpQuestion, question, selectedCards])
 
     const startAdProcess = useCallback(() => {
         // Start interpretation fetching
@@ -303,7 +216,6 @@ If the interpretation is too generic, add more details to make it more specific.
     )
 
     const handleAdSkipped = useCallback(() => {
-        console.log("Ad was skipped")
         // Ensure we stay in interpretation step
         setCurrentStep("interpretation")
         setShowAd(false)
@@ -372,8 +284,6 @@ If the interpretation is too generic, add more details to make it more specific.
             setInterpretationPromise(null)
             setAdCompleted(false)
             setIsFollowUpMode(true)
-
-            console.log("Reset interpretation component for follow-up")
         } else if (!isFollowUp && hasInitiated.current) {
             // Reset follow-up mode when not in follow-up
             setIsFollowUpMode(false)
@@ -392,24 +302,13 @@ If the interpretation is too generic, add more details to make it more specific.
             {/* Ad Viewing - gated by env */}
             {adsEnabled && (
                 <>
-                    {/* Pre-ad dialog to confirm watching */}
-                    <AdDialog
-                        open={showAd}
-                        onOpenChange={setShowAd}
-                        onWatchAd={() => {
-                            // Keep current flow; RewardedAds will auto-start/show
-                            // showAd remains true while RewardedAds is active
-                        }}
-                    />
                     {showAd && (
                         <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
                             <RewardedAds
                                 onAdCompleted={handleAdCompleted}
                                 onAdSkipped={handleAdSkipped}
                                 onAdError={handleAdError}
-                                onStartInterpretation={() => {
-                                    console.log("Starting interpretation...")
-                                }}
+                                onStartInterpretation={() => {}}
                                 interpretationPromise={
                                     interpretationPromise || undefined
                                 }

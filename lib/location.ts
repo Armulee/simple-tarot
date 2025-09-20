@@ -41,13 +41,7 @@ function timezoneToOffset(timezone: string): number {
         const offsetHours = offsetMs / (1000 * 60 * 60)
 
         return Math.round(offsetHours * 2) / 2 // Round to nearest 0.5
-    } catch (error) {
-        console.log(
-            "Timezone conversion error:",
-            error,
-            "for timezone:",
-            timezone
-        )
+    } catch {
         return 0 // UTC fallback
     }
 }
@@ -146,26 +140,12 @@ export function resolveLocationFromCountryState(
     let timezone = "UTC"
     try {
         timezone = tzLookup(latitude, longitude)
-        console.log(
-            "Resolved timezone string:",
-            timezone,
-            "for coords:",
-            latitude,
-            longitude
-        )
-    } catch (error) {
-        console.log("tz-lookup error:", error)
+    } catch {
         // keep UTC fallback
     }
 
     // Convert timezone name to numeric offset
     const timezoneOffset = timezoneToOffset(timezone)
-    console.log(
-        "Converted timezone offset:",
-        timezoneOffset,
-        "from timezone:",
-        timezone
-    )
 
     return {
         countryName: country.name,
