@@ -98,6 +98,8 @@ export default function CardSelection({
         setSelectedCards(tarotCards)
         // Clear watched ads localStorage when starting new card selection
         localStorage.removeItem('watchedAds')
+        // Clear interpretation cache for new reading
+        clearInterpretationCache()
         // Show ad dialog instead of going directly to interpretation
         setShowAdDialog(true)
     }
@@ -111,6 +113,22 @@ export default function CardSelection({
     const handleDialogClose = () => {
         setShowAdDialog(false);
         // Stay in card selection step
+    };
+
+    // Clear interpretation cache for new readings
+    const clearInterpretationCache = () => {
+        try {
+            // Remove all interpretation cache entries
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+                if (key.startsWith('interpretation_')) {
+                    localStorage.removeItem(key);
+                }
+            });
+            console.log('Interpretation cache cleared');
+        } catch (error) {
+            console.error('Error clearing interpretation cache:', error);
+        }
     };
 
     const externalNames = useMemo(

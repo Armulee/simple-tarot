@@ -26,6 +26,7 @@ export default function Interpretation() {
     const [showAd, setShowAd] = useState(false)
     const [interpretationPromise, setInterpretationPromise] = useState<Promise<string> | null>(null)
     const [adCompleted, setAdCompleted] = useState(false)
+    const [isFromCache, setIsFromCache] = useState(false)
     
     const {
         currentStep,
@@ -159,6 +160,42 @@ export default function Interpretation() {
 
     const hasInitiated = useRef(false)
 
+    // Generate cache key based on question and selected cards
+    const generateCacheKey = useCallback((question: string, cards: { name: string; isReversed: boolean }[], isFollowUp: boolean, followUpQuestion?: string) => {
+        const cardsString = cards.map(card => `${card.name}${card.isReversed ? '_reversed' : ''}`).sort().join('_');
+        const baseKey = `interpretation_${btoa(question)}_${cardsString}`;
+        return isFollowUp ? `${baseKey}_followup_${btoa(followUpQuestion || '')}` : baseKey;
+    }, []);
+
+    // Check if interpretation exists in cache
+    const getCachedInterpretation = useCallback((cacheKey: string): string | null => {
+        try {
+            const cached = localStorage.getItem(cacheKey);
+            if (cached) {
+                const { interpretation, timestamp } = JSON.parse(cached);
+                // Cache valid for 24 hours
+                const isValid = Date.now() - timestamp < 24 * 60 * 60 * 1000;
+                return isValid ? interpretation : null;
+            }
+        } catch (error) {
+            console.error('Error reading cached interpretation:', error);
+        }
+        return null;
+    }, []);
+
+    // Save interpretation to cache
+    const saveInterpretationToCache = useCallback((cacheKey: string, interpretation: string) => {
+        try {
+            const cacheData = {
+                interpretation,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+        } catch (error) {
+            console.error('Error saving interpretation to cache:', error);
+        }
+    }, []);
+
     const getInterpretationAsync = useCallback(async (): Promise<string> => {
         const currentQuestion = isFollowUp && followUpQuestion ? followUpQuestion : question;
         
@@ -166,6 +203,19 @@ export default function Interpretation() {
             throw new Error('Missing question or cards');
         }
 
+        // Generate cache key
+        const cacheKey = generateCacheKey(currentQuestion, selectedCards, isFollowUp, followUpQuestion || undefined);
+        
+        // Check if interpretation exists in cache
+        const cachedInterpretation = getCachedInterpretation(cacheKey);
+        if (cachedInterpretation) {
+            console.log('Using cached interpretation');
+            setIsFromCache(true);
+            return cachedInterpretation;
+        }
+
+        console.log('Fetching new interpretation');
+        setIsFromCache(false);
         const prompt = `Question: "${currentQuestion}"
 Cards: ${selectedCards.map((c) => c.meaning).join(", ")}
 
@@ -179,8 +229,15 @@ If the interpretation is too short, add more details to make it more specific.
 If the interpretation is too generic, add more details to make it more specific.`;
 
         const result = await complete(prompt);
-        return result || '';
-    }, [complete, isFollowUp, followUpQuestion, question, selectedCards]);
+        const interpretationResult = result || '';
+        
+        // Save to cache
+        if (interpretationResult) {
+            saveInterpretationToCache(cacheKey, interpretationResult);
+        }
+        
+        return interpretationResult;
+    }, [complete, isFollowUp, followUpQuestion, question, selectedCards, generateCacheKey, getCachedInterpretation, saveInterpretationToCache]);
 
     const startAdProcess = useCallback(() => {
         // Start interpretation fetching
@@ -472,6 +529,16 @@ If the interpretation is too generic, add more details to make it more specific.
                                                     ? ""
                                                     : completion)}
                                         </div>
+                                        
+                                        {/* Cache indicator */}
+                                        {isFromCache && (
+                                            <div className="flex items-center justify-center mb-4">
+                                                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-200">
+                                                    <Stars className="w-3 h-3 mr-1" />
+                                                    Cached Interpretation
+                                                </Badge>
+                                            </div>
+                                        )}
                                     </>
                                 )}
                             </div>
