@@ -12,6 +12,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
 import { InlineQuestionEdit } from "../inline-question-edit"
+import CustomAdDialog from "@/components/ads/custom-ad-dialog"
 
 export default function CardSelection({
     readingConfig,
@@ -46,6 +47,9 @@ export default function CardSelection({
     >([])
     const [spreadResetKey, setSpreadResetKey] = useState(0)
     const cardsToSelect = readingType ? readingConfig[readingType].cards : 1
+    
+    // Ad dialog state
+    const [showAdDialog, setShowAdDialog] = useState(false)
 
     // Clear previous selections whenever we enter the card selection step (including follow-up)
     useEffect(() => {
@@ -92,8 +96,20 @@ export default function CardSelection({
         }))
 
         setSelectedCards(tarotCards)
-        setCurrentStep("interpretation")
+        // Show ad dialog instead of going directly to interpretation
+        setShowAdDialog(true)
     }
+
+    // Dialog handlers
+    const handleWatchAd = () => {
+        setShowAdDialog(false);
+        setCurrentStep("interpretation");
+    };
+
+    const handleDialogClose = () => {
+        setShowAdDialog(false);
+        // Stay in card selection step
+    };
 
     const externalNames = useMemo(
         () => aggSelected.map((c) => c.name),
@@ -128,6 +144,13 @@ export default function CardSelection({
 
     return (
         <>
+            {/* Ad Viewing Dialog */}
+            <CustomAdDialog
+                open={showAdDialog}
+                onOpenChange={handleDialogClose}
+                onWatchAd={handleWatchAd}
+            />
+
             {currentStep === "card-selection" && (
                 <div className='space-y-8 animate-fade-in'>
                     <Card className='px-6 pt-12 border-0'>

@@ -13,7 +13,6 @@ import QuestionInput from "../question-input"
 import { CardImage } from "../card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
-import CustomAdDialog from "@/components/ads/custom-ad-dialog"
 import OptimizedRewardedAd from "@/components/ads/optimized-rewarded-ad"
 
 export default function Interpretation() {
@@ -23,8 +22,7 @@ export default function Interpretation() {
     const [copied, setCopied] = useState(false)
     const [isFollowUpMode, setIsFollowUpMode] = useState(false)
     
-    // Ad dialog states
-    const [showAdDialog, setShowAdDialog] = useState(false)
+    // Ad states
     const [showAd, setShowAd] = useState(false)
     const [interpretationPromise, setInterpretationPromise] = useState<Promise<string> | null>(null)
     const [adCompleted, setAdCompleted] = useState(false)
@@ -185,25 +183,14 @@ If the interpretation is too generic, add more details to make it more specific.
     }, [complete, isFollowUp, followUpQuestion, question, selectedCards]);
 
     const startAdProcess = useCallback(() => {
-        setShowAdDialog(false);
-        
-        // Ensure we're in interpretation step
-        setCurrentStep("interpretation");
-        
         // Start interpretation fetching
         const interpretationPromise = getInterpretationAsync();
         setInterpretationPromise(interpretationPromise);
         
-        // Don't show ad here - it will be shown when interpretation component mounts
-        // setShowAd(true);
-    }, [getInterpretationAsync, setCurrentStep]);
+        // Show the ad immediately
+        setShowAd(true);
+    }, [getInterpretationAsync]);
 
-    const handleDialogClose = useCallback(() => {
-        // If user closes dialog without watching ad, go back to card selection
-        setShowAdDialog(false);
-        setCurrentStep("card-selection");
-        hasInitiated.current = false; // Reset so dialog can show again
-    }, [setCurrentStep]);
 
     const handleAdCompleted = useCallback((interpretationData?: string) => {
         if (interpretationData) {
@@ -249,31 +236,15 @@ If the interpretation is too generic, add more details to make it more specific.
         setAdCompleted(true);
     }, [interpretationPromise, setInterpretation, setCurrentStep]);
     
-    // Show ad dialog when entering interpretation step
+    // Show ads when interpretation component mounts
     useEffect(() => {
         if (currentStep === 'interpretation' && !hasInitiated.current) {
             hasInitiated.current = true;
             
-            // Check if user wants to auto-play ads
-            const autoPlayAds = localStorage.getItem('auto-play-ads') === 'true';
-            
-            if (autoPlayAds) {
-                // Auto-start the ad process (which will show ads in interpretation component)
-                startAdProcess();
-            } else {
-                // Show dialog
-                setShowAdDialog(true);
-            }
+            // Always start the ad process when interpretation component mounts
+            startAdProcess();
         }
     }, [currentStep, startAdProcess]);
-
-    // Show ads when interpretation component is mounted and dialog was completed
-    useEffect(() => {
-        if (currentStep === 'interpretation' && hasInitiated.current && !showAdDialog && !showAd && !adCompleted) {
-            // Show the ad in the interpretation component
-            setShowAd(true);
-        }
-    }, [currentStep, showAdDialog, showAd, adCompleted]);
 
     // Effect to handle follow-up questions
     useEffect(() => {
@@ -293,13 +264,6 @@ If the interpretation is too generic, add more details to make it more specific.
 
     return (
         <>
-            {/* Ad Viewing Dialog - Always rendered for proper positioning */}
-            <CustomAdDialog
-                open={showAdDialog}
-                onOpenChange={handleDialogClose}
-                onWatchAd={startAdProcess}
-            />
-
             {/* Ad Viewing Screen */}
             {showAd && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
