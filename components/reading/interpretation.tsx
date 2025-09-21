@@ -13,7 +13,7 @@ import QuestionInput from "../question-input"
 import { CardImage } from "../card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
-import RewardedAds from "@/components/ads/rewarded-ads"
+import ApplixirRewardedAds from "@/components/ads/applixir-rewarded-ads"
 // import AdDialog from "@/components/ads/ad-dialog"
 
 export default function Interpretation() {
@@ -229,8 +229,18 @@ If the interpretation is too generic, add more details to make it more specific.
     }, [interpretationPromise, setInterpretation, setCurrentStep])
 
     const handleAdError = useCallback(
-        (error: string) => {
-            console.error("Ad error:", error)
+        (err: unknown) => {
+            const message =
+                typeof err === "string"
+                    ? err
+                    : (() => {
+                          try {
+                              return JSON.stringify(err)
+                          } catch {
+                              return String(err)
+                          }
+                      })()
+            console.error("Ad error:", message)
             // Ensure we stay in interpretation step
             setCurrentStep("interpretation")
             setShowAd(false)
@@ -303,15 +313,14 @@ If the interpretation is too generic, add more details to make it more specific.
             {adsEnabled && (
                 <>
                     {showAd && (
-                        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
-                            <RewardedAds
-                                onAdCompleted={handleAdCompleted}
-                                onAdSkipped={handleAdSkipped}
-                                onAdError={handleAdError}
-                                onStartInterpretation={() => {}}
-                                interpretationPromise={
-                                    interpretationPromise || undefined
-                                }
+                        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4'>
+                            {/* Prefer Applixir when configured, else fallback to simulated RewardedAds */}
+                            <ApplixirRewardedAds
+                                autoShowOnMount
+                                hideButton
+                                onComplete={() => handleAdCompleted(undefined)}
+                                onSkip={handleAdSkipped}
+                                onError={(m) => handleAdError(m)}
                             />
                         </div>
                     )}
