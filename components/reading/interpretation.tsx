@@ -35,7 +35,6 @@ export default function Interpretation() {
         selectedCards,
         interpretation,
         setInterpretation,
-        setCurrentStep,
         isFollowUp,
         followUpQuestion,
     } = useTarot()
@@ -207,17 +206,13 @@ If the interpretation is too generic, add more details to make it more specific.
                 })
             }
 
-            // Ensure we stay in interpretation step
-            setCurrentStep("interpretation")
             setShowAd(false)
             setAdCompleted(true)
         },
-        [interpretationPromise, setInterpretation, setCurrentStep]
+        [interpretationPromise, setInterpretation]
     )
 
     const handleAdSkipped = useCallback(() => {
-        // Ensure we stay in interpretation step
-        setCurrentStep("interpretation")
         setShowAd(false)
         // Still proceed with interpretation
         if (interpretationPromise) {
@@ -226,34 +221,7 @@ If the interpretation is too generic, add more details to make it more specific.
             })
         }
         setAdCompleted(true)
-    }, [interpretationPromise, setInterpretation, setCurrentStep])
-
-    const handleAdError = useCallback(
-        (err: unknown) => {
-            const message =
-                typeof err === "string"
-                    ? err
-                    : (() => {
-                          try {
-                              return JSON.stringify(err)
-                          } catch {
-                              return String(err)
-                          }
-                      })()
-            console.error("Ad error:", message)
-            // Ensure we stay in interpretation step
-            setCurrentStep("interpretation")
-            setShowAd(false)
-            // Still proceed with interpretation
-            if (interpretationPromise) {
-                interpretationPromise.then((interpretation) => {
-                    setInterpretation(interpretation)
-                })
-            }
-            setAdCompleted(true)
-        },
-        [interpretationPromise, setInterpretation, setCurrentStep]
-    )
+    }, [interpretationPromise, setInterpretation])
 
     const adsEnabled =
         typeof process !== "undefined" &&
@@ -320,7 +288,6 @@ If the interpretation is too generic, add more details to make it more specific.
                                 hideButton
                                 onComplete={() => handleAdCompleted(undefined)}
                                 onSkip={handleAdSkipped}
-                                onError={(m) => handleAdError(m)}
                             />
                         </div>
                     )}

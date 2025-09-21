@@ -15,6 +15,7 @@ import { hasLocale } from "next-intl"
 import { routing } from "@/i18n/routing"
 import { notFound } from "next/navigation"
 import { getMessages, getTranslations } from "next-intl/server"
+import Script from "next/script"
 
 /* Updated fonts to match mystical design brief */
 const playfairDisplay = Playfair_Display({
@@ -137,6 +138,11 @@ export default async function RootLayout({
                     theme='dark'
                     richColors
                     closeButton
+                />
+
+                <Script
+                    type='text/javascript'
+                    src='https://cdn.applixir.com/applixir.app.v6.0.1.js'
                 />
             </body>
         </html>
