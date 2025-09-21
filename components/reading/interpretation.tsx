@@ -25,8 +25,7 @@ export default function Interpretation() {
 
     // Ad states
     const [showAd, setShowAd] = useState(false)
-    const [interpretationPromise, setInterpretationPromise] =
-        useState<Promise<string> | null>(null)
+    // Simplified: rely on completion hook and local gating only
     const [adCompleted, setAdCompleted] = useState(false)
 
     const {
@@ -182,46 +181,29 @@ If the interpretation is too short, add more details to make it more specific.
 If the interpretation is too generic, add more details to make it more specific.`
 
         const result = await complete(prompt)
-        const interpretationResult = result || ""
-        return interpretationResult
-    }, [complete, isFollowUp, followUpQuestion, question, selectedCards])
+
+        setInterpretation(result || "")
+        return result || ""
+    }, [
+        complete,
+        isFollowUp,
+        followUpQuestion,
+        question,
+        selectedCards,
+        setInterpretation,
+    ])
 
     const startAdProcess = useCallback(() => {
-        // Start interpretation fetching
-        const interpretationPromise = getInterpretationAsync()
-        setInterpretationPromise(interpretationPromise)
-
-        // Show the ad immediately
+        // Fire off the interpretation request; reveal it after ad completes
+        getInterpretationAsync()
         setShowAd(true)
     }, [getInterpretationAsync])
 
-    const handleAdCompleted = useCallback(
-        (interpretationData?: string) => {
-            if (interpretationData) {
-                setInterpretation(interpretationData)
-            } else if (interpretationPromise) {
-                // Fallback: get interpretation from promise
-                interpretationPromise.then((interpretation) => {
-                    setInterpretation(interpretation)
-                })
-            }
-
-            setShowAd(false)
-            setAdCompleted(true)
-        },
-        [interpretationPromise, setInterpretation]
-    )
-
-    const handleAdSkipped = useCallback(() => {
+    const handleAdCompleted = useCallback(() => {
+        // Close ad and mark as completed; text will be shown from completion hook
         setShowAd(false)
-        // Still proceed with interpretation
-        if (interpretationPromise) {
-            interpretationPromise.then((interpretation) => {
-                setInterpretation(interpretation)
-            })
-        }
         setAdCompleted(true)
-    }, [interpretationPromise, setInterpretation])
+    }, [])
 
     const adsEnabled =
         typeof process !== "undefined" &&
@@ -245,11 +227,11 @@ If the interpretation is too generic, add more details to make it more specific.
             hasInitiated.current = true
             setShowAd(false)
             setAdCompleted(true)
-            const p = getInterpretationAsync()
-            setInterpretationPromise(p)
-            p.then((value) => {
-                setInterpretation(value)
-            })
+            getInterpretationAsync()
+                .then((value) => {
+                    setInterpretation(value)
+                })
+                .catch(() => {})
         }
     }, [adsEnabled, currentStep, getInterpretationAsync, setInterpretation])
 
@@ -259,7 +241,6 @@ If the interpretation is too generic, add more details to make it more specific.
             // Reset all component states for follow-up
             hasInitiated.current = false
             setShowAd(false)
-            setInterpretationPromise(null)
             setAdCompleted(false)
             setIsFollowUpMode(true)
         } else if (!isFollowUp && hasInitiated.current) {
@@ -284,10 +265,7 @@ If the interpretation is too generic, add more details to make it more specific.
                         <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4'>
                             {/* Prefer Applixir when configured, else fallback to simulated RewardedAds */}
                             <ApplixirRewardedAds
-                                autoShowOnMount
-                                hideButton
-                                onComplete={() => handleAdCompleted(undefined)}
-                                onSkip={handleAdSkipped}
+                                onComplete={handleAdCompleted}
                             />
                         </div>
                     )}

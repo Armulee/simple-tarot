@@ -2,17 +2,10 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import Script from "next/script"
-import { Button } from "@/components/ui/button"
 
 interface ApplixirRewardedAdsProps {
     onComplete?: () => void
-    onSkip?: () => void
-    buttonText?: string
     className?: string
-    // Auto open the ad when component mounts (after SDK is ready)
-    autoShowOnMount?: boolean
-    // Hide the call-to-action button (useful when auto-showing)
-    hideButton?: boolean
     // Optional: override anchor id (defaults to applixir-anchor)
     anchorId?: string
 }
@@ -26,11 +19,7 @@ declare global {
 // Next.js client component to render a rewarded video button using Applixir (Steps 2-5)
 export default function ApplixirRewardedAds({
     onComplete,
-    onSkip,
-    buttonText = "Watch Ad",
     className,
-    autoShowOnMount,
-    hideButton,
     anchorId = "applixir-anchor",
 }: ApplixirRewardedAdsProps) {
     const [sdkReady, setSdkReady] = useState(false)
@@ -48,11 +37,16 @@ export default function ApplixirRewardedAds({
             injectionElementId: anchorId, // Step 2: Anchor
             // eslint-disable-next-line
             adStatusCallbackFn: (status: any) => {
-                console.log("OUTSIDE Ad status: ", status)
-                if (status.type === "complete") {
+                const type = String(status?.type || "").toLowerCase()
+                console.log("Applixir status:", type, status)
+                // Treat these as completion: close the ad and mark complete
+                if (
+                    type === "complete" ||
+                    type === "skip" ||
+                    type === "alladscomplete" ||
+                    type === "thankyoumodalclosed"
+                ) {
                     onComplete?.()
-                } else if (status.type === "skipped") {
-                    onSkip?.()
                 }
             }, // Step 4
             // eslint-disable-next-line
@@ -68,15 +62,14 @@ export default function ApplixirRewardedAds({
         } catch (e: any) {
             console.log(e.getError().data)
         }
-    }, [sdkReady, anchorId, onComplete, onSkip])
+    }, [sdkReady, anchorId, onComplete])
 
     // Auto show once the SDK is ready
     useEffect(() => {
-        if (!autoShowOnMount) return
         if (!sdkReady) return
         if (hasOpenedRef.current) return
         showAd()
-    }, [autoShowOnMount, sdkReady, showAd])
+    }, [sdkReady, showAd])
 
     return (
         <div className={className}>
@@ -90,12 +83,6 @@ export default function ApplixirRewardedAds({
                 onReady={() => setSdkReady(true)}
                 onError={() => console.log("Failed to load Applixir SDK")}
             />
-
-            {!hideButton && (
-                <Button onClick={showAd} disabled={!sdkReady} className='px-6'>
-                    {sdkReady ? buttonText : "Loading Ad..."}
-                </Button>
-            )}
         </div>
     )
 }
