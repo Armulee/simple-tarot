@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "@/i18n/navigation"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -22,6 +23,8 @@ export default function SignInPage() {
     const [error, setError] = useState("")
     const router = useRouter()
     const { signIn } = useAuth()
+    const searchParams = useSearchParams()
+    const redirect = searchParams?.get("redirect") || "/"
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -34,7 +37,7 @@ export default function SignInPage() {
             if (error) {
                 setError(error.message)
             } else {
-                router.push("/")
+                router.push(redirect)
                 router.refresh()
             }
         } catch {
@@ -62,7 +65,9 @@ export default function SignInPage() {
             </div>
 
             {/* Google Sign In */}
-            <GoogleSignInButton>{t("google")}</GoogleSignInButton>
+            <GoogleSignInButton redirectPath={redirect}>
+                {t("google")}
+            </GoogleSignInButton>
 
             <AuthDivider />
 

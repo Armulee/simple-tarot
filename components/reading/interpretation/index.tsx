@@ -9,12 +9,13 @@ import { useEffect, useRef, useState, useCallback } from "react"
 import { useCompletion } from "@ai-sdk/react"
 import { useTarot } from "@/contexts/tarot-context"
 import { useRouter } from "next/navigation"
-import QuestionInput from "../question-input"
-import { CardImage } from "../card-image"
+import QuestionInput from "../../question-input"
+import { CardImage } from "../../card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
 import ApplixirRewardedAds from "@/components/ads/applixir-rewarded-ads"
-// import AdDialog from "@/components/ads/ad-dialog"
+import BackgroundCards from "./background-cards"
+import GoPremium from "./go-premium"
 
 export default function Interpretation() {
     const t = useTranslations("ReadingPage.interpretation")
@@ -276,61 +277,7 @@ If the interpretation is too generic, add more details to make it more specific.
                 <div className='space-y-8'>
                     {/* Header */}
                     <Card className='px-6 pt-10 pb-6 border-0 relative overflow-hidden'>
-                        {/* Background card images with aura */}
-                        <div className='absolute inset-0 pointer-events-none'>
-                            {selectedCards.map((card, index) => {
-                                const positions = [
-                                    {
-                                        top: "10%",
-                                        left: "5%",
-                                        transform: "rotate(-15deg)",
-                                    },
-                                    {
-                                        top: "15%",
-                                        right: "8%",
-                                        transform: "rotate(20deg)",
-                                    },
-                                    {
-                                        bottom: "20%",
-                                        left: "10%",
-                                        transform: "rotate(-10deg)",
-                                    },
-                                    {
-                                        bottom: "15%",
-                                        right: "12%",
-                                        transform: "rotate(25deg)",
-                                    },
-                                    {
-                                        top: "50%",
-                                        left: "2%",
-                                        transform: "rotate(-5deg)",
-                                    },
-                                    {
-                                        top: "60%",
-                                        right: "5%",
-                                        transform: "rotate(15deg)",
-                                    },
-                                ]
-                                const position =
-                                    positions[index % positions.length]
-
-                                return (
-                                    <div
-                                        key={`bg-${index}`}
-                                        className='absolute opacity-20'
-                                        style={position}
-                                    >
-                                        <CardImage
-                                            card={card}
-                                            size='sm'
-                                            showAura={true}
-                                            showLabel={false}
-                                            className='scale-75'
-                                        />
-                                    </div>
-                                )
-                            })}
-                        </div>
+                        <BackgroundCards selectedCards={selectedCards} />
 
                         <div className='text-center space-y-6 relative z-10'>
                             <div className='flex items-center justify-center space-x-2 relative'>
@@ -386,6 +333,8 @@ If the interpretation is too generic, add more details to make it more specific.
                             </div>
                         </div>
                     </Card>
+
+                    <GoPremium />
 
                     {/* AI Interpretation */}
                     <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20 card-glow'>

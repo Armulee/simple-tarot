@@ -4,10 +4,9 @@ import CardSelection from "@/components/reading/card-selection"
 import Interpretation from "@/components/reading/interpretation"
 import ReadingGuard from "@/components/reading/reading-guard"
 import { getTranslations } from "next-intl/server"
-import { getTranslations as getT } from "next-intl/server"
 
 export async function generateMetadata(): Promise<Metadata> {
-    const t = await getT("Meta.Reading")
+    const t = await getTranslations("Meta.Reading")
     return {
         title: t("title"),
         description: t("description"),

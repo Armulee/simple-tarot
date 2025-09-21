@@ -13,6 +13,7 @@ import {
     BookOpen,
     LogIn,
     Sparkles,
+    Crown,
     Check,
 } from "lucide-react"
 import { SidebarSheet } from "./sidebar-sheet"
@@ -61,21 +62,23 @@ export function Navbar({ locale }: { locale: string }) {
                         {/* Mobile: menu button or user avatar */}
                         <Button
                             variant='ghost'
-                            size='icon'
-                            className='md:hidden text-white hover:bg-white/10'
+                            className='md:hidden text-white hover:bg-white/10 flex items-center gap-1 px-2 py-1 rounded-full'
                             onClick={() => setOpen(true)}
                             aria-label='Open menu'
                         >
                             {!loading && user ? (
-                                <Avatar className='w-8 h-8'>
-                                    <AvatarImage
-                                        src={avatarSrc}
-                                        alt={displayName}
-                                    />
-                                    <AvatarFallback className='bg-primary/20 text-primary font-semibold text-sm'>
-                                        {initial}
-                                    </AvatarFallback>
-                                </Avatar>
+                                <>
+                                    <Avatar className='w-8 h-8'>
+                                        <AvatarImage
+                                            src={avatarSrc}
+                                            alt={displayName}
+                                        />
+                                        <AvatarFallback className='bg-accent/80 text-white font-semibold text-sm'>
+                                            {initial}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <ChevronDown className='h-4 w-4' />
+                                </>
                             ) : (
                                 <Menu className='h-6 w-6' />
                             )}
@@ -114,6 +117,12 @@ export function Navbar({ locale }: { locale: string }) {
                         >
                             {t("about")}
                         </Link>
+                        <Link
+                            href='/pricing'
+                            className='hidden md:block text-cosmic-light hover:text-white transition-colors'
+                        >
+                            {t("pricing")}
+                        </Link>
                         <Sheet
                             open={mysticalOpen}
                             onOpenChange={setMysticalOpen}
@@ -121,7 +130,7 @@ export function Navbar({ locale }: { locale: string }) {
                             <SheetTrigger asChild>
                                 <Button
                                     variant='ghost'
-                                    className='inline-flex items-center space-x-2 text-white hover:bg-white/10 px-4 py-2 rounded-md transition-colors'
+                                    className='inline-flex items-center text-white hover:bg-white/10 !p-2 rounded-md transition-colors'
                                 >
                                     <Sparkles className='h-4 w-4' />
                                     <span>{s("tarot")}</span>
@@ -134,8 +143,8 @@ export function Navbar({ locale }: { locale: string }) {
                             >
                                 <SheetHeader>
                                     <SheetTitle className='flex items-center space-x-2 text-white'>
-                                        <BookOpen className='h-5 w-5' />
-                                        <span>{s("tarot")}</span>
+                                        <Sparkles className='h-5 w-5' />
+                                        <span>{s("services")}</span>
                                     </SheetTitle>
                                 </SheetHeader>
                                 <div className='mt-8 space-y-2'>
@@ -213,10 +222,21 @@ export function Navbar({ locale }: { locale: string }) {
                             </DropdownMenuContent>
                         </DropdownMenu>
 
-                        {/* Desktop only: User Profile / Sign In button */}
-                        <div className='hidden md:block'>
+                        {/* Desktop only: User Profile / Sign In button and Premium CTA */}
+                        <div className='hidden md:flex items-center gap-3'>
                             {!loading && user ? (
-                                <UserProfile variant='desktop' />
+                                <>
+                                    <Link href='/checkout'>
+                                        <Button
+                                            aria-label='Go Premium'
+                                            className='group relative overflow-hidden flex items-center gap-2 px-5 py-2.5 rounded-full text-white font-semibold bg-gradient-to-r from-primary/80 via-indigo-600/80 to-blue-600/80 hover:from-primary/90 hover:via-indigo-600/90 hover:to-blue-600/90 ring-1 ring-white/20 shadow-[0_8px_24px_rgba(59,130,246,0.35)] hover:shadow-[0_10px_28px_rgba(59,130,246,0.45)] transition-all duration-300'
+                                        >
+                                            <Crown className='w-4 h-4' />
+                                            <span>Go Premium</span>
+                                        </Button>
+                                    </Link>
+                                    <UserProfile variant='desktop' />
+                                </>
                             ) : (
                                 <Link href='/signin'>
                                     <Button
@@ -230,19 +250,30 @@ export function Navbar({ locale }: { locale: string }) {
                             )}
                         </div>
 
-                        {/* Mobile: Sign-in icon button (hidden when logged in) */}
-                        {!loading && !user && (
-                            <Link href='/signin' className='md:hidden'>
-                                <Button
-                                    variant='outline'
-                                    size='icon'
-                                    className='text-white border-white/30 hover:bg-white/10 rounded-full'
-                                    aria-label='Sign in'
-                                >
-                                    <LogIn className='w-4 h-4' />
-                                </Button>
-                            </Link>
-                        )}
+                        {/* Mobile: Sign-in icon button (when logged out) / Go Premium (when logged in) */}
+                        {!loading &&
+                            (user ? (
+                                <Link href='/checkout' className='md:hidden'>
+                                    <Button
+                                        aria-label='Go Premium'
+                                        className='group relative overflow-hidden flex items-center gap-2 px-4 py-2 rounded-full text-white font-semibold bg-gradient-to-r from-primary/80 via-indigo-600/80 to-blue-600/80 hover:from-primary/90 hover:via-indigo-600/90 hover:to-blue-600/90 ring-1 ring-white/20 shadow-[0_8px_24px_rgba(59,130,246,0.35)] hover:shadow-[0_10px_28px_rgba(59,130,246,0.45)] transition-all duration-300'
+                                    >
+                                        <Crown className='w-4 h-4' />
+                                        <span>Go Premium</span>
+                                    </Button>
+                                </Link>
+                            ) : (
+                                <Link href='/signin' className='md:hidden'>
+                                    <Button
+                                        variant='outline'
+                                        size='icon'
+                                        className='text-white border-white/30 hover:bg-white/10 rounded-full'
+                                        aria-label='Sign in'
+                                    >
+                                        <LogIn className='w-4 h-4' />
+                                    </Button>
+                                </Link>
+                            ))}
                     </div>
                 </div>
             </div>
