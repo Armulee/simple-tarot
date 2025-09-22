@@ -463,8 +463,8 @@
       "twitterTitle": "Terms of Service - AI Tarot Reading Terms & Conditions",
       "twitterDescription": "Read the terms of service for Asking Fate's AI-powered tarot reading platform and understand your rights and responsibilities."
     }
-  }
-  ,
+  },
+
   "Auth": {
     "SignIn": {
       "title": "Welcome Back",
@@ -505,6 +505,10 @@
       "errorGeneric": "An error occurred. Please try again.",
       "errorTermsRequired": "Please agree to the terms and conditions",
       "errorPasswordMismatch": "Passwords don't match"
+    },
+    "loginRequired": {
+      "title": "Login Required",
+      "message": "Please sign in to continue with your purchase."
     }
   },
 
@@ -624,13 +628,6 @@
     "description": "No more time wasted watching ads. Enjoy instant, ad‑free readings and exclusive perks.",
     "skipAds": "Skip Ads",
     "signInToUpgrade": "Sign in to upgrade"
-  },
-
-  "Auth": {
-    "loginRequired": {
-      "title": "Login Required",
-      "message": "Please sign in to continue with your purchase."
-    }
   }
 }
 
