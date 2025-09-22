@@ -9,15 +9,26 @@ import { Badge } from "@/components/ui/badge"
 import { Check, CreditCard, Mail, Phone, DollarSign } from "lucide-react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
+import { useSearchParams } from "next/navigation"
+import { useEffect } from "react"
 
 type Step = 1 | 2 | 3
 
 export default function CheckoutPage() {
     const t = useTranslations("Checkout")
+    const searchParams = useSearchParams()
     const [step, setStep] = useState<Step>(1)
     const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">(
         "monthly"
     )
+
+    // Read billing cycle from search params and set initial state
+    useEffect(() => {
+        const cycle = searchParams.get("cycle")
+        if (cycle === "annual" || cycle === "monthly") {
+            setBillingCycle(cycle)
+        }
+    }, [searchParams])
 
     const monthlyPrice = 2.99
     const annualPrice = 29.99
@@ -143,7 +154,7 @@ export default function CheckoutPage() {
 
                         <div className='flex justify-between mt-6'>
                             <Link
-                                href='/pricing'
+                                href={`/pricing?cycle=${billingCycle}`}
                                 className='text-gray-300 hover:text-white'
                             >
                                 {t('backToPricing')}

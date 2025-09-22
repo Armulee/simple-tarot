@@ -27,7 +27,7 @@ export default function GoPremium() {
                             </p>
                         </div>
                         {user ? (
-                            <Link href='/checkout'>
+                            <Link href='/checkout?cycle=monthly'>
                                 <Button className='group relative overflow-hidden flex items-center gap-2 px-5 py-2.5 rounded-full text-white font-semibold bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 hover:from-sky-500 hover:via-blue-500 hover:to-indigo-500 ring-1 ring-white/20 shadow-[0_8px_24px_rgba(59,130,246,0.35)] hover:shadow-[0_10px_28px_rgba(59,130,246,0.45)] transition-all duration-300'>
                                     <Crown className='w-4 h-4' />
                                     <span>{t('skipAds')}</span>
@@ -36,7 +36,7 @@ export default function GoPremium() {
                         ) : (
                             <Link
                                 href={`/signin?redirect=${encodeURIComponent(
-                                    "/checkout"
+                                    "/checkout?cycle=monthly"
                                 )}`}
                             >
                                 <Button
