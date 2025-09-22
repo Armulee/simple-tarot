@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Link } from "@/i18n/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { useTranslations } from "next-intl"
+import { Sparkles } from "lucide-react"
 
 export default function SignUpPage() {
     const t = useTranslations("Auth.SignUp")
@@ -75,9 +76,7 @@ export default function SignUpPage() {
             {/* Header */}
             <div className='text-center space-y-4'>
                 <div className='w-16 h-16 mx-auto rounded-full bg-secondary/20 flex items-center justify-center float-animation'>
-                    <span className='text-secondary font-serif font-bold text-2xl'>
-                        ✨
-                    </span>
+                    <Sparkles className='w-8 h-8 text-secondary' />
                 </div>
                 <div className='space-y-2'>
                     <h1 className='font-serif font-bold text-3xl text-balance'>
