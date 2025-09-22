@@ -513,6 +513,110 @@
     "faq": {
       "title": "Frequently Asked Questions"
     }
+  },
+
+  "Pricing": {
+    "free": "Free",
+    "premium": "Premium",
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "mostPopular": "Most Popular",
+    "currentPlan": "Current Plan",
+    "freeDescription": "Unlimited readings with ads",
+    "premiumDescription": "Unlimited, ad‑free experience",
+    "features": {
+      "unlimitedReadings": "Unlimited readings",
+      "unlimitedFollowUp": "Unlimited follow-up questions",
+      "watchAdsToReveal": "Watch ads to reveal results",
+      "shareDownload": "Share / download readings",
+      "mobileDesktop": "Mobile & desktop access",
+      "adFreeExperience": "Ad‑free experience (no interruptions)",
+      "instantAnswers": "Instant answers, no delays",
+      "monthlyDeepSpreads": "Monthly deep/featured spreads",
+      "readingHistory": "Reading history (journal)",
+      "themesDeckChoices": "Themes & deck choices",
+      "prioritySupport": "Priority support & early updates"
+    },
+    "comparison": {
+      "features": "Features",
+      "free": "Free",
+      "premium": "Premium",
+      "tarotReadings": "Tarot Readings",
+      "followUpQuestions": "Follow‑up Questions",
+      "speed": "Speed",
+      "exclusiveSpreads": "Exclusive Spreads",
+      "tarotHistory": "Tarot History (Journal)",
+      "themesDeckChoices": "Themes & Deck Choices",
+      "prioritySupportUpdates": "Priority Support & Updates",
+      "unlimitedWithAds": "Unlimited, but with ads",
+      "unlimitedAdFree": "Unlimited, ad‑free experience",
+      "availableWithAds": "Available, but with ads",
+      "unlimitedSmooth": "Unlimited, smooth & uninterrupted",
+      "standardWait": "Standard (wait for ads)",
+      "instantNoDelays": "Instant answers, no delays",
+      "monthlyDeepReadings": "✅ Monthly / Deep readings",
+      "accessPastReadings": "✅ Access past readings anytime",
+      "customizeThemes": "✅ Customize themes & card styles",
+      "earlyAccessFeatures": "✅ Early access to new features"
+    },
+    "cta": {
+      "title": "Ready to unlock your destiny?",
+      "description": "Join thousands of users who trust Asking Fate for their daily guidance.",
+      "goPremium": "Go Premium"
+    },
+    "pricing": {
+      "perMonth": "/month",
+      "perYear": "/year",
+      "billed": "Billed",
+      "save": "Save"
+    }
+  },
+
+  "Checkout": {
+    "title": "Checkout",
+    "subtitle": "Complete your Premium upgrade in 3 steps.",
+    "planDetails": "Plan details",
+    "yourDetails": "Your details",
+    "reviewCheckout": "Review & checkout",
+    "premium": "Premium",
+    "unlimitedAdFreeReadings": "Unlimited ad-free readings",
+    "yourPrice": "Your price",
+    "backToPricing": "Back to pricing",
+    "continue": "Continue",
+    "back": "Back",
+    "review": "Review",
+    "payNow": "Pay now",
+    "fullName": "Full name",
+    "email": "Email",
+    "phoneOptional": "Phone (optional)",
+    "country": "Country",
+    "payment": "Payment",
+    "cardNumber": "Card number",
+    "nameOnCard": "Name on card",
+    "expiry": "Expiry",
+    "cvc": "CVC",
+    "plan": "Plan:",
+    "billing": "Billing:",
+    "supportMessage": "Have a coupon or need help? Contact support after purchase.",
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "mostPopular": "Most Popular",
+    "features": {
+      "unlimitedReadings": "Unlimited readings",
+      "unlimitedFollowUp": "Unlimited follow-up questions",
+      "adFreeExperience": "Ad-free experience",
+      "fasterAccess": "Faster access to results",
+      "supportDevelopment": "Support ongoing development"
+    },
+    "perMonth": "/month",
+    "perYear": "/year"
+  },
+
+  "GoPremium": {
+    "title": "Skip the wait with Premium",
+    "description": "No more time wasted watching ads. Enjoy instant, ad‑free readings and exclusive perks.",
+    "skipAds": "Skip Ads",
+    "signInToUpgrade": "Sign in to upgrade"
   }
 }
 
