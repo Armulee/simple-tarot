@@ -58,17 +58,51 @@ export default function Interpretation() {
         }
     }, [getReadingSessionId])
 
-    // Clean up old ad completion data (keep only last 50 sessions)
+    // Get cached interpretation data for this reading session
+    const getCachedInterpretation = useCallback(() => {
+        if (typeof window === 'undefined') return null
+        try {
+            const sessionId = getReadingSessionId()
+            const cachedInterpretations = JSON.parse(localStorage.getItem('cachedInterpretations') || '{}')
+            return cachedInterpretations[sessionId] || null
+        } catch {
+            return null
+        }
+    }, [getReadingSessionId])
+
+    // Save interpretation data to localStorage
+    const saveInterpretationToCache = useCallback((interpretationText: string) => {
+        if (typeof window === 'undefined') return
+        try {
+            const sessionId = getReadingSessionId()
+            const cachedInterpretations = JSON.parse(localStorage.getItem('cachedInterpretations') || '{}')
+            cachedInterpretations[sessionId] = interpretationText
+            localStorage.setItem('cachedInterpretations', JSON.stringify(cachedInterpretations))
+        } catch {
+            // ignore localStorage errors
+        }
+    }, [getReadingSessionId])
+
+    // Clean up old ad completion data and cached interpretations (keep only last 50 sessions)
     const cleanupOldAdData = useCallback(() => {
         if (typeof window === 'undefined') return
         try {
+            // Clean up watched ads
             const watchedAds = JSON.parse(localStorage.getItem('watchedAds') || '{}')
-            const entries = Object.entries(watchedAds)
-            if (entries.length > 50) {
-                // Keep only the most recent 50 entries
-                const recentEntries = entries.slice(-50)
-                const cleanedAds = Object.fromEntries(recentEntries)
+            const adEntries = Object.entries(watchedAds)
+            if (adEntries.length > 50) {
+                const recentAdEntries = adEntries.slice(-50)
+                const cleanedAds = Object.fromEntries(recentAdEntries)
                 localStorage.setItem('watchedAds', JSON.stringify(cleanedAds))
+            }
+
+            // Clean up cached interpretations
+            const cachedInterpretations = JSON.parse(localStorage.getItem('cachedInterpretations') || '{}')
+            const interpretationEntries = Object.entries(cachedInterpretations)
+            if (interpretationEntries.length > 50) {
+                const recentInterpretationEntries = interpretationEntries.slice(-50)
+                const cleanedInterpretations = Object.fromEntries(recentInterpretationEntries)
+                localStorage.setItem('cachedInterpretations', JSON.stringify(cleanedInterpretations))
             }
         } catch {
             // ignore localStorage errors
@@ -95,6 +129,10 @@ export default function Interpretation() {
         onFinish: (_, completion) => {
             setFinish(true)
             setInterpretation(completion)
+            // Save interpretation to cache
+            if (completion) {
+                saveInterpretationToCache(completion)
+            }
         },
     })
 
@@ -235,6 +273,10 @@ If the interpretation is too generic, add more details to make it more specific.
         const result = await complete(prompt)
 
         setInterpretation(result || "")
+        // Save interpretation to cache
+        if (result) {
+            saveInterpretationToCache(result)
+        }
         return result || ""
     }, [
         complete,
@@ -243,6 +285,7 @@ If the interpretation is too generic, add more details to make it more specific.
         question,
         selectedCards,
         setInterpretation,
+        saveInterpretationToCache,
     ])
 
     const startAdProcess = useCallback(() => {
@@ -272,16 +315,26 @@ If the interpretation is too generic, add more details to make it more specific.
             // Check if ad was already watched for this reading session
             const wasAdWatched = checkAdCompletion()
             if (wasAdWatched) {
-                // Ad was already watched, skip ad and show interpretation
-                setAdCompleted(true)
-                setShowAd(false)
-                getInterpretationAsync()
+                // Ad was already watched, check for cached interpretation
+                const cachedInterpretation = getCachedInterpretation()
+                if (cachedInterpretation) {
+                    // Use cached interpretation data
+                    setAdCompleted(true)
+                    setShowAd(false)
+                    setInterpretation(cachedInterpretation)
+                    setFinish(true)
+                } else {
+                    // No cached data, fetch new interpretation
+                    setAdCompleted(true)
+                    setShowAd(false)
+                    getInterpretationAsync()
+                }
             } else {
                 // Ad not watched yet, start the ad process
                 startAdProcess()
             }
         }
-    }, [currentStep, startAdProcess, adsEnabled, checkAdCompletion, getInterpretationAsync])
+    }, [currentStep, startAdProcess, adsEnabled, checkAdCompletion, getCachedInterpretation, getInterpretationAsync, setInterpretation])
 
     // When ads are disabled, fetch interpretation immediately and mark ad as completed
     useEffect(() => {
