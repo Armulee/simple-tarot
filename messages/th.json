@@ -463,8 +463,8 @@
       "twitterTitle": "ข้อกำหนดในการให้บริการ - เงื่อนไขการใช้งานแพลตฟอร์มทำนายไพ่ทาโรต์ด้วย AI",
       "twitterDescription": "อ่านข้อกำหนดในการให้บริการของ Asking Fate และทำความเข้าใจสิทธิและหน้าที่ของคุณ"
     }
-  }
-  ,
+  },
+
   "Auth": {
     "SignIn": {
       "title": "ยินดีต้อนรับกลับ",
@@ -478,7 +478,8 @@
       "button": "ลงชื่อเข้าใช้",
       "buttonLoading": "กำลังลงชื่อเข้าใช้...",
       "signupPrompt": "ยังไม่มีบัญชีใน Asking Fate?",
-      "signupLink": "สร้างบัญชี"
+      "signupLink": "สร้างบัญชี",
+      "errorGeneric": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง"
     },
     "SignUp": {
       "title": "เข้าร่วมจักรวาล",
@@ -500,7 +501,14 @@
       "button": "สร้างบัญชี",
       "buttonLoading": "กำลังสร้างบัญชี...",
       "signinPrompt": "มีบัญชีอยู่แล้ว?",
-      "signinLink": "ลงชื่อเข้าใช้"
+      "signinLink": "ลงชื่อเข้าใช้",
+      "errorGeneric": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
+      "errorTermsRequired": "กรุณายอมรับข้อกำหนดและเงื่อนไข",
+      "errorPasswordMismatch": "รหัสผ่านไม่ตรงกัน"
+    },
+    "loginRequired": {
+      "title": "ต้องเข้าสู่ระบบ",
+      "message": "กรุณาเข้าสู่ระบบเพื่อดำเนินการซื้อต่อ"
     }
   },
 
@@ -513,6 +521,113 @@
     "faq": {
       "title": "คำถามที่พบบ่อย"
     }
+  },
+
+  "Pricing": {
+    "title": "ราคา",
+    "subtitle": "ปลดล็อกการอ่านไพ่ทาโรต์ไม่จำกัดและฟีเจอร์พรีเมียม",
+    "free": "ฟรี",
+    "premium": "พรีเมียม",
+    "monthly": "รายเดือน",
+    "annual": "รายปี",
+    "mostPopular": "ยอดนิยม",
+    "currentPlan": "แผนปัจจุบัน",
+    "freeDescription": "การอ่านไม่จำกัดพร้อมโฆษณา",
+    "premiumDescription": "ประสบการณ์ไม่จำกัด ไม่มีโฆษณา",
+    "features": {
+      "unlimitedReadings": "การอ่านไม่จำกัด",
+      "unlimitedFollowUp": "คำถามต่อเนื่องไม่จำกัด",
+      "watchAdsToReveal": "ดูโฆษณาเพื่อเปิดเผยผลลัพธ์",
+      "shareDownload": "แชร์ / ดาวน์โหลดการอ่าน",
+      "mobileDesktop": "เข้าถึงได้ทั้งมือถือและเดสก์ท็อป",
+      "adFreeExperience": "ประสบการณ์ไม่มีโฆษณา (ไม่มีการขัดจังหวะ)",
+      "instantAnswers": "คำตอบทันที ไม่มีการรอ",
+      "monthlyDeepSpreads": "การอ่านลึก/พิเศษรายเดือน",
+      "readingHistory": "ประวัติการอ่าน (สมุดบันทึก)",
+      "themesDeckChoices": "ธีมและรูปแบบไพ่",
+      "prioritySupport": "การสนับสนุนและอัปเดตก่อนใคร"
+    },
+    "comparison": {
+      "features": "ฟีเจอร์",
+      "free": "ฟรี",
+      "premium": "พรีเมียม",
+      "tarotReadings": "การอ่านไพ่ทาโรต์",
+      "followUpQuestions": "คำถามต่อเนื่อง",
+      "speed": "ความเร็ว",
+      "exclusiveSpreads": "การอ่านพิเศษ",
+      "tarotHistory": "ประวัติไพ่ทาโรต์ (สมุดบันทึก)",
+      "themesDeckChoices": "ธีมและรูปแบบไพ่",
+      "prioritySupportUpdates": "การสนับสนุนและอัปเดตก่อนใคร",
+      "unlimitedWithAds": "ไม่จำกัด แต่มีโฆษณา",
+      "unlimitedAdFree": "ไม่จำกัด ประสบการณ์ไม่มีโฆษณา",
+      "availableWithAds": "มีให้ใช้ แต่มีโฆษณา",
+      "unlimitedSmooth": "ไม่จำกัด ลื่นไหลและไม่ขัดจังหวะ",
+      "standardWait": "มาตรฐาน (รอโฆษณา)",
+      "instantNoDelays": "คำตอบทันที ไม่มีการรอ",
+      "monthlyDeepReadings": "✅ การอ่านลึก/พิเศษรายเดือน",
+      "accessPastReadings": "✅ เข้าถึงการอ่านเก่าได้ตลอดเวลา",
+      "customizeThemes": "✅ ปรับแต่งธีมและสไตล์ไพ่",
+      "earlyAccessFeatures": "✅ เข้าถึงฟีเจอร์ใหม่ก่อนใคร"
+    },
+    "cta": {
+      "title": "พร้อมปลดล็อกโชคชะตาของคุณแล้วหรือยัง?",
+      "description": "เข้าร่วมกับผู้ใช้นับพันที่ไว้วางใจ Asking Fate สำหรับคำแนะนำประจำวัน",
+      "goPremium": "อัปเกรดเป็นพรีเมียม"
+    },
+    "pricing": {
+      "perMonth": "/เดือน",
+      "perYear": "/ปี",
+      "billed": "เรียกเก็บ",
+      "save": "ประหยัด"
+    }
+  },
+
+  "Checkout": {
+    "title": "ชำระเงิน",
+    "subtitle": "ทำการอัปเกรดพรีเมียมให้เสร็จสิ้นใน 3 ขั้นตอน",
+    "loading": "กำลังโหลด...",
+    "planDetails": "รายละเอียดแผน",
+    "yourDetails": "รายละเอียดของคุณ",
+    "reviewCheckout": "ตรวจสอบและชำระเงิน",
+    "premium": "พรีเมียม",
+    "unlimitedAdFreeReadings": "การอ่านไม่จำกัด ไม่มีโฆษณา",
+    "yourPrice": "ราคาของคุณ",
+    "backToPricing": "กลับไปดูราคา",
+    "continue": "ดำเนินการต่อ",
+    "back": "กลับ",
+    "review": "ตรวจสอบ",
+    "payNow": "ชำระเงินตอนนี้",
+    "fullName": "ชื่อ-นามสกุล",
+    "email": "อีเมล",
+    "phoneOptional": "เบอร์โทรศัพท์ (ไม่บังคับ)",
+    "country": "ประเทศ",
+    "payment": "การชำระเงิน",
+    "cardNumber": "หมายเลขบัตร",
+    "nameOnCard": "ชื่อบนบัตร",
+    "expiry": "วันหมดอายุ",
+    "cvc": "CVC",
+    "plan": "แผน:",
+    "billing": "การเรียกเก็บ:",
+    "supportMessage": "มีคูปองหรือต้องการความช่วยเหลือ? ติดต่อฝ่ายสนับสนุนหลังการซื้อ",
+    "monthly": "รายเดือน",
+    "annual": "รายปี",
+    "mostPopular": "ยอดนิยม",
+    "features": {
+      "unlimitedReadings": "การอ่านไม่จำกัด",
+      "unlimitedFollowUp": "คำถามต่อเนื่องไม่จำกัด",
+      "adFreeExperience": "ประสบการณ์ไม่มีโฆษณา",
+      "fasterAccess": "เข้าถึงผลลัพธ์ได้เร็วขึ้น",
+      "supportDevelopment": "สนับสนุนการพัฒนาต่อเนื่อง"
+    },
+    "perMonth": "/เดือน",
+    "perYear": "/ปี"
+  },
+
+  "GoPremium": {
+    "title": "ข้ามการรอด้วยพรีเมียม",
+    "description": "ไม่ต้องเสียเวลาดูโฆษณาอีกต่อไป เพลิดเพลินกับการอ่านทันที ไม่มีโฆษณาและสิทธิพิเศษ",
+    "skipAds": "ข้ามโฆษณา",
+    "signInToUpgrade": "เข้าสู่ระบบเพื่ออัปเกรด"
   }
 }
 

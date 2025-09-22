@@ -38,12 +38,101 @@ export default function Interpretation() {
         isFollowUp,
         followUpQuestion,
     } = useTarot()
+    
+    // Create unique reading session ID for ad tracking
+    const getReadingSessionId = useCallback(() => {
+        const currentQuestion = isFollowUp && followUpQuestion ? followUpQuestion : question
+        const cardsString = selectedCards.map(c => `${c.id}-${c.isReversed}`).join(',')
+        return `${currentQuestion}-${cardsString}`
+    }, [question, followUpQuestion, isFollowUp, selectedCards])
+
+    // Check if ad was already watched for this reading session
+    const checkAdCompletion = useCallback(() => {
+        if (typeof window === 'undefined') return false
+        try {
+            const sessionId = getReadingSessionId()
+            const watchedAds = JSON.parse(localStorage.getItem('watchedAds') || '{}')
+            return watchedAds[sessionId] === true
+        } catch {
+            return false
+        }
+    }, [getReadingSessionId])
+
+    // Get cached interpretation data for this reading session
+    const getCachedInterpretation = useCallback(() => {
+        if (typeof window === 'undefined') return null
+        try {
+            const sessionId = getReadingSessionId()
+            const cachedInterpretations = JSON.parse(localStorage.getItem('cachedInterpretations') || '{}')
+            return cachedInterpretations[sessionId] || null
+        } catch {
+            return null
+        }
+    }, [getReadingSessionId])
+
+    // Save interpretation data to localStorage
+    const saveInterpretationToCache = useCallback((interpretationText: string) => {
+        if (typeof window === 'undefined') return
+        try {
+            const sessionId = getReadingSessionId()
+            const cachedInterpretations = JSON.parse(localStorage.getItem('cachedInterpretations') || '{}')
+            cachedInterpretations[sessionId] = interpretationText
+            localStorage.setItem('cachedInterpretations', JSON.stringify(cachedInterpretations))
+        } catch {
+            // ignore localStorage errors
+        }
+    }, [getReadingSessionId])
+
+    // Clean up old ad completion data and cached interpretations (keep only last 50 sessions)
+    const cleanupOldAdData = useCallback(() => {
+        if (typeof window === 'undefined') return
+        try {
+            // Clean up watched ads
+            const watchedAds = JSON.parse(localStorage.getItem('watchedAds') || '{}')
+            const adEntries = Object.entries(watchedAds)
+            if (adEntries.length > 50) {
+                const recentAdEntries = adEntries.slice(-50)
+                const cleanedAds = Object.fromEntries(recentAdEntries)
+                localStorage.setItem('watchedAds', JSON.stringify(cleanedAds))
+            }
+
+            // Clean up cached interpretations
+            const cachedInterpretations = JSON.parse(localStorage.getItem('cachedInterpretations') || '{}')
+            const interpretationEntries = Object.entries(cachedInterpretations)
+            if (interpretationEntries.length > 50) {
+                const recentInterpretationEntries = interpretationEntries.slice(-50)
+                const cleanedInterpretations = Object.fromEntries(recentInterpretationEntries)
+                localStorage.setItem('cachedInterpretations', JSON.stringify(cleanedInterpretations))
+            }
+        } catch {
+            // ignore localStorage errors
+        }
+    }, [])
+
+    // Mark ad as completed for this reading session
+    const markAdCompleted = useCallback(() => {
+        if (typeof window === 'undefined') return
+        try {
+            const sessionId = getReadingSessionId()
+            const watchedAds = JSON.parse(localStorage.getItem('watchedAds') || '{}')
+            watchedAds[sessionId] = true
+            localStorage.setItem('watchedAds', JSON.stringify(watchedAds))
+            // Clean up old data
+            cleanupOldAdData()
+        } catch {
+            // ignore localStorage errors
+        }
+    }, [getReadingSessionId, cleanupOldAdData])
     const { completion, isLoading, error, complete } = useCompletion({
         // api: "/api/interpret-cards/mockup",
         api: "/api/interpret-cards/question",
         onFinish: (_, completion) => {
             setFinish(true)
             setInterpretation(completion)
+            // Save interpretation to cache
+            if (completion) {
+                saveInterpretationToCache(completion)
+            }
         },
     })
 
@@ -184,6 +273,10 @@ If the interpretation is too generic, add more details to make it more specific.
         const result = await complete(prompt)
 
         setInterpretation(result || "")
+        // Save interpretation to cache
+        if (result) {
+            saveInterpretationToCache(result)
+        }
         return result || ""
     }, [
         complete,
@@ -192,6 +285,7 @@ If the interpretation is too generic, add more details to make it more specific.
         question,
         selectedCards,
         setInterpretation,
+        saveInterpretationToCache,
     ])
 
     const startAdProcess = useCallback(() => {
@@ -204,7 +298,9 @@ If the interpretation is too generic, add more details to make it more specific.
         // Close ad and mark as completed; text will be shown from completion hook
         setShowAd(false)
         setAdCompleted(true)
-    }, [])
+        // Mark ad as completed in localStorage
+        markAdCompleted()
+    }, [markAdCompleted])
 
     const adsEnabled =
         typeof process !== "undefined" &&
@@ -216,10 +312,29 @@ If the interpretation is too generic, add more details to make it more specific.
         if (currentStep === "interpretation" && !hasInitiated.current) {
             hasInitiated.current = true
 
-            // Always start the ad process when interpretation component mounts
-            startAdProcess()
+            // Check if ad was already watched for this reading session
+            const wasAdWatched = checkAdCompletion()
+            if (wasAdWatched) {
+                // Ad was already watched, check for cached interpretation
+                const cachedInterpretation = getCachedInterpretation()
+                if (cachedInterpretation) {
+                    // Use cached interpretation data
+                    setAdCompleted(true)
+                    setShowAd(false)
+                    setInterpretation(cachedInterpretation)
+                    setFinish(true)
+                } else {
+                    // No cached data, fetch new interpretation
+                    setAdCompleted(true)
+                    setShowAd(false)
+                    getInterpretationAsync()
+                }
+            } else {
+                // Ad not watched yet, start the ad process
+                startAdProcess()
+            }
         }
-    }, [currentStep, startAdProcess, adsEnabled])
+    }, [currentStep, startAdProcess, adsEnabled, checkAdCompletion, getCachedInterpretation, getInterpretationAsync, setInterpretation])
 
     // When ads are disabled, fetch interpretation immediately and mark ad as completed
     useEffect(() => {
@@ -256,6 +371,7 @@ If the interpretation is too generic, add more details to make it more specific.
             setIsFollowUpMode(false)
         }
     }, [interpretation, isFollowUpMode])
+
 
     return (
         <>

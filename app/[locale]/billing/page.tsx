@@ -5,8 +5,7 @@ import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Check, Crown, Sparkles, Zap, Shield, Infinity } from "lucide-react"
-import Link from "next/link"
+import { Check, Crown, Sparkles } from "lucide-react"
 
 export default function BillingPage() {
     const t = useTranslations("Billing")
@@ -110,7 +109,7 @@ export default function BillingPage() {
 
                 {/* Pricing Cards */}
                 <div className='grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16'>
-                    {plans.map((plan, index) => (
+                    {plans.map((plan) => (
                         <Card
                             key={plan.name}
                             className={`relative p-8 bg-card/10 backdrop-blur-sm border-border/20 ${

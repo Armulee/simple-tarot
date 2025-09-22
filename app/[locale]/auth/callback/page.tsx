@@ -35,7 +35,7 @@ export default function AuthCallback() {
             // Fallback for SSR
             router.push("/signin")
         }
-    }, [router])
+    }, [router, redirect])
 
     return (
         <div className='min-h-screen flex items-center justify-center'>

@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Link } from "@/i18n/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { useTranslations } from "next-intl"
+import { Sparkles } from "lucide-react"
 
 export default function SignUpPage() {
     const t = useTranslations("Auth.SignUp")
@@ -34,12 +35,12 @@ export default function SignUpPage() {
         setSuccess(false)
 
         if (formData.password !== formData.confirmPassword) {
-            setError("Passwords don't match")
+            setError(t("errorPasswordMismatch"))
             return
         }
 
         if (!formData.agreeToTerms) {
-            setError("Please agree to the terms and conditions")
+            setError(t("errorTermsRequired"))
             return
         }
 
@@ -60,7 +61,7 @@ export default function SignUpPage() {
                 }, 2000)
             }
         } catch {
-            setError("An error occurred. Please try again.")
+            setError(t("errorGeneric"))
         } finally {
             setIsLoading(false)
         }
@@ -71,13 +72,11 @@ export default function SignUpPage() {
     }
 
     return (
-        <div className='w-full mx-auto max-w-md space-y-8'>
+        <div className='w-full mx-auto max-w-md space-y-8 pt-6 pb-16 px-4'>
             {/* Header */}
             <div className='text-center space-y-4'>
                 <div className='w-16 h-16 mx-auto rounded-full bg-secondary/20 flex items-center justify-center float-animation'>
-                    <span className='text-secondary font-serif font-bold text-2xl'>
-                        ✨
-                    </span>
+                    <Sparkles className='w-8 h-8 text-secondary' />
                 </div>
                 <div className='space-y-2'>
                     <h1 className='font-serif font-bold text-3xl text-balance'>

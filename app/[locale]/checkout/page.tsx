@@ -6,16 +6,76 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Check, CreditCard, Crown, Mail, Phone, DollarSign } from "lucide-react"
+import { Check, CreditCard, Mail, Phone, DollarSign } from "lucide-react"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
+import { useSearchParams, useRouter } from "next/navigation"
+import { useEffect } from "react"
+import { useAuth } from "@/hooks/use-auth"
+import { toast } from "sonner"
 
 type Step = 1 | 2 | 3
 
 export default function CheckoutPage() {
+    const t = useTranslations("Checkout")
+    const authT = useTranslations("Auth.loginRequired")
+    const searchParams = useSearchParams()
+    const router = useRouter()
+    const { user, loading } = useAuth()
     const [step, setStep] = useState<Step>(1)
     const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">(
         "monthly"
     )
+
+    // Read billing cycle from search params and set initial state
+    useEffect(() => {
+        const cycle = searchParams.get("cycle")
+        if (cycle === "annual" || cycle === "monthly") {
+            setBillingCycle(cycle)
+        }
+    }, [searchParams])
+
+    // Handle authentication redirect and toast notification
+    useEffect(() => {
+        if (!loading && !user) {
+            const redirectParam = searchParams.get("redirect")
+            const currentPath = window.location.pathname + window.location.search
+            
+            // Show toast notification if redirected from checkout attempt
+            if (redirectParam === "checkout" || searchParams.has("auth_required")) {
+                toast(authT("title"), {
+                    description: authT("message"),
+                })
+            }
+
+            // Redirect to sign-in with callback URL
+            const callbackUrl = encodeURIComponent(currentPath)
+            router.push(`/signin?callbackUrl=${callbackUrl}`)
+        }
+    }, [user, loading, searchParams, router, authT])
+
+    // Show loading state while checking authentication
+    if (loading) {
+        return (
+            <div className='min-h-screen flex items-center justify-center'>
+                <div className='text-center space-y-4'>
+                    <div className='w-16 h-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center float-animation'>
+                        <span className='text-primary font-serif font-bold text-2xl'>
+                            ✦
+                        </span>
+                    </div>
+                    <h1 className='font-serif font-bold text-2xl'>
+                        {t("loading")}
+                    </h1>
+                </div>
+            </div>
+        )
+    }
+
+    // Don't render checkout content if user is not authenticated
+    if (!user) {
+        return null
+    }
 
     const monthlyPrice = 2.99
     const annualPrice = 29.99
@@ -31,12 +91,12 @@ export default function CheckoutPage() {
                     <div className='flex items-center justify-center gap-2 mb-3'>
                         <DollarSign className='w-8 h-8 text-yellow-400' />
                         <h1 className='font-serif text-4xl font-bold text-white'>
-                            Checkout
+                            {t('title')}
                         </h1>
                         <DollarSign className='w-8 h-8 text-yellow-400' />
                     </div>
                     <p className='text-gray-300'>
-                        Complete your Premium upgrade in 3 steps.
+                        {t('subtitle')}
                     </p>
                 </div>
 
@@ -56,21 +116,21 @@ export default function CheckoutPage() {
                 {step === 1 && (
                     <Card className='p-6 bg-card/10 backdrop-blur-sm border-border/20'>
                         <h2 className='text-xl font-semibold text-white mb-4'>
-                            Plan details
+                            {t('planDetails')}
                         </h2>
                         <div className='flex flex-col md:flex-row gap-6'>
                             <div className='flex-1'>
                                 <div className='bg-white/10 border border-white/20 rounded-lg p-4 flex items-center justify-between'>
                                     <div>
                                         <p className='text-white font-semibold'>
-                                            Premium
+                                            {t('premium')}
                                         </p>
                                         <p className='text-sm text-gray-300'>
-                                            Unlimited ad-free readings
+                                            {t('unlimitedAdFreeReadings')}
                                         </p>
                                     </div>
                                     <Badge className='bg-yellow-400 text-black'>
-                                        Most Popular
+                                        {t('mostPopular')}
                                     </Badge>
                                 </div>
 
@@ -86,7 +146,7 @@ export default function CheckoutPage() {
                                                 setBillingCycle("monthly")
                                             }
                                         >
-                                            Monthly
+                                            {t('monthly')}
                                         </button>
                                         <button
                                             className={`px-4 py-2 rounded-full ${
@@ -98,18 +158,18 @@ export default function CheckoutPage() {
                                                 setBillingCycle("annual")
                                             }
                                         >
-                                            Annual
+                                            {t('annual')}
                                         </button>
                                     </div>
                                 </div>
 
                                 <ul className='mt-6 space-y-2'>
                                     {[
-                                        "Unlimited readings",
-                                        "Unlimited follow-up questions",
-                                        "Ad-free experience",
-                                        "Faster access to results",
-                                        "Support ongoing development",
+                                        t('features.unlimitedReadings'),
+                                        t('features.unlimitedFollowUp'),
+                                        t('features.adFreeExperience'),
+                                        t('features.fasterAccess'),
+                                        t('features.supportDevelopment'),
                                     ].map((f) => (
                                         <li
                                             key={f}
@@ -123,7 +183,7 @@ export default function CheckoutPage() {
                             </div>
                             <div className='w-full md:w-64 bg-white/5 border border-white/10 rounded-lg p-4'>
                                 <p className='text-white font-semibold mb-2'>
-                                    Your price
+                                    {t('yourPrice')}
                                 </p>
                                 <p className='text-4xl text-white font-bold'>
                                     $
@@ -133,21 +193,21 @@ export default function CheckoutPage() {
                                 </p>
                                 <p className='text-sm text-gray-400'>
                                     {billingCycle === "monthly"
-                                        ? "/month"
-                                        : "/year"}
+                                        ? t('perMonth')
+                                        : t('perYear')}
                                 </p>
                             </div>
                         </div>
 
                         <div className='flex justify-between mt-6'>
                             <Link
-                                href='/pricing'
+                                href={`/pricing?cycle=${billingCycle}`}
                                 className='text-gray-300 hover:text-white'
                             >
-                                Back to pricing
+                                {t('backToPricing')}
                             </Link>
                             <Button onClick={goNext} className='px-6'>
-                                Continue
+                                {t('continue')}
                             </Button>
                         </div>
                     </Card>
@@ -156,12 +216,12 @@ export default function CheckoutPage() {
                 {step === 2 && (
                     <Card className='p-6 bg-card/10 backdrop-blur-sm border-border/20'>
                         <h2 className='text-xl font-semibold text-white mb-4'>
-                            Your details
+                            {t('yourDetails')}
                         </h2>
                         <div className='grid md:grid-cols-2 gap-4'>
                             <div>
                                 <Label htmlFor='name' className='text-white'>
-                                    Full name
+                                    {t('fullName')}
                                 </Label>
                                 <Input
                                     id='name'
@@ -171,7 +231,7 @@ export default function CheckoutPage() {
                             </div>
                             <div>
                                 <Label htmlFor='email' className='text-white'>
-                                    Email
+                                    {t('email')}
                                 </Label>
                                 <div className='relative'>
                                     <Input
@@ -184,7 +244,7 @@ export default function CheckoutPage() {
                             </div>
                             <div>
                                 <Label htmlFor='phone' className='text-white'>
-                                    Phone (optional)
+                                    {t('phoneOptional')}
                                 </Label>
                                 <div className='relative'>
                                     <Input
@@ -197,7 +257,7 @@ export default function CheckoutPage() {
                             </div>
                             <div>
                                 <Label htmlFor='country' className='text-white'>
-                                    Country
+                                    {t('country')}
                                 </Label>
                                 <Input
                                     id='country'
@@ -208,12 +268,12 @@ export default function CheckoutPage() {
                         </div>
 
                         <h3 className='text-lg font-semibold text-white mt-6 mb-2'>
-                            Payment
+                            {t('payment')}
                         </h3>
                         <div className='grid md:grid-cols-2 gap-4'>
                             <div className='relative'>
                                 <Label htmlFor='card' className='text-white'>
-                                    Card number
+                                    {t('cardNumber')}
                                 </Label>
                                 <Input
                                     id='card'
@@ -227,7 +287,7 @@ export default function CheckoutPage() {
                                     htmlFor='nameOnCard'
                                     className='text-white'
                                 >
-                                    Name on card
+                                    {t('nameOnCard')}
                                 </Label>
                                 <Input
                                     id='nameOnCard'
@@ -237,7 +297,7 @@ export default function CheckoutPage() {
                             </div>
                             <div>
                                 <Label htmlFor='exp' className='text-white'>
-                                    Expiry
+                                    {t('expiry')}
                                 </Label>
                                 <Input
                                     id='exp'
@@ -247,7 +307,7 @@ export default function CheckoutPage() {
                             </div>
                             <div>
                                 <Label htmlFor='cvc' className='text-white'>
-                                    CVC
+                                    {t('cvc')}
                                 </Label>
                                 <Input
                                     id='cvc'
@@ -263,10 +323,10 @@ export default function CheckoutPage() {
                                 onClick={goPrev}
                                 className='px-6'
                             >
-                                Back
+                                {t('back')}
                             </Button>
                             <Button onClick={goNext} className='px-6'>
-                                Review
+                                {t('review')}
                             </Button>
                         </div>
                     </Card>
@@ -275,21 +335,21 @@ export default function CheckoutPage() {
                 {step === 3 && (
                     <Card className='p-6 bg-card/10 backdrop-blur-sm border-border/20'>
                         <h2 className='text-xl font-semibold text-white mb-4'>
-                            Review & checkout
+                            {t('reviewCheckout')}
                         </h2>
                         <div className='space-y-2 text-gray-300'>
                             <p>
-                                Plan:{" "}
+                                {t('plan')}{" "}
                                 <span className='text-white font-semibold'>
-                                    Premium
+                                    {t('premium')}
                                 </span>
                             </p>
                             <p>
-                                Billing:{" "}
+                                {t('billing')}{" "}
                                 <span className='text-white font-semibold'>
                                     {billingCycle === "monthly"
-                                        ? "$2.99 / month"
-                                        : "$29.99 / year"}
+                                        ? `$2.99 ${t('perMonth')}`
+                                        : `$29.99 ${t('perYear')}`}
                                 </span>
                             </p>
                         </div>
@@ -299,9 +359,9 @@ export default function CheckoutPage() {
                                 onClick={goPrev}
                                 className='px-6'
                             >
-                                Back
+                                {t('back')}
                             </Button>
-                            <Button className='px-6'>Pay now</Button>
+                            <Button className='px-6'>{t('payNow')}</Button>
                         </div>
                     </Card>
                 )}
@@ -310,8 +370,7 @@ export default function CheckoutPage() {
                 <div className='text-center mt-12'>
                     <Card className='p-6 bg-card/10 backdrop-blur-sm border border-white/20'>
                         <p className='text-gray-300'>
-                            Have a coupon or need help? Contact support after
-                            purchase.
+                            {t('supportMessage')}
                         </p>
                     </Card>
                 </div>

@@ -20,67 +20,67 @@ import { generatePageMetadata } from "@/lib/seo"
 // duplicate removed
 import CosmicStars from "@/components/cosmic-stars"
 
-const freeFeatures = [
-    "Unlimited readings",
-    "Unlimited follow-up questions",
-    "Watch ads to reveal results",
-    "Share / download readings",
-    "Mobile & desktop access",
+const getFreeFeatures = (t: (key: string) => string) => [
+    t("features.unlimitedReadings"),
+    t("features.unlimitedFollowUp"),
+    t("features.watchAdsToReveal"),
+    t("features.shareDownload"),
+    t("features.mobileDesktop"),
 ]
 
-const premiumFeatures = [
-    "Unlimited readings",
-    "Unlimited follow-up questions",
-    "Ad‑free experience (no interruptions)",
-    "Instant answers, no delays",
-    "Monthly deep/featured spreads",
-    "Reading history (journal)",
-    "Themes & deck choices",
-    "Priority support & early updates",
+const getPremiumFeatures = (t: (key: string) => string) => [
+    t("features.unlimitedReadings"),
+    t("features.unlimitedFollowUp"),
+    t("features.adFreeExperience"),
+    t("features.instantAnswers"),
+    t("features.monthlyDeepSpreads"),
+    t("features.readingHistory"),
+    t("features.themesDeckChoices"),
+    t("features.prioritySupport"),
 ]
 
-const features = [
+const getFeatures = (t: (key: string) => string) => [
     {
-        feature: "Tarot Readings",
+        feature: t("comparison.tarotReadings"),
         Icon: Layers,
-        free: "Unlimited, but with ads",
-        premium: "Unlimited, ad‑free experience",
+        free: t("comparison.unlimitedWithAds"),
+        premium: t("comparison.unlimitedAdFree"),
     },
     {
-        feature: "Follow‑up Questions",
+        feature: t("comparison.followUpQuestions"),
         Icon: MessageSquare,
-        free: "Available, but with ads",
-        premium: "Unlimited, smooth & uninterrupted",
+        free: t("comparison.availableWithAds"),
+        premium: t("comparison.unlimitedSmooth"),
     },
     {
-        feature: "Speed",
+        feature: t("comparison.speed"),
         Icon: Zap,
-        free: "Standard (wait for ads)",
-        premium: "Instant answers, no delays",
+        free: t("comparison.standardWait"),
+        premium: t("comparison.instantNoDelays"),
     },
     {
-        feature: "Exclusive Spreads",
+        feature: t("comparison.exclusiveSpreads"),
         Icon: Layers,
         free: "❌",
-        premium: "✅ Monthly / Deep readings",
+        premium: t("comparison.monthlyDeepReadings"),
     },
     {
-        feature: "Tarot History (Journal)",
+        feature: t("comparison.tarotHistory"),
         Icon: History,
         free: "❌",
-        premium: "✅ Access past readings anytime",
+        premium: t("comparison.accessPastReadings"),
     },
     {
-        feature: "Themes & Deck Choices",
+        feature: t("comparison.themesDeckChoices"),
         Icon: Palette,
         free: "❌",
-        premium: "✅ Customize themes & card styles",
+        premium: t("comparison.customizeThemes"),
     },
     {
-        feature: "Priority Support & Updates",
+        feature: t("comparison.prioritySupportUpdates"),
         Icon: Rocket,
         free: "❌",
-        premium: "✅ Early access to new features",
+        premium: t("comparison.earlyAccessFeatures"),
     },
 ]
 
@@ -118,7 +118,7 @@ export default async function PricingPage({
 }) {
     const t = await getTranslations({
         locale: params.locale,
-        namespace: "Billing",
+        namespace: "Pricing",
     })
     const { cycle: billingCycle } = await searchParams
     const cycle: "monthly" | "annual" =
@@ -157,7 +157,7 @@ export default async function PricingPage({
                                     : "text-white/80 hover:text-white"
                             }`}
                         >
-                            Monthly
+                            {t("monthly")}
                         </Link>
                         <Link
                             href={"/pricing?cycle=annual"}
@@ -169,9 +169,9 @@ export default async function PricingPage({
                             }`}
                         >
                             <span className='inline-flex items-center gap-2'>
-                                Annual
+                                {t("annual")}
                                 <Badge className='bg-green-500 text-white text-[10px] px-2 py-0.5'>
-                                    Save {Math.round(monthlySavings)}%
+                                    {t("pricing.save")} {Math.round(monthlySavings)}%
                                 </Badge>
                             </span>
                         </Link>
@@ -185,22 +185,22 @@ export default async function PricingPage({
                         <div className='pointer-events-none absolute -top-12 inset-x-0 h-24 bg-gradient-to-r from-cyan-400/20 via-indigo-400/10 to-fuchsia-400/0 blur-2xl'></div>
                         <div className='text-center mb-6'>
                             <h3 className='text-2xl font-bold text-white mb-2'>
-                                Free
+                                {t("free")}
                             </h3>
                             <p className='text-gray-400 mb-4'>
-                                Unlimited readings with ads
+                                {t("freeDescription")}
                             </p>
                             <div className='mb-4'>
                                 <span className='text-4xl font-bold text-white'>
                                     $0
                                 </span>
                                 <span className='text-gray-400 ml-2'>
-                                    /month
+                                    {t("pricing.perMonth")}
                                 </span>
                             </div>
                         </div>
                         <div className='space-y-4 mb-8'>
-                            {freeFeatures.map((feature, i) => (
+                            {getFreeFeatures(t).map((feature, i) => (
                                 <div
                                     key={i}
                                     className='flex items-center gap-3'
@@ -216,7 +216,7 @@ export default async function PricingPage({
                             className='w-full py-3 text-lg font-semibold bg-white/10 text-white border border-white/20 hover:bg-white/20'
                             disabled
                         >
-                            Current Plan
+                            {t("currentPlan")}
                         </Button>
                     </Card>
 
@@ -228,15 +228,15 @@ export default async function PricingPage({
                         <div className='pointer-events-none absolute -top-24 -right-10 -left-24 w-72 h-72 rounded-full bg-orange-400/5 blur-3xl -z-10' />
                         <div className='absolute -top-4 left-1/2 transform -translate-x-1/2 z-10'>
                             <Badge className='bg-gradient-to-r from-yellow-400 to-orange-400 text-black font-semibold px-4 py-1'>
-                                Most Popular
+                                {t("mostPopular")}
                             </Badge>
                         </div>
                         <div className='text-center mb-6'>
                             <h3 className='text-2xl font-bold text-white mb-2'>
-                                Premium
+                                {t("premium")}
                             </h3>
                             <p className='text-gray-400 mb-4'>
-                                Unlimited, ad‑free experience
+                                {t("premiumDescription")}
                             </p>
                             <div className='mb-4'>
                                 <span className='text-4xl font-bold text-white'>
@@ -246,28 +246,28 @@ export default async function PricingPage({
                                         : annualPerMonth.toFixed(2)}
                                 </span>
                                 <span className='text-gray-400 ml-2'>
-                                    /month
+                                    {t("pricing.perMonth")}
                                 </span>
                             </div>
                             {cycle === "annual" && (
                                 <div className='text-sm mt-1'>
-                                    <span className='line-through text-gray-400'>
-                                        $2.99/mo
-                                    </span>
-                                    <span className='mx-2 text-gray-400'>
-                                        →
-                                    </span>
-                                    <span className='text-green-400 font-semibold'>
-                                        ${annualPerMonth.toFixed(2)}/mo
-                                    </span>
+                                        <span className='line-through text-gray-400'>
+                                            $2.99{t("pricing.perMonth")}
+                                        </span>
+                                        <span className='mx-2 text-gray-400'>
+                                            →
+                                        </span>
+                                        <span className='text-green-400 font-semibold'>
+                                            ${annualPerMonth.toFixed(2)}{t("pricing.perMonth")}
+                                        </span>
                                     <span className='ml-2 text-green-400'>
-                                        Save {Math.round(monthlySavings)}%
+                                        {t("pricing.save")} {Math.round(monthlySavings)}%
                                     </span>
                                 </div>
                             )}
                         </div>
                         <div className='space-y-4 mb-8'>
-                            {premiumFeatures.map((feature, i) => (
+                            {getPremiumFeatures(t).map((feature, i) => (
                                 <div
                                     key={i}
                                     className='flex items-center gap-3'
@@ -279,25 +279,25 @@ export default async function PricingPage({
                                 </div>
                             ))}
                         </div>
-                        <Link href='/checkout'>
+                        <Link href={`/checkout?cycle=${cycle}&redirect=checkout`}>
                             <Button className='w-full py-3 text-lg font-semibold bg-gradient-to-r from-yellow-400 to-orange-400 text-black hover:from-yellow-500 hover:to-orange-500'>
                                 <Crown className='w-5 h-5 mr-2' />
                                 {cycle === "annual" ? (
                                     <span>
                                         Start Premium for $
-                                        {annualPerMonth.toFixed(2)}/mo
+                                        {annualPerMonth.toFixed(2)}{t("pricing.perMonth")}
                                     </span>
                                 ) : (
                                     <span>
                                         Start Premium for $
-                                        {monthlyPrice.toFixed(2)}/mo
+                                        {monthlyPrice.toFixed(2)}{t("pricing.perMonth")}
                                     </span>
                                 )}
                             </Button>
                         </Link>
                         {cycle === "annual" && (
                             <p className='text-center text-xs text-gray-400 mt-2'>
-                                Billed ${annualPrice.toFixed(2)}/year
+                                {t("pricing.billed")} ${annualPrice.toFixed(2)}{t("pricing.perYear")}
                             </p>
                         )}
                     </Card>
@@ -312,28 +312,28 @@ export default async function PricingPage({
                                 <thead>
                                     <tr className='border-b border-white/10'>
                                         <th className='text-left p-6 text-white font-semibold'>
-                                            Features
+                                            {t("comparison.features")}
                                         </th>
                                         <th className='text-center p-6'>
                                             <span className='text-[11px] uppercase tracking-wide text-gray-400 block'>
-                                                Free
+                                                {t("comparison.free")}
                                             </span>
                                             <span className='sr-only'>
-                                                Free (with Ads)
+                                                {t("comparison.free")} (with Ads)
                                             </span>
                                         </th>
                                         <th className='text-center p-6'>
                                             <span className='text-[11px] uppercase tracking-wide text-gray-400 block'>
-                                                Premium
+                                                {t("comparison.premium")}
                                             </span>
                                             <span className='sr-only'>
-                                                Premium ($2.99/month)
+                                                {t("comparison.premium")} ($2.99/month)
                                             </span>
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {features.map((row, i) => (
+                                    {getFeatures(t).map((row, i) => (
                                         <tr
                                             key={i}
                                             className='border-b border-white/5'
@@ -358,7 +358,7 @@ export default async function PricingPage({
                     </Card>
                     {/* Mobile stacked list */}
                     <div className='md:hidden space-y-2 mt-4'>
-                        {features.map((row, i) => (
+                        {getFeatures(t).map((row, i) => (
                             <Card
                                 key={i}
                                 className='relative p-4 bg-card/10 bg-gradient-to-br from-indigo-500/10 via-fuchsia-500/5 to-cyan-500/5 backdrop-blur-sm border border-white/10 ring-1 ring-white/10 overflow-hidden'
@@ -372,7 +372,7 @@ export default async function PricingPage({
                                     <div className='grid grid-cols-2 items-start gap-2'>
                                         <div className='text-center'>
                                             <p className='text-sm uppercase tracking-wide text-gray-400'>
-                                                Free
+                                                {t("comparison.free")}
                                             </p>
                                             <p className='text-[13px] text-gray-300'>
                                                 {row.free}
@@ -380,7 +380,7 @@ export default async function PricingPage({
                                         </div>
                                         <div className='text-center'>
                                             <p className='text-sm uppercase tracking-wide text-orange-500'>
-                                                Premium
+                                                {t("comparison.premium")}
                                             </p>
                                             <p className='text-[13px] text-orange-300 font-semibold'>
                                                 {row.premium}
@@ -400,21 +400,20 @@ export default async function PricingPage({
                         <div className='flex items-center justify-center gap-2 mb-4'>
                             <Sparkles className='w-6 h-6 text-yellow-400' />
                             <h3 className='text-2xl font-bold text-white'>
-                                Ready to unlock your destiny?
+                                {t("cta.title")}
                             </h3>
                             <Sparkles className='w-6 h-6 text-yellow-400' />
                         </div>
                         <p className='text-gray-300 mb-6'>
-                            Join thousands of users who trust Asking Fate for
-                            their daily guidance.
+                            {t("cta.description")}
                         </p>
-                        <Link href='/checkout'>
+                        <Link href={`/checkout?cycle=${cycle}&redirect=checkout`}>
                             <Button
                                 size='lg'
                                 className='bg-gradient-to-r from-yellow-400 to-orange-400 text-black font-semibold px-8 py-3 hover:from-yellow-500 hover:to-orange-500'
                             >
                                 <Crown className='w-5 h-5 mr-2' />
-                                Go Premium
+                                {t("cta.goPremium")}
                             </Button>
                         </Link>
                     </Card>
