@@ -20,7 +20,7 @@ import { generatePageMetadata } from "@/lib/seo"
 // duplicate removed
 import CosmicStars from "@/components/cosmic-stars"
 
-const getFreeFeatures = (t: any) => [
+const getFreeFeatures = (t: (key: string) => string) => [
     t("features.unlimitedReadings"),
     t("features.unlimitedFollowUp"),
     t("features.watchAdsToReveal"),
@@ -28,7 +28,7 @@ const getFreeFeatures = (t: any) => [
     t("features.mobileDesktop"),
 ]
 
-const getPremiumFeatures = (t: any) => [
+const getPremiumFeatures = (t: (key: string) => string) => [
     t("features.unlimitedReadings"),
     t("features.unlimitedFollowUp"),
     t("features.adFreeExperience"),
@@ -39,7 +39,7 @@ const getPremiumFeatures = (t: any) => [
     t("features.prioritySupport"),
 ]
 
-const getFeatures = (t: any) => [
+const getFeatures = (t: (key: string) => string) => [
     {
         feature: t("comparison.tarotReadings"),
         Icon: Layers,

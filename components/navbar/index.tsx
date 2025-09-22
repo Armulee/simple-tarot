@@ -10,7 +10,6 @@ import { useState } from "react"
 import {
     Menu,
     ChevronDown,
-    BookOpen,
     LogIn,
     Sparkles,
     Crown,
