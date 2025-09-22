@@ -617,6 +617,13 @@
     "description": "No more time wasted watching ads. Enjoy instant, ad‑free readings and exclusive perks.",
     "skipAds": "Skip Ads",
     "signInToUpgrade": "Sign in to upgrade"
+  },
+
+  "Auth": {
+    "loginRequired": {
+      "title": "Login Required",
+      "message": "Please sign in to continue with your purchase."
+    }
   }
 }
 

@@ -225,7 +225,7 @@ export function Navbar({ locale }: { locale: string }) {
                         <div className='hidden md:flex items-center gap-3'>
                             {!loading && user ? (
                                 <>
-                                    <Link href='/checkout?cycle=monthly'>
+                                    <Link href='/checkout?cycle=monthly&redirect=checkout'>
                                         <Button
                                             aria-label='Go Premium'
                                             className='group relative overflow-hidden flex items-center gap-2 px-5 py-2.5 rounded-full text-white font-semibold bg-gradient-to-r from-primary/80 via-indigo-600/80 to-blue-600/80 hover:from-primary/90 hover:via-indigo-600/90 hover:to-blue-600/90 ring-1 ring-white/20 shadow-[0_8px_24px_rgba(59,130,246,0.35)] hover:shadow-[0_10px_28px_rgba(59,130,246,0.45)] transition-all duration-300'
@@ -252,7 +252,7 @@ export function Navbar({ locale }: { locale: string }) {
                         {/* Mobile: Sign-in icon button (when logged out) / Go Premium (when logged in) */}
                         {!loading &&
                             (user ? (
-                                <Link href='/checkout?cycle=monthly' className='md:hidden'>
+                                <Link href='/checkout?cycle=monthly&redirect=checkout' className='md:hidden'>
                                     <Button
                                         aria-label='Go Premium'
                                         className='group relative overflow-hidden flex items-center gap-2 px-4 py-2 rounded-full text-white font-semibold bg-gradient-to-r from-primary/80 via-indigo-600/80 to-blue-600/80 hover:from-primary/90 hover:via-indigo-600/90 hover:to-blue-600/90 ring-1 ring-white/20 shadow-[0_8px_24px_rgba(59,130,246,0.35)] hover:shadow-[0_10px_28px_rgba(59,130,246,0.45)] transition-all duration-300'

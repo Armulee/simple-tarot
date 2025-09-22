@@ -9,14 +9,19 @@ import { Badge } from "@/components/ui/badge"
 import { Check, CreditCard, Mail, Phone, DollarSign } from "lucide-react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { useEffect } from "react"
+import { useAuth } from "@/hooks/use-auth"
+import { toast } from "sonner"
 
 type Step = 1 | 2 | 3
 
 export default function CheckoutPage() {
     const t = useTranslations("Checkout")
+    const authT = useTranslations("Auth.loginRequired")
     const searchParams = useSearchParams()
+    const router = useRouter()
+    const { user, loading } = useAuth()
     const [step, setStep] = useState<Step>(1)
     const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">(
         "monthly"
@@ -29,6 +34,48 @@ export default function CheckoutPage() {
             setBillingCycle(cycle)
         }
     }, [searchParams])
+
+    // Handle authentication redirect and toast notification
+    useEffect(() => {
+        if (!loading && !user) {
+            const redirectParam = searchParams.get("redirect")
+            const currentPath = window.location.pathname + window.location.search
+            
+            // Show toast notification if redirected from checkout attempt
+            if (redirectParam === "checkout" || searchParams.has("auth_required")) {
+                toast(authT("title"), {
+                    description: authT("message"),
+                })
+            }
+
+            // Redirect to sign-in with callback URL
+            const callbackUrl = encodeURIComponent(currentPath)
+            router.push(`/signin?callbackUrl=${callbackUrl}`)
+        }
+    }, [user, loading, searchParams, router, authT])
+
+    // Show loading state while checking authentication
+    if (loading) {
+        return (
+            <div className='min-h-screen flex items-center justify-center'>
+                <div className='text-center space-y-4'>
+                    <div className='w-16 h-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center float-animation'>
+                        <span className='text-primary font-serif font-bold text-2xl'>
+                            ✦
+                        </span>
+                    </div>
+                    <h1 className='font-serif font-bold text-2xl'>
+                        Loading...
+                    </h1>
+                </div>
+            </div>
+        )
+    }
+
+    // Don't render checkout content if user is not authenticated
+    if (!user) {
+        return null
+    }
 
     const monthlyPrice = 2.99
     const annualPrice = 29.99

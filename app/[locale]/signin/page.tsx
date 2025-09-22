@@ -24,7 +24,7 @@ export default function SignInPage() {
     const router = useRouter()
     const { signIn } = useAuth()
     const searchParams = useSearchParams()
-    const redirect = searchParams?.get("redirect") || "/"
+    const redirect = searchParams?.get("callbackUrl") || searchParams?.get("redirect") || "/"
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()

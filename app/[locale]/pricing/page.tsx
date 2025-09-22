@@ -279,7 +279,7 @@ export default async function PricingPage({
                                 </div>
                             ))}
                         </div>
-                        <Link href={`/checkout?cycle=${cycle}`}>
+                        <Link href={`/checkout?cycle=${cycle}&redirect=checkout`}>
                             <Button className='w-full py-3 text-lg font-semibold bg-gradient-to-r from-yellow-400 to-orange-400 text-black hover:from-yellow-500 hover:to-orange-500'>
                                 <Crown className='w-5 h-5 mr-2' />
                                 {cycle === "annual" ? (
@@ -407,7 +407,7 @@ export default async function PricingPage({
                         <p className='text-gray-300 mb-6'>
                             {t("cta.description")}
                         </p>
-                        <Link href={`/checkout?cycle=${cycle}`}>
+                        <Link href={`/checkout?cycle=${cycle}&redirect=checkout`}>
                             <Button
                                 size='lg'
                                 className='bg-gradient-to-r from-yellow-400 to-orange-400 text-black font-semibold px-8 py-3 hover:from-yellow-500 hover:to-orange-500'
