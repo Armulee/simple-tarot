@@ -65,7 +65,7 @@ export default function CheckoutPage() {
                         </span>
                     </div>
                     <h1 className='font-serif font-bold text-2xl'>
-                        Loading...
+                        {t("loading")}
                     </h1>
                 </div>
             </div>

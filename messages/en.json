@@ -478,7 +478,8 @@
       "button": "Sign In",
       "buttonLoading": "Signing In...",
       "signupPrompt": "New to Asking Fate?",
-      "signupLink": "Create an account"
+      "signupLink": "Create an account",
+      "errorGeneric": "An error occurred. Please try again."
     },
     "SignUp": {
       "title": "Join the Cosmos",
@@ -500,7 +501,10 @@
       "button": "Create Account",
       "buttonLoading": "Creating Account...",
       "signinPrompt": "Already have an account?",
-      "signinLink": "Sign in"
+      "signinLink": "Sign in",
+      "errorGeneric": "An error occurred. Please try again.",
+      "errorTermsRequired": "Please agree to the terms and conditions",
+      "errorPasswordMismatch": "Passwords don't match"
     }
   },
 
@@ -516,6 +520,8 @@
   },
 
   "Pricing": {
+    "title": "Pricing",
+    "subtitle": "Unlock unlimited tarot readings and premium features",
     "free": "Free",
     "premium": "Premium",
     "monthly": "Monthly",
@@ -575,6 +581,7 @@
   "Checkout": {
     "title": "Checkout",
     "subtitle": "Complete your Premium upgrade in 3 steps.",
+    "loading": "Loading...",
     "planDetails": "Plan details",
     "yourDetails": "Your details",
     "reviewCheckout": "Review & checkout",

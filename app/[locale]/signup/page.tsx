@@ -34,12 +34,12 @@ export default function SignUpPage() {
         setSuccess(false)
 
         if (formData.password !== formData.confirmPassword) {
-            setError("Passwords don't match")
+            setError(t("errorPasswordMismatch"))
             return
         }
 
         if (!formData.agreeToTerms) {
-            setError("Please agree to the terms and conditions")
+            setError(t("errorTermsRequired"))
             return
         }
 
@@ -60,7 +60,7 @@ export default function SignUpPage() {
                 }, 2000)
             }
         } catch {
-            setError("An error occurred. Please try again.")
+            setError(t("errorGeneric"))
         } finally {
             setIsLoading(false)
         }
