@@ -28,6 +28,16 @@ export default function Interpretation() {
     const [showAd, setShowAd] = useState(false)
     // Simplified: rely on completion hook and local gating only
     const [adCompleted, setAdCompleted] = useState(false)
+
+    const {
+        currentStep,
+        question,
+        selectedCards,
+        interpretation,
+        setInterpretation,
+        isFollowUp,
+        followUpQuestion,
+    } = useTarot()
     
     // Create unique reading session ID for ad tracking
     const getReadingSessionId = useCallback(() => {
@@ -48,21 +58,6 @@ export default function Interpretation() {
         }
     }, [getReadingSessionId])
 
-    // Mark ad as completed for this reading session
-    const markAdCompleted = useCallback(() => {
-        if (typeof window === 'undefined') return
-        try {
-            const sessionId = getReadingSessionId()
-            const watchedAds = JSON.parse(localStorage.getItem('watchedAds') || '{}')
-            watchedAds[sessionId] = true
-            localStorage.setItem('watchedAds', JSON.stringify(watchedAds))
-            // Clean up old data
-            cleanupOldAdData()
-        } catch {
-            // ignore localStorage errors
-        }
-    }, [getReadingSessionId, cleanupOldAdData])
-
     // Clean up old ad completion data (keep only last 50 sessions)
     const cleanupOldAdData = useCallback(() => {
         if (typeof window === 'undefined') return
@@ -80,17 +75,20 @@ export default function Interpretation() {
         }
     }, [])
 
-
-    const {
-        currentStep,
-        question,
-        selectedCards,
-        interpretation,
-        setInterpretation,
-        isFollowUp,
-        followUpQuestion,
-        clearReadingStorage,
-    } = useTarot()
+    // Mark ad as completed for this reading session
+    const markAdCompleted = useCallback(() => {
+        if (typeof window === 'undefined') return
+        try {
+            const sessionId = getReadingSessionId()
+            const watchedAds = JSON.parse(localStorage.getItem('watchedAds') || '{}')
+            watchedAds[sessionId] = true
+            localStorage.setItem('watchedAds', JSON.stringify(watchedAds))
+            // Clean up old data
+            cleanupOldAdData()
+        } catch {
+            // ignore localStorage errors
+        }
+    }, [getReadingSessionId, cleanupOldAdData])
     const { completion, isLoading, error, complete } = useCompletion({
         // api: "/api/interpret-cards/mockup",
         api: "/api/interpret-cards/question",
