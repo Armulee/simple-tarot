@@ -28,6 +28,58 @@ export default function Interpretation() {
     const [showAd, setShowAd] = useState(false)
     // Simplified: rely on completion hook and local gating only
     const [adCompleted, setAdCompleted] = useState(false)
+    
+    // Create unique reading session ID for ad tracking
+    const getReadingSessionId = useCallback(() => {
+        const currentQuestion = isFollowUp && followUpQuestion ? followUpQuestion : question
+        const cardsString = selectedCards.map(c => `${c.id}-${c.isReversed}`).join(',')
+        return `${currentQuestion}-${cardsString}`
+    }, [question, followUpQuestion, isFollowUp, selectedCards])
+
+    // Check if ad was already watched for this reading session
+    const checkAdCompletion = useCallback(() => {
+        if (typeof window === 'undefined') return false
+        try {
+            const sessionId = getReadingSessionId()
+            const watchedAds = JSON.parse(localStorage.getItem('watchedAds') || '{}')
+            return watchedAds[sessionId] === true
+        } catch {
+            return false
+        }
+    }, [getReadingSessionId])
+
+    // Mark ad as completed for this reading session
+    const markAdCompleted = useCallback(() => {
+        if (typeof window === 'undefined') return
+        try {
+            const sessionId = getReadingSessionId()
+            const watchedAds = JSON.parse(localStorage.getItem('watchedAds') || '{}')
+            watchedAds[sessionId] = true
+            localStorage.setItem('watchedAds', JSON.stringify(watchedAds))
+            // Clean up old data
+            cleanupOldAdData()
+        } catch {
+            // ignore localStorage errors
+        }
+    }, [getReadingSessionId, cleanupOldAdData])
+
+    // Clean up old ad completion data (keep only last 50 sessions)
+    const cleanupOldAdData = useCallback(() => {
+        if (typeof window === 'undefined') return
+        try {
+            const watchedAds = JSON.parse(localStorage.getItem('watchedAds') || '{}')
+            const entries = Object.entries(watchedAds)
+            if (entries.length > 50) {
+                // Keep only the most recent 50 entries
+                const recentEntries = entries.slice(-50)
+                const cleanedAds = Object.fromEntries(recentEntries)
+                localStorage.setItem('watchedAds', JSON.stringify(cleanedAds))
+            }
+        } catch {
+            // ignore localStorage errors
+        }
+    }, [])
+
 
     const {
         currentStep,
@@ -37,6 +89,7 @@ export default function Interpretation() {
         setInterpretation,
         isFollowUp,
         followUpQuestion,
+        clearReadingStorage,
     } = useTarot()
     const { completion, isLoading, error, complete } = useCompletion({
         // api: "/api/interpret-cards/mockup",
@@ -204,7 +257,9 @@ If the interpretation is too generic, add more details to make it more specific.
         // Close ad and mark as completed; text will be shown from completion hook
         setShowAd(false)
         setAdCompleted(true)
-    }, [])
+        // Mark ad as completed in localStorage
+        markAdCompleted()
+    }, [markAdCompleted])
 
     const adsEnabled =
         typeof process !== "undefined" &&
@@ -216,10 +271,19 @@ If the interpretation is too generic, add more details to make it more specific.
         if (currentStep === "interpretation" && !hasInitiated.current) {
             hasInitiated.current = true
 
-            // Always start the ad process when interpretation component mounts
-            startAdProcess()
+            // Check if ad was already watched for this reading session
+            const wasAdWatched = checkAdCompletion()
+            if (wasAdWatched) {
+                // Ad was already watched, skip ad and show interpretation
+                setAdCompleted(true)
+                setShowAd(false)
+                getInterpretationAsync()
+            } else {
+                // Ad not watched yet, start the ad process
+                startAdProcess()
+            }
         }
-    }, [currentStep, startAdProcess, adsEnabled])
+    }, [currentStep, startAdProcess, adsEnabled, checkAdCompletion, getInterpretationAsync])
 
     // When ads are disabled, fetch interpretation immediately and mark ad as completed
     useEffect(() => {
@@ -256,6 +320,7 @@ If the interpretation is too generic, add more details to make it more specific.
             setIsFollowUpMode(false)
         }
     }, [interpretation, isFollowUpMode])
+
 
     return (
         <>
