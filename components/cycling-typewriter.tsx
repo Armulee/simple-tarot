@@ -98,7 +98,7 @@ export function CyclingTypewriter({ className = "" }: CyclingTypewriterProps) {
                             text={currentContent.line2}
                             speed={60}
                             delay={60 * currentContent.line1.length}
-                            className='text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'
+                            className='text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text text-2xl sm:text-3xl md:text-4xl lg:text-5xl'
                         />
                     </h1>
                 </div>
