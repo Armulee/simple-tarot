@@ -492,6 +492,20 @@
       "signinPrompt": "Already have an account?",
       "signinLink": "Sign in"
     }
+  },
+
+  "Waitlist": {
+    "title": "Join the Waitlist",
+    "subtitle": "Be the first to know when this service becomes available",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "your@email.com",
+    "consentLabel": "I want to receive email notifications about service launch and updates",
+    "button": "Join Waitlist",
+    "buttonLoading": "Joining Waitlist...",
+    "disclaimer": "By joining the waitlist, you agree to receive updates about this service. You can unsubscribe at any time.",
+    "signInPrompt": "Sign in to join the waitlist and be the first to experience this mystical service.",
+    "signInButton": "Sign In to Join Waitlist",
+    "signUpLink": "Don't have an account? Create one"
   }
 }
 

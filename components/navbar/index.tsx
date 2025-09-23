@@ -34,10 +34,12 @@ import {
 } from "../ui/dropdown-menu"
 import mysticalServices from "./mystical-services"
 import { useTranslations as useSidebarTranslations } from "next-intl"
+import { useService } from "@/contexts/service-context"
 
 export function Navbar({ locale }: { locale: string }) {
     const t = useTranslations("Navbar")
     const s = useSidebarTranslations("Services")
+    const { activeService } = useService()
     const [open, setOpen] = useState(false)
     const router = useRouter()
     const pathname = usePathname()
@@ -124,7 +126,7 @@ export function Navbar({ locale }: { locale: string }) {
                                     className='inline-flex items-center space-x-2 text-white hover:bg-white/10 px-4 py-2 rounded-md transition-colors'
                                 >
                                     <Sparkles className='h-4 w-4' />
-                                    <span>{s("tarot")}</span>
+                                    <span>{s(activeService)}</span>
                                     <ChevronDown className='h-4 w-4' />
                                 </Button>
                             </SheetTrigger>
