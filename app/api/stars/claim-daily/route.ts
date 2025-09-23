@@ -1,69 +1,47 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
-import { getClientIP } from "@/lib/ip-utils"
+import { getOrCreateAnonymousId, attachAnonymousIdCookie } from "@/lib/anonymous-id"
 
 export async function POST(req: NextRequest) {
     try {
         const { userId } = await req.json()
-        const ipAddress = getClientIP(req)
+        const { anonymousId, isNew } = getOrCreateAnonymousId(req)
 
-        // Check if user can claim daily stars
-        const { data: canClaimData, error: canClaimError } = await supabase
-            .rpc('can_claim_daily_stars', {
+        // Atomically claim daily stars
+        const { data: newBalance, error: claimError } = await supabase
+            .rpc('claim_daily_stars', {
                 p_user_id: userId || null,
-                p_ip_address: ipAddress
-            })
-
-        if (canClaimError) {
-            console.error('Error checking daily claim:', canClaimError)
-            return NextResponse.json({ error: 'Failed to check daily claim status' }, { status: 500 })
-        }
-
-        if (!canClaimData) {
-            return NextResponse.json({ 
-                success: false, 
-                message: 'Daily stars already claimed today' 
-            })
-        }
-
-        // Determine stars to give (5 for anonymous, 10 for logged in users)
-        const starsToGive = userId ? 10 : 5
-
-        // Add stars to user
-        const { data: addStarsData, error: addStarsError } = await supabase
-            .rpc('add_stars', {
-                p_user_id: userId || null,
-                p_ip_address: ipAddress,
-                p_amount: starsToGive,
-                p_transaction_type: 'daily_claim',
-                p_description: `Daily stars claim - ${starsToGive} stars`
-            })
-
-        if (addStarsError) {
-            console.error('Error adding stars:', addStarsError)
-            return NextResponse.json({ error: 'Failed to add stars' }, { status: 500 })
-        }
-
-        // Record daily claim
-        const { error: claimError } = await supabase
-            .from('daily_claims')
-            .insert({
-                user_id: userId || null,
-                ip_address: ipAddress,
-                stars_claimed: starsToGive
+                p_anonymous_id: anonymousId
             })
 
         if (claimError) {
-            console.error('Error recording daily claim:', claimError)
-            return NextResponse.json({ error: 'Failed to record daily claim' }, { status: 500 })
+            console.error('Error claiming daily stars:', claimError)
+            return NextResponse.json({ error: 'Failed to claim daily stars' }, { status: 500 })
         }
 
-        return NextResponse.json({
+        // Fetch today's claimed amount
+        const { data: todaysClaim, error: todayErr } = await supabase
+            .rpc('get_today_daily_claim_amount', {
+                p_user_id: userId || null,
+                p_anonymous_id: anonymousId
+            })
+
+        if (todayErr) {
+            console.error('Error reading today claim amount:', todayErr)
+        }
+
+        const res = NextResponse.json({
             success: true,
-            message: `Successfully claimed ${starsToGive} daily stars!`,
-            stars: addStarsData,
-            dailyStarsClaimed: starsToGive
+            message: `Daily stars updated`,
+            stars: newBalance,
+            dailyStarsClaimed: todaysClaim || 0
         })
+
+        if (isNew) {
+            attachAnonymousIdCookie(res, anonymousId)
+        }
+
+        return res
     } catch (error) {
         console.error('Error in claim-daily API:', error)
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

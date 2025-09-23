@@ -69,31 +69,31 @@ CREATE TRIGGER on_auth_user_updated
 CREATE TABLE public.user_stars (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  ip_address INET, -- For anonymous users
+  anonymous_id TEXT, -- For anonymous users (privacy-safe)
   stars INTEGER DEFAULT 0 NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(user_id),
-  UNIQUE(ip_address)
+  UNIQUE(anonymous_id)
 );
 
 -- Daily claims table (tracks daily star claims)
 CREATE TABLE public.daily_claims (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  ip_address INET, -- For anonymous users
+  anonymous_id TEXT, -- For anonymous users (privacy-safe)
   claim_date DATE DEFAULT CURRENT_DATE NOT NULL,
   stars_claimed INTEGER DEFAULT 5 NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(user_id, claim_date),
-  UNIQUE(ip_address, claim_date)
+  UNIQUE(anonymous_id, claim_date)
 );
 
 -- Ad watches table (tracks ad views for stars)
 CREATE TABLE public.ad_watches (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  ip_address INET, -- For anonymous users
+  anonymous_id TEXT, -- For anonymous users (privacy-safe)
   watch_date DATE DEFAULT CURRENT_DATE NOT NULL,
   ad_count INTEGER DEFAULT 1 NOT NULL,
   stars_earned INTEGER DEFAULT 2 NOT NULL,
@@ -115,7 +115,7 @@ CREATE TABLE public.referrals (
 CREATE TABLE public.social_shares (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  ip_address INET, -- For anonymous users
+  anonymous_id TEXT, -- For anonymous users (privacy-safe)
   platform TEXT NOT NULL, -- 'facebook', 'twitter', 'instagram', etc.
   share_url TEXT,
   stars_earned INTEGER DEFAULT 2 NOT NULL,
@@ -126,7 +126,7 @@ CREATE TABLE public.social_shares (
 CREATE TABLE public.star_transactions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  ip_address INET, -- For anonymous users
+  anonymous_id TEXT, -- For anonymous users (privacy-safe)
   transaction_type TEXT NOT NULL, -- 'daily_claim', 'ad_watch', 'social_share', 'referral', 'reading_cost', 'referral_reward'
   amount INTEGER NOT NULL, -- positive for earning, negative for spending
   description TEXT,
@@ -188,7 +188,7 @@ CREATE POLICY "Users can insert own star transactions" ON public.star_transactio
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Function to get or create user stars
-CREATE OR REPLACE FUNCTION public.get_or_create_user_stars(p_user_id UUID DEFAULT NULL, p_ip_address INET DEFAULT NULL)
+CREATE OR REPLACE FUNCTION public.get_or_create_user_stars(p_user_id UUID DEFAULT NULL, p_anonymous_id TEXT DEFAULT NULL)
 RETURNS TABLE(stars INTEGER) AS $$
 DECLARE
   current_stars INTEGER;
@@ -198,10 +198,10 @@ BEGIN
     SELECT us.stars INTO current_stars
     FROM public.user_stars us
     WHERE us.user_id = p_user_id;
-  ELSIF p_ip_address IS NOT NULL THEN
+  ELSIF p_anonymous_id IS NOT NULL THEN
     SELECT us.stars INTO current_stars
     FROM public.user_stars us
-    WHERE us.ip_address = p_ip_address;
+    WHERE us.anonymous_id = p_anonymous_id;
   END IF;
 
   -- If no stars found, create new record with initial stars
@@ -211,19 +211,19 @@ BEGIN
       DECLARE
         initial_stars INTEGER := CASE WHEN p_user_id IS NOT NULL THEN 10 ELSE 5 END;
       BEGIN
-        INSERT INTO public.user_stars (user_id, ip_address, stars)
-        VALUES (p_user_id, p_ip_address, initial_stars)
+        INSERT INTO public.user_stars (user_id, anonymous_id, stars)
+        VALUES (p_user_id, p_anonymous_id, initial_stars)
         RETURNING user_stars.stars INTO current_stars;
         
         -- Record the initial stars as a daily claim
-        INSERT INTO public.daily_claims (user_id, ip_address, stars_claimed)
-        VALUES (p_user_id, p_ip_address, initial_stars);
+        INSERT INTO public.daily_claims (user_id, anonymous_id, stars_claimed)
+        VALUES (p_user_id, p_anonymous_id, initial_stars);
         
         -- Record the transaction
         INSERT INTO public.star_transactions (
-          user_id, ip_address, transaction_type, amount, description
+          user_id, anonymous_id, transaction_type, amount, description
         ) VALUES (
-          p_user_id, p_ip_address, 'daily_claim', initial_stars, 
+          p_user_id, p_anonymous_id, 'daily_claim', initial_stars, 
           CASE WHEN p_user_id IS NOT NULL THEN 'Initial daily stars for logged-in user' ELSE 'Initial daily stars for anonymous user' END
         );
       END;
@@ -234,10 +234,10 @@ BEGIN
           SELECT us.stars INTO current_stars
           FROM public.user_stars us
           WHERE us.user_id = p_user_id;
-        ELSIF p_ip_address IS NOT NULL THEN
+        ELSIF p_anonymous_id IS NOT NULL THEN
           SELECT us.stars INTO current_stars
           FROM public.user_stars us
-          WHERE us.ip_address = p_ip_address;
+          WHERE us.anonymous_id = p_anonymous_id;
         END IF;
     END;
   END IF;
@@ -249,7 +249,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Function to add stars to user
 CREATE OR REPLACE FUNCTION public.add_stars(
   p_user_id UUID DEFAULT NULL,
-  p_ip_address INET DEFAULT NULL,
+  p_anonymous_id TEXT DEFAULT NULL,
   p_amount INTEGER DEFAULT 0,
   p_transaction_type TEXT DEFAULT 'manual',
   p_description TEXT DEFAULT NULL,
@@ -261,15 +261,15 @@ DECLARE
 BEGIN
   -- Update user stars - handle conflicts properly
   IF p_user_id IS NOT NULL THEN
-    INSERT INTO public.user_stars (user_id, ip_address, stars)
-    VALUES (p_user_id, p_ip_address, p_amount)
+    INSERT INTO public.user_stars (user_id, anonymous_id, stars)
+    VALUES (p_user_id, p_anonymous_id, p_amount)
     ON CONFLICT (user_id) DO UPDATE SET 
       stars = user_stars.stars + p_amount,
       updated_at = NOW();
-  ELSIF p_ip_address IS NOT NULL THEN
-    INSERT INTO public.user_stars (user_id, ip_address, stars)
-    VALUES (p_user_id, p_ip_address, p_amount)
-    ON CONFLICT (ip_address) DO UPDATE SET 
+  ELSIF p_anonymous_id IS NOT NULL THEN
+    INSERT INTO public.user_stars (user_id, anonymous_id, stars)
+    VALUES (p_user_id, p_anonymous_id, p_amount)
+    ON CONFLICT (anonymous_id) DO UPDATE SET 
       stars = user_stars.stars + p_amount,
       updated_at = NOW();
   END IF;
@@ -278,13 +278,13 @@ BEGIN
   SELECT stars INTO new_balance
   FROM public.user_stars
   WHERE (p_user_id IS NOT NULL AND user_id = p_user_id) 
-     OR (p_ip_address IS NOT NULL AND ip_address = p_ip_address);
+     OR (p_anonymous_id IS NOT NULL AND anonymous_id = p_anonymous_id);
 
   -- Record transaction
   INSERT INTO public.star_transactions (
-    user_id, ip_address, transaction_type, amount, description, reference_id
+    user_id, anonymous_id, transaction_type, amount, description, reference_id
   ) VALUES (
-    p_user_id, p_ip_address, p_transaction_type, p_amount, p_description, p_reference_id
+    p_user_id, p_anonymous_id, p_transaction_type, p_amount, p_description, p_reference_id
   );
 
   RETURN new_balance;
@@ -292,7 +292,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to check if user can claim daily stars
-CREATE OR REPLACE FUNCTION public.can_claim_daily_stars(p_user_id UUID DEFAULT NULL, p_ip_address INET DEFAULT NULL)
+CREATE OR REPLACE FUNCTION public.can_claim_daily_stars(p_user_id UUID DEFAULT NULL, p_anonymous_id TEXT DEFAULT NULL)
 RETURNS BOOLEAN AS $$
 DECLARE
   claim_exists BOOLEAN := FALSE;
@@ -302,10 +302,10 @@ BEGIN
       SELECT 1 FROM public.daily_claims 
       WHERE user_id = p_user_id AND claim_date = CURRENT_DATE
     ) INTO claim_exists;
-  ELSIF p_ip_address IS NOT NULL THEN
+  ELSIF p_anonymous_id IS NOT NULL THEN
     SELECT EXISTS(
       SELECT 1 FROM public.daily_claims 
-      WHERE ip_address = p_ip_address AND claim_date = CURRENT_DATE
+      WHERE anonymous_id = p_anonymous_id AND claim_date = CURRENT_DATE
     ) INTO claim_exists;
   END IF;
 
@@ -314,7 +314,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to check daily ad watch limit
-CREATE OR REPLACE FUNCTION public.get_daily_ad_watch_count(p_user_id UUID DEFAULT NULL, p_ip_address INET DEFAULT NULL)
+CREATE OR REPLACE FUNCTION public.get_daily_ad_watch_count(p_user_id UUID DEFAULT NULL, p_anonymous_id TEXT DEFAULT NULL)
 RETURNS INTEGER AS $$
 DECLARE
   watch_count INTEGER := 0;
@@ -323,12 +323,66 @@ BEGIN
     SELECT COALESCE(SUM(ad_count), 0) INTO watch_count
     FROM public.ad_watches 
     WHERE user_id = p_user_id AND watch_date = CURRENT_DATE;
-  ELSIF p_ip_address IS NOT NULL THEN
+  ELSIF p_anonymous_id IS NOT NULL THEN
     SELECT COALESCE(SUM(ad_count), 0) INTO watch_count
     FROM public.ad_watches 
-    WHERE ip_address = p_ip_address AND watch_date = CURRENT_DATE;
+    WHERE anonymous_id = p_anonymous_id AND watch_date = CURRENT_DATE;
   END IF;
 
   RETURN watch_count;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to get today's daily claim amount
+CREATE OR REPLACE FUNCTION public.get_today_daily_claim_amount(p_user_id UUID DEFAULT NULL, p_anonymous_id TEXT DEFAULT NULL)
+RETURNS INTEGER AS $$
+DECLARE
+	claimed INTEGER := 0;
+BEGIN
+	IF p_user_id IS NOT NULL THEN
+		SELECT COALESCE(stars_claimed, 0) INTO claimed
+		FROM public.daily_claims
+		WHERE user_id = p_user_id AND claim_date = CURRENT_DATE
+		LIMIT 1;
+	ELSIF p_anonymous_id IS NOT NULL THEN
+		SELECT COALESCE(stars_claimed, 0) INTO claimed
+		FROM public.daily_claims
+		WHERE anonymous_id = p_anonymous_id AND claim_date = CURRENT_DATE
+		LIMIT 1;
+	END IF;
+	RETURN COALESCE(claimed, 0);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Atomic daily claim function to avoid race conditions
+CREATE OR REPLACE FUNCTION public.claim_daily_stars(p_user_id UUID DEFAULT NULL, p_anonymous_id TEXT DEFAULT NULL)
+RETURNS INTEGER AS $$
+DECLARE
+	stars_to_give INTEGER := CASE WHEN p_user_id IS NOT NULL THEN 10 ELSE 5 END;
+	new_balance INTEGER;
+BEGIN
+	-- Check if already claimed today
+	IF NOT public.can_claim_daily_stars(p_user_id, p_anonymous_id) THEN
+		-- Return current balance without adding
+		SELECT stars INTO new_balance
+		FROM public.user_stars
+		WHERE (p_user_id IS NOT NULL AND user_id = p_user_id)
+		   OR (p_anonymous_id IS NOT NULL AND anonymous_id = p_anonymous_id)
+		LIMIT 1;
+		RETURN COALESCE(new_balance, 0);
+	END IF;
+
+	-- Add stars
+	new_balance := public.add_stars(p_user_id, p_anonymous_id, stars_to_give, 'daily_claim',
+		CASE WHEN p_user_id IS NOT NULL THEN 'Daily stars claim (logged-in)'
+		     ELSE 'Daily stars claim (anonymous)'
+		END,
+		NULL);
+
+	-- Record daily claim
+	INSERT INTO public.daily_claims (user_id, anonymous_id, stars_claimed)
+	VALUES (p_user_id, p_anonymous_id, stars_to_give);
+
+	RETURN new_balance;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
