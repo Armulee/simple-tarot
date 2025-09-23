@@ -27,6 +27,20 @@
       "line1": "Ask me anything",
       "line2": "about your destiny"
     },
+    "cyclingTypewriter": {
+      "phase1": {
+        "line1": "Enter your question",
+        "line2": "— future, past, or present."
+      },
+      "phase2": {
+        "line1": "Choose the card spread",
+        "line2": "that best suits your preference."
+      },
+      "phase3": {
+        "line1": "Receive an AI-powered interpretation",
+        "line2": "tailored to your question and cards."
+      }
+    },
     "learnMore": "Learn More"
   },
 

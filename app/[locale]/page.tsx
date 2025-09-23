@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { TypewriterText } from "@/components/typewriter-text"
+import { CyclingTypewriter } from "@/components/cycling-typewriter"
 import HomeQuestionWrapper from "@/components/home-question-wrapper"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -36,20 +36,7 @@ export default function HomePage() {
             <div className='max-w-4xl w-full mx-auto space-y-8'>
                 {/* Main Heading */}
                 <div className='space-y-4'>
-                    <h1 className='font-serif font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-balance h-20 sm:h-24 md:h-28 lg:h-32'>
-                        <TypewriterText
-                            text={t("hero.line1")}
-                            speed={60}
-                            className='text-white'
-                        />
-                        <br />
-                        <TypewriterText
-                            text={t("hero.line2")}
-                            speed={60}
-                            delay={60 * t("hero.line1").length}
-                            className='text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'
-                        />
-                    </h1>
+                    <CyclingTypewriter className='h-20 sm:h-24 md:h-28 lg:h-32' />
                 </div>
 
                 {/* Question Input */}
