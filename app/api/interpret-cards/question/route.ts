@@ -1,6 +1,6 @@
 import { streamText } from "ai"
 import { supabase } from "@/lib/supabase"
-import { getClientIP } from "@/lib/ip-utils"
+import { getOrCreateAnonymousId } from "@/lib/anonymous-id"
 import { NextRequest } from "next/server"
 
 const MODEL = "openai/gpt-4o-mini"
@@ -8,7 +8,7 @@ const MODEL = "openai/gpt-4o-mini"
 export async function POST(req: NextRequest) {
     try {
         const { prompt, userId } = await req.json()
-        const ipAddress = getClientIP(req)
+        const { anonymousId, isNew } = getOrCreateAnonymousId(req)
 
         if (!prompt) {
             return new Response("User prompt is required", {
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
         const { data: starsData, error: starsError } = await supabase
             .rpc('get_or_create_user_stars', {
                 p_user_id: userId || null,
-                p_ip_address: ipAddress
+                p_anonymous_id: anonymousId
             })
 
         if (starsError) {
@@ -78,7 +78,7 @@ Note: Only include card symbolism, spread mechanics, or detailed card meanings i
         const { error: deductStarsError } = await supabase
             .rpc('add_stars', {
                 p_user_id: userId || null,
-                p_ip_address: ipAddress,
+                p_anonymous_id: anonymousId,
                 p_amount: -readingCost, // Negative amount to deduct
                 p_transaction_type: 'reading_cost',
                 p_description: `Tarot reading - ${readingCost} stars`
@@ -89,7 +89,13 @@ Note: Only include card symbolism, spread mechanics, or detailed card meanings i
             // Don't fail the reading if stars deduction fails, just log it
         }
 
-        return result.toUIMessageStreamResponse()
+        const res = result.toUIMessageStreamResponse()
+        if (isNew) {
+            const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365
+            const cookie = `anon_id=${anonymousId}; Path=/; Max-Age=${ONE_YEAR_SECONDS}; HttpOnly; SameSite=Lax`
+            res.headers.append('Set-Cookie', cookie)
+        }
+        return res
     } catch (error) {
         console.error("Error generating interpretation:", error)
         return new Response("Failed to generate interpretation", {

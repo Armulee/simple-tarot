@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
-import { getClientIP } from "@/lib/ip-utils"
+import { getOrCreateAnonymousId, attachAnonymousIdCookie } from "@/lib/anonymous-id"
 
 export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url)
         const userId = searchParams.get('userId')
-        const ipAddress = getClientIP(req)
+        const { anonymousId, isNew } = getOrCreateAnonymousId(req)
 
         // Get current stars balance
         const { data: starsData, error: starsError } = await supabase
             .rpc('get_or_create_user_stars', {
                 p_user_id: userId || null,
-                p_ip_address: ipAddress
+                p_anonymous_id: anonymousId
             })
 
         if (starsError) {
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
         const { data: canClaimData, error: canClaimError } = await supabase
             .rpc('can_claim_daily_stars', {
                 p_user_id: userId || null,
-                p_ip_address: ipAddress
+                p_anonymous_id: anonymousId
             })
 
         if (canClaimError) {
@@ -37,20 +37,17 @@ export async function GET(req: NextRequest) {
         const canClaimDaily = canClaimData || false
 
         // Get today's daily claim
-        const { data: dailyClaimData } = await supabase
-            .from('daily_claims')
-            .select('stars_claimed')
-            .eq(userId ? 'user_id' : 'ip_address', userId || ipAddress)
-            .eq('claim_date', new Date().toISOString().split('T')[0])
-            .single()
-
-        const dailyStarsClaimed = dailyClaimData?.stars_claimed || 0
+        const { data: dailyStarsClaimed } = await supabase
+            .rpc('get_today_daily_claim_amount', {
+                p_user_id: userId || null,
+                p_anonymous_id: anonymousId
+            })
 
         // Get today's ad watches count
         const { data: adWatchesData, error: adWatchesError } = await supabase
             .rpc('get_daily_ad_watch_count', {
                 p_user_id: userId || null,
-                p_ip_address: ipAddress
+                p_anonymous_id: anonymousId
             })
 
         if (adWatchesError) {
@@ -60,13 +57,17 @@ export async function GET(req: NextRequest) {
 
         const dailyAdWatches = adWatchesData || 0
 
-        return NextResponse.json({
+        const res = NextResponse.json({
             success: true,
             stars: currentStars,
             canClaimDaily,
-            dailyStarsClaimed,
+            dailyStarsClaimed: dailyStarsClaimed || 0,
             dailyAdWatches,
         })
+        if (isNew) {
+            attachAnonymousIdCookie(res, anonymousId)
+        }
+        return res
     } catch (error) {
         console.error('Error in balance API:', error)
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

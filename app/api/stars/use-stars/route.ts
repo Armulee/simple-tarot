@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
-import { getClientIP } from "@/lib/ip-utils"
+import { getOrCreateAnonymousId, attachAnonymousIdCookie } from "@/lib/anonymous-id"
 
 export async function POST(req: NextRequest) {
     try {
         const { userId, amount, transaction_type } = await req.json()
-        const ipAddress = getClientIP(req)
+        const { anonymousId, isNew } = getOrCreateAnonymousId(req)
 
         if (!amount || amount <= 0) {
             return NextResponse.json({ 
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
         const { data: starsData, error: starsError } = await supabase
             .rpc('get_or_create_user_stars', {
                 p_user_id: userId || null,
-                p_ip_address: ipAddress
+                p_anonymous_id: anonymousId
             })
 
         if (starsError) {
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
         const { data: addStarsData, error: addStarsError } = await supabase
             .rpc('add_stars', {
                 p_user_id: userId || null,
-                p_ip_address: ipAddress,
+                p_anonymous_id: anonymousId,
                 p_amount: -amount, // Negative amount to deduct
                 p_transaction_type: transaction_type || 'reading_cost',
                 p_description: `Used ${amount} stars for ${transaction_type || 'reading'}`
@@ -50,11 +50,15 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Failed to deduct stars' }, { status: 500 })
         }
 
-        return NextResponse.json({
+        const res = NextResponse.json({
             success: true,
             message: `Successfully used ${amount} stars`,
             stars: addStarsData
         })
+        if (isNew) {
+            attachAnonymousIdCookie(res, anonymousId)
+        }
+        return res
     } catch (error) {
         console.error('Error in use-stars API:', error)
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
