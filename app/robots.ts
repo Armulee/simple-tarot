@@ -16,26 +16,6 @@ export default function robots(): MetadataRoute.Robots {
           '/private/',
         ],
       },
-      {
-        userAgent: 'GPTBot',
-        disallow: '/',
-      },
-      {
-        userAgent: 'Google-Extended',
-        disallow: '/',
-      },
-      {
-        userAgent: 'CCBot',
-        disallow: '/',
-      },
-      {
-        userAgent: 'anthropic-ai',
-        disallow: '/',
-      },
-      {
-        userAgent: 'Claude-Web',
-        disallow: '/',
-      },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
     host: baseUrl,
