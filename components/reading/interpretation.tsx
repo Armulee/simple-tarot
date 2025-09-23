@@ -43,7 +43,7 @@ export default function Interpretation() {
         body: {
             userId: user?.id || null,
         },
-        onFinish: (_, completion) => {
+        onFinish: (_: string, completion: string) => {
             setFinish(true)
             setInterpretation(completion)
         },
