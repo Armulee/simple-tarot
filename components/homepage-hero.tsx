@@ -23,7 +23,7 @@ export function HomepageHero({ onLearnMore }: HomepageHeroProps) {
 
                 {/* Question Input */}
                 <div className='flex flex-col gap-6 justify-center items-center pt-8 max-w-md mx-auto px-4'>
-                    <div className='w-full opacity-0 pointer-events-none'>
+                    <div className='w-full'>
                         <Suspense fallback={<div className='h-20' />}>
                             <HomeQuestionWrapper />
                         </Suspense>

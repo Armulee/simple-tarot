@@ -51,14 +51,9 @@ export function FullscreenSwipe({ children }: FullscreenSwipeProps) {
         const deltaY = currentY.current - startY.current
         const threshold = 50
 
-        if (Math.abs(deltaY) > threshold) {
-            if (deltaY > 0 && currentIndex > 0) {
-                // Swipe down - go to previous slide
-                goToSlide(currentIndex - 1)
-            } else if (deltaY < 0 && currentIndex < totalSlides - 1) {
-                // Swipe up - go to next slide
-                goToSlide(currentIndex + 1)
-            }
+        if (deltaY > threshold && currentIndex < totalSlides - 1) {
+            // Swipe down - go to next slide
+            goToSlide(currentIndex + 1)
         }
     }
 
@@ -70,14 +65,9 @@ export function FullscreenSwipe({ children }: FullscreenSwipeProps) {
         const deltaY = e.deltaY
         const threshold = 50
 
-        if (Math.abs(deltaY) > threshold) {
-            if (deltaY > 0 && currentIndex < totalSlides - 1) {
-                // Scroll down - go to next slide
-                goToSlide(currentIndex + 1)
-            } else if (deltaY < 0 && currentIndex > 0) {
-                // Scroll up - go to previous slide
-                goToSlide(currentIndex - 1)
-            }
+        if (deltaY > threshold && currentIndex < totalSlides - 1) {
+            // Scroll down - go to next slide
+            goToSlide(currentIndex + 1)
         }
     }
 
@@ -128,20 +118,6 @@ export function FullscreenSwipe({ children }: FullscreenSwipeProps) {
                 ))}
             </div>
 
-            {/* Slide indicators */}
-            <div className="fixed right-6 top-1/2 transform -translate-y-1/2 z-50 space-y-2">
-                {Array.from({ length: totalSlides }).map((_, index) => (
-                    <button
-                        key={index}
-                        onClick={() => goToSlide(index)}
-                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                            index === currentIndex 
-                                ? 'bg-white scale-125' 
-                                : 'bg-white/30 hover:bg-white/50'
-                        }`}
-                    />
-                ))}
-            </div>
         </div>
     )
 }

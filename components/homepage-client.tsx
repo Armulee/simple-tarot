@@ -1,7 +1,7 @@
 "use client"
 
-import { TestSwipe } from "@/components/test-swipe"
+import { MinimalHomepage } from "@/components/minimal-homepage"
 
 export function HomepageClient() {
-    return <TestSwipe />
+    return <MinimalHomepage />
 }
