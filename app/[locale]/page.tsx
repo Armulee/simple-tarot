@@ -40,7 +40,7 @@ export default function HomePage() {
                 </div>
 
                 {/* Question Input */}
-                <div className='flex flex-col gap-6 justify-center items-center pt-8 max-w-md mx-auto px-4'>
+                <div className='flex flex-col gap-6 justify-center items-center pt-16 max-w-md mx-auto px-4'>
                     <div className='w-full'>
                         <Suspense fallback={<div className='h-20' />}>
                             <HomeQuestionWrapper />
