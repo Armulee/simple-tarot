@@ -48,11 +48,11 @@ export function CyclingTypewriter({ className = "" }: CyclingTypewriterProps) {
     // Calculate typing duration for each line (assuming 60ms per character)
     const getTypingDuration = useCallback((text: string) => text.length * 60, [])
 
-    // Calculate total duration for both lines + 3 second pause
+    // Calculate total duration for both lines + 6 second pause
     const getTotalDuration = useCallback((content: TypewriterContent) => {
         const line1Duration = getTypingDuration(content.line1)
         const line2Duration = getTypingDuration(content.line2)
-        return Math.max(line1Duration, line2Duration) + 3000 // 3 seconds pause
+        return Math.max(line1Duration, line2Duration) + 6000 // 6 seconds pause
     }, [getTypingDuration])
 
     useEffect(() => {
