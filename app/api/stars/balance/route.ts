@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
         const canClaimDaily = canClaimData || false
 
         // Get today's daily claim
-        const { data: dailyStarsClaimed, error: dailyClaimErr } = await supabase
+        const { data: dailyStarsClaimed } = await supabase
             .rpc('get_today_daily_claim_amount', {
                 p_user_id: userId || null,
                 p_anonymous_id: anonymousId

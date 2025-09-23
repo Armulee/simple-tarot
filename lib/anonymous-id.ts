@@ -6,7 +6,17 @@ type CookieReader = {
 }
 
 type CookieWriter = {
-    cookies: { set: (name: string, value: string, options?: Record<string, any>) => void }
+	cookies: { set: (name: string, value: string, options?: CookieSetOptions) => void }
+}
+
+interface CookieSetOptions {
+	httpOnly?: boolean
+	sameSite?: "lax" | "strict" | "none"
+	secure?: boolean
+	path?: string
+	domain?: string
+	maxAge?: number
+	expires?: Date
 }
 
 export function getOrCreateAnonymousId(req: CookieReader): { anonymousId: string; isNew: boolean } {
