@@ -7,6 +7,7 @@ import type { Swiper as SwiperType } from "swiper"
 import "swiper/css"
 import "swiper/css/pagination"
 import { useService } from "@/contexts/service-context"
+import type { MysticalServiceId } from "@/contexts/service-context"
 import mysticalServices from "@/components/navbar/mystical-services"
 import HomeQuestionWrapper from "@/components/home-question-wrapper"
 import { TypewriterText } from "@/components/typewriter-text"
@@ -24,7 +25,10 @@ export default function HomeInteractive() {
     const [waitlistOpen, setWaitlistOpen] = useState(false)
     const [waitlistLabel, setWaitlistLabel] = useState("")
 
-    const serviceIds = useMemo(() => mysticalServices.map((s) => s.id), [])
+    const serviceIds = useMemo<MysticalServiceId[]>(
+        () => mysticalServices.map((s) => s.id as MysticalServiceId),
+        []
+    )
     const activeIndex = Math.max(0, serviceIds.indexOf(activeService))
 
     useEffect(() => {
@@ -42,7 +46,7 @@ export default function HomeInteractive() {
     // Handlers
     const handleSlideChange = (idx: number) => {
         const id = serviceIds[idx]
-        if (id) setActiveService(id as any)
+        if (id) setActiveService(id)
     }
 
     const openWaitlist = (label: string) => {
@@ -111,7 +115,7 @@ export default function HomeInteractive() {
 
                             {/* Slide body */}
                             <div className='w-full max-w-4xl mt-40'>
-                                {id === "tarot" ? (
+                                {available ? (
                                     <div className='space-y-6'>
                                         <HomeQuestionWrapper />
                                     </div>

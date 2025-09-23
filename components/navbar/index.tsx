@@ -35,6 +35,7 @@ import {
 import mysticalServices from "./mystical-services"
 import { useService } from "@/contexts/service-context"
 import { WaitlistDialog } from "@/components/waitlist-dialog"
+import type { MysticalServiceId } from "@/contexts/service-context"
 import { useTranslations as useSidebarTranslations } from "next-intl"
 
 export function Navbar({ locale }: { locale: string }) {
@@ -130,7 +131,7 @@ export function Navbar({ locale }: { locale: string }) {
                                     className='inline-flex items-center space-x-2 text-white hover:bg-white/10 px-4 py-2 rounded-md transition-colors'
                                 >
                                     <Sparkles className='h-4 w-4' />
-                                    <span>{s(activeService as any)}</span>
+                                    <span>{s(activeService)}</span>
                                     <ChevronDown className='h-4 w-4' />
                                 </Button>
                             </SheetTrigger>
@@ -146,13 +147,13 @@ export function Navbar({ locale }: { locale: string }) {
                                 </SheetHeader>
                                 <div className='mt-8 space-y-2'>
                                     {mysticalServices.map(
-                                        ({ id, href, Icon, available, label }) => (
+                                        ({ id, Icon, available, label }) => (
                                             <div key={id}>
                                                 <button
                                                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors group ${available ? "text-white hover:bg-white/10" : "text-white/50 hover:bg-white/5"}`}
                                                     onClick={() => {
                                                         if (available) {
-                                                            setActiveService(id as any)
+                                                            setActiveService(id as MysticalServiceId)
                                                             setMysticalOpen(false)
                                                             if (id === "tarot" && pathname !== "/") {
                                                                 router.push("/")
@@ -194,7 +195,7 @@ export function Navbar({ locale }: { locale: string }) {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className='w-24 bg-card/95 backdrop-blur-md border-border/30'>
-                                {routing.locales.map((loc) => (
+                                {routing.locales.map((loc: (typeof routing.locales)[number]) => (
                                     <DropdownMenuItem
                                         key={loc}
                                         onClick={() =>
