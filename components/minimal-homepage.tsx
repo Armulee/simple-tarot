@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { SimpleQuestionInput } from "@/components/simple-question-input"
 import { useState } from "react"
 
 export function MinimalHomepage() {
@@ -44,9 +45,7 @@ export function MinimalHomepage() {
                     {/* Question Input */}
                     <div className='flex flex-col gap-6 justify-center items-center pt-8 max-w-md mx-auto px-4'>
                         <div className='w-full'>
-                            <div className="h-20 bg-white/10 rounded-lg flex items-center justify-center">
-                                <span className="text-white">Question Input Placeholder</span>
-                            </div>
+                            <SimpleQuestionInput />
                         </div>
 
                         <Button
