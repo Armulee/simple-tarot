@@ -35,7 +35,7 @@ export default function HomePage() {
         <section className='relative z-10 flex flex-col items-center justify-center h-[calc(100vh-180px)] px-6 text-center'>
             <div className='max-w-4xl w-full mx-auto space-y-8'>
                 {/* Main Heading */}
-                <div className='space-y-4 py-8'>
+                <div className='space-y-4 pt-20'>
                     <CyclingTypewriter className='h-20 sm:h-24 md:h-28 lg:h-32' />
                 </div>
 
