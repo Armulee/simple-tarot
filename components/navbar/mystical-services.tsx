@@ -16,6 +16,13 @@ const mysticalServices = [
         available: false,
     },
     {
+        id: "horoscope",
+        href: "#",
+        label: "Horoscope",
+        Icon: Star,
+        available: false,
+    },
+    {
         id: "namelogy",
         href: "#",
         label: "Namelogy",
