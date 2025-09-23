@@ -33,6 +33,8 @@ import {
     DropdownMenuTrigger,
 } from "../ui/dropdown-menu"
 import mysticalServices from "./mystical-services"
+import { useService } from "@/contexts/service-context"
+import { WaitlistDialog } from "@/components/waitlist-dialog"
 import { useTranslations as useSidebarTranslations } from "next-intl"
 
 export function Navbar({ locale }: { locale: string }) {
@@ -42,6 +44,9 @@ export function Navbar({ locale }: { locale: string }) {
     const router = useRouter()
     const pathname = usePathname()
     const [mysticalOpen, setMysticalOpen] = useState(false)
+    const [waitlistOpen, setWaitlistOpen] = useState(false)
+    const [waitlistLabel, setWaitlistLabel] = useState("")
+    const { activeService, setActiveService } = useService()
     const { user, loading } = useAuth()
     const meta = (user?.user_metadata ?? {}) as {
         avatar_url?: string
@@ -53,6 +58,7 @@ export function Navbar({ locale }: { locale: string }) {
     const initial = displayName.charAt(0).toUpperCase()
 
     return (
+        <>
         <nav className='fixed top-0 left-0 right-0 z-50 bg-card/5 backdrop-blur-sm border-b border-border/20'>
             <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
                 <div className='flex justify-between items-center h-16'>
@@ -124,7 +130,7 @@ export function Navbar({ locale }: { locale: string }) {
                                     className='inline-flex items-center space-x-2 text-white hover:bg-white/10 px-4 py-2 rounded-md transition-colors'
                                 >
                                     <Sparkles className='h-4 w-4' />
-                                    <span>{s("tarot")}</span>
+                                    <span>{s(activeService as any)}</span>
                                     <ChevronDown className='h-4 w-4' />
                                 </Button>
                             </SheetTrigger>
@@ -140,38 +146,34 @@ export function Navbar({ locale }: { locale: string }) {
                                 </SheetHeader>
                                 <div className='mt-8 space-y-2'>
                                     {mysticalServices.map(
-                                        ({ id, href, Icon, available }) => (
+                                        ({ id, href, Icon, available, label }) => (
                                             <div key={id}>
-                                                {available ? (
-                                                    <Link
-                                                        href={
-                                                            id === "tarot"
-                                                                ? "/"
-                                                                : href
+                                                <button
+                                                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors group ${available ? "text-white hover:bg-white/10" : "text-white/50 hover:bg-white/5"}`}
+                                                    onClick={() => {
+                                                        if (available) {
+                                                            setActiveService(id as any)
+                                                            setMysticalOpen(false)
+                                                            if (id === "tarot" && pathname !== "/") {
+                                                                router.push("/")
+                                                            }
+                                                        } else {
+                                                            setMysticalOpen(false)
+                                                            setWaitlistLabel(label)
+                                                            setWaitlistOpen(true)
                                                         }
-                                                        className='flex items-center space-x-3 px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors group'
-                                                        onClick={() =>
-                                                            setMysticalOpen(
-                                                                false
-                                                            )
-                                                        }
-                                                    >
-                                                        <Icon className='h-5 w-5 text-primary' />
-                                                        <span className='font-medium'>
-                                                            {s(id)}
-                                                        </span>
-                                                    </Link>
-                                                ) : (
-                                                    <div className='flex items-center space-x-3 px-4 py-3 rounded-lg text-white/50 cursor-not-allowed opacity-60'>
-                                                        <Icon className='h-5 w-5' />
-                                                        <span className='font-medium'>
-                                                            {s(id)}
-                                                        </span>
+                                                    }}
+                                                >
+                                                    <Icon className={`h-5 w-5 ${available ? "text-primary" : ""}`} />
+                                                    <span className='font-medium'>
+                                                        {s(id)}
+                                                    </span>
+                                                    {!available && (
                                                         <span className='ml-auto text-xs bg-white/10 px-2 py-1 rounded-full'>
                                                             Coming Soon
                                                         </span>
-                                                    </div>
-                                                )}
+                                                    )}
+                                                </button>
                                             </div>
                                         )
                                     )}
@@ -250,5 +252,11 @@ export function Navbar({ locale }: { locale: string }) {
             {/* Mobile sidebar */}
             <SidebarSheet open={open} onOpenChange={setOpen} />
         </nav>
+        <WaitlistDialog
+            open={waitlistOpen}
+            onOpenChange={setWaitlistOpen}
+            serviceLabel={waitlistLabel}
+        />
+        </>
     )
 }

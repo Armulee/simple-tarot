@@ -17,6 +17,7 @@
   "Services": {
     "tarot": "Tarot",
     "astrology": "Astrology",
+    "horoscope": "Horoscope",
     "namelogy": "Namelogy",
     "numerology": "Numerology",
     "luckyColors": "Lucky Colors"
@@ -26,6 +27,23 @@
     "hero": {
       "line1": "Ask me anything",
       "line2": "about your destiny"
+    },
+    "steps": {
+      "step1": "Ask anything you're curious about — future, past, or the now",
+      "step2": "Choose a spread that fits your vibe and draw your cards",
+      "step3": "Get a personalized AI interpretation from your question and cards"
+    },
+    "features": {
+      "title": "Explore Mystical Services",
+      "subtitle": "Swipe between services above or jump directly from below.",
+      "items": {
+        "tarot": { "title": "Tarot", "desc": "Ask a question and draw cards for guidance" },
+        "astrology": { "title": "Birth Chart", "desc": "Map your cosmic blueprint (coming soon)" },
+        "horoscope": { "title": "Horoscope", "desc": "Daily cosmic trends tailored to you (coming soon)" },
+        "namelogy": { "title": "Namelogy", "desc": "Decode the vibration of your name (coming soon)" },
+        "numerology": { "title": "Numerology", "desc": "Numbers that guide your path (coming soon)" },
+        "luckyColors": { "title": "Lucky Colors", "desc": "Colors aligned to your day (coming soon)" }
+      }
     },
     "learnMore": "Learn More"
   },
