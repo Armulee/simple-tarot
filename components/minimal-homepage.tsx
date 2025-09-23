@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { SimpleQuestionInput } from "@/components/simple-question-input"
+import { CyclingTypewriter } from "@/components/cycling-typewriter"
 import { useState } from "react"
 
 export function MinimalHomepage() {
@@ -33,13 +34,7 @@ export function MinimalHomepage() {
                 <div className='max-w-4xl w-full mx-auto space-y-8'>
                     {/* Main Heading */}
                     <div className='space-y-4 pt-20'>
-                        <h1 className="font-serif font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-balance h-20 sm:h-24 md:h-28 lg:h-32">
-                            <span className="text-white">Ask me anything</span>
-                            <br />
-                            <span className="text-transparent bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text">
-                                about your destiny
-                            </span>
-                        </h1>
+                        <CyclingTypewriter className='h-20 sm:h-24 md:h-28 lg:h-32' />
                     </div>
 
                     {/* Question Input */}
@@ -71,7 +66,7 @@ export function MinimalHomepage() {
     
     if (currentSlide === 1) {
         return (
-            <div className="h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+            <div className="h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center animate-slide-up">
                 <div className="text-center text-white">
                     <h2 className="text-4xl font-bold mb-4">Features Section</h2>
                     <p className="text-xl mb-8">This would be the features grid</p>
@@ -87,7 +82,7 @@ export function MinimalHomepage() {
     }
     
     return (
-        <div className="h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center animate-slide-up">
             <div className="text-center text-white">
                 <h2 className="text-4xl font-bold mb-4">Interactive Demo</h2>
                 <p className="text-xl mb-8">This would be the interactive demo</p>
