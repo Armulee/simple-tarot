@@ -84,22 +84,25 @@ export function CyclingTypewriter({ className = "" }: CyclingTypewriterProps) {
     }
 
     return (
-        <div className={`transition-all duration-500 ${className}`}>
+        <div className={`transition-all duration-500 flex items-center justify-center ${className}`}>
             {showContent && (
-                <div className={`space-y-4 transition-opacity duration-500 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
-                    <h1 className='font-serif font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-balance h-20 sm:h-24 md:h-28 lg:h-32'>
-                        <TypewriterText
-                            text={currentContent.line1}
-                            speed={60}
-                            className='text-white'
-                        />
-                        <br />
-                        <TypewriterText
-                            text={currentContent.line2}
-                            speed={60}
-                            delay={60 * currentContent.line1.length}
-                            className='text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'
-                        />
+                <div className={`space-y-4 transition-opacity duration-500 flex flex-col items-center justify-center ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
+                    <h1 className='font-serif font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-balance text-center flex flex-col items-center justify-center h-20 sm:h-24 md:h-28 lg:h-32'>
+                        <span className='text-white'>
+                            <TypewriterText
+                                text={currentContent.line1}
+                                speed={60}
+                                className='text-white'
+                            />
+                        </span>
+                        <span className='text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'>
+                            <TypewriterText
+                                text={currentContent.line2}
+                                speed={60}
+                                delay={60 * currentContent.line1.length}
+                                className='text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'
+                            />
+                        </span>
                     </h1>
                 </div>
             )}
