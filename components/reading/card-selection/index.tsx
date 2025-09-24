@@ -13,6 +13,16 @@ import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
 import { InlineQuestionEdit } from "../inline-question-edit"
 import AdDialog from "@/components/ads/ad-dialog"
+import { useStars } from "@/contexts/stars-context"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function CardSelection({
     readingConfig,
@@ -34,6 +44,7 @@ export default function CardSelection({
         setFollowUpQuestion,
     } = useTarot()
     const isMobile = useIsMobile()
+    const { stars } = useStars()
 
     // Desktop-only spread mode selection; mobile is forced to linear
     const [spreadMode, setSpreadMode] = useState<"circular" | "linear">(
@@ -52,6 +63,7 @@ export default function CardSelection({
 
     // Ad dialog state
     const [showAdDialog, setShowAdDialog] = useState(false)
+    const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
 
     // Clear previous selections whenever we enter the card selection step (including follow-up)
     useEffect(() => {
@@ -87,6 +99,11 @@ export default function CardSelection({
     const handleCardsSelected = (
         cards: { name: string; isReversed: boolean }[]
     ) => {
+        // If not enough stars, block and show dialog; do not mutate state or storage
+        if (stars < 1) {
+            setShowNoStarsDialog(true)
+            return
+        }
         // Clear old interpretation state and localStorage when new cards are selected
         clearInterpretationState()
 
@@ -182,6 +199,23 @@ export default function CardSelection({
                     onWatchAd={handleWatchAd}
                 />
             )}
+
+            {/* No Stars Dialog */}
+            <AlertDialog open={showNoStarsDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>No stars left</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            You don’t have enough stars to continue. Please wait for refill or purchase more stars.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogAction onClick={() => setShowNoStarsDialog(false)}>
+                            Okay
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             {currentStep === "card-selection" && (
                 <div className='space-y-8 animate-fade-in'>
