@@ -248,6 +248,8 @@ If the interpretation is too generic, add more details to make it more specific.
         if (!adsEnabled) return
         if (currentStep === "interpretation" && !hasInitiated.current) {
             hasInitiated.current = true
+            // Reset charge gate for a brand-new interpretation run
+            chargedThisRunRef.current = false
 
             // If interpretation is already available (restored), skip fetching and ads
             if (interpretation) {
@@ -265,6 +267,8 @@ If the interpretation is too generic, add more details to make it more specific.
         if (adsEnabled) return
         if (currentStep === "interpretation" && !hasInitiated.current) {
             hasInitiated.current = true
+            // Reset charge gate for a brand-new interpretation run
+            chargedThisRunRef.current = false
 
             // If interpretation exists, just show it without fetching/cost
             if (interpretation) {
@@ -295,6 +299,8 @@ If the interpretation is too generic, add more details to make it more specific.
             setShowAd(false)
             setAdCompleted(false)
             setIsFollowUpMode(true)
+            // Ensure next interpretation charges a star
+            chargedThisRunRef.current = false
         } else if (!isFollowUp && hasInitiated.current) {
             // Reset follow-up mode when not in follow-up
             setIsFollowUpMode(false)
