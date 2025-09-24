@@ -84,21 +84,21 @@ export default function StarsPage() {
             <div className='space-y-4'>
                 <h2 className='font-serif text-2xl font-semibold text-white text-center'>Ways to earn stars</h2>
                 <Accordion className='space-y-3'>
-                    <AccordionItem className='rounded-xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 to-emerald-300/5 px-2'>
+                    <AccordionItem className='rounded-xl border border-border/20 bg-card/10 px-2'>
                         <AccordionTrigger className='px-2'>
                             <div className='flex items-center gap-3'>
-                                <span className='h-8 w-8 rounded-full bg-emerald-400/20 border border-emerald-500/30 text-emerald-300 flex items-center justify-center'>
+                                <span className='h-8 w-8 rounded-full bg-white/10 border border-white/20 text-white/80 flex items-center justify-center'>
                                     <Gift className='w-4 h-4' />
                                 </span>
                                 <span className='text-white'>First-time registration</span>
-                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-emerald-400/15 border border-emerald-500/30 text-emerald-300 flex items-center gap-1'>
-                                    <Star className='w-3.5 h-3.5' fill='currentColor' />
+                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-white/80 flex items-center gap-1'>
+                                    <Star className='w-3.5 h-3.5 text-primary' fill='currentColor' />
                                     10
                                 </span>
                             </div>
                         </AccordionTrigger>
                         <AccordionContent>
-                            <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-emerald-500/20'>
+                            <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-border/20'>
                                 <p>Sign up and receive +10 stars. Your auto-refill capacity increases to 15 stars.</p>
                                 <Link href='/signup'>
                                     <Button className='rounded-full'>Create an account</Button>
@@ -106,18 +106,23 @@ export default function StarsPage() {
                             </div>
                         </AccordionContent>
                     </AccordionItem>
-                    <AccordionItem className='rounded-xl border border-yellow-500/20 bg-gradient-to-r from-yellow-500/10 to-amber-400/5 px-2'>
+                    <AccordionItem className='relative overflow-hidden rounded-xl border border-border/20 bg-card/10 px-2 card-glow'>
                         <AccordionTrigger className='px-2'>
                             <div className='flex items-center gap-3'>
-                                <span className='h-8 w-8 rounded-full bg-yellow-400/20 border border-yellow-500/30 text-yellow-300 flex items-center justify-center'>
-                                    <Star className='w-4 h-4' fill='currentColor' />
+                                <span className='h-8 w-8 rounded-full bg-white/10 border border-white/20 text-white/80 flex items-center justify-center'>
+                                    <Star className='w-4 h-4 text-primary' fill='currentColor' />
                                 </span>
                                 <span className='text-white'>Purchase stars</span>
-                                {/* No reward badge for purchase */}
+                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-white flex items-center gap-1'>
+                                    <Star className='w-3.5 h-3.5 text-primary' fill='currentColor' />
+                                    Instant
+                                </span>
                             </div>
                         </AccordionTrigger>
                         <AccordionContent>
-                            <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-yellow-500/20'>
+                            <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-border/20 relative'>
+                                <div className='pointer-events-none absolute -top-10 -right-10 h-32 w-32 rounded-full bg-primary/20 blur-3xl' />
+                                <div className='pointer-events-none absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-secondary/20 blur-3xl' />
                                 <p>Need stars instantly? Buy star packs and use them right away.</p>
                                 <Link href='/stars/purchase'>
                                     <Button className='rounded-full'>Purchase Stars</Button>
@@ -125,21 +130,21 @@ export default function StarsPage() {
                             </div>
                         </AccordionContent>
                     </AccordionItem>
-                    <AccordionItem className='rounded-xl border border-fuchsia-500/20 bg-gradient-to-r from-fuchsia-500/10 to-purple-400/5 px-2'>
+                    <AccordionItem className='rounded-xl border border-border/20 bg-card/10 px-2'>
                         <AccordionTrigger className='px-2'>
                             <div className='flex items-center gap-3'>
-                                <span className='h-8 w-8 rounded-full bg-fuchsia-400/20 border border-fuchsia-500/30 text-fuchsia-300 flex items-center justify-center'>
+                                <span className='h-8 w-8 rounded-full bg-white/10 border border-white/20 text-white/80 flex items-center justify-center'>
                                     <Megaphone className='w-4 h-4' />
                                 </span>
                                 <span className='text-white'>Create content about us</span>
-                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-fuchsia-400/15 border border-fuchsia-500/30 text-fuchsia-300 flex items-center gap-1'>
-                                    <Star className='w-3.5 h-3.5' fill='currentColor' />
+                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-white/80 flex items-center gap-1'>
+                                    <Star className='w-3.5 h-3.5 text-primary' fill='currentColor' />
                                     15–50
                                 </span>
                             </div>
                         </AccordionTrigger>
                         <AccordionContent>
-                            <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-fuchsia-500/20'>
+                            <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-border/20'>
                                 <ul className='list-disc list-inside space-y-1'>
                                     <li>Text article or blog post: +15 stars</li>
                                     <li>Image post (e.g. social media): +25 stars</li>
@@ -152,21 +157,21 @@ export default function StarsPage() {
                             </div>
                         </AccordionContent>
                     </AccordionItem>
-                    <AccordionItem className='rounded-xl border border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 to-sky-400/5 px-2'>
+                    <AccordionItem className='rounded-xl border border-border/20 bg-card/10 px-2'>
                         <AccordionTrigger className='px-2'>
                             <div className='flex items-center gap-3'>
-                                <span className='h-8 w-8 rounded-full bg-cyan-400/20 border border-cyan-500/30 text-cyan-300 flex items-center justify-center'>
+                                <span className='h-8 w-8 rounded-full bg-white/10 border border-white/20 text-white/80 flex items-center justify-center'>
                                     <Share2 className='w-4 h-4' />
                                 </span>
                                 <span className='text-white'>Share a reading</span>
-                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-cyan-400/15 border border-cyan-500/30 text-cyan-300 flex items-center gap-1'>
-                                    <Star className='w-3.5 h-3.5' fill='currentColor' />
+                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-white/80 flex items-center gap-1'>
+                                    <Star className='w-3.5 h-3.5 text-primary' fill='currentColor' />
                                     1
                                 </span>
                             </div>
                         </AccordionTrigger>
                         <AccordionContent>
-                            <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-cyan-500/20'>
+                            <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-border/20'>
                                 <p>Post or send your reading to earn +1 star.</p>
                                 <Link href='/'>
                                     <Button variant='outline' className='rounded-full'>Go to readings</Button>
@@ -174,21 +179,21 @@ export default function StarsPage() {
                             </div>
                         </AccordionContent>
                     </AccordionItem>
-                    <AccordionItem className='rounded-xl border border-violet-500/20 bg-gradient-to-r from-violet-500/10 to-indigo-400/5 px-2'>
+                    <AccordionItem className='rounded-xl border border-border/20 bg-card/10 px-2'>
                         <AccordionTrigger className='px-2'>
                             <div className='flex items-center gap-3'>
-                                <span className='h-8 w-8 rounded-full bg-violet-400/20 border border-violet-500/30 text-violet-300 flex items-center justify-center'>
+                                <span className='h-8 w-8 rounded-full bg-white/10 border border-white/20 text-white/80 flex items-center justify-center'>
                                     <Users className='w-4 h-4' />
                                 </span>
                                 <span className='text-white'>Refer a friend</span>
-                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-violet-400/15 border border-violet-500/30 text-violet-300 flex items-center gap-1'>
-                                    <Star className='w-3.5 h-3.5' fill='currentColor' />
+                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-white/80 flex items-center gap-1'>
+                                    <Star className='w-3.5 h-3.5 text-primary' fill='currentColor' />
                                     5
                                 </span>
                             </div>
                         </AccordionTrigger>
                         <AccordionContent>
-                            <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-violet-500/20'>
+                            <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-border/20'>
                                 <p>You and your friend each get +5 stars when they join.</p>
                                 <Link href='/contact'>
                                     <Button variant='outline' className='rounded-full'>Get referral link</Button>
