@@ -15,6 +15,15 @@ import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
 import ApplixirRewardedAds from "@/components/ads/applixir-rewarded-ads"
 import { useStars } from "@/contexts/stars-context"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 // import AdDialog from "@/components/ads/ad-dialog"
 
 export default function Interpretation() {
@@ -29,6 +38,7 @@ export default function Interpretation() {
     // Simplified: rely on completion hook and local gating only
     const [adCompleted, setAdCompleted] = useState(false)
     const [insufficientStars, setInsufficientStars] = useState(false)
+    const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
 
     const {
         currentStep,
@@ -132,12 +142,20 @@ export default function Interpretation() {
 
     const handleRegenerate = () => {
         if (isLoading) return
+        // If previous run errored, don't charge next run
+        if (!error) {
+            // Will cost 1 star; block if none
+            if (!paidForInterpretation && stars < 1) {
+                setShowNoStarsDialog(true)
+                return
+            }
+        }
+
         setFinish(false)
         setInterpretation(null)
         hasInitiated.current = false
         chargedThisRunRef.current = false
         setInsufficientStars(false)
-        // If previous run had an error, waive charge for this immediate regenerate
         if (error) {
             waiveChargeOnceRef.current = true
         } else {
@@ -347,6 +365,21 @@ If the interpretation is too generic, add more details to make it more specific.
 
             {currentStep === "interpretation" && (
                 <div className='space-y-8'>
+                    <AlertDialog open={showNoStarsDialog}>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>No stars left</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    You don’t have enough stars to regenerate. Please wait for refill or purchase more stars.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogAction onClick={() => setShowNoStarsDialog(false)}>
+                                    Okay
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                     {insufficientStars && (
                         <Card className='p-6 bg-card/10 backdrop-blur-sm border-border/20'>
                             <div className='text-center space-y-3'>
@@ -619,7 +652,9 @@ If the interpretation is too generic, add more details to make it more specific.
                                         className='bg-white/5 border border-white/20 hover:bg-white/10 hover:border-white/30 text-white px-8 rounded-full shadow-sm'
                                     >
                                         <RefreshCcw className='w-4 h-4 mr-2' />
-                                        {t("buttons.regenerate")} <span className='ml-2 text-xs text-yellow-300'>(-1 star)</span>
+                                        {t("buttons.regenerate")} {!error && (
+                                            <span className='ml-2 text-xs text-yellow-300 font-semibold'>(-1 star)</span>
+                                        )}
                                     </Button>
                                     <Button
                                         type='button'
@@ -658,3 +693,4 @@ If the interpretation is too generic, add more details to make it more specific.
         </>
     )
 }
+
