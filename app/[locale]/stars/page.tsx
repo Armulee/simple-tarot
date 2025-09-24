@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useStars } from "@/contexts/stars-context"
 import { Star, RefreshCw } from "lucide-react"
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 function formatRelativeTime(timestamp: number | null | undefined): string {
     if (!timestamp) return "—"
@@ -19,7 +19,13 @@ function formatRelativeTime(timestamp: number | null | undefined): string {
 export default function StarsPage() {
     const { stars, nextRefillAt, addStars } = useStars()
 
-    const nextIn = useMemo(() => formatRelativeTime(nextRefillAt), [nextRefillAt])
+    const [now, setNow] = useState<number>(Date.now())
+    useEffect(() => {
+        const id = window.setInterval(() => setNow(Date.now()), 1000)
+        return () => window.clearInterval(id)
+    }, [])
+
+    const nextIn = useMemo(() => formatRelativeTime(nextRefillAt), [nextRefillAt, now])
 
     return (
         <section className='relative z-10 max-w-2xl mx-auto px-6 py-10 space-y-6'>
