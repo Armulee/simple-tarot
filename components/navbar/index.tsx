@@ -221,7 +221,7 @@ export function Navbar({ locale }: { locale: string }) {
                             <Link href='/stars'>
                                 <Button
                                     variant='ghost'
-                                    className='h-10 px-3 rounded-full bg-yellow-400 hover:bg-yellow-500 text-black border-0 flex items-center gap-2'
+                                    className='h-10 px-3 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 text-yellow-300 border border-yellow-500/30 flex items-center gap-2'
                                 >
                                     <Star className='w-4 h-4' />
                                     <span className='text-sm font-semibold'>
@@ -236,7 +236,7 @@ export function Navbar({ locale }: { locale: string }) {
                             <Link href='/stars' className='mr-2'>
                                 <Button
                                     variant='ghost'
-                                    className='h-9 px-2 rounded-full bg-yellow-400 hover:bg-yellow-500 text-black border-0 flex items-center gap-1'
+                                    className='h-9 px-2 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 text-yellow-300 border border-yellow-500/30 flex items-center gap-1'
                                 >
                                     <Star className='w-4 h-4' />
                                     <span className='text-xs font-semibold'>
