@@ -91,7 +91,10 @@ export default function StarsPage() {
                                     <Gift className='w-4 h-4' />
                                 </span>
                                 <span className='text-white'>First-time registration</span>
-                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-emerald-400/15 border border-emerald-500/30 text-emerald-300'>+10 stars • cap 15</span>
+                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-emerald-400/15 border border-emerald-500/30 text-emerald-300 flex items-center gap-1'>
+                                    <Star className='w-3.5 h-3.5' fill='currentColor' />
+                                    10
+                                </span>
                             </div>
                         </AccordionTrigger>
                         <AccordionContent>
@@ -110,7 +113,7 @@ export default function StarsPage() {
                                     <Star className='w-4 h-4' fill='currentColor' />
                                 </span>
                                 <span className='text-white'>Purchase stars</span>
-                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-yellow-400/15 border border-yellow-500/30 text-yellow-300'>Instant</span>
+                                {/* No reward badge for purchase */}
                             </div>
                         </AccordionTrigger>
                         <AccordionContent>
@@ -129,7 +132,10 @@ export default function StarsPage() {
                                     <Megaphone className='w-4 h-4' />
                                 </span>
                                 <span className='text-white'>Create content about us</span>
-                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-fuchsia-400/15 border border-fuchsia-500/30 text-fuchsia-300'>+15/+25/+50</span>
+                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-fuchsia-400/15 border border-fuchsia-500/30 text-fuchsia-300 flex items-center gap-1'>
+                                    <Star className='w-3.5 h-3.5' fill='currentColor' />
+                                    15–50
+                                </span>
                             </div>
                         </AccordionTrigger>
                         <AccordionContent>
@@ -153,7 +159,10 @@ export default function StarsPage() {
                                     <Share2 className='w-4 h-4' />
                                 </span>
                                 <span className='text-white'>Share a reading</span>
-                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-cyan-400/15 border border-cyan-500/30 text-cyan-300'>+1 star</span>
+                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-cyan-400/15 border border-cyan-500/30 text-cyan-300 flex items-center gap-1'>
+                                    <Star className='w-3.5 h-3.5' fill='currentColor' />
+                                    1
+                                </span>
                             </div>
                         </AccordionTrigger>
                         <AccordionContent>
@@ -172,7 +181,10 @@ export default function StarsPage() {
                                     <Users className='w-4 h-4' />
                                 </span>
                                 <span className='text-white'>Refer a friend</span>
-                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-violet-400/15 border border-violet-500/30 text-violet-300'>+5 each</span>
+                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-violet-400/15 border border-violet-500/30 text-violet-300 flex items-center gap-1'>
+                                    <Star className='w-3.5 h-3.5' fill='currentColor' />
+                                    5
+                                </span>
                             </div>
                         </AccordionTrigger>
                         <AccordionContent>
