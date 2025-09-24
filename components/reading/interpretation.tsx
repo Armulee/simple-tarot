@@ -47,6 +47,8 @@ export default function Interpretation() {
         onFinish: (_, completion) => {
             setFinish(true)
             setInterpretation(completion)
+            // Last run finished successfully
+            lastRunHadErrorRef.current = false
         },
     })
 
@@ -135,7 +137,12 @@ export default function Interpretation() {
         hasInitiated.current = false
         chargedThisRunRef.current = false
         setInsufficientStars(false)
-        setPaidForInterpretation(false)
+        // If previous run had an error, waive charge for this immediate regenerate
+        if (error) {
+            waiveChargeOnceRef.current = true
+        } else {
+            setPaidForInterpretation(false)
+        }
     }
 
     const shareButtons = [
@@ -166,6 +173,8 @@ export default function Interpretation() {
     ]
 
     const hasInitiated = useRef(false)
+    const lastRunHadErrorRef = useRef(false)
+    const waiveChargeOnceRef = useRef(false)
     const chargedThisRunRef = useRef(false)
 
     // Removed old localStorage-based interpretation cache.
@@ -178,15 +187,21 @@ export default function Interpretation() {
             throw new Error("Missing question or cards")
         }
 
-        // Charge 1 star once per run (skip if previously paid)
+        // Charge 1 star once per run (skip if previously paid or waived due to prior error)
         if (!chargedThisRunRef.current && !paidForInterpretation) {
-            const ok = spendStars(1)
-            if (!ok) {
-                setInsufficientStars(true)
-                throw new Error("INSUFFICIENT_STARS")
+            if (waiveChargeOnceRef.current) {
+                // Waive once after an error-triggered regenerate
+                chargedThisRunRef.current = true
+                waiveChargeOnceRef.current = false
+            } else {
+                const ok = spendStars(1)
+                if (!ok) {
+                    setInsufficientStars(true)
+                    throw new Error("INSUFFICIENT_STARS")
+                }
+                chargedThisRunRef.current = true
+                setPaidForInterpretation(true)
             }
-            chargedThisRunRef.current = true
-            setPaidForInterpretation(true)
         }
 
         const prompt = `Question: "${currentQuestion}"
@@ -224,7 +239,7 @@ If the interpretation is too generic, add more details to make it more specific.
             return
         }
         // Pre-check to avoid showing ads when not enough stars (unless already paid)
-        if (!paidForInterpretation && stars < 1) {
+        if (!paidForInterpretation && !waiveChargeOnceRef.current && stars < 1) {
             setInsufficientStars(true)
             return
         }
@@ -277,7 +292,7 @@ If the interpretation is too generic, add more details to make it more specific.
                 return
             }
 
-            if (!paidForInterpretation && stars < 1) {
+            if (!paidForInterpretation && !waiveChargeOnceRef.current && stars < 1) {
                 setInsufficientStars(true)
                 return
             }
@@ -604,7 +619,7 @@ If the interpretation is too generic, add more details to make it more specific.
                                         className='bg-white/5 border border-white/20 hover:bg-white/10 hover:border-white/30 text-white px-8 rounded-full shadow-sm'
                                     >
                                         <RefreshCcw className='w-4 h-4 mr-2' />
-                                        {t("buttons.regenerate")}
+                                        {t("buttons.regenerate")} <span className='ml-2 text-xs text-yellow-300'>(-1 star)</span>
                                     </Button>
                                     <Button
                                         type='button'
