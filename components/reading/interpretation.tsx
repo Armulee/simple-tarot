@@ -178,9 +178,9 @@ export default function Interpretation() {
             throw new Error("Missing question or cards")
         }
 
-        // Charge 2 stars once per run (skip if previously paid)
+        // Charge 1 star once per run (skip if previously paid)
         if (!chargedThisRunRef.current && !paidForInterpretation) {
-            const ok = spendStars(2)
+            const ok = spendStars(1)
             if (!ok) {
                 setInsufficientStars(true)
                 throw new Error("INSUFFICIENT_STARS")
@@ -224,7 +224,7 @@ If the interpretation is too generic, add more details to make it more specific.
             return
         }
         // Pre-check to avoid showing ads when not enough stars (unless already paid)
-        if (!paidForInterpretation && stars < 2) {
+        if (!paidForInterpretation && stars < 1) {
             setInsufficientStars(true)
             return
         }
@@ -273,7 +273,7 @@ If the interpretation is too generic, add more details to make it more specific.
                 return
             }
 
-            if (!paidForInterpretation && stars < 2) {
+            if (!paidForInterpretation && stars < 1) {
                 setInsufficientStars(true)
                 return
             }
@@ -334,7 +334,7 @@ If the interpretation is too generic, add more details to make it more specific.
                                     <h2 className='font-serif font-semibold text-lg'>Not enough stars</h2>
                                 </div>
                                 <p className='text-sm text-muted-foreground'>
-                                    You need 2 stars to get an interpretation. Current balance: {stars}.
+                                    You need 1 star to get an interpretation. Current balance: {stars}.
                                 </p>
                                 <div className='flex items-center justify-center gap-3'>
                                     <Button type='button' onClick={() => router.push("/")}>Back to Home</Button>
@@ -477,7 +477,7 @@ If the interpretation is too generic, add more details to make it more specific.
                                     <div className='text-center space-y-6 py-8'>
                                         <div className='flex items-center justify-center space-x-3'>
                                             <Stars className='w-6 h-6 text-yellow-300' />
-                                            <span className='text-muted-foreground'>You need 2 stars to view an interpretation.</span>
+                                            <span className='text-muted-foreground'>You need 1 star to view an interpretation.</span>
                                         </div>
                                     </div>
                                 ) : adsEnabled && !adCompleted ? (
