@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Sparkles, RefreshCcw, Loader2, Stars } from "lucide-react"
+import { Sparkles, RefreshCcw, Loader2, Stars, Star } from "lucide-react"
 import { FaShareNodes, FaCopy, FaDownload, FaCheck } from "react-icons/fa6"
 import { useEffect, useRef, useState, useCallback } from "react"
 import { useCompletion } from "@ai-sdk/react"
@@ -653,7 +653,11 @@ If the interpretation is too generic, add more details to make it more specific.
                                     >
                                         <RefreshCcw className='w-4 h-4 mr-2' />
                                         {t("buttons.regenerate")} {!error && (
-                                            <span className='ml-2 text-xs text-yellow-300 font-semibold'>(-1 star)</span>
+                                            <span className='ml-1 text-xs text-yellow-300 font-semibold inline-flex items-center gap-1'>
+                                                (
+                                                <Star className='w-3.5 h-3.5' fill='currentColor' />
+                                                1)
+                                            </span>
                                         )}
                                     </Button>
                                     <Button
