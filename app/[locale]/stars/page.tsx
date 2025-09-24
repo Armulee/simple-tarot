@@ -90,7 +90,7 @@ export default function StarsPage() {
                                 <span className='h-8 w-8 rounded-full bg-white/10 border border-white/20 text-white/80 flex items-center justify-center'>
                                     <Gift className='w-4 h-4' />
                                 </span>
-                                <span className='text-white'>First-time registration</span>
+                                <span className='text-white'>Sign in</span>
                                 <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 border border-yellow-500/30 text-yellow-300 flex items-center gap-1'>
                                     <Star className='w-3.5 h-3.5' fill='currentColor' />
                                     10
@@ -99,9 +99,9 @@ export default function StarsPage() {
                         </AccordionTrigger>
                         <AccordionContent>
                             <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-border/20'>
-                                <p>Sign up and receive +10 stars. Your auto-refill capacity increases to 15 stars.</p>
-                                <Link href='/signup'>
-                                    <Button className='rounded-full'>Create an account</Button>
+                                <p>Sign in and receive +10 stars. Your auto-refill capacity increases to 15 stars.</p>
+                                <Link href='/signin'>
+                                    <Button className='rounded-full'>Sign in</Button>
                                 </Link>
                             </div>
                         </AccordionContent>
