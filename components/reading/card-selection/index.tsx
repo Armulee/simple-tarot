@@ -4,7 +4,7 @@ import { TarotCard, useTarot } from "@/contexts/tarot-context"
 import { Button } from "../../ui/button"
 import { Card } from "../../ui/card"
 import { Badge } from "../../ui/badge"
-import { Pencil, RotateCw } from "lucide-react"
+import { Pencil, RotateCw, Star } from "lucide-react"
 import { ReadingConfig } from "../../../app/[locale]/reading/page"
 import { CircularCardSpread } from "./circular-card-spread"
 import LinearCardSpread from "./linear-card-spread"
@@ -277,6 +277,10 @@ export default function CardSelection({
                                     amount: `(${aggSelected.length}/${cardsToSelect})`,
                                     default: `Trust your intuition and select ${cardsToSelect} from the cosmic spread`,
                                 })}
+                            </p>
+                            <p className='text-xs text-yellow-300 flex items-center justify-center gap-1'>
+                                <Star className='w-3.5 h-3.5' fill='currentColor' />
+                                {"Starting the interpretation will consume 1 star."}
                             </p>
                         </div>
 

@@ -417,6 +417,10 @@ If the interpretation is too generic, add more details to make it more specific.
                                 </h1>
                                 <Sparkles className='w-6 h-6 text-primary' />
                             </div>
+                            <div className='flex items-center justify-center gap-2 text-xs text-yellow-300'>
+                                <Stars className='w-3.5 h-3.5' />
+                                <span>Consuming 1 star to reveal this interpretation.</span>
+                            </div>
                             <p className='text-muted-foreground italic'>
                                 &ldquo;
                                 {getCleanQuestionText(
