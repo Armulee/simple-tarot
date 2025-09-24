@@ -57,6 +57,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 					let lastRefill = Number(lastRefillRaw || now)
 					if (!Number.isFinite(lastRefill) || lastRefill <= 0) {
 						lastRefill = now
+						// Persist missing lastRefill so subsequent reloads don't reset
+						localStorage.setItem(STORAGE_KEY_LAST_REFILL, String(lastRefill))
 					}
 					if (current < MAX_STARS) {
 						const hoursPassed = Math.floor((now - lastRefill) / REFILL_INTERVAL_MS)
@@ -142,7 +144,16 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 		setStars((prev: number) => {
 			if (prev >= amount) {
 				success = true
-				return prev - amount
+				const next = prev - amount
+				// If spending from full capacity, start the refill timer now
+				if (prev === MAX_STARS && next < MAX_STARS) {
+					const now = Date.now()
+					try {
+						localStorage.setItem(STORAGE_KEY_LAST_REFILL, String(now))
+					} catch {}
+					setNextRefillAt(now + REFILL_INTERVAL_MS)
+				}
+				return next
 			}
 			return prev
 		})
