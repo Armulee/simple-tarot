@@ -10,6 +10,7 @@ import {
 	useState,
 	type ReactNode,
 } from "react"
+import { useAuth } from "@/hooks/use-auth"
 
 interface StarsContextType {
 	stars: number
@@ -25,7 +26,6 @@ const StarsContext = createContext<StarsContextType | undefined>(undefined)
 const STORAGE_KEY = "stars-balance-v1"
 const STORAGE_KEY_LAST_REFILL = "stars-last-refill"
 const DEFAULT_STARS = 5
-const MAX_STARS = 5
 const REFILL_INTERVAL_MS = 60 * 60 * 1000 // 1 hour
 
 export function StarsProvider({ children }: { children: ReactNode }) {
@@ -33,6 +33,10 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 	const [initialized, setInitialized] = useState(false)
 	const isHydrating = useRef(false)
 	const [nextRefillAt, setNextRefillAt] = useState<number | null>(null)
+	const { user } = useAuth()
+
+	// Refill cap: anonymous 5, signed-in 10
+	const refillCap = user ? 10 : 5
 
 	// Hydrate from localStorage on mount
 	useEffect(() => {
@@ -51,8 +55,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 			} else {
 				const parsed = Number(raw)
 				if (Number.isFinite(parsed) && parsed >= 0) {
-					// Apply any pending refills since lastRefill
-					let current = Math.min(parsed, MAX_STARS)
+					// Apply any pending refills since lastRefill (only up to refillCap)
+					let current = parsed
 					const now = Date.now()
 					let lastRefill = Number(lastRefillRaw || now)
 					if (!Number.isFinite(lastRefill) || lastRefill <= 0) {
@@ -60,10 +64,10 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 						// Persist missing lastRefill so subsequent reloads don't reset
 						localStorage.setItem(STORAGE_KEY_LAST_REFILL, String(lastRefill))
 					}
-					if (current < MAX_STARS) {
+					if (current < refillCap) {
 						const hoursPassed = Math.floor((now - lastRefill) / REFILL_INTERVAL_MS)
 						if (hoursPassed > 0) {
-							current = Math.min(MAX_STARS, current + hoursPassed)
+							current = Math.min(refillCap, current + hoursPassed)
 							const newLast = lastRefill + hoursPassed * REFILL_INTERVAL_MS
 							localStorage.setItem(STORAGE_KEY_LAST_REFILL, String(newLast))
 							setNextRefillAt(newLast + REFILL_INTERVAL_MS)
@@ -88,6 +92,25 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 		}
 	}, [])
 
+	// One-time registration bonus and increased refill cap handling
+	useEffect(() => {
+		if (!initialized) return
+		if (!user) return
+		try {
+			const key = `stars-register-bonus:${user.id}`
+			const granted = localStorage.getItem(key) === "true"
+			if (!granted) {
+				setStars((prev) => prev + 5)
+				localStorage.setItem(key, "true")
+				// If currently above or equal to new cap, no next refill
+				setNextRefillAt((prevNext) => {
+					const current = stars + 5
+					return current >= refillCap ? null : prevNext
+				})
+			}
+		} catch {}
+	}, [user, initialized])
+
 	// Persist to localStorage when stars change (skip during initial hydration)
 	useEffect(() => {
 		if (typeof window === "undefined") return
@@ -95,8 +118,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 		if (isHydrating.current) return
 		try {
 			localStorage.setItem(STORAGE_KEY, String(stars))
-			// When reaching max, clear next refill; when below, ensure nextRefill is set
-			if (stars >= MAX_STARS) {
+			// When reaching refill cap or above, clear next refill; when below, ensure nextRefill is set
+			if (stars >= refillCap) {
 				setNextRefillAt(null)
 			} else {
 				const lastRefillRaw = localStorage.getItem(STORAGE_KEY_LAST_REFILL)
@@ -106,7 +129,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 		} catch {
 			// ignore quota issues
 		}
-	}, [stars, initialized])
+	}, [stars, initialized, refillCap])
 
 	// Interval to handle auto-refill
 	useEffect(() => {
@@ -122,20 +145,20 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 					if (!Number.isFinite(lastRefill) || lastRefill <= 0) lastRefill = now
 					const hoursPassed = Math.floor((now - lastRefill) / REFILL_INTERVAL_MS)
 					if (hoursPassed <= 0) return prev
-					const next = Math.min(MAX_STARS, prev + hoursPassed)
+					const nextWithinCap = Math.min(refillCap, prev + hoursPassed)
 					const newLast = lastRefill + hoursPassed * REFILL_INTERVAL_MS
 					localStorage.setItem(STORAGE_KEY_LAST_REFILL, String(newLast))
-					setNextRefillAt(next >= MAX_STARS ? null : newLast + REFILL_INTERVAL_MS)
-					return next
+					setNextRefillAt(nextWithinCap >= refillCap ? null : newLast + REFILL_INTERVAL_MS)
+					return nextWithinCap
 				})
 			} catch {}
 		}, 30 * 1000) // check every 30s for accuracy without heavy load
 		return () => window.clearInterval(id)
-	}, [initialized])
+	}, [initialized, refillCap])
 
 	const addStars = useCallback((amount: number) => {
 		if (!Number.isFinite(amount) || amount <= 0) return
-		setStars((prev: number) => Math.min(MAX_STARS, Math.max(0, prev + amount)))
+		setStars((prev: number) => Math.max(0, prev + amount))
 	}, [])
 
 	const spendStars = useCallback((amount: number) => {
@@ -145,8 +168,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 			if (prev >= amount) {
 				success = true
 				const next = prev - amount
-				// If spending from full capacity, start the refill timer now
-				if (prev === MAX_STARS && next < MAX_STARS) {
+				// If spending from refill cap or above down to below cap, start the refill timer now
+				if (prev >= refillCap && next < refillCap) {
 					const now = Date.now()
 					try {
 						localStorage.setItem(STORAGE_KEY_LAST_REFILL, String(now))
@@ -158,7 +181,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 			return prev
 		})
 		return success
-	}, [])
+	}, [refillCap])
 
 	const resetStars = useCallback((value?: number) => {
 		const next = Number.isFinite(value as number)

@@ -38,7 +38,7 @@ export default function StarsPage() {
                         </div>
                         <div>
                             <div className='text-sm text-muted-foreground'>Available</div>
-                            <div className='text-2xl font-semibold text-white'>{stars} / 5</div>
+                            <div className='text-2xl font-semibold text-white'>{stars}</div>
                         </div>
                     </div>
                     <div className='text-right'>
@@ -51,9 +51,10 @@ export default function StarsPage() {
             <Card className='p-6 bg-card/10 backdrop-blur-sm border-border/20 space-y-3'>
                 <h2 className='font-serif text-xl font-semibold text-white'>How to earn stars</h2>
                 <ul className='list-disc list-inside text-sm text-muted-foreground space-y-1'>
-                    <li>1 star refills every hour (up to 5).</li>
-                    <li>Come back daily to keep your balance topped up.</li>
-                    <li>Share your readings with friends.</li>
+                    <li>1 star refills every hour.</li>
+                    <li>First-time registration bonus: +5 stars and refill capacity increases to 10.</li>
+                    <li>Share a reading: +1 star.</li>
+                    <li>Refer a friend: +5 stars for both you and your friend.</li>
                 </ul>
             </Card>
 
