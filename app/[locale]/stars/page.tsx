@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useStars } from "@/contexts/stars-context"
-import { Star, RefreshCw, Clock, Gift, Share2, Users } from "lucide-react"
+import { Star, Clock, Gift, Share2, Users } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 
@@ -65,17 +65,9 @@ export default function StarsPage() {
                         <p className='text-xs text-muted-foreground text-center'>Auto-refills by 1 star every hour (up to {refillCap}).</p>
                     </div>
 
-                    <div className='flex items-center justify-center gap-3'>
-                        <Button
-                            type='button'
-                            variant='outline'
-                            className='rounded-full'
-                            onClick={() => window.location.reload()}
-                        >
-                            <RefreshCw className='w-4 h-4 mr-2' /> Refresh
-                        </Button>
-                        <Link href='/'>
-                            <Button type='button' className='rounded-full'>Start a Reading</Button>
+                    <div className='flex items-center justify-center'>
+                        <Link href='/stars/purchase'>
+                            <Button type='button' className='rounded-full'>Purchase Stars</Button>
                         </Link>
                     </div>
                 </div>
