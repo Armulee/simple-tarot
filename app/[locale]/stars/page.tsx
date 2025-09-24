@@ -17,7 +17,7 @@ function formatRelativeTime(timestamp: number | null | undefined): string {
 }
 
 export default function StarsPage() {
-    const { stars, nextRefillAt, addStars } = useStars()
+    const { stars, nextRefillAt } = useStars()
 
     const [now, setNow] = useState<number>(Date.now())
     useEffect(() => {

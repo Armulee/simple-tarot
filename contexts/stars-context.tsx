@@ -138,7 +138,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 		const id = window.setInterval(() => {
 			try {
 				setStars((prev) => {
-					if (prev >= MAX_STARS) return prev
+					if (prev >= refillCap) return prev
 					const lastRefillRaw = localStorage.getItem(STORAGE_KEY_LAST_REFILL)
 					const now = Date.now()
 					let lastRefill = Number(lastRefillRaw || now)
