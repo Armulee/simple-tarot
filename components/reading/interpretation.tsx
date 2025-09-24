@@ -14,6 +14,7 @@ import { CardImage } from "../card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
 import ApplixirRewardedAds from "@/components/ads/applixir-rewarded-ads"
+import { useStars } from "@/contexts/stars-context"
 // import AdDialog from "@/components/ads/ad-dialog"
 
 export default function Interpretation() {
@@ -27,6 +28,7 @@ export default function Interpretation() {
     const [showAd, setShowAd] = useState(false)
     // Simplified: rely on completion hook and local gating only
     const [adCompleted, setAdCompleted] = useState(false)
+    const [insufficientStars, setInsufficientStars] = useState(false)
 
     const {
         currentStep,
@@ -45,6 +47,8 @@ export default function Interpretation() {
             setInterpretation(completion)
         },
     })
+
+    const { spendStars, stars } = useStars()
 
     const shareImage = async () => {
         try {
@@ -127,6 +131,8 @@ export default function Interpretation() {
         setFinish(false)
         setInterpretation(null)
         hasInitiated.current = false
+        chargedThisRunRef.current = false
+        setInsufficientStars(false)
     }
 
     const shareButtons = [
@@ -157,6 +163,7 @@ export default function Interpretation() {
     ]
 
     const hasInitiated = useRef(false)
+    const chargedThisRunRef = useRef(false)
 
     // Removed old localStorage-based interpretation cache.
 
@@ -166,6 +173,16 @@ export default function Interpretation() {
 
         if (!currentQuestion || selectedCards.length === 0) {
             throw new Error("Missing question or cards")
+        }
+
+        // Charge 2 stars once per run
+        if (!chargedThisRunRef.current) {
+            const ok = spendStars(2)
+            if (!ok) {
+                setInsufficientStars(true)
+                throw new Error("INSUFFICIENT_STARS")
+            }
+            chargedThisRunRef.current = true
         }
 
         const prompt = `Question: "${currentQuestion}"
@@ -191,13 +208,21 @@ If the interpretation is too generic, add more details to make it more specific.
         question,
         selectedCards,
         setInterpretation,
+        spendStars,
+        stars,
+        setInsufficientStars,
     ])
 
     const startAdProcess = useCallback(() => {
+        // Pre-check to avoid showing ads when not enough stars
+        if (stars < 2) {
+            setInsufficientStars(true)
+            return
+        }
         // Fire off the interpretation request; reveal it after ad completes
-        getInterpretationAsync()
+        getInterpretationAsync().catch(() => {})
         setShowAd(true)
-    }, [getInterpretationAsync])
+    }, [getInterpretationAsync, stars])
 
     const handleAdCompleted = useCallback(() => {
         // Close ad and mark as completed; text will be shown from completion hook
@@ -225,6 +250,10 @@ If the interpretation is too generic, add more details to make it more specific.
         if (adsEnabled) return
         if (currentStep === "interpretation" && !hasInitiated.current) {
             hasInitiated.current = true
+            if (stars < 2) {
+                setInsufficientStars(true)
+                return
+            }
             setShowAd(false)
             setAdCompleted(true)
             getInterpretationAsync()
@@ -233,7 +262,7 @@ If the interpretation is too generic, add more details to make it more specific.
                 })
                 .catch(() => {})
         }
-    }, [adsEnabled, currentStep, getInterpretationAsync, setInterpretation])
+    }, [adsEnabled, currentStep, getInterpretationAsync, setInterpretation, stars])
 
     // Reset component state for follow-up interpretations
     useEffect(() => {
@@ -274,6 +303,23 @@ If the interpretation is too generic, add more details to make it more specific.
 
             {currentStep === "interpretation" && (
                 <div className='space-y-8'>
+                    {insufficientStars && (
+                        <Card className='p-6 bg-card/10 backdrop-blur-sm border-border/20'>
+                            <div className='text-center space-y-3'>
+                                <div className='flex items-center justify-center gap-2'>
+                                    <Stars className='w-5 h-5 text-yellow-300' />
+                                    <h2 className='font-serif font-semibold text-lg'>Not enough stars</h2>
+                                </div>
+                                <p className='text-sm text-muted-foreground'>
+                                    You need 2 stars to get an interpretation. Current balance: {stars}.
+                                </p>
+                                <div className='flex items-center justify-center gap-3'>
+                                    <Button type='button' onClick={() => router.push("/")}>Back to Home</Button>
+                                </div>
+                            </div>
+                        </Card>
+                    )}
+
                     {/* Header */}
                     <Card className='px-6 pt-10 pb-6 border-0 relative overflow-hidden'>
                         {/* Background card images with aura */}
@@ -404,7 +450,14 @@ If the interpretation is too generic, add more details to make it more specific.
                                 </div>
                             </div>
                             <div className='prose prose-invert max-w-none'>
-                                {adsEnabled && !adCompleted ? (
+                                {insufficientStars ? (
+                                    <div className='text-center space-y-6 py-8'>
+                                        <div className='flex items-center justify-center space-x-3'>
+                                            <Stars className='w-6 h-6 text-yellow-300' />
+                                            <span className='text-muted-foreground'>You need 2 stars to view an interpretation.</span>
+                                        </div>
+                                    </div>
+                                ) : adsEnabled && !adCompleted ? (
                                     <div className='text-center space-y-6 py-8'>
                                         <div className='flex items-center justify-center space-x-3'>
                                             <Sparkles className='w-6 h-6 text-primary' />

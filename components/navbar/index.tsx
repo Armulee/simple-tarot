@@ -19,6 +19,7 @@ import { SidebarSheet } from "./sidebar-sheet"
 import { UserProfile } from "@/components/user-profile"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/use-auth"
+import { useStars } from "@/contexts/stars-context"
 import {
     Sheet,
     SheetContent,
@@ -43,6 +44,7 @@ export function Navbar({ locale }: { locale: string }) {
     const pathname = usePathname()
     const [mysticalOpen, setMysticalOpen] = useState(false)
     const { user, loading } = useAuth()
+    const { stars, initialized } = useStars()
     const meta = (user?.user_metadata ?? {}) as {
         avatar_url?: string
         picture?: string
@@ -213,6 +215,26 @@ export function Navbar({ locale }: { locale: string }) {
                             </DropdownMenuContent>
                         </DropdownMenu>
 
+                        {/* Star balance pill */}
+                        <div className='hidden md:flex items-center'>
+                            <div className='flex items-center gap-2 px-3 py-1 rounded-full border border-white/20 bg-white/10 text-white/90'>
+                                <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' className='w-4 h-4 text-yellow-300'>
+                                    <path d='M12 2.25l2.847 5.766 6.366.925-4.606 4.49 1.087 6.341L12 17.727l-5.694 2.985 1.087-6.341-4.606-4.49 6.366-.925L12 2.25z' />
+                                </svg>
+                                <span className='text-sm font-medium'>{initialized ? stars : "-"}</span>
+                            </div>
+                        </div>
+
+                        {/* Mobile: Star balance next to sign-in/profile */}
+                        <div className='md:hidden flex items-center'>
+                            <div className='flex items-center gap-1 px-2 py-0.5 rounded-full border border-white/20 bg-white/10 text-white/90 mr-2'>
+                                <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' className='w-3.5 h-3.5 text-yellow-300'>
+                                    <path d='M12 2.25l2.847 5.766 6.366.925-4.606 4.49 1.087 6.341L12 17.727l-5.694 2.985 1.087-6.341-4.606-4.49 6.366-.925L12 2.25z' />
+                                </svg>
+                                <span className='text-xs font-medium'>{initialized ? stars : "-"}</span>
+                            </div>
+                        </div>
+
                         {/* Desktop only: User Profile / Sign In button */}
                         <div className='hidden md:block'>
                             {!loading && user ? (
@@ -239,7 +261,9 @@ export function Navbar({ locale }: { locale: string }) {
                                     className='text-white border-white/30 hover:bg-white/10 rounded-full'
                                     aria-label='Sign in'
                                 >
-                                    <LogIn className='w-4 h-4' />
+                                    <div className='relative'>
+                                        <LogIn className='w-4 h-4' />
+                                    </div>
                                 </Button>
                             </Link>
                         )}
