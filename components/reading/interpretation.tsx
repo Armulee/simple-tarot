@@ -38,6 +38,8 @@ export default function Interpretation() {
         setInterpretation,
         isFollowUp,
         followUpQuestion,
+        paidForInterpretation,
+        setPaidForInterpretation,
     } = useTarot()
     const { completion, isLoading, error, complete } = useCompletion({
         // api: "/api/interpret-cards/mockup",
@@ -133,6 +135,7 @@ export default function Interpretation() {
         hasInitiated.current = false
         chargedThisRunRef.current = false
         setInsufficientStars(false)
+        setPaidForInterpretation(false)
     }
 
     const shareButtons = [
@@ -175,14 +178,15 @@ export default function Interpretation() {
             throw new Error("Missing question or cards")
         }
 
-        // Charge 2 stars once per run
-        if (!chargedThisRunRef.current) {
+        // Charge 2 stars once per run (skip if previously paid)
+        if (!chargedThisRunRef.current && !paidForInterpretation) {
             const ok = spendStars(2)
             if (!ok) {
                 setInsufficientStars(true)
                 throw new Error("INSUFFICIENT_STARS")
             }
             chargedThisRunRef.current = true
+            setPaidForInterpretation(true)
         }
 
         const prompt = `Question: "${currentQuestion}"
@@ -209,20 +213,25 @@ If the interpretation is too generic, add more details to make it more specific.
         selectedCards,
         setInterpretation,
         spendStars,
-        stars,
-        setInsufficientStars,
+        paidForInterpretation,
+        setPaidForInterpretation,
     ])
 
     const startAdProcess = useCallback(() => {
-        // Pre-check to avoid showing ads when not enough stars
-        if (stars < 2) {
+        // If we already have interpretation, do not fetch again
+        if (interpretation) {
+            setAdCompleted(true)
+            return
+        }
+        // Pre-check to avoid showing ads when not enough stars (unless already paid)
+        if (!paidForInterpretation && stars < 2) {
             setInsufficientStars(true)
             return
         }
         // Fire off the interpretation request; reveal it after ad completes
         getInterpretationAsync().catch(() => {})
         setShowAd(true)
-    }, [getInterpretationAsync, stars])
+    }, [getInterpretationAsync, stars, paidForInterpretation, interpretation])
 
     const handleAdCompleted = useCallback(() => {
         // Close ad and mark as completed; text will be shown from completion hook
@@ -240,17 +249,31 @@ If the interpretation is too generic, add more details to make it more specific.
         if (currentStep === "interpretation" && !hasInitiated.current) {
             hasInitiated.current = true
 
-            // Always start the ad process when interpretation component mounts
+            // If interpretation is already available (restored), skip fetching and ads
+            if (interpretation) {
+                setAdCompleted(true)
+                setShowAd(false)
+                return
+            }
+
             startAdProcess()
         }
-    }, [currentStep, startAdProcess, adsEnabled])
+    }, [currentStep, startAdProcess, adsEnabled, interpretation])
 
     // When ads are disabled, fetch interpretation immediately and mark ad as completed
     useEffect(() => {
         if (adsEnabled) return
         if (currentStep === "interpretation" && !hasInitiated.current) {
             hasInitiated.current = true
-            if (stars < 2) {
+
+            // If interpretation exists, just show it without fetching/cost
+            if (interpretation) {
+                setShowAd(false)
+                setAdCompleted(true)
+                return
+            }
+
+            if (!paidForInterpretation && stars < 2) {
                 setInsufficientStars(true)
                 return
             }
@@ -262,7 +285,7 @@ If the interpretation is too generic, add more details to make it more specific.
                 })
                 .catch(() => {})
         }
-    }, [adsEnabled, currentStep, getInterpretationAsync, setInterpretation, stars])
+    }, [adsEnabled, currentStep, getInterpretationAsync, setInterpretation, stars, interpretation, paidForInterpretation])
 
     // Reset component state for follow-up interpretations
     useEffect(() => {

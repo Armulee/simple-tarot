@@ -50,6 +50,10 @@ export interface TarotContextType {
     interpretation: string | null
     setInterpretation: (interpretation: string | null) => void
 
+    // Star payment status for current interpretation run
+    paidForInterpretation: boolean
+    setPaidForInterpretation: (value: boolean) => void
+
     // Follow-up state
     isFollowUp: boolean
     followUpQuestion: string | null
@@ -76,6 +80,7 @@ export function TarotProvider({ children }: { children: ReactNode }) {
         "reading-type" | "card-selection" | "interpretation"
     >("reading-type")
     const [interpretation, setInterpretation] = useState<string | null>(null)
+    const [paidForInterpretation, setPaidForInterpretation] = useState(false)
     const [isFollowUp, setIsFollowUp] = useState(false)
     const [followUpQuestion, setFollowUpQuestion] = useState<string | null>(
         null
@@ -91,6 +96,7 @@ export function TarotProvider({ children }: { children: ReactNode }) {
         setSelectedCards([])
         setCurrentStep("reading-type")
         setInterpretation(null)
+        setPaidForInterpretation(false)
         setIsFollowUp(false)
         setFollowUpQuestion(null)
     }
@@ -117,6 +123,7 @@ export function TarotProvider({ children }: { children: ReactNode }) {
             localStorage.removeItem(STORAGE_KEY + "-backup")
             // Clear interpretation state
             setInterpretation(null)
+            setPaidForInterpretation(false)
             // Reset the clearing flag after a brief delay
             setTimeout(() => setIsClearing(false), 100)
         } catch (e) {
@@ -140,6 +147,7 @@ export function TarotProvider({ children }: { children: ReactNode }) {
                     interpretation?: string | null
                     isFollowUp?: boolean
                     followUpQuestion?: string | null
+                    paidForInterpretation?: boolean
                 }
                 if (data.question !== undefined) setQuestion(data.question)
                 if (data.readingType !== undefined)
@@ -153,6 +161,8 @@ export function TarotProvider({ children }: { children: ReactNode }) {
                     setIsFollowUp(!!data.isFollowUp)
                 if (data.followUpQuestion !== undefined)
                     setFollowUpQuestion(data.followUpQuestion ?? null)
+                if (data.paidForInterpretation !== undefined)
+                    setPaidForInterpretation(!!data.paidForInterpretation)
             }
         } catch {
             // ignore corrupt storage
@@ -176,6 +186,7 @@ export function TarotProvider({ children }: { children: ReactNode }) {
                 interpretation,
                 isFollowUp,
                 followUpQuestion,
+                paidForInterpretation,
             })
             localStorage.setItem(STORAGE_KEY, payload)
         } catch {
@@ -187,6 +198,7 @@ export function TarotProvider({ children }: { children: ReactNode }) {
         selectedCards,
         currentStep,
         interpretation,
+        paidForInterpretation,
         isFollowUp,
         followUpQuestion,
         pathname,
@@ -209,6 +221,8 @@ export function TarotProvider({ children }: { children: ReactNode }) {
                 setCurrentStep,
                 interpretation,
                 setInterpretation,
+                paidForInterpretation,
+                setPaidForInterpretation,
                 isFollowUp,
                 followUpQuestion,
                 setIsFollowUp,
