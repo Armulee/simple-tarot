@@ -61,7 +61,7 @@ export function Navbar({ locale }: { locale: string }) {
                 <div className='flex justify-between items-center h-16'>
                     {/* Left: Mobile menu button / Desktop brand */}
                     <div className='flex items-center'>
-                        {/* Mobile: menu button or user avatar */}
+                        {/* Mobile: menu button (always bars) */}
                         <Button
                             variant='ghost'
                             size='icon'
@@ -69,19 +69,7 @@ export function Navbar({ locale }: { locale: string }) {
                             onClick={() => setOpen(true)}
                             aria-label='Open menu'
                         >
-                            {!loading && user ? (
-                                <Avatar className='w-8 h-8'>
-                                    <AvatarImage
-                                        src={avatarSrc}
-                                        alt={displayName}
-                                    />
-                                    <AvatarFallback className='bg-primary/20 text-primary font-semibold text-sm'>
-                                        {initial}
-                                    </AvatarFallback>
-                                </Avatar>
-                            ) : (
-                                <Menu className='h-6 w-6' />
-                            )}
+                            <Menu className='h-6 w-6' />
                         </Button>
 
                         {/* Desktop: brand */}
@@ -246,7 +234,7 @@ export function Navbar({ locale }: { locale: string }) {
                             </Link>
                         </div>
 
-                        {/* Desktop only: User Profile / Sign In button */}
+                        {/* Desktop: User Profile / Sign In button */}
                         <div className='hidden md:block'>
                             {!loading && user ? (
                                 <UserProfile variant='desktop' />
@@ -263,21 +251,23 @@ export function Navbar({ locale }: { locale: string }) {
                             )}
                         </div>
 
-                        {/* Mobile: Sign-in icon button (hidden when logged in) */}
-                        {!loading && !user && (
-                            <Link href='/signin' className='md:hidden'>
-                                <Button
-                                    variant='outline'
-                                    size='icon'
-                                    className='text-white border-white/30 hover:bg-white/10 rounded-full'
-                                    aria-label='Sign in'
-                                >
-                                    <div className='relative'>
+                        {/* Mobile: User profile when logged-in, else sign-in icon */}
+                        <div className='md:hidden'>
+                            {!loading && user ? (
+                                <UserProfile variant='mobile' />
+                            ) : (
+                                <Link href='/signin'>
+                                    <Button
+                                        variant='outline'
+                                        size='icon'
+                                        className='text-white border-white/30 hover:bg-white/10 rounded-full'
+                                        aria-label='Sign in'
+                                    >
                                         <LogIn className='w-4 h-4' />
-                                    </div>
-                                </Button>
-                            </Link>
-                        )}
+                                    </Button>
+                                </Link>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
