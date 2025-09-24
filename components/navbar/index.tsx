@@ -14,6 +14,7 @@ import {
     LogIn,
     Sparkles,
     Check,
+    Star,
 } from "lucide-react"
 import { SidebarSheet } from "./sidebar-sheet"
 import { UserProfile } from "@/components/user-profile"
@@ -215,24 +216,34 @@ export function Navbar({ locale }: { locale: string }) {
                             </DropdownMenuContent>
                         </DropdownMenu>
 
-                        {/* Star balance pill */}
+                        {/* Star balance pill - desktop */}
                         <div className='hidden md:flex items-center'>
-                            <div className='flex items-center gap-2 px-3 py-1 rounded-full border border-white/20 bg-white/10 text-white/90'>
-                                <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' className='w-4 h-4 text-yellow-300'>
-                                    <path d='M12 2.25l2.847 5.766 6.366.925-4.606 4.49 1.087 6.341L12 17.727l-5.694 2.985 1.087-6.341-4.606-4.49 6.366-.925L12 2.25z' />
-                                </svg>
-                                <span className='text-sm font-medium'>{initialized ? stars : "-"}</span>
-                            </div>
+                            <Link href='/stars'>
+                                <Button
+                                    variant='ghost'
+                                    className='h-10 px-3 rounded-full bg-yellow-400 hover:bg-yellow-500 text-black border-0 flex items-center gap-2'
+                                >
+                                    <Star className='w-4 h-4' />
+                                    <span className='text-sm font-semibold'>
+                                        {initialized ? stars : "-"}
+                                    </span>
+                                </Button>
+                            </Link>
                         </div>
 
                         {/* Mobile: Star balance next to sign-in/profile */}
                         <div className='md:hidden flex items-center'>
-                            <div className='flex items-center gap-1 px-2 py-0.5 rounded-full border border-white/20 bg-white/10 text-white/90 mr-2'>
-                                <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' className='w-3.5 h-3.5 text-yellow-300'>
-                                    <path d='M12 2.25l2.847 5.766 6.366.925-4.606 4.49 1.087 6.341L12 17.727l-5.694 2.985 1.087-6.341-4.606-4.49 6.366-.925L12 2.25z' />
-                                </svg>
-                                <span className='text-xs font-medium'>{initialized ? stars : "-"}</span>
-                            </div>
+                            <Link href='/stars' className='mr-2'>
+                                <Button
+                                    variant='ghost'
+                                    className='h-9 px-2 rounded-full bg-yellow-400 hover:bg-yellow-500 text-black border-0 flex items-center gap-1'
+                                >
+                                    <Star className='w-4 h-4' />
+                                    <span className='text-xs font-semibold'>
+                                        {initialized ? stars : "-"}
+                                    </span>
+                                </Button>
+                            </Link>
                         </div>
 
                         {/* Desktop only: User Profile / Sign In button */}
