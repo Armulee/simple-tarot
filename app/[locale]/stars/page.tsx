@@ -3,14 +3,14 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useStars } from "@/contexts/stars-context"
-import { Star, Clock, Gift, Share2, Users } from "lucide-react"
+import { Star, Clock } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
-function formatRelativeTime(timestamp: number | null | undefined): string {
+function formatRelativeTime(timestamp: number | null | undefined, nowMs: number): string {
     if (!timestamp) return "—"
-    const ms = Math.max(0, timestamp - Date.now())
+    const ms = Math.max(0, timestamp - nowMs)
     const minutes = Math.floor(ms / 60000)
     const seconds = Math.floor((ms % 60000) / 1000)
     if (minutes <= 0 && seconds <= 0) return "now"
@@ -27,7 +27,7 @@ export default function StarsPage() {
         return () => window.clearInterval(id)
     }, [])
 
-    const nextIn = useMemo(() => formatRelativeTime(nextRefillAt), [nextRefillAt, now])
+    const nextIn = useMemo(() => formatRelativeTime(nextRefillAt, now), [nextRefillAt, now])
 
     const remainingMs = Math.max(0, (nextRefillAt ?? 0) - now)
     const hourMs = 60 * 60 * 1000
@@ -83,8 +83,8 @@ export default function StarsPage() {
             {/* Ways to earn - Accordion */}
             <div className='space-y-4'>
                 <h2 className='font-serif text-2xl font-semibold text-white text-center'>Ways to earn stars</h2>
-                <Accordion type='single' collapsible className='bg-card/5 rounded-xl border border-border/20 divide-y divide-border/20'>
-                    <AccordionItem value='register' className='px-4'>
+                <Accordion className='bg-card/5 rounded-xl border border-border/20 divide-y divide-border/20'>
+                    <AccordionItem className='px-4'>
                         <AccordionTrigger>
                             First-time registration (+10 stars, refill up to 15)
                         </AccordionTrigger>
@@ -97,7 +97,7 @@ export default function StarsPage() {
                             </div>
                         </AccordionContent>
                     </AccordionItem>
-                    <AccordionItem value='purchase' className='px-4'>
+                    <AccordionItem className='px-4'>
                         <AccordionTrigger>Purchase stars</AccordionTrigger>
                         <AccordionContent>
                             <div className='space-y-3'>
@@ -108,7 +108,7 @@ export default function StarsPage() {
                             </div>
                         </AccordionContent>
                     </AccordionItem>
-                    <AccordionItem value='content' className='px-4'>
+                    <AccordionItem className='px-4'>
                         <AccordionTrigger>Create content about us (+15/+25/+50)</AccordionTrigger>
                         <AccordionContent>
                             <div className='space-y-3'>
@@ -124,7 +124,7 @@ export default function StarsPage() {
                             </div>
                         </AccordionContent>
                     </AccordionItem>
-                    <AccordionItem value='share' className='px-4'>
+                    <AccordionItem className='px-4'>
                         <AccordionTrigger>Share a reading (+1)</AccordionTrigger>
                         <AccordionContent>
                             <div className='space-y-3'>
@@ -135,7 +135,7 @@ export default function StarsPage() {
                             </div>
                         </AccordionContent>
                     </AccordionItem>
-                    <AccordionItem value='refer' className='px-4'>
+                    <AccordionItem className='px-4'>
                         <AccordionTrigger>Refer a friend (+5 each)</AccordionTrigger>
                         <AccordionContent>
                             <div className='space-y-3'>
