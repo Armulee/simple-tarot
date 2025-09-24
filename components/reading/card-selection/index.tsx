@@ -29,7 +29,7 @@ export default function CardSelection({
 }: {
     readingConfig: ReadingConfig
 }) {
-    const adsEnabled = process.env.NEXT_PUBLIC_ENABLED_AD === "true"
+    // Ads disabled; proceed directly without ads
     const t = useTranslations("ReadingPage")
     const {
         currentStep,
@@ -61,8 +61,7 @@ export default function CardSelection({
     const [spreadResetKey, setSpreadResetKey] = useState(0)
     const cardsToSelect = readingType ? readingConfig[readingType].cards : 1
 
-    // Ad dialog state
-    const [showAdDialog, setShowAdDialog] = useState(false)
+    // Dialog state
     const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
 
     // Clear previous selections whenever we enter the card selection step (including follow-up)
@@ -119,40 +118,13 @@ export default function CardSelection({
         }))
 
         setSelectedCards(tarotCards)
-        // Clear watched ads localStorage when starting new card selection (including follow-ups)
-        localStorage.removeItem("watchedAds")
         // Clear interpretation cache for new reading (only for non-follow-up readings)
         if (!isFollowUp) {
             clearInterpretationCache()
         }
 
-        // If ads are disabled by env, go directly to interpretation
-        if (!adsEnabled) {
-            setCurrentStep("interpretation")
-            return
-        }
-
-        // Check auto-play preference BEFORE setting any dialog state
-        const autoPlayAds = localStorage.getItem("auto-play-ads") === "true"
-
-        if (autoPlayAds) {
-            // Skip dialog entirely and go directly to interpretation step
-            setCurrentStep("interpretation")
-        } else {
-            // Show ad dialog only if auto-play is disabled
-            setShowAdDialog(true)
-        }
-    }
-
-    // Dialog handlers
-    const handleWatchAd = () => {
-        setShowAdDialog(false)
+        // Go directly to interpretation
         setCurrentStep("interpretation")
-    }
-
-    const handleDialogClose = () => {
-        setShowAdDialog(false)
-        // Stay in card selection step
     }
 
     // Clear interpretation cache for new readings - no-op (migrated to reading-state-v1)
@@ -191,15 +163,6 @@ export default function CardSelection({
 
     return (
         <>
-            {/* Ad Viewing Dialog */}
-            {adsEnabled && (
-                <AdDialog
-                    open={showAdDialog}
-                    onOpenChange={handleDialogClose}
-                    onWatchAd={handleWatchAd}
-                />
-            )}
-
             {/* No Stars Dialog */}
             <AlertDialog open={showNoStarsDialog}>
                 <AlertDialogContent>

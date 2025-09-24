@@ -13,7 +13,6 @@ import QuestionInput from "../question-input"
 import { CardImage } from "../card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
-import ApplixirRewardedAds from "@/components/ads/applixir-rewarded-ads"
 import { useStars } from "@/contexts/stars-context"
 import {
     AlertDialog,
@@ -272,9 +271,7 @@ If the interpretation is too generic, add more details to make it more specific.
         setAdCompleted(true)
     }, [])
 
-    const adsEnabled =
-        typeof process !== "undefined" &&
-        process.env.NEXT_PUBLIC_ENABLED_AD === "true"
+    const adsEnabled = false
 
     // Show ads when interpretation component mounts (only if enabled)
     useEffect(() => {
@@ -350,18 +347,7 @@ If the interpretation is too generic, add more details to make it more specific.
     return (
         <>
             {/* Ad Viewing - gated by env */}
-            {adsEnabled && (
-                <>
-                    {showAd && (
-                        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4'>
-                            {/* Prefer Applixir when configured, else fallback to simulated RewardedAds */}
-                            <ApplixirRewardedAds
-                                onComplete={handleAdCompleted}
-                            />
-                        </div>
-                    )}
-                </>
-            )}
+            {/* Ads removed */}
 
             {currentStep === "interpretation" && (
                 <div className='space-y-8'>
