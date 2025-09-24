@@ -19,6 +19,7 @@ interface StarsContextType {
 	spendStars: (amount: number) => boolean
 	resetStars: (value?: number) => void
 	nextRefillAt?: number | null
+    refillCap: number
 }
 
 const StarsContext = createContext<StarsContextType | undefined>(undefined)
@@ -35,8 +36,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 	const [nextRefillAt, setNextRefillAt] = useState<number | null>(null)
 	const { user } = useAuth()
 
-	// Refill cap: anonymous 5, signed-in 10
-	const refillCap = user ? 10 : 5
+    // Refill cap: anonymous 5, signed-in 24
+    const refillCap = user ? 24 : 5
 
 	// Hydrate from localStorage on mount
 	useEffect(() => {
@@ -92,7 +93,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 		}
 	}, [])
 
-	// One-time registration bonus and increased refill cap handling
+    // One-time registration bonus and increased refill cap handling
 	useEffect(() => {
 		if (!initialized) return
 		if (!user) return
@@ -100,11 +101,11 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 			const key = `stars-register-bonus:${user.id}`
 			const granted = localStorage.getItem(key) === "true"
 			if (!granted) {
-				setStars((prev) => prev + 5)
+                setStars((prev) => prev + 20)
 				localStorage.setItem(key, "true")
 				// If currently above or equal to new cap, no next refill
 				setNextRefillAt((prevNext) => {
-					const current = stars + 5
+                    const current = stars + 20
 					return current >= refillCap ? null : prevNext
 				})
 			}
@@ -190,10 +191,10 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 		setStars(next)
 	}, [])
 
-	const value = useMemo<StarsContextType>(
-		() => ({ stars, initialized, addStars, spendStars, resetStars, nextRefillAt }),
-		[stars, initialized, addStars, spendStars, resetStars, nextRefillAt]
-	)
+    const value = useMemo<StarsContextType>(
+        () => ({ stars, initialized, addStars, spendStars, resetStars, nextRefillAt, refillCap }),
+        [stars, initialized, addStars, spendStars, resetStars, nextRefillAt, refillCap]
+    )
 
 	return <StarsContext.Provider value={value}>{children}</StarsContext.Provider>
 }

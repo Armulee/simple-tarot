@@ -18,7 +18,7 @@ function formatRelativeTime(timestamp: number | null | undefined): string {
 }
 
 export default function StarsPage() {
-    const { stars, nextRefillAt } = useStars()
+    const { stars, nextRefillAt, refillCap } = useStars()
 
     const [now, setNow] = useState<number>(Date.now())
     useEffect(() => {
@@ -62,7 +62,7 @@ export default function StarsPage() {
                                 style={{ width: `${progress}%` }}
                             />
                         </div>
-                        <p className='text-xs text-muted-foreground text-center'>Auto-refills by 1 star every hour.</p>
+                        <p className='text-xs text-muted-foreground text-center'>Auto-refills by 1 star every hour (up to {refillCap}).</p>
                     </div>
 
                     <div className='flex items-center justify-center gap-3'>
@@ -93,7 +93,7 @@ export default function StarsPage() {
                             </div>
                             <div>
                                 <h3 className='text-white font-medium'>First-time registration</h3>
-                                <p className='text-xs text-muted-foreground'>+5 stars and refill increases to 10.</p>
+                                <p className='text-xs text-muted-foreground'>+20 stars and refill increases to 24.</p>
                             </div>
                         </div>
                         <Link href='/signup'>
