@@ -37,20 +37,21 @@ export function UserProfile({
 
     if (variant === "mobile") {
         return (
-            <Button
-                variant='ghost'
-                size='icon'
-                onClick={onClose}
-                className={`text-white hover:bg-white/10 ${className || ""}`}
-                aria-label='Open user menu'
-            >
-                <Avatar className='w-8 h-8'>
-                    <AvatarImage src={getUserAvatar()} alt={getUserName()} />
-                    <AvatarFallback className='bg-primary/20 text-primary font-semibold text-sm'>
-                        {getUserInitials()}
-                    </AvatarFallback>
-                </Avatar>
-            </Button>
+            <UserProfileDropdown onClose={onClose}>
+                <Button
+                    variant='ghost'
+                    size='icon'
+                    className={`text-white hover:bg-white/10 ${className || ""}`}
+                    aria-label='Open user menu'
+                >
+                    <Avatar className='w-8 h-8'>
+                        <AvatarImage src={getUserAvatar()} alt={getUserName()} />
+                        <AvatarFallback className='bg-primary/20 text-primary font-semibold text-sm'>
+                            {getUserInitials()}
+                        </AvatarFallback>
+                    </Avatar>
+                </Button>
+            </UserProfileDropdown>
         )
     }
 
