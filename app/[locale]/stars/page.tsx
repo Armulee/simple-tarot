@@ -91,8 +91,8 @@ export default function StarsPage() {
                                     <Gift className='w-4 h-4' />
                                 </span>
                                 <span className='text-white'>First-time registration</span>
-                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-white/80 flex items-center gap-1'>
-                                    <Star className='w-3.5 h-3.5 text-primary' fill='currentColor' />
+                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 border border-yellow-500/30 text-yellow-300 flex items-center gap-1'>
+                                    <Star className='w-3.5 h-3.5' fill='currentColor' />
                                     10
                                 </span>
                             </div>
@@ -106,23 +106,23 @@ export default function StarsPage() {
                             </div>
                         </AccordionContent>
                     </AccordionItem>
-                    <AccordionItem className='relative overflow-hidden rounded-xl border border-border/20 bg-card/10 px-2 card-glow'>
+                    <AccordionItem className='relative overflow-hidden rounded-xl border border-yellow-500/30 bg-gradient-to-r from-yellow-400/15 to-yellow-600/15 px-2 card-glow'>
                         <AccordionTrigger className='px-2'>
                             <div className='flex items-center gap-3'>
-                                <span className='h-8 w-8 rounded-full bg-white/10 border border-white/20 text-white/80 flex items-center justify-center'>
-                                    <Star className='w-4 h-4 text-primary' fill='currentColor' />
+                                <span className='h-8 w-8 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 border border-yellow-500/30 text-yellow-300 flex items-center justify-center'>
+                                    <Star className='w-4 h-4' fill='currentColor' />
                                 </span>
                                 <span className='text-white'>Purchase stars</span>
-                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-white flex items-center gap-1'>
-                                    <Star className='w-3.5 h-3.5 text-primary' fill='currentColor' />
+                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 border border-yellow-500/30 text-yellow-300 flex items-center gap-1'>
+                                    <Star className='w-3.5 h-3.5' fill='currentColor' />
                                     Instant
                                 </span>
                             </div>
                         </AccordionTrigger>
                         <AccordionContent>
-                            <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-border/20 relative'>
-                                <div className='pointer-events-none absolute -top-10 -right-10 h-32 w-32 rounded-full bg-primary/20 blur-3xl' />
-                                <div className='pointer-events-none absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-secondary/20 blur-3xl' />
+                            <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-yellow-500/30 relative'>
+                                <div className='pointer-events-none absolute -top-10 -right-10 h-32 w-32 rounded-full bg-yellow-400/25 blur-3xl' />
+                                <div className='pointer-events-none absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-amber-400/20 blur-3xl' />
                                 <p>Need stars instantly? Buy star packs and use them right away.</p>
                                 <Link href='/stars/purchase'>
                                     <Button className='rounded-full'>Purchase Stars</Button>
@@ -137,8 +137,8 @@ export default function StarsPage() {
                                     <Megaphone className='w-4 h-4' />
                                 </span>
                                 <span className='text-white'>Create content about us</span>
-                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-white/80 flex items-center gap-1'>
-                                    <Star className='w-3.5 h-3.5 text-primary' fill='currentColor' />
+                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 border border-yellow-500/30 text-yellow-300 flex items-center gap-1'>
+                                    <Star className='w-3.5 h-3.5' fill='currentColor' />
                                     15–50
                                 </span>
                             </div>
@@ -164,8 +164,8 @@ export default function StarsPage() {
                                     <Share2 className='w-4 h-4' />
                                 </span>
                                 <span className='text-white'>Share a reading</span>
-                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-white/80 flex items-center gap-1'>
-                                    <Star className='w-3.5 h-3.5 text-primary' fill='currentColor' />
+                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 border border-yellow-500/30 text-yellow-300 flex items-center gap-1'>
+                                    <Star className='w-3.5 h-3.5' fill='currentColor' />
                                     1
                                 </span>
                             </div>
@@ -186,8 +186,8 @@ export default function StarsPage() {
                                     <Users className='w-4 h-4' />
                                 </span>
                                 <span className='text-white'>Refer a friend</span>
-                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-white/80 flex items-center gap-1'>
-                                    <Star className='w-3.5 h-3.5 text-primary' fill='currentColor' />
+                                <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 border border-yellow-500/30 text-yellow-300 flex items-center gap-1'>
+                                    <Star className='w-3.5 h-3.5' fill='currentColor' />
                                     5
                                 </span>
                             </div>
