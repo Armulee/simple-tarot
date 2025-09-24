@@ -6,6 +6,7 @@ import { useStars } from "@/contexts/stars-context"
 import { Star, Clock, Gift, Share2, Users } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 function formatRelativeTime(timestamp: number | null | undefined): string {
     if (!timestamp) return "—"
@@ -79,58 +80,73 @@ export default function StarsPage() {
                 </div>
             </Card>
 
-            {/* Ways to earn */}
+            {/* Ways to earn - Accordion */}
             <div className='space-y-4'>
                 <h2 className='font-serif text-2xl font-semibold text-white text-center'>Ways to earn stars</h2>
-                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
-                    {/* Registration bonus */}
-                    <Card className='p-5 bg-card/10 backdrop-blur-sm border-border/20'>
-                        <div className='flex items-center gap-3 mb-3'>
-                            <div className='h-10 w-10 rounded-full bg-emerald-400/15 border border-emerald-500/30 flex items-center justify-center text-emerald-300'>
-                                <Gift className='w-5 h-5' />
+                <Accordion type='single' collapsible className='bg-card/5 rounded-xl border border-border/20 divide-y divide-border/20'>
+                    <AccordionItem value='register' className='px-4'>
+                        <AccordionTrigger>
+                            First-time registration (+10 stars, refill up to 15)
+                        </AccordionTrigger>
+                        <AccordionContent>
+                            <div className='space-y-3'>
+                                <p>Sign up and receive +10 stars. Your auto-refill capacity increases to 15 stars.</p>
+                                <Link href='/signup'>
+                                    <Button className='rounded-full'>Create an account</Button>
+                                </Link>
                             </div>
-                            <div>
-                                <h3 className='text-white font-medium'>First-time registration</h3>
-                                <p className='text-xs text-muted-foreground'>+20 stars and refill increases to 24.</p>
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value='purchase' className='px-4'>
+                        <AccordionTrigger>Purchase stars</AccordionTrigger>
+                        <AccordionContent>
+                            <div className='space-y-3'>
+                                <p>Need stars instantly? Buy star packs and use them right away.</p>
+                                <Link href='/stars/purchase'>
+                                    <Button className='rounded-full'>Purchase Stars</Button>
+                                </Link>
                             </div>
-                        </div>
-                        <Link href='/signup'>
-                            <Button className='w-full rounded-full'>Create an account</Button>
-                        </Link>
-                    </Card>
-
-                    {/* Share reading */}
-                    <Card className='p-5 bg-card/10 backdrop-blur-sm border-border/20'>
-                        <div className='flex items-center gap-3 mb-3'>
-                            <div className='h-10 w-10 rounded-full bg-cyan-400/15 border border-cyan-500/30 flex items-center justify-center text-cyan-300'>
-                                <Share2 className='w-5 h-5' />
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value='content' className='px-4'>
+                        <AccordionTrigger>Create content about us (+15/+25/+50)</AccordionTrigger>
+                        <AccordionContent>
+                            <div className='space-y-3'>
+                                <ul className='list-disc list-inside space-y-1'>
+                                    <li>Text article or blog post: +15 stars</li>
+                                    <li>Image post (e.g. social media): +25 stars</li>
+                                    <li>Video content (YouTube/TikTok/Reels): +50 stars</li>
+                                </ul>
+                                <p className='text-xs'>Share the public link to your content. We will review and approve manually.</p>
+                                <Link href='/stars/submit-content'>
+                                    <Button variant='outline' className='rounded-full'>Submit content</Button>
+                                </Link>
                             </div>
-                            <div>
-                                <h3 className='text-white font-medium'>Share a reading</h3>
-                                <p className='text-xs text-muted-foreground'>Post or send your reading to earn +1 star.</p>
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value='share' className='px-4'>
+                        <AccordionTrigger>Share a reading (+1)</AccordionTrigger>
+                        <AccordionContent>
+                            <div className='space-y-3'>
+                                <p>Post or send your reading to earn +1 star.</p>
+                                <Link href='/'>
+                                    <Button variant='outline' className='rounded-full'>Go to readings</Button>
+                                </Link>
                             </div>
-                        </div>
-                        <Link href='/'>
-                            <Button variant='outline' className='w-full rounded-full'>Go to readings</Button>
-                        </Link>
-                    </Card>
-
-                    {/* Refer friend */}
-                    <Card className='p-5 bg-card/10 backdrop-blur-sm border-border/20'>
-                        <div className='flex items-center gap-3 mb-3'>
-                            <div className='h-10 w-10 rounded-full bg-purple-400/15 border border-purple-500/30 flex items-center justify-center text-purple-300'>
-                                <Users className='w-5 h-5' />
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value='refer' className='px-4'>
+                        <AccordionTrigger>Refer a friend (+5 each)</AccordionTrigger>
+                        <AccordionContent>
+                            <div className='space-y-3'>
+                                <p>You and your friend each get +5 stars when they join.</p>
+                                <Link href='/contact'>
+                                    <Button variant='outline' className='rounded-full'>Get referral link</Button>
+                                </Link>
                             </div>
-                            <div>
-                                <h3 className='text-white font-medium'>Refer a friend</h3>
-                                <p className='text-xs text-muted-foreground'>You and your friend each get +5 stars.</p>
-                            </div>
-                        </div>
-                        <Link href='/contact'>
-                            <Button variant='outline' className='w-full rounded-full'>Get referral link</Button>
-                        </Link>
-                    </Card>
-                </div>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
             </div>
         </section>
     )

@@ -36,8 +36,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 	const [nextRefillAt, setNextRefillAt] = useState<number | null>(null)
 	const { user } = useAuth()
 
-    // Refill cap: anonymous 5, signed-in 24
-    const refillCap = user ? 24 : 5
+    // Refill cap: anonymous 5, signed-in 15
+    const refillCap = user ? 15 : 5
 
 	// Hydrate from localStorage on mount
 	useEffect(() => {
@@ -101,11 +101,11 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 			const key = `stars-register-bonus:${user.id}`
 			const granted = localStorage.getItem(key) === "true"
 			if (!granted) {
-                setStars((prev) => prev + 20)
+                setStars((prev) => prev + 10)
 				localStorage.setItem(key, "true")
 				// If currently above or equal to new cap, no next refill
 				setNextRefillAt((prevNext) => {
-                    const current = stars + 20
+                    const current = stars + 10
 					return current >= refillCap ? null : prevNext
 				})
 			}
