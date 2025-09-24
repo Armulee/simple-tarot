@@ -223,8 +223,8 @@ export function Navbar({ locale }: { locale: string }) {
                                     variant='ghost'
                                     className='h-10 px-3 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 text-yellow-300 border border-yellow-500/30 flex items-center gap-2'
                                 >
-                                    <Star className='w-4 h-4' />
-                                    <span className='text-sm font-semibold'>
+                                    <Star className='w-4 h-4' fill='currentColor' />
+                                    <span className='font-semibold'>
                                         {initialized ? stars : "-"}
                                     </span>
                                 </Button>
@@ -238,8 +238,8 @@ export function Navbar({ locale }: { locale: string }) {
                                     variant='ghost'
                                     className='h-9 px-2 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 text-yellow-300 border border-yellow-500/30 flex items-center gap-1'
                                 >
-                                    <Star className='w-4 h-4' />
-                                    <span className='text-xs font-semibold'>
+                                    <Star className='w-4 h-4' fill='currentColor' />
+                                    <span className='font-semibold'>
                                         {initialized ? stars : "-"}
                                     </span>
                                 </Button>
