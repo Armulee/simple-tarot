@@ -42,6 +42,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setSession(session)
                 setUser(session?.user ?? null)
             }
+            // Ensure anonymous session exists if no active session
+            if (!session) {
+                try {
+                    const { data, error: anonError } = await supabase.auth.signInAnonymously()
+                    if (anonError) {
+                        console.error("Anonymous sign-in failed:", anonError)
+                    } else if (data?.user) {
+                        setUser(data.user)
+                        setSession(data.session ?? null)
+                    }
+                } catch (e) {
+                    console.error("Anonymous sign-in threw:", e)
+                }
+            }
             setLoading(false)
         }
 
