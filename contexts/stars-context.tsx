@@ -11,6 +11,7 @@ import {
 	type ReactNode,
 } from "react"
 import { useAuth } from "@/hooks/use-auth"
+import { supabase } from "@/lib/supabase"
 
 interface StarsContextType {
 	stars: number
@@ -34,35 +35,34 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 	const [initialized, setInitialized] = useState(false)
 	const isHydrating = useRef(false)
 	const [nextRefillAt, setNextRefillAt] = useState<number | null>(null)
+	const [lastRefillAt, setLastRefillAt] = useState<number | null>(null)
 	const { user } = useAuth()
 
     // Refill cap: anonymous 5, signed-in 15
     const refillCap = user ? 15 : 5
 
-	// Hydrate from localStorage on mount
+	// Hydrate from Supabase (if signed-in) or localStorage (guest) when user changes
 	useEffect(() => {
 		if (typeof window === "undefined") return
 		isHydrating.current = true
-		try {
+		const hydrateGuest = () => {
 			const raw = localStorage.getItem(STORAGE_KEY)
 			const lastRefillRaw = localStorage.getItem(STORAGE_KEY_LAST_REFILL)
 			if (raw === null) {
-				// First-time visitors: grant default stars
 				setStars(DEFAULT_STARS)
 				localStorage.setItem(STORAGE_KEY, String(DEFAULT_STARS))
 				const now = Date.now()
 				localStorage.setItem(STORAGE_KEY_LAST_REFILL, String(now))
+				setLastRefillAt(now)
 				setNextRefillAt(now + REFILL_INTERVAL_MS)
 			} else {
 				const parsed = Number(raw)
 				if (Number.isFinite(parsed) && parsed >= 0) {
-					// Apply any pending refills since lastRefill (only up to refillCap)
 					let current = parsed
 					const now = Date.now()
 					let lastRefill = Number(lastRefillRaw || now)
 					if (!Number.isFinite(lastRefill) || lastRefill <= 0) {
 						lastRefill = now
-						// Persist missing lastRefill so subsequent reloads don't reset
 						localStorage.setItem(STORAGE_KEY_LAST_REFILL, String(lastRefill))
 					}
 					if (current < refillCap) {
@@ -71,12 +71,15 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 							current = Math.min(refillCap, current + hoursPassed)
 							const newLast = lastRefill + hoursPassed * REFILL_INTERVAL_MS
 							localStorage.setItem(STORAGE_KEY_LAST_REFILL, String(newLast))
+							setLastRefillAt(newLast)
 							setNextRefillAt(newLast + REFILL_INTERVAL_MS)
 						} else {
+							setLastRefillAt(lastRefill)
 							setNextRefillAt(lastRefill + REFILL_INTERVAL_MS)
 						}
 					} else {
 						setNextRefillAt(null)
+						setLastRefillAt(lastRefill)
 					}
 					setStars(current)
 				} else {
@@ -84,53 +87,130 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 					localStorage.setItem(STORAGE_KEY, String(DEFAULT_STARS))
 					const now = Date.now()
 					localStorage.setItem(STORAGE_KEY_LAST_REFILL, String(now))
+					setLastRefillAt(now)
 					setNextRefillAt(now + REFILL_INTERVAL_MS)
 				}
 			}
-		} finally {
-			isHydrating.current = false
-			setInitialized(true)
 		}
-	}, [])
 
-    // One-time registration bonus and increased refill cap handling
-	useEffect(() => {
-		if (!initialized) return
-		if (!user) return
-		try {
-			const key = `stars-register-bonus:${user.id}`
-			const granted = localStorage.getItem(key) === "true"
-			if (!granted) {
-                setStars((prev) => prev + 10)
-				localStorage.setItem(key, "true")
-				// If currently above or equal to new cap, no next refill
-				setNextRefillAt((prevNext) => {
-                    const current = stars + 10
-					return current >= refillCap ? null : prevNext
-				})
+		const hydrateAuthed = async () => {
+			if (!user) return hydrateGuest()
+			// Optional migration: seed row from guest localStorage if missing
+			const computeGuestCurrent = () => {
+				try {
+					const raw = localStorage.getItem(STORAGE_KEY)
+					const lastRefillRaw = localStorage.getItem(STORAGE_KEY_LAST_REFILL)
+					const parsed = Number(raw)
+					const now = Date.now()
+					let lastRefill = Number(lastRefillRaw || now)
+					if (!Number.isFinite(lastRefill) || lastRefill <= 0) lastRefill = now
+					let current = Number.isFinite(parsed) && parsed >= 0 ? parsed : DEFAULT_STARS
+					const hoursPassed = Math.floor((now - lastRefill) / REFILL_INTERVAL_MS)
+					if (current < 5 && hoursPassed > 0) {
+						current = Math.min(5, current + hoursPassed)
+					}
+					return { current, lastRefill }
+				} catch {
+					const now = Date.now()
+					return { current: DEFAULT_STARS, lastRefill: now }
+				}
 			}
-		} catch {}
-	}, [user, initialized])
 
-	// Persist to localStorage when stars change (skip during initial hydration)
+			const { data, error } = await supabase
+				.from("star_balances")
+				.select("balance,last_refill_at,register_bonus_granted")
+				.eq("user_id", user.id)
+				.maybeSingle()
+			if (error) {
+				console.error("Failed to load star balance:", error)
+				return hydrateGuest()
+			}
+
+			if (!data) {
+				const guest = computeGuestCurrent()
+				const now = Date.now()
+				const insertRes = await supabase.from("star_balances").insert({
+					user_id: user.id,
+					balance: guest.current,
+					last_refill_at: new Date(guest.lastRefill).toISOString(),
+				})
+				if (insertRes.error) {
+					console.error("Failed to initialize star balance:", insertRes.error)
+					return hydrateGuest()
+				}
+				// Apply refill relative to last_refill_at with signed-in cap
+				let current = guest.current
+				let last = guest.lastRefill
+				const hours = Math.floor((now - last) / REFILL_INTERVAL_MS)
+				if (current < refillCap && hours > 0) {
+					current = Math.min(refillCap, current + hours)
+					last = last + hours * REFILL_INTERVAL_MS
+					await supabase
+						.from("star_balances")
+						.update({ balance: current, last_refill_at: new Date(last).toISOString() })
+						.eq("user_id", user.id)
+				}
+				setStars(current)
+				setLastRefillAt(last)
+				setNextRefillAt(current >= refillCap ? null : last + REFILL_INTERVAL_MS)
+			} else {
+				// Apply refill on load
+				const now = Date.now()
+				let current = Number(data.balance) || 0
+				let last = new Date(data.last_refill_at as string).getTime()
+				if (!Number.isFinite(last) || last <= 0) last = now
+				const hours = Math.floor((now - last) / REFILL_INTERVAL_MS)
+				if (current < refillCap && hours > 0) {
+					current = Math.min(refillCap, current + hours)
+					last = last + hours * REFILL_INTERVAL_MS
+					await supabase
+						.from("star_balances")
+						.update({ balance: current, last_refill_at: new Date(last).toISOString() })
+						.eq("user_id", user.id)
+				}
+				// One-time registration bonus using server flag
+				if ((data as any).register_bonus_granted === false) {
+					const bonusNext = current + 10
+					await supabase
+						.from("star_balances")
+						.update({ balance: bonusNext, register_bonus_granted: true })
+						.eq("user_id", user.id)
+					current = bonusNext
+				}
+				setStars(current)
+				setLastRefillAt(last)
+				setNextRefillAt(current >= refillCap ? null : last + REFILL_INTERVAL_MS)
+			}
+		}
+
+		Promise.resolve()
+			.then(() => (user ? hydrateAuthed() : hydrateGuest()))
+			.finally(() => {
+				isHydrating.current = false
+				setInitialized(true)
+			})
+	}, [user, refillCap])
+
+	// Registration bonus handled in Supabase during hydration for authenticated users
+
+	// Persist to localStorage when stars change for guests (skip during initial hydration)
 	useEffect(() => {
 		if (typeof window === "undefined") return
 		if (!initialized) return
 		if (isHydrating.current) return
+	if (!user) {
 		try {
 			localStorage.setItem(STORAGE_KEY, String(stars))
-			// When reaching refill cap or above, clear next refill; when below, ensure nextRefill is set
 			if (stars >= refillCap) {
 				setNextRefillAt(null)
 			} else {
 				const lastRefillRaw = localStorage.getItem(STORAGE_KEY_LAST_REFILL)
-				const lastRefill = Number(lastRefillRaw || Date.now())
-				setNextRefillAt(lastRefill + REFILL_INTERVAL_MS)
+				const last = Number(lastRefillRaw || Date.now())
+				setNextRefillAt(last + REFILL_INTERVAL_MS)
 			}
-		} catch {
-			// ignore quota issues
-		}
-	}, [stars, initialized, refillCap])
+		} catch {}
+	}
+	}, [stars, initialized, refillCap, user])
 
 	// Interval to handle auto-refill
 	useEffect(() => {
@@ -138,51 +218,80 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 		if (!initialized) return
 		const id = window.setInterval(() => {
 			try {
-				setStars((prev) => {
+				setStars((prev: number) => {
 					if (prev >= refillCap) return prev
-					const lastRefillRaw = localStorage.getItem(STORAGE_KEY_LAST_REFILL)
 					const now = Date.now()
-					let lastRefill = Number(lastRefillRaw || now)
-					if (!Number.isFinite(lastRefill) || lastRefill <= 0) lastRefill = now
-					const hoursPassed = Math.floor((now - lastRefill) / REFILL_INTERVAL_MS)
+					let last = lastRefillAt ?? now
+					if (!Number.isFinite(last) || last <= 0) last = now
+					const hoursPassed = Math.floor((now - last) / REFILL_INTERVAL_MS)
 					if (hoursPassed <= 0) return prev
 					const nextWithinCap = Math.min(refillCap, prev + hoursPassed)
-					const newLast = lastRefill + hoursPassed * REFILL_INTERVAL_MS
-					localStorage.setItem(STORAGE_KEY_LAST_REFILL, String(newLast))
+					const newLast = last + hoursPassed * REFILL_INTERVAL_MS
+					setLastRefillAt(newLast)
 					setNextRefillAt(nextWithinCap >= refillCap ? null : newLast + REFILL_INTERVAL_MS)
+					if (user) {
+						// Persist server-side
+						supabase
+							.from("star_balances")
+							.update({ balance: nextWithinCap, last_refill_at: new Date(newLast).toISOString() })
+							.eq("user_id", user.id)
+					}
 					return nextWithinCap
 				})
 			} catch {}
 		}, 30 * 1000) // check every 30s for accuracy without heavy load
 		return () => window.clearInterval(id)
-	}, [initialized, refillCap])
+	}, [initialized, refillCap, user, lastRefillAt])
 
 	const addStars = useCallback((amount: number) => {
 		if (!Number.isFinite(amount) || amount <= 0) return
-		setStars((prev: number) => Math.max(0, prev + amount))
-	}, [])
+		let nextComputed = 0
+		setStars((prev: number) => {
+			nextComputed = Math.max(0, prev + amount)
+			return nextComputed
+		})
+		if (user) {
+			void supabase
+				.from("star_balances")
+				.update({ balance: nextComputed })
+				.eq("user_id", user.id)
+		}
+	}, [user])
 
 	const spendStars = useCallback((amount: number) => {
 		if (!Number.isFinite(amount) || amount <= 0) return false
 		let success = false
+		let nextComputed = 0
+		let shouldStartRefill = false
 		setStars((prev: number) => {
 			if (prev >= amount) {
 				success = true
-				const next = prev - amount
-				// If spending from refill cap or above down to below cap, start the refill timer now
-				if (prev >= refillCap && next < refillCap) {
-					const now = Date.now()
-					try {
-						localStorage.setItem(STORAGE_KEY_LAST_REFILL, String(now))
-					} catch {}
-					setNextRefillAt(now + REFILL_INTERVAL_MS)
+				nextComputed = prev - amount
+				if (prev >= refillCap && nextComputed < refillCap) {
+					shouldStartRefill = true
 				}
-				return next
+				return nextComputed
 			}
 			return prev
 		})
+		if (success && user) {
+			const now = Date.now()
+			if (shouldStartRefill) {
+				setLastRefillAt(now)
+				setNextRefillAt(now + REFILL_INTERVAL_MS)
+				void supabase
+					.from("star_balances")
+					.update({ balance: nextComputed, last_refill_at: new Date(now).toISOString() })
+					.eq("user_id", user.id)
+			} else {
+				void supabase
+					.from("star_balances")
+					.update({ balance: nextComputed })
+					.eq("user_id", user.id)
+			}
+		}
 		return success
-	}, [refillCap])
+	}, [refillCap, user])
 
 	const resetStars = useCallback((value?: number) => {
 		const next = Number.isFinite(value as number)
