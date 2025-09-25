@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
+import { getAnonDeviceId } from "./device-id"
 import { isSupabaseConfigured } from "./env"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -15,6 +16,11 @@ export const supabase = isConfigured
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true
+      },
+      global: {
+        headers: typeof window !== "undefined" && getAnonDeviceId()
+          ? { "x-anon-device-id": getAnonDeviceId() as string }
+          : undefined
       }
     })
   : createClient('https://placeholder.supabase.co', 'placeholder-key', {
@@ -22,6 +28,11 @@ export const supabase = isConfigured
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true
+      },
+      global: {
+        headers: typeof window !== "undefined" && getAnonDeviceId()
+          ? { "x-anon-device-id": getAnonDeviceId() as string }
+          : undefined
       }
     })
 
