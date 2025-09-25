@@ -4,7 +4,7 @@ import { TarotCard, useTarot } from "@/contexts/tarot-context"
 import { Button } from "../../ui/button"
 import { Card } from "../../ui/card"
 import { Badge } from "../../ui/badge"
-import { Pencil, RotateCw } from "lucide-react"
+import { Pencil, RotateCw, Star } from "lucide-react"
 import { ReadingConfig } from "../../../app/[locale]/reading/page"
 import { CircularCardSpread } from "./circular-card-spread"
 import LinearCardSpread from "./linear-card-spread"
@@ -13,13 +13,23 @@ import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
 import { InlineQuestionEdit } from "../inline-question-edit"
 import AdDialog from "@/components/ads/ad-dialog"
+import { useStars } from "@/contexts/stars-context"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function CardSelection({
     readingConfig,
 }: {
     readingConfig: ReadingConfig
 }) {
-    const adsEnabled = process.env.NEXT_PUBLIC_ENABLED_AD === "true"
+    // Ads disabled; proceed directly without ads
     const t = useTranslations("ReadingPage")
     const {
         currentStep,
@@ -34,6 +44,7 @@ export default function CardSelection({
         setFollowUpQuestion,
     } = useTarot()
     const isMobile = useIsMobile()
+    const { stars } = useStars()
 
     // Desktop-only spread mode selection; mobile is forced to linear
     const [spreadMode, setSpreadMode] = useState<"circular" | "linear">(
@@ -50,8 +61,8 @@ export default function CardSelection({
     const [spreadResetKey, setSpreadResetKey] = useState(0)
     const cardsToSelect = readingType ? readingConfig[readingType].cards : 1
 
-    // Ad dialog state
-    const [showAdDialog, setShowAdDialog] = useState(false)
+    // Dialog state
+    const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
 
     // Clear previous selections whenever we enter the card selection step (including follow-up)
     useEffect(() => {
@@ -87,6 +98,11 @@ export default function CardSelection({
     const handleCardsSelected = (
         cards: { name: string; isReversed: boolean }[]
     ) => {
+        // If not enough stars, block and show dialog; do not mutate state or storage
+        if (stars < 1) {
+            setShowNoStarsDialog(true)
+            return
+        }
         // Clear old interpretation state and localStorage when new cards are selected
         clearInterpretationState()
 
@@ -102,40 +118,13 @@ export default function CardSelection({
         }))
 
         setSelectedCards(tarotCards)
-        // Clear watched ads localStorage when starting new card selection (including follow-ups)
-        localStorage.removeItem("watchedAds")
         // Clear interpretation cache for new reading (only for non-follow-up readings)
         if (!isFollowUp) {
             clearInterpretationCache()
         }
 
-        // If ads are disabled by env, go directly to interpretation
-        if (!adsEnabled) {
-            setCurrentStep("interpretation")
-            return
-        }
-
-        // Check auto-play preference BEFORE setting any dialog state
-        const autoPlayAds = localStorage.getItem("auto-play-ads") === "true"
-
-        if (autoPlayAds) {
-            // Skip dialog entirely and go directly to interpretation step
-            setCurrentStep("interpretation")
-        } else {
-            // Show ad dialog only if auto-play is disabled
-            setShowAdDialog(true)
-        }
-    }
-
-    // Dialog handlers
-    const handleWatchAd = () => {
-        setShowAdDialog(false)
+        // Go directly to interpretation
         setCurrentStep("interpretation")
-    }
-
-    const handleDialogClose = () => {
-        setShowAdDialog(false)
-        // Stay in card selection step
     }
 
     // Clear interpretation cache for new readings - no-op (migrated to reading-state-v1)
@@ -174,14 +163,22 @@ export default function CardSelection({
 
     return (
         <>
-            {/* Ad Viewing Dialog */}
-            {adsEnabled && (
-                <AdDialog
-                    open={showAdDialog}
-                    onOpenChange={handleDialogClose}
-                    onWatchAd={handleWatchAd}
-                />
-            )}
+            {/* No Stars Dialog */}
+            <AlertDialog open={showNoStarsDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>No stars left</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            You don’t have enough stars to continue. Please wait for refill or purchase more stars.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogAction onClick={() => setShowNoStarsDialog(false)}>
+                            Okay
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             {currentStep === "card-selection" && (
                 <div className='space-y-8 animate-fade-in'>
@@ -277,6 +274,10 @@ export default function CardSelection({
                                     amount: `(${aggSelected.length}/${cardsToSelect})`,
                                     default: `Trust your intuition and select ${cardsToSelect} from the cosmic spread`,
                                 })}
+                            </p>
+                            <p className='text-xs text-yellow-300 flex items-center justify-center gap-1'>
+                                <Star className='w-3.5 h-3.5' fill='currentColor' />
+                                {"Starting the interpretation will consume 1 star."}
                             </p>
                         </div>
 

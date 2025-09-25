@@ -14,11 +14,13 @@ import {
     LogIn,
     Sparkles,
     Check,
+    Star,
 } from "lucide-react"
 import { SidebarSheet } from "./sidebar-sheet"
 import { UserProfile } from "@/components/user-profile"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/use-auth"
+import { useStars } from "@/contexts/stars-context"
 import {
     Sheet,
     SheetContent,
@@ -43,6 +45,7 @@ export function Navbar({ locale }: { locale: string }) {
     const pathname = usePathname()
     const [mysticalOpen, setMysticalOpen] = useState(false)
     const { user, loading } = useAuth()
+    const { stars, initialized } = useStars()
     const meta = (user?.user_metadata ?? {}) as {
         avatar_url?: string
         picture?: string
@@ -58,7 +61,7 @@ export function Navbar({ locale }: { locale: string }) {
                 <div className='flex justify-between items-center h-16'>
                     {/* Left: Mobile menu button / Desktop brand */}
                     <div className='flex items-center'>
-                        {/* Mobile: menu button or user avatar */}
+                        {/* Mobile: menu button (always bars) */}
                         <Button
                             variant='ghost'
                             size='icon'
@@ -66,19 +69,7 @@ export function Navbar({ locale }: { locale: string }) {
                             onClick={() => setOpen(true)}
                             aria-label='Open menu'
                         >
-                            {!loading && user ? (
-                                <Avatar className='w-8 h-8'>
-                                    <AvatarImage
-                                        src={avatarSrc}
-                                        alt={displayName}
-                                    />
-                                    <AvatarFallback className='bg-primary/20 text-primary font-semibold text-sm'>
-                                        {initial}
-                                    </AvatarFallback>
-                                </Avatar>
-                            ) : (
-                                <Menu className='h-6 w-6' />
-                            )}
+                            <Menu className='h-6 w-6' />
                         </Button>
 
                         {/* Desktop: brand */}
@@ -213,7 +204,37 @@ export function Navbar({ locale }: { locale: string }) {
                             </DropdownMenuContent>
                         </DropdownMenu>
 
-                        {/* Desktop only: User Profile / Sign In button */}
+                        {/* Star balance pill - desktop */}
+                        <div className='hidden md:flex items-center'>
+                            <Link href='/stars'>
+                                <Button
+                                    variant='ghost'
+                                    className='h-10 px-3 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 text-yellow-300 border border-yellow-500/30 flex items-center gap-2'
+                                >
+                                    <Star className='w-4 h-4' fill='currentColor' />
+                                    <span className='font-semibold'>
+                                        {initialized ? stars : "-"}
+                                    </span>
+                                </Button>
+                            </Link>
+                        </div>
+
+                        {/* Mobile: Star balance next to sign-in/profile */}
+                        <div className='md:hidden flex items-center'>
+                            <Link href='/stars' className='mr-2'>
+                                <Button
+                                    variant='ghost'
+                                    className='h-9 px-2 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 text-yellow-300 border border-yellow-500/30 flex items-center gap-1'
+                                >
+                                    <Star className='w-4 h-4' fill='currentColor' />
+                                    <span className='font-semibold'>
+                                        {initialized ? stars : "-"}
+                                    </span>
+                                </Button>
+                            </Link>
+                        </div>
+
+                        {/* Desktop: User Profile / Sign In button */}
                         <div className='hidden md:block'>
                             {!loading && user ? (
                                 <UserProfile variant='desktop' />
@@ -230,19 +251,23 @@ export function Navbar({ locale }: { locale: string }) {
                             )}
                         </div>
 
-                        {/* Mobile: Sign-in icon button (hidden when logged in) */}
-                        {!loading && !user && (
-                            <Link href='/signin' className='md:hidden'>
-                                <Button
-                                    variant='outline'
-                                    size='icon'
-                                    className='text-white border-white/30 hover:bg-white/10 rounded-full'
-                                    aria-label='Sign in'
-                                >
-                                    <LogIn className='w-4 h-4' />
-                                </Button>
-                            </Link>
-                        )}
+                        {/* Mobile: User profile when logged-in, else sign-in icon */}
+                        <div className='md:hidden'>
+                            {!loading && user ? (
+                                <UserProfile variant='mobile' />
+                            ) : (
+                                <Link href='/signin'>
+                                    <Button
+                                        variant='outline'
+                                        size='icon'
+                                        className='text-white border-white/30 hover:bg-white/10 rounded-full'
+                                        aria-label='Sign in'
+                                    >
+                                        <LogIn className='w-4 h-4' />
+                                    </Button>
+                                </Link>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
