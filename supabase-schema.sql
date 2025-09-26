@@ -97,6 +97,26 @@ create unique index if not exists star_states_unique_device on public.star_state
 -- Lock table down; all access via SECURITY DEFINER functions below
 alter table public.star_states enable row level security;
 
+-- Track mapping of anon devices to users for analytics/auditing
+create table if not exists public.star_identities (
+  user_id uuid references auth.users(id) on delete cascade not null,
+  anon_device_id text not null,
+  created_at timestamptz not null default now(),
+  last_seen_at timestamptz not null default now(),
+  primary key (user_id, anon_device_id)
+);
+
+alter table public.star_identities enable row level security;
+
+create policy "Users can view own identities" on public.star_identities
+  for select using (auth.uid() = user_id);
+
+create policy "Users can upsert own identities" on public.star_identities
+  for insert with check (auth.uid() = user_id);
+
+create policy "Users can update own identities" on public.star_identities
+  for update using (auth.uid() = user_id);
+
 -- Helper: compute refill based on cap (5 for anon, 15 for authed)
 create or replace function public._star_apply_refill(
   p_current integer,
@@ -144,6 +164,12 @@ declare
   v_new_current integer;
   v_new_last timestamptz;
 begin
+  -- Record identity mapping when both are present
+  if p_user_id is not null and p_anon_device_id is not null and length(p_anon_device_id) > 0 then
+    insert into public.star_identities (user_id, anon_device_id, last_seen_at)
+    values (p_user_id, p_anon_device_id, v_now)
+    on conflict (user_id, anon_device_id) do update set last_seen_at = excluded.last_seen_at;
+  end if;
   if p_user_id is not null then
     select * into v_state from public.star_states s where s.user_id = p_user_id;
     if not found then
