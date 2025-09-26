@@ -38,9 +38,9 @@ export default function QuestionInput({
         setInterpretation,
         setIsFollowUp,
         setFollowUpQuestion,
-        // question: lastQuestion,
-        // selectedCards: lastCards,
-        // interpretation: lastInterpretation,
+        question: lastQuestion,
+        selectedCards: lastCards,
+        interpretation: lastInterpretation,
         clearReadingStorage,
     } = useTarot()
 
@@ -72,7 +72,21 @@ export default function QuestionInput({
     }
 
     const handleFollowUpQuestion = (fuQuestion: string) => {
-        // No persistence; operate in-memory only
+        // Backup current reading data for follow-up context
+        try {
+            const backupData = {
+                question: lastQuestion,
+                selectedCards: lastCards,
+                interpretation: lastInterpretation,
+                timestamp: Date.now(),
+            }
+            localStorage.setItem(
+                "reading-state-v1-backup",
+                JSON.stringify(backupData)
+            )
+        } catch (e) {
+            console.error("Failed to backup reading data:", e)
+        }
 
         // Set up for follow-up reading without mutating the main question
         setIsFollowUp(true)
@@ -82,7 +96,21 @@ export default function QuestionInput({
         setInterpretation(null) // Clear previous interpretation
         setCurrentStep("card-selection") // Go to card selection
 
-        // No persistence
+        // Persist follow-up state immediately
+        try {
+            const payload = JSON.stringify({
+                question: lastQuestion,
+                readingType: "simple",
+                selectedCards: [],
+                currentStep: "card-selection",
+                interpretation: null,
+                isFollowUp: true,
+                followUpQuestion: fuQuestion,
+            })
+            localStorage.setItem("reading-state-v1", payload)
+        } catch {
+            // ignore
+        }
     }
 
     // Detect small devices
