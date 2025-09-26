@@ -21,6 +21,7 @@ import { UserProfile } from "@/components/user-profile"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/use-auth"
 import { useStars } from "@/contexts/stars-context"
+import { useStarConsent } from "@/components/star-consent"
 import {
     Sheet,
     SheetContent,
@@ -46,6 +47,7 @@ export function Navbar({ locale }: { locale: string }) {
     const [mysticalOpen, setMysticalOpen] = useState(false)
     const { user, loading } = useAuth()
     const { stars, initialized } = useStars()
+    const { choice, show } = useStarConsent()
     const meta = (user?.user_metadata ?? {}) as {
         avatar_url?: string
         picture?: string
@@ -210,6 +212,9 @@ export function Navbar({ locale }: { locale: string }) {
                                 <Button
                                     variant='ghost'
                                     className='h-10 px-3 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 text-yellow-300 border border-yellow-500/30 flex items-center gap-2'
+                                    onClick={() => {
+                                        if (choice === null || choice === "declined") show()
+                                    }}
                                 >
                                     <Star className={`w-4 h-4 ${initialized ? '' : 'animate-spin'}`} fill='currentColor' />
                                     <span className='font-semibold'>
@@ -225,6 +230,9 @@ export function Navbar({ locale }: { locale: string }) {
                                 <Button
                                     variant='ghost'
                                     className='h-9 px-2 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 text-yellow-300 border border-yellow-500/30 flex items-center gap-1'
+                                    onClick={() => {
+                                        if (choice === null || choice === "declined") show()
+                                    }}
                                 >
                                     <Star className={`w-4 h-4 ${initialized ? '' : 'animate-spin'}`} fill='currentColor' />
                                     <span className='font-semibold'>

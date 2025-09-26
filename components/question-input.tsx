@@ -7,6 +7,7 @@ import { useRouter, usePathname } from "next/navigation"
 import { useTarot } from "@/contexts/tarot-context"
 import AutoHeightTextarea from "./ui/auto-height-textarea"
 import { useTranslations } from "next-intl"
+import { useStarConsent } from "@/components/star-consent"
 
 export default function QuestionInput({
     id = "question-input",
@@ -30,6 +31,7 @@ export default function QuestionInput({
     const [internalQuestion, setInternalQuestion] = useState("")
     const [isSmallDevice, setIsSmallDevice] = useState(false)
     const router = useRouter()
+    const { choice, show } = useStarConsent()
     const {
         setQuestion: setContextQuestion,
         setCurrentStep,
@@ -164,7 +166,10 @@ export default function QuestionInput({
                     name={id}
                     placeholder={placeholder || t("placeholder")}
                     className='relative z-10 w-full pl-4 pr-15 py-2 text-white placeholder:text-white/70 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 focus:border-primary/60 focus:ring-2 focus:ring-primary/40 rounded-2xl resize-y shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] resize-none'
-                    onChange={(e) => setQuestion(e.target.value)}
+                    onChange={(e) => {
+                        if (choice === null || choice === "declined") show()
+                        setQuestion(e.target.value)
+                    }}
                     value={question}
                     defaultValue={defaultValue}
                     onKeyDown={handleKeyDown}
