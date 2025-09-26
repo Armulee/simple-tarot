@@ -265,11 +265,10 @@ If the interpretation is too generic, add more details to make it more specific.
         setShowAd(true)
     }, [getInterpretationAsync, stars, paidForInterpretation, interpretation])
 
-    const handleAdCompleted = useCallback(() => {
-        // Close ad and mark as completed; text will be shown from completion hook
-        setShowAd(false)
-        setAdCompleted(true)
-    }, [])
+    // const handleAdCompleted = useCallback(() => {
+    //     setShowAd(false)
+    //     setAdCompleted(true)
+    // }, [])
 
     const adsEnabled = false
 

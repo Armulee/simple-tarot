@@ -38,9 +38,9 @@ export default function QuestionInput({
         setInterpretation,
         setIsFollowUp,
         setFollowUpQuestion,
-        question: lastQuestion,
-        selectedCards: lastCards,
-        interpretation: lastInterpretation,
+        // question: lastQuestion,
+        // selectedCards: lastCards,
+        // interpretation: lastInterpretation,
         clearReadingStorage,
     } = useTarot()
 

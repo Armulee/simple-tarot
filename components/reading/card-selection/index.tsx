@@ -12,7 +12,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
 import { InlineQuestionEdit } from "../inline-question-edit"
-import AdDialog from "@/components/ads/ad-dialog"
+// import AdDialog from "@/components/ads/ad-dialog"
 import { useStars } from "@/contexts/stars-context"
 import {
     AlertDialog,

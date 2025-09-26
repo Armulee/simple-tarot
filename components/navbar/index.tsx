@@ -51,9 +51,9 @@ export function Navbar({ locale }: { locale: string }) {
         picture?: string
         name?: string
     }
-    const avatarSrc = meta.avatar_url || meta.picture || undefined
+    // const avatarSrc = meta.avatar_url || meta.picture || undefined
     const displayName = meta.name || user?.email?.split("@")[0] || "User"
-    const initial = displayName.charAt(0).toUpperCase()
+    // const initial = displayName.charAt(0).toUpperCase()
 
     return (
         <nav className='fixed top-0 left-0 right-0 z-50 bg-card/5 backdrop-blur-sm border-b border-border/20'>
