@@ -111,6 +111,11 @@ export function TarotProvider({ children }: { children: ReactNode }) {
         setIsClearing(true)
         setInterpretation(null)
         setPaidForInterpretation(false)
+        // Reset follow-up mode when clearing interpretation for a new reading
+        setIsFollowUp(false)
+        setFollowUpQuestion(null)
+        // Move back to reading-type so the user reselects type/cards
+        setCurrentStep("reading-type")
         setTimeout(() => setIsClearing(false), 50)
     }
 

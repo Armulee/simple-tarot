@@ -64,9 +64,19 @@ export default function QuestionInput({
                 setFollowUpQuestion(null)
                 setCurrentStep("reading-type")
 
-                if (pathname !== "/reading") {
-                    router.push("/reading")
-                }
+                try {
+                    const payload = JSON.stringify({
+                        question: currentValue,
+                        readingType: null,
+                        selectedCards: [],
+                        currentStep: "reading-type",
+                        interpretation: null,
+                        isFollowUp: false,
+                        followUpQuestion: null,
+                    })
+                    localStorage.setItem("reading-state-v1", payload)
+                } catch {}
+                router.push("/reading")
             }
         }
     }
