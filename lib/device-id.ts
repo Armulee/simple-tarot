@@ -1,5 +1,7 @@
 // Utility to provide a stable anonymous device identifier stored in a cookie
 
+import { hasCookieConsent } from "@/components/cookie-consent"
+
 const COOKIE_NAME = "anon_device_id"
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365 * 2 // 2 years
 
@@ -27,6 +29,8 @@ function writeCookie(name: string, value: string, maxAgeSeconds: number) {
 
 export function getAnonDeviceId(): string | null {
   if (typeof window === "undefined") return null
+  // Require explicit consent before creating/reading identifier cookies
+  if (!hasCookieConsent()) return null
 
   // Cookie-only
   const fromCookie = readCookie(COOKIE_NAME)

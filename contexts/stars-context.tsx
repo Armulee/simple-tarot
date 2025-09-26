@@ -12,6 +12,7 @@ import React, {
 } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { starAdd, starGetOrCreate, starRefresh, starSpend } from "@/lib/stars"
+import { hasCookieConsent } from "@/components/cookie-consent"
 
 interface StarsContextType {
 	stars: number
@@ -29,7 +30,7 @@ const REFILL_INTERVAL_MS = 60 * 60 * 1000 // 1 hour
 
 export function StarsProvider({ children }: { children: ReactNode }) {
 
-	const [stars, setStars] = useState<number>(DEFAULT_STARS)
+    const [stars, setStars] = useState<number>(DEFAULT_STARS)
 	const [initialized, setInitialized] = useState(false)
 	const [nextRefillAt, setNextRefillAt] = useState<number | null>(null)
 	const { user } = useAuth()
@@ -48,10 +49,11 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 	)
 
 	// Initial fetch and whenever auth state changes, load state from Supabase
-	useEffect(() => {
+    useEffect(() => {
 		let cancelled = false
 		;(async () => {
 			try {
+                if (!hasCookieConsent()) return
 				const state = await starGetOrCreate(user ?? null)
 				if (cancelled) return
 				setStars(state.currentStars)
@@ -63,11 +65,12 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 		return () => {
 			cancelled = true
 		}
-	}, [user, refillCap, computeNextRefillAt])
+    }, [user, refillCap, computeNextRefillAt])
 
 	// Periodic refresh to apply server-side refills
-	useEffect(() => {
+    useEffect(() => {
 		if (!initialized) return
+        if (!hasCookieConsent()) return
 		let mounted = true
 		const tick = async () => {
 			try {

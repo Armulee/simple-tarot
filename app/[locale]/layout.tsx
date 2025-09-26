@@ -17,6 +17,7 @@ import { routing } from "@/i18n/routing"
 import { notFound } from "next/navigation"
 import { getMessages, getTranslations } from "next-intl/server"
 import Script from "next/script"
+import CookieConsentOverlay from "@/components/cookie-consent"
 
 /* Updated fonts to match mystical design brief */
 const playfairDisplay = Playfair_Display({
@@ -147,6 +148,7 @@ export default async function RootLayout({
                     type='text/javascript'
                     src='https://cdn.applixir.com/applixir.app.v6.0.1.js'
                 />
+                <CookieConsentOverlay />
             </body>
         </html>
     )
