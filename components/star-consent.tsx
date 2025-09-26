@@ -65,13 +65,16 @@ export function StarConsentProvider({ children }: { children: React.ReactNode })
         <StarConsentContext.Provider value={value}>
             {children}
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent className='relative overflow-hidden max-w-lg border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(234,179,8,0.35)]'>
+                <DialogContent className='fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 relative overflow-hidden max-w-lg w-[92vw] border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(234,179,8,0.35)]'>
                     {/* Deep-space stars background */}
                     <div className='pointer-events-none absolute inset-0 opacity-40'>
                         <div className='cosmic-stars-layer-3' />
                         <div className='cosmic-stars-layer-4' />
                         <div className='cosmic-stars-layer-5' />
                     </div>
+                    {/* Golden aura behind dialog */}
+                    <div className='pointer-events-none absolute -top-24 -left-24 h-64 w-64 rounded-full bg-gradient-to-br from-yellow-300/25 via-yellow-500/15 to-transparent blur-3xl animate-pulse' />
+                    <div className='pointer-events-none absolute -bottom-28 -right-28 h-80 w-80 rounded-full bg-gradient-to-tl from-yellow-400/20 via-yellow-600/10 to-transparent blur-[100px] animate-pulse' style={{ animationDelay: "0.8s" }} />
                     <DialogHeader>
                         <DialogTitle className='text-yellow-300 font-serif text-xl'>Introducing Star Currency</DialogTitle>
                         <DialogDescription className='text-white/85'>
