@@ -34,11 +34,14 @@ create table if not exists public.star_identities (
 );
 
 alter table public.star_identities enable row level security;
-create policy if not exists "Users can view own identities" on public.star_identities
+drop policy if exists "Users can view own identities" on public.star_identities;
+create policy "Users can view own identities" on public.star_identities
   for select using (auth.uid() = user_id);
-create policy if not exists "Users can upsert own identities" on public.star_identities
+drop policy if exists "Users can upsert own identities" on public.star_identities;
+create policy "Users can upsert own identities" on public.star_identities
   for insert with check (auth.uid() = user_id);
-create policy if not exists "Users can update own identities" on public.star_identities
+drop policy if exists "Users can update own identities" on public.star_identities;
+create policy "Users can update own identities" on public.star_identities
   for update using (auth.uid() = user_id);
 
 -- Helper: compute refill based on cap (5 for anon, 15 for authed)
