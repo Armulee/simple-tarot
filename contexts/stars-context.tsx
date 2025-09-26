@@ -30,7 +30,7 @@ const REFILL_INTERVAL_MS = 60 * 60 * 1000 // 1 hour
 
 export function StarsProvider({ children }: { children: ReactNode }) {
 
-    const [stars, setStars] = useState<number>(DEFAULT_STARS)
+	const [stars, setStars] = useState<number>(0)
 	const [initialized, setInitialized] = useState(false)
 	const [nextRefillAt, setNextRefillAt] = useState<number | null>(null)
 	const { user } = useAuth()
@@ -49,23 +49,53 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 	)
 
 	// Initial fetch and whenever auth state changes, load state from Supabase
-    useEffect(() => {
+	useEffect(() => {
 		let cancelled = false
+		if (!hasCookieConsent()) {
+			setInitialized(false)
+			return
+		}
 		;(async () => {
 			try {
-                if (!hasCookieConsent()) return
 				const state = await starGetOrCreate(user ?? null)
 				if (cancelled) return
 				setStars(state.currentStars)
 				setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap))
-			} finally {
-				if (!cancelled) setInitialized(true)
-			}
+				setInitialized(true)
+			} catch {}
 		})()
 		return () => {
 			cancelled = true
 		}
-    }, [user, refillCap, computeNextRefillAt])
+	}, [user, refillCap, computeNextRefillAt])
+
+	// Initialize stars after consent is accepted
+	useEffect(() => {
+		let cancelled = false
+		const onConsent = (e: Event) => {
+			const detail = (e as CustomEvent<any>)?.detail
+			if (detail?.choice === "accepted") {
+				;(async () => {
+					try {
+						const state = await starGetOrCreate(user ?? null)
+						if (cancelled) return
+						setStars(state.currentStars)
+						setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap))
+						setInitialized(true)
+					} catch {}
+				})()
+			}
+		}
+		if (typeof window !== "undefined") {
+			window.addEventListener("cookie-consent-changed", onConsent as EventListener)
+		}
+		return () => {
+			cancelled = true
+			if (typeof window !== "undefined") {
+				window.removeEventListener("cookie-consent-changed", onConsent as EventListener)
+			}
+		}
+	}, [user, refillCap, computeNextRefillAt])
 
 	// Periodic refresh to apply server-side refills
     useEffect(() => {
