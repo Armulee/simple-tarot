@@ -103,10 +103,10 @@ export default function QuestionInput({
         // Set up for follow-up reading without mutating the main question
         setIsFollowUp(true)
         setFollowUpQuestion(fuQuestion)
-        setReadingType("simple") // Set to simple (single card) reading
-        setSelectedCards([]) // Clear previous cards
-        setInterpretation(null) // Clear previous interpretation
-        setCurrentStep("card-selection") // Go to card selection
+        setReadingType("simple")
+        setSelectedCards([])
+        setInterpretation(null)
+        setCurrentStep("card-selection")
 
         // Persist follow-up state immediately
         try {
