@@ -15,7 +15,7 @@ import { starAdd, starGetOrCreate, starRefresh, starSpend } from "@/lib/stars"
 import { hasCookieConsent } from "@/components/cookie-consent"
 
 interface StarsContextType {
-	stars: number
+	stars: number | null
 	initialized: boolean
 	addStars: (amount: number) => void
 	spendStars: (amount: number) => boolean
@@ -30,7 +30,7 @@ const REFILL_INTERVAL_MS = 60 * 60 * 1000 // 1 hour
 
 export function StarsProvider({ children }: { children: ReactNode }) {
 
-	const [stars, setStars] = useState<number>(0)
+	const [stars, setStars] = useState<number | null>(null)
 	const [initialized, setInitialized] = useState(false)
 	const [nextRefillAt, setNextRefillAt] = useState<number | null>(null)
 	const { user } = useAuth()
@@ -75,13 +75,15 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 		const onConsent = (e: Event) => {
 			const detail = (e as CustomEvent<any>)?.detail
 			if (detail?.choice === "accepted") {
+				// Immediately show 5 locally, then reconcile from server
+				setStars(5)
+				setInitialized(true)
 				;(async () => {
 					try {
 						const state = await starGetOrCreate(user ?? null)
 						if (cancelled) return
 						setStars(state.currentStars)
 						setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap))
-						setInitialized(true)
 					} catch {}
 				})()
 			}
@@ -122,7 +124,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 	const addStars = useCallback((amount: number) => {
 		if (!Number.isFinite(amount) || amount <= 0) return
 		// Optimistic update
-    setStars((prev: number) => Math.max(0, prev + amount))
+    setStars((prev) => Math.max(0, (prev ?? 0) + amount))
 		;(async () => {
 			try {
 				const state = await starAdd(user ?? null, amount)
@@ -143,16 +145,17 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 		if (!Number.isFinite(amount) || amount <= 0) return false
 		if (!initialized) return false
 		let success = false
-    setStars((prev: number) => {
-			if (prev >= amount) {
+    setStars((prev) => {
+            const current = prev ?? 0
+            if (current >= amount) {
 				success = true
-				const next = prev - amount
+                const next = current - amount
 				// If dropping below cap, next refill starts 1 hour from now
-				const nextRefill = next < refillCap && prev >= refillCap ? Date.now() + REFILL_INTERVAL_MS : nextRefillAt
+                const nextRefill = next < refillCap && current >= refillCap ? Date.now() + REFILL_INTERVAL_MS : nextRefillAt
 				if (nextRefill !== nextRefillAt) setNextRefillAt(nextRefill ?? null)
 				return next
 			}
-			return prev
+            return current
 		})
 		if (!success) return false
 		// Commit in background; reconcile with server state
@@ -182,10 +185,11 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 	const resetStars = useCallback((value?: number) => {
 		const next = Number.isFinite(value as number) ? Math.max(0, Number(value)) : DEFAULT_STARS
 		// Compute delta and use add
-    setStars((prev: number) => {
-			const delta = next - prev
+    setStars((prev) => {
+            const current = prev ?? 0
+            const delta = next - current
 			if (delta !== 0) addStars(delta)
-			return next
+            return next
 		})
 	}, [addStars])
 

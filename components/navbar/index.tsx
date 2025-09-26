@@ -216,9 +216,9 @@ export function Navbar({ locale }: { locale: string }) {
                                         if (choice === null || choice === "declined") show()
                                     }}
                                 >
-                                    <Star className={`w-4 h-4 ${initialized ? '' : 'animate-spin'}`} fill='currentColor' />
+                                    <Star className={`w-4 h-4 ${initialized ? '' : 'animate-spin-slow'}`} fill='currentColor' />
                                     <span className='font-semibold'>
-                                        {initialized ? stars : ''}
+                                        {initialized ? (stars ?? 0) : ''}
                                     </span>
                                 </Button>
                             </Link>
@@ -234,9 +234,9 @@ export function Navbar({ locale }: { locale: string }) {
                                         if (choice === null || choice === "declined") show()
                                     }}
                                 >
-                                    <Star className={`w-4 h-4 ${initialized ? '' : 'animate-spin'}`} fill='currentColor' />
+                                    <Star className={`w-4 h-4 ${initialized ? '' : 'animate-spin-slow'}`} fill='currentColor' />
                                     <span className='font-semibold'>
-                                        {initialized ? stars : ''}
+                                        {initialized ? (stars ?? 0) : ''}
                                     </span>
                                 </Button>
                             </Link>

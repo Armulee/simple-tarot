@@ -99,7 +99,7 @@ export default function CardSelection({
         cards: { name: string; isReversed: boolean }[]
     ) => {
         // If not enough stars, block and show dialog; do not mutate state
-        if (stars < 1) {
+        if (!Number.isFinite(stars as number) || (stars as number) < 1) {
             setShowNoStarsDialog(true)
             return
         }
