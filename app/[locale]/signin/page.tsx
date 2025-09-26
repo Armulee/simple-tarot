@@ -3,7 +3,8 @@
 import type React from "react"
 
 import { useEffect, useState } from "react"
-import { useRouter, useSearchParams } from "@/i18n/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -13,6 +14,7 @@ import { GoogleSignInButton } from "@/components/auth/google-signin-button"
 import { AuthDivider } from "@/components/auth/auth-divider"
 import { useAuth } from "@/hooks/use-auth"
 import { useTranslations } from "next-intl"
+import { toast } from "sonner"
 
 export default function SignInPage() {
     const t = useTranslations("Auth.SignIn")
@@ -29,6 +31,7 @@ export default function SignInPage() {
         const desc = params.get("error_description")
         if (err || desc) {
             setError(desc || err || "Authentication error")
+            toast.error(desc || err || "Authentication error")
         }
     }, [params])
 
