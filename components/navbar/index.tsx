@@ -220,9 +220,11 @@ export function Navbar({ locale }: { locale: string }) {
                                     }}
                                 >
                                     <Star className={`w-4 h-4 ${initialized ? '' : 'animate-spin-slow'}`} fill='currentColor' />
-                                    <span className='font-semibold'>
-                                        {initialized ? (stars ?? 0) : ''}
-                                    </span>
+                                    {initialized && (
+                                        <span className='font-semibold'>
+                                            {stars ?? 0}
+                                        </span>
+                                    )}
                                 </Button>
                             </Link>
                         </div>
@@ -241,9 +243,11 @@ export function Navbar({ locale }: { locale: string }) {
                                     }}
                                 >
                                     <Star className={`w-4 h-4 ${initialized ? '' : 'animate-spin-slow'}`} fill='currentColor' />
-                                    <span className='font-semibold'>
-                                        {initialized ? (stars ?? 0) : ''}
-                                    </span>
+                                    {initialized && (
+                                        <span className='font-semibold'>
+                                            {stars ?? 0}
+                                        </span>
+                                    )}
                                 </Button>
                             </Link>
                         </div>

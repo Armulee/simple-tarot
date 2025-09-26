@@ -65,17 +65,23 @@ export function StarConsentProvider({ children }: { children: React.ReactNode })
         <StarConsentContext.Provider value={value}>
             {children}
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent className='bg-black/90 border-white/10 max-w-lg'>
+                <DialogContent className='relative overflow-hidden max-w-lg border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(234,179,8,0.35)]'>
+                    {/* Deep-space stars background */}
+                    <div className='pointer-events-none absolute inset-0 opacity-40'>
+                        <div className='cosmic-stars-layer-3' />
+                        <div className='cosmic-stars-layer-4' />
+                        <div className='cosmic-stars-layer-5' />
+                    </div>
                     <DialogHeader>
-                        <DialogTitle className='text-white'>Introducing Star Currency</DialogTitle>
-                        <DialogDescription className='text-white/80'>
-                            Stars are used to reveal interpretations and unlock features. Anonymous device IDs let us store and sync your star balance and refill status in our database and remember preferences. We need your cookie consent to create this device ID.
+                        <DialogTitle className='text-yellow-300 font-serif text-xl'>Introducing Star Currency</DialogTitle>
+                        <DialogDescription className='text-white/85'>
+                            Stars let you reveal AI interpretations and unlock features. With your consent, we create an anonymous device ID to securely store and sync your star balance and hourly refills in our database, and remember your preferences.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className='text-xs text-white/70 mb-3'>Read our <Link href='/privacy-policy' className='underline hover:text-white'>Privacy Policy</Link>.</div>
+                    <div className='text-xs text-white/70 mb-3'>Read our <Link href='/privacy-policy' className='underline text-yellow-300 hover:text-yellow-200'>Privacy Policy</Link>.</div>
                     <div className='flex gap-3 justify-end'>
                         <button onClick={decline} className='px-3 py-2 rounded-md border border-white/20 text-white hover:bg-white/10'>Decline</button>
-                        <button onClick={accept} className='px-3 py-2 rounded-md bg-white text-black hover:bg-white/90'>Accept</button>
+                        <button onClick={accept} className='px-3 py-2 rounded-md bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.45)]'>Accept</button>
                     </div>
                 </DialogContent>
             </Dialog>
