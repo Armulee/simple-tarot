@@ -212,8 +212,11 @@ export function Navbar({ locale }: { locale: string }) {
                                 <Button
                                     variant='ghost'
                                     className='h-10 px-3 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 text-yellow-300 border border-yellow-500/30 flex items-center gap-2'
-                                    onClick={() => {
-                                        if (choice === null || choice === "declined") show()
+                                    onClick={(e) => {
+                                        if (choice === null || choice === "declined") {
+                                            e.preventDefault()
+                                            show()
+                                        }
                                     }}
                                 >
                                     <Star className={`w-4 h-4 ${initialized ? '' : 'animate-spin-slow'}`} fill='currentColor' />
@@ -230,8 +233,11 @@ export function Navbar({ locale }: { locale: string }) {
                                 <Button
                                     variant='ghost'
                                     className='h-9 px-2 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 text-yellow-300 border border-yellow-500/30 flex items-center gap-1'
-                                    onClick={() => {
-                                        if (choice === null || choice === "declined") show()
+                                    onClick={(e) => {
+                                        if (choice === null || choice === "declined") {
+                                            e.preventDefault()
+                                            show()
+                                        }
                                     }}
                                 >
                                     <Star className={`w-4 h-4 ${initialized ? '' : 'animate-spin-slow'}`} fill='currentColor' />
