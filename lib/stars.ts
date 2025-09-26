@@ -7,7 +7,6 @@ export type StarState = {
 }
 
 type GetOrCreateArgs = { p_anon_device_id: string | null; p_user_id: string | null }
-type RefreshArgs = { p_anon_device_id: string | null; p_user_id: string | null }
 type SpendArgs = { p_anon_device_id: string | null; p_amount: number; p_user_id: string | null }
 type AddArgs = { p_anon_device_id: string | null; p_amount: number; p_user_id: string | null }
 
@@ -30,14 +29,7 @@ export async function starGetOrCreate(user: User | null): Promise<StarState> {
   return { currentStars: row?.current_stars ?? 5, lastRefillAt: tsToMs(row?.last_refill_at), refillCap: cap }
 }
 
-export async function starRefresh(user: User | null): Promise<StarState> {
-  const res = await fetch("/api/stars/refresh", { method: "GET" })
-  const json = await res.json()
-  if (!res.ok) throw new Error(json.error || "STAR_REFRESH_FAILED")
-  const row = json.data?.[0]
-  const cap = user ? 15 : 5
-  return { currentStars: row?.current_stars ?? 5, lastRefillAt: tsToMs(row?.last_refill_at), refillCap: cap }
-}
+// removed starRefresh; provider will handle periodic refresh/refill by calling get-or-create when needed
 
 export async function starSpend(user: User | null, amount: number): Promise<{ ok: boolean, state: StarState }>
 {
@@ -62,6 +54,6 @@ export async function starAdd(user: User | null, amount: number): Promise<StarSt
 
 export async function starSyncUserToDevice(user: User): Promise<void> {
   // Server-side only: we will assume DID exists; optional route can be added if needed
-  await fetch("/api/stars/refresh")
+  await fetch("/api/stars/get-or-create")
 }
 

@@ -11,7 +11,7 @@ import React, {
     type ReactNode,
 } from "react"
 import { useAuth } from "@/hooks/use-auth"
-import { starAdd, starGetOrCreate, starRefresh, starSpend } from "@/lib/stars"
+import { starAdd, starGetOrCreate, starSpend } from "@/lib/stars"
 import { hasCookieConsent } from "@/components/cookie-consent"
 
 interface StarsContextType {
@@ -101,25 +101,29 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 
 	// Periodic refresh to apply server-side refills
     useEffect(() => {
-		if (!initialized) return
+        if (!initialized) return
         if (!hasCookieConsent()) return
-		let mounted = true
-		const tick = async () => {
-			try {
-				const state = await starRefresh(user ?? null)
-				if (!mounted) return
-				setStars(state.currentStars)
-				setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap))
-			} catch {}
-		}
-		// immediate then interval
-		tick()
-		const id = window.setInterval(tick, 30 * 1000)
-		return () => {
-			mounted = false
-			window.clearInterval(id)
-		}
-	}, [initialized, user, refillCap, computeNextRefillAt])
+        let mounted = true
+        const checkRefill = async () => {
+            try {
+                if (stars === null) return
+                if (stars >= refillCap) return
+                const now = Date.now()
+                if (nextRefillAt && now >= nextRefillAt) {
+                    // Ask server to apply refill and return new state
+                    const state = await starGetOrCreate(user ?? null)
+                    if (!mounted) return
+                    setStars(state.currentStars)
+                    setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap))
+                }
+            } catch {}
+        }
+        const id = window.setInterval(checkRefill, 30 * 1000)
+        return () => {
+            mounted = false
+            window.clearInterval(id)
+        }
+    }, [initialized, user, refillCap, computeNextRefillAt, stars, nextRefillAt])
 
 	const addStars = useCallback((amount: number) => {
 		if (!Number.isFinite(amount) || amount <= 0) return
