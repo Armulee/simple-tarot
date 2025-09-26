@@ -1,5 +1,3 @@
-import { supabase } from "./supabase"
-import { getAnonDeviceId } from "./device-id"
 import type { User } from "@supabase/supabase-js"
 
 export type StarState = {
@@ -21,67 +19,46 @@ function tsToMs(ts?: string | null): number | null {
 }
 
 export async function starGetOrCreate(user: User | null): Promise<StarState> {
-  const anonId = typeof window !== "undefined" && !user ? getAnonDeviceId() : null
-  const args: GetOrCreateArgs = { p_anon_device_id: anonId, p_user_id: user?.id ?? null }
-  const { data, error } = await supabase.rpc("star_get_or_create", args)
-  if (error) throw error
+  const res = await fetch("/api/stars/get-or-create", { method: "GET" })
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.error || "STAR_INIT_FAILED")
+  const row = json.data?.[0]
   const cap = user ? 15 : 5
-  return {
-    currentStars: data?.[0]?.current_stars ?? 5,
-    lastRefillAt: tsToMs(data?.[0]?.last_refill_at),
-    refillCap: cap
-  }
+  return { currentStars: row?.current_stars ?? 5, lastRefillAt: tsToMs(row?.last_refill_at), refillCap: cap }
 }
 
 export async function starRefresh(user: User | null): Promise<StarState> {
-  const anonId = typeof window !== "undefined" && !user ? getAnonDeviceId() : null
-  const args: RefreshArgs = { p_anon_device_id: anonId, p_user_id: user?.id ?? null }
-  const { data, error } = await supabase.rpc("star_refresh", args)
-  if (error) throw error
+  const res = await fetch("/api/stars/refresh", { method: "GET" })
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.error || "STAR_REFRESH_FAILED")
+  const row = json.data?.[0]
   const cap = user ? 15 : 5
-  return {
-    currentStars: data?.[0]?.current_stars ?? 5,
-    lastRefillAt: tsToMs(data?.[0]?.last_refill_at),
-    refillCap: cap
-  }
+  return { currentStars: row?.current_stars ?? 5, lastRefillAt: tsToMs(row?.last_refill_at), refillCap: cap }
 }
 
 export async function starSpend(user: User | null, amount: number): Promise<{ ok: boolean, state: StarState }>
 {
-  const anonId = typeof window !== "undefined" && !user ? getAnonDeviceId() : null
-  const args: SpendArgs = { p_anon_device_id: anonId, p_amount: amount, p_user_id: user?.id ?? null }
-  const { data, error } = await supabase.rpc("star_spend", args)
-  if (error) throw error
+  const res = await fetch("/api/stars/spend", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount }) })
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.error || "STAR_SPEND_FAILED")
+  const row = json.data?.[0]
   const cap = user ? 15 : 5
-  const ok = Boolean(data?.[0]?.ok)
-  const state: StarState = {
-    currentStars: data?.[0]?.current_stars ?? 5,
-    lastRefillAt: tsToMs(data?.[0]?.last_refill_at),
-    refillCap: cap
-  }
+  const ok = Boolean(row?.ok)
+  const state: StarState = { currentStars: row?.current_stars ?? 5, lastRefillAt: tsToMs(row?.last_refill_at), refillCap: cap }
   return { ok, state }
 }
 
 export async function starAdd(user: User | null, amount: number): Promise<StarState> {
-  const anonId = typeof window !== "undefined" && !user ? getAnonDeviceId() : null
-  const args: AddArgs = { p_anon_device_id: anonId, p_amount: amount, p_user_id: user?.id ?? null }
-  const { data, error } = await supabase.rpc("star_add", args)
-  if (error) throw error
+  const res = await fetch("/api/stars/add", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount }) })
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.error || "STAR_ADD_FAILED")
+  const row = json.data?.[0]
   const cap = user ? 15 : 5
-  return {
-    currentStars: data?.[0]?.current_stars ?? 5,
-    lastRefillAt: tsToMs(data?.[0]?.last_refill_at),
-    refillCap: cap
-  }
+  return { currentStars: row?.current_stars ?? 5, lastRefillAt: tsToMs(row?.last_refill_at), refillCap: cap }
 }
 
 export async function starSyncUserToDevice(user: User): Promise<void> {
-  const anonId = typeof window !== "undefined" ? getAnonDeviceId() : null
-  if (!anonId) return
-  const { error } = await supabase.rpc("star_sync_user_to_device", {
-    p_anon_device_id: anonId,
-    p_user_id: user.id
-  })
-  if (error) throw error
+  // Server-side only: we will assume DID exists; optional route can be added if needed
+  await fetch("/api/stars/refresh")
 }
 

@@ -1,7 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
-import { getAnonDeviceId } from "./device-id"
 import { isSupabaseConfigured } from "./env"
-import { hasCookieConsent } from "@/components/cookie-consent"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -11,11 +9,8 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 const isConfigured = isSupabaseConfigured()
 
 function getGlobalOptions() {
-  if (typeof window === "undefined") return undefined
-  if (!hasCookieConsent()) return undefined
-  const did = getAnonDeviceId()
-  if (!did) return undefined
-  return { headers: { "x-anon-device-id": did } }
+  // DID is server-only now; no headers
+  return undefined
 }
 
 // Create Supabase client with fallback for build time

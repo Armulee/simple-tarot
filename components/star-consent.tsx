@@ -40,8 +40,10 @@ export function StarConsentProvider({ children }: { children: React.ReactNode })
         setOpen(true)
     }, [])
 
-    const accept = useCallback(() => {
+    const accept = useCallback(async () => {
         try { window.localStorage.setItem(CONSENT_KEY, "accepted") } catch {}
+        // Ask server to generate DID HttpOnly cookie
+        try { await fetch("/api/device/init", { method: "POST" }) } catch {}
         setChoice("accepted")
         setOpen(false)
         // Emit a custom event for listeners (e.g., stars-context) to initialize
