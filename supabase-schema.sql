@@ -65,6 +65,13 @@ CREATE TRIGGER on_auth_user_updated
 -- Stars: persisted balance and refill logic (anonymous + authenticated users)
 -- ===========================================================================
 
+-- Clean up any old conflicting function signatures (safe if not present)
+drop function if exists public.star_spend(text, uuid, integer) cascade;
+drop function if exists public.star_add(text, uuid, integer) cascade;
+drop function if exists public.star_refresh(text, uuid) cascade;
+drop function if exists public.star_get_or_create(text, uuid) cascade;
+drop function if exists public.star_sync_user_to_device(text, uuid) cascade;
+
 -- Extensions required for UUID generation
 create extension if not exists pgcrypto;
 

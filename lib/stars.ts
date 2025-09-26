@@ -22,11 +22,9 @@ function tsToMs(ts?: string | null): number | null {
 }
 
 export async function starGetOrCreate(user: User | null): Promise<StarState> {
-  const anonId = typeof window !== "undefined" ? getAnonDeviceId() : null
-  const { data, error } = await supabase.rpc("star_get_or_create", {
-    p_anon_device_id: anonId,
-    p_user_id: user?.id ?? null
-  })
+  const anonId = typeof window !== "undefined" && !user ? getAnonDeviceId() : null
+  const args: Record<string, any> = { p_anon_device_id: anonId, p_user_id: user?.id ?? null }
+  const { data, error } = await supabase.rpc("star_get_or_create", args)
   if (error) throw error
   const cap = user ? 15 : 5
   return {
@@ -37,11 +35,9 @@ export async function starGetOrCreate(user: User | null): Promise<StarState> {
 }
 
 export async function starRefresh(user: User | null): Promise<StarState> {
-  const anonId = typeof window !== "undefined" ? getAnonDeviceId() : null
-  const { data, error } = await supabase.rpc("star_refresh", {
-    p_anon_device_id: anonId,
-    p_user_id: user?.id ?? null
-  })
+  const anonId = typeof window !== "undefined" && !user ? getAnonDeviceId() : null
+  const args: Record<string, any> = { p_anon_device_id: anonId, p_user_id: user?.id ?? null }
+  const { data, error } = await supabase.rpc("star_refresh", args)
   if (error) throw error
   const cap = user ? 15 : 5
   return {
@@ -53,12 +49,9 @@ export async function starRefresh(user: User | null): Promise<StarState> {
 
 export async function starSpend(user: User | null, amount: number): Promise<{ ok: boolean, state: StarState }>
 {
-  const anonId = typeof window !== "undefined" ? getAnonDeviceId() : null
-  const { data, error } = await supabase.rpc("star_spend", {
-    p_anon_device_id: anonId,
-    p_user_id: user?.id ?? null,
-    p_amount: amount
-  })
+  const anonId = typeof window !== "undefined" && !user ? getAnonDeviceId() : null
+  const args: Record<string, any> = { p_anon_device_id: anonId, p_amount: amount, p_user_id: user?.id ?? null }
+  const { data, error } = await supabase.rpc("star_spend", args)
   if (error) throw error
   const cap = user ? 15 : 5
   const ok = Boolean(data?.[0]?.ok)
@@ -71,12 +64,9 @@ export async function starSpend(user: User | null, amount: number): Promise<{ ok
 }
 
 export async function starAdd(user: User | null, amount: number): Promise<StarState> {
-  const anonId = typeof window !== "undefined" ? getAnonDeviceId() : null
-  const { data, error } = await supabase.rpc("star_add", {
-    p_anon_device_id: anonId,
-    p_user_id: user?.id ?? null,
-    p_amount: amount
-  })
+  const anonId = typeof window !== "undefined" && !user ? getAnonDeviceId() : null
+  const args: Record<string, any> = { p_anon_device_id: anonId, p_amount: amount, p_user_id: user?.id ?? null }
+  const { data, error } = await supabase.rpc("star_add", args)
   if (error) throw error
   const cap = user ? 15 : 5
   return {
