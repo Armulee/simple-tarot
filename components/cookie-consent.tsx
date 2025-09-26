@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
+import Link from "next/link"
 
 const CONSENT_KEY = "cookie-consent-v1"
 
@@ -40,24 +41,31 @@ export default function CookieConsentOverlay() {
     if (!visible) return null
 
     return (
-        <div className='fixed inset-0 z-[10000] pointer-events-none'>
-            {/* Bottom consent bar */}
-            <div className='pointer-events-auto fixed left-0 right-0 bottom-0 m-4 rounded-xl border border-white/15 bg-black/80 backdrop-blur-xl shadow-2xl p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3'>
-                <div className='text-sm text-white/90'>
-                    We use cookies to remember your preferences and improve your experience. You must accept cookies to use this site.
-                </div>
-                <div className='flex gap-3'>
-                    <button
-                        onClick={accept}
-                        className='px-4 py-2 rounded-lg bg-white text-black font-medium hover:bg-white/90'
-                    >
-                        Accept cookies
-                    </button>
+        <div className='fixed inset-0 z-[10000]'>
+            {/* Interaction blocker */}
+            <div className='absolute inset-0 bg-black/50' />
+
+            {/* Bottom consent bar - fixed and requires action */}
+            <div className='absolute left-0 right-0 bottom-0 m-0 md:m-4'>
+                <div className='rounded-none md:rounded-xl border-t md:border border-white/15 bg-black/90 backdrop-blur-xl shadow-2xl p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
+                    <div className='text-sm text-white/90 space-y-1'>
+                        <p>
+                            We need your consent to use cookies on this device. Cookies are used to create an anonymous device ID so we can store and sync your star balance and refill status in our database, and remember your site preferences.
+                        </p>
+                        <p className='text-xs text-white/70'>
+                            Read more in our <Link href='/privacy-policy' className='underline hover:text-white'>Privacy Policy</Link>.
+                        </p>
+                    </div>
+                    <div className='flex gap-3 justify-end'>
+                        <button
+                            onClick={accept}
+                            className='px-4 py-2 rounded-lg bg-white text-black font-medium hover:bg-white/90'
+                        >
+                            Accept and continue
+                        </button>
+                    </div>
                 </div>
             </div>
-
-            {/* Interaction blocker */}
-            <div className='absolute inset-0 bg-black/40' />
         </div>
     )
 }
