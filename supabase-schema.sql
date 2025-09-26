@@ -87,7 +87,7 @@ create table if not exists public.star_states (
   first_login_bonus_granted boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint star_states_user_or_device check ((user_id is not null) <> (anon_device_id is not null))
+  constraint star_states_user_or_device check ((user_id is not null) or (anon_device_id is not null))
 );
 
 -- Uniqueness for both identities
@@ -171,35 +171,31 @@ begin
     on conflict (user_id, anon_device_id) do update set last_seen_at = excluded.last_seen_at;
   end if;
   if p_user_id is not null then
+    -- Prefer existing user row; otherwise, if anon row exists, attach user_id to it; else create new
     select * into v_state from public.star_states s where s.user_id = p_user_id;
     if not found then
-      -- First login for this user; seed from anon device if provided, but DO NOT migrate anon row
       if p_anon_device_id is not null then
-        -- read anon state
-        declare
-          v_anon_row public.star_states%rowtype;
-          v_ac integer;
-          v_al timestamptz;
-        begin
-          select * into v_anon_row from public.star_states s where s.anon_device_id = p_anon_device_id;
-          if found then
-            -- apply refill with anon cap (5)
-            select new_current, coalesce(new_last_refill, v_anon_row.last_refill_at)
-              into v_ac, v_al
-              from public._star_apply_refill(v_anon_row.current_stars, v_anon_row.last_refill_at, v_now, 5);
-            -- grant +10 one-time on user creation
-            insert into public.star_states (user_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
-                 values (p_user_id, v_ac + 10, v_al, true, v_now)
-            returning * into v_state;
-          else
-            -- no anon row, start fresh with 5 + 10
-            insert into public.star_states (user_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
-                 values (p_user_id, 15, v_now, true, v_now)
-            returning * into v_state;
-          end if;
-        end;
+        select * into v_state from public.star_states s where s.anon_device_id = p_anon_device_id;
+        if found then
+          -- attach user_id to existing anon row, grant +10 once
+          select new_current, coalesce(new_last_refill, v_state.last_refill_at)
+            into v_new_current, v_new_last
+            from public._star_apply_refill(v_state.current_stars, v_state.last_refill_at, v_now, 5);
+          v_new_current := v_new_current + 10;
+          update public.star_states s
+             set user_id = p_user_id,
+                 current_stars = v_new_current,
+                 last_refill_at = v_new_last,
+                 first_login_bonus_granted = true,
+                 updated_at = v_now
+           where s.id = v_state.id
+           returning * into v_state;
+        else
+          insert into public.star_states (user_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
+               values (p_user_id, 15, v_now, true, v_now)
+          returning * into v_state;
+        end if;
       else
-        -- no anon id provided; start with 5 + 10
         insert into public.star_states (user_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
              values (p_user_id, 15, v_now, true, v_now)
         returning * into v_state;
