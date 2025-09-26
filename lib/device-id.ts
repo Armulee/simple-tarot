@@ -1,11 +1,9 @@
-// Utility to provide a stable anonymous device identifier stored on the client
+// Utility to provide a stable anonymous device identifier stored in a cookie
 
-const STORAGE_KEY = "anon-device-id-v1"
 const COOKIE_NAME = "anon_device_id"
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365 * 2 // 2 years
 
 function generateId(): string {
-  // Simple RFC4122-ish random identifier
   const template = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
   return template.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0
@@ -30,25 +28,13 @@ function writeCookie(name: string, value: string, maxAgeSeconds: number) {
 export function getAnonDeviceId(): string | null {
   if (typeof window === "undefined") return null
 
-  // Prefer cookie (works across subpaths and SSR requests)
+  // Cookie-only
   const fromCookie = readCookie(COOKIE_NAME)
   if (fromCookie && fromCookie.length > 0) {
-    // Backfill localStorage for legacy reads if present
-    try { window.localStorage.setItem(STORAGE_KEY, fromCookie) } catch {}
     return fromCookie
   }
 
-  // Fallback to localStorage then set cookie
-  try {
-    const existing = window.localStorage.getItem(STORAGE_KEY)
-    if (existing && existing.length > 0) {
-      writeCookie(COOKIE_NAME, existing, COOKIE_MAX_AGE)
-      return existing
-    }
-  } catch {}
-
   const next = generateId()
-  try { window.localStorage.setItem(STORAGE_KEY, next) } catch {}
   try { writeCookie(COOKIE_NAME, next, COOKIE_MAX_AGE) } catch {}
   return next
 }

@@ -116,8 +116,6 @@ export default function RewardedAds({
         if (adState.status === "completed") {
             // Small delay to show completion state briefly
             const autoCompleteTimeout = setTimeout(() => {
-                // Save that ads have been watched
-                localStorage.setItem("watchedAds", "true")
                 onAdCompleted(interpretationRef.current || undefined)
             }, 1500) // 1.5 second delay to show completion state
 
@@ -151,8 +149,6 @@ export default function RewardedAds({
     // Helper placeholder (unused while real ads disabled)
 
     const handleRealAdComplete = useCallback(() => {
-        // Save that ads have been watched
-        localStorage.setItem("watchedAds", "true")
         setAdState((prev) => ({
             ...prev,
             status: "completed",
@@ -162,8 +158,6 @@ export default function RewardedAds({
     }, [onAdCompleted])
 
     const handleAdSkip = useCallback(() => {
-        // Save that ads have been watched (even if skipped)
-        localStorage.setItem("watchedAds", "true")
         onAdSkipped?.()
     }, [onAdSkipped])
 
@@ -219,13 +213,7 @@ export default function RewardedAds({
 
     // Initialize simulated ad only (no GAM)
     useEffect(() => {
-        const watchedAds = localStorage.getItem("watchedAds")
-        if (watchedAds === "true") {
-            // Ads already watched, skip directly to completion
-
-            onAdCompleted()
-            return
-        }
+        // No local persistence; always run the flow
         // Show skip button after 15 seconds
         skipButtonTimeoutRef.current = setTimeout(() => {
             setShowSkipButton(true)
@@ -253,8 +241,6 @@ export default function RewardedAds({
         if (intervalRef.current) {
             clearInterval(intervalRef.current)
         }
-        // Save that ads have been watched (even if skipped)
-        localStorage.setItem("watchedAds", "true")
         onAdSkipped?.()
     }
 

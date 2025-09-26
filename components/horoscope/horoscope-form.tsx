@@ -39,39 +39,7 @@ function getDeviceTimezone(): number {
     }
 }
 
-// Local storage keys
-const STORAGE_KEYS = {
-    day: "horoscope_day",
-    month: "horoscope_month",
-    year: "horoscope_year",
-    hour: "horoscope_hour",
-    minute: "horoscope_minute",
-    country: "horoscope_country",
-    stateProv: "horoscope_stateProv",
-    timezone: "horoscope_timezone",
-    lat: "horoscope_lat",
-    lng: "horoscope_lng",
-}
-
-// Helper functions for localStorage
-function getStoredValue<T>(key: string, defaultValue: T): T {
-    if (typeof window === "undefined") return defaultValue
-    try {
-        const stored = localStorage.getItem(key)
-        return stored !== null ? JSON.parse(stored) : defaultValue
-    } catch {
-        return defaultValue
-    }
-}
-
-function setStoredValue<T>(key: string, value: T): void {
-    if (typeof window === "undefined") return
-    try {
-        localStorage.setItem(key, JSON.stringify(value))
-    } catch {
-        // Ignore storage errors
-    }
-}
+// Removed localStorage persistence for horoscope form
 
 export default function HoroscopeForm() {
     const [day, setDay] = useState("")
@@ -107,60 +75,7 @@ export default function HoroscopeForm() {
     // Time picker state
     const [timePickerOpen, setTimePickerOpen] = useState(false)
 
-    // Load from localStorage after hydration
-    useEffect(() => {
-        setDay(getStoredValue(STORAGE_KEYS.day, ""))
-        setMonth(getStoredValue(STORAGE_KEYS.month, ""))
-        setYear(getStoredValue(STORAGE_KEYS.year, ""))
-        setHour(getStoredValue(STORAGE_KEYS.hour, ""))
-        setMinute(getStoredValue(STORAGE_KEYS.minute, ""))
-        setCountry(getStoredValue(STORAGE_KEYS.country, ""))
-        setStateProv(getStoredValue(STORAGE_KEYS.stateProv, ""))
-        setTimezone(getStoredValue(STORAGE_KEYS.timezone, getDeviceTimezone()))
-        setLat(getStoredValue(STORAGE_KEYS.lat, ""))
-        setLng(getStoredValue(STORAGE_KEYS.lng, ""))
-    }, [])
-
-    // Save to localStorage whenever values change
-    useEffect(() => {
-        setStoredValue(STORAGE_KEYS.day, day)
-    }, [day])
-
-    useEffect(() => {
-        setStoredValue(STORAGE_KEYS.month, month)
-    }, [month])
-
-    useEffect(() => {
-        setStoredValue(STORAGE_KEYS.year, year)
-    }, [year])
-
-    useEffect(() => {
-        setStoredValue(STORAGE_KEYS.hour, hour)
-    }, [hour])
-
-    useEffect(() => {
-        setStoredValue(STORAGE_KEYS.minute, minute)
-    }, [minute])
-
-    useEffect(() => {
-        setStoredValue(STORAGE_KEYS.country, country)
-    }, [country])
-
-    useEffect(() => {
-        setStoredValue(STORAGE_KEYS.stateProv, stateProv)
-    }, [stateProv])
-
-    useEffect(() => {
-        setStoredValue(STORAGE_KEYS.timezone, timezone)
-    }, [timezone])
-
-    useEffect(() => {
-        setStoredValue(STORAGE_KEYS.lat, lat)
-    }, [lat])
-
-    useEffect(() => {
-        setStoredValue(STORAGE_KEYS.lng, lng)
-    }, [lng])
+    // No local persistence
 
     function onCalendarSelect(date: Date | undefined) {
         if (!date) return

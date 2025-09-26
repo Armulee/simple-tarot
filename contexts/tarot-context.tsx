@@ -63,10 +63,10 @@ export interface TarotContextType {
     // Reset function
     resetReading: () => void
 
-    // Clear localStorage function (for new readings)
+    // Clear in-memory reading state
     clearReadingStorage: () => void
     
-    // Clear interpretation state and localStorage (for new card selections)
+    // Clear interpretation state (for new card selections)
     clearInterpretationState: () => void
 }
 
@@ -88,7 +88,7 @@ export function TarotProvider({ children }: { children: ReactNode }) {
     const [isClearing, setIsClearing] = useState(false)
     const pathname = usePathname()
 
-    const STORAGE_KEY = "reading-state-v1"
+    // Removed localStorage persistence; state is in-memory only
 
     const resetReading = () => {
         setQuestion("")
@@ -102,108 +102,25 @@ export function TarotProvider({ children }: { children: ReactNode }) {
     }
 
     const clearReadingStorage = () => {
-        try {
-            setIsClearing(true)
-            localStorage.removeItem(STORAGE_KEY)
-            localStorage.removeItem(STORAGE_KEY + "-backup")
-            // Also reset the in-memory state to ensure clean slate
-            resetReading()
-            // Reset the clearing flag after a brief delay
-            setTimeout(() => setIsClearing(false), 100)
-        } catch (e) {
-            console.error("Failed to clear reading storage:", e)
-            setIsClearing(false)
-        }
+        setIsClearing(true)
+        resetReading()
+        setTimeout(() => setIsClearing(false), 50)
     }
 
     const clearInterpretationState = () => {
-        try {
-            setIsClearing(true)
-            // Only clear interpretation-related localStorage data
-            localStorage.removeItem(STORAGE_KEY + "-backup")
-            // Clear interpretation state
-            setInterpretation(null)
-            setPaidForInterpretation(false)
-            // Reset the clearing flag after a brief delay
-            setTimeout(() => setIsClearing(false), 100)
-        } catch (e) {
-            console.error("Failed to clear interpretation state:", e)
-            setIsClearing(false)
-        }
+        setIsClearing(true)
+        setInterpretation(null)
+        setPaidForInterpretation(false)
+        setTimeout(() => setIsClearing(false), 50)
     }
 
-    // Restore reading state when entering /reading (supports locale prefixes)
+    // No local persistence; ensure hydration marks question as empty string when entering reading page
     useEffect(() => {
-        if (typeof window === "undefined") return
         if (!pathname || !pathname.includes("/reading")) return
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY)
-            if (raw) {
-                const data = JSON.parse(raw) as {
-                    question?: string
-                    readingType?: ReadingType | null
-                    selectedCards?: TarotCard[]
-                    currentStep?: TarotContextType["currentStep"]
-                    interpretation?: string | null
-                    isFollowUp?: boolean
-                    followUpQuestion?: string | null
-                    paidForInterpretation?: boolean
-                }
-                if (data.question !== undefined) setQuestion(data.question)
-                if (data.readingType !== undefined)
-                    setReadingType(data.readingType ?? null)
-                if (Array.isArray(data.selectedCards))
-                    setSelectedCards(data.selectedCards)
-                if (data.currentStep) setCurrentStep(data.currentStep)
-                if (data.interpretation !== undefined)
-                    setInterpretation(data.interpretation ?? null)
-                if (data.isFollowUp !== undefined)
-                    setIsFollowUp(!!data.isFollowUp)
-                if (data.followUpQuestion !== undefined)
-                    setFollowUpQuestion(data.followUpQuestion ?? null)
-                if (data.paidForInterpretation !== undefined)
-                    setPaidForInterpretation(!!data.paidForInterpretation)
-            }
-        } catch {
-            // ignore corrupt storage
-        }
-        // If nothing was restored, explicitly mark as empty to allow guard to decide
         setQuestion((prev) => (prev === null ? "" : prev))
     }, [pathname])
 
-    // Persist reading state while on /reading (supports locale prefixes)
-    useEffect(() => {
-        if (typeof window === "undefined") return
-        if (!pathname || !pathname.includes("/reading")) return
-        if (isClearing) return // Don't save during clearing process
-        if (question === null) return // Skip until hydration completes
-        try {
-            const payload = JSON.stringify({
-                question,
-                readingType,
-                selectedCards,
-                currentStep,
-                interpretation,
-                isFollowUp,
-                followUpQuestion,
-                paidForInterpretation,
-            })
-            localStorage.setItem(STORAGE_KEY, payload)
-        } catch {
-            // ignore quota errors
-        }
-    }, [
-        question,
-        readingType,
-        selectedCards,
-        currentStep,
-        interpretation,
-        paidForInterpretation,
-        isFollowUp,
-        followUpQuestion,
-        pathname,
-        isClearing,
-    ])
+    // Removed local persistence
 
     // Preserve in-memory state across routes; do not reset on leaving /reading.
     // State will be reset only when a new question is submitted via QuestionInput.

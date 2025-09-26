@@ -55,7 +55,7 @@ export default function QuestionInput({
             if (followUp) {
                 handleFollowUpQuestion(currentValue)
             } else {
-                // This is a new reading (not follow-up), clear localStorage and reset state
+                // This is a new reading (not follow-up), clear state
                 clearReadingStorage()
 
                 // Set new question and navigate
@@ -64,21 +64,6 @@ export default function QuestionInput({
                 setFollowUpQuestion(null)
                 setCurrentStep("reading-type")
 
-                // Persist immediately so /reading can restore after navigation/reload
-                try {
-                    const payload = JSON.stringify({
-                        question: currentValue,
-                        readingType: null,
-                        selectedCards: [],
-                        currentStep: "reading-type",
-                        interpretation: null,
-                        isFollowUp: false,
-                        followUpQuestion: null,
-                    })
-                    localStorage.setItem("reading-state-v1", payload)
-                } catch {
-                    // ignore
-                }
                 if (pathname !== "/reading") {
                     router.push("/reading")
                 }
@@ -87,24 +72,7 @@ export default function QuestionInput({
     }
 
     const handleFollowUpQuestion = (fuQuestion: string) => {
-        // Backup current reading data for follow-up context
-        try {
-            const backupData = {
-                question: lastQuestion,
-                selectedCards: lastCards,
-                interpretation: lastInterpretation,
-                timestamp: Date.now(),
-            }
-            localStorage.setItem(
-                "reading-state-v1-backup",
-                JSON.stringify(backupData)
-            )
-        } catch (e) {
-            console.error("Failed to backup reading data:", e)
-        }
-
-        // DON'T clear localStorage - preserve the reading state
-        // The reading state will be updated with the new follow-up data
+        // No persistence; operate in-memory only
 
         // Set up for follow-up reading without mutating the main question
         setIsFollowUp(true)
@@ -114,21 +82,7 @@ export default function QuestionInput({
         setInterpretation(null) // Clear previous interpretation
         setCurrentStep("card-selection") // Go to card selection
 
-        // Persist follow-up state immediately
-        try {
-            const payload = JSON.stringify({
-                question: lastQuestion,
-                readingType: "simple",
-                selectedCards: [],
-                currentStep: "card-selection",
-                interpretation: null,
-                isFollowUp: true,
-                followUpQuestion: fuQuestion,
-            })
-            localStorage.setItem("reading-state-v1", payload)
-        } catch {
-            // ignore
-        }
+        // No persistence
     }
 
     // Detect small devices

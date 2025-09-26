@@ -15,11 +15,7 @@ export default function ReadingGuard({ children }: ReadingGuardProps) {
     const router = useRouter()
 
     useEffect(() => {
-        // Check if there's no question and redirect to homepage
-        if (question === null) {
-            // Hydrating from localStorage: do nothing yet
-            return
-        }
+        // Nothing to do related to localStorage anymore
         if (!question || question.trim() === "") {
             toast.info("Please ask a question first", {
                 description: "Redirecting to homepage to input your question",

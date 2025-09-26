@@ -194,7 +194,7 @@ export default function Interpretation() {
     const waiveChargeOnceRef = useRef(false)
     const chargedThisRunRef = useRef(false)
 
-    // Removed old localStorage-based interpretation cache.
+    // No localStorage usage
 
     const getInterpretationAsync = useCallback(async (): Promise<string> => {
         const currentQuestion =
