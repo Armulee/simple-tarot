@@ -185,13 +185,24 @@ begin
       into v_new_current, v_new_last
       from public._star_apply_refill(v_state.current_stars, v_state.last_refill_at, v_now, v_cap);
 
-    -- After user exists, do NOT add first-login bonus again
-    update public.star_states s
-       set current_stars = v_new_current,
-           last_refill_at = v_new_last,
-           updated_at = v_now
-     where s.id = v_state.id
-     returning * into v_state;
+    -- If bonus was never granted (edge cases), grant +10 once
+    if not coalesce(v_state.first_login_bonus_granted, false) then
+      v_new_current := v_new_current + 10;
+      update public.star_states s
+         set current_stars = v_new_current,
+             last_refill_at = v_new_last,
+             first_login_bonus_granted = true,
+             updated_at = v_now
+       where s.id = v_state.id
+       returning * into v_state;
+    else
+      update public.star_states s
+         set current_stars = v_new_current,
+             last_refill_at = v_new_last,
+             updated_at = v_now
+       where s.id = v_state.id
+       returning * into v_state;
+    end if;
 
   else
     -- Anonymous

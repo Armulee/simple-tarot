@@ -19,7 +19,10 @@ function tsToMs(ts?: string | null): number | null {
 }
 
 export async function starGetOrCreate(user: User | null): Promise<StarState> {
-  const res = await fetch("/api/stars/get-or-create", { method: "GET" })
+  const url = user?.id
+    ? `/api/stars/get-or-create?user_id=${encodeURIComponent(user.id)}`
+    : "/api/stars/get-or-create"
+  const res = await fetch(url, { method: "GET" })
   const json = await res.json()
   if (!res.ok) throw new Error(json.error || "STAR_INIT_FAILED")
   const row = json.data?.[0]
