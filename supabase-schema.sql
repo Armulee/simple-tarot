@@ -143,18 +143,18 @@ declare
   v_new_last timestamptz;
 begin
   if p_user_id is not null then
-    select * into v_state from public.star_states where user_id = p_user_id;
+    select * into v_state from public.star_states s where s.user_id = p_user_id;
     if not found then
       -- try migrate from device row
       if p_anon_device_id is not null then
-        select * into v_state from public.star_states where anon_device_id = p_anon_device_id;
+        select * into v_state from public.star_states s where s.anon_device_id = p_anon_device_id;
       end if;
       if found then
-        update public.star_states
+        update public.star_states s
            set user_id = p_user_id,
                anon_device_id = null,
                updated_at = v_now
-         where id = v_state.id
+         where s.id = v_state.id
          returning * into v_state;
       else
         insert into public.star_states (user_id, current_stars, last_refill_at)
@@ -171,19 +171,19 @@ begin
     -- First login bonus (+10) only once per user
     if not coalesce(v_state.first_login_bonus_granted, false) then
       v_new_current := v_new_current + 10;
-      update public.star_states
+    update public.star_states s
          set current_stars = v_new_current,
              last_refill_at = v_new_last,
              first_login_bonus_granted = true,
              updated_at = v_now
-       where id = v_state.id
+      where s.id = v_state.id
        returning * into v_state;
     else
-      update public.star_states
+      update public.star_states s
          set current_stars = v_new_current,
              last_refill_at = v_new_last,
              updated_at = v_now
-       where id = v_state.id
+       where s.id = v_state.id
        returning * into v_state;
     end if;
 
@@ -192,7 +192,7 @@ begin
     if p_anon_device_id is null or length(p_anon_device_id) = 0 then
       raise exception 'anon device id required for anonymous state';
     end if;
-    select * into v_state from public.star_states where anon_device_id = p_anon_device_id;
+    select * into v_state from public.star_states s where s.anon_device_id = p_anon_device_id;
     if not found then
       insert into public.star_states (anon_device_id, current_stars, last_refill_at)
            values (p_anon_device_id, 5, v_now)
@@ -204,11 +204,11 @@ begin
       into v_new_current, v_new_last
       from public._star_apply_refill(v_state.current_stars, v_state.last_refill_at, v_now, v_cap);
 
-    update public.star_states
+    update public.star_states s
        set current_stars = v_new_current,
            last_refill_at = v_new_last,
            updated_at = v_now
-     where id = v_state.id
+     where s.id = v_state.id
      returning * into v_state;
   end if;
 
@@ -255,11 +255,11 @@ begin
     v_new_last := v_now; -- start timer when dropping below cap
   end if;
 
-  update public.star_states
+  update public.star_states s
      set current_stars = v_new_current,
          last_refill_at = v_new_last,
          updated_at = v_now
-   where id = v_row.id
+   where s.id = v_row.id
    returning current_stars, last_refill_at into v_new_current, v_new_last;
 
   return query select true, v_new_current, v_new_last;
@@ -285,10 +285,10 @@ begin
   end if;
 
   select * from public.star_get_or_create(p_anon_device_id, p_user_id) into v_row;
-  update public.star_states
+  update public.star_states s
      set current_stars = v_row.current_stars + p_amount,
          updated_at = v_now
-   where id = v_row.id
+   where s.id = v_row.id
    returning current_stars, last_refill_at;
 end;
 $$ language plpgsql security definer set search_path = public;
@@ -313,11 +313,11 @@ begin
     into v_new_current, v_new_last
     from public._star_apply_refill(v_row.current_stars, v_row.last_refill_at, v_now, v_cap);
 
-  update public.star_states
+  update public.star_states s
      set current_stars = v_new_current,
          last_refill_at = v_new_last,
          updated_at = v_now
-   where id = v_row.id;
+   where s.id = v_row.id;
 
   return query select v_new_current, v_new_last;
 end;
@@ -343,17 +343,17 @@ begin
   select * from public.star_get_or_create(null, p_user_id) into v_user_row; -- ensure user row exists/refreshed
 
   -- Upsert device row from user values
-  select * into v_dev_row from public.star_states where anon_device_id = p_anon_device_id;
+  select * into v_dev_row from public.star_states s where s.anon_device_id = p_anon_device_id;
   if not found then
     insert into public.star_states (anon_device_id, current_stars, last_refill_at)
          values (p_anon_device_id, v_user_row.current_stars, v_user_row.last_refill_at)
     returning * into v_dev_row;
   else
-    update public.star_states
+    update public.star_states s
        set current_stars = v_user_row.current_stars,
            last_refill_at = v_user_row.last_refill_at,
            updated_at = v_now
-     where id = v_dev_row.id
+     where s.id = v_dev_row.id
      returning * into v_dev_row;
   end if;
 
