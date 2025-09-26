@@ -46,12 +46,14 @@ export default function SignInPage() {
 
             if (error) {
                 setError(error.message)
+                toast.error(error.message || "Authentication error", { duration: Infinity, closeButton: true })
             } else {
                 router.push("/")
                 router.refresh()
             }
         } catch {
             setError("An error occurred. Please try again.")
+            toast.error("An error occurred. Please try again.", { duration: Infinity, closeButton: true })
         } finally {
             setIsLoading(false)
         }
@@ -81,11 +83,6 @@ export default function SignInPage() {
 
             {/* Sign In Form */}
             <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20 card-glow'>
-                {error && (
-                    <div className='mb-4 p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md'>
-                        {error}
-                    </div>
-                )}
                 <form onSubmit={handleSubmit} className='space-y-6'>
                     <div className='space-y-4'>
                         <div className='space-y-2'>
