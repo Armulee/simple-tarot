@@ -2,8 +2,8 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { useRouter } from "@/i18n/navigation"
+import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "@/i18n/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -21,7 +21,16 @@ export default function SignInPage() {
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState("")
     const router = useRouter()
+    const params = useSearchParams()
     const { signIn } = useAuth()
+
+    useEffect(() => {
+        const err = params.get("error")
+        const desc = params.get("error_description")
+        if (err || desc) {
+            setError(desc || err || "Authentication error")
+        }
+    }, [params])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
