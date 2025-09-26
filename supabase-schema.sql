@@ -260,7 +260,7 @@ begin
          last_refill_at = v_new_last,
          updated_at = v_now
    where s.id = v_row.id
-   returning current_stars, last_refill_at into v_new_current, v_new_last;
+   returning s.current_stars, s.last_refill_at into v_new_current, v_new_last;
 
   return query select true, v_new_current, v_new_last;
 end;
@@ -289,7 +289,7 @@ begin
      set current_stars = v_row.current_stars + p_amount,
          updated_at = v_now
    where s.id = v_row.id
-   returning current_stars, last_refill_at;
+   returning s.current_stars, s.last_refill_at;
 end;
 $$ language plpgsql security definer set search_path = public;
 
