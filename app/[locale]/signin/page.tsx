@@ -30,8 +30,9 @@ export default function SignInPage() {
         const err = params.get("error")
         const desc = params.get("error_description")
         if (err || desc) {
-            setError(desc || err || "Authentication error")
-            toast.error(desc || err || "Authentication error")
+            const msg = desc || err || "Authentication error"
+            setError(msg)
+            toast.error(msg, { duration: Infinity, closeButton: true })
         }
     }, [params])
 
