@@ -137,7 +137,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 			} catch {
 				// On failure, trigger a refresh to reconcile
 				try {
-					const state = await starRefresh(user ?? null)
+					const state = await starGetOrCreate(user ?? null)
 					setStars(state.currentStars)
 					setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap))
 				} catch {}
