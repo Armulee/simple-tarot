@@ -1,83 +1,10 @@
--- Enable Row Level Security on auth.users (if not already enabled)
-ALTER TABLE auth.users ENABLE ROW LEVEL SECURITY;
+-- Stars and identities schema (public-only). No auth.users DDL required.
 
--- Create profiles table (extends auth.users)
-CREATE TABLE public.profiles (
-  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
-  name TEXT,
-  avatar_url TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Enable RLS on profiles table
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-
--- Create policies for profiles table
-CREATE POLICY "Users can view own profile" ON public.profiles
-  FOR SELECT USING (auth.uid() = id);
-
-CREATE POLICY "Users can update own profile" ON public.profiles
-  FOR UPDATE USING (auth.uid() = id);
-
--- Allow insert via trigger during OAuth (auth.uid() is null in trigger context)
-DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
-CREATE POLICY "Allow profile insert via trigger" ON public.profiles
-  FOR INSERT WITH CHECK (true);
-
--- Create function to handle user creation
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO public.profiles (id, name, avatar_url)
-  VALUES (
-    NEW.id,
-    NEW.raw_user_meta_data->>'name',
-    NEW.raw_user_meta_data->>'avatar_url'
-  );
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Create trigger for new user creation
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
--- Create function to handle user updates
-CREATE OR REPLACE FUNCTION public.handle_user_update()
-RETURNS TRIGGER AS $$
-BEGIN
-  UPDATE public.profiles
-  SET 
-    name = NEW.raw_user_meta_data->>'name',
-    avatar_url = NEW.raw_user_meta_data->>'avatar_url',
-    updated_at = NOW()
-  WHERE id = NEW.id;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Create trigger for user updates
-CREATE TRIGGER on_auth_user_updated
-  AFTER UPDATE ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_user_update();
-
--- ===========================================================================
--- Stars: persisted balance and refill logic (anonymous + authenticated users)
--- ===========================================================================
-
--- Clean up any old conflicting function signatures (safe if not present)
-drop function if exists public.star_spend(text, uuid, integer) cascade;
-drop function if exists public.star_add(text, uuid, integer) cascade;
-drop function if exists public.star_refresh(text, uuid) cascade;
-drop function if exists public.star_get_or_create(text, uuid) cascade;
-drop function if exists public.star_sync_user_to_device(text, uuid) cascade;
-
--- Extensions required for UUID generation
+-- Extensions
 create extension if not exists pgcrypto;
 
--- Star state table: exactly one row per user OR per anonymous device
+-- Star state table: one row per anon device; when user logs in for first time,
+-- we attach user_id onto the same row and grant +10. After that, both IDs can coexist.
 create table if not exists public.star_states (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade,
@@ -87,17 +14,17 @@ create table if not exists public.star_states (
   first_login_bonus_granted boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
+  -- Allow either or both identifiers to be present
   constraint star_states_user_or_device check ((user_id is not null) or (anon_device_id is not null))
 );
 
--- Uniqueness for both identities
+-- Uniqueness: only one row per user and per device
 create unique index if not exists star_states_unique_user on public.star_states(user_id) where user_id is not null;
 create unique index if not exists star_states_unique_device on public.star_states(anon_device_id) where anon_device_id is not null;
 
--- Lock table down; all access via SECURITY DEFINER functions below
 alter table public.star_states enable row level security;
 
--- Track mapping of anon devices to users for analytics/auditing
+-- Optional mapping of anon_device_id <-> user_id pairs for analytics/auditing
 create table if not exists public.star_identities (
   user_id uuid references auth.users(id) on delete cascade not null,
   anon_device_id text not null,
@@ -107,14 +34,11 @@ create table if not exists public.star_identities (
 );
 
 alter table public.star_identities enable row level security;
-
-create policy "Users can view own identities" on public.star_identities
+create policy if not exists "Users can view own identities" on public.star_identities
   for select using (auth.uid() = user_id);
-
-create policy "Users can upsert own identities" on public.star_identities
+create policy if not exists "Users can upsert own identities" on public.star_identities
   for insert with check (auth.uid() = user_id);
-
-create policy "Users can update own identities" on public.star_identities
+create policy if not exists "Users can update own identities" on public.star_identities
   for update using (auth.uid() = user_id);
 
 -- Helper: compute refill based on cap (5 for anon, 15 for authed)
@@ -132,7 +56,7 @@ declare
   v_add integer;
 begin
   if v_current >= v_cap then
-    return query select v_current, case when v_cap = 0 then v_last else null end; -- keep last; next refill not needed at/over cap
+    return query select v_current, case when v_cap = 0 then v_last else null end;
   end if;
 
   v_hours := floor(extract(epoch from (p_now - v_last)) / 3600)::int;
@@ -145,7 +69,7 @@ begin
 end;
 $$ language plpgsql immutable;
 
--- Get or create star state, migrate anon->user on first login, apply refill and onetime +10 bonus
+-- Get/create and normalize state. On first login, attach user_id to anon row and grant +10.
 create or replace function public.star_get_or_create(
   p_anon_device_id text,
   p_user_id uuid default null
@@ -164,20 +88,21 @@ declare
   v_new_current integer;
   v_new_last timestamptz;
 begin
-  -- Record identity mapping when both are present
+  -- Record identity mapping if both are present
   if p_user_id is not null and p_anon_device_id is not null and length(p_anon_device_id) > 0 then
     insert into public.star_identities (user_id, anon_device_id, last_seen_at)
     values (p_user_id, p_anon_device_id, v_now)
     on conflict (user_id, anon_device_id) do update set last_seen_at = excluded.last_seen_at;
   end if;
+
   if p_user_id is not null then
-    -- Prefer existing user row; otherwise, if anon row exists, attach user_id to it; else create new
+    -- Prefer user row; if not exists, attach to existing anon row or create new
     select * into v_state from public.star_states s where s.user_id = p_user_id;
     if not found then
-      if p_anon_device_id is not null then
+      if p_anon_device_id is not null and length(p_anon_device_id) > 0 then
         select * into v_state from public.star_states s where s.anon_device_id = p_anon_device_id;
         if found then
-          -- attach user_id to existing anon row, grant +10 once
+          -- Refill with anon cap, then +10 bonus and attach user_id on same row
           select new_current, coalesce(new_last_refill, v_state.last_refill_at)
             into v_new_current, v_new_last
             from public._star_apply_refill(v_state.current_stars, v_state.last_refill_at, v_now, 5);
@@ -191,6 +116,7 @@ begin
            where s.id = v_state.id
            returning * into v_state;
         else
+          -- No anon row; start with base 5 + 10 bonus
           insert into public.star_states (user_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
                values (p_user_id, 15, v_now, true, v_now)
           returning * into v_state;
@@ -202,12 +128,11 @@ begin
       end if;
     end if;
 
-    -- Apply refill up to user cap
+    -- Apply refill with user cap; never re-grant bonus here unless flag is false (edge case)
     select new_current, coalesce(new_last_refill, v_state.last_refill_at)
       into v_new_current, v_new_last
       from public._star_apply_refill(v_state.current_stars, v_state.last_refill_at, v_now, v_cap);
 
-    -- If bonus was never granted (edge cases), grant +10 once
     if not coalesce(v_state.first_login_bonus_granted, false) then
       v_new_current := v_new_current + 10;
       update public.star_states s
@@ -227,7 +152,7 @@ begin
     end if;
 
   else
-    -- Anonymous
+    -- Anonymous flow
     if p_anon_device_id is null or length(p_anon_device_id) = 0 then
       raise exception 'anon device id required for anonymous state';
     end if;
@@ -238,7 +163,6 @@ begin
       returning * into v_state;
     end if;
 
-    -- Apply refill up to anon cap
     select new_current, coalesce(new_last_refill, v_state.last_refill_at)
       into v_new_current, v_new_last
       from public._star_apply_refill(v_state.current_stars, v_state.last_refill_at, v_now, v_cap);
@@ -255,7 +179,7 @@ begin
 end;
 $$ language plpgsql security definer set search_path = public;
 
--- Spend stars, applying refill first and starting timer if dropping below cap
+-- Spend stars, applying refill first and starting timer when dropping below cap
 create or replace function public.star_spend(
   p_anon_device_id text,
   p_amount integer,
@@ -280,7 +204,6 @@ begin
   select * from public.star_get_or_create(p_anon_device_id, p_user_id) into v_row;
   v_prev := v_row.current_stars;
 
-  -- Apply refill just in case (get_or_create already did, but safe for idempotency)
   select new_current, coalesce(new_last_refill, v_row.last_refill_at)
     into v_new_current, v_new_last
     from public._star_apply_refill(v_row.current_stars, v_row.last_refill_at, v_now, v_cap);
@@ -291,7 +214,7 @@ begin
 
   v_new_current := v_new_current - p_amount;
   if v_prev >= v_cap and v_new_current < v_cap then
-    v_new_last := v_now; -- start timer when dropping below cap
+    v_new_last := v_now;
   end if;
 
   update public.star_states s
@@ -305,7 +228,7 @@ begin
 end;
 $$ language plpgsql security definer set search_path = public;
 
--- Add stars utility (e.g., purchases or rewards)
+-- Add stars utility
 create or replace function public.star_add(
   p_anon_device_id text,
   p_amount integer,
@@ -318,91 +241,16 @@ declare
   v_row public.star_states%rowtype;
   v_now timestamptz := now();
 begin
-  if coalesce(p_amount, 0) <= 0 then
-    select * from public.star_get_or_create(p_anon_device_id, p_user_id) into v_row;
-    return query select v_row.current_stars, v_row.last_refill_at;
-  end if;
-
   select * from public.star_get_or_create(p_anon_device_id, p_user_id) into v_row;
   update public.star_states s
-     set current_stars = v_row.current_stars + p_amount,
+     set current_stars = v_row.current_stars + greatest(0, coalesce(p_amount, 0)),
          updated_at = v_now
    where s.id = v_row.id
    returning s.current_stars, s.last_refill_at;
 end;
 $$ language plpgsql security definer set search_path = public;
 
--- Refresh state to apply any due refill without other changes
-create or replace function public.star_refresh(
-  p_anon_device_id text,
-  p_user_id uuid default null
-) returns table (
-  current_stars integer,
-  last_refill_at timestamptz
-) as $$
-declare
-  v_row public.star_states%rowtype;
-  v_cap integer := case when p_user_id is null then 5 else 15 end;
-  v_now timestamptz := now();
-  v_new_current integer;
-  v_new_last timestamptz;
-begin
-  select * from public.star_get_or_create(p_anon_device_id, p_user_id) into v_row;
-  select new_current, coalesce(new_last_refill, v_row.last_refill_at)
-    into v_new_current, v_new_last
-    from public._star_apply_refill(v_row.current_stars, v_row.last_refill_at, v_now, v_cap);
-
-  update public.star_states s
-     set current_stars = v_new_current,
-         last_refill_at = v_new_last,
-         updated_at = v_now
-   where s.id = v_row.id;
-
-  return query select v_new_current, v_new_last;
-end;
-$$ language plpgsql security definer set search_path = public;
-
--- On sign out: copy user state into this device row, preserving balance and last_refill
-create or replace function public.star_sync_user_to_device(
-  p_anon_device_id text,
-  p_user_id uuid
-) returns table (
-  device_current_stars integer,
-  device_last_refill_at timestamptz
-) as $$
-declare
-  v_user_row public.star_states%rowtype;
-  v_dev_row public.star_states%rowtype;
-  v_now timestamptz := now();
-begin
-  if p_anon_device_id is null or length(p_anon_device_id) = 0 then
-    raise exception 'anon device id required';
-  end if;
-
-  select * from public.star_get_or_create(null, p_user_id) into v_user_row; -- ensure user row exists/refreshed
-
-  -- Upsert device row from user values
-  select * into v_dev_row from public.star_states s where s.anon_device_id = p_anon_device_id;
-  if not found then
-    insert into public.star_states (anon_device_id, current_stars, last_refill_at)
-         values (p_anon_device_id, v_user_row.current_stars, v_user_row.last_refill_at)
-    returning * into v_dev_row;
-  else
-    update public.star_states s
-       set current_stars = v_user_row.current_stars,
-           last_refill_at = v_user_row.last_refill_at,
-           updated_at = v_now
-     where s.id = v_dev_row.id
-     returning * into v_dev_row;
-  end if;
-
-  return query select v_dev_row.current_stars, v_dev_row.last_refill_at;
-end;
-$$ language plpgsql security definer set search_path = public;
-
--- Permissions: allow RPC execution for both anon and authenticated
+-- Grants
 grant execute on function public.star_get_or_create(text, uuid) to anon, authenticated;
 grant execute on function public.star_spend(text, integer, uuid) to anon, authenticated;
 grant execute on function public.star_add(text, integer, uuid) to anon, authenticated;
-grant execute on function public.star_refresh(text, uuid) to anon, authenticated;
-grant execute on function public.star_sync_user_to_device(text, uuid) to anon, authenticated;
