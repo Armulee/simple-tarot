@@ -212,8 +212,8 @@ $$ language plpgsql security definer set search_path = public;
 -- Spend stars, applying refill first and starting timer if dropping below cap
 create or replace function public.star_spend(
   p_anon_device_id text,
-  p_user_id uuid default null,
-  p_amount integer
+  p_amount integer,
+  p_user_id uuid default null
 ) returns table (
   ok boolean,
   current_stars integer,
@@ -262,8 +262,8 @@ $$ language plpgsql security definer set search_path = public;
 -- Add stars utility (e.g., purchases or rewards)
 create or replace function public.star_add(
   p_anon_device_id text,
-  p_user_id uuid default null,
-  p_amount integer
+  p_amount integer,
+  p_user_id uuid default null
 ) returns table (
   current_stars integer,
   last_refill_at timestamptz
@@ -356,7 +356,7 @@ $$ language plpgsql security definer set search_path = public;
 
 -- Permissions: allow RPC execution for both anon and authenticated
 grant execute on function public.star_get_or_create(text, uuid) to anon, authenticated;
-grant execute on function public.star_spend(text, uuid, integer) to anon, authenticated;
-grant execute on function public.star_add(text, uuid, integer) to anon, authenticated;
+grant execute on function public.star_spend(text, integer, uuid) to anon, authenticated;
+grant execute on function public.star_add(text, integer, uuid) to anon, authenticated;
 grant execute on function public.star_refresh(text, uuid) to anon, authenticated;
 grant execute on function public.star_sync_user_to_device(text, uuid) to anon, authenticated;
