@@ -8,6 +8,11 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 // Validate environment variables
 const isConfigured = isSupabaseConfigured()
 
+function getGlobalOptions() {
+  // DID is server-only now; no headers
+  return undefined
+}
+
 // Create Supabase client with fallback for build time
 export const supabase = isConfigured
   ? createClient(supabaseUrl!, supabaseAnonKey!, {
@@ -15,14 +20,16 @@ export const supabase = isConfigured
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true
-      }
+      },
+      global: getGlobalOptions()
     })
   : createClient('https://placeholder.supabase.co', 'placeholder-key', {
       auth: {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true
-      }
+      },
+      global: getGlobalOptions()
     })
 
 // Server-side client with service role key for admin operations

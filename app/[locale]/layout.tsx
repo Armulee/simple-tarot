@@ -17,6 +17,7 @@ import { routing } from "@/i18n/routing"
 import { notFound } from "next/navigation"
 import { getMessages, getTranslations } from "next-intl/server"
 import Script from "next/script"
+import { StarConsentProvider } from "@/components/star-consent"
 
 /* Updated fonts to match mystical design brief */
 const playfairDisplay = Playfair_Display({
@@ -120,6 +121,7 @@ export default async function RootLayout({
                 <CosmicStars />
                 <NextIntlClientProvider messages={messages} locale={locale}>
                     <AuthProvider>
+                        <StarConsentProvider>
                         <StarsProvider>
                             <TarotProvider>
                                 <div className='min-h-screen flex flex-col home-gradient'>
@@ -133,6 +135,7 @@ export default async function RootLayout({
                                 </div>
                             </TarotProvider>
                         </StarsProvider>
+                        </StarConsentProvider>
                     </AuthProvider>
                 </NextIntlClientProvider>
                 <Analytics />

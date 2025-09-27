@@ -12,7 +12,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
 import { InlineQuestionEdit } from "../inline-question-edit"
-import AdDialog from "@/components/ads/ad-dialog"
+// import AdDialog from "@/components/ads/ad-dialog"
 import { useStars } from "@/contexts/stars-context"
 import {
     AlertDialog,
@@ -98,12 +98,12 @@ export default function CardSelection({
     const handleCardsSelected = (
         cards: { name: string; isReversed: boolean }[]
     ) => {
-        // If not enough stars, block and show dialog; do not mutate state or storage
-        if (stars < 1) {
+        // If not enough stars, block and show dialog; do not mutate state
+        if (!Number.isFinite(stars as number) || (stars as number) < 1) {
             setShowNoStarsDialog(true)
             return
         }
-        // Clear old interpretation state and localStorage when new cards are selected
+        // Clear old interpretation state when new cards are selected
         clearInterpretationState()
 
         // Convert to TarotCard format
@@ -127,7 +127,7 @@ export default function CardSelection({
         setCurrentStep("interpretation")
     }
 
-    // Clear interpretation cache for new readings - no-op (migrated to reading-state-v1)
+    // Clear interpretation cache for new readings - no-op
     const clearInterpretationCache = () => {}
 
     const externalNames = useMemo(

@@ -15,11 +15,8 @@ export default function ReadingGuard({ children }: ReadingGuardProps) {
     const router = useRouter()
 
     useEffect(() => {
-        // Check if there's no question and redirect to homepage
-        if (question === null) {
-            // Hydrating from localStorage: do nothing yet
-            return
-        }
+        // Wait for hydration: when question is null, tarot context is still restoring from localStorage
+        if (question === null) return
         if (!question || question.trim() === "") {
             toast.info("Please ask a question first", {
                 description: "Redirecting to homepage to input your question",

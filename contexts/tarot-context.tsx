@@ -63,10 +63,10 @@ export interface TarotContextType {
     // Reset function
     resetReading: () => void
 
-    // Clear localStorage function (for new readings)
+    // Clear in-memory reading state
     clearReadingStorage: () => void
     
-    // Clear interpretation state and localStorage (for new card selections)
+    // Clear interpretation state (for new card selections)
     clearInterpretationState: () => void
 }
 
@@ -102,34 +102,17 @@ export function TarotProvider({ children }: { children: ReactNode }) {
     }
 
     const clearReadingStorage = () => {
-        try {
-            setIsClearing(true)
-            localStorage.removeItem(STORAGE_KEY)
-            localStorage.removeItem(STORAGE_KEY + "-backup")
-            // Also reset the in-memory state to ensure clean slate
-            resetReading()
-            // Reset the clearing flag after a brief delay
-            setTimeout(() => setIsClearing(false), 100)
-        } catch (e) {
-            console.error("Failed to clear reading storage:", e)
-            setIsClearing(false)
-        }
+        setIsClearing(true)
+        resetReading()
+        setTimeout(() => setIsClearing(false), 50)
     }
 
     const clearInterpretationState = () => {
-        try {
-            setIsClearing(true)
-            // Only clear interpretation-related localStorage data
-            localStorage.removeItem(STORAGE_KEY + "-backup")
-            // Clear interpretation state
-            setInterpretation(null)
-            setPaidForInterpretation(false)
-            // Reset the clearing flag after a brief delay
-            setTimeout(() => setIsClearing(false), 100)
-        } catch (e) {
-            console.error("Failed to clear interpretation state:", e)
-            setIsClearing(false)
-        }
+        setIsClearing(true)
+        // Only clear interpretation-related state so follow-up context remains intact
+        setInterpretation(null)
+        setPaidForInterpretation(false)
+        setTimeout(() => setIsClearing(false), 50)
     }
 
     // Restore reading state when entering /reading (supports locale prefixes)

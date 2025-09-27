@@ -56,22 +56,24 @@ function DialogContent({
     return (
         <DialogPortal>
             <DialogOverlay />
-            <DialogPrimitive.Content
-                data-slot='dialog-content'
-                className={cn(
-                    "bg-background fixed left-1/2 top-1/2 z-50 w-full max-w-lg max-h-[80vh] -translate-x-1/2 -translate-y-1/2 rounded-xl border p-6 shadow-lg overflow-y-auto",
-                    "data-[state=open]:animate-in data-[state=closed]:animate-out",
-                    "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-                    className
-                )}
-                {...props}
-            >
-                {children}
-                <DialogPrimitive.Close className='ring-offset-background focus:ring-ring absolute right-4 top-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-offset-2'>
-                    <XIcon className='size-4' />
-                    <span className='sr-only'>Close</span>
-                </DialogPrimitive.Close>
-            </DialogPrimitive.Content>
+            <div className='fixed inset-0 z-50 grid place-items-center p-4'>
+                <DialogPrimitive.Content
+                    data-slot='dialog-content'
+                    className={cn(
+                        "bg-background w-full max-w-lg max-h-[80vh] rounded-xl border p-6 shadow-lg overflow-y-auto",
+                        "data-[state=open]:animate-in data-[state=closed]:animate-out",
+                        "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+                        className
+                    )}
+                    {...props}
+                >
+                    {children}
+                    <DialogPrimitive.Close className='ring-offset-background focus:ring-ring absolute right-4 top-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-offset-2'>
+                        <XIcon className='size-4' />
+                        <span className='sr-only'>Close</span>
+                    </DialogPrimitive.Close>
+                </DialogPrimitive.Content>
+            </div>
         </DialogPortal>
     )
 }
