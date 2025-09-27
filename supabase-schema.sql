@@ -119,9 +119,9 @@ begin
            where s.id = v_state.id
            returning * into v_state;
         else
-          -- No anon row; start with base 5 + 10 bonus
-          insert into public.star_states (user_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
-               values (p_user_id, 15, v_now, true, v_now)
+          -- No anon row; create new row including this anon_device_id and user_id, with base 5 + 10 bonus
+          insert into public.star_states (user_id, anon_device_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
+               values (p_user_id, p_anon_device_id, 15, v_now, true, v_now)
           returning * into v_state;
         end if;
       else
