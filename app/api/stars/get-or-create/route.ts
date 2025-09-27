@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from "next/server"
-import { readAndVerifyDid } from "@/lib/server/did"
+import { readAndVerifyDid, generateDid, setDidCookie } from "@/lib/server/did"
 import { supabase } from "@/lib/supabase"
 import { cookies } from "next/headers"
 
 export async function GET(req: NextRequest) {
-  const did = await readAndVerifyDid()
+  let did = await readAndVerifyDid()
   const userId = req.nextUrl.searchParams.get("user_id")
-  if (!did && !userId) return NextResponse.json({ error: "NO_ID" }, { status: 400 })
+  // If anonymous and no DID cookie (e.g., admin deleted row/cookie missing), create a new DID and set cookie
+  if (!userId && !did) {
+    const newDid = generateDid()
+    await setDidCookie(newDid)
+    did = newDid
+  }
   const { data, error } = await supabase.rpc("star_get_or_create", {
     p_anon_device_id: did,
     p_user_id: userId,
