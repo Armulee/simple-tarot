@@ -1,4 +1,4 @@
--- Stars and identities schema (public-only). No auth.users DDL required.
+-- Stars schema (public-only). No auth.users DDL required.
 -- Profiles (idempotent)
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -23,9 +23,37 @@ create policy "Users can insert own profile" on public.profiles
 -- Extensions
 create extension if not exists pgcrypto;
 
--- Star state table: one row per anon device; when user logs in for first time,
--- we attach user_id onto the same row and grant +10. After that, both IDs can coexist.
-create table if not exists public.star_states (
+-- Optional rename from old table name if present
+do $$ begin
+  if to_regclass('public.stars') is null and to_regclass('public.star_states') is not null then
+    execute 'alter table public.star_states rename to stars';
+  end if;
+end $$;
+
+-- Rename legacy constraint name if it exists
+do $$ begin
+  if exists (
+    select 1 from pg_constraint c
+    join pg_class t on t.oid = c.conrelid
+    join pg_namespace n on n.oid = t.relnamespace
+    where c.conname = 'star_states_user_or_device' and n.nspname = 'public' and t.relname = 'stars'
+  ) then
+    execute 'alter table public.stars rename constraint star_states_user_or_device to stars_user_or_device';
+  end if;
+end $$;
+
+-- Rename legacy index names if they exist
+do $$ begin
+  if to_regclass('public.star_states_unique_user') is not null then
+    execute 'alter index public.star_states_unique_user rename to stars_unique_user';
+  end if;
+  if to_regclass('public.star_states_unique_device') is not null then
+    execute 'alter index public.star_states_unique_device rename to stars_unique_device';
+  end if;
+end $$;
+
+-- Stars table: one row per anon device; on first login we attach user_id to same row and grant +10
+create table if not exists public.stars (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade,
   anon_device_id text,
@@ -35,34 +63,17 @@ create table if not exists public.star_states (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   -- Allow either or both identifiers to be present
-  constraint star_states_user_or_device check ((user_id is not null) or (anon_device_id is not null))
+  constraint stars_user_or_device check ((user_id is not null) or (anon_device_id is not null))
 );
 
 -- Uniqueness: only one row per user and per device
-create unique index if not exists star_states_unique_user on public.star_states(user_id) where user_id is not null;
-create unique index if not exists star_states_unique_device on public.star_states(anon_device_id) where anon_device_id is not null;
+create unique index if not exists stars_unique_user on public.stars(user_id) where user_id is not null;
+create unique index if not exists stars_unique_device on public.stars(anon_device_id) where anon_device_id is not null;
 
-alter table public.star_states enable row level security;
+alter table public.stars enable row level security;
 
--- Optional mapping of anon_device_id <-> user_id pairs for analytics/auditing
-create table if not exists public.star_identities (
-  user_id uuid references auth.users(id) on delete cascade not null,
-  anon_device_id text not null,
-  created_at timestamptz not null default now(),
-  last_seen_at timestamptz not null default now(),
-  primary key (user_id, anon_device_id)
-);
-
-alter table public.star_identities enable row level security;
-drop policy if exists "Users can view own identities" on public.star_identities;
-create policy "Users can view own identities" on public.star_identities
-  for select using (auth.uid() = user_id);
-drop policy if exists "Users can upsert own identities" on public.star_identities;
-create policy "Users can upsert own identities" on public.star_identities
-  for insert with check (auth.uid() = user_id);
-drop policy if exists "Users can update own identities" on public.star_identities;
-create policy "Users can update own identities" on public.star_identities
-  for update using (auth.uid() = user_id);
+-- Removed star_identities as it's not used by the app
+drop table if exists public.star_identities;
 
 -- Helper: compute refill based on cap (5 for anon, 15 for authed)
 create or replace function public._star_apply_refill(
@@ -105,32 +116,25 @@ create or replace function public.star_get_or_create(
   first_login_bonus_granted boolean
 ) as $$
 declare
-  v_state public.star_states%rowtype;
+  v_state public.stars%rowtype;
   v_cap integer := case when p_user_id is null then 5 else 15 end;
   v_now timestamptz := now();
   v_new_current integer;
   v_new_last timestamptz;
 begin
-  -- Record identity mapping if both are present
-  if p_user_id is not null and p_anon_device_id is not null and length(p_anon_device_id) > 0 then
-    insert into public.star_identities (user_id, anon_device_id, last_seen_at)
-    values (p_user_id, p_anon_device_id, v_now)
-    on conflict (user_id, anon_device_id) do update set last_seen_at = excluded.last_seen_at;
-  end if;
-
   if p_user_id is not null then
     -- Prefer user row; if not exists, attach to existing anon row or create new
-    select * into v_state from public.star_states s where s.user_id = p_user_id;
+    select * into v_state from public.stars s where s.user_id = p_user_id;
     if not found then
       if p_anon_device_id is not null and length(p_anon_device_id) > 0 then
-        select * into v_state from public.star_states s where s.anon_device_id = p_anon_device_id;
+        select * into v_state from public.stars s where s.anon_device_id = p_anon_device_id;
         if found then
           -- Refill with anon cap, then +10 bonus and attach user_id on same row
           select new_current, coalesce(new_last_refill, v_state.last_refill_at)
             into v_new_current, v_new_last
             from public._star_apply_refill(v_state.current_stars, v_state.last_refill_at, v_now, 5);
           v_new_current := v_new_current + 10;
-          update public.star_states s
+          update public.stars s
              set user_id = p_user_id,
                  current_stars = v_new_current,
                  last_refill_at = v_new_last,
@@ -140,12 +144,12 @@ begin
            returning * into v_state;
         else
           -- No anon row; create new row including this anon_device_id and user_id, with base 5 + 10 bonus
-          insert into public.star_states (user_id, anon_device_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
+          insert into public.stars (user_id, anon_device_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
                values (p_user_id, p_anon_device_id, 15, v_now, true, v_now)
           returning * into v_state;
         end if;
       else
-        insert into public.star_states (user_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
+        insert into public.stars (user_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
              values (p_user_id, 15, v_now, true, v_now)
         returning * into v_state;
       end if;
@@ -158,7 +162,7 @@ begin
 
     if not coalesce(v_state.first_login_bonus_granted, false) then
       v_new_current := v_new_current + 10;
-      update public.star_states s
+      update public.stars s
          set current_stars = v_new_current,
              last_refill_at = v_new_last,
              first_login_bonus_granted = true,
@@ -166,7 +170,7 @@ begin
        where s.id = v_state.id
        returning * into v_state;
     else
-      update public.star_states s
+      update public.stars s
          set current_stars = v_new_current,
              last_refill_at = v_new_last,
              updated_at = v_now
@@ -179,9 +183,9 @@ begin
     if p_anon_device_id is null or length(p_anon_device_id) = 0 then
       raise exception 'anon device id required for anonymous state';
     end if;
-    select * into v_state from public.star_states s where s.anon_device_id = p_anon_device_id;
+    select * into v_state from public.stars s where s.anon_device_id = p_anon_device_id;
     if not found then
-      insert into public.star_states (anon_device_id, current_stars, last_refill_at)
+      insert into public.stars (anon_device_id, current_stars, last_refill_at)
            values (p_anon_device_id, 5, v_now)
       returning * into v_state;
     end if;
@@ -190,7 +194,7 @@ begin
       into v_new_current, v_new_last
       from public._star_apply_refill(v_state.current_stars, v_state.last_refill_at, v_now, v_cap);
 
-    update public.star_states s
+    update public.stars s
        set current_stars = v_new_current,
            last_refill_at = v_new_last,
            updated_at = v_now
@@ -213,7 +217,7 @@ create or replace function public.star_spend(
   last_refill_at timestamptz
 ) as $$
 declare
-  v_row public.star_states%rowtype;
+  v_row public.stars%rowtype;
   v_cap integer := case when p_user_id is null then 5 else 15 end;
   v_now timestamptz := now();
   v_new_current integer;
@@ -240,7 +244,7 @@ begin
     v_new_last := v_now;
   end if;
 
-  update public.star_states s
+  update public.stars s
      set current_stars = v_new_current,
          last_refill_at = v_new_last,
          updated_at = v_now
@@ -261,11 +265,11 @@ create or replace function public.star_add(
   last_refill_at timestamptz
 ) as $$
 declare
-  v_row public.star_states%rowtype;
+  v_row public.stars%rowtype;
   v_now timestamptz := now();
 begin
   select * from public.star_get_or_create(p_anon_device_id, p_user_id) into v_row;
-  update public.star_states s
+  update public.stars s
      set current_stars = v_row.current_stars + greatest(0, coalesce(p_amount, 0)),
          updated_at = v_now
    where s.id = v_row.id
