@@ -122,11 +122,34 @@ declare
   v_now timestamptz := now();
   v_new_current integer;
   v_new_last timestamptz;
+  v_legacy_did text;
 begin
   if p_user_id is not null then
     -- Prefer user row; if not exists, attach to existing anon row or create new
     select * into v_state from public.stars s where s.user_id = p_user_id;
-    if not found then
+    if found then
+      -- Legacy combined row migration: if this user row still carries anon_device_id, split it
+      if v_state.anon_device_id is not null then
+        v_legacy_did := v_state.anon_device_id;
+        select new_current, coalesce(new_last_refill, v_state.last_refill_at)
+          into v_new_current, v_new_last
+          from public._star_apply_refill(v_state.current_stars, v_state.last_refill_at, v_now, v_cap);
+        -- Keep this as the user row
+        update public.stars s
+           set anon_device_id = null,
+               current_stars = v_new_current,
+               last_refill_at = v_new_last,
+               updated_at = v_now
+         where s.id = v_state.id
+         returning * into v_state;
+        -- Create a separate anon row with the same DID (if not exists)
+        insert into public.stars (anon_device_id, current_stars, last_refill_at, updated_at)
+          select v_legacy_did, v_new_current, v_now, v_now
+          where not exists (
+            select 1 from public.stars s2 where s2.anon_device_id = v_legacy_did
+          );
+      end if;
+    else
       if p_anon_device_id is not null and length(p_anon_device_id) > 0 then
         select * into v_state from public.stars s where s.anon_device_id = p_anon_device_id;
         if found then

@@ -33,7 +33,7 @@ export async function starGetOrCreate(user: User | null): Promise<StarState> {
 
 export async function starSpend(user: User | null, amount: number): Promise<{ ok: boolean, state: StarState }>
 {
-  const res = await fetch("/api/stars/spend", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount }) })
+  const res = await fetch("/api/stars/spend", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount, user_id: user?.id ?? null }) })
   const json = await res.json()
   if (!res.ok) throw new Error(json.error || "STAR_SPEND_FAILED")
   const row = json.data?.[0]
@@ -44,7 +44,7 @@ export async function starSpend(user: User | null, amount: number): Promise<{ ok
 }
 
 export async function starAdd(user: User | null, amount: number): Promise<StarState> {
-  const res = await fetch("/api/stars/add", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount }) })
+  const res = await fetch("/api/stars/add", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount, user_id: user?.id ?? null }) })
   const json = await res.json()
   if (!res.ok) throw new Error(json.error || "STAR_ADD_FAILED")
   const row = json.data?.[0]
