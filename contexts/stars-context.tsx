@@ -22,6 +22,7 @@ interface StarsContextType {
 	resetStars: (value?: number) => void
 	nextRefillAt?: number | null
     refillCap: number
+    firstLoginBonusGranted?: boolean
 }
 
 const StarsContext = createContext<StarsContextType | undefined>(undefined)
@@ -33,6 +34,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 	const [stars, setStars] = useState<number | null>(null)
 	const [initialized, setInitialized] = useState(false)
 	const [nextRefillAt, setNextRefillAt] = useState<number | null>(null)
+    const [firstLoginBonusGranted, setFirstLoginBonusGranted] = useState<boolean | undefined>(undefined)
 	const { user } = useAuth()
 
 	// Refill cap: anonymous 5, signed-in 15
@@ -61,6 +63,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 				if (cancelled) return
 				setStars(state.currentStars)
 				setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap))
+				setFirstLoginBonusGranted(state.firstLoginBonusGranted)
 				setInitialized(true)
 			} catch {}
 		})()
@@ -84,6 +87,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 						if (cancelled) return
 						setStars(state.currentStars)
 						setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap))
+						setFirstLoginBonusGranted(state.firstLoginBonusGranted)
 					} catch {}
 				})()
 			}
@@ -198,8 +202,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 	}, [addStars])
 
     const value = useMemo<StarsContextType>(
-        () => ({ stars, initialized, addStars, spendStars, resetStars, nextRefillAt, refillCap }),
-        [stars, initialized, addStars, spendStars, resetStars, nextRefillAt, refillCap]
+        () => ({ stars, initialized, addStars, spendStars, resetStars, nextRefillAt, refillCap, firstLoginBonusGranted }),
+        [stars, initialized, addStars, spendStars, resetStars, nextRefillAt, refillCap, firstLoginBonusGranted]
     )
 
 	return <StarsContext.Provider value={value}>{children}</StarsContext.Provider>

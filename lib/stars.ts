@@ -4,6 +4,7 @@ export type StarState = {
   currentStars: number
   lastRefillAt: number | null
   refillCap: number
+  firstLoginBonusGranted?: boolean
 }
 
 type GetOrCreateArgs = { p_anon_device_id: string | null; p_user_id: string | null }
@@ -26,7 +27,12 @@ export async function starGetOrCreate(user: User | null): Promise<StarState> {
   if (!res.ok) throw new Error(json.error || "STAR_INIT_FAILED")
   const row = json.data?.[0]
   const cap = user ? 15 : 5
-  return { currentStars: row?.current_stars ?? 5, lastRefillAt: tsToMs(row?.last_refill_at), refillCap: cap }
+  return {
+    currentStars: row?.current_stars ?? 5,
+    lastRefillAt: tsToMs(row?.last_refill_at),
+    refillCap: cap,
+    firstLoginBonusGranted: Boolean(row?.first_login_bonus_granted)
+  }
 }
 
 // removed starRefresh; provider will handle periodic refresh/refill by calling get-or-create when needed
