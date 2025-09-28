@@ -52,7 +52,8 @@ do $$ begin
   end if;
 end $$;
 
--- Stars table: one row per anon device; on first login we attach user_id to same row and grant +10
+-- Stars table: separate rows for anonymous device and user. On first login,
+-- create a new user row with (anon's current after refill) + 10.
 create table if not exists public.stars (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade,
@@ -129,23 +130,17 @@ begin
       if p_anon_device_id is not null and length(p_anon_device_id) > 0 then
         select * into v_state from public.stars s where s.anon_device_id = p_anon_device_id;
         if found then
-          -- Refill with anon cap, then +10 bonus and attach user_id on same row
+          -- Compute anon state with anon cap, then create a separate user row with +10
           select new_current, coalesce(new_last_refill, v_state.last_refill_at)
             into v_new_current, v_new_last
             from public._star_apply_refill(v_state.current_stars, v_state.last_refill_at, v_now, 5);
-          v_new_current := v_new_current + 10;
-          update public.stars s
-             set user_id = p_user_id,
-                 current_stars = v_new_current,
-                 last_refill_at = v_new_last,
-                 first_login_bonus_granted = true,
-                 updated_at = v_now
-           where s.id = v_state.id
-           returning * into v_state;
+          insert into public.stars (user_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
+               values (p_user_id, least(15, v_new_current + 10), v_now, true, v_now)
+          returning * into v_state;
         else
-          -- No anon row; create new row including this anon_device_id and user_id, with base 5 + 10 bonus
-          insert into public.stars (user_id, anon_device_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
-               values (p_user_id, p_anon_device_id, 15, v_now, true, v_now)
+          -- No anon row; create a fresh user row with 15 (base 5 + 10 bonus)
+          insert into public.stars (user_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
+               values (p_user_id, 15, v_now, true, v_now)
           returning * into v_state;
         end if;
       else
