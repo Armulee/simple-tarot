@@ -18,7 +18,8 @@ export function GoogleSignInButton({ className, children }: GoogleSignInButtonPr
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     try {
-      const { error } = await signInWithGoogle()
+      const callbackUrl = params.get('callbackUrl')
+      const { error } = await signInWithGoogle(callbackUrl)
       if (error) {
         console.error("Google sign in error:", error)
       }

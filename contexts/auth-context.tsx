@@ -19,7 +19,7 @@ interface AuthContextType {
         email: string,
         password: string
     ) => Promise<{ error: AuthError | null }>
-    signInWithGoogle: () => Promise<{ error: AuthError | null }>
+    signInWithGoogle: (callbackUrl?: string | null) => Promise<{ error: AuthError | null }>
     signOut: () => Promise<{ error: AuthError | null }>
     resetPassword: (email: string) => Promise<{ error: AuthError | null }>
 }
@@ -100,12 +100,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }
 
-    const signInWithGoogle = async () => {
+    const signInWithGoogle = async (callbackUrl?: string | null) => {
         try {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: "google",
                 options: {
-                    redirectTo: `${window.location.origin}/auth/callback`,
+                    redirectTo: `${window.location.origin}/auth/callback${callbackUrl ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`,
                 },
             })
             return { error }
