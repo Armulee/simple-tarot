@@ -5,6 +5,7 @@ export type StarState = {
   lastRefillAt: number | null
   refillCap: number
   firstLoginBonusGranted?: boolean
+  firstTimeLoginGrant?: boolean
 }
 
 type GetOrCreateArgs = { p_anon_device_id: string | null; p_user_id: string | null }
@@ -31,7 +32,8 @@ export async function starGetOrCreate(user: User | null): Promise<StarState> {
     currentStars: row?.current_stars ?? 5,
     lastRefillAt: tsToMs(row?.last_refill_at),
     refillCap: cap,
-    firstLoginBonusGranted: Boolean(row?.first_login_bonus_granted)
+    firstLoginBonusGranted: Boolean(row?.first_login_bonus_granted),
+    firstTimeLoginGrant: Boolean(row?.first_time_login_grant)
   }
 }
 

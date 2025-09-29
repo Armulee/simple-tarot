@@ -23,6 +23,7 @@ interface StarsContextType {
 	nextRefillAt?: number | null
     refillCap: number
     firstLoginBonusGranted?: boolean
+    firstTimeLoginGrant?: boolean
 }
 
 const StarsContext = createContext<StarsContextType | undefined>(undefined)
@@ -35,6 +36,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 	const [initialized, setInitialized] = useState(false)
 	const [nextRefillAt, setNextRefillAt] = useState<number | null>(null)
     const [firstLoginBonusGranted, setFirstLoginBonusGranted] = useState<boolean | undefined>(undefined)
+    const [firstTimeLoginGrant, setFirstTimeLoginGrant] = useState<boolean | undefined>(undefined)
 	const { user } = useAuth()
 
   // Refill cap: anonymous 5 (no hourly refill), signed-in 12 (refill every 2 hours)
@@ -78,6 +80,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 				setStars(state.currentStars)
             setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap, Boolean(user)))
 				setFirstLoginBonusGranted(state.firstLoginBonusGranted)
+                setFirstTimeLoginGrant(state.firstTimeLoginGrant)
 				setInitialized(true)
 			} catch {}
 		})()
@@ -102,6 +105,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 						setStars(state.currentStars)
 						setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap, Boolean(user)))
 						setFirstLoginBonusGranted(state.firstLoginBonusGranted)
+                        setFirstTimeLoginGrant(state.firstTimeLoginGrant)
 					} catch {}
 				})()
 			}
@@ -220,8 +224,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 	}, [addStars])
 
     const value = useMemo<StarsContextType>(
-        () => ({ stars, initialized, addStars, spendStars, resetStars, nextRefillAt, refillCap, firstLoginBonusGranted }),
-        [stars, initialized, addStars, spendStars, resetStars, nextRefillAt, refillCap, firstLoginBonusGranted]
+        () => ({ stars, initialized, addStars, spendStars, resetStars, nextRefillAt, refillCap, firstLoginBonusGranted, firstTimeLoginGrant }),
+        [stars, initialized, addStars, spendStars, resetStars, nextRefillAt, refillCap, firstLoginBonusGranted, firstTimeLoginGrant]
     )
 
 	return <StarsContext.Provider value={value}>{children}</StarsContext.Provider>

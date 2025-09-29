@@ -20,7 +20,7 @@ function formatRelativeTime(timestamp: number | null | undefined, nowMs: number)
 }
 
 export default function StarsPage() {
-    const { stars, nextRefillAt, refillCap, firstLoginBonusGranted } = useStars()
+    const { stars, nextRefillAt, refillCap, firstLoginBonusGranted, firstTimeLoginGrant } = useStars()
     const { user } = useAuth()
 
     const [now, setNow] = useState<number>(Date.now())
@@ -109,13 +109,13 @@ export default function StarsPage() {
                                 <span className='text-white'>Sign in</span>
                                 <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 border border-yellow-500/30 text-yellow-300 flex items-center gap-1'>
                                     <Star className='w-3.5 h-3.5' fill='currentColor' />
-                                    10
+                                    Start 12
                                 </span>
                             </div>
                         </AccordionTrigger>
                         <AccordionContent>
                             <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-border/20'>
-                                <p>Sign in and receive +10 stars. Your auto-refill capacity increases to 12 stars with 1 star every 2 hours.</p>
+                                <p>New accounts start with 12 stars. Auto-refills 1 star every 2 hours (cap {refillCap}).</p>
                                 {!(user && firstLoginBonusGranted) && (
                                     <Link href={`/signin?callbackUrl=${encodeURIComponent(window.location.pathname)}`}>
                                         <Button className='rounded-full'>Sign in</Button>

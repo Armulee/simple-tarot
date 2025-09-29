@@ -52,8 +52,7 @@ do $$ begin
   end if;
 end $$;
 
--- Stars table: separate rows for anonymous device and user. On first login,
--- create a new user row with (anon's current after refill) + 10.
+-- Stars table: separate rows for anonymous device and user.
 create table if not exists public.stars (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade,
@@ -61,6 +60,7 @@ create table if not exists public.stars (
   current_stars integer not null default 5 check (current_stars >= 0),
   last_refill_at timestamptz not null default now(),
   first_login_bonus_granted boolean not null default false,
+  first_time_login_grant boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   -- Allow either or both identifiers to be present
@@ -107,7 +107,7 @@ begin
 end;
 $$ language plpgsql immutable;
 
--- Get/create and normalize state. On first login, attach user_id to anon row and grant +10.
+-- Get/create and normalize state. On first login, create a new user row with default 12 stars.
 create or replace function public.star_get_or_create(
   p_anon_device_id text,
   p_user_id uuid default null
@@ -117,7 +117,8 @@ create or replace function public.star_get_or_create(
   anon_device_id text,
   current_stars integer,
   last_refill_at timestamptz,
-  first_login_bonus_granted boolean
+  first_login_bonus_granted boolean,
+  first_time_login_grant boolean
 ) as $$
 declare
   v_state public.stars%rowtype;
@@ -156,21 +157,19 @@ begin
       if p_anon_device_id is not null and length(p_anon_device_id) > 0 then
         select * into v_state from public.stars s where s.anon_device_id = p_anon_device_id;
         if found then
-          -- Compute anon state with anon cap, then create a separate user row with +10
-          -- Apply anon daily logic later; do not refill here
-          select v_state.current_stars, v_state.last_refill_at into v_new_current, v_new_last;
-          insert into public.stars (user_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
-               values (p_user_id, least(12, v_new_current + 10), v_now, true, v_now)
+          -- Create a new user row with default 12 stars
+          insert into public.stars (user_id, current_stars, last_refill_at, first_login_bonus_granted, first_time_login_grant, updated_at)
+               values (p_user_id, 12, v_now, true, true, v_now)
           returning * into v_state;
         else
-          -- No anon row; create a fresh user row with cap (base 5 + 10 bonus, capped at 12)
-          insert into public.stars (user_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
-               values (p_user_id, 12, v_now, true, v_now)
+          -- No anon row; create a fresh user row with default 12 stars
+          insert into public.stars (user_id, current_stars, last_refill_at, first_login_bonus_granted, first_time_login_grant, updated_at)
+               values (p_user_id, 12, v_now, true, true, v_now)
           returning * into v_state;
         end if;
       else
-        insert into public.stars (user_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
-             values (p_user_id, 12, v_now, true, v_now)
+        insert into public.stars (user_id, current_stars, last_refill_at, first_login_bonus_granted, first_time_login_grant, updated_at)
+             values (p_user_id, 12, v_now, true, true, v_now)
         returning * into v_state;
       end if;
     end if;
@@ -179,24 +178,12 @@ begin
     select new_current, coalesce(new_last_refill, v_state.last_refill_at)
       into v_new_current, v_new_last
       from public._star_apply_refill(v_state.current_stars, v_state.last_refill_at, v_now, v_cap, 2);
-
-    if not coalesce(v_state.first_login_bonus_granted, false) then
-      v_new_current := v_new_current + 10;
-      update public.stars s
-         set current_stars = v_new_current,
-             last_refill_at = v_new_last,
-             first_login_bonus_granted = true,
-             updated_at = v_now
-       where s.id = v_state.id
-       returning * into v_state;
-    else
-      update public.stars s
-         set current_stars = v_new_current,
-             last_refill_at = v_new_last,
-             updated_at = v_now
-       where s.id = v_state.id
-       returning * into v_state;
-    end if;
+    update public.stars s
+       set current_stars = v_new_current,
+           last_refill_at = v_new_last,
+           updated_at = v_now
+     where s.id = v_state.id
+     returning * into v_state;
 
   else
     -- Anonymous flow
@@ -221,7 +208,7 @@ begin
     end if;
   end if;
 
-  return query select v_state.id, v_state.user_id, v_state.anon_device_id, v_state.current_stars, v_state.last_refill_at, v_state.first_login_bonus_granted;
+  return query select v_state.id, v_state.user_id, v_state.anon_device_id, v_state.current_stars, v_state.last_refill_at, v_state.first_login_bonus_granted, v_state.first_time_login_grant;
 end;
 $$ language plpgsql security definer set search_path = public;
 
