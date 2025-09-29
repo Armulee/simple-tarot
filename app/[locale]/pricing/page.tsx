@@ -199,9 +199,12 @@ export default async function PricingPage() {
                                 <div className='space-y-1'>
                                     {/* Stars and bonus in the same row */}
                                     <div className='flex items-center gap-2'>
-                                        <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full border ${packBadgeClasses(p.id)} text-lg font-semibold` }>
-                                            <Star className={`w-5 h-5 ${packIconColor(p.id)}`} />
-                                            <span className='tracking-wide'>{p.stars} stars</span>
+                                        <span className={`inline-flex items-center gap-3 px-5 py-2 rounded-full border ${packBadgeClasses(p.id)}`}>
+                                            <Star className={`w-7 h-7 ${packIconColor(p.id)}`} />
+                                            <span className='flex items-baseline gap-2'>
+                                                <span className='text-5xl font-extrabold leading-none'>{p.stars}</span>
+                                                <span className='text-base md:text-lg font-semibold tracking-wide'>stars</span>
+                                            </span>
                                         </span>
                                         {p.bonus > 0 && (
                                             <span className='text-xs inline-flex items-center justify-center gap-1 px-2 py-1 rounded-full bg-emerald-400/15 border border-emerald-400/30 text-emerald-300'>
