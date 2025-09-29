@@ -31,17 +31,17 @@ export default async function PricingPage() {
         switch (id) {
             case "pack-1":
                 return {
-                    bg: "bg-gradient-to-br from-yellow-400/10 via-amber-400/8 to-orange-500/10",
+                    bg: "bg-gradient-to-br from-yellow-400/5 via-amber-400/4 to-orange-500/5",
                     border: "border-yellow-400/25",
                 }
             case "pack-3":
                 return {
-                    bg: "bg-gradient-to-br from-pink-400/10 via-rose-400/8 to-red-500/10",
+                    bg: "bg-gradient-to-br from-pink-400/5 via-rose-400/4 to-red-500/5",
                     border: "border-pink-400/25",
                 }
             case "pack-5":
                 return {
-                    bg: "bg-gradient-to-br from-cyan-400/10 via-sky-400/8 to-indigo-500/10",
+                    bg: "bg-gradient-to-br from-cyan-400/5 via-sky-400/4 to-indigo-500/5",
                     border: "border-cyan-400/25",
                 }
             default:
@@ -133,7 +133,7 @@ export default async function PricingPage() {
                     >
                         {/* Aura styled similar to interpretation cards but with pack color */}
                         <div className={`pointer-events-none absolute -inset-12 z-0 rounded-[28px] blur-[64px] opacity-85 mix-blend-screen bg-gradient-to-br ${packAura(p.id)}`} />
-                        <div className='pointer-events-none absolute inset-0 z-0 opacity-15 bg-[radial-gradient(120%_120%_at_0%_0%,rgba(255,255,255,0.10),transparent_35%),radial-gradient(120%_120%_at_100%_100%,rgba(255,255,255,0.10),transparent_35%)]' />
+                        <div className='pointer-events-none absolute inset-0 z-0 opacity-8 bg-[radial-gradient(120%_120%_at_0%_0%,rgba(255,255,255,0.10),transparent_35%),radial-gradient(120%_120%_at_100%_100%,rgba(255,255,255,0.10),transparent_35%)]' />
                         {p.label && (
                             <div className={`absolute -top-2 right-4 text-xs px-2 py-1 rounded-full ${badgeStyles(p.id)}`}>
                                 {p.label}
