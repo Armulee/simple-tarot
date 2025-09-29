@@ -101,6 +101,59 @@ export default async function PricingPage() {
         )
     }
 
+    const packCircleClasses = (id: string) => {
+        switch (id) {
+            case "pack-1":
+                return "bg-yellow-500/15 border-yellow-500/30"
+            case "pack-3":
+                return "bg-pink-500/15 border-pink-500/30"
+            case "pack-5":
+                return "bg-cyan-500/15 border-cyan-500/30"
+            default:
+                return "bg-white/10 border-white/20"
+        }
+    }
+
+    const packIconColor = (id: string) => {
+        switch (id) {
+            case "pack-1":
+                return "text-yellow-300"
+            case "pack-3":
+                return "text-pink-300"
+            case "pack-5":
+                return "text-cyan-300"
+            default:
+                return "text-white/80"
+        }
+    }
+
+    const packBadgeClasses = (id: string) => {
+        switch (id) {
+            case "pack-1":
+                return "bg-yellow-400/15 border-yellow-400/30 text-yellow-300"
+            case "pack-3":
+                return "bg-pink-400/15 border-pink-400/30 text-pink-300"
+            case "pack-5":
+                return "bg-cyan-400/15 border-cyan-400/30 text-cyan-300"
+            default:
+                return "bg-white/10 border-white/20 text-white/80"
+        }
+    }
+
+    const renderCenterIcon = (id: string) => (
+        <div className={`w-16 h-16 mx-auto rounded-full ${packCircleClasses(id)} flex items-center justify-center`}>
+            {id === "pack-1" && (
+                <Star className={`w-8 h-8 ${packIconColor(id)}`} />
+            )}
+            {id === "pack-3" && (
+                <Sparkle className={`w-8 h-8 ${packIconColor(id)}`} />
+            )}
+            {id === "pack-5" && (
+                <Sparkles className={`w-8 h-8 ${packIconColor(id)}`} />
+            )}
+        </div>
+    )
+
     return (
         <section className='relative z-10 max-w-6xl mx-auto px-6 py-14 space-y-12'>
             {/* Background accents removed per request */}
@@ -128,24 +181,23 @@ export default async function PricingPage() {
                         className={`p-6 rounded-xl ${packStyles(p.id).bg} ${packStyles(p.id).border} hover:brightness-110 transition`}
                     >
                         <div className='grid md:grid-cols-3 gap-6 items-center'>
-                            <div className='order-2 md:order-1 space-y-2 text-center md:text-left'>
-                                <div className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full ${badgeStyles(p.id)}`}>
-                                    {renderPackIcon(p.id)}
+                            <div className='order-2 md:order-1 space-y-2 text-left'>
+                                <div className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border ${packBadgeClasses(p.id)}`}>
                                     <span>{p.label || 'One-time pack'}</span>
                                 </div>
                                 <div className='text-3xl font-bold'>${p.priceUsd.toFixed(0)}</div>
                                 <div className='text-sm text-muted-foreground'>one-time · instant delivery</div>
                             </div>
                             <div className='order-1 md:order-2 text-center'>
-                                {renderPackIcon(p.id)}
+                                {renderCenterIcon(p.id)}
                             </div>
-                            <div className='order-3 space-y-3 text-center md:text-left'>
+                            <div className='order-3 space-y-3 text-left'>
                                 <div className='space-y-1'>
                                     <div className='text-xl font-semibold'>{p.stars} stars</div>
                                     {p.bonus > 0 && (() => {
                                         const bonusUsd = p.bonus / basePerDollar
                                         return (
-                                            <div className='flex items-center justify-center md:justify-start gap-2'>
+                                            <div className='flex items-center gap-2'>
                                                 <div className='text-xs inline-flex items-center justify-center gap-1 px-2 py-1 rounded-full bg-emerald-400/15 border border-emerald-400/30 text-emerald-300'>
                                                     <Gift className='w-3.5 h-3.5' />
                                                     +{p.bonus} bonus
