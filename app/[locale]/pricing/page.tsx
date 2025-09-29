@@ -1,10 +1,8 @@
-"use client"
 import Link from "next/link"
-import { useMemo } from "react"
-import { useAuth } from "@/hooks/use-auth"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Star, Crown, Gift } from "lucide-react"
+import { PricingCTA } from "@/components/pricing/pricing-cta"
 type Pack = {
     id: string
     priceUsd: number
@@ -13,17 +11,22 @@ type Pack = {
     label?: string
 }
 
-export default function PricingPage() {
-    const { user } = useAuth()
+export const dynamic = "force-static"
 
-    const packs = useMemo<Pack[]>(() => {
-        const basePerDollar = 60
-        return [
-            { id: "pack-1", priceUsd: 1, stars: 60, bonus: 0 },
-            { id: "pack-3", priceUsd: 3, stars: 200, bonus: 200 - 3 * basePerDollar, label: "Popular" },
-            { id: "pack-5", priceUsd: 5, stars: 350, bonus: 350 - 5 * basePerDollar, label: "Best value" },
-        ]
-    }, [])
+export async function generateMetadata() {
+    return {
+        title: "Pricing | Simple Tarot",
+        description: "Choose a star pack or subscribe monthly to support Simple Tarot.",
+    }
+}
+
+export default async function PricingPage() {
+    const basePerDollar = 60
+    const packs: Pack[] = [
+        { id: "pack-1", priceUsd: 1, stars: 60, bonus: 0 },
+        { id: "pack-3", priceUsd: 3, stars: 200, bonus: 200 - 3 * basePerDollar, label: "Popular" },
+        { id: "pack-5", priceUsd: 5, stars: 350, bonus: 350 - 5 * basePerDollar, label: "Best value" },
+    ]
 
     return (
         <section className='relative z-10 max-w-5xl mx-auto px-6 py-12 space-y-10'>
@@ -64,19 +67,7 @@ export default function PricingPage() {
                                 )}
                             </div>
                             <div>
-                                {user ? (
-                                    <Link href={`/stars/purchase?pack=${encodeURIComponent(p.id)}`}>
-                                        <Button className='w-full rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500'>
-                                            Purchase
-                                        </Button>
-                                    </Link>
-                                ) : (
-                                    <Link href={`/signin?callbackUrl=${encodeURIComponent("/pricing")}`}>
-                                        <Button className='w-full rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500'>
-                                            Sign in to purchase
-                                        </Button>
-                                    </Link>
-                                )}
+                                <PricingCTA mode='pack' packId={p.id} />
                             </div>
                             <div className='text-xs text-muted-foreground'>
                                 Secure checkout. Stars deliver instantly after payment.
@@ -108,15 +99,7 @@ export default function PricingPage() {
                             <li>Bonus stars and perks (details soon)</li>
                             <li>Priority updates and improvements</li>
                         </ul>
-                        {user ? (
-                            <Link href='/pricing/subscribe'>
-                                <Button className='w-full rounded-full'>Subscribe $9.99/month</Button>
-                            </Link>
-                        ) : (
-                            <Link href={`/signin?callbackUrl=${encodeURIComponent("/pricing")}`}>
-                                <Button className='w-full rounded-full'>Sign in to subscribe</Button>
-                            </Link>
-                        )}
+                        <PricingCTA mode='subscribe' />
                     </div>
                 </div>
             </Card>
