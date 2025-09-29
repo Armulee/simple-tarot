@@ -168,51 +168,51 @@ export default async function PricingPage() {
                     Choose your stars, unlock deeper insights
                 </h1>
                 <p className='text-muted-foreground text-balance max-w-2xl mx-auto'>
-                    $1 = 60 stars. Bigger packs come with bonus stars. Monthly plan available—cancel anytime.
+                    Flexible one-time packs and a simple monthly plan. Instant delivery. Cancel anytime.
                 </p>
                 <div className='text-xs text-white/70'>Prices in USD. Stars deliver instantly after purchase.</div>
             </div>
 
             {/* Packs */}
-            <div className='grid md:grid-cols-3 gap-6'>
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
                 {packs.map((p) => (
                     <Card
                         key={p.id}
                         className={`p-6 rounded-xl ${packStyles(p.id).bg} ${packStyles(p.id).border} hover:brightness-110 transition`}
                     >
-                        <div className='grid md:grid-cols-3 gap-6 items-center'>
-                            <div className='order-2 md:order-1 space-y-2 text-left'>
+                        <div className='grid grid-cols-1 gap-6 items-center'>
+                            <div className='space-y-2 text-left'>
                                 <div className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border ${packBadgeClasses(p.id)}`}>
+                                    {p.id === 'pack-1' && <Star className={`w-4 h-4 ${packIconColor(p.id)}`} />}
+                                    {p.id === 'pack-3' && <Sparkle className={`w-4 h-4 ${packIconColor(p.id)}`} />}
+                                    {p.id === 'pack-5' && <Sparkles className={`w-4 h-4 ${packIconColor(p.id)}`} />}
                                     <span>{p.label || 'One-time pack'}</span>
                                 </div>
                                 <div className='text-3xl font-bold'>${p.priceUsd.toFixed(0)}</div>
                                 <div className='text-sm text-muted-foreground'>one-time · instant delivery</div>
                             </div>
-                            <div className='order-1 md:order-2 text-center'>
-                                {renderCenterIcon(p.id)}
-                            </div>
-                            <div className='order-3 space-y-3 text-left'>
+                            <div className='space-y-3 text-left'>
                                 <div className='space-y-1'>
-                                    <div className='text-xl font-semibold'>{p.stars} stars</div>
+                                    <div className='text-xl font-semibold'>
+                                        <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/15`}>
+                                            <Star className={`w-4 h-4 ${packIconColor(p.id)}`} />
+                                            <span className='tracking-wide'>{p.stars} stars</span>
+                                        </span>
+                                    </div>
                                     {p.bonus > 0 && (() => {
-                                        const bonusUsd = p.bonus / basePerDollar
                                         return (
-                                            <div className='flex items-center gap-2'>
-                                                <div className='text-xs inline-flex items-center justify-center gap-1 px-2 py-1 rounded-full bg-emerald-400/15 border border-emerald-400/30 text-emerald-300'>
-                                                    <Gift className='w-3.5 h-3.5' />
-                                                    +{p.bonus} bonus
-                                                </div>
-                                                <div className='text-[11px] text-emerald-300/90'>≈ ${bonusUsd.toFixed(2)} value</div>
+                                            <div className='text-xs inline-flex items-center justify-center gap-1 px-2 py-1 rounded-full bg-emerald-400/15 border border-emerald-400/30 text-emerald-300'>
+                                                <Gift className='w-3.5 h-3.5' />
+                                                +{p.bonus} bonus
                                             </div>
                                         )
                                     })()}
-                                    <div className='text-xs text-white/60'>${(p.priceUsd / (p.stars / basePerDollar)).toFixed(2)} per 60 stars</div>
                                 </div>
                                 <ul className='text-sm text-white/80 space-y-1'>
-                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-emerald-300' /> Instant delivery</li>
-                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-emerald-300' /> Secure checkout</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className={`w-4 h-4 ${packIconColor(p.id)}`} /> Instant delivery</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className={`w-4 h-4 ${packIconColor(p.id)}`} /> Secure checkout</li>
                                     {p.bonus > 0 && (
-                                        <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-emerald-300' /> Includes bonus stars</li>
+                                        <li className='flex items-center gap-2'><CheckCircle2 className={`w-4 h-4 ${packIconColor(p.id)}`} /> Includes bonus stars</li>
                                     )}
                                 </ul>
                                 <div>
