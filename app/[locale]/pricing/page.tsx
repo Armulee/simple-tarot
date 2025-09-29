@@ -141,6 +141,7 @@ export default async function PricingPage() {
                                 <div className='text-3xl font-bold'>${p.priceUsd.toFixed(0)}</div>
                                 <div className='text-sm text-muted-foreground'>one-time</div>
                             </div>
+                            <div className='h-px w-12 mx-auto bg-white/10' />
                             <div className='space-y-1'>
                                 <div className='text-xl font-semibold'>{p.stars} stars</div>
                                 {p.bonus > 0 && (() => {
@@ -157,12 +158,13 @@ export default async function PricingPage() {
                                 })()}
                                 <div className='text-xs text-white/60'>${(p.priceUsd / (p.stars / basePerDollar)).toFixed(2)} per 60 stars</div>
                             </div>
-                            <div>
-                                <PricingCTA mode='pack' packId={p.id} />
-                            </div>
-                            <div className='text-xs text-muted-foreground'>
-                                Secure checkout. Stars deliver instantly after payment.
-                            </div>
+                            <ul className='text-xs text-white/80 space-y-1 mt-2'>
+                                <li className='flex items-center justify-center gap-2'><CheckCircle2 className='w-3.5 h-3.5 text-emerald-300' /> Instant delivery</li>
+                                <li className='flex items-center justify-center gap-2'><CheckCircle2 className='w-3.5 h-3.5 text-emerald-300' /> Secure checkout</li>
+                                {p.bonus > 0 && (
+                                    <li className='flex items-center justify-center gap-2'><CheckCircle2 className='w-3.5 h-3.5 text-emerald-300' /> Includes bonus stars</li>
+                                )}
+                            </ul>
                         </div>
                     </Card>
                 ))}
