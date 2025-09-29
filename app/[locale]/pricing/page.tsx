@@ -265,15 +265,15 @@ export default async function PricingPage() {
                         {/* Icon shown per tab for color change */}
                     </div>
                     <TabsContent value='one-month'>
-                        <div className='pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-slate-500/12 via-slate-600/10 to-slate-700/12' />
+                        <div className='pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-teal-500/12 via-teal-600/10 to-teal-700/12' />
                         <div className='grid md:grid-cols-3 gap-6 items-center mt-4 relative z-10'>
                             <div className='order-1 md:order-2 text-center'>
-                                <div className='w-16 h-16 mx-auto rounded-full bg-slate-500/15 border border-slate-500/30 flex items-center justify-center'>
-                                    <span className='text-5xl text-slate-200 leading-none'>∞</span>
+                                <div className='w-16 h-16 mx-auto rounded-full bg-teal-500/15 border border-teal-500/30 flex items-center justify-center'>
+                                    <span className='text-5xl text-teal-200 leading-none'>∞</span>
                                 </div>
                             </div>
                             <div className='order-2 md:order-1 space-y-2'>
-                                <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-slate-400/15 border border-slate-400/30 text-slate-200'>
+                                <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-teal-400/15 border border-teal-400/30 text-teal-200'>
                                     <InfinityIcon className='w-4 h-4' />
                                     Non renewal
                                 </div>
@@ -282,31 +282,31 @@ export default async function PricingPage() {
                             </div>
                             <div className='order-3 space-y-3'>
                                 <ul className='mt-2 text-sm text-white/80 space-y-1'>
-                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-slate-200' /> Infinity stars (30 days)</li>
-                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-slate-200' /> Instant delivery</li>
-                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-slate-200' /> One-time payment, no auto-renew</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-teal-200' /> Infinity stars (30 days)</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-teal-200' /> Instant delivery</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-teal-200' /> One-time payment, no auto-renew</li>
                                 </ul>
                                 <PricingCTA mode='pack' packId='pack-infinity' />
                             </div>
                         </div>
                     </TabsContent>
                     <TabsContent value='one-year'>
-                        <div className='pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-zinc-500/12 via-zinc-600/10 to-zinc-700/12' />
+                        <div className='pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-rose-500/12 via-rose-600/10 to-rose-700/12' />
                         <div className='grid md:grid-cols-3 gap-6 items-center mt-4 relative z-10'>
                             <div className='order-1 md:order-2 text-center'>
-                                <div className='w-16 h-16 mx-auto rounded-full bg-zinc-500/15 border border-zinc-500/30 flex items-center justify-center'>
-                                    <span className='text-5xl text-zinc-200 leading-none'>∞</span>
+                                <div className='w-16 h-16 mx-auto rounded-full bg-rose-500/15 border border-rose-500/30 flex items-center justify-center'>
+                                    <span className='text-5xl text-rose-200 leading-none'>∞</span>
                                 </div>
                             </div>
                             <div className='order-2 md:order-1 space-y-2'>
-                                <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-zinc-400/15 border border-zinc-400/30 text-zinc-200'>
+                                <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-rose-400/15 border border-rose-400/30 text-rose-200'>
                                     <InfinityIcon className='w-4 h-4' />
                                     Non renewal
                                 </div>
                                 <div className='inline-flex items-baseline gap-2'>
                                     <div className='text-3xl font-bold'>$99.99</div>
                                     <div className='text-sm text-white/70 line-through'>$119.88</div>
-                                    <span className='text-xs px-2 py-0.5 rounded border bg-zinc-400/15 border-zinc-400/30 text-zinc-200 font-semibold'>
+                                    <span className='text-xs px-2 py-0.5 rounded border bg-rose-400/15 border-rose-400/30 text-rose-200 font-semibold'>
                                         Save 17%
                                     </span>
                                 </div>
@@ -314,9 +314,9 @@ export default async function PricingPage() {
                             </div>
                             <div className='order-3 space-y-3'>
                                 <ul className='mt-2 text-sm text-white/80 space-y-1'>
-                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-zinc-200' /> Infinity stars (365 days)</li>
-                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-zinc-200' /> Instant delivery</li>
-                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-zinc-200' /> One-time payment, no auto-renew</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-rose-200' /> Infinity stars (365 days)</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-rose-200' /> Instant delivery</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-rose-200' /> One-time payment, no auto-renew</li>
                                 </ul>
                                 <PricingCTA mode='pack' packId='pack-infinity' />
                             </div>
