@@ -41,7 +41,7 @@ export function PricingCTA({ mode, packId }: { mode: PricingCTAMode; packId?: st
             if (user) {
                 return (
                     <Link href={`/stars/purchase?pack=${encodeURIComponent(packId)}`}>
-                        <Button className={`w-full rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 hover:bg-amber-400/20 transition-shadow flex items-center justify-center gap-2`}>
+                        <Button className={`w-full rounded-full bg-white text-black hover:brightness-90 transition-shadow flex items-center justify-center gap-2`}>
                             <Star className='w-4 h-4' />
                             Purchase
                         </Button>
@@ -50,7 +50,7 @@ export function PricingCTA({ mode, packId }: { mode: PricingCTAMode; packId?: st
             }
             return (
                 <Link href={`/signin?callbackUrl=${encodeURIComponent("/pricing")}`}>
-                    <Button className={`w-full rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 hover:bg-amber-400/20 transition-shadow flex items-center justify-center gap-2`}>
+                    <Button className={`w-full rounded-full bg-white text-black hover:brightness-90 transition-shadow flex items-center justify-center gap-2`}>
                         <Users className='w-4 h-4' />
                         Sign in to purchase
                     </Button>

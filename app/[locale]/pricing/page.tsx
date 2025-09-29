@@ -230,10 +230,10 @@ export default async function PricingPage() {
                                     <Crown className='w-4 h-4' />
                                     Annual subscription
                                 </div>
-                                <div className='text-3xl font-bold'>$8.33</div>
-                                <div className='inline-flex items-center gap-2'>
+                                <div className='inline-flex items-baseline gap-2'>
+                                    <div className='text-3xl font-bold'>$8.33</div>
                                     <div className='text-sm text-white/70 line-through'>$9.99</div>
-                                    <span className='text-xs px-2 py-0.5 rounded border bg-sky-400/15 border-sky-400/30 text-sky-300 font-semibold rotate-6'>
+                                    <span className='text-xs px-2 py-0.5 rounded border bg-sky-400/15 border-sky-400/30 text-sky-300 font-semibold'>
                                         Save 17%
                                     </span>
                                 </div>
@@ -295,7 +295,7 @@ export default async function PricingPage() {
                     >
                         <div className='grid grid-cols-1 gap-6 items-center'>
                             <div className='space-y-2 text-left'>
-                                <div className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border ${packBadgeClasses(p.id)} absolute -top-2 right-2`}>
+                                <div className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border ${packBadgeClasses(p.id)} absolute -top-3 left-2`}>
                                     {p.id === 'pack-1' && <Star className={`w-4 h-4 ${packIconColor(p.id)}`} />}
                                     {p.id === 'pack-3' && <Sparkle className={`w-4 h-4 ${packIconColor(p.id)}`} />}
                                     {p.id === 'pack-5' && <Sparkles className={`w-4 h-4 ${packIconColor(p.id)}`} />}
