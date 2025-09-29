@@ -170,11 +170,11 @@ export default async function PricingPage() {
                 <div className='text-xs text-white/70'>Prices in USD. Stars deliver instantly after purchase.</div>
             </div>
 
-            {/* Divider: Suggest deals */}
+            {/* Divider: Unlimited stars plan */}
             <div className='flex items-center gap-3 mt-6'>
-                <span className='h-px flex-1 bg-white/10'></span>
-                <span className='text-xs tracking-wider uppercase text-white/70'>—— Suggest deals ——</span>
-                <span className='h-px flex-1 bg-white/10'></span>
+                <span className='h-px flex-1 bg-white/60'></span>
+                <span className='text-xs tracking-wider uppercase text-white'>unlimited stars plan</span>
+                <span className='h-px flex-1 bg-white/60'></span>
             </div>
 
             {/* Subscription with tabs (Monthly/Annual) */}
@@ -325,11 +325,11 @@ export default async function PricingPage() {
                 </Tabs>
             </Card>
 
-            {/* Divider: Our deals */}
+            {/* Divider: Certain stars packs */}
             <div className='flex items-center gap-3 mt-8'>
-                <span className='h-px flex-1 bg-white/10'></span>
-                <span className='text-xs tracking-wider uppercase text-white/70'>—— Our deals ——</span>
-                <span className='h-px flex-1 bg-white/10'></span>
+                <span className='h-px flex-1 bg-white/60'></span>
+                <span className='text-xs tracking-wider uppercase text-white'>certain stars packs</span>
+                <span className='h-px flex-1 bg-white/60'></span>
             </div>
 
             {/* Packs */}
@@ -348,7 +348,7 @@ export default async function PricingPage() {
                                     <span>{p.label || 'One-time pack'}</span>
                                 </div>
                                 {/* Stars amount first (above price) with bonus badge at top-right */}
-                                <div className='relative inline-flex items-center gap-2 justify-center w-full'>
+                                <div className='relative inline-flex items-center gap-2 justify-center w-full mt-2'>
                                     <span className={`inline-flex items-center gap-3 px-5 py-2 rounded-full border ${packBadgeClasses(p.id)}`}>
                                         <Star className={`w-7 h-7 ${packIconColor(p.id)}`} fill='currentColor' />
                                         <span className={`text-3xl font-extrabold leading-none ${packIconColor(p.id)}`}>{p.stars}</span>
