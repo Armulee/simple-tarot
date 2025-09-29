@@ -1,18 +1,10 @@
 "use client"
-
-import type { Metadata } from "next"
 import Link from "next/link"
 import { useMemo } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Star, Crown, Gift } from "lucide-react"
-
-export const metadata: Metadata = {
-    title: "Pricing | Simple Tarot",
-    description: "Choose a star pack or subscribe monthly to support Simple Tarot.",
-}
-
 type Pack = {
     id: string
     priceUsd: number
