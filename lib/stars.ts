@@ -26,7 +26,7 @@ export async function starGetOrCreate(user: User | null): Promise<StarState> {
   const json = await res.json()
   if (!res.ok) throw new Error(json.error || "STAR_INIT_FAILED")
   const row = json.data?.[0]
-  const cap = user ? 15 : 5
+  const cap = user ? 12 : 5
   return {
     currentStars: row?.current_stars ?? 5,
     lastRefillAt: tsToMs(row?.last_refill_at),
@@ -43,7 +43,7 @@ export async function starSpend(user: User | null, amount: number): Promise<{ ok
   const json = await res.json()
   if (!res.ok) throw new Error(json.error || "STAR_SPEND_FAILED")
   const row = json.data?.[0]
-  const cap = user ? 15 : 5
+  const cap = user ? 12 : 5
   const ok = Boolean(row?.ok)
   const state: StarState = { currentStars: row?.current_stars ?? 5, lastRefillAt: tsToMs(row?.last_refill_at), refillCap: cap }
   return { ok, state }
@@ -54,7 +54,7 @@ export async function starAdd(user: User | null, amount: number): Promise<StarSt
   const json = await res.json()
   if (!res.ok) throw new Error(json.error || "STAR_ADD_FAILED")
   const row = json.data?.[0]
-  const cap = user ? 15 : 5
+  const cap = user ? 12 : 5
   return { currentStars: row?.current_stars ?? 5, lastRefillAt: tsToMs(row?.last_refill_at), refillCap: cap }
 }
 

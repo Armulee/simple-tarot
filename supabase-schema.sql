@@ -76,12 +76,15 @@ alter table public.stars enable row level security;
 -- Removed star_identities as it's not used by the app
 drop table if exists public.star_identities;
 
--- Helper: compute refill based on cap (5 for anon, 15 for authed)
+-- Helper: compute refill based on cap and interval hours per star
+-- For authenticated users we will pass p_interval_hours = 2
+-- For anonymous users we will bypass this function (daily reset logic applies elsewhere)
 create or replace function public._star_apply_refill(
   p_current integer,
   p_last_refill timestamptz,
   p_now timestamptz,
-  p_cap integer
+  p_cap integer,
+  p_interval_hours integer default 1
 ) returns table (new_current integer, new_last_refill timestamptz) as $$
 declare
   v_current integer := greatest(0, coalesce(p_current, 0));
@@ -94,13 +97,13 @@ begin
     return query select v_current, case when v_cap = 0 then v_last else null end;
   end if;
 
-  v_hours := floor(extract(epoch from (p_now - v_last)) / 3600)::int;
+  v_hours := floor(extract(epoch from (p_now - v_last)) / (greatest(1, p_interval_hours) * 3600))::int;
   if v_hours <= 0 then
     return query select v_current, v_last;
   end if;
 
   v_add := least(v_hours, v_cap - v_current);
-  return query select v_current + v_add, v_last + (v_add || ' hours')::interval;
+  return query select v_current + v_add, v_last + (v_add * greatest(1, p_interval_hours) || ' hours')::interval;
 end;
 $$ language plpgsql immutable;
 
@@ -118,7 +121,7 @@ create or replace function public.star_get_or_create(
 ) as $$
 declare
   v_state public.stars%rowtype;
-  v_cap integer := case when p_user_id is null then 5 else 15 end;
+  v_cap integer := case when p_user_id is null then 5 else 12 end;
   v_now timestamptz := now();
   v_new_current integer;
   v_new_last timestamptz;
@@ -133,7 +136,7 @@ begin
         v_legacy_did := v_state.anon_device_id;
         select new_current, coalesce(new_last_refill, v_state.last_refill_at)
           into v_new_current, v_new_last
-          from public._star_apply_refill(v_state.current_stars, v_state.last_refill_at, v_now, v_cap);
+          from public._star_apply_refill(v_state.current_stars, v_state.last_refill_at, v_now, v_cap, 2);
         -- Keep this as the user row
         update public.stars s
            set anon_device_id = null,
@@ -154,21 +157,20 @@ begin
         select * into v_state from public.stars s where s.anon_device_id = p_anon_device_id;
         if found then
           -- Compute anon state with anon cap, then create a separate user row with +10
-          select new_current, coalesce(new_last_refill, v_state.last_refill_at)
-            into v_new_current, v_new_last
-            from public._star_apply_refill(v_state.current_stars, v_state.last_refill_at, v_now, 5);
+          -- Apply anon daily logic later; do not refill here
+          select v_state.current_stars, v_state.last_refill_at into v_new_current, v_new_last;
           insert into public.stars (user_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
-               values (p_user_id, least(15, v_new_current + 10), v_now, true, v_now)
+               values (p_user_id, least(12, v_new_current + 10), v_now, true, v_now)
           returning * into v_state;
         else
-          -- No anon row; create a fresh user row with 15 (base 5 + 10 bonus)
+          -- No anon row; create a fresh user row with cap (base 5 + 10 bonus, capped at 12)
           insert into public.stars (user_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
-               values (p_user_id, 15, v_now, true, v_now)
+               values (p_user_id, 12, v_now, true, v_now)
           returning * into v_state;
         end if;
       else
         insert into public.stars (user_id, current_stars, last_refill_at, first_login_bonus_granted, updated_at)
-             values (p_user_id, 15, v_now, true, v_now)
+             values (p_user_id, 12, v_now, true, v_now)
         returning * into v_state;
       end if;
     end if;
@@ -176,7 +178,7 @@ begin
     -- Apply refill with user cap; never re-grant bonus here unless flag is false (edge case)
     select new_current, coalesce(new_last_refill, v_state.last_refill_at)
       into v_new_current, v_new_last
-      from public._star_apply_refill(v_state.current_stars, v_state.last_refill_at, v_now, v_cap);
+      from public._star_apply_refill(v_state.current_stars, v_state.last_refill_at, v_now, v_cap, 2);
 
     if not coalesce(v_state.first_login_bonus_granted, false) then
       v_new_current := v_new_current + 10;
@@ -208,16 +210,15 @@ begin
       returning * into v_state;
     end if;
 
-    select new_current, coalesce(new_last_refill, v_state.last_refill_at)
-      into v_new_current, v_new_last
-      from public._star_apply_refill(v_state.current_stars, v_state.last_refill_at, v_now, v_cap);
-
-    update public.stars s
-       set current_stars = v_new_current,
-           last_refill_at = v_new_last,
-           updated_at = v_now
-     where s.id = v_state.id
-     returning * into v_state;
+    -- Daily reset at 00:00 Asia/Bangkok (+7). If date changed since last_refill_at in BKK, reset to 5.
+    if (v_state.last_refill_at at time zone 'Asia/Bangkok')::date < (v_now at time zone 'Asia/Bangkok')::date then
+      update public.stars s
+         set current_stars = 5,
+             last_refill_at = v_now,
+             updated_at = v_now
+       where s.id = v_state.id
+       returning * into v_state;
+    end if;
   end if;
 
   return query select v_state.id, v_state.user_id, v_state.anon_device_id, v_state.current_stars, v_state.last_refill_at, v_state.first_login_bonus_granted;
@@ -236,7 +237,7 @@ create or replace function public.star_spend(
 ) as $$
 declare
   v_row public.stars%rowtype;
-  v_cap integer := case when p_user_id is null then 5 else 15 end;
+  v_cap integer := case when p_user_id is null then 5 else 12 end;
   v_now timestamptz := now();
   v_new_current integer;
   v_new_last timestamptz;
@@ -249,17 +250,29 @@ begin
   select * from public.star_get_or_create(p_anon_device_id, p_user_id) into v_row;
   v_prev := v_row.current_stars;
 
-  select new_current, coalesce(new_last_refill, v_row.last_refill_at)
-    into v_new_current, v_new_last
-    from public._star_apply_refill(v_row.current_stars, v_row.last_refill_at, v_now, v_cap);
+  if p_user_id is not null then
+    select new_current, coalesce(new_last_refill, v_row.last_refill_at)
+      into v_new_current, v_new_last
+      from public._star_apply_refill(v_row.current_stars, v_row.last_refill_at, v_now, v_cap, 2);
+  else
+    -- Anonymous: no hourly refill; apply daily reset logic
+    v_new_current := v_row.current_stars;
+    v_new_last := v_row.last_refill_at;
+    if (v_row.last_refill_at at time zone 'Asia/Bangkok')::date < (v_now at time zone 'Asia/Bangkok')::date then
+      v_new_current := 5;
+      v_new_last := v_now;
+    end if;
+  end if;
 
   if v_new_current < p_amount then
     return query select false, v_new_current, v_new_last;
   end if;
 
   v_new_current := v_new_current - p_amount;
-  if v_prev >= v_cap and v_new_current < v_cap then
-    v_new_last := v_now;
+  if p_user_id is not null then
+    if v_prev >= v_cap and v_new_current < v_cap then
+      v_new_last := v_now;
+    end if;
   end if;
 
   update public.stars s

@@ -32,8 +32,8 @@ export default function StarsPage() {
     const nextIn = useMemo(() => formatRelativeTime(nextRefillAt, now), [nextRefillAt, now])
 
     const remainingMs = Math.max(0, (nextRefillAt ?? 0) - now)
-    const hourMs = 60 * 60 * 1000
-    const progress = Math.min(100, Math.max(0, 100 - (remainingMs / hourMs) * 100))
+    const stepMs = 2 * 60 * 60 * 1000
+    const progress = Math.min(100, Math.max(0, 100 - (remainingMs / stepMs) * 100))
 
     return (
         <section className='relative z-10 max-w-4xl mx-auto px-6 py-10 space-y-8'>
@@ -65,7 +65,13 @@ export default function StarsPage() {
                                 style={{ width: `${progress}%` }}
                             />
                         </div>
-                        <p className='text-xs text-muted-foreground text-center'>Auto-refills by 1 star every hour (up to {refillCap}).</p>
+                        <p className='text-xs text-muted-foreground text-center'>
+                            {user ? (
+                                <>Auto-refills by 1 star every 2 hours (up to {refillCap}).</>
+                            ) : (
+                                <>Anonymous users get 5 stars daily at 00:00 (UTC+7). No hourly refill.</>
+                            )}
+                        </p>
                     </div>
 
                     <div className='flex items-center justify-center'>
@@ -101,7 +107,7 @@ export default function StarsPage() {
                         </AccordionTrigger>
                         <AccordionContent>
                             <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-border/20'>
-                                <p>Sign in and receive +10 stars. Your auto-refill capacity increases to 15 stars.</p>
+                                <p>Sign in and receive +10 stars. Your auto-refill capacity increases to 12 stars with 1 star every 2 hours.</p>
                                 {!(user && firstLoginBonusGranted) && (
                                     <Link href={`/signin?callbackUrl=${encodeURIComponent(window.location.pathname)}`}>
                                         <Button className='rounded-full'>Sign in</Button>

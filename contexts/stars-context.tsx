@@ -27,7 +27,7 @@ interface StarsContextType {
 
 const StarsContext = createContext<StarsContextType | undefined>(undefined)
 const DEFAULT_STARS = 5
-const REFILL_INTERVAL_MS = 60 * 60 * 1000 // 1 hour
+const REFILL_INTERVAL_MS_AUTH = 2 * 60 * 60 * 1000 // 2 hours for logged-in users
 
 export function StarsProvider({ children }: { children: ReactNode }) {
 
@@ -37,18 +37,19 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     const [firstLoginBonusGranted, setFirstLoginBonusGranted] = useState<boolean | undefined>(undefined)
 	const { user } = useAuth()
 
-	// Refill cap: anonymous 5, signed-in 15
-	const refillCap = user ? 15 : 5
+  // Refill cap: anonymous 5 (no hourly refill), signed-in 12 (refill every 2 hours)
+  const refillCap = user ? 12 : 5
 
 	// Helper to compute next refill timestamp from lastRefill and current balance
-	const computeNextRefillAt = useCallback(
-		(current: number, lastRefillMs: number | null, cap: number): number | null => {
-			if (current >= cap) return null
-			const base = lastRefillMs ?? Date.now()
-			return base + REFILL_INTERVAL_MS
-		},
-		[]
-	)
+  const computeNextRefillAt = useCallback(
+    (current: number, lastRefillMs: number | null, cap: number, isLoggedIn: boolean): number | null => {
+      if (!isLoggedIn) return null
+      if (current >= cap) return null
+      const base = lastRefillMs ?? Date.now()
+      return base + REFILL_INTERVAL_MS_AUTH
+    },
+    []
+  )
 
 	// Initial fetch and whenever auth state changes, load state from Supabase
 	useEffect(() => {
@@ -57,12 +58,12 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 			setInitialized(false)
 			return
 		}
-		;(async () => {
+        ;(async () => {
 			try {
 				const state = await starGetOrCreate(user ?? null)
 				if (cancelled) return
 				setStars(state.currentStars)
-				setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap))
+            setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap, Boolean(user)))
 				setFirstLoginBonusGranted(state.firstLoginBonusGranted)
 				setInitialized(true)
 			} catch {}
@@ -70,7 +71,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 		return () => {
 			cancelled = true
 		}
-	}, [user, refillCap, computeNextRefillAt])
+  }, [user, refillCap, computeNextRefillAt])
 
 	// Initialize stars after consent is accepted
 	useEffect(() => {
@@ -92,7 +93,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 				})()
 			}
 		}
-		if (typeof window !== "undefined") {
+        if (typeof window !== "undefined") {
 			window.addEventListener("cookie-consent-changed", onConsent as EventListener)
 		}
 		return () => {
@@ -111,6 +112,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         const checkRefill = async () => {
             try {
                 if (stars === null) return
+                if (!user) return // no hourly refill for anonymous
                 if (stars >= refillCap) return
                 const now = Date.now()
                 if (nextRefillAt && now >= nextRefillAt) {
@@ -118,7 +120,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                     const state = await starGetOrCreate(user ?? null)
                     if (!mounted) return
                     setStars(state.currentStars)
-                    setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap))
+                    setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap, Boolean(user)))
                 }
             } catch {}
         }
@@ -132,18 +134,18 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 	const addStars = useCallback((amount: number) => {
 		if (!Number.isFinite(amount) || amount <= 0) return
 		// Optimistic update
-    setStars((prev) => Math.max(0, (prev ?? 0) + amount))
-		;(async () => {
+    setStars((prev: number | null) => Math.max(0, (prev ?? 0) + amount))
+        ;(async () => {
 			try {
 				const state = await starAdd(user ?? null, amount)
 				setStars(state.currentStars)
-				setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap))
+                setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap, Boolean(user)))
 			} catch {
 				// On failure, trigger a refresh to reconcile
 				try {
 					const state = await starGetOrCreate(user ?? null)
 					setStars(state.currentStars)
-					setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap))
+                    setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap, Boolean(user)))
 				} catch {}
 			}
 		})()
@@ -153,13 +155,13 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 		if (!Number.isFinite(amount) || amount <= 0) return false
 		if (!initialized) return false
 		let success = false
-    setStars((prev) => {
+    setStars((prev: number | null) => {
             const current = prev ?? 0
             if (current >= amount) {
 				success = true
                 const next = current - amount
-				// If dropping below cap, next refill starts 1 hour from now
-                const nextRefill = next < refillCap && current >= refillCap ? Date.now() + REFILL_INTERVAL_MS : nextRefillAt
+                // If dropping below cap and logged-in, next refill starts 2 hours from now
+                const nextRefill = user && next < refillCap && current >= refillCap ? Date.now() + REFILL_INTERVAL_MS_AUTH : nextRefillAt
 				if (nextRefill !== nextRefillAt) setNextRefillAt(nextRefill ?? null)
 				return next
 			}
@@ -177,23 +179,23 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 					setNextRefillAt(computeNextRefillAt(refreshed.currentStars, refreshed.lastRefillAt, refillCap))
 					return
 				}
-				setStars(state.currentStars)
-				setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap))
+                setStars(state.currentStars)
+                setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap, Boolean(user)))
 			} catch {
 				try {
 					const refreshed = await starGetOrCreate(user ?? null)
 					setStars(refreshed.currentStars)
-					setNextRefillAt(computeNextRefillAt(refreshed.currentStars, refreshed.lastRefillAt, refillCap))
+                    setNextRefillAt(computeNextRefillAt(refreshed.currentStars, refreshed.lastRefillAt, refillCap, Boolean(user)))
 				} catch {}
 			}
 		})()
 		return true
-	}, [initialized, user, refillCap, computeNextRefillAt, nextRefillAt])
+    }, [initialized, user, refillCap, computeNextRefillAt, nextRefillAt])
 
 	const resetStars = useCallback((value?: number) => {
 		const next = Number.isFinite(value as number) ? Math.max(0, Number(value)) : DEFAULT_STARS
 		// Compute delta and use add
-    setStars((prev) => {
+    setStars((prev: number | null) => {
             const current = prev ?? 0
             const delta = next - current
 			if (delta !== 0) addStars(delta)
