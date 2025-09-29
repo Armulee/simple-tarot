@@ -380,33 +380,6 @@ export default async function PricingPage() {
                 ))}
             </div>
 
-            {/* Subscription */}
-            <Card className='p-6 rounded-xl bg-gradient-to-br from-violet-500/12 via-fuchsia-500/10 to-purple-500/12 border-violet-400/25 hover:brightness-110 transition'>
-                <div className='grid md:grid-cols-3 gap-6 items-center'>
-                    <div className='order-2 md:order-1 space-y-2'>
-                        <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-violet-400/15 border border-violet-400/30 text-violet-300'>
-                            <Crown className='w-4 h-4' />
-                            Monthly subscription
-                        </div>
-                        <div className='text-3xl font-bold'>$9.99</div>
-                        <div className='text-sm text-muted-foreground'>per month · auto-renew · cancel anytime</div>
-                    </div>
-                    <div className='order-1 md:order-2 text-center'>
-                        <div className='w-16 h-16 mx-auto rounded-full bg-violet-500/15 border border-violet-500/30 flex items-center justify-center'>
-                            <Crown className='w-8 h-8 text-violet-300' />
-                        </div>
-                    </div>
-                    <div className='order-3 space-y-3'>
-                        <ul className='mt-2 text-sm text-white/80 space-y-1'>
-                            <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-violet-300' /> Ongoing support for new features</li>
-                            <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-violet-300' /> Occasional bonus stars & perks</li>
-                            <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-violet-300' /> Cancel anytime from your account</li>
-                        </ul>
-                        <PricingCTA mode='subscribe' />
-                    </div>
-                </div>
-            </Card>
-
             {/* How it works */}
             <div className='grid md:grid-cols-4 gap-4'>
                 {[{
