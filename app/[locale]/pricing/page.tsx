@@ -22,9 +22,9 @@ export async function generateMetadata() {
 export default async function PricingPage() {
     const basePerDollar = 60
     const packs: Pack[] = [
-        { id: "pack-1", priceUsd: 1, stars: 60, bonus: 0 },
-        { id: "pack-3", priceUsd: 3, stars: 200, bonus: 200 - 3 * basePerDollar, label: "Popular" },
-        { id: "pack-5", priceUsd: 5, stars: 350, bonus: 350 - 5 * basePerDollar, label: "Best value" },
+        { id: "pack-1", priceUsd: 0.99, stars: 60, bonus: 0 },
+        { id: "pack-3", priceUsd: 2.99, stars: 200, bonus: 200 - 3 * basePerDollar, label: "Popular" },
+        { id: "pack-5", priceUsd: 4.99, stars: 350, bonus: 350 - 5 * basePerDollar, label: "Best value" },
     ]
 
     const packStyles = (id: string) => {
@@ -181,10 +181,6 @@ export default async function PricingPage() {
                         className={`p-6 rounded-xl ${packStyles(p.id).bg} ${packStyles(p.id).border} hover:brightness-110 transition`}
                     >
                         <div className='grid grid-cols-1 gap-6 items-center'>
-                            {/* Top icon like subscription */}
-                            <div className='text-center'>
-                                {renderCenterIcon(p.id)}
-                            </div>
                             <div className='space-y-2 text-left'>
                                 <div className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border ${packBadgeClasses(p.id)}`}>
                                     {p.id === 'pack-1' && <Star className={`w-4 h-4 ${packIconColor(p.id)}`} />}
@@ -192,25 +188,23 @@ export default async function PricingPage() {
                                     {p.id === 'pack-5' && <Sparkles className={`w-4 h-4 ${packIconColor(p.id)}`} />}
                                     <span>{p.label || 'One-time pack'}</span>
                                 </div>
-                                <div className='text-3xl font-bold'>${p.priceUsd.toFixed(0)}</div>
+                                {/* Stars amount first (above price) */}
+                                <div className='flex items-center gap-2'>
+                                    <span className={`inline-flex items-center gap-3`}>
+                                        <Star className={`w-7 h-7 ${packIconColor(p.id)}`} fill='currentColor' />
+                                        <span className='text-3xl font-extrabold leading-none'>{p.stars}</span>
+                                    </span>
+                                    {p.bonus > 0 && (
+                                        <span className='text-xs inline-flex items-center justify-center gap-1 px-2 py-1 rounded-full bg-emerald-400/15 border border-emerald-400/30 text-emerald-300'>
+                                            <Gift className='w-3.5 h-3.5' />
+                                            +{p.bonus} bonus
+                                        </span>
+                                    )}
+                                </div>
+                                <div className='text-3xl font-bold'>${p.priceUsd.toFixed(2)}</div>
                                 <div className='text-sm text-muted-foreground'>one-time · instant delivery</div>
                             </div>
                             <div className='space-y-3 text-left'>
-                                <div className='space-y-1'>
-                                    {/* Stars and bonus in the same row */}
-                                    <div className='flex items-center gap-2'>
-                                        <span className={`inline-flex items-center gap-3 px-5 py-2 rounded-full border ${packBadgeClasses(p.id)}`}>
-                                            <Star className={`w-7 h-7 ${packIconColor(p.id)}`} />
-                                            <span className='text-3xl font-extrabold leading-none'>{p.stars}</span>
-                                        </span>
-                                        {p.bonus > 0 && (
-                                            <span className='text-xs inline-flex items-center justify-center gap-1 px-2 py-1 rounded-full bg-emerald-400/15 border border-emerald-400/30 text-emerald-300'>
-                                                <Gift className='w-3.5 h-3.5' />
-                                                +{p.bonus} bonus
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
                                 <ul className='text-sm text-white/80 space-y-1'>
                                     <li className='flex items-center gap-2'><CheckCircle2 className={`w-4 h-4 ${packIconColor(p.id)}`} /> Instant delivery</li>
                                     <li className='flex items-center gap-2'><CheckCircle2 className={`w-4 h-4 ${packIconColor(p.id)}`} /> Secure checkout</li>
