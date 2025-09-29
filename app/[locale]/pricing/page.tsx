@@ -1,6 +1,5 @@
-import Link from "next/link"
+// server component
 import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Star, Crown, Gift } from "lucide-react"
 import { PricingCTA } from "@/components/pricing/pricing-cta"
 type Pack = {
@@ -109,7 +108,7 @@ export default async function PricingPage() {
                 <Card className='p-6 bg-card/10 border-border/20'>
                     <h3 className='font-serif font-semibold text-lg mb-2'>How fast do stars arrive?</h3>
                     <p className='text-sm text-muted-foreground'>
-                        Instantly after payment. If you don't see them, refresh the stars page.
+                        Instantly after payment. If you don&apos;t see them, refresh the stars page.
                     </p>
                 </Card>
                 <Card className='p-6 bg-card/10 border-border/20'>
