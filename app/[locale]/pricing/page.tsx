@@ -157,6 +157,19 @@ export default async function PricingPage() {
 
     return (
         <section className='relative z-10 max-w-6xl mx-auto px-6 py-14 space-y-12'>
+            {/* Background accents removed per request */}
+
+            {/* Hero */}
+            <div className='text-center space-y-4'>
+                <h1 className='font-serif font-bold text-4xl md:text-5xl'>
+                    Choose your stars, unlock deeper insights
+                </h1>
+                <p className='text-muted-foreground text-balance max-w-2xl mx-auto'>
+                    Flexible one-time packs and a simple monthly plan. Instant delivery. Cancel anytime.
+                </p>
+                <div className='text-xs text-white/70'>Prices in USD. Stars deliver instantly after purchase.</div>
+            </div>
+
             {/* Subscription with tabs (Monthly/Annual) */}
             <Card className='p-6 rounded-xl bg-gradient-to-br from-violet-500/12 via-fuchsia-500/10 to-purple-500/12 border-violet-400/25 hover:brightness-110 transition'>
                 <Tabs defaultValue='monthly' className='w-full'>
@@ -242,18 +255,6 @@ export default async function PricingPage() {
                     </div>
                 </div>
             </Card>
-            {/* Background accents removed per request */}
-
-            {/* Hero */}
-            <div className='text-center space-y-4'>
-                <h1 className='font-serif font-bold text-4xl md:text-5xl'>
-                    Choose your stars, unlock deeper insights
-                </h1>
-                <p className='text-muted-foreground text-balance max-w-2xl mx-auto'>
-                    Flexible one-time packs and a simple monthly plan. Instant delivery. Cancel anytime.
-                </p>
-                <div className='text-xs text-white/70'>Prices in USD. Stars deliver instantly after purchase.</div>
-            </div>
 
             {/* Packs */}
             <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
