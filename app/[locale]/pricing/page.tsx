@@ -50,6 +50,19 @@ export default async function PricingPage() {
         }
     }
 
+    const badgeStyles = (id: string) => {
+        switch (id) {
+            case "pack-3":
+                return "bg-gradient-to-r from-pink-500 to-red-600 text-white shadow-md"
+            case "pack-5":
+                return "bg-gradient-to-r from-cyan-500 to-indigo-600 text-white shadow-md"
+            default:
+                return "bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md"
+        }
+    }
+
+    const starCountForPack = (id: string) => (id === "pack-3" ? 3 : id === "pack-5" ? 5 : 1)
+
     return (
         <section className='relative z-10 max-w-6xl mx-auto px-6 py-14 space-y-12'>
             {/* Background accents */}
@@ -81,13 +94,15 @@ export default async function PricingPage() {
                         className={`relative p-6 rounded-xl ${packStyles(p.id).bg} ${packStyles(p.id).border} hover:brightness-110 transition group`}
                     >
                         {p.label && (
-                            <div className='absolute -top-2 right-4 text-xs px-2 py-1 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 border border-yellow-500/30 text-yellow-300'>
+                            <div className={`absolute -top-2 right-4 text-xs px-2 py-1 rounded-full ${badgeStyles(p.id)}`}>
                                 {p.label}
                             </div>
                         )}
                         <div className='space-y-4 text-center'>
-                            <div className='w-12 h-12 mx-auto rounded-full bg-white/15 border border-white/25 flex items-center justify-center group-hover:scale-110 transition'>
-                                <Star className='w-6 h-6 text-yellow-300' />
+                            <div className='w-auto h-12 mx-auto rounded-full bg-white/15 border border-white/25 flex items-center justify-center gap-1 px-3 group-hover:scale-110 transition'>
+                                {Array.from({ length: starCountForPack(p.id) }).map((_, i) => (
+                                    <Star key={i} className={`${p.id === "pack-1" ? "w-6 h-6" : "w-4 h-4"} text-yellow-300`} />
+                                ))}
                             </div>
                             <div className='space-y-1'>
                                 <div className='text-3xl font-bold'>${p.priceUsd.toFixed(0)}</div>
