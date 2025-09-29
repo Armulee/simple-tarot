@@ -3,6 +3,7 @@
 import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
+import { useSearchParams } from "next/navigation"
 
 interface GoogleSignInButtonProps {
   className?: string
@@ -12,6 +13,7 @@ interface GoogleSignInButtonProps {
 export function GoogleSignInButton({ className, children }: GoogleSignInButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const { signInWithGoogle } = useAuth()
+  const params = useSearchParams()
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true)

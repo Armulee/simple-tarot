@@ -17,6 +17,8 @@ export default function AuthCallback() {
         const qs = new URLSearchParams()
         if (urlError) qs.set("error", urlError)
         if (urlDesc) qs.set("error_description", urlDesc)
+        const callbackUrl = params.get("callbackUrl")
+        if (callbackUrl) qs.set("callbackUrl", callbackUrl)
         router.push(`/signin?${qs.toString()}`)
         return
       }
@@ -28,9 +30,11 @@ export default function AuthCallback() {
           const qs = new URLSearchParams({ error: 'auth_callback_error', error_description: encodeURIComponent(error.message || '') })
           router.push(`/signin?${qs.toString()}`)
         } else if (data.session) {
-          router.push('/')
+          const callbackUrl = params.get('callbackUrl') || '/'
+          router.push(callbackUrl)
         } else {
-          router.push('/signin')
+          const callbackUrl = params.get('callbackUrl')
+          router.push(callbackUrl ? `/signin?callbackUrl=${encodeURIComponent(callbackUrl)}` : '/signin')
         }
       } catch (error) {
         console.error('Auth callback error:', error)

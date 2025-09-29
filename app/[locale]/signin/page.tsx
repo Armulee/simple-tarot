@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "@/i18n/navigation"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -24,7 +24,7 @@ export default function SignInPage() {
     const [error, setError] = useState("")
     const router = useRouter()
     const params = useSearchParams()
-    const { signIn } = useAuth()
+    const { signIn, user } = useAuth()
 
     useEffect(() => {
         const err = params.get("error")
@@ -35,6 +35,14 @@ export default function SignInPage() {
             toast.error(msg, { duration: Infinity, closeButton: true })
         }
     }, [params])
+
+    // Guard: if already authenticated and visiting sign-in, redirect back with toast
+    useEffect(() => {
+        if (!user) return
+        const callbackUrl = params.get("callbackUrl") || document.referrer || "/"
+        toast.info("You are already signed in. Please sign out before accessing this page.")
+        router.replace(callbackUrl)
+    }, [user, router, params])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -48,7 +56,8 @@ export default function SignInPage() {
                 setError(error.message)
                 toast.error(error.message || "Authentication error", { duration: Infinity, closeButton: true })
             } else {
-                router.push("/")
+                const callbackUrl = params.get("callbackUrl") || "/"
+                router.push(callbackUrl)
                 router.refresh()
             }
         } catch {

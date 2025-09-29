@@ -257,7 +257,7 @@ export function Navbar({ locale }: { locale: string }) {
                             {!loading && user ? (
                                 <UserProfile variant='desktop' />
                             ) : (
-                                <Link href='/signin'>
+                                <Link href={`/signin?callbackUrl=${encodeURIComponent(pathname)}`}>
                                     <Button
                                         variant='outline'
                                         className='flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-white/10 text-white/90 border border-white/10 hover:bg-white/15 transition'
@@ -274,7 +274,7 @@ export function Navbar({ locale }: { locale: string }) {
                             {!loading && user ? (
                                 <UserProfile variant='mobile' />
                             ) : (
-                                <Link href='/signin'>
+                                <Link href={`/signin?callbackUrl=${encodeURIComponent(pathname)}`}>
                                     <Button
                                         variant='outline'
                                         size='icon'

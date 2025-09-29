@@ -103,7 +103,7 @@ export default function StarsPage() {
                             <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-border/20'>
                                 <p>Sign in and receive +10 stars. Your auto-refill capacity increases to 15 stars.</p>
                                 {!(user && firstLoginBonusGranted) && (
-                                    <Link href='/signin'>
+                                    <Link href={`/signin?callbackUrl=${encodeURIComponent(window.location.pathname)}`}>
                                         <Button className='rounded-full'>Sign in</Button>
                                     </Link>
                                 )}

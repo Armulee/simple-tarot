@@ -2,8 +2,9 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "@/i18n/navigation"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Link } from "@/i18n/navigation"
 import { useAuth } from "@/hooks/use-auth"
+import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 
 export default function SignUpPage() {
@@ -26,7 +28,15 @@ export default function SignUpPage() {
     const [error, setError] = useState("")
     const [success, setSuccess] = useState(false)
     const router = useRouter()
-    const { signUp } = useAuth()
+    const params = useSearchParams()
+    const { signUp, user } = useAuth()
+    // Guard: if already authenticated and visiting sign-up, redirect back with toast
+    useEffect(() => {
+        if (!user) return
+        const callbackUrl = params.get("callbackUrl") || document.referrer || "/"
+        toast.info("You are already signed in. Please sign out before accessing this page.")
+        router.replace(callbackUrl)
+    }, [user, router, params])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -54,10 +64,9 @@ export default function SignUpPage() {
                 setError(error.message)
             } else {
                 setSuccess(true)
-                // Redirect to sign-in page after successful registration
-                setTimeout(() => {
-                    router.push("/signin")
-                }, 2000)
+                const callbackUrl = params.get("callbackUrl") || "/"
+                // After signup, route user to sign-in to complete login flow
+                router.push(`/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`)
             }
         } catch {
             setError("An error occurred. Please try again.")
@@ -248,7 +257,7 @@ export default function SignUpPage() {
                 <p className='text-muted-foreground'>
                     {t("signinPrompt")}{" "}
                     <Link
-                        href='/signin'
+                        href={`/signin?callbackUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '/')}`}
                         className='text-secondary hover:text-secondary/80 transition-colors font-medium'
                     >
                         {t("signinLink")}
