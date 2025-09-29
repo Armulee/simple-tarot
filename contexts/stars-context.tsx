@@ -40,16 +40,29 @@ export function StarsProvider({ children }: { children: ReactNode }) {
   // Refill cap: anonymous 5 (no hourly refill), signed-in 12 (refill every 2 hours)
   const refillCap = user ? 12 : 5
 
-	// Helper to compute next refill timestamp from lastRefill and current balance
-  const computeNextRefillAt = useCallback(
-    (current: number, lastRefillMs: number | null, cap: number, isLoggedIn: boolean): number | null => {
-      if (!isLoggedIn) return null
-      if (current >= cap) return null
-      const base = lastRefillMs ?? Date.now()
-      return base + REFILL_INTERVAL_MS_AUTH
-    },
-    []
-  )
+	// Compute next Bangkok midnight (UTC+7) as an absolute timestamp in ms
+	const getNextBangkokMidnightMs = useCallback((baseMs?: number): number => {
+		const nowMs = Number.isFinite(baseMs as number) ? Number(baseMs) : Date.now()
+		const offsetMs = 7 * 60 * 60 * 1000
+		const bkkNow = new Date(nowMs + offsetMs)
+		const bkkNextMidnight = new Date(bkkNow)
+		bkkNextMidnight.setUTCHours(24, 0, 0, 0)
+		return bkkNextMidnight.getTime() - offsetMs
+	}, [])
+
+	// Helper to compute next refill timestamp
+	const computeNextRefillAt = useCallback(
+		(current: number, lastRefillMs: number | null, cap: number, isLoggedIn: boolean): number | null => {
+			if (!isLoggedIn) {
+				// Anonymous: next refill at next Bangkok midnight
+				return getNextBangkokMidnightMs()
+			}
+			if (current >= cap) return null
+			const base = lastRefillMs ?? Date.now()
+			return base + REFILL_INTERVAL_MS_AUTH
+		},
+		[getNextBangkokMidnightMs]
+	)
 
 	// Initial fetch and whenever auth state changes, load state from Supabase
 	useEffect(() => {
@@ -107,21 +120,24 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 	// Periodic refresh to apply server-side refills
     useEffect(() => {
         if (!initialized) return
-        if (!hasCookieConsent()) return
+		if (!hasCookieConsent()) return
         let mounted = true
         const checkRefill = async () => {
             try {
                 if (stars === null) return
-                if (!user) return // no hourly refill for anonymous
-                if (stars >= refillCap) return
-                const now = Date.now()
-                if (nextRefillAt && now >= nextRefillAt) {
-                    // Ask server to apply refill and return new state
-                    const state = await starGetOrCreate(user ?? null)
-                    if (!mounted) return
-                    setStars(state.currentStars)
-                    setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap, Boolean(user)))
-                }
+				const now = Date.now()
+				if (nextRefillAt && now >= nextRefillAt) {
+					// Ask server to apply refill/reset and return new state
+					const state = await starGetOrCreate(user ?? null)
+					if (!mounted) return
+					setStars(state.currentStars)
+					setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap, Boolean(user)))
+					return
+				}
+				// For logged-in users, proactively avoid calling server until below cap
+				if (user) {
+					if (stars >= refillCap) return
+				}
             } catch {}
         }
         const id = window.setInterval(checkRefill, 30 * 1000)

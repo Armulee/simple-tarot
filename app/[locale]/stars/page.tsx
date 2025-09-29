@@ -12,11 +12,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 function formatRelativeTime(timestamp: number | null | undefined, nowMs: number): string {
     if (!timestamp) return "—"
     const ms = Math.max(0, timestamp - nowMs)
-    const minutes = Math.floor(ms / 60000)
+    const hours = Math.floor(ms / 3600000)
+    const minutes = Math.floor((ms % 3600000) / 60000)
     const seconds = Math.floor((ms % 60000) / 1000)
-    if (minutes <= 0 && seconds <= 0) return "now"
-    if (minutes <= 0) return `${seconds}s`
-    return `${minutes}m ${seconds}s`
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
 }
 
 export default function StarsPage() {
@@ -32,7 +32,17 @@ export default function StarsPage() {
     const nextIn = useMemo(() => formatRelativeTime(nextRefillAt, now), [nextRefillAt, now])
 
     const remainingMs = Math.max(0, (nextRefillAt ?? 0) - now)
-    const stepMs = 2 * 60 * 60 * 1000
+    const stepMs = user ? 2 * 60 * 60 * 1000 : (() => {
+        const offsetMs = 7 * 60 * 60 * 1000
+        const bkkNow = new Date(now + offsetMs)
+        const bkkMidnight = new Date(bkkNow)
+        bkkMidnight.setUTCHours(0, 0, 0, 0)
+        const bkkNextMidnight = new Date(bkkNow)
+        bkkNextMidnight.setUTCHours(24, 0, 0, 0)
+        const start = bkkNow.getTime() < bkkMidnight.getTime() ? bkkMidnight.getTime() : bkkMidnight.getTime()
+        const end = bkkNextMidnight.getTime()
+        return Math.max(1, end - start)
+    })()
     const progress = Math.min(100, Math.max(0, 100 - (remainingMs / stepMs) * 100))
 
     return (
@@ -66,11 +76,9 @@ export default function StarsPage() {
                             />
                         </div>
                         <p className='text-xs text-muted-foreground text-center'>
-                            {user ? (
-                                <>Auto-refills by 1 star every 2 hours (up to {refillCap}).</>
-                            ) : (
-                                <>Anonymous users get 5 stars daily at 00:00 (UTC+7). No hourly refill.</>
-                            )}
+                            {user
+                                ? <>Auto-refills by 1 star every 2 hours (up to {refillCap}).</>
+                                : <>Refills to 5 at 00:00 (UTC+7). Countdown shows time until next midnight.</>}
                         </p>
                     </div>
 
