@@ -127,41 +127,46 @@ export default async function PricingPage() {
                         key={p.id}
                         className={`p-6 rounded-xl ${packStyles(p.id).bg} ${packStyles(p.id).border} hover:brightness-110 transition`}
                     >
-                        {p.label && (
-                            <div className={`absolute -top-2 right-4 text-xs px-2 py-1 rounded-full ${badgeStyles(p.id)}`}>
-                                {p.label}
-                            </div>
-                        )}
-                        <div className='space-y-4 text-center'>
-                            {renderPackIcon(p.id)}
-                            <div className='space-y-1'>
+                        <div className='grid md:grid-cols-3 gap-6 items-center'>
+                            <div className='order-2 md:order-1 space-y-2 text-center md:text-left'>
+                                <div className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full ${badgeStyles(p.id)}`}>
+                                    {renderPackIcon(p.id)}
+                                    <span>{p.label || 'One-time pack'}</span>
+                                </div>
                                 <div className='text-3xl font-bold'>${p.priceUsd.toFixed(0)}</div>
-                                <div className='text-sm text-muted-foreground'>one-time</div>
+                                <div className='text-sm text-muted-foreground'>one-time · instant delivery</div>
                             </div>
-                            <div className='h-px w-12 mx-auto bg-white/10' />
-                            <div className='space-y-1'>
-                                <div className='text-xl font-semibold'>{p.stars} stars</div>
-                                {p.bonus > 0 && (() => {
-                                    const bonusUsd = p.bonus / basePerDollar
-                                    return (
-                                        <div className='flex items-center justify-center gap-2'>
-                                            <div className='text-xs inline-flex items-center justify-center gap-1 px-2 py-1 rounded-full bg-emerald-400/15 border border-emerald-400/30 text-emerald-300'>
-                                                <Gift className='w-3.5 h-3.5' />
-                                                +{p.bonus} bonus
+                            <div className='order-1 md:order-2 text-center'>
+                                {renderPackIcon(p.id)}
+                            </div>
+                            <div className='order-3 space-y-3 text-center md:text-left'>
+                                <div className='space-y-1'>
+                                    <div className='text-xl font-semibold'>{p.stars} stars</div>
+                                    {p.bonus > 0 && (() => {
+                                        const bonusUsd = p.bonus / basePerDollar
+                                        return (
+                                            <div className='flex items-center justify-center md:justify-start gap-2'>
+                                                <div className='text-xs inline-flex items-center justify-center gap-1 px-2 py-1 rounded-full bg-emerald-400/15 border border-emerald-400/30 text-emerald-300'>
+                                                    <Gift className='w-3.5 h-3.5' />
+                                                    +{p.bonus} bonus
+                                                </div>
+                                                <div className='text-[11px] text-emerald-300/90'>≈ ${bonusUsd.toFixed(2)} value</div>
                                             </div>
-                                            <div className='text-[11px] text-emerald-300/90'>≈ ${bonusUsd.toFixed(2)} value</div>
-                                        </div>
-                                    )
-                                })()}
-                                <div className='text-xs text-white/60'>${(p.priceUsd / (p.stars / basePerDollar)).toFixed(2)} per 60 stars</div>
+                                        )
+                                    })()}
+                                    <div className='text-xs text-white/60'>${(p.priceUsd / (p.stars / basePerDollar)).toFixed(2)} per 60 stars</div>
+                                </div>
+                                <ul className='text-sm text-white/80 space-y-1'>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-emerald-300' /> Instant delivery</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-emerald-300' /> Secure checkout</li>
+                                    {p.bonus > 0 && (
+                                        <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-emerald-300' /> Includes bonus stars</li>
+                                    )}
+                                </ul>
+                                <div>
+                                    <PricingCTA mode='pack' packId={p.id} />
+                                </div>
                             </div>
-                            <ul className='text-xs text-white/80 space-y-1 mt-2'>
-                                <li className='flex items-center justify-center gap-2'><CheckCircle2 className='w-3.5 h-3.5 text-emerald-300' /> Instant delivery</li>
-                                <li className='flex items-center justify-center gap-2'><CheckCircle2 className='w-3.5 h-3.5 text-emerald-300' /> Secure checkout</li>
-                                {p.bonus > 0 && (
-                                    <li className='flex items-center justify-center gap-2'><CheckCircle2 className='w-3.5 h-3.5 text-emerald-300' /> Includes bonus stars</li>
-                                )}
-                            </ul>
                         </div>
                     </Card>
                 ))}
