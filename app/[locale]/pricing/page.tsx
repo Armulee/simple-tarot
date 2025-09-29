@@ -1,6 +1,6 @@
 // server component
 import { Card } from "@/components/ui/card"
-import { Star, Crown, Gift, Shield, Lock, CreditCard, CheckCircle2, Sparkles, Sparkle } from "lucide-react"
+import { Star, Crown, Gift, Shield, Lock, CreditCard, CheckCircle2, Sparkles, Sparkle, Infinity as InfinityIcon } from "lucide-react"
 import { PricingCTA } from "@/components/pricing/pricing-cta"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 type Pack = {
@@ -258,8 +258,8 @@ export default async function PricingPage() {
                     <div className='flex items-center justify-between flex-wrap gap-4'>
                         <div className='order-2 md:order-1 space-y-1'>
                             <TabsList>
-                                <TabsTrigger value='one-month'>$9.99 · One month</TabsTrigger>
-                                <TabsTrigger value='one-year'>$99.99 · One year</TabsTrigger>
+                                <TabsTrigger value='one-month'>One month</TabsTrigger>
+                                <TabsTrigger value='one-year'>One year</TabsTrigger>
                             </TabsList>
                         </div>
                         {/* Icon shown per tab for color change */}
@@ -274,8 +274,8 @@ export default async function PricingPage() {
                             </div>
                             <div className='order-2 md:order-1 space-y-2'>
                                 <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-slate-400/15 border border-slate-400/30 text-slate-200'>
-                                    <Star className='w-4 h-4' />
-                                    One-time purchase
+                                    <InfinityIcon className='w-4 h-4' />
+                                    Non renewal
                                 </div>
                                 <div className='text-3xl font-bold'>$9.99</div>
                                 <div className='text-sm text-muted-foreground'>one month · no subscription · instant delivery</div>
@@ -300,8 +300,8 @@ export default async function PricingPage() {
                             </div>
                             <div className='order-2 md:order-1 space-y-2'>
                                 <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-zinc-400/15 border border-zinc-400/30 text-zinc-200'>
-                                    <Star className='w-4 h-4' />
-                                    One-time purchase
+                                    <InfinityIcon className='w-4 h-4' />
+                                    Non renewal
                                 </div>
                                 <div className='inline-flex items-baseline gap-2'>
                                     <div className='text-3xl font-bold'>$99.99</div>
