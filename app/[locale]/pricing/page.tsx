@@ -348,17 +348,17 @@ export default async function PricingPage() {
                                     <span>{p.label || 'One-time pack'}</span>
                                 </div>
                                 {/* Stars amount first (above price) with bonus badge at top-right */}
-                                <div className='relative inline-flex items-center gap-2 justify-center w-full mt-2'>
-                                    <span className={`inline-flex items-center gap-3 px-5 py-2 rounded-full border ${packBadgeClasses(p.id)}`}>
+                                <div className='inline-flex items-center gap-2 justify-center w-full mt-2'>
+                                    <span className={`relative inline-flex items-center gap-3 px-5 py-2 rounded-full border ${packBadgeClasses(p.id)}`}>
                                         <Star className={`w-7 h-7 ${packIconColor(p.id)}`} fill='currentColor' />
                                         <span className={`text-3xl font-extrabold leading-none ${packIconColor(p.id)}`}>{p.stars}</span>
                                         <span className={`text-3xl font-extrabold leading-none ${packIconColor(p.id)}`}>stars</span>
+                                        {p.bonus > 0 && (
+                                            <span className='absolute -top-2 -right-2 rotate-6 text-xs px-2 py-0.5 rounded border bg-emerald-400/15 border-emerald-400/30 text-emerald-300 font-semibold'>
+                                                +{p.bonus} bonus
+                                            </span>
+                                        )}
                                     </span>
-                                    {p.bonus > 0 && (
-                                        <span className='absolute -top-2 -right-10 rotate-6 text-xs px-2 py-0.5 rounded border bg-emerald-400/15 border-emerald-400/30 text-emerald-300 font-semibold'>
-                                            +{p.bonus} bonus
-                                        </span>
-                                    )}
                                 </div>
                                 <div className='text-3xl font-bold'>${p.priceUsd.toFixed(2)}</div>
                                 <div className='text-sm text-muted-foreground'>one-time · instant delivery</div>
