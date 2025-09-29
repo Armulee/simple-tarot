@@ -502,3 +502,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* slow spin for star icon */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 2.2s linear infinite;
+}

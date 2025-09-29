@@ -144,7 +144,7 @@ export default function Interpretation() {
         // If previous run errored, don't charge next run
         if (!error) {
             // Will cost 1 star; block if none
-            if (!paidForInterpretation && stars < 1) {
+            if (!paidForInterpretation && (!Number.isFinite(stars as number) || (stars as number) < 1)) {
                 setShowNoStarsDialog(true)
                 return
             }
@@ -194,7 +194,7 @@ export default function Interpretation() {
     const waiveChargeOnceRef = useRef(false)
     const chargedThisRunRef = useRef(false)
 
-    // Removed old localStorage-based interpretation cache.
+    // No localStorage usage
 
     const getInterpretationAsync = useCallback(async (): Promise<string> => {
         const currentQuestion =
@@ -256,7 +256,7 @@ If the interpretation is too generic, add more details to make it more specific.
             return
         }
         // Pre-check to avoid showing ads when not enough stars (unless already paid)
-        if (!paidForInterpretation && !waiveChargeOnceRef.current && stars < 1) {
+        if (!paidForInterpretation && !waiveChargeOnceRef.current && (!Number.isFinite(stars as number) || (stars as number) < 1)) {
             setInsufficientStars(true)
             return
         }
@@ -265,11 +265,10 @@ If the interpretation is too generic, add more details to make it more specific.
         setShowAd(true)
     }, [getInterpretationAsync, stars, paidForInterpretation, interpretation])
 
-    const handleAdCompleted = useCallback(() => {
-        // Close ad and mark as completed; text will be shown from completion hook
-        setShowAd(false)
-        setAdCompleted(true)
-    }, [])
+    // const handleAdCompleted = useCallback(() => {
+    //     setShowAd(false)
+    //     setAdCompleted(true)
+    // }, [])
 
     const adsEnabled = false
 
@@ -307,7 +306,7 @@ If the interpretation is too generic, add more details to make it more specific.
                 return
             }
 
-            if (!paidForInterpretation && !waiveChargeOnceRef.current && stars < 1) {
+            if (!paidForInterpretation && !waiveChargeOnceRef.current && (!Number.isFinite(stars as number) || (stars as number) < 1)) {
                 setInsufficientStars(true)
                 return
             }

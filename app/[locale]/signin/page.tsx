@@ -2,17 +2,19 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { useRouter } from "@/i18n/navigation"
+import { useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Link } from "@/i18n/navigation"
+import Link from "next/link"
 import { GoogleSignInButton } from "@/components/auth/google-signin-button"
 import { AuthDivider } from "@/components/auth/auth-divider"
 import { useAuth } from "@/hooks/use-auth"
 import { useTranslations } from "next-intl"
+import { toast } from "sonner"
 
 export default function SignInPage() {
     const t = useTranslations("Auth.SignIn")
@@ -21,7 +23,26 @@ export default function SignInPage() {
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState("")
     const router = useRouter()
-    const { signIn } = useAuth()
+    const params = useSearchParams()
+    const { signIn, user } = useAuth()
+
+    useEffect(() => {
+        const err = params.get("error")
+        const desc = params.get("error_description")
+        if (err || desc) {
+            const msg = desc || err || "Authentication error"
+            setError(msg)
+            toast.error(msg, { duration: Infinity, closeButton: true })
+        }
+    }, [params])
+
+    // Guard: if already authenticated and visiting sign-in, redirect back with toast
+    useEffect(() => {
+        if (!user) return
+        const callbackUrl = params.get("callbackUrl") || document.referrer || "/"
+        toast.info("You are already signed in. Please sign out before accessing this page.")
+        router.replace(callbackUrl)
+    }, [user, router, params])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -33,12 +54,15 @@ export default function SignInPage() {
 
             if (error) {
                 setError(error.message)
+                toast.error(error.message || "Authentication error", { duration: Infinity, closeButton: true })
             } else {
-                router.push("/")
+                const callbackUrl = params.get("callbackUrl") || "/"
+                router.push(callbackUrl)
                 router.refresh()
             }
         } catch {
             setError("An error occurred. Please try again.")
+            toast.error("An error occurred. Please try again.", { duration: Infinity, closeButton: true })
         } finally {
             setIsLoading(false)
         }
@@ -68,11 +92,6 @@ export default function SignInPage() {
 
             {/* Sign In Form */}
             <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20 card-glow'>
-                {error && (
-                    <div className='mb-4 p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md'>
-                        {error}
-                    </div>
-                )}
                 <form onSubmit={handleSubmit} className='space-y-6'>
                     <div className='space-y-4'>
                         <div className='space-y-2'>

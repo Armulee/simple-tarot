@@ -3,7 +3,8 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useStars } from "@/contexts/stars-context"
-import { Star, Clock, Gift, Share2, Users, Megaphone } from "lucide-react"
+import { Star, Clock, Gift, Share2, Users, Megaphone, Check } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -19,7 +20,8 @@ function formatRelativeTime(timestamp: number | null | undefined, nowMs: number)
 }
 
 export default function StarsPage() {
-    const { stars, nextRefillAt, refillCap } = useStars()
+    const { stars, nextRefillAt, refillCap, firstLoginBonusGranted } = useStars()
+    const { user } = useAuth()
 
     const [now, setNow] = useState<number>(Date.now())
     useEffect(() => {
@@ -87,8 +89,8 @@ export default function StarsPage() {
                     <AccordionItem className='rounded-xl border border-border/20 bg-card/10 px-2'>
                         <AccordionTrigger className='px-2'>
                             <div className='flex items-center gap-3'>
-                                <span className='h-8 w-8 rounded-full bg-white/10 border border-white/20 text-white/80 flex items-center justify-center'>
-                                    <Gift className='w-4 h-4' />
+                                <span className={`h-8 w-8 rounded-full flex items-center justify-center border ${firstLoginBonusGranted ? 'bg-green-500/20 border-green-400/40 text-green-300' : 'bg-white/10 border-white/20 text-white/80'}`}>
+                                    {firstLoginBonusGranted ? (<Check className='w-4 h-4' />) : (<Gift className='w-4 h-4' />)}
                                 </span>
                                 <span className='text-white'>Sign in</span>
                                 <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 border border-yellow-500/30 text-yellow-300 flex items-center gap-1'>
@@ -100,9 +102,11 @@ export default function StarsPage() {
                         <AccordionContent>
                             <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-border/20'>
                                 <p>Sign in and receive +10 stars. Your auto-refill capacity increases to 15 stars.</p>
-                                <Link href='/signin'>
-                                    <Button className='rounded-full'>Sign in</Button>
-                                </Link>
+                                {!(user && firstLoginBonusGranted) && (
+                                    <Link href={`/signin?callbackUrl=${encodeURIComponent(window.location.pathname)}`}>
+                                        <Button className='rounded-full'>Sign in</Button>
+                                    </Link>
+                                )}
                             </div>
                         </AccordionContent>
                     </AccordionItem>

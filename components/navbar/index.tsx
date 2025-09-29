@@ -21,6 +21,7 @@ import { UserProfile } from "@/components/user-profile"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/use-auth"
 import { useStars } from "@/contexts/stars-context"
+import { useStarConsent } from "@/components/star-consent"
 import {
     Sheet,
     SheetContent,
@@ -46,14 +47,15 @@ export function Navbar({ locale }: { locale: string }) {
     const [mysticalOpen, setMysticalOpen] = useState(false)
     const { user, loading } = useAuth()
     const { stars, initialized } = useStars()
+    const { choice, show } = useStarConsent()
     const meta = (user?.user_metadata ?? {}) as {
         avatar_url?: string
         picture?: string
         name?: string
     }
-    const avatarSrc = meta.avatar_url || meta.picture || undefined
+    // const avatarSrc = meta.avatar_url || meta.picture || undefined
     const displayName = meta.name || user?.email?.split("@")[0] || "User"
-    const initial = displayName.charAt(0).toUpperCase()
+    // const initial = displayName.charAt(0).toUpperCase()
 
     return (
         <nav className='fixed top-0 left-0 right-0 z-50 bg-card/5 backdrop-blur-sm border-b border-border/20'>
@@ -210,11 +212,19 @@ export function Navbar({ locale }: { locale: string }) {
                                 <Button
                                     variant='ghost'
                                     className='h-10 px-3 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 text-yellow-300 border border-yellow-500/30 flex items-center gap-2'
+                                    onClick={(e) => {
+                                        if (choice === null || choice === "declined") {
+                                            e.preventDefault()
+                                            show()
+                                        }
+                                    }}
                                 >
-                                    <Star className='w-4 h-4' fill='currentColor' />
-                                    <span className='font-semibold'>
-                                        {initialized ? stars : "-"}
-                                    </span>
+                                    <Star className={`w-4 h-4 ${initialized ? '' : 'animate-spin-slow'}`} fill='currentColor' />
+                                    {initialized && (
+                                        <span className='font-semibold'>
+                                            {stars ?? 0}
+                                        </span>
+                                    )}
                                 </Button>
                             </Link>
                         </div>
@@ -225,11 +235,19 @@ export function Navbar({ locale }: { locale: string }) {
                                 <Button
                                     variant='ghost'
                                     className='h-9 px-2 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 text-yellow-300 border border-yellow-500/30 flex items-center gap-1'
+                                    onClick={(e) => {
+                                        if (choice === null || choice === "declined") {
+                                            e.preventDefault()
+                                            show()
+                                        }
+                                    }}
                                 >
-                                    <Star className='w-4 h-4' fill='currentColor' />
-                                    <span className='font-semibold'>
-                                        {initialized ? stars : "-"}
-                                    </span>
+                                    <Star className={`w-4 h-4 ${initialized ? '' : 'animate-spin-slow'}`} fill='currentColor' />
+                                    {initialized && (
+                                        <span className='font-semibold'>
+                                            {stars ?? 0}
+                                        </span>
+                                    )}
                                 </Button>
                             </Link>
                         </div>
@@ -239,7 +257,7 @@ export function Navbar({ locale }: { locale: string }) {
                             {!loading && user ? (
                                 <UserProfile variant='desktop' />
                             ) : (
-                                <Link href='/signin'>
+                                <Link href={`/signin?callbackUrl=${encodeURIComponent(pathname)}`}>
                                     <Button
                                         variant='outline'
                                         className='flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-white/10 text-white/90 border border-white/10 hover:bg-white/15 transition'
@@ -256,7 +274,7 @@ export function Navbar({ locale }: { locale: string }) {
                             {!loading && user ? (
                                 <UserProfile variant='mobile' />
                             ) : (
-                                <Link href='/signin'>
+                                <Link href={`/signin?callbackUrl=${encodeURIComponent(pathname)}`}>
                                     <Button
                                         variant='outline'
                                         size='icon'

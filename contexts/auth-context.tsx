@@ -1,8 +1,10 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState } from "react"
-import { User, Session, AuthError } from "@supabase/supabase-js"
+import React, { createContext, useContext, useEffect, useState } from "react"
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js"
+import { User, AuthError } from "@supabase/supabase-js"
 import { supabase } from "@/lib/supabase"
+import { starSyncUserToDevice } from "@/lib/stars"
 
 interface AuthContextType {
     user: User | null
@@ -17,7 +19,7 @@ interface AuthContextType {
         email: string,
         password: string
     ) => Promise<{ error: AuthError | null }>
-    signInWithGoogle: () => Promise<{ error: AuthError | null }>
+    signInWithGoogle: (callbackUrl?: string | null) => Promise<{ error: AuthError | null }>
     signOut: () => Promise<{ error: AuthError | null }>
     resetPassword: (email: string) => Promise<{ error: AuthError | null }>
 }
@@ -50,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Listen for auth changes
         const {
             data: { subscription },
-        } = supabase.auth.onAuthStateChange(async (event, session) => {
+        } = supabase.auth.onAuthStateChange(async (_event: AuthChangeEvent, session: Session | null) => {
             setSession(session)
             setUser(session?.user ?? null)
             setLoading(false)
@@ -98,12 +100,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }
 
-    const signInWithGoogle = async () => {
+    const signInWithGoogle = async (callbackUrl?: string | null) => {
         try {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: "google",
                 options: {
-                    redirectTo: `${window.location.origin}/auth/callback`,
+                    redirectTo: `${window.location.origin}/auth/callback${callbackUrl ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`,
                 },
             })
             return { error }
@@ -118,6 +120,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const signOut = async () => {
         try {
+            // Before logging out, sync current user balance to device row
+            try {
+                if (user) {
+                    await starSyncUserToDevice(user)
+                }
+            } catch {}
             const { error } = await supabase.auth.signOut()
             return { error }
         } catch (error) {
