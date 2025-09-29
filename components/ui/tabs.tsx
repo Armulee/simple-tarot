@@ -1,39 +1,55 @@
-import * as React from "react"
-import * as TabsPrimitive from "@radix-ui/react-tabs"
+"use client"
 
-export const Tabs = TabsPrimitive.Root
-export const TabsList = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.List
-    ref={ref}
-    className={`inline-flex h-10 items-center justify-center rounded-full bg-white/5 border border-white/10 p-1 text-white ${className ?? ""}`}
-    {...props}
-  />
-))
-TabsList.displayName = TabsPrimitive.List.displayName
+import React, { createContext, useContext, useMemo, useState } from "react"
 
-export const TabsTrigger = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.Trigger
-    ref={ref}
-    className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all data-[state=active]:bg-white/15 data-[state=active]:text-white data-[state=active]:shadow data-[state=inactive]:text-white/70 ${className ?? ""}`}
-    {...props}
-  />
-))
-TabsTrigger.displayName = TabsPrimitive.Trigger.displayName
+type TabsContextType = {
+  value: string
+  setValue: (v: string) => void
+}
 
-export const TabsContent = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.Content
-    ref={ref}
-    className={className}
-    {...props}
-  />
-))
-TabsContent.displayName = TabsPrimitive.Content.displayName
+const TabsContext = createContext<TabsContextType | null>(null)
+
+type TabsProps = {
+  defaultValue: string
+  className?: string
+  children: React.ReactNode
+}
+
+export function Tabs({ defaultValue, className, children }: TabsProps) {
+  const [value, setValue] = useState(defaultValue)
+  const ctx = useMemo(() => ({ value, setValue }), [value])
+  return (
+    <TabsContext.Provider value={ctx}>
+      <div className={className}>{children}</div>
+    </TabsContext.Provider>
+  )
+}
+
+export function TabsList({ className, children }: { className?: string; children: React.ReactNode }) {
+  return (
+    <div className={`inline-flex h-10 items-center justify-center rounded-full bg-white/5 border border-white/10 p-1 text-white ${className ?? ""}`}>
+      {children}
+    </div>
+  )
+}
+
+export function TabsTrigger({ className, children, value }: { className?: string; children: React.ReactNode; value: string }) {
+  const ctx = useContext(TabsContext)
+  const active = ctx?.value === value
+  return (
+    <button
+      type="button"
+      onClick={() => ctx?.setValue(value)}
+      data-state={active ? "active" : "inactive"}
+      className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${active ? "bg-white/15 text-white shadow" : "text-white/70"} ${className ?? ""}`}
+    >
+      {children}
+    </button>
+  )
+}
+
+export function TabsContent({ className, children, value }: { className?: string; children: React.ReactNode; value: string }) {
+  const ctx = useContext(TabsContext)
+  if (ctx?.value !== value) return null
+  return <div className={className}>{children}</div>
+}

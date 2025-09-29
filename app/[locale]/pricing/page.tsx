@@ -264,7 +264,7 @@ export default async function PricingPage() {
                     >
                         <div className='grid grid-cols-1 gap-6 items-center'>
                             <div className='space-y-2 text-left'>
-                                <div className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border ${packBadgeClasses(p.id)}`}>
+                                <div className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border ${packBadgeClasses(p.id)} absolute -top-2 right-2`}>
                                     {p.id === 'pack-1' && <Star className={`w-4 h-4 ${packIconColor(p.id)}`} />}
                                     {p.id === 'pack-3' && <Sparkle className={`w-4 h-4 ${packIconColor(p.id)}`} />}
                                     {p.id === 'pack-5' && <Sparkles className={`w-4 h-4 ${packIconColor(p.id)}`} />}
@@ -272,12 +272,13 @@ export default async function PricingPage() {
                                 </div>
                                 {/* Stars amount first (above price) with bonus badge at top-right */}
                                 <div className='relative inline-flex items-center gap-2'>
-                                    <span className='inline-flex items-center gap-3'>
+                                    <span className={`inline-flex items-center gap-3 px-5 py-2 rounded-full border ${packBadgeClasses(p.id)}`}>
                                         <Star className={`w-7 h-7 ${packIconColor(p.id)}`} fill='currentColor' />
-                                        <span className='text-3xl font-extrabold leading-none'>{p.stars}</span>
+                                        <span className={`text-3xl font-extrabold leading-none ${packIconColor(p.id)}`}>{p.stars}</span>
+                                        <span className='text-base font-semibold tracking-wide text-white/90'>stars</span>
                                     </span>
                                     {p.bonus > 0 && (
-                                        <span className='absolute -top-2 -right-2 rotate-6 text-xs px-2 py-0.5 rounded border bg-emerald-400/15 border-emerald-400/30 text-emerald-300 font-semibold'>
+                                        <span className='absolute -top-2 -right-10 rotate-6 text-xs px-2 py-0.5 rounded border bg-emerald-400/15 border-emerald-400/30 text-emerald-300 font-semibold'>
                                             +{p.bonus} bonus
                                         </span>
                                     )}
