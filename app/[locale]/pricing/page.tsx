@@ -220,10 +220,10 @@ export default async function PricingPage() {
                                     <Crown className='w-4 h-4' />
                                     Annual subscription
                                 </div>
-                                <div className='relative inline-flex items-baseline gap-2'>
-                                    <div className='text-3xl font-bold'>$8.33</div>
+                                <div className='text-3xl font-bold'>$8.33</div>
+                                <div className='inline-flex items-center gap-2'>
                                     <div className='text-sm text-white/70 line-through'>$9.99</div>
-                                    <span className='absolute -top-3 -right-6 rotate-6 text-xs px-2 py-0.5 rounded border bg-sky-400/15 border-sky-400/30 text-sky-300 font-semibold'>
+                                    <span className='text-xs px-2 py-0.5 rounded border bg-sky-400/15 border-sky-400/30 text-sky-300 font-semibold rotate-6'>
                                         Save 17%
                                     </span>
                                 </div>
