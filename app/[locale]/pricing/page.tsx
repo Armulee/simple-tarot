@@ -103,11 +103,7 @@ export default async function PricingPage() {
 
     return (
         <section className='relative z-10 max-w-6xl mx-auto px-6 py-14 space-y-12'>
-            {/* Background accents */}
-            <div className='pointer-events-none absolute -z-10 inset-0 overflow-hidden'>
-                <div className='absolute -top-24 -left-24 w-80 h-80 rounded-full bg-gradient-to-br from-yellow-400/10 to-orange-500/10 blur-3xl' />
-                <div className='absolute -bottom-32 -right-28 w-96 h-96 rounded-full bg-gradient-to-tr from-violet-500/10 to-fuchsia-500/10 blur-3xl' />
-            </div>
+            {/* Background accents removed per request */}
 
             {/* Hero */}
             <div className='text-center space-y-4'>
