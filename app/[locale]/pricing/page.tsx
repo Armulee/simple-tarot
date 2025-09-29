@@ -132,7 +132,7 @@ export default async function PricingPage() {
                         className={`relative p-6 rounded-xl ${packStyles(p.id).bg} ${packStyles(p.id).border} ring-1 ring-white/10 hover:brightness-110 transition group overflow-visible`}
                     >
                         {/* Aura styled similar to interpretation cards but with pack color */}
-                        <div className={`pointer-events-none absolute -inset-12 z-0 rounded-[28px] blur-[64px] opacity-85 mix-blend-screen bg-gradient-to-br ${packAura(p.id)}`} />
+                        <div className={`pointer-events-none absolute -inset-4 z-0 rounded-[22px] blur-[36px] opacity-85 mix-blend-screen bg-gradient-to-br ${packAura(p.id)}`} />
                         <div className='pointer-events-none absolute inset-0 z-0 opacity-8 bg-[radial-gradient(120%_120%_at_0%_0%,rgba(255,255,255,0.10),transparent_35%),radial-gradient(120%_120%_at_100%_100%,rgba(255,255,255,0.10),transparent_35%)]' />
                         {p.label && (
                             <div className={`absolute -top-2 right-4 text-xs px-2 py-1 rounded-full ${badgeStyles(p.id)}`}>
