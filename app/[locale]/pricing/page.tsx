@@ -212,7 +212,7 @@ export default async function PricingPage() {
                                     <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-violet-300' /> Occasional bonus stars & perks</li>
                                     <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-violet-300' /> Cancel anytime from your account</li>
                                 </ul>
-                                <PricingCTA mode='subscribe' />
+                                <PricingCTA mode='subscribe' theme='violet' />
                             </div>
                         </div>
                     </TabsContent>
@@ -245,7 +245,7 @@ export default async function PricingPage() {
                                     <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-sky-300' /> Same perks as monthly</li>
                                     <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-sky-300' /> Cancel renewal anytime</li>
                                 </ul>
-                                <PricingCTA mode='subscribe' />
+                                <PricingCTA mode='subscribe' theme='sky' />
                             </div>
                         </div>
                     </TabsContent>
