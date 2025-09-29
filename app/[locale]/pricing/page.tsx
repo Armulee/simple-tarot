@@ -209,18 +209,24 @@ export default async function PricingPage() {
                     <TabsContent value='annual'>
                         <div className='grid md:grid-cols-3 gap-6 items-center mt-4'>
                             <div className='order-2 md:order-1 space-y-2'>
-                                <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-emerald-400/15 border border-emerald-400/30 text-emerald-300'>
+                                <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-sky-400/15 border border-sky-400/30 text-sky-300'>
                                     <Crown className='w-4 h-4' />
                                     Annual subscription
                                 </div>
-                                <div className='text-3xl font-bold'>$8.33</div>
-                                <div className='text-sm text-muted-foreground'>per month · billed $100/year · save {(1 - 8.33/9.99)*100 | 0}%</div>
+                                <div className='relative inline-flex items-baseline gap-2'>
+                                    <div className='text-3xl font-bold'>$8.33</div>
+                                    <div className='text-sm text-white/70 line-through'>$9.99</div>
+                                    <span className='absolute -top-3 -right-6 rotate-6 text-xs px-2 py-0.5 rounded border bg-sky-400/15 border-sky-400/30 text-sky-300 font-semibold'>
+                                        Save 17%
+                                    </span>
+                                </div>
+                                <div className='text-sm text-muted-foreground'>per month · billed $100/year</div>
                             </div>
                             <div className='order-3 space-y-3'>
                                 <ul className='mt-2 text-sm text-white/80 space-y-1'>
-                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-emerald-300' /> Best value yearly plan</li>
-                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-emerald-300' /> Same perks as monthly</li>
-                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-emerald-300' /> Cancel renewal anytime</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-sky-300' /> Best value yearly plan</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-sky-300' /> Same perks as monthly</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-sky-300' /> Cancel renewal anytime</li>
                                 </ul>
                                 <PricingCTA mode='subscribe' />
                             </div>
@@ -230,10 +236,10 @@ export default async function PricingPage() {
             </Card>
 
             {/* Infinity one-time pack */}
-            <Card className='p-6 rounded-xl bg-gradient-to-br from-amber-500/12 via-yellow-500/10 to-orange-500/12 border-amber-400/25 hover:brightness-110 transition'>
+            <Card className='p-6 rounded-xl bg-gradient-to-br from-slate-500/12 via-slate-600/10 to-slate-700/12 border-slate-400/25 hover:brightness-110 transition'>
                 <div className='grid md:grid-cols-3 gap-6 items-center'>
                     <div className='order-2 md:order-1 space-y-2'>
-                        <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300'>
+                        <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-slate-400/15 border border-slate-400/30 text-slate-200'>
                             <Star className='w-4 h-4' />
                             One-time purchase
                         </div>
@@ -241,15 +247,15 @@ export default async function PricingPage() {
                         <div className='text-sm text-muted-foreground'>lifetime · instant delivery</div>
                     </div>
                     <div className='order-1 md:order-2 text-center'>
-                        <div className='w-16 h-16 mx-auto rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center'>
-                            <span className='text-5xl text-amber-300 leading-none'>∞</span>
+                        <div className='w-16 h-16 mx-auto rounded-full bg-slate-500/15 border border-slate-500/30 flex items-center justify-center'>
+                            <span className='text-5xl text-slate-200 leading-none'>∞</span>
                         </div>
                     </div>
                     <div className='order-3 space-y-3'>
                         <ul className='mt-2 text-sm text-white/80 space-y-1'>
-                            <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-amber-300' /> Infinity stars</li>
-                            <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-amber-300' /> Instant delivery</li>
-                            <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-amber-300' /> One-time payment</li>
+                            <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-slate-200' /> Infinity stars</li>
+                            <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-slate-200' /> Instant delivery</li>
+                            <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-slate-200' /> One-time payment</li>
                         </ul>
                         <PricingCTA mode='pack' packId='pack-infinity' />
                     </div>
