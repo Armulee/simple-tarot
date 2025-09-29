@@ -160,10 +160,6 @@ export default async function PricingPage() {
 
             {/* Hero */}
             <div className='text-center space-y-4'>
-                <div className='inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm'>
-                    <Sparkles className='w-4 h-4' />
-                    Fair and simple pricing
-                </div>
                 <h1 className='font-serif font-bold text-4xl md:text-5xl'>
                     Choose your stars, unlock deeper insights
                 </h1>
@@ -188,15 +184,14 @@ export default async function PricingPage() {
                                     {p.id === 'pack-5' && <Sparkles className={`w-4 h-4 ${packIconColor(p.id)}`} />}
                                     <span>{p.label || 'One-time pack'}</span>
                                 </div>
-                                {/* Stars amount first (above price) */}
-                                <div className='flex items-center gap-2'>
-                                    <span className={`inline-flex items-center gap-3`}>
+                                {/* Stars amount first (above price) with bonus badge at top-right */}
+                                <div className='relative inline-flex items-center gap-2'>
+                                    <span className='inline-flex items-center gap-3'>
                                         <Star className={`w-7 h-7 ${packIconColor(p.id)}`} fill='currentColor' />
                                         <span className='text-3xl font-extrabold leading-none'>{p.stars}</span>
                                     </span>
                                     {p.bonus > 0 && (
-                                        <span className='text-xs inline-flex items-center justify-center gap-1 px-2 py-1 rounded-full bg-emerald-400/15 border border-emerald-400/30 text-emerald-300'>
-                                            <Gift className='w-3.5 h-3.5' />
+                                        <span className='absolute -top-2 -right-2 rotate-6 text-xs px-2 py-0.5 rounded border bg-emerald-400/15 border-emerald-400/30 text-emerald-300 font-semibold'>
                                             +{p.bonus} bonus
                                         </span>
                                     )}
