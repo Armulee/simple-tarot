@@ -181,6 +181,10 @@ export default async function PricingPage() {
                         className={`p-6 rounded-xl ${packStyles(p.id).bg} ${packStyles(p.id).border} hover:brightness-110 transition`}
                     >
                         <div className='grid grid-cols-1 gap-6 items-center'>
+                            {/* Top icon like subscription */}
+                            <div className='text-center'>
+                                {renderCenterIcon(p.id)}
+                            </div>
                             <div className='space-y-2 text-left'>
                                 <div className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border ${packBadgeClasses(p.id)}`}>
                                     {p.id === 'pack-1' && <Star className={`w-4 h-4 ${packIconColor(p.id)}`} />}
@@ -193,20 +197,19 @@ export default async function PricingPage() {
                             </div>
                             <div className='space-y-3 text-left'>
                                 <div className='space-y-1'>
-                                    <div className='text-xl font-semibold'>
-                                        <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/15`}>
+                                    {/* Stars and bonus in the same row */}
+                                    <div className='flex items-center gap-2'>
+                                        <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border ${packBadgeClasses(p.id)}`}>
                                             <Star className={`w-4 h-4 ${packIconColor(p.id)}`} />
                                             <span className='tracking-wide'>{p.stars} stars</span>
                                         </span>
-                                    </div>
-                                    {p.bonus > 0 && (() => {
-                                        return (
-                                            <div className='text-xs inline-flex items-center justify-center gap-1 px-2 py-1 rounded-full bg-emerald-400/15 border border-emerald-400/30 text-emerald-300'>
+                                        {p.bonus > 0 && (
+                                            <span className='text-xs inline-flex items-center justify-center gap-1 px-2 py-1 rounded-full bg-emerald-400/15 border border-emerald-400/30 text-emerald-300'>
                                                 <Gift className='w-3.5 h-3.5' />
                                                 +{p.bonus} bonus
-                                            </div>
-                                        )
-                                    })()}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                                 <ul className='text-sm text-white/80 space-y-1'>
                                     <li className='flex items-center gap-2'><CheckCircle2 className={`w-4 h-4 ${packIconColor(p.id)}`} /> Instant delivery</li>
