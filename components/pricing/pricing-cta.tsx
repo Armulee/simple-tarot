@@ -79,36 +79,16 @@ export function PricingCTA({ mode, packId, theme }: { mode: PricingCTAMode; pack
 
     // subscribe
     if (user) {
-        const themed = theme === "violet"
-            ? "bg-violet-400/15 border border-violet-400/30 text-violet-300 hover:bg-violet-400/25"
-            : theme === "sky"
-            ? "bg-sky-400/15 border border-sky-400/30 text-sky-300 hover:bg-sky-400/25"
-            : theme === "slate"
-            ? "bg-slate-400/15 border border-slate-400/30 text-slate-200 hover:bg-slate-400/25"
-            : theme === "zinc"
-            ? "bg-zinc-400/15 border border-zinc-400/30 text-zinc-200 hover:bg-zinc-400/25"
-            : "bg-white/10"
         return (
             <Link href='/pricing/subscribe'>
-                <Button className={`w-full rounded-full ${themed}`}>Subscribe</Button>
+                <Button className={`w-full rounded-full bg-white text-black hover:brightness-90`}>Subscribe</Button>
             </Link>
         )
     }
-    {
-        const themed = theme === "violet"
-            ? "bg-violet-400/15 border border-violet-400/30 text-violet-300 hover:bg-violet-400/25"
-            : theme === "sky"
-            ? "bg-sky-400/15 border border-sky-400/30 text-sky-300 hover:bg-sky-400/25"
-            : theme === "slate"
-            ? "bg-slate-400/15 border border-slate-400/30 text-slate-200 hover:bg-slate-400/25"
-            : theme === "zinc"
-            ? "bg-zinc-400/15 border border-zinc-400/30 text-zinc-200 hover:bg-zinc-400/25"
-            : "bg-white/10"
-        return (
-            <Link href={`/signin?callbackUrl=${encodeURIComponent("/pricing")}`}>
-                <Button className={`w-full rounded-full ${themed}`}>Sign in to subscribe</Button>
-            </Link>
-        )
-    }
+    return (
+        <Link href={`/signin?callbackUrl=${encodeURIComponent("/pricing")}`}>
+            <Button className={`w-full rounded-full bg-white text-black hover:brightness-90`}>Sign in to subscribe</Button>
+        </Link>
+    )
 }
 

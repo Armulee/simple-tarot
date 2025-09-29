@@ -217,23 +217,23 @@ export default async function PricingPage() {
                         </div>
                     </TabsContent>
                     <TabsContent value='annual'>
-                        {/* Annual colored background overlay */}
-                        <div className='pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-sky-500/12 via-cyan-500/10 to-blue-500/12' />
+                        {/* Annual colored background overlay (indigo) */}
+                        <div className='pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-500/12 via-indigo-600/10 to-indigo-700/12' />
                         <div className='grid md:grid-cols-3 gap-6 items-center mt-4 relative z-10'>
                             <div className='order-1 md:order-2 text-center'>
-                                <div className='w-16 h-16 mx-auto rounded-full bg-sky-500/15 border border-sky-500/30 flex items-center justify-center'>
-                                    <Crown className='w-8 h-8 text-sky-300' />
+                                <div className='w-16 h-16 mx-auto rounded-full bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center'>
+                                    <Crown className='w-8 h-8 text-indigo-300' />
                                 </div>
                             </div>
                             <div className='order-2 md:order-1 space-y-2'>
-                                <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-sky-400/15 border border-sky-400/30 text-sky-300'>
+                                <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-indigo-400/15 border border-indigo-400/30 text-indigo-300'>
                                     <Crown className='w-4 h-4' />
                                     Annual subscription
                                 </div>
                                 <div className='inline-flex items-baseline gap-2'>
                                     <div className='text-3xl font-bold'>$8.33</div>
                                     <div className='text-sm text-white/70 line-through'>$9.99</div>
-                                    <span className='text-xs px-2 py-0.5 rounded border bg-sky-400/15 border-sky-400/30 text-sky-300 font-semibold'>
+                                    <span className='text-xs px-2 py-0.5 rounded border bg-indigo-400/15 border-indigo-400/30 text-indigo-300 font-semibold'>
                                         Save 17%
                                     </span>
                                 </div>
@@ -241,11 +241,11 @@ export default async function PricingPage() {
                             </div>
                             <div className='order-3 space-y-3'>
                                 <ul className='mt-2 text-sm text-white/80 space-y-1'>
-                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-sky-300' /> Best value yearly plan</li>
-                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-sky-300' /> Same perks as monthly</li>
-                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-sky-300' /> Cancel renewal anytime</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-indigo-300' /> Best value yearly plan</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-indigo-300' /> Same perks as monthly</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-indigo-300' /> Cancel renewal anytime</li>
                                 </ul>
-                                <PricingCTA mode='subscribe' theme='sky' />
+                                <PricingCTA mode='subscribe' />
                             </div>
                         </div>
                     </TabsContent>
@@ -265,15 +265,15 @@ export default async function PricingPage() {
                         {/* Icon shown per tab for color change */}
                     </div>
                     <TabsContent value='one-month'>
-                        <div className='pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-teal-500/12 via-teal-600/10 to-teal-700/12' />
+                        <div className='pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-amber-500/12 via-amber-600/10 to-orange-600/12' />
                         <div className='grid md:grid-cols-3 gap-6 items-center mt-4 relative z-10'>
                             <div className='order-1 md:order-2 text-center'>
-                                <div className='w-16 h-16 mx-auto rounded-full bg-teal-500/15 border border-teal-500/30 flex items-center justify-center'>
-                                    <span className='text-5xl text-teal-200 leading-none'>∞</span>
+                                <div className='w-16 h-16 mx-auto rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center'>
+                                    <span className='text-5xl text-amber-200 leading-none'>∞</span>
                                 </div>
                             </div>
                             <div className='order-2 md:order-1 space-y-2'>
-                                <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-teal-400/15 border border-teal-400/30 text-teal-200'>
+                                <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-200'>
                                     <InfinityIcon className='w-4 h-4' />
                                     Non renewal
                                 </div>
@@ -282,9 +282,9 @@ export default async function PricingPage() {
                             </div>
                             <div className='order-3 space-y-3'>
                                 <ul className='mt-2 text-sm text-white/80 space-y-1'>
-                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-teal-200' /> Infinity stars (30 days)</li>
-                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-teal-200' /> Instant delivery</li>
-                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-teal-200' /> One-time payment, no auto-renew</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-amber-200' /> Infinity stars (30 days)</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-amber-200' /> Instant delivery</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-amber-200' /> One-time payment, no auto-renew</li>
                                 </ul>
                                 <PricingCTA mode='pack' packId='pack-infinity' />
                             </div>
