@@ -1,5 +1,4 @@
 // server component
-import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Star, Crown, Gift, Shield, Lock, CreditCard, CheckCircle2, Sparkles } from "lucide-react"
 import { PricingCTA } from "@/components/pricing/pricing-cta"
@@ -61,8 +60,6 @@ export default async function PricingPage() {
         }
     }
 
-    const starCountForPack = (id: string) => (id === "pack-3" ? 3 : id === "pack-5" ? 5 : 1)
-
     const packAura = (id: string) => {
         switch (id) {
             case "pack-1":
@@ -106,8 +103,8 @@ export default async function PricingPage() {
                         key={idx}
                         className='absolute text-yellow-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]'
                         style={{
-                            top: s.center ? `calc(${s.top} - ${s.size / 2}px)` : s.top,
-                            left: s.center ? `calc(${s.left} - ${s.size / 2}px)` : s.left,
+                            top: s.top,
+                            left: s.left,
                             width: `${s.size}px`,
                             height: `${s.size}px`,
                         }}

@@ -20,7 +20,7 @@ function formatRelativeTime(timestamp: number | null | undefined, nowMs: number)
 }
 
 export default function StarsPage() {
-    const { stars, nextRefillAt, refillCap, firstLoginBonusGranted, firstTimeLoginGrant } = useStars()
+    const { stars, nextRefillAt, refillCap, firstLoginBonusGranted } = useStars()
     const { user } = useAuth()
 
     const [now, setNow] = useState<number>(Date.now())

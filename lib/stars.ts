@@ -8,9 +8,9 @@ export type StarState = {
   firstTimeLoginGrant?: boolean
 }
 
-type GetOrCreateArgs = { p_anon_device_id: string | null; p_user_id: string | null }
-type SpendArgs = { p_anon_device_id: string | null; p_amount: number; p_user_id: string | null }
-type AddArgs = { p_anon_device_id: string | null; p_amount: number; p_user_id: string | null }
+// type GetOrCreateArgs = { p_anon_device_id: string | null; p_user_id: string | null }
+// type SpendArgs = { p_anon_device_id: string | null; p_amount: number; p_user_id: string | null }
+// type AddArgs = { p_anon_device_id: string | null; p_amount: number; p_user_id: string | null }
 
 function tsToMs(ts?: string | null): number | null {
   if (!ts) return null
@@ -60,7 +60,7 @@ export async function starAdd(user: User | null, amount: number): Promise<StarSt
   return { currentStars: row?.current_stars ?? 5, lastRefillAt: tsToMs(row?.last_refill_at), refillCap: cap }
 }
 
-export async function starSyncUserToDevice(user: User): Promise<void> {
+export async function starSyncUserToDevice(_user: User): Promise<void> {
   // Server-side only: we will assume DID exists; optional route can be added if needed
   await fetch("/api/stars/get-or-create")
 }
