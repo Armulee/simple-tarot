@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useStars } from "@/contexts/stars-context"
 import { Star, Clock, Gift, Share2, Users, Megaphone, Check } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -20,6 +21,7 @@ function formatRelativeTime(timestamp: number | null | undefined, nowMs: number)
 
 export default function StarsPage() {
     const { stars, nextRefillAt, refillCap, firstLoginBonusGranted } = useStars()
+    const { user } = useAuth()
 
     const [now, setNow] = useState<number>(Date.now())
     useEffect(() => {
@@ -100,9 +102,11 @@ export default function StarsPage() {
                         <AccordionContent>
                             <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-border/20'>
                                 <p>Sign in and receive +10 stars. Your auto-refill capacity increases to 15 stars.</p>
-                                <Link href='/signin'>
-                                    <Button className='rounded-full'>Sign in</Button>
-                                </Link>
+                                {!(user && firstLoginBonusGranted) && (
+                                    <Link href='/signin'>
+                                        <Button className='rounded-full'>Sign in</Button>
+                                    </Link>
+                                )}
                             </div>
                         </AccordionContent>
                     </AccordionItem>
