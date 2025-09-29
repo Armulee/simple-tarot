@@ -2,6 +2,7 @@
 import { Card } from "@/components/ui/card"
 import { Star, Crown, Gift, Shield, Lock, CreditCard, CheckCircle2, Sparkles, Sparkle } from "lucide-react"
 import { PricingCTA } from "@/components/pricing/pricing-cta"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 type Pack = {
     id: string
     priceUsd: number
@@ -156,6 +157,91 @@ export default async function PricingPage() {
 
     return (
         <section className='relative z-10 max-w-6xl mx-auto px-6 py-14 space-y-12'>
+            {/* Subscription with tabs (Monthly/Annual) */}
+            <Card className='p-6 rounded-xl bg-gradient-to-br from-violet-500/12 via-fuchsia-500/10 to-purple-500/12 border-violet-400/25 hover:brightness-110 transition'>
+                <Tabs defaultValue='monthly' className='w-full'>
+                    <div className='flex items-center justify-between flex-wrap gap-4'>
+                        <div className='order-2 md:order-1 space-y-1'>
+                            <TabsList>
+                                <TabsTrigger value='monthly'>Monthly</TabsTrigger>
+                                <TabsTrigger value='annual'>Annual</TabsTrigger>
+                            </TabsList>
+                        </div>
+                        <div className='order-1 md:order-2 text-center'>
+                            <div className='w-16 h-16 mx-auto rounded-full bg-violet-500/15 border border-violet-500/30 flex items-center justify-center'>
+                                <Crown className='w-8 h-8 text-violet-300' />
+                            </div>
+                        </div>
+                    </div>
+                    <TabsContent value='monthly'>
+                        <div className='grid md:grid-cols-3 gap-6 items-center mt-4'>
+                            <div className='order-2 md:order-1 space-y-2'>
+                                <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-violet-400/15 border border-violet-400/30 text-violet-300'>
+                                    <Crown className='w-4 h-4' />
+                                    Monthly subscription
+                                </div>
+                                <div className='text-3xl font-bold'>$9.99</div>
+                                <div className='text-sm text-muted-foreground'>per month · auto-renew · cancel anytime</div>
+                            </div>
+                            <div className='order-3 space-y-3'>
+                                <ul className='mt-2 text-sm text-white/80 space-y-1'>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-violet-300' /> Ongoing support for new features</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-violet-300' /> Occasional bonus stars & perks</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-violet-300' /> Cancel anytime from your account</li>
+                                </ul>
+                                <PricingCTA mode='subscribe' />
+                            </div>
+                        </div>
+                    </TabsContent>
+                    <TabsContent value='annual'>
+                        <div className='grid md:grid-cols-3 gap-6 items-center mt-4'>
+                            <div className='order-2 md:order-1 space-y-2'>
+                                <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-emerald-400/15 border border-emerald-400/30 text-emerald-300'>
+                                    <Crown className='w-4 h-4' />
+                                    Annual subscription
+                                </div>
+                                <div className='text-3xl font-bold'>$8.33</div>
+                                <div className='text-sm text-muted-foreground'>per month · billed $100/year · save {(1 - 8.33/9.99)*100 | 0}%</div>
+                            </div>
+                            <div className='order-3 space-y-3'>
+                                <ul className='mt-2 text-sm text-white/80 space-y-1'>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-emerald-300' /> Best value yearly plan</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-emerald-300' /> Same perks as monthly</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-emerald-300' /> Cancel renewal anytime</li>
+                                </ul>
+                                <PricingCTA mode='subscribe' />
+                            </div>
+                        </div>
+                    </TabsContent>
+                </Tabs>
+            </Card>
+
+            {/* Infinity one-time pack */}
+            <Card className='p-6 rounded-xl bg-gradient-to-br from-amber-500/12 via-yellow-500/10 to-orange-500/12 border-amber-400/25 hover:brightness-110 transition'>
+                <div className='grid md:grid-cols-3 gap-6 items-center'>
+                    <div className='order-2 md:order-1 space-y-2'>
+                        <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300'>
+                            <Star className='w-4 h-4' />
+                            One-time purchase
+                        </div>
+                        <div className='text-3xl font-bold'>$9.99</div>
+                        <div className='text-sm text-muted-foreground'>lifetime · instant delivery</div>
+                    </div>
+                    <div className='order-1 md:order-2 text-center'>
+                        <div className='w-16 h-16 mx-auto rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center'>
+                            <span className='text-5xl text-amber-300 leading-none'>∞</span>
+                        </div>
+                    </div>
+                    <div className='order-3 space-y-3'>
+                        <ul className='mt-2 text-sm text-white/80 space-y-1'>
+                            <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-amber-300' /> Infinity stars</li>
+                            <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-amber-300' /> Instant delivery</li>
+                            <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-amber-300' /> One-time payment</li>
+                        </ul>
+                        <PricingCTA mode='pack' packId='pack-infinity' />
+                    </div>
+                </div>
+            </Card>
             {/* Background accents removed per request */}
 
             {/* Hero */}
