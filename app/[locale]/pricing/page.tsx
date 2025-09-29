@@ -31,17 +31,17 @@ export default async function PricingPage() {
         switch (id) {
             case "pack-1":
                 return {
-                    bg: "bg-gradient-to-br from-yellow-400/15 via-amber-400/10 to-orange-500/15",
+                    bg: "bg-gradient-to-br from-yellow-400/10 via-amber-400/8 to-orange-500/10",
                     border: "border-yellow-400/25",
                 }
             case "pack-3":
                 return {
-                    bg: "bg-gradient-to-br from-pink-400/15 via-rose-400/10 to-red-500/15",
+                    bg: "bg-gradient-to-br from-pink-400/10 via-rose-400/8 to-red-500/10",
                     border: "border-pink-400/25",
                 }
             case "pack-5":
                 return {
-                    bg: "bg-gradient-to-br from-cyan-400/15 via-sky-400/10 to-indigo-500/15",
+                    bg: "bg-gradient-to-br from-cyan-400/10 via-sky-400/8 to-indigo-500/10",
                     border: "border-cyan-400/25",
                 }
             default:
@@ -132,8 +132,8 @@ export default async function PricingPage() {
                         className={`relative p-6 rounded-xl ${packStyles(p.id).bg} ${packStyles(p.id).border} ring-1 ring-white/10 hover:brightness-110 transition group overflow-visible`}
                     >
                         {/* Aura styled similar to interpretation cards but with pack color */}
-                        <div className={`pointer-events-none absolute -inset-12 z-0 rounded-[28px] blur-[64px] opacity-90 mix-blend-screen bg-gradient-to-br ${packAura(p.id)}`} />
-                        <div className='pointer-events-none absolute inset-0 z-0 opacity-30 bg-[radial-gradient(120%_120%_at_0%_0%,rgba(255,255,255,0.10),transparent_35%),radial-gradient(120%_120%_at_100%_100%,rgba(255,255,255,0.10),transparent_35%)]' />
+                        <div className={`pointer-events-none absolute -inset-12 z-0 rounded-[28px] blur-[64px] opacity-85 mix-blend-screen bg-gradient-to-br ${packAura(p.id)}`} />
+                        <div className='pointer-events-none absolute inset-0 z-0 opacity-15 bg-[radial-gradient(120%_120%_at_0%_0%,rgba(255,255,255,0.10),transparent_35%),radial-gradient(120%_120%_at_100%_100%,rgba(255,255,255,0.10),transparent_35%)]' />
                         {p.label && (
                             <div className={`absolute -top-2 right-4 text-xs px-2 py-1 rounded-full ${badgeStyles(p.id)}`}>
                                 {p.label}
