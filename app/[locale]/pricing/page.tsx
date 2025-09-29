@@ -28,6 +28,28 @@ export default async function PricingPage() {
         { id: "pack-5", priceUsd: 5, stars: 350, bonus: 350 - 5 * basePerDollar, label: "Best value" },
     ]
 
+    const packStyles = (id: string) => {
+        switch (id) {
+            case "pack-1":
+                return {
+                    bg: "bg-gradient-to-br from-yellow-400/15 via-amber-400/10 to-orange-500/15",
+                    border: "border-yellow-400/25",
+                }
+            case "pack-3":
+                return {
+                    bg: "bg-gradient-to-br from-pink-400/15 via-rose-400/10 to-red-500/15",
+                    border: "border-pink-400/25",
+                }
+            case "pack-5":
+                return {
+                    bg: "bg-gradient-to-br from-cyan-400/15 via-sky-400/10 to-indigo-500/15",
+                    border: "border-cyan-400/25",
+                }
+            default:
+                return { bg: "bg-card/10", border: "border-border/20" }
+        }
+    }
+
     return (
         <section className='relative z-10 max-w-6xl mx-auto px-6 py-14 space-y-12'>
             {/* Background accents */}
@@ -54,14 +76,17 @@ export default async function PricingPage() {
             {/* Packs */}
             <div className='grid md:grid-cols-3 gap-6'>
                 {packs.map((p) => (
-                    <Card key={p.id} className='relative p-6 bg-card/10 border-border/20 hover:bg-card/20 transition group'>
+                    <Card
+                        key={p.id}
+                        className={`relative p-6 rounded-xl ${packStyles(p.id).bg} ${packStyles(p.id).border} hover:brightness-110 transition group`}
+                    >
                         {p.label && (
                             <div className='absolute -top-2 right-4 text-xs px-2 py-1 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 border border-yellow-500/30 text-yellow-300'>
                                 {p.label}
                             </div>
                         )}
                         <div className='space-y-4 text-center'>
-                            <div className='w-12 h-12 mx-auto rounded-full bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center group-hover:scale-110 transition'>
+                            <div className='w-12 h-12 mx-auto rounded-full bg-white/15 border border-white/25 flex items-center justify-center group-hover:scale-110 transition'>
                                 <Star className='w-6 h-6 text-yellow-300' />
                             </div>
                             <div className='space-y-1'>
@@ -96,7 +121,7 @@ export default async function PricingPage() {
             </div>
 
             {/* Subscription */}
-            <Card className='p-6 bg-card/10 border-border/20 hover:bg-card/20 transition'>
+            <Card className='p-6 rounded-xl bg-gradient-to-br from-violet-500/12 via-fuchsia-500/10 to-purple-500/12 border-violet-400/25 hover:brightness-110 transition'>
                 <div className='grid md:grid-cols-3 gap-6 items-center'>
                     <div className='order-2 md:order-1 space-y-2'>
                         <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-violet-400/15 border border-violet-400/30 text-violet-300'>
