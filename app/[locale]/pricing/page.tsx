@@ -129,9 +129,11 @@ export default async function PricingPage() {
                 {packs.map((p) => (
                     <Card
                         key={p.id}
-                        className={`relative p-6 rounded-xl ${packStyles(p.id).bg} ${packStyles(p.id).border} hover:brightness-110 transition group`}
+                        className={`relative p-6 rounded-xl ${packStyles(p.id).bg} ${packStyles(p.id).border} hover:brightness-110 transition group overflow-hidden`}
                     >
-                        <div className={`pointer-events-none absolute -inset-4 -z-10 rounded-2xl blur-3xl opacity-70 bg-gradient-to-br ${packAura(p.id)}`} />
+                        {/* Aura styled similar to interpretation cards but with pack color */}
+                        <div className={`pointer-events-none absolute -inset-6 -z-10 rounded-3xl blur-[40px] opacity-60 bg-gradient-to-br ${packAura(p.id)}`} />
+                        <div className='pointer-events-none absolute inset-0 opacity-30 bg-[radial-gradient(120%_120%_at_0%_0%,rgba(255,255,255,0.10),transparent_35%),radial-gradient(120%_120%_at_100%_100%,rgba(255,255,255,0.10),transparent_35%)]' />
                         {p.label && (
                             <div className={`absolute -top-2 right-4 text-xs px-2 py-1 rounded-full ${badgeStyles(p.id)}`}>
                                 {p.label}
