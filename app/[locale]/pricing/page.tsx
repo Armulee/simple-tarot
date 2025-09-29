@@ -63,6 +63,60 @@ export default async function PricingPage() {
 
     const starCountForPack = (id: string) => (id === "pack-3" ? 3 : id === "pack-5" ? 5 : 1)
 
+    const packAura = (id: string) => {
+        switch (id) {
+            case "pack-1":
+                return "from-yellow-400/25 via-amber-400/20 to-orange-500/25"
+            case "pack-3":
+                return "from-pink-500/25 via-rose-500/20 to-red-500/25"
+            case "pack-5":
+                return "from-cyan-400/25 via-sky-400/20 to-indigo-500/25"
+            default:
+                return "from-white/10 to-white/5"
+        }
+    }
+
+    const renderPackIcon = (id: string) => {
+        // Deep space background with clustered yellow stars
+        const stars = (() => {
+            if (id === "pack-3") {
+                return [
+                    { top: "18%", left: "22%", size: 14 },
+                    { top: "55%", left: "35%", size: 12 },
+                    { top: "32%", left: "62%", size: 10 },
+                ]
+            }
+            if (id === "pack-5") {
+                return [
+                    { top: "20%", left: "28%", size: 12 },
+                    { top: "50%", left: "22%", size: 9 },
+                    { top: "38%", left: "52%", size: 13 },
+                    { top: "62%", left: "60%", size: 10 },
+                    { top: "28%", left: "70%", size: 8 },
+                ]
+            }
+            return [{ top: "50%", left: "50%", size: 18, center: true }]
+        })()
+
+        return (
+            <div className='relative w-14 h-14 mx-auto rounded-full overflow-hidden border border-white/25 shadow-[0_0_24px_rgba(255,255,255,0.08)]'>
+                <div className='absolute inset-0 bg-[radial-gradient(60%_60%_at_30%_30%,rgba(255,255,255,0.12),transparent_45%),radial-gradient(40%_40%_at_70%_70%,rgba(255,255,255,0.08),transparent_50%),linear-gradient(135deg,oklch(0.12_0.04_260)_0%,oklch(0.08_0.03_270)_100%)]' />
+                {stars.map((s, idx) => (
+                    <Star
+                        key={idx}
+                        className='absolute text-yellow-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]'
+                        style={{
+                            top: s.center ? `calc(${s.top} - ${s.size / 2}px)` : s.top,
+                            left: s.center ? `calc(${s.left} - ${s.size / 2}px)` : s.left,
+                            width: `${s.size}px`,
+                            height: `${s.size}px`,
+                        }}
+                    />
+                ))}
+            </div>
+        )
+    }
+
     return (
         <section className='relative z-10 max-w-6xl mx-auto px-6 py-14 space-y-12'>
             {/* Background accents */}
@@ -93,17 +147,14 @@ export default async function PricingPage() {
                         key={p.id}
                         className={`relative p-6 rounded-xl ${packStyles(p.id).bg} ${packStyles(p.id).border} hover:brightness-110 transition group`}
                     >
+                        <div className={`pointer-events-none absolute -inset-4 -z-10 rounded-2xl blur-3xl opacity-70 bg-gradient-to-br ${packAura(p.id)}`} />
                         {p.label && (
                             <div className={`absolute -top-2 right-4 text-xs px-2 py-1 rounded-full ${badgeStyles(p.id)}`}>
                                 {p.label}
                             </div>
                         )}
-                        <div className='space-y-4 text-center'>
-                            <div className='w-auto h-12 mx-auto rounded-full bg-white/15 border border-white/25 flex items-center justify-center gap-1 px-3 group-hover:scale-110 transition'>
-                                {Array.from({ length: starCountForPack(p.id) }).map((_, i) => (
-                                    <Star key={i} className={`${p.id === "pack-1" ? "w-6 h-6" : "w-4 h-4"} text-yellow-300`} />
-                                ))}
-                            </div>
+                        <div className='space-y-4 text-center relative z-10'>
+                            {renderPackIcon(p.id)}
                             <div className='space-y-1'>
                                 <div className='text-3xl font-bold'>${p.priceUsd.toFixed(0)}</div>
                                 <div className='text-sm text-muted-foreground'>one-time</div>
