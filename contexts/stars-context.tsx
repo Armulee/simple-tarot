@@ -87,7 +87,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 						const state = await starGetOrCreate(user ?? null)
 						if (cancelled) return
 						setStars(state.currentStars)
-						setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap))
+						setNextRefillAt(computeNextRefillAt(state.currentStars, state.lastRefillAt, refillCap, Boolean(user)))
 						setFirstLoginBonusGranted(state.firstLoginBonusGranted)
 					} catch {}
 				})()
@@ -176,7 +176,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 					// revert by refreshing from server
 					const refreshed = await starGetOrCreate(user ?? null)
 					setStars(refreshed.currentStars)
-					setNextRefillAt(computeNextRefillAt(refreshed.currentStars, refreshed.lastRefillAt, refillCap))
+					setNextRefillAt(computeNextRefillAt(refreshed.currentStars, refreshed.lastRefillAt, refillCap, Boolean(user)))
 					return
 				}
                 setStars(state.currentStars)
