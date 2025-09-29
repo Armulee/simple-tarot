@@ -178,7 +178,7 @@ export default async function PricingPage() {
             </div>
 
             {/* Subscription with tabs (Monthly/Annual) */}
-            <Card className='p-6 rounded-xl bg-gradient-to-br from-violet-500/12 via-fuchsia-500/10 to-purple-500/12 border-violet-400/25 hover:brightness-110 transition'>
+            <Card className='relative overflow-hidden p-6 rounded-xl bg-card/10 border-border/20 hover:brightness-110 transition'>
                 <Tabs defaultValue='monthly' className='w-full'>
                     <div className='flex items-center justify-between flex-wrap gap-4'>
                         <div className='order-2 md:order-1 space-y-1'>
@@ -187,14 +187,17 @@ export default async function PricingPage() {
                                 <TabsTrigger value='annual'>Annual</TabsTrigger>
                             </TabsList>
                         </div>
-                        <div className='order-1 md:order-2 text-center'>
-                            <div className='w-16 h-16 mx-auto rounded-full bg-violet-500/15 border border-violet-500/30 flex items-center justify-center'>
-                                <Crown className='w-8 h-8 text-violet-300' />
-                            </div>
-                        </div>
+                        {/* Crown shown per tab in content sections to allow color change */}
                     </div>
                     <TabsContent value='monthly'>
-                        <div className='grid md:grid-cols-3 gap-6 items-center mt-4'>
+                        {/* Monthly colored background overlay */}
+                        <div className='pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-violet-500/12 via-fuchsia-500/10 to-purple-500/12' />
+                        <div className='grid md:grid-cols-3 gap-6 items-center mt-4 relative z-10'>
+                            <div className='order-1 md:order-2 text-center'>
+                                <div className='w-16 h-16 mx-auto rounded-full bg-violet-500/15 border border-violet-500/30 flex items-center justify-center'>
+                                    <Crown className='w-8 h-8 text-violet-300' />
+                                </div>
+                            </div>
                             <div className='order-2 md:order-1 space-y-2'>
                                 <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-violet-400/15 border border-violet-400/30 text-violet-300'>
                                     <Crown className='w-4 h-4' />
@@ -214,7 +217,14 @@ export default async function PricingPage() {
                         </div>
                     </TabsContent>
                     <TabsContent value='annual'>
-                        <div className='grid md:grid-cols-3 gap-6 items-center mt-4'>
+                        {/* Annual colored background overlay */}
+                        <div className='pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-sky-500/12 via-cyan-500/10 to-blue-500/12' />
+                        <div className='grid md:grid-cols-3 gap-6 items-center mt-4 relative z-10'>
+                            <div className='order-1 md:order-2 text-center'>
+                                <div className='w-16 h-16 mx-auto rounded-full bg-sky-500/15 border border-sky-500/30 flex items-center justify-center'>
+                                    <Crown className='w-8 h-8 text-sky-300' />
+                                </div>
+                            </div>
                             <div className='order-2 md:order-1 space-y-2'>
                                 <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-sky-400/15 border border-sky-400/30 text-sky-300'>
                                     <Crown className='w-4 h-4' />
