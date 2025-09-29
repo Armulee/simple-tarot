@@ -281,7 +281,7 @@ export default async function PricingPage() {
                 {packs.map((p) => (
                     <Card
                         key={p.id}
-                        className={`p-6 rounded-xl ${packStyles(p.id).bg} ${packStyles(p.id).border} hover:brightness-110 transition`}
+                        className={`relative p-6 rounded-xl ${packStyles(p.id).bg} ${packStyles(p.id).border} hover:brightness-110 transition`}
                     >
                         <div className='grid grid-cols-1 gap-6 items-center'>
                             <div className='space-y-2 text-left'>
