@@ -129,7 +129,7 @@ export default async function PricingPage() {
                 {packs.map((p) => (
                     <Card
                         key={p.id}
-                        className={`relative p-6 rounded-xl ${packStyles(p.id).bg} ${packStyles(p.id).border} ring-1 ring-white/10 hover:brightness-110 transition group overflow-hidden`}
+                        className={`relative p-6 rounded-xl ${packStyles(p.id).bg} ${packStyles(p.id).border} ring-1 ring-white/10 hover:brightness-110 transition group overflow-visible`}
                     >
                         {/* Aura styled similar to interpretation cards but with pack color */}
                         <div className={`pointer-events-none absolute -inset-12 z-0 rounded-[28px] blur-[64px] opacity-90 mix-blend-screen bg-gradient-to-br ${packAura(p.id)}`} />
