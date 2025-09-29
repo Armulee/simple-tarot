@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl"
 import {
     Home,
     Info,
+    DollarSign,
     ChevronDown,
     ChevronUp,
     Sparkles,
@@ -136,6 +137,16 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                             >
                                 <Info className='w-4 h-4' />
                                 <span>{t("about")}</span>
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                href={"/pricing"}
+                                className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
+                                onClick={() => onOpenChange(false)}
+                            >
+                                <DollarSign className='w-4 h-4' />
+                                <span>Pricing</span>
                             </Link>
                         </li>
 
