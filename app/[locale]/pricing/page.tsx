@@ -237,7 +237,7 @@ export default async function PricingPage() {
                                         Save 17%
                                     </span>
                                 </div>
-                                <div className='text-sm text-muted-foreground'>per month · billed $100/year</div>
+                                <div className='text-sm text-muted-foreground'>per month · billed $99.99/year</div>
                             </div>
                             <div className='order-3 space-y-3'>
                                 <ul className='mt-2 text-sm text-white/80 space-y-1'>
@@ -253,30 +253,76 @@ export default async function PricingPage() {
             </Card>
 
             {/* Infinity one-time pack (one month duration, no subscription) */}
-            <Card className='p-6 rounded-xl bg-gradient-to-br from-slate-500/12 via-slate-600/10 to-slate-700/12 border-slate-400/25 hover:brightness-110 transition'>
-                <div className='grid md:grid-cols-3 gap-6 items-center'>
-                    <div className='order-2 md:order-1 space-y-2'>
-                        <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-slate-400/15 border border-slate-400/30 text-slate-200'>
-                            <Star className='w-4 h-4' />
-                            One-time purchase
+            <Card className='relative overflow-hidden p-6 rounded-xl bg-card/10 border-border/20 hover:brightness-110 transition'>
+                <Tabs defaultValue='one-month' className='w-full'>
+                    <div className='flex items-center justify-between flex-wrap gap-4'>
+                        <div className='order-2 md:order-1 space-y-1'>
+                            <TabsList>
+                                <TabsTrigger value='one-month'>$9.99 · One month</TabsTrigger>
+                                <TabsTrigger value='one-year'>$99.99 · One year</TabsTrigger>
+                            </TabsList>
                         </div>
-                        <div className='text-3xl font-bold'>$9.99</div>
-                        <div className='text-sm text-muted-foreground'>one month · no subscription · instant delivery</div>
+                        {/* Icon shown per tab for color change */}
                     </div>
-                    <div className='order-1 md:order-2 text-center'>
-                        <div className='w-16 h-16 mx-auto rounded-full bg-slate-500/15 border border-slate-500/30 flex items-center justify-center'>
-                            <span className='text-5xl text-slate-200 leading-none'>∞</span>
+                    <TabsContent value='one-month'>
+                        <div className='pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-slate-500/12 via-slate-600/10 to-slate-700/12' />
+                        <div className='grid md:grid-cols-3 gap-6 items-center mt-4 relative z-10'>
+                            <div className='order-1 md:order-2 text-center'>
+                                <div className='w-16 h-16 mx-auto rounded-full bg-slate-500/15 border border-slate-500/30 flex items-center justify-center'>
+                                    <span className='text-5xl text-slate-200 leading-none'>∞</span>
+                                </div>
+                            </div>
+                            <div className='order-2 md:order-1 space-y-2'>
+                                <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-slate-400/15 border border-slate-400/30 text-slate-200'>
+                                    <Star className='w-4 h-4' />
+                                    One-time purchase
+                                </div>
+                                <div className='text-3xl font-bold'>$9.99</div>
+                                <div className='text-sm text-muted-foreground'>one month · no subscription · instant delivery</div>
+                            </div>
+                            <div className='order-3 space-y-3'>
+                                <ul className='mt-2 text-sm text-white/80 space-y-1'>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-slate-200' /> Infinity stars (30 days)</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-slate-200' /> Instant delivery</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-slate-200' /> One-time payment, no auto-renew</li>
+                                </ul>
+                                <PricingCTA mode='pack' packId='pack-infinity' />
+                            </div>
                         </div>
-                    </div>
-                    <div className='order-3 space-y-3'>
-                        <ul className='mt-2 text-sm text-white/80 space-y-1'>
-                            <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-slate-200' /> Infinity stars (30 days)</li>
-                            <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-slate-200' /> Instant delivery</li>
-                            <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-slate-200' /> One-time payment, no auto-renew</li>
-                        </ul>
-                        <PricingCTA mode='pack' packId='pack-infinity' />
-                    </div>
-                </div>
+                    </TabsContent>
+                    <TabsContent value='one-year'>
+                        <div className='pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-zinc-500/12 via-zinc-600/10 to-zinc-700/12' />
+                        <div className='grid md:grid-cols-3 gap-6 items-center mt-4 relative z-10'>
+                            <div className='order-1 md:order-2 text-center'>
+                                <div className='w-16 h-16 mx-auto rounded-full bg-zinc-500/15 border border-zinc-500/30 flex items-center justify-center'>
+                                    <span className='text-5xl text-zinc-200 leading-none'>∞</span>
+                                </div>
+                            </div>
+                            <div className='order-2 md:order-1 space-y-2'>
+                                <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-zinc-400/15 border border-zinc-400/30 text-zinc-200'>
+                                    <Star className='w-4 h-4' />
+                                    One-time purchase
+                                </div>
+                                <div className='inline-flex items-baseline gap-2'>
+                                    <div className='text-3xl font-bold'>$99.99</div>
+                                    <div className='text-sm text-white/70 line-through'>$119.88</div>
+                                    <span className='text-xs px-2 py-0.5 rounded border bg-zinc-400/15 border-zinc-400/30 text-zinc-200 font-semibold'>
+                                        Save 17%
+                                    </span>
+                                </div>
+                                <div className='text-sm text-muted-foreground'>one year · no subscription · instant delivery</div>
+                            </div>
+                            <div className='order-3 space-y-3'>
+                                <ul className='mt-2 text-sm text-white/80 space-y-1'>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-zinc-200' /> Infinity stars (365 days)</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-zinc-200' /> Instant delivery</li>
+                                    <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-zinc-200' /> One-time payment, no auto-renew</li>
+                                </ul>
+                                <PricingCTA mode='pack' packId='pack-infinity' />
+                            </div>
+                        </div>
+                    </TabsContent>
+                </Tabs>
             </Card>
 
             {/* Divider: Our deals */}
@@ -302,11 +348,11 @@ export default async function PricingPage() {
                                     <span>{p.label || 'One-time pack'}</span>
                                 </div>
                                 {/* Stars amount first (above price) with bonus badge at top-right */}
-                                <div className='relative inline-flex items-center gap-2'>
+                                <div className='relative inline-flex items-center gap-2 justify-center w-full'>
                                     <span className={`inline-flex items-center gap-3 px-5 py-2 rounded-full border ${packBadgeClasses(p.id)}`}>
                                         <Star className={`w-7 h-7 ${packIconColor(p.id)}`} fill='currentColor' />
                                         <span className={`text-3xl font-extrabold leading-none ${packIconColor(p.id)}`}>{p.stars}</span>
-                                        <span className='text-base font-semibold tracking-wide text-white/90'>stars</span>
+                                        <span className={`text-3xl font-extrabold leading-none ${packIconColor(p.id)}`}>stars</span>
                                     </span>
                                     {p.bonus > 0 && (
                                         <span className='absolute -top-2 -right-10 rotate-6 text-xs px-2 py-0.5 rounded border bg-emerald-400/15 border-emerald-400/30 text-emerald-300 font-semibold'>
