@@ -83,15 +83,27 @@ export default function StarsPage() {
                     </div>
 
                     <div className='flex items-center justify-center'>
-                        <Link href='/stars/purchase'>
-                            <Button
-                                type='button'
-                                className='rounded-full px-6 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.8)] hover:shadow-[0_18px_40px_-12px_rgba(234,179,8,0.9)] transition-shadow flex items-center gap-2'
-                            >
-                                <Star className='w-4 h-4' fill='currentColor' />
-                                <span className='font-semibold'>Purchase Stars</span>
-                            </Button>
-                        </Link>
+                        {user ? (
+                            <Link href='/stars/purchase'>
+                                <Button
+                                    type='button'
+                                    className='rounded-full px-6 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.8)] hover:shadow-[0_18px_40px_-12px_rgba(234,179,8,0.9)] transition-shadow flex items-center gap-2'
+                                >
+                                    <Star className='w-4 h-4' fill='currentColor' />
+                                    <span className='font-semibold'>Purchase Stars</span>
+                                </Button>
+                            </Link>
+                        ) : (
+                            <Link href='/signin'>
+                                <Button
+                                    type='button'
+                                    className='rounded-full px-6 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.8)] hover:shadow-[0_18px_40px_-12px_rgba(234,179,8,0.9)] transition-shadow flex items-center gap-2'
+                                >
+                                    <Users className='w-4 h-4' />
+                                    <span className='font-semibold'>Sign in</span>
+                                </Button>
+                            </Link>
+                        )}
                     </div>
                 </div>
             </Card>
