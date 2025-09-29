@@ -1,6 +1,6 @@
 // server component
 import { Card } from "@/components/ui/card"
-import { Star, Crown, Gift, Shield, Lock, CreditCard, CheckCircle2, Sparkles } from "lucide-react"
+import { Star, Crown, Gift, Shield, Lock, CreditCard, CheckCircle2, Sparkles, Sparkle } from "lucide-react"
 import { PricingCTA } from "@/components/pricing/pricing-cta"
 type Pack = {
     id: string
@@ -74,42 +74,29 @@ export default async function PricingPage() {
     }
 
     const renderPackIcon = (id: string) => {
-        // Deep space background with clustered yellow stars
-        const stars = (() => {
-            if (id === "pack-3") {
-                return [
-                    { top: "18%", left: "22%", size: 14 },
-                    { top: "55%", left: "35%", size: 12 },
-                    { top: "32%", left: "62%", size: 10 },
-                ]
-            }
-            if (id === "pack-5") {
-                return [
-                    { top: "20%", left: "28%", size: 12 },
-                    { top: "50%", left: "22%", size: 9 },
-                    { top: "38%", left: "52%", size: 13 },
-                    { top: "62%", left: "60%", size: 10 },
-                    { top: "28%", left: "70%", size: 8 },
-                ]
-            }
-            return [{ top: "50%", left: "50%", size: 18, center: true }]
-        })()
+        // Darker inner background matched to pack color, with Lucide icons
+        const bgByPack = {
+            "pack-1": "linear-gradient(135deg, oklch(0.16_0.06_70), oklch(0.10_0.04_260))",
+            "pack-3": "linear-gradient(135deg, oklch(0.16_0.08_20), oklch(0.10_0.04_260))",
+            "pack-5": "linear-gradient(135deg, oklch(0.16_0.08_230), oklch(0.10_0.04_260))",
+        } as const
 
         return (
             <div className='relative w-14 h-14 mx-auto rounded-full overflow-hidden border border-white/25 shadow-[0_0_24px_rgba(255,255,255,0.08)]'>
-                <div className='absolute inset-0 bg-[radial-gradient(60%_60%_at_30%_30%,rgba(255,255,255,0.12),transparent_45%),radial-gradient(40%_40%_at_70%_70%,rgba(255,255,255,0.08),transparent_50%),linear-gradient(135deg,oklch(0.12_0.04_260)_0%,oklch(0.08_0.03_270)_100%)]' />
-                {stars.map((s, idx) => (
-                    <Star
-                        key={idx}
-                        className='absolute text-yellow-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]'
-                        style={{
-                            top: s.top,
-                            left: s.left,
-                            width: `${s.size}px`,
-                            height: `${s.size}px`,
-                        }}
-                    />
-                ))}
+                <div className='absolute inset-0' style={{ background: bgByPack[id as keyof typeof bgByPack] }} />
+                <div className='absolute inset-0 grid place-items-center'>
+                    {id === "pack-1" && (
+                        <Star className='w-6 h-6 text-yellow-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]' />
+                    )}
+                    {id === "pack-3" && (
+                        <Sparkle className='w-7 h-7 text-yellow-300 drop-shadow-[0_0_10px_rgba(251,191,36,0.7)]' />
+                    )}
+                    {id === "pack-5" && (
+                        <div className='relative w-full h-full'>
+                            <Sparkles className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 text-yellow-300 drop-shadow-[0_0_12px_rgba(251,191,36,0.8)]' />
+                        </div>
+                    )}
+                </div>
             </div>
         )
     }
