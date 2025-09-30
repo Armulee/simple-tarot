@@ -141,6 +141,23 @@ export default async function PricingPage() {
         }
     }
 
+    // Gradient overlays for pack cards to visually match unlimited plan cards
+    const packOverlay = (id: string) => {
+        switch (id) {
+            case "pack-1":
+                // amber/orange palette
+                return "from-amber-500/12 via-amber-600/10 to-orange-600/12"
+            case "pack-3":
+                // rose/red palette
+                return "from-rose-500/12 via-pink-600/10 to-red-600/12"
+            case "pack-5":
+                // cyan/indigo palette
+                return "from-cyan-500/12 via-sky-500/10 to-indigo-600/12"
+            default:
+                return "from-white/5 via-white/5 to-white/5"
+        }
+    }
+
     const renderCenterIcon = (id: string) => (
         <div className={`w-16 h-16 mx-auto rounded-full ${packCircleClasses(id)} flex items-center justify-center`}>
             {id === "pack-1" && (
