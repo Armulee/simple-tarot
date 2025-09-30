@@ -337,8 +337,9 @@ export default async function PricingPage() {
                 {packs.map((p) => (
                     <Card
                         key={p.id}
-                        className={`relative p-6 rounded-xl ${packStyles(p.id).bg} ${packStyles(p.id).border} hover:brightness-110 transition`}
+                        className={`relative overflow-hidden p-6 rounded-xl bg-card/10 hover:brightness-110 transition`}
                     >
+                        <div className={`pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br ${packOverlay(p.id)}`} />
                         <div className='grid grid-cols-1 gap-6 items-center'>
                             <div className='space-y-2 text-left'>
                                 <div className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border ${packBadgeClasses(p.id).replace('/15','/100').replace('/15','/100')} absolute -top-3 left-2`}>
