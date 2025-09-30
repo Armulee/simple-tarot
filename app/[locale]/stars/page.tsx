@@ -84,7 +84,7 @@ export default function StarsPage() {
 
                     <div className='flex items-center justify-center'>
                         {user ? (
-                            <Link href='/stars/purchase'>
+                            <Link href='/pricing'>
                                 <Button
                                     type='button'
                                     className='rounded-full px-6 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.8)] hover:shadow-[0_18px_40px_-12px_rgba(234,179,8,0.9)] transition-shadow flex items-center gap-2'
@@ -121,7 +121,7 @@ export default function StarsPage() {
                                 <span className='text-white'>Sign in</span>
                                 <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 border border-yellow-500/30 text-yellow-300 flex items-center gap-1'>
                                     <Star className='w-3.5 h-3.5' fill='currentColor' />
-                                    Start 12
+                                    12
                                 </span>
                             </div>
                         </AccordionTrigger>
@@ -154,7 +154,7 @@ export default function StarsPage() {
                                 <div className='pointer-events-none absolute -top-10 -right-10 h-32 w-32 rounded-full bg-yellow-400/25 blur-3xl' />
                                 <div className='pointer-events-none absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-amber-400/20 blur-3xl' />
                                 <p>Need stars instantly? Buy star packs and use them right away.</p>
-                                <Link href='/stars/purchase'>
+                                <Link href='/pricing'>
                                     <Button className='rounded-full'>Purchase Stars</Button>
                                 </Link>
                             </div>
