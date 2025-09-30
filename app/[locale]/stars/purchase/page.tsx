@@ -37,7 +37,7 @@ export default function PurchasePage() {
     const { addStars, stars } = useStars()
     const { user } = useAuth()
 
-    const initialSelection = useMemo<SelectionKey>(() => {
+    const initialSelection = useMemo<SelectionKey | null>(() => {
         const plan = params.get("plan") as SelectionKey | null
         if (plan === "monthly" || plan === "annual") return plan
         const pack = params.get("pack")
@@ -46,10 +46,10 @@ export default function PurchasePage() {
             const term = params.get("term")
             return term === "year" ? "infinity-year" : "infinity-month"
         }
-        return "pack-3"
+        return null
     }, [params])
 
-    const [selectedKey, setSelectedKey] = useState<SelectionKey>(initialSelection)
+    const [selectedKey, setSelectedKey] = useState<SelectionKey | null>(initialSelection)
     const [showOnlySelected, setShowOnlySelected] = useState<boolean>(true)
 
     const selectedPack = useMemo<SelectedPack | null>(() => {
@@ -180,7 +180,7 @@ export default function PurchasePage() {
                                     </div>
                                     <div className='text-right'>
                                         <div className='font-semibold'>{card.price}</div>
-                                        <Checkbox checked={selected} readOnly className='ml-auto' />
+                                        <Checkbox checked={selected} onCheckedChange={() => setSelectedKey(card.key)} className='ml-auto' />
                                     </div>
                                 </div>
                                 {selected && (
