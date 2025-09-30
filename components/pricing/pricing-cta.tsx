@@ -17,6 +17,7 @@ export function PricingCTA({ mode, packId, plan, infinityTerm, theme }: { mode: 
     const { user } = useAuth()
     const { addStars } = useStars()
     const [open, setOpen] = useState(false)
+    const [stage, setStage] = useState<"summary" | "payment">("summary")
     const [cardName, setCardName] = useState("")
     const [cardNumber, setCardNumber] = useState("")
     const [cardExpiry, setCardExpiry] = useState("")
@@ -54,6 +55,37 @@ export function PricingCTA({ mode, packId, plan, infinityTerm, theme }: { mode: 
         setOpen(false)
     }
 
+    const round2 = (n: number) => Math.round(n * 100) / 100
+    const basePerDollar = 60
+    const monthlyPrice = 9.99
+
+    const summary = useMemo(() => {
+        if (!selectedMeta) return null
+        // Packs
+        if (mode === "pack" && packMeta) {
+            if (typeof packMeta.stars === "number") {
+                const base = round2((packMeta.stars / basePerDollar) * 1)
+                const discount = round2(base - packMeta.price)
+                return { label: packMeta.label, stars: packMeta.stars, base, discount, total: packMeta.price }
+            }
+            // Infinity one-time
+            const isYear = infinityTerm === "year"
+            const base = isYear ? round2(monthlyPrice * 12) : monthlyPrice
+            const price = isYear ? 99.99 : 9.99
+            const discount = round2(base - price)
+            return { label: packMeta.label, stars: undefined as number | undefined, base, discount, total: price }
+        }
+        // Subscriptions
+        if (mode === "subscribe" && subscribeMeta) {
+            const isYear = plan === "annual"
+            const base = isYear ? round2(monthlyPrice * 12) : monthlyPrice
+            const price = subscribeMeta.price
+            const discount = round2(base - price)
+            return { label: subscribeMeta.label, stars: undefined as number | undefined, base, discount, total: price }
+        }
+        return null
+    }, [mode, packMeta, subscribeMeta, infinityTerm, plan])
+
 
     if (mode === "pack") {
         if (!user) {
@@ -67,9 +99,9 @@ export function PricingCTA({ mode, packId, plan, infinityTerm, theme }: { mode: 
             )
         }
         return (
-            <Dialog open={open} onOpenChange={setOpen}>
+            <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setStage("summary") }}>
                 <DialogTrigger asChild>
-                    <Button className={`w-full rounded-full bg-white text-black hover:brightness-90 transition-shadow flex items-center justify-center gap-2`} onClick={() => setOpen(true)}>
+                    <Button className={`w-full rounded-full bg-white text-black hover:brightness-90 transition-shadow flex items-center justify-center gap-2`} onClick={() => { setStage("summary"); setOpen(true) }}>
                         <Star className='w-4 h-4' />
                         Purchase
                     </Button>
@@ -78,54 +110,98 @@ export function PricingCTA({ mode, packId, plan, infinityTerm, theme }: { mode: 
                     <DialogHeader>
                         <DialogTitle>Checkout</DialogTitle>
                     </DialogHeader>
-                    <div className='space-y-4'>
-                        <div className='flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10'>
-                            <div className='text-sm'>
-                                <div className='font-semibold'>{selectedMeta?.label || 'Plan'}</div>
-                                {packMeta?.stars ? (
-                                    <div className='text-white/70'>{packMeta.stars} stars</div>
-                                ) : (
-                                    <div className='text-white/70'>Unlimited</div>
+                    {stage === "summary" && (
+                        <div className='space-y-4'>
+                            <div className='space-y-1 p-4 rounded-lg bg-white/5 border border-white/10'>
+                                <div className='flex items-center justify-between'>
+                                    <div className='text-sm'>
+                                        <div className='font-semibold'>{selectedMeta?.label || 'Plan'}</div>
+                                        {typeof packMeta?.stars === 'number' ? (
+                                            <div className='text-white/70'>{packMeta.stars} stars</div>
+                                        ) : (
+                                            <div className='text-white/70'>Unlimited</div>
+                                        )}
+                                    </div>
+                                    <div className='text-right font-semibold'>${(selectedMeta?.price || 0).toFixed(2)}</div>
+                                </div>
+                                {summary && (
+                                    <div className='pt-2 space-y-1'>
+                                        <div className='flex items-center justify-between text-sm'>
+                                            <span className='text-white/80'>Base price</span>
+                                            <span>${summary.base.toFixed(2)}</span>
+                                        </div>
+                                        <div className='flex items-center justify-between text-sm'>
+                                            <span className='text-white/80'>Package discount</span>
+                                            <span>- ${summary.discount.toFixed(2)}</span>
+                                        </div>
+                                        <div className='flex items-center justify-between'>
+                                            <span className='font-semibold'>Total</span>
+                                            <span className='font-bold text-lg'>${summary.total.toFixed(2)}</span>
+                                        </div>
+                                    </div>
                                 )}
                             </div>
-                            <div className='text-right font-semibold'>${(selectedMeta?.price || 0).toFixed(2)}</div>
                         </div>
-
-                        <div className='grid grid-cols-3 gap-2'>
-                            <Button className='w-full rounded-lg bg-white text-black hover:brightness-95'>Apple Pay</Button>
-                            <Button className='w-full rounded-lg bg-white text-black hover:brightness-95'>Google Pay</Button>
-                            <Button className='w-full rounded-lg bg-white text-black hover:brightness-95'>PayPal</Button>
-                        </div>
-
-                        <div className='flex items-center gap-2'>
-                            <Separator className='flex-1' />
-                            <span className='text-xs text-white/60'>or pay with card</span>
-                            <Separator className='flex-1' />
-                        </div>
-                        <div className='space-y-3'>
-                            <div className='space-y-1'>
-                                <Label htmlFor='card-name'>Name on card</Label>
-                                <Input id='card-name' value={cardName} onChange={(e) => setCardName(e.target.value)} placeholder='Jane Doe' />
+                    )}
+                    {stage === "payment" && (
+                        <div className='space-y-4'>
+                            <div className='flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10'>
+                                <div className='text-sm'>
+                                    <div className='font-semibold'>{selectedMeta?.label || 'Plan'}</div>
+                                    {typeof packMeta?.stars === 'number' ? (
+                                        <div className='text-white/70'>{packMeta.stars} stars</div>
+                                    ) : (
+                                        <div className='text-white/70'>Unlimited</div>
+                                    )}
+                                </div>
+                                <div className='text-right font-semibold'>${(selectedMeta?.price || 0).toFixed(2)}</div>
                             </div>
-                            <div className='space-y-1'>
-                                <Label htmlFor='card-number'>Card number</Label>
-                                <Input id='card-number' value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} placeholder='4242 4242 4242 4242' />
+                            <div className='grid grid-cols-3 gap-2'>
+                                <Button className='w-full rounded-lg bg-white text-black hover:brightness-95'>Apple Pay</Button>
+                                <Button className='w-full rounded-lg bg-white text-black hover:brightness-95'>Google Pay</Button>
+                                <Button className='w-full rounded-lg bg-white text-black hover:brightness-95'>PayPal</Button>
                             </div>
-                            <div className='grid grid-cols-2 gap-2'>
+                            <div className='flex items-center gap-2'>
+                                <Separator className='flex-1' />
+                                <span className='text-xs text-white/60'>or pay with card</span>
+                                <Separator className='flex-1' />
+                            </div>
+                            <div className='space-y-3'>
                                 <div className='space-y-1'>
-                                    <Label htmlFor='card-expiry'>Expiry</Label>
-                                    <Input id='card-expiry' value={cardExpiry} onChange={(e) => setCardExpiry(e.target.value)} placeholder='MM/YY' />
+                                    <Label htmlFor='card-name'>Name on card</Label>
+                                    <Input id='card-name' value={cardName} onChange={(e) => setCardName(e.target.value)} placeholder='Jane Doe' />
                                 </div>
                                 <div className='space-y-1'>
-                                    <Label htmlFor='card-cvc'>CVC</Label>
-                                    <Input id='card-cvc' value={cardCvc} onChange={(e) => setCardCvc(e.target.value)} placeholder='CVC' />
+                                    <Label htmlFor='card-number'>Card number</Label>
+                                    <Input id='card-number' value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} placeholder='4242 4242 4242 4242' />
                                 </div>
+                                <div className='grid grid-cols-2 gap-2'>
+                                    <div className='space-y-1'>
+                                        <Label htmlFor='card-expiry'>Expiry</Label>
+                                        <Input id='card-expiry' value={cardExpiry} onChange={(e) => setCardExpiry(e.target.value)} placeholder='MM/YY' />
+                                    </div>
+                                    <div className='space-y-1'>
+                                        <Label htmlFor='card-cvc'>CVC</Label>
+                                        <Input id='card-cvc' value={cardCvc} onChange={(e) => setCardCvc(e.target.value)} placeholder='CVC' />
+                                    </div>
+                                </div>
+                                <div className='text-xs text-white/60'>Processed securely by Checkout.com</div>
                             </div>
-                            <div className='text-xs text-white/60'>Processed securely by Checkout.com</div>
                         </div>
-                    </div>
+                    )}
                     <DialogFooter>
-                        <Button className='w-full rounded-full bg-white text-black hover:brightness-95' onClick={handleSimulatedPay}>Pay ${(selectedMeta?.price || 0).toFixed(2)}</Button>
+                        {stage === "summary" ? (
+                            <Button className='w-full rounded-full bg-white text-black hover:brightness-95' onClick={() => setStage("payment")}>
+                                Checkout
+                            </Button>
+                        ) : (
+                            <div className='flex w-full gap-2'>
+                                <Button variant='outline' className='w-32' onClick={() => setStage("summary")}>Back</Button>
+                                <Button className='flex-1 rounded-full bg-white text-black hover:brightness-95' onClick={handleSimulatedPay}>
+                                    Pay ${(selectedMeta?.price || 0).toFixed(2)}
+                                </Button>
+                            </div>
+                        )}
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
