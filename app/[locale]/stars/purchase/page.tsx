@@ -43,7 +43,7 @@ const PACKS: Record<string, Pack> = {
 export default function PurchasePage() {
     const params = useSearchParams()
     const router = useRouter()
-    const { addStars } = useStars()
+    const { addStars, stars } = useStars()
     const { user } = useAuth()
 
     const initialSelection = useMemo<SelectionKey>(() => {
@@ -71,6 +71,12 @@ export default function PurchasePage() {
     }, [selectedKey])
 
     const isUnlimited = selectedKey === "monthly" || selectedKey === "annual" || selectedKey === "infinity-month" || selectedKey === "infinity-year"
+    const finalStars = useMemo(() => {
+        if (isUnlimited || !selectedPack) return null
+        const p = selectedPack as Pack
+        const current = typeof stars === 'number' ? stars : 0
+        return current + p.stars + Math.max(0, p.bonus)
+    }, [isUnlimited, selectedPack, stars])
     const canPurchase = Boolean(user) && !isUnlimited && selectedPack !== null
 
     const handlePay = async () => {
@@ -97,7 +103,7 @@ export default function PurchasePage() {
             {/* Plans selection */}
             <Card className='relative overflow-hidden p-6 rounded-xl bg-card/10 border-border/20'>
                 <h2 className='font-serif text-xl mb-3'>Choose a plan</h2>
-                <Accordion type='single' collapsible value={selectedKey} onValueChange={(v) => setSelectedKey((v || selectedKey) as SelectionKey)} className='space-y-2'>
+                <Accordion type='single' collapsible value={selectedKey} onValueChange={(v: string) => setSelectedKey((v || selectedKey) as SelectionKey)} className='space-y-2'>
                     {/* Subscriptions */}
                     <AccordionItem value='monthly' className='rounded-xl border border-border/20 bg-white/5'>
                         <AccordionTrigger className='px-3'>
@@ -222,7 +228,7 @@ export default function PurchasePage() {
                     <div className='grid grid-cols-2 gap-4 text-center'>
                         <div className='p-3 rounded-lg bg-white/5 border border-white/10'>
                             <div className='text-xs text-white/70'>Current stars</div>
-                            <div className='text-2xl font-bold'>{typeof (useStars().stars) === 'number' ? useStars().stars : '—'}</div>
+                            <div className='text-2xl font-bold'>{typeof stars === 'number' ? stars : '—'}</div>
                         </div>
                         <div className='p-3 rounded-lg bg-white/5 border border-white/10'>
                             <div className='text-xs text-white/70'>After purchase</div>
@@ -230,11 +236,7 @@ export default function PurchasePage() {
                                 {isUnlimited ? (
                                     <span>∞ <span className='text-base font-normal'>(Unlimited)</span></span>
                                 ) : (
-                                    (() => {
-                                        const s = useStars().stars ?? 0
-                                        const p = selectedPack as Pack
-                                        return s + p.stars + Math.max(0, p.bonus)
-                                    })()
+                                    finalStars
                                 )}
                             </div>
                         </div>
