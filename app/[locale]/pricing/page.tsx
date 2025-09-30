@@ -24,8 +24,10 @@ export default async function PricingPage() {
     const basePerDollar = 60
     const packs: Pack[] = [
         { id: "pack-1", priceUsd: 0.99, stars: 60, bonus: 0 },
+        { id: "pack-2", priceUsd: 1.99, stars: 130, bonus: 10 },
         { id: "pack-3", priceUsd: 2.99, stars: 200, bonus: 200 - 3 * basePerDollar, label: "Popular" },
         { id: "pack-5", priceUsd: 4.99, stars: 350, bonus: 350 - 5 * basePerDollar, label: "Best value" },
+        { id: "pack-7", priceUsd: 6.99, stars: 500, bonus: 80 },
     ]
 
     // removed unused helpers (packStyles, badgeStyles, packAura)

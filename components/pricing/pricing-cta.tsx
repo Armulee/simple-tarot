@@ -29,10 +29,14 @@ export function PricingCTA({ mode, packId, plan, infinityTerm }: { mode: Pricing
         switch (packId) {
             case "pack-1":
                 return { label: "60 stars", stars: 60, price: 0.99 }
+            case "pack-2":
+                return { label: "130 stars", stars: 130, price: 1.99 }
             case "pack-3":
                 return { label: "200 stars", stars: 200, price: 2.99 }
             case "pack-5":
                 return { label: "350 stars", stars: 350, price: 4.99 }
+            case "pack-7":
+                return { label: "500 stars", stars: 500, price: 6.99 }
             case "pack-infinity":
                 return { label: infinityTerm === "year" ? "Infinity (1 year)" : "Infinity (1 month)", stars: undefined, price: infinityTerm === "year" ? 99.99 : 9.99 }
             default:
