@@ -125,18 +125,32 @@ export function PricingCTA({ mode, packId, plan, infinityTerm }: { mode: Pricing
                                 <div className='mt-3'>
                                     <Separator className='my-2' />
                                     {/* Breakdown with base price and package discount restored */}
-                                    <div className='flex items-center justify-between text-sm'>
-                                        <span className='text-white/80'>Base price</span>
-                                        <span>${(summary?.base || 0).toFixed(2)}</span>
-                                    </div>
-                                    <div className='flex items-center justify-between text-sm'>
-                                        <span className='text-white/80'>Package discount</span>
-        								<span>- ${(summary?.discount || 0).toFixed(2)}</span>
-                                    </div>
-                                    <div className='flex items-center justify-between'>
-                                        <span className='font-semibold'>Total</span>
-                                        <span className='font-bold text-lg'>${(summary?.total || 0).toFixed(2)}</span>
-                                    </div>
+                                    {(() => {
+                                        const base = summary?.base || 0
+                                        const total = summary?.total || 0
+                                        const fee = round2(total * 0.025 + 0.25)
+                                        const discountAdj = round2(Math.max(0, base - total - fee))
+                                        return (
+                                            <>
+                                                <div className='flex items-center justify-between text-sm'>
+                                                    <span className='text-white/80'>Base price</span>
+                                                    <span>${base.toFixed(2)}</span>
+                                                </div>
+                                                <div className='flex items-center justify-between text-sm'>
+                                                    <span className='text-white/80'>Transaction fee</span>
+                                                    <span>${fee.toFixed(2)}</span>
+                                                </div>
+                                                <div className='flex items-center justify-between text-sm'>
+                                                    <span className='text-white/80'>Package discount</span>
+                                                    <span>- ${discountAdj.toFixed(2)}</span>
+                                                </div>
+                                                <div className='flex items-center justify-between'>
+                                                    <span className='font-semibold'>Total</span>
+                                                    <span className='font-bold text-lg'>${total.toFixed(2)}</span>
+                                                </div>
+                                            </>
+                                        )
+                                    })()}
                                 </div>
                             </div>
                         </div>
