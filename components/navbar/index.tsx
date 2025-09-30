@@ -48,11 +48,7 @@ export function Navbar({ locale }: { locale: string }) {
     const { user, loading } = useAuth()
     const { stars, initialized } = useStars()
     const { choice, show } = useStarConsent()
-    const meta = (user?.user_metadata ?? {}) as {
-        avatar_url?: string
-        picture?: string
-        name?: string
-    }
+    // removed unused meta
     // const avatarSrc = meta.avatar_url || meta.picture || undefined
     // removed unused displayName
     // const initial = displayName.charAt(0).toUpperCase()

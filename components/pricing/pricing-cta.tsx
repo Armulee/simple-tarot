@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
-import { Star, Users } from "lucide-react"
+import { Star } from "lucide-react"
 import { useMemo, useState } from "react"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -18,7 +18,7 @@ export function PricingCTA({ mode, packId, plan, infinityTerm }: { mode: Pricing
     const { addStars } = useStars()
     const [open, setOpen] = useState(false)
     const [stage, setStage] = useState<"summary" | "payment">("summary")
-    const [hasSavedPayment, setHasSavedPayment] = useState<boolean>(false)
+    const [hasSavedPayment] = useState<boolean>(false)
     const [cardName, setCardName] = useState("")
     const [cardNumber, setCardNumber] = useState("")
     const [cardExpiry, setCardExpiry] = useState("")

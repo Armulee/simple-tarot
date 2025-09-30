@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     const txId = `tx_${Math.random().toString(36).slice(2, 10)}`
 
     return NextResponse.json({ ok: true, transactionId: txId })
-  } catch (e: any) {
+  } catch (_err) {
     return NextResponse.json({ error: "SERVER_ERROR" }, { status: 500 })
   }
 }

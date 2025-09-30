@@ -34,22 +34,7 @@ export default async function PricingPage() {
 
     // removed unused renderPackIcon
 
-    const packCircleClasses = (id: string) => {
-        switch (id) {
-            case "pack-1":
-                return "bg-yellow-500/15 border-yellow-500/30"
-            case "pack-2":
-                return "bg-emerald-500/15 border-emerald-500/30"
-            case "pack-3":
-                return "bg-pink-500/15 border-pink-500/30"
-            case "pack-5":
-                return "bg-cyan-500/15 border-cyan-500/30"
-            case "pack-7":
-                return "bg-purple-500/15 border-purple-500/30"
-            default:
-                return "bg-white/10 border-white/20"
-        }
-    }
+    // removed unused packCircleClasses
 
     const packIconColor = (id: string) => {
         switch (id) {
