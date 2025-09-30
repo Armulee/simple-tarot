@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Star, CreditCard, ArrowLeft, CircleAlert } from "lucide-react"
+import { Star, CreditCard, ArrowLeft, CircleAlert, ChevronDown, ChevronUp } from "lucide-react"
 import Link from "next/link"
 import { useStars } from "@/contexts/stars-context"
 import { useAuth } from "@/hooks/use-auth"
@@ -95,18 +95,6 @@ export default function PurchasePage() {
             {/* Plans selection: uniform grid of selectable cards */}
             <Card className='relative overflow-hidden p-6 rounded-xl bg-card/10 border-border/20'>
                 <h2 className='font-serif text-xl mb-3'>Choose a plan</h2>
-                <div className='flex items-center justify-end mb-3'>
-                    {selectedKey ? (
-                        <Button
-                            type='button'
-                            variant='outline'
-                            className='rounded-full h-8 px-3 text-xs'
-                            onClick={() => setShowOnlySelected(!showOnlySelected)}
-                        >
-                            {showOnlySelected ? 'Show more plans' : 'Show less'}
-                        </Button>
-                    ) : null}
-                </div>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     {[{
                         key: "monthly" as SelectionKey,
@@ -190,6 +178,26 @@ export default function PurchasePage() {
                         )
                     })}
                 </div>
+                {selectedKey && (
+                    <div className='mt-2 flex justify-center'>
+                        <Button
+                            type='button'
+                            variant='link'
+                            className='h-auto px-0 text-white underline'
+                            onClick={() => setShowOnlySelected(!showOnlySelected)}
+                        >
+                            {showOnlySelected ? (
+                                <>
+                                    <ChevronDown className='w-4 h-4 mr-1' /> Show more plans
+                                </>
+                            ) : (
+                                <>
+                                    <ChevronUp className='w-4 h-4 mr-1' /> Show less
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                )}
             </Card>
 
             {/* Checkout summary: show only new stars amount (current in navbar) */}
