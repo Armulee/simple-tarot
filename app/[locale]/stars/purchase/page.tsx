@@ -17,6 +17,9 @@ type Pack = {
     label?: string
 }
 
+type InfinityPack = { id: "pack-infinity" }
+type SelectedPack = Pack | InfinityPack
+
 const PACKS: Record<string, Pack> = {
     "pack-1": { id: "pack-1", priceUsd: 0.99, stars: 60, bonus: 0 },
     "pack-3": { id: "pack-3", priceUsd: 2.99, stars: 200, bonus: 200 - 3 * 60, label: "Popular" },
@@ -30,9 +33,9 @@ export default function PurchasePage() {
     const { addStars } = useStars()
     const { user } = useAuth()
 
-    const selectedPack = useMemo(() => {
+    const selectedPack = useMemo<SelectedPack>(() => {
         const packId = params.get("pack") || "pack-3"
-        if (packId === "pack-infinity") return { id: packId } as any
+        if (packId === "pack-infinity") return { id: "pack-infinity" }
         return PACKS[packId] ?? PACKS["pack-3"]
     }, [params])
 
@@ -40,7 +43,8 @@ export default function PurchasePage() {
 
     const handlePay = async () => {
         if (!canPurchase) return
-        const starsToAdd = (selectedPack as Pack).stars + Math.max(0, (selectedPack as Pack).bonus)
+        const pack = selectedPack as Pack
+        const starsToAdd = pack.stars + Math.max(0, pack.bonus)
         // Optimistic add; server reconciles in provider
         addStars(starsToAdd)
         router.push("/stars")
