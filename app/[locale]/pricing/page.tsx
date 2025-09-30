@@ -354,7 +354,7 @@ export default async function PricingPage() {
                 {packs.map((p) => (
                     <Card
                         key={p.id}
-                        className={`relative overflow-hidden p-6 rounded-xl bg-card/10 hover:brightness-110 transition`}
+                        className={`relative overflow-visible border-0 p-6 rounded-xl bg-card/10 hover:brightness-110 transition`}
                     >
                         <div className={`pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br ${packOverlay(p.id)}`} />
                         <div className='grid grid-cols-1 gap-6 items-center'>
@@ -372,7 +372,7 @@ export default async function PricingPage() {
                                         <span className={`text-3xl font-extrabold leading-none ${packIconColor(p.id)}`}>{p.stars}</span>
                                         <span className={`text-3xl font-extrabold leading-none ${packIconColor(p.id)}`}>stars</span>
                                         {p.bonus > 0 && (
-                                            <span className='absolute -top-2 -right-2 rotate-6 text-xs px-2 py-0.5 rounded border bg-emerald-400 border-emerald-500 text-emerald-950 font-semibold'>
+                                            <span className='absolute -top-3 -right-3 rotate-6 text-xs px-2 py-0.5 rounded border bg-emerald-400 border-emerald-500 text-emerald-950 font-semibold'>
                                                 +{p.bonus} bonus
                                             </span>
                                         )}
