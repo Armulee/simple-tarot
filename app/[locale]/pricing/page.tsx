@@ -1,6 +1,6 @@
 // server component
 import { Card } from "@/components/ui/card"
-import { Star, Crown, Gift, Shield, Lock, CreditCard, CheckCircle2, Sparkles, Sparkle, Infinity as InfinityIcon } from "lucide-react"
+import { Star, Crown, Shield, Lock, CreditCard, CheckCircle2, Sparkles, Sparkle, Infinity as InfinityIcon } from "lucide-react"
 import { PricingCTA } from "@/components/pricing/pricing-cta"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 type Pack = {

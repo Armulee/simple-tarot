@@ -13,7 +13,7 @@ import { useStars } from "@/contexts/stars-context"
 
 type PricingCTAMode = "pack" | "subscribe"
 
-export function PricingCTA({ mode, packId, plan, infinityTerm, theme }: { mode: PricingCTAMode; packId?: string; plan?: "monthly" | "annual"; infinityTerm?: "month" | "year"; theme?: "violet" | "sky" | "slate" | "zinc" }) {
+export function PricingCTA({ mode, packId, plan, infinityTerm }: { mode: PricingCTAMode; packId?: string; plan?: "monthly" | "annual"; infinityTerm?: "month" | "year" }) {
     const { user } = useAuth()
     const { addStars } = useStars()
     const [open, setOpen] = useState(false)
@@ -84,7 +84,7 @@ export function PricingCTA({ mode, packId, plan, infinityTerm, theme }: { mode: 
             return { label: subscribeMeta.label, stars: undefined as number | undefined, base, discount, total: price }
         }
         return null
-    }, [mode, packMeta, subscribeMeta, infinityTerm, plan])
+    }, [selectedMeta, mode, packMeta, subscribeMeta, infinityTerm, plan])
 
 
     if (mode === "pack") {
@@ -153,11 +153,6 @@ export function PricingCTA({ mode, packId, plan, infinityTerm, theme }: { mode: 
                                                         const isYear = infinityTerm === 'year'
                                                         const base = isYear ? (9.99 * 12) : 9.99
                                                         return `Base for unlimited is ${isYear ? '12 × $9.99' : '$9.99'} = $${base.toFixed(2)}`
-                                                    }
-                                                    if (mode === 'subscribe') {
-                                                        const isYear = plan === 'annual'
-                                                        const base = isYear ? (9.99 * 12) : 9.99
-                                                        return `Base for subscription is ${isYear ? '12 × $9.99' : '$9.99'} = $${base.toFixed(2)}`
                                                     }
                                                     return null
                                                 })()}
