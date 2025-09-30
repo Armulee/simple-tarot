@@ -38,10 +38,14 @@ export default async function PricingPage() {
         switch (id) {
             case "pack-1":
                 return "bg-yellow-500/15 border-yellow-500/30"
+            case "pack-2":
+                return "bg-emerald-500/15 border-emerald-500/30"
             case "pack-3":
                 return "bg-pink-500/15 border-pink-500/30"
             case "pack-5":
                 return "bg-cyan-500/15 border-cyan-500/30"
+            case "pack-7":
+                return "bg-purple-500/15 border-purple-500/30"
             default:
                 return "bg-white/10 border-white/20"
         }
@@ -51,10 +55,14 @@ export default async function PricingPage() {
         switch (id) {
             case "pack-1":
                 return "text-yellow-300"
+            case "pack-2":
+                return "text-emerald-300"
             case "pack-3":
                 return "text-pink-300"
             case "pack-5":
                 return "text-cyan-300"
+            case "pack-7":
+                return "text-purple-300"
             default:
                 return "text-white/80"
         }
@@ -64,10 +72,14 @@ export default async function PricingPage() {
         switch (id) {
             case "pack-1":
                 return "bg-yellow-400/15 border-yellow-400/30 text-yellow-300"
+            case "pack-2":
+                return "bg-emerald-400/15 border-emerald-400/30 text-emerald-300"
             case "pack-3":
                 return "bg-pink-400/15 border-pink-400/30 text-pink-300"
             case "pack-5":
                 return "bg-cyan-400/15 border-cyan-400/30 text-cyan-300"
+            case "pack-7":
+                return "bg-purple-400/15 border-purple-400/30 text-purple-300"
             default:
                 return "bg-white/10 border-white/20 text-white/80"
         }
@@ -79,12 +91,18 @@ export default async function PricingPage() {
             case "pack-1":
                 // amber/orange palette
                 return "from-amber-500/12 via-amber-600/10 to-orange-600/12"
+            case "pack-2":
+                // emerald/teal palette
+                return "from-emerald-500/12 via-green-500/10 to-teal-600/12"
             case "pack-3":
                 // rose/red palette
                 return "from-rose-500/12 via-pink-600/10 to-red-600/12"
             case "pack-5":
                 // cyan/indigo palette
                 return "from-cyan-500/12 via-sky-500/10 to-indigo-600/12"
+            case "pack-7":
+                // purple/violet palette
+                return "from-purple-500/12 via-violet-500/10 to-fuchsia-600/12"
             default:
                 return "from-white/5 via-white/5 to-white/5"
         }
@@ -281,8 +299,10 @@ export default async function PricingPage() {
                             <div className='space-y-2 text-left'>
                                 <div className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border ${packBadgeClasses(p.id).replace('/15','/100').replace('/15','/100')} absolute -top-3 left-2`}>
                                     {p.id === 'pack-1' && <Star className={`w-4 h-4 ${packIconColor(p.id)}`} />}
+                                    {p.id === 'pack-2' && <Star className={`w-4 h-4 ${packIconColor(p.id)}`} />}
                                     {p.id === 'pack-3' && <Sparkle className={`w-4 h-4 ${packIconColor(p.id)}`} />}
                                     {p.id === 'pack-5' && <Sparkles className={`w-4 h-4 ${packIconColor(p.id)}`} />}
+                                    {p.id === 'pack-7' && <Star className={`w-4 h-4 ${packIconColor(p.id)}`} />}
                                     <span>{p.label || 'One-time pack'}</span>
                                 </div>
                                 {/* Stars amount first (above price) with bonus badge at top-right */}
