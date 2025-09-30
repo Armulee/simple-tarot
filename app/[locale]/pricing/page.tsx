@@ -28,51 +28,7 @@ export default async function PricingPage() {
         { id: "pack-5", priceUsd: 4.99, stars: 350, bonus: 350 - 5 * basePerDollar, label: "Best value" },
     ]
 
-    const packStyles = (id: string) => {
-        switch (id) {
-            case "pack-1":
-                return {
-                    bg: "bg-gradient-to-br from-yellow-400/5 via-amber-400/4 to-orange-500/5",
-                    border: "border-yellow-400/25",
-                }
-            case "pack-3":
-                return {
-                    bg: "bg-gradient-to-br from-pink-400/5 via-rose-400/4 to-red-500/5",
-                    border: "border-pink-400/25",
-                }
-            case "pack-5":
-                return {
-                    bg: "bg-gradient-to-br from-cyan-400/5 via-sky-400/4 to-indigo-500/5",
-                    border: "border-cyan-400/25",
-                }
-            default:
-                return { bg: "bg-card/10", border: "border-border/20" }
-        }
-    }
-
-    const badgeStyles = (id: string) => {
-        switch (id) {
-            case "pack-3":
-                return "bg-gradient-to-r from-pink-500 to-red-600 text-white shadow-md"
-            case "pack-5":
-                return "bg-gradient-to-r from-cyan-500 to-indigo-600 text-white shadow-md"
-            default:
-                return "bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md"
-        }
-    }
-
-    const packAura = (id: string) => {
-        switch (id) {
-            case "pack-1":
-                return "from-yellow-400/25 via-amber-400/20 to-orange-500/25"
-            case "pack-3":
-                return "from-pink-500/25 via-rose-500/20 to-red-500/25"
-            case "pack-5":
-                return "from-cyan-400/25 via-sky-400/20 to-indigo-500/25"
-            default:
-                return "from-white/10 to-white/5"
-        }
-    }
+    // removed unused helpers (packStyles, badgeStyles, packAura)
 
     const renderPackIcon = (id: string) => {
         // Darker inner background matched to pack color, with Lucide icons
@@ -229,7 +185,7 @@ export default async function PricingPage() {
                                     <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-violet-300' /> Occasional bonus stars & perks</li>
                                     <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-violet-300' /> Cancel anytime from your account</li>
                                 </ul>
-                                <PricingCTA mode='subscribe' theme='violet' plan='monthly' />
+                                <PricingCTA mode='subscribe' plan='monthly' />
                             </div>
                         </div>
                     </TabsContent>

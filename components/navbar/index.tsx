@@ -18,7 +18,7 @@ import {
 } from "lucide-react"
 import { SidebarSheet } from "./sidebar-sheet"
 import { UserProfile } from "@/components/user-profile"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+// Avatar imports removed (unused)
 import { useAuth } from "@/hooks/use-auth"
 import { useStars } from "@/contexts/stars-context"
 import { useStarConsent } from "@/components/star-consent"
@@ -54,7 +54,7 @@ export function Navbar({ locale }: { locale: string }) {
         name?: string
     }
     // const avatarSrc = meta.avatar_url || meta.picture || undefined
-    const displayName = meta.name || user?.email?.split("@")[0] || "User"
+    // removed unused displayName
     // const initial = displayName.charAt(0).toUpperCase()
 
     return (

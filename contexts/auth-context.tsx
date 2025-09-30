@@ -123,7 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Before logging out, sync current user balance to device row
             try {
                 if (user) {
-                    await starSyncUserToDevice(user)
+                    await starSyncUserToDevice()
                 }
             } catch {}
             const { error } = await supabase.auth.signOut()

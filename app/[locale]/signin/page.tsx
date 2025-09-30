@@ -21,7 +21,7 @@ export default function SignInPage() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [isLoading, setIsLoading] = useState(false)
-    const [error, setError] = useState("")
+    const [errMsg, setErrMsg] = useState("")
     const router = useRouter()
     const params = useSearchParams()
     const { signIn, user } = useAuth()
@@ -31,7 +31,7 @@ export default function SignInPage() {
         const desc = params.get("error_description")
         if (err || desc) {
             const msg = desc || err || "Authentication error"
-            setError(msg)
+            setErrMsg(msg)
             toast.error(msg, { duration: Infinity, closeButton: true })
         }
     }, [params])
@@ -47,13 +47,13 @@ export default function SignInPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoading(true)
-        setError("")
+        setErrMsg("")
 
         try {
             const { error } = await signIn(email, password)
 
             if (error) {
-                setError(error.message)
+                setErrMsg(error.message)
                 toast.error(error.message || "Authentication error", { duration: Infinity, closeButton: true })
             } else {
                 const callbackUrl = params.get("callbackUrl") || "/"
