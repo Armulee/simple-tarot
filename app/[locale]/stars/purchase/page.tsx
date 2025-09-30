@@ -65,14 +65,14 @@ export default function PurchasePage() {
         if (isUnlimited || !selectedPack) return null
         const p = selectedPack as Pack
         const current = typeof stars === 'number' ? stars : 0
-        return current + p.stars + Math.max(0, p.bonus)
+        return current + p.stars
     }, [isUnlimited, selectedPack, stars])
     const canPurchase = Boolean(user) && !isUnlimited && selectedPack !== null
 
     const handlePay = async () => {
         if (!canPurchase) return
         const pack = selectedPack as Pack
-        const starsToAdd = pack.stars + Math.max(0, pack.bonus)
+        const starsToAdd = pack.stars
         addStars(starsToAdd)
         router.push("/stars")
     }
