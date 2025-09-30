@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth"
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { PricingCTA } from "@/components/pricing/pricing-cta"
 
 function formatRelativeTime(timestamp: number | null | undefined, nowMs: number): string {
     if (!timestamp) return "—"
@@ -105,6 +106,34 @@ export default function StarsPage() {
                             </Link>
                         )}
                     </div>
+
+                    {user && (
+                        <div className='w-full max-w-xl mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2'>
+                            {[
+                                { id: 'pack-1', stars: 60, price: '$0.99' },
+                                { id: 'pack-2', stars: 130, price: '$1.99' },
+                                { id: 'pack-3', stars: 200, price: '$2.99' },
+                                { id: 'pack-5', stars: 350, price: '$4.99' },
+                                { id: 'pack-7', stars: 500, price: '$6.99' },
+                            ].map((p) => (
+                                <PricingCTA
+                                    key={p.id}
+                                    mode='pack'
+                                    packId={p.id}
+                                    customTrigger={
+                                        <button
+                                            type='button'
+                                            className='w-full rounded-full border border-yellow-500/40 bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 hover:from-yellow-400/30 hover:to-yellow-600/30 text-yellow-200 px-3 py-1.5 flex items-center justify-center gap-1.5 transition'
+                                        >
+                                            <Star className='w-3.5 h-3.5' fill='currentColor' />
+                                            <span className='text-sm font-semibold'>{p.stars}</span>
+                                            <span className='text-[10px] text-yellow-300/80'>{p.price}</span>
+                                        </button>
+                                    }
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </Card>
 

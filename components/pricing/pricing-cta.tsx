@@ -13,7 +13,7 @@ import { useStars } from "@/contexts/stars-context"
 
 type PricingCTAMode = "pack" | "subscribe"
 
-export function PricingCTA({ mode, packId, plan, infinityTerm }: { mode: PricingCTAMode; packId?: string; plan?: "monthly" | "annual"; infinityTerm?: "month" | "year" }) {
+export function PricingCTA({ mode, packId, plan, infinityTerm, customTrigger }: { mode: PricingCTAMode; packId?: string; plan?: "monthly" | "annual"; infinityTerm?: "month" | "year"; customTrigger?: React.ReactNode }) {
     const { user } = useAuth()
     const { addStars } = useStars()
     const [open, setOpen] = useState(false)
@@ -114,7 +114,11 @@ export function PricingCTA({ mode, packId, plan, infinityTerm }: { mode: Pricing
         return (
             <Dialog open={open} onOpenChange={(v: boolean) => { setOpen(v); if (!v) setStage("summary") }}>
                 <DialogTrigger asChild>
-                    <Button className={`w-full rounded-full bg-white text-black hover:brightness-90`} onClick={() => { setStage("summary"); setOpen(true) }}>{mode === 'pack' ? 'Purchase' : 'Subscribe'}</Button>
+                    {customTrigger ? (
+                        <span onClick={() => { setStage("summary"); setOpen(true) }}>{customTrigger}</span>
+                    ) : (
+                        <Button className={`w-full rounded-full bg-white text-black hover:brightness-90`} onClick={() => { setStage("summary"); setOpen(true) }}>{mode === 'pack' ? 'Purchase' : 'Subscribe'}</Button>
+                    )}
                 </DialogTrigger>
                 <DialogContent className='max-w-md bg-card/95 backdrop-blur-md border-border/30'>
                     <DialogHeader>
@@ -239,9 +243,15 @@ export function PricingCTA({ mode, packId, plan, infinityTerm }: { mode: Pricing
         )
     }
     return (
-        <Link href={`/signin?callbackUrl=${encodeURIComponent("/pricing")}`}>
-            <Button className={`w-full rounded-full bg-white text-black hover:brightness-90`}>Sign in to subscribe</Button>
-        </Link>
+        customTrigger ? (
+            <Link href={`/signin?callbackUrl=${encodeURIComponent("/pricing")}`}>
+                <span>{customTrigger}</span>
+            </Link>
+        ) : (
+            <Link href={`/signin?callbackUrl=${encodeURIComponent("/pricing")}`}>
+                <Button className={`w-full rounded-full bg-white text-black hover:brightness-90`}>Sign in to subscribe</Button>
+            </Link>
+        )
     )
 }
 
