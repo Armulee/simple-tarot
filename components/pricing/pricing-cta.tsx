@@ -144,7 +144,8 @@ export function PricingCTA({ mode, packId, plan, infinityTerm }: { mode: Pricing
                                         const base = summary?.base || 0
                                         const total = summary?.total || 0
                                         const fee = round2(total * 0.025 + 0.25)
-                                        const discountAdj = round2(Math.max(0, base - total - fee))
+                                        // Discount absorbs the transaction fee so user pays the shown total
+                                        const discountAdj = round2(Math.max(0, base - total + fee))
                                         return (
                                             <>
                                                 <div className='flex items-center justify-between text-sm'>
