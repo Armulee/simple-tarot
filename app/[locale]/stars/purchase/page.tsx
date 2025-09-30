@@ -23,16 +23,6 @@ type SelectedPack = Pack | InfinityPack
 
 type SelectionKey = "monthly" | "annual" | "infinity-month" | "infinity-year" | "pack-1" | "pack-3" | "pack-5"
 
-const SUBSCRIPTIONS: Record<Extract<SelectionKey, "monthly" | "annual">, { id: SelectionKey; priceUsd: number; label: string }> = {
-    monthly: { id: "monthly", priceUsd: 9.99, label: "Monthly subscription" },
-    annual: { id: "annual", priceUsd: 99.99, label: "Annual subscription" },
-}
-
-const INFINITY_PLANS: Record<Extract<SelectionKey, "infinity-month" | "infinity-year">, { id: SelectionKey; priceUsd: number; label: string }> = {
-    "infinity-month": { id: "infinity-month", priceUsd: 9.99, label: "Infinity (1 month)" },
-    "infinity-year": { id: "infinity-year", priceUsd: 99.99, label: "Infinity (1 year)" },
-}
-
 const PACKS: Record<string, Pack> = {
     "pack-1": { id: "pack-1", priceUsd: 0.99, stars: 60, bonus: 0 },
     "pack-3": { id: "pack-3", priceUsd: 2.99, stars: 200, bonus: 200 - 3 * 60, label: "Popular" },
@@ -103,9 +93,13 @@ export default function PurchasePage() {
             {/* Plans selection */}
             <Card className='relative overflow-hidden p-6 rounded-xl bg-card/10 border-border/20'>
                 <h2 className='font-serif text-xl mb-3'>Choose a plan</h2>
-                <Accordion type='single' collapsible value={selectedKey} onValueChange={(v: string) => setSelectedKey((v || selectedKey) as SelectionKey)} className='space-y-2'>
+                <Accordion className='space-y-2'>
                     {/* Subscriptions */}
-                    <AccordionItem value='monthly' className='rounded-xl border border-border/20 bg-white/5'>
+                    <AccordionItem
+                        className='rounded-xl border border-border/20 bg-white/5'
+                        defaultOpen={initialSelection === 'monthly'}
+                        onClick={() => setSelectedKey('monthly')}
+                    >
                         <AccordionTrigger className='px-3'>
                             <div className='flex items-center justify-between w-full'>
                                 <div className='flex items-center gap-3'>
@@ -120,7 +114,11 @@ export default function PurchasePage() {
                         </AccordionTrigger>
                         <AccordionContent className='px-3 pb-3 text-sm text-white/80'>Auto-renewing monthly plan with unlimited stars. Cancel anytime.</AccordionContent>
                     </AccordionItem>
-                    <AccordionItem value='annual' className='rounded-xl border border-border/20 bg-white/5'>
+                    <AccordionItem
+                        className='rounded-xl border border-border/20 bg-white/5'
+                        defaultOpen={initialSelection === 'annual'}
+                        onClick={() => setSelectedKey('annual')}
+                    >
                         <AccordionTrigger className='px-3'>
                             <div className='flex items-center justify-between w-full'>
                                 <div className='flex items-center gap-3'>
@@ -137,7 +135,11 @@ export default function PurchasePage() {
                     </AccordionItem>
 
                     {/* Infinity one-time */}
-                    <AccordionItem value='infinity-month' className='rounded-xl border border-amber-500/30 bg-amber-500/10'>
+                    <AccordionItem
+                        className='rounded-xl border border-amber-500/30 bg-amber-500/10'
+                        defaultOpen={initialSelection === 'infinity-month'}
+                        onClick={() => setSelectedKey('infinity-month')}
+                    >
                         <AccordionTrigger className='px-3'>
                             <div className='flex items-center justify-between w-full'>
                                 <div className='flex items-center gap-3'>
@@ -152,7 +154,11 @@ export default function PurchasePage() {
                         </AccordionTrigger>
                         <AccordionContent className='px-3 pb-3 text-sm text-white/80'>One-time purchase for 30 days of unlimited usage. No auto-renew.</AccordionContent>
                     </AccordionItem>
-                    <AccordionItem value='infinity-year' className='rounded-xl border border-rose-500/30 bg-rose-500/10'>
+                    <AccordionItem
+                        className='rounded-xl border border-rose-500/30 bg-rose-500/10'
+                        defaultOpen={initialSelection === 'infinity-year'}
+                        onClick={() => setSelectedKey('infinity-year')}
+                    >
                         <AccordionTrigger className='px-3'>
                             <div className='flex items-center justify-between w-full'>
                                 <div className='flex items-center gap-3'>
@@ -169,7 +175,11 @@ export default function PurchasePage() {
                     </AccordionItem>
 
                     {/* Packs */}
-                    <AccordionItem value='pack-1' className='rounded-xl border border-yellow-500/30 bg-yellow-500/10'>
+                    <AccordionItem
+                        className='rounded-xl border border-yellow-500/30 bg-yellow-500/10'
+                        defaultOpen={initialSelection === 'pack-1'}
+                        onClick={() => setSelectedKey('pack-1')}
+                    >
                         <AccordionTrigger className='px-3'>
                             <div className='flex items-center justify-between w-full'>
                                 <div className='flex items-center gap-3'>
@@ -185,7 +195,11 @@ export default function PurchasePage() {
                         </AccordionTrigger>
                         <AccordionContent className='px-3 pb-3 text-sm text-white/80'>One-time pack. Instant delivery after payment.</AccordionContent>
                     </AccordionItem>
-                    <AccordionItem value='pack-3' className='rounded-xl border border-pink-500/30 bg-pink-500/10'>
+                    <AccordionItem
+                        className='rounded-xl border border-pink-500/30 bg-pink-500/10'
+                        defaultOpen={initialSelection === 'pack-3'}
+                        onClick={() => setSelectedKey('pack-3')}
+                    >
                         <AccordionTrigger className='px-3'>
                             <div className='flex items-center justify-between w-full'>
                                 <div className='flex items-center gap-3'>
@@ -202,7 +216,11 @@ export default function PurchasePage() {
                         </AccordionTrigger>
                         <AccordionContent className='px-3 pb-3 text-sm text-white/80'>Better value pack with bonus stars included. Instant delivery.</AccordionContent>
                     </AccordionItem>
-                    <AccordionItem value='pack-5' className='rounded-xl border border-cyan-500/30 bg-cyan-500/10'>
+                    <AccordionItem
+                        className='rounded-xl border border-cyan-500/30 bg-cyan-500/10'
+                        defaultOpen={initialSelection === 'pack-5'}
+                        onClick={() => setSelectedKey('pack-5')}
+                    >
                         <AccordionTrigger className='px-3'>
                             <div className='flex items-center justify-between w-full'>
                                 <div className='flex items-center gap-3'>
