@@ -112,7 +112,7 @@ export function PricingCTA({ mode, packId, plan, infinityTerm, theme }: { mode: 
                     </DialogHeader>
                     {stage === "summary" && (
                         <div className='space-y-4'>
-                            <div className='space-y-1 p-4 rounded-lg bg-white/5 border border-white/10'>
+                            <div className='p-4 rounded-lg bg-white/5 border border-white/10'>
                                 <div className='flex items-center justify-between'>
                                     <div className='text-sm'>
                                         <div className='font-semibold'>{selectedMeta?.label || 'Plan'}</div>
@@ -122,21 +122,46 @@ export function PricingCTA({ mode, packId, plan, infinityTerm, theme }: { mode: 
                                             <div className='text-white/70'>Unlimited</div>
                                         )}
                                     </div>
-                                    <div className='text-right font-semibold'>${(selectedMeta?.price || 0).toFixed(2)}</div>
+                                    <div className='text-right'>
+                                        <div className='font-semibold'>${(selectedMeta?.price || 0).toFixed(2)}</div>
+                                        <div className='text-[10px] text-white/60'>Amount due</div>
+                                    </div>
                                 </div>
                                 {summary && (
-                                    <div className='pt-2 space-y-1'>
-                                        <div className='flex items-center justify-between text-sm'>
-                                            <span className='text-white/80'>Base price</span>
-                                            <span>${summary.base.toFixed(2)}</span>
-                                        </div>
-                                        <div className='flex items-center justify-between text-sm'>
-                                            <span className='text-white/80'>Package discount</span>
-                                            <span>- ${summary.discount.toFixed(2)}</span>
-                                        </div>
-                                        <div className='flex items-center justify-between'>
-                                            <span className='font-semibold'>Total</span>
-                                            <span className='font-bold text-lg'>${summary.total.toFixed(2)}</span>
+                                    <div className='mt-3'>
+                                        <Separator className='my-2' />
+                                        <div className='mb-1 text-xs text-white/70'>Pricing breakdown</div>
+                                        <div className='space-y-1'>
+                                            <div className='flex items-center justify-between text-sm'>
+                                                <span className='text-white/80'>Base price</span>
+                                                <span>${summary.base.toFixed(2)}</span>
+                                            </div>
+                                            <div className='flex items-center justify-between text-sm'>
+                                                <span className='text-white/80'>Package discount</span>
+                                                <span>- ${summary.discount.toFixed(2)}</span>
+                                            </div>
+                                            <div className='flex items-center justify-between'>
+                                                <span className='font-semibold'>Total</span>
+                                                <span className='font-bold text-lg'>${summary.total.toFixed(2)}</span>
+                                            </div>
+                                            <div className='pt-2 text-[11px] text-white/60'>
+                                                {(() => {
+                                                    if (mode === 'pack' && typeof packMeta?.stars === 'number') {
+                                                        return `Base is computed at $1 = 60 stars → ${packMeta.stars} ÷ 60 = ${(packMeta.stars / 60).toFixed(2)} × $1 = $${((packMeta.stars / 60) * 1).toFixed(2)}`
+                                                    }
+                                                    if (mode === 'pack' && typeof packMeta?.stars !== 'number') {
+                                                        const isYear = infinityTerm === 'year'
+                                                        const base = isYear ? (9.99 * 12) : 9.99
+                                                        return `Base for unlimited is ${isYear ? '12 × $9.99' : '$9.99'} = $${base.toFixed(2)}`
+                                                    }
+                                                    if (mode === 'subscribe') {
+                                                        const isYear = plan === 'annual'
+                                                        const base = isYear ? (9.99 * 12) : 9.99
+                                                        return `Base for subscription is ${isYear ? '12 × $9.99' : '$9.99'} = $${base.toFixed(2)}`
+                                                    }
+                                                    return null
+                                                })()}
+                                            </div>
                                         </div>
                                     </div>
                                 )}
