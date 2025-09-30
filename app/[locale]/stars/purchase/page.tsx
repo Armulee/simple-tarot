@@ -8,7 +8,7 @@ import { Star, CreditCard, ArrowLeft, CircleAlert } from "lucide-react"
 import Link from "next/link"
 import { useStars } from "@/contexts/stars-context"
 import { useAuth } from "@/hooks/use-auth"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { cn } from "@/lib/utils"
 
 type Pack = {
     id: string
@@ -90,171 +90,104 @@ export default function PurchasePage() {
                 <p className='text-sm text-muted-foreground'>Secure and instant delivery after payment.</p>
             </div>
 
-            {/* Plans selection */}
+            {/* Plans selection: uniform grid of selectable cards */}
             <Card className='relative overflow-hidden p-6 rounded-xl bg-card/10 border-border/20'>
                 <h2 className='font-serif text-xl mb-3'>Choose a plan</h2>
-                <Accordion className='space-y-2'>
-                    {/* Subscriptions */}
-                    <AccordionItem
-                        className='rounded-xl border border-border/20 bg-white/5'
-                        defaultOpen={initialSelection === 'monthly'}
-                        onClick={() => setSelectedKey('monthly')}
-                    >
-                        <AccordionTrigger className='px-3'>
-                            <div className='flex items-center justify-between w-full'>
-                                <div className='flex items-center gap-3'>
-                                    <span className='text-2xl'>∞</span>
-                                    <span>Monthly subscription</span>
-                                </div>
-                                <div className='text-right text-sm'>
-                                    <div className='font-semibold'>$9.99</div>
-                                    <div className='text-white/70'>Unlimited</div>
-                                </div>
-                            </div>
-                        </AccordionTrigger>
-                        <AccordionContent className='px-3 pb-3 text-sm text-white/80'>Auto-renewing monthly plan with unlimited stars. Cancel anytime.</AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem
-                        className='rounded-xl border border-border/20 bg-white/5'
-                        defaultOpen={initialSelection === 'annual'}
-                        onClick={() => setSelectedKey('annual')}
-                    >
-                        <AccordionTrigger className='px-3'>
-                            <div className='flex items-center justify-between w-full'>
-                                <div className='flex items-center gap-3'>
-                                    <span className='text-2xl'>∞</span>
-                                    <span>Annual subscription</span>
-                                </div>
-                                <div className='text-right text-sm'>
-                                    <div className='font-semibold'>$99.99</div>
-                                    <div className='text-white/70'>Unlimited</div>
-                                </div>
-                            </div>
-                        </AccordionTrigger>
-                        <AccordionContent className='px-3 pb-3 text-sm text-white/80'>Billed yearly, best value. Unlimited stars, cancel renewal anytime.</AccordionContent>
-                    </AccordionItem>
-
-                    {/* Infinity one-time */}
-                    <AccordionItem
-                        className='rounded-xl border border-amber-500/30 bg-amber-500/10'
-                        defaultOpen={initialSelection === 'infinity-month'}
-                        onClick={() => setSelectedKey('infinity-month')}
-                    >
-                        <AccordionTrigger className='px-3'>
-                            <div className='flex items-center justify-between w-full'>
-                                <div className='flex items-center gap-3'>
-                                    <span className='text-2xl text-amber-200'>∞</span>
-                                    <span>Infinity (1 month)</span>
-                                </div>
-                                <div className='text-right text-sm'>
-                                    <div className='font-semibold'>$9.99</div>
-                                    <div className='text-amber-200/90'>Unlimited</div>
-                                </div>
-                            </div>
-                        </AccordionTrigger>
-                        <AccordionContent className='px-3 pb-3 text-sm text-white/80'>One-time purchase for 30 days of unlimited usage. No auto-renew.</AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem
-                        className='rounded-xl border border-rose-500/30 bg-rose-500/10'
-                        defaultOpen={initialSelection === 'infinity-year'}
-                        onClick={() => setSelectedKey('infinity-year')}
-                    >
-                        <AccordionTrigger className='px-3'>
-                            <div className='flex items-center justify-between w-full'>
-                                <div className='flex items-center gap-3'>
-                                    <span className='text-2xl text-rose-200'>∞</span>
-                                    <span>Infinity (1 year)</span>
-                                </div>
-                                <div className='text-right text-sm'>
-                                    <div className='font-semibold'>$99.99</div>
-                                    <div className='text-rose-200/90'>Unlimited</div>
-                                </div>
-                            </div>
-                        </AccordionTrigger>
-                        <AccordionContent className='px-3 pb-3 text-sm text-white/80'>One-time purchase for 365 days of unlimited usage. No auto-renew.</AccordionContent>
-                    </AccordionItem>
-
-                    {/* Packs */}
-                    <AccordionItem
-                        className='rounded-xl border border-yellow-500/30 bg-yellow-500/10'
-                        defaultOpen={initialSelection === 'pack-1'}
-                        onClick={() => setSelectedKey('pack-1')}
-                    >
-                        <AccordionTrigger className='px-3'>
-                            <div className='flex items-center justify-between w-full'>
-                                <div className='flex items-center gap-3'>
-                                    <div className='w-8 h-8 rounded-full bg-yellow-500/20 border border-yellow-500/30 grid place-items-center'>
-                                        <Star className='w-4 h-4 text-yellow-300' />
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                    {[{
+                        key: "monthly" as SelectionKey,
+                        title: "Monthly subscription",
+                        price: "$9.99",
+                        subtitle: "Unlimited",
+                        icon: <span className='text-2xl'>∞</span>,
+                        details: "Auto-renewing monthly plan with unlimited stars. Cancel anytime.",
+                    }, {
+                        key: "annual" as SelectionKey,
+                        title: "Annual subscription",
+                        price: "$99.99",
+                        subtitle: "Unlimited",
+                        icon: <span className='text-2xl'>∞</span>,
+                        details: "Billed yearly, best value. Unlimited stars, cancel renewal anytime.",
+                    }, {
+                        key: "infinity-month" as SelectionKey,
+                        title: "Infinity (1 month)",
+                        price: "$9.99",
+                        subtitle: "Unlimited",
+                        icon: <span className='text-2xl'>∞</span>,
+                        details: "One-time purchase for 30 days of unlimited usage. No auto-renew.",
+                    }, {
+                        key: "infinity-year" as SelectionKey,
+                        title: "Infinity (1 year)",
+                        price: "$99.99",
+                        subtitle: "Unlimited",
+                        icon: <span className='text-2xl'>∞</span>,
+                        details: "One-time purchase for 365 days of unlimited usage. No auto-renew.",
+                    }, {
+                        key: "pack-1" as SelectionKey,
+                        title: "60 stars",
+                        price: "$0.99",
+                        subtitle: "Instant delivery",
+                        icon: <div className='w-8 h-8 rounded-full bg-white/10 border border-white/20 grid place-items-center'><Star className='w-4 h-4 text-yellow-300' /></div>,
+                        details: "One-time pack. Instant delivery after payment.",
+                    }, {
+                        key: "pack-3" as SelectionKey,
+                        title: "200 stars",
+                        price: "$2.99",
+                        subtitle: `+${PACKS["pack-3"].bonus} bonus` ,
+                        icon: <div className='w-8 h-8 rounded-full bg-white/10 border border-white/20 grid place-items-center'><Star className='w-4 h-4 text-yellow-300' /></div>,
+                        details: "Better value pack with bonus stars included. Instant delivery.",
+                    }, {
+                        key: "pack-5" as SelectionKey,
+                        title: "350 stars",
+                        price: "$4.99",
+                        subtitle: `+${PACKS["pack-5"].bonus} bonus` ,
+                        icon: <div className='w-8 h-8 rounded-full bg-white/10 border border-white/20 grid place-items-center'><Star className='w-4 h-4 text-yellow-300' /></div>,
+                        details: "Best value pack with the biggest bonus. Instant delivery.",
+                    }].map((card) => {
+                        const selected = selectedKey === card.key
+                        return (
+                            <button
+                                key={card.key}
+                                type='button'
+                                onClick={() => setSelectedKey(card.key)}
+                                className={cn(
+                                    'text-left rounded-xl border transition-all p-4 bg-white/5',
+                                    selected ? 'border-white/40 ring-2 ring-white/20 shadow-lg' : 'border-border/20 hover:border-white/30'
+                                )}
+                            >
+                                <div className='flex items-start justify-between gap-3'>
+                                    <div className='flex items-center gap-3'>
+                                        {card.icon}
+                                        <div>
+                                            <div className='font-semibold'>{card.title}</div>
+                                            <div className='text-xs text-muted-foreground'>{card.subtitle}</div>
+                                        </div>
                                     </div>
-                                    <span>60 stars</span>
-                                </div>
-                                <div className='text-right text-sm'>
-                                    <div className='font-semibold'>$0.99</div>
-                                </div>
-                            </div>
-                        </AccordionTrigger>
-                        <AccordionContent className='px-3 pb-3 text-sm text-white/80'>One-time pack. Instant delivery after payment.</AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem
-                        className='rounded-xl border border-pink-500/30 bg-pink-500/10'
-                        defaultOpen={initialSelection === 'pack-3'}
-                        onClick={() => setSelectedKey('pack-3')}
-                    >
-                        <AccordionTrigger className='px-3'>
-                            <div className='flex items-center justify-between w-full'>
-                                <div className='flex items-center gap-3'>
-                                    <div className='w-8 h-8 rounded-full bg-pink-500/20 border border-pink-500/30 grid place-items-center'>
-                                        <Star className='w-4 h-4 text-pink-300' />
+                                    <div className='text-right'>
+                                        <div className='font-semibold'>{card.price}</div>
+                                        <input type='radio' readOnly checked={selected} className='accent-white' />
                                     </div>
-                                    <span>200 stars</span>
                                 </div>
-                                <div className='text-right text-sm'>
-                                    <div className='font-semibold'>$2.99</div>
-                                    <div className='text-emerald-300'>+{PACKS["pack-3"].bonus} bonus</div>
-                                </div>
-                            </div>
-                        </AccordionTrigger>
-                        <AccordionContent className='px-3 pb-3 text-sm text-white/80'>Better value pack with bonus stars included. Instant delivery.</AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem
-                        className='rounded-xl border border-cyan-500/30 bg-cyan-500/10'
-                        defaultOpen={initialSelection === 'pack-5'}
-                        onClick={() => setSelectedKey('pack-5')}
-                    >
-                        <AccordionTrigger className='px-3'>
-                            <div className='flex items-center justify-between w-full'>
-                                <div className='flex items-center gap-3'>
-                                    <div className='w-8 h-8 rounded-full bg-cyan-500/20 border border-cyan-500/30 grid place-items-center'>
-                                        <Star className='w-4 h-4 text-cyan-300' />
-                                    </div>
-                                    <span>350 stars</span>
-                                </div>
-                                <div className='text-right text-sm'>
-                                    <div className='font-semibold'>$4.99</div>
-                                    <div className='text-emerald-300'>+{PACKS["pack-5"].bonus} bonus</div>
-                                </div>
-                            </div>
-                        </AccordionTrigger>
-                        <AccordionContent className='px-3 pb-3 text-sm text-white/80'>Best value pack with the biggest bonus. Instant delivery.</AccordionContent>
-                    </AccordionItem>
-                </Accordion>
+                                {selected && (
+                                    <div className='mt-3 text-sm text-white/80'>{card.details}</div>
+                                )}
+                            </button>
+                        )
+                    })}
+                </div>
             </Card>
 
-            {/* Checkout summary */}
+            {/* Checkout summary: show only new stars amount (current in navbar) */}
             <Card className='relative overflow-hidden p-6 rounded-xl bg-card/10 border-border/20'>
                 <div className='space-y-4'>
-                    <div className='grid grid-cols-2 gap-4 text-center'>
-                        <div className='p-3 rounded-lg bg-white/5 border border-white/10'>
-                            <div className='text-xs text-white/70'>Current stars</div>
-                            <div className='text-2xl font-bold'>{typeof stars === 'number' ? stars : '—'}</div>
-                        </div>
-                        <div className='p-3 rounded-lg bg-white/5 border border-white/10'>
-                            <div className='text-xs text-white/70'>After purchase</div>
+                    <div className='grid grid-cols-1 md:grid-cols-3 gap-4 text-center'>
+                        <div className='p-3 rounded-lg bg-white/5 border border-white/10 md:col-start-2'>
+                            <div className='text-xs text-white/70'>New stars after purchase</div>
                             <div className='text-2xl font-bold'>
                                 {isUnlimited ? (
                                     <span>∞ <span className='text-base font-normal'>(Unlimited)</span></span>
                                 ) : (
-                                    finalStars
+                                    finalStars ?? '—'
                                 )}
                             </div>
                         </div>
