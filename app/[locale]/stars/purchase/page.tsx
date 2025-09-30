@@ -4,6 +4,7 @@ import { useMemo, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Star, CreditCard, ArrowLeft, CircleAlert } from "lucide-react"
 import Link from "next/link"
 import { useStars } from "@/contexts/stars-context"
@@ -49,6 +50,7 @@ export default function PurchasePage() {
     }, [params])
 
     const [selectedKey, setSelectedKey] = useState<SelectionKey>(initialSelection)
+    const [showOnlySelected, setShowOnlySelected] = useState<boolean>(true)
 
     const selectedPack = useMemo<SelectedPack | null>(() => {
         if (selectedKey === "pack-1" || selectedKey === "pack-3" || selectedKey === "pack-5") {
@@ -93,6 +95,18 @@ export default function PurchasePage() {
             {/* Plans selection: uniform grid of selectable cards */}
             <Card className='relative overflow-hidden p-6 rounded-xl bg-card/10 border-border/20'>
                 <h2 className='font-serif text-xl mb-3'>Choose a plan</h2>
+                <div className='flex items-center justify-end mb-3'>
+                    {selectedKey ? (
+                        <Button
+                            type='button'
+                            variant='outline'
+                            className='rounded-full h-8 px-3 text-xs'
+                            onClick={() => setShowOnlySelected(!showOnlySelected)}
+                        >
+                            {showOnlySelected ? 'Show more plans' : 'Show less'}
+                        </Button>
+                    ) : null}
+                </div>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     {[{
                         key: "monthly" as SelectionKey,
@@ -145,6 +159,7 @@ export default function PurchasePage() {
                         details: "Best value pack with the biggest bonus. Instant delivery.",
                     }].map((card) => {
                         const selected = selectedKey === card.key
+                        if (showOnlySelected && selectedKey && !selected) return null
                         return (
                             <button
                                 key={card.key}
@@ -152,7 +167,7 @@ export default function PurchasePage() {
                                 onClick={() => setSelectedKey(card.key)}
                                 className={cn(
                                     'text-left rounded-xl border transition-all p-4 bg-white/5',
-                                    selected ? 'border-white/40 ring-2 ring-white/20 shadow-lg' : 'border-border/20 hover:border-white/30'
+                                    selected ? 'border-white/50 ring-2 ring-white/25 shadow-lg bg-white/10' : 'border-border/20 hover:border-white/30'
                                 )}
                             >
                                 <div className='flex items-start justify-between gap-3'>
@@ -165,7 +180,7 @@ export default function PurchasePage() {
                                     </div>
                                     <div className='text-right'>
                                         <div className='font-semibold'>{card.price}</div>
-                                        <input type='radio' readOnly checked={selected} className='accent-white' />
+                                        <Checkbox checked={selected} readOnly className='ml-auto' />
                                     </div>
                                 </div>
                                 {selected && (
