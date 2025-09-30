@@ -69,6 +69,40 @@ export default function PurchasePage() {
         const current = typeof stars === 'number' ? stars : 0
         return current + p.stars
     }, [isUnlimited, selectedPack, stars])
+
+    const basePerDollar = 60
+    const monthlyPrice = 9.99
+    const round2 = (n: number) => Math.round(n * 100) / 100
+
+    const planPricing = useMemo(() => {
+        if (!selectedKey) return null
+        if (selectedKey === 'monthly') {
+            const price = 9.99
+            const base = 9.99
+            return { label: 'Monthly subscription', stars: undefined as number | undefined, basePrice: base, discount: round2(base - price), total: price }
+        }
+        if (selectedKey === 'annual') {
+            const price = 99.99
+            const base = round2(12 * monthlyPrice)
+            return { label: 'Annual subscription', stars: undefined as number | undefined, basePrice: base, discount: round2(base - price), total: price }
+        }
+        if (selectedKey === 'infinity-month') {
+            const price = 9.99
+            const base = 9.99
+            return { label: 'Infinity (1 month)', stars: undefined as number | undefined, basePrice: base, discount: round2(base - price), total: price }
+        }
+        if (selectedKey === 'infinity-year') {
+            const price = 99.99
+            const base = round2(12 * monthlyPrice)
+            return { label: 'Infinity (1 year)', stars: undefined as number | undefined, basePrice: base, discount: round2(base - price), total: price }
+        }
+        if (selectedKey === 'pack-1' || selectedKey === 'pack-3' || selectedKey === 'pack-5') {
+            const pack = PACKS[selectedKey]
+            const base = round2((pack.stars / basePerDollar) * 1)
+            return { label: `${pack.stars} stars`, stars: pack.stars, basePrice: base, discount: round2(base - pack.priceUsd), total: pack.priceUsd }
+        }
+        return null
+    }, [selectedKey])
     const canPurchase = Boolean(user) && !isUnlimited && selectedPack !== null
 
     const handlePay = async () => {
@@ -215,10 +249,38 @@ export default function PurchasePage() {
                             </div>
                         </div>
                     </div>
+                    {planPricing && (
+                        <div className='space-y-1'>
+                            <div className='flex items-center justify-between'>
+                                <span className='text-sm text-white/80'>Plan</span>
+                                <span className='font-semibold'>{planPricing.label}</span>
+                            </div>
+                            {typeof planPricing.stars === 'number' && (
+                                <div className='flex items-center justify-between'>
+                                    <span className='text-sm text-white/80'>Stars</span>
+                                    <span className='font-semibold'>{planPricing.stars}</span>
+                                </div>
+                            )}
+                            <div className='flex items-center justify-between'>
+                                <span className='text-sm text-white/80'>Base price</span>
+                                <span className='font-semibold'>${planPricing.basePrice.toFixed(2)}</span>
+                            </div>
+                            <div className='flex items-center justify-between'>
+                                <span className='text-sm text-white/80'>Package discount</span>
+                                <span className='font-semibold'>-${planPricing.discount.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    )}
                     {!isUnlimited && selectedPack && (
                         <div className='flex items-center justify-between'>
                             <span className='font-semibold'>Total</span>
                             <span className='font-bold text-xl'>${(selectedPack as Pack).priceUsd.toFixed(2)}</span>
+                        </div>
+                    )}
+                    {isUnlimited && planPricing && (
+                        <div className='flex items-center justify-between'>
+                            <span className='font-semibold'>Total</span>
+                            <span className='font-bold text-xl'>${planPricing.total.toFixed(2)}</span>
                         </div>
                     )}
                     {isUnlimited && (
