@@ -63,29 +63,37 @@ export function PricingCTA({ mode, packId, plan, infinityTerm }: { mode: Pricing
     const summary = useMemo(() => {
         // Unified computation for all plans
         if (!selectedMeta) return null
+        // Star packs
         if (packMeta && typeof packMeta.stars === "number") {
-            // Pack with fixed stars
-            return { label: packMeta.label, stars: packMeta.stars, total: packMeta.price }
+            const total = packMeta.price
+            const base = round2((packMeta.stars / basePerDollar) * 1)
+            const discount = round2(base - total)
+            return { label: packMeta.label, stars: packMeta.stars, base, discount, total }
         }
+        // Infinity (one-time unlimited)
         if (packMeta && typeof packMeta.stars !== "number") {
-            // Infinity one-time plans
             const isYear = infinityTerm === "year"
-            const price = isYear ? 99.99 : 9.99
-            return { label: packMeta.label, stars: undefined as number | undefined, total: price }
+            const total = isYear ? 99.99 : 9.99
+            const base = isYear ? round2(monthlyPrice * 12) : monthlyPrice
+            const discount = round2(base - total)
+            return { label: packMeta.label, stars: undefined as number | undefined, base, discount, total }
         }
+        // Subscriptions
         if (subscribeMeta) {
-            // Subscriptions
-            const price = subscribeMeta.price
-            return { label: subscribeMeta.label, stars: undefined as number | undefined, total: price }
+            const isYear = plan === "annual"
+            const total = subscribeMeta.price
+            const base = isYear ? round2(monthlyPrice * 12) : monthlyPrice
+            const discount = round2(base - total)
+            return { label: subscribeMeta.label, stars: undefined as number | undefined, base, discount, total }
         }
         return null
-    }, [selectedMeta, packMeta, subscribeMeta, infinityTerm])
+    }, [selectedMeta, packMeta, subscribeMeta, infinityTerm, plan])
 
 
     // Unified rendering for both pack and subscribe
     if (user) {
         return (
-            <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setStage("summary") }}>
+            <Dialog open={open} onOpenChange={(v: boolean) => { setOpen(v); if (!v) setStage("summary") }}>
                 <DialogTrigger asChild>
                     <Button className={`w-full rounded-full bg-white text-black hover:brightness-90`} onClick={() => { setStage("summary"); setOpen(true) }}>{mode === 'pack' ? 'Purchase' : 'Subscribe'}</Button>
                 </DialogTrigger>
@@ -112,7 +120,15 @@ export function PricingCTA({ mode, packId, plan, infinityTerm }: { mode: Pricing
                                 </div>
                                 <div className='mt-3'>
                                     <Separator className='my-2' />
-                                    {/* Intentionally concise breakdown without base $1 info */}
+                                    {/* Breakdown with base price and package discount restored */}
+                                    <div className='flex items-center justify-between text-sm'>
+                                        <span className='text-white/80'>Base price</span>
+                                        <span>${(summary?.base || 0).toFixed(2)}</span>
+                                    </div>
+                                    <div className='flex items-center justify-between text-sm'>
+                                        <span className='text-white/80'>Package discount</span>
+        								<span>- ${(summary?.discount || 0).toFixed(2)}</span>
+                                    </div>
                                     <div className='flex items-center justify-between'>
                                         <span className='font-semibold'>Total</span>
                                         <span className='font-bold text-lg'>${(summary?.total || 0).toFixed(2)}</span>
