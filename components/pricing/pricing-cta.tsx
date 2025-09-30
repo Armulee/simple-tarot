@@ -52,8 +52,23 @@ export function PricingCTA({ mode, packId, plan, infinityTerm }: { mode: Pricing
 
     const selectedMeta = packMeta ?? subscribeMeta
 
-    const handleSimulatedPay = async () => {
+    const handleCheckout = async (method: "apple" | "google" | "paypal" | "card") => {
         if (!user) return
+        const res = await fetch("/api/checkout/charge", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                planLabel: summary?.label,
+                amountUsd: summary?.total,
+                payMethod: method,
+                card: method === "card" ? { name: cardName, number: cardNumber, expiry: cardExpiry, cvc: cardCvc } : undefined,
+                userId: user.id,
+            }),
+        })
+        const json = await res.json()
+        if (!res.ok || !json?.ok) {
+            return
+        }
         if (mode === "pack" && packMeta && typeof packMeta.stars === "number") {
             addStars(packMeta.stars)
         }
@@ -169,9 +184,9 @@ export function PricingCTA({ mode, packId, plan, infinityTerm }: { mode: Pricing
                                 <div className='text-right font-semibold'>${(summary?.total || 0).toFixed(2)}</div>
                             </div>
                             <div className='grid grid-cols-3 gap-2'>
-                                <Button className='w-full rounded-lg bg-white text-black hover:brightness-95'>Apple Pay</Button>
-                                <Button className='w-full rounded-lg bg-white text-black hover:brightness-95'>Google Pay</Button>
-                                <Button className='w-full rounded-lg bg-white text-black hover:brightness-95'>PayPal</Button>
+                                <Button className='w-full rounded-lg bg-white text-black hover:brightness-95' onClick={() => handleCheckout('apple')}>Apple Pay</Button>
+                                <Button className='w-full rounded-lg bg-white text-black hover:brightness-95' onClick={() => handleCheckout('google')}>Google Pay</Button>
+                                <Button className='w-full rounded-lg bg-white text-black hover:brightness-95' onClick={() => handleCheckout('paypal')}>PayPal</Button>
                             </div>
                             <div className='flex items-center gap-2'>
                                 <Separator className='flex-1' />
@@ -212,7 +227,7 @@ export function PricingCTA({ mode, packId, plan, infinityTerm }: { mode: Pricing
                         ) : (
                             <div className='flex w-full gap-2'>
                                 <Button variant='outline' className='w-32' onClick={() => setStage("summary")}>Back</Button>
-                                <Button className='flex-1 rounded-full bg-white text-black hover:brightness-95' onClick={handleSimulatedPay}>
+                                <Button className='flex-1 rounded-full bg-white text-black hover:brightness-95' onClick={() => handleCheckout('card')}>
                                     Pay ${(summary?.total || 0).toFixed(2)}
                                 </Button>
                             </div>
