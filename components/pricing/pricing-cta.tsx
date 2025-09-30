@@ -7,40 +7,15 @@ import { Star, Users } from "lucide-react"
 
 type PricingCTAMode = "pack" | "subscribe"
 
-export function PricingCTA({ mode, packId, theme }: { mode: PricingCTAMode; packId?: string; theme?: "violet" | "sky" | "slate" | "zinc" }) {
+export function PricingCTA({ mode, packId, plan, infinityTerm, theme }: { mode: PricingCTAMode; packId?: string; plan?: "monthly" | "annual"; infinityTerm?: "month" | "year"; theme?: "violet" | "sky" | "slate" | "zinc" }) {
     const { user } = useAuth()
 
-    const gradientByPack = (id?: string) => {
-        switch (id) {
-            case "pack-1":
-                return "from-yellow-400 to-orange-500"
-            case "pack-3":
-                return "from-pink-400 to-red-500"
-            case "pack-5":
-                return "from-cyan-400 to-indigo-500"
-            default:
-                return "from-yellow-400 to-yellow-600"
-        }
-    }
-
-    const badgeButtonByPack = (id?: string) => {
-        switch (id) {
-            case "pack-1":
-                return "bg-yellow-400/15 border border-yellow-400/30 text-yellow-300 hover:bg-yellow-400/20"
-            case "pack-3":
-                return "bg-pink-400/15 border border-pink-400/30 text-pink-300 hover:bg-pink-400/20"
-            case "pack-5":
-                return "bg-cyan-400/15 border border-cyan-400/30 text-cyan-300 hover:bg-cyan-400/20"
-            default:
-                return "bg-yellow-400/15 border border-yellow-400/30 text-yellow-300 hover:bg-yellow-400/20"
-        }
-    }
 
     if (mode === "pack") {
         if (packId === 'pack-infinity') {
             if (user) {
                 return (
-                    <Link href={`/stars/purchase?pack=${encodeURIComponent(packId)}`}>
+                    <Link href={`/stars/purchase?pack=${encodeURIComponent(packId)}${infinityTerm ? `&term=${infinityTerm}` : ''}`}>
                         <Button className={`w-full rounded-full bg-white text-black hover:brightness-90 transition-shadow flex items-center justify-center gap-2`}>
                             <Star className='w-4 h-4' />
                             Purchase
@@ -80,7 +55,7 @@ export function PricingCTA({ mode, packId, theme }: { mode: PricingCTAMode; pack
     // subscribe
     if (user) {
         return (
-            <Link href='/pricing/subscribe'>
+            <Link href={`/stars/purchase?plan=${encodeURIComponent(plan || 'monthly')}`}>
                 <Button className={`w-full rounded-full bg-white text-black hover:brightness-90`}>Subscribe</Button>
             </Link>
         )

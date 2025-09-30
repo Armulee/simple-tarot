@@ -229,7 +229,7 @@ export default async function PricingPage() {
                                     <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-violet-300' /> Occasional bonus stars & perks</li>
                                     <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-violet-300' /> Cancel anytime from your account</li>
                                 </ul>
-                                <PricingCTA mode='subscribe' theme='violet' />
+                                <PricingCTA mode='subscribe' theme='violet' plan='monthly' />
                             </div>
                         </div>
                     </TabsContent>
@@ -262,7 +262,7 @@ export default async function PricingPage() {
                                     <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-indigo-300' /> Same perks as monthly</li>
                                     <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-indigo-300' /> Cancel renewal anytime</li>
                                 </ul>
-                                <PricingCTA mode='subscribe' />
+                                <PricingCTA mode='subscribe' plan='annual' />
                             </div>
                         </div>
                     </TabsContent>
@@ -303,7 +303,7 @@ export default async function PricingPage() {
                                     <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-amber-200' /> Instant delivery</li>
                                     <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-amber-200' /> One-time payment, no auto-renew</li>
                                 </ul>
-                                <PricingCTA mode='pack' packId='pack-infinity' />
+                                <PricingCTA mode='pack' packId='pack-infinity' infinityTerm='month' />
                             </div>
                         </div>
                     </TabsContent>
@@ -335,7 +335,7 @@ export default async function PricingPage() {
                                     <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-rose-200' /> Instant delivery</li>
                                     <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-rose-200' /> One-time payment, no auto-renew</li>
                                 </ul>
-                                <PricingCTA mode='pack' packId='pack-infinity' />
+                                <PricingCTA mode='pack' packId='pack-infinity' infinityTerm='year' />
                             </div>
                         </div>
                     </TabsContent>
