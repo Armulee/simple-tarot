@@ -30,33 +30,7 @@ export default async function PricingPage() {
 
     // removed unused helpers (packStyles, badgeStyles, packAura)
 
-    const renderPackIcon = (id: string) => {
-        // Darker inner background matched to pack color, with Lucide icons
-        const bgByPack = {
-            "pack-1": "linear-gradient(135deg, oklch(0.16_0.06_70), oklch(0.10_0.04_260))",
-            "pack-3": "linear-gradient(135deg, oklch(0.16_0.08_20), oklch(0.10_0.04_260))",
-            "pack-5": "linear-gradient(135deg, oklch(0.16_0.08_230), oklch(0.10_0.04_260))",
-        } as const
-
-        return (
-            <div className='relative w-14 h-14 mx-auto rounded-full overflow-hidden border border-white/25 shadow-[0_0_24px_rgba(255,255,255,0.08)]'>
-                <div className='absolute inset-0' style={{ background: bgByPack[id as keyof typeof bgByPack] }} />
-                <div className='absolute inset-0 grid place-items-center'>
-                    {id === "pack-1" && (
-                        <Star className='w-6 h-6 text-yellow-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]' />
-                    )}
-                    {id === "pack-3" && (
-                        <Sparkle className='w-7 h-7 text-yellow-300 drop-shadow-[0_0_10px_rgba(251,191,36,0.7)]' />
-                    )}
-                    {id === "pack-5" && (
-                        <div className='relative w-full h-full'>
-                            <Sparkles className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 text-yellow-300 drop-shadow-[0_0_12px_rgba(251,191,36,0.8)]' />
-                        </div>
-                    )}
-                </div>
-            </div>
-        )
-    }
+    // removed unused renderPackIcon
 
     const packCircleClasses = (id: string) => {
         switch (id) {
@@ -114,19 +88,7 @@ export default async function PricingPage() {
         }
     }
 
-    const renderCenterIcon = (id: string) => (
-        <div className={`w-16 h-16 mx-auto rounded-full ${packCircleClasses(id)} flex items-center justify-center`}>
-            {id === "pack-1" && (
-                <Star className={`w-8 h-8 ${packIconColor(id)}`} />
-            )}
-            {id === "pack-3" && (
-                <Sparkle className={`w-8 h-8 ${packIconColor(id)}`} />
-            )}
-            {id === "pack-5" && (
-                <Sparkles className={`w-8 h-8 ${packIconColor(id)}`} />
-            )}
-        </div>
-    )
+    // removed unused renderCenterIcon
 
     return (
         <section className='relative z-10 max-w-6xl mx-auto px-6 py-14 space-y-12'>

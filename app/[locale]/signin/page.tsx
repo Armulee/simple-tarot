@@ -21,7 +21,7 @@ export default function SignInPage() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [isLoading, setIsLoading] = useState(false)
-    const [errMsg, setErrMsg] = useState("")
+    // removed unused local error state
     const router = useRouter()
     const params = useSearchParams()
     const { signIn, user } = useAuth()
@@ -31,7 +31,6 @@ export default function SignInPage() {
         const desc = params.get("error_description")
         if (err || desc) {
             const msg = desc || err || "Authentication error"
-            setErrMsg(msg)
             toast.error(msg, { duration: Infinity, closeButton: true })
         }
     }, [params])
@@ -47,13 +46,12 @@ export default function SignInPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoading(true)
-        setErrMsg("")
+        // no-op: we only show toasts for errors
 
         try {
             const { error } = await signIn(email, password)
 
             if (error) {
-                setErrMsg(error.message)
                 toast.error(error.message || "Authentication error", { duration: Infinity, closeButton: true })
             } else {
                 const callbackUrl = params.get("callbackUrl") || "/"
@@ -61,7 +59,7 @@ export default function SignInPage() {
                 router.refresh()
             }
         } catch {
-            setError("An error occurred. Please try again.")
+            // show toast only; no local error state
             toast.error("An error occurred. Please try again.", { duration: Infinity, closeButton: true })
         } finally {
             setIsLoading(false)
