@@ -341,7 +341,7 @@ export default async function PricingPage() {
                     >
                         <div className='grid grid-cols-1 gap-6 items-center'>
                             <div className='space-y-2 text-left'>
-                                <div className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border ${packBadgeClasses(p.id)} absolute -top-3 left-2`}>
+                                <div className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border ${packBadgeClasses(p.id).replace('/15','/100').replace('/15','/100')} absolute -top-3 left-2`}>
                                     {p.id === 'pack-1' && <Star className={`w-4 h-4 ${packIconColor(p.id)}`} />}
                                     {p.id === 'pack-3' && <Sparkle className={`w-4 h-4 ${packIconColor(p.id)}`} />}
                                     {p.id === 'pack-5' && <Sparkles className={`w-4 h-4 ${packIconColor(p.id)}`} />}
@@ -354,7 +354,7 @@ export default async function PricingPage() {
                                         <span className={`text-3xl font-extrabold leading-none ${packIconColor(p.id)}`}>{p.stars}</span>
                                         <span className={`text-3xl font-extrabold leading-none ${packIconColor(p.id)}`}>stars</span>
                                         {p.bonus > 0 && (
-                                            <span className='absolute -top-2 -right-2 rotate-6 text-xs px-2 py-0.5 rounded border bg-emerald-400/15 border-emerald-400/30 text-emerald-300 font-semibold'>
+                                            <span className='absolute -top-2 -right-2 rotate-6 text-xs px-2 py-0.5 rounded border bg-emerald-400 border-emerald-500 text-emerald-950 font-semibold'>
                                                 +{p.bonus} bonus
                                             </span>
                                         )}
