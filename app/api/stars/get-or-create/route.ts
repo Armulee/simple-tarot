@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { readAndVerifyDid, generateDid, setDidCookie } from "@/lib/server/did"
 import { supabase } from "@/lib/supabase"
-import { cookies } from "next/headers"
+// import { cookies } from "next/headers"
 
 export async function GET(req: NextRequest) {
   const userId = req.nextUrl.searchParams.get("user_id")

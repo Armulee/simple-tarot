@@ -12,11 +12,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 function formatRelativeTime(timestamp: number | null | undefined, nowMs: number): string {
     if (!timestamp) return "—"
     const ms = Math.max(0, timestamp - nowMs)
-    const minutes = Math.floor(ms / 60000)
+    const hours = Math.floor(ms / 3600000)
+    const minutes = Math.floor((ms % 3600000) / 60000)
     const seconds = Math.floor((ms % 60000) / 1000)
-    if (minutes <= 0 && seconds <= 0) return "now"
-    if (minutes <= 0) return `${seconds}s`
-    return `${minutes}m ${seconds}s`
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
 }
 
 export default function StarsPage() {
@@ -32,8 +32,18 @@ export default function StarsPage() {
     const nextIn = useMemo(() => formatRelativeTime(nextRefillAt, now), [nextRefillAt, now])
 
     const remainingMs = Math.max(0, (nextRefillAt ?? 0) - now)
-    const hourMs = 60 * 60 * 1000
-    const progress = Math.min(100, Math.max(0, 100 - (remainingMs / hourMs) * 100))
+    const stepMs = user ? 2 * 60 * 60 * 1000 : (() => {
+        const offsetMs = 7 * 60 * 60 * 1000
+        const bkkNow = new Date(now + offsetMs)
+        const bkkMidnight = new Date(bkkNow)
+        bkkMidnight.setUTCHours(0, 0, 0, 0)
+        const bkkNextMidnight = new Date(bkkNow)
+        bkkNextMidnight.setUTCHours(24, 0, 0, 0)
+        const start = bkkNow.getTime() < bkkMidnight.getTime() ? bkkMidnight.getTime() : bkkMidnight.getTime()
+        const end = bkkNextMidnight.getTime()
+        return Math.max(1, end - start)
+    })()
+    const progress = Math.min(100, Math.max(0, 100 - (remainingMs / stepMs) * 100))
 
     return (
         <section className='relative z-10 max-w-4xl mx-auto px-6 py-10 space-y-8'>
@@ -65,19 +75,35 @@ export default function StarsPage() {
                                 style={{ width: `${progress}%` }}
                             />
                         </div>
-                        <p className='text-xs text-muted-foreground text-center'>Auto-refills by 1 star every hour (up to {refillCap}).</p>
+                        <p className='text-xs text-muted-foreground text-center'>
+                            {user
+                                ? <>Auto-refills by 1 star every 2 hours (up to {refillCap}).</>
+                                : <>Refills to 5 at 00:00 (UTC+7). Countdown shows time until next midnight.</>}
+                        </p>
                     </div>
 
                     <div className='flex items-center justify-center'>
-                        <Link href='/stars/purchase'>
-                            <Button
-                                type='button'
-                                className='rounded-full px-6 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.8)] hover:shadow-[0_18px_40px_-12px_rgba(234,179,8,0.9)] transition-shadow flex items-center gap-2'
-                            >
-                                <Star className='w-4 h-4' fill='currentColor' />
-                                <span className='font-semibold'>Purchase Stars</span>
-                            </Button>
-                        </Link>
+                        {user ? (
+                            <Link href='/pricing'>
+                                <Button
+                                    type='button'
+                                    className='rounded-full px-6 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.8)] hover:shadow-[0_18px_40px_-12px_rgba(234,179,8,0.9)] transition-shadow flex items-center gap-2'
+                                >
+                                    <Star className='w-4 h-4' fill='currentColor' />
+                                    <span className='font-semibold'>Purchase Stars</span>
+                                </Button>
+                            </Link>
+                        ) : (
+                            <Link href='/signin'>
+                                <Button
+                                    type='button'
+                                    className='rounded-full px-6 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.8)] hover:shadow-[0_18px_40px_-12px_rgba(234,179,8,0.9)] transition-shadow flex items-center gap-2'
+                                >
+                                    <Users className='w-4 h-4' />
+                                    <span className='font-semibold'>Sign in</span>
+                                </Button>
+                            </Link>
+                        )}
                     </div>
                 </div>
             </Card>
@@ -95,13 +121,13 @@ export default function StarsPage() {
                                 <span className='text-white'>Sign in</span>
                                 <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 border border-yellow-500/30 text-yellow-300 flex items-center gap-1'>
                                     <Star className='w-3.5 h-3.5' fill='currentColor' />
-                                    10
+                                    12
                                 </span>
                             </div>
                         </AccordionTrigger>
                         <AccordionContent>
                             <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-border/20'>
-                                <p>Sign in and receive +10 stars. Your auto-refill capacity increases to 15 stars.</p>
+                                <p>New accounts start with 12 stars. Auto-refills 1 star every 2 hours (cap {refillCap}).</p>
                                 {!(user && firstLoginBonusGranted) && (
                                     <Link href={`/signin?callbackUrl=${encodeURIComponent(window.location.pathname)}`}>
                                         <Button className='rounded-full'>Sign in</Button>
@@ -128,7 +154,7 @@ export default function StarsPage() {
                                 <div className='pointer-events-none absolute -top-10 -right-10 h-32 w-32 rounded-full bg-yellow-400/25 blur-3xl' />
                                 <div className='pointer-events-none absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-amber-400/20 blur-3xl' />
                                 <p>Need stars instantly? Buy star packs and use them right away.</p>
-                                <Link href='/stars/purchase'>
+                                <Link href='/pricing'>
                                     <Button className='rounded-full'>Purchase Stars</Button>
                                 </Link>
                             </div>

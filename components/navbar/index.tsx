@@ -107,6 +107,12 @@ export function Navbar({ locale }: { locale: string }) {
                         >
                             {t("about")}
                         </Link>
+                        <Link
+                            href='/pricing'
+                            className='hidden md:block text-cosmic-light hover:text-white transition-colors'
+                        >
+                            Pricing
+                        </Link>
                         <Sheet
                             open={mysticalOpen}
                             onOpenChange={setMysticalOpen}
