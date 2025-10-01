@@ -87,15 +87,7 @@ export default function StarsPage() {
 
                     <div className='flex items-center justify-center'>
                         {user ? (
-                            <Link href='/stars/purchase'>
-                                <Button
-                                    type='button'
-                                    className='rounded-full px-6 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.8)] hover:shadow-[0_18px_40px_-12px_rgba(234,179,8,0.9)] transition-shadow flex items-center gap-2'
-                                >
-                                    <Star className='w-4 h-4' fill='currentColor' />
-                                    <span className='font-semibold'>Purchase Stars</span>
-                                </Button>
-                            </Link>
+                            <></>
                         ) : (
                             <Link href='/signin'>
                                 <Button
@@ -111,37 +103,6 @@ export default function StarsPage() {
 
                     {user && (
                         <div className='w-full max-w-2xl mt-3 space-y-2'>
-                            {/* Subscribe long button with chevron popover */}
-                            <div className='grid grid-cols-3 md:grid-cols-6 gap-2'>
-                                <div className='col-span-3 md:col-span-6 relative'>
-                                    <PricingCTA
-                                        mode='subscribe'
-                                        plan='monthly'
-                                        customTrigger={
-                                            <button type='button' className='w-full rounded-full bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white border border-white/20 hover:brightness-110 transition px-4 py-2 text-sm font-semibold relative'>
-                                                <span>Subscribe (Unlimited)</span>
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <span
-                                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                                                            className='absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full bg-white/10 border border-white/20 p-1 hover:bg-white/20'
-                                                            role='button'
-                                                            aria-label='Choose subscription term'
-                                                        >
-                                                            <ChevronDown className='w-4 h-4' />
-                                                        </span>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className='w-44 bg-card/95 border-border/30 p-2 space-y-1'>
-                                                        <PricingCTA mode='subscribe' plan='monthly' customTrigger={<button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>Monthly $9.99</button>} />
-                                                        <PricingCTA mode='subscribe' plan='annual' customTrigger={<button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>Annual $99.99</button>} />
-                                                    </PopoverContent>
-                                                </Popover>
-                                            </button>
-                                        }
-                                    />
-                                </div>
-                            </div>
-
                             {/* One-tap grid: 3 cols mobile, 6 cols desktop */}
                             <div className='grid grid-cols-3 md:grid-cols-6 gap-2'>
                                 {[
@@ -166,33 +127,60 @@ export default function StarsPage() {
                                         }
                                     />
                                 ))}
-                                {/* Infinity one-time chip INLINE with grid, larger infinity symbol */}
+                                {/* Infinity one-time chip INLINE with grid, larger infinity symbol, styled like others (yellow) */}
                                 <PricingCTA
                                     mode='pack'
                                     packId='pack-infinity'
                                     infinityTerm='month'
                                     customTrigger={
-                                        <button type='button' className='w-full rounded-full bg-gradient-to-r from-amber-500/30 to-orange-500/30 text-amber-200 border border-amber-400/40 hover:brightness-110 transition px-3 py-1.5 text-sm font-semibold flex items-center justify-center'>
-                                            <span className='inline-flex items-center'>
-                                                <Star className='w-4 h-4 mr-1' fill='currentColor' />
-                                                <span className='text-3xl leading-none'>∞</span>
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <span
-                                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                                                            className='ml-1 inline-flex items-center justify-center'
-                                                            role='button'
-                                                            aria-label='Choose infinity term'
-                                                        >
-                                                            <ChevronDown className='w-4 h-4' />
-                                                        </span>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className='w-56 bg-card/95 border-border/30 p-2 space-y-1'>
-                                                        <PricingCTA mode='pack' packId='pack-infinity' infinityTerm='month' customTrigger={<button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>One month $9.99</button>} />
-                                                        <PricingCTA mode='pack' packId='pack-infinity' infinityTerm='year' customTrigger={<button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>One year $99.99</button>} />
-                                                    </PopoverContent>
-                                                </Popover>
-                                            </span>
+                                        <button type='button' className='w-full rounded-full border border-yellow-500/40 bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 hover:from-yellow-400/30 hover:to-yellow-600/30 text-yellow-200 px-3 py-1.5 text-sm font-semibold flex items-center justify-center gap-1.5 transition'>
+                                            <Star className='w-3.5 h-3.5' fill='currentColor' />
+                                            <span className='text-3xl leading-none'>∞</span>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <span
+                                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                                        className='inline-flex items-center justify-center'
+                                                        role='button'
+                                                        aria-label='Choose infinity term'
+                                                    >
+                                                        <ChevronDown className='w-4 h-4' />
+                                                    </span>
+                                                </PopoverTrigger>
+                                                <PopoverContent className='w-56 bg-card/95 border-border/30 p-2 space-y-1'>
+                                                    <PricingCTA mode='pack' packId='pack-infinity' infinityTerm='month' customTrigger={<button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>One month $9.99</button>} />
+                                                    <PricingCTA mode='pack' packId='pack-infinity' infinityTerm='year' customTrigger={<button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>One year $99.99</button>} />
+                                                </PopoverContent>
+                                            </Popover>
+                                        </button>
+                                    }
+                                />
+                            </div>
+
+                            {/* Subscribe full-width button below the grid */}
+                            <div className='mt-2'>
+                                <PricingCTA
+                                    mode='subscribe'
+                                    plan='monthly'
+                                    customTrigger={
+                                        <button type='button' className='w-full rounded-full bg-accent text-white border border-white/10 hover:brightness-110 transition px-4 py-2 text-sm font-semibold relative'>
+                                            <span>Subscribe (Unlimited)</span>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <span
+                                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                                        className='absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center'
+                                                        role='button'
+                                                        aria-label='Choose subscription term'
+                                                    >
+                                                        <ChevronDown className='w-4 h-4' />
+                                                    </span>
+                                                </PopoverTrigger>
+                                                <PopoverContent className='w-44 bg-card/95 border-border/30 p-2 space-y-1'>
+                                                    <PricingCTA mode='subscribe' plan='monthly' customTrigger={<button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>Monthly $9.99</button>} />
+                                                    <PricingCTA mode='subscribe' plan='annual' customTrigger={<button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>Annual $99.99</button>} />
+                                                </PopoverContent>
+                                            </Popover>
                                         </button>
                                     }
                                 />
