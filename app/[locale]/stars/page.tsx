@@ -133,9 +133,9 @@ export default function StarsPage() {
                                     packId='pack-infinity'
                                     infinityTerm='month'
                                     customTrigger={
-                                        <button type='button' className='w-full rounded-full border border-yellow-500/40 bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 hover:from-yellow-400/30 hover:to-yellow-600/30 text-yellow-200 px-3 py-1.5 text-sm font-semibold flex items-center justify-center gap-1.5 transition'>
+                                        <button type='button' className='w-full h-8 rounded-full border border-yellow-500/40 bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 hover:from-yellow-400/30 hover:to-yellow-600/30 text-yellow-200 px-3 py-0 text-sm font-semibold flex items-center justify-center gap-1.5 transition'>
                                             <Star className='w-3.5 h-3.5' fill='currentColor' />
-                                            <span className='text-3xl leading-none'>∞</span>
+                                            <span className='text-xl leading-none'>∞</span>
                                             <Popover>
                                                 <PopoverTrigger asChild>
                                                     <span
