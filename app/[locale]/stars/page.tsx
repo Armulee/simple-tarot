@@ -103,6 +103,10 @@ export default function StarsPage() {
 
                     {user && (
                         <div className='w-full max-w-2xl mt-3 space-y-2'>
+                            <div className='text-center'>
+                                <div className='text-xs tracking-wider uppercase text-white/70'>One‑tap top‑ups</div>
+                                <div className='text-[11px] text-white/60'>Choose a pack and recharge instantly</div>
+                            </div>
                             {/* One-tap grid: 3 cols mobile, 6 cols desktop */}
                             <div className='grid grid-cols-3 md:grid-cols-6 gap-2'>
                                 {[
