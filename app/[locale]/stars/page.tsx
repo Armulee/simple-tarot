@@ -166,39 +166,37 @@ export default function StarsPage() {
                                         }
                                     />
                                 ))}
-                                {/* Infinity one-time chip with internal chevron popover */}
-                                <div className='col-span-3 md:col-span-6'>
-                                    <PricingCTA
-                                        mode='pack'
-                                        packId='pack-infinity'
-                                        infinityTerm='month'
-                                        customTrigger={
-                                            <button type='button' className='relative w-full rounded-full bg-gradient-to-r from-amber-500/30 to-orange-500/30 text-amber-200 border border-amber-400/40 hover:brightness-110 transition px-4 py-1.5 text-sm font-semibold flex items-center justify-center gap-2'>
-                                                <span className='inline-flex items-center gap-1'>
-                                                    <Star className='w-4 h-4' fill='currentColor' />
-                                                    <span className='text-base leading-none'>∞</span>
-                                                    <span>Infinity (One-time)</span>
-                                                </span>
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <span
-                                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                                                            className='absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full bg-white/10 border border-white/20 p-1 hover:bg-white/20'
-                                                            role='button'
-                                                            aria-label='Choose infinity term'
-                                                        >
-                                                            <ChevronDown className='w-4 h-4' />
-                                                        </span>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className='w-56 bg-card/95 border-border/30 p-2 space-y-1'>
-                                                        <PricingCTA mode='pack' packId='pack-infinity' infinityTerm='month' customTrigger={<button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>One month $9.99</button>} />
-                                                        <PricingCTA mode='pack' packId='pack-infinity' infinityTerm='year' customTrigger={<button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>One year $99.99</button>} />
-                                                    </PopoverContent>
-                                                </Popover>
-                                            </button>
-                                        }
-                                    />
-                                </div>
+                                {/* Infinity one-time chip INLINE with grid, larger infinity symbol */}
+                                <PricingCTA
+                                    mode='pack'
+                                    packId='pack-infinity'
+                                    infinityTerm='month'
+                                    customTrigger={
+                                        <button type='button' className='relative w-full rounded-full bg-gradient-to-r from-amber-500/30 to-orange-500/30 text-amber-200 border border-amber-400/40 hover:brightness-110 transition px-3 py-1.5 text-sm font-semibold flex items-center justify-center gap-2'>
+                                            <span className='inline-flex items-center gap-1.5'>
+                                                <Star className='w-4 h-4' fill='currentColor' />
+                                                <span className='text-2xl leading-none'>∞</span>
+                                                <span>Infinity</span>
+                                            </span>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <span
+                                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                                        className='absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full bg-white/10 border border-white/20 p-1 hover:bg-white/20'
+                                                        role='button'
+                                                        aria-label='Choose infinity term'
+                                                    >
+                                                        <ChevronDown className='w-4 h-4' />
+                                                    </span>
+                                                </PopoverTrigger>
+                                                <PopoverContent className='w-56 bg-card/95 border-border/30 p-2 space-y-1'>
+                                                    <PricingCTA mode='pack' packId='pack-infinity' infinityTerm='month' customTrigger={<button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>One month $9.99</button>} />
+                                                    <PricingCTA mode='pack' packId='pack-infinity' infinityTerm='year' customTrigger={<button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>One year $99.99</button>} />
+                                                </PopoverContent>
+                                            </Popover>
+                                        </button>
+                                    }
+                                />
                             </div>
                         </div>
                     )}
