@@ -9,6 +9,8 @@ import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { PricingCTA } from "@/components/pricing/pricing-cta"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { ChevronDown } from "lucide-react"
 
 function formatRelativeTime(timestamp: number | null | undefined, nowMs: number): string {
     if (!timestamp) return "—"
@@ -108,30 +110,80 @@ export default function StarsPage() {
                     </div>
 
                     {user && (
-                        <div className='w-full max-w-xl mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2'>
-                            {[
-                                { id: 'pack-1', stars: 60, price: '$0.99' },
-                                { id: 'pack-2', stars: 130, price: '$1.99' },
-                                { id: 'pack-3', stars: 200, price: '$2.99' },
-                                { id: 'pack-5', stars: 350, price: '$4.99' },
-                                { id: 'pack-7', stars: 500, price: '$6.99' },
-                            ].map((p) => (
+                        <div className='w-full max-w-2xl mt-3 space-y-2'>
+                            {/* Subscribe long button with chevron popover */}
+                            <div className='flex items-center gap-2'>
                                 <PricingCTA
-                                    key={p.id}
-                                    mode='pack'
-                                    packId={p.id}
+                                    mode='subscribe'
+                                    plan='monthly'
                                     customTrigger={
-                                        <button
-                                            type='button'
-                                            className='w-full rounded-full border border-yellow-500/40 bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 hover:from-yellow-400/30 hover:to-yellow-600/30 text-yellow-200 px-3 py-1.5 flex items-center justify-center gap-1.5 transition'
-                                        >
-                                            <Star className='w-3.5 h-3.5' fill='currentColor' />
-                                            <span className='text-sm font-semibold'>{p.stars}</span>
-                                            <span className='text-[10px] text-yellow-300/80'>{p.price}</span>
+                                        <button type='button' className='flex-1 rounded-full bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white border border-white/20 hover:brightness-110 transition px-4 py-2 text-sm font-semibold'>
+                                            Subscribe (Unlimited)
                                         </button>
                                     }
                                 />
-                            ))}
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <button type='button' className='rounded-full bg-purple-600/50 border border-purple-400/40 text-white p-2 hover:bg-purple-600/70'>
+                                            <ChevronDown className='w-4 h-4' />
+                                        </button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className='w-44 bg-card/95 border-border/30 p-2 space-y-1'>
+                                        <PricingCTA mode='subscribe' plan='monthly' customTrigger={<button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>Monthly $9.99</button>} />
+                                        <PricingCTA mode='subscribe' plan='annual' customTrigger={<button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>Annual $99.99</button>} />
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+
+                            {/* One-tap grid: 3 cols mobile, 6 cols desktop */}
+                            <div className='grid grid-cols-3 md:grid-cols-6 gap-2'>
+                                {[
+                                    { id: 'pack-1', stars: 60 },
+                                    { id: 'pack-2', stars: 130 },
+                                    { id: 'pack-3', stars: 200 },
+                                    { id: 'pack-5', stars: 350 },
+                                    { id: 'pack-7', stars: 500 },
+                                ].map((p) => (
+                                    <PricingCTA
+                                        key={p.id}
+                                        mode='pack'
+                                        packId={p.id}
+                                        customTrigger={
+                                            <button
+                                                type='button'
+                                                className='w-full rounded-full border border-yellow-500/40 bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 hover:from-yellow-400/30 hover:to-yellow-600/30 text-yellow-200 px-3 py-1.5 flex items-center justify-center gap-1.5 transition'
+                                            >
+                                                <Star className='w-3.5 h-3.5' fill='currentColor' />
+                                                <span className='text-sm font-semibold'>{p.stars}</span>
+                                            </button>
+                                        }
+                                    />
+                                ))}
+                                {/* Infinity one-time chip with chevron popover */}
+                                <div className='col-span-3 md:col-span-6 flex items-center gap-2'>
+                                    <PricingCTA
+                                        mode='pack'
+                                        packId='pack-infinity'
+                                        infinityTerm='month'
+                                        customTrigger={
+                                            <button type='button' className='flex-1 rounded-full bg-gradient-to-r from-amber-500/30 to-orange-500/30 text-amber-200 border border-amber-400/40 hover:brightness-110 transition px-4 py-1.5 text-sm font-semibold'>
+                                                Infinity (One-time)
+                                            </button>
+                                        }
+                                    />
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <button type='button' className='rounded-full bg-amber-600/40 border border-amber-400/40 text-white p-2 hover:bg-amber-600/60'>
+                                                <ChevronDown className='w-4 h-4' />
+                                            </button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className='w-56 bg-card/95 border-border/30 p-2 space-y-1'>
+                                            <PricingCTA mode='pack' packId='pack-infinity' infinityTerm='month' customTrigger={<button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>One month $9.99</button>} />
+                                            <PricingCTA mode='pack' packId='pack-infinity' infinityTerm='year' customTrigger={<button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>One year $99.99</button>} />
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
