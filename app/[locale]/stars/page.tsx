@@ -49,13 +49,13 @@ export default function StarsPage() {
     const progress = Math.min(100, Math.max(0, 100 - (remainingMs / stepMs) * 100))
 
     return (
-        <section className='relative z-10 max-w-4xl mx-auto px-6 py-10 space-y-8'>
+        <section className='relative z-10 max-w-4xl mx-auto px-6 py-10 space-y-4'>
             {/* Hero */}
-            <Card className='relative overflow-hidden border-border/20 bg-gradient-to-br from-yellow-500/10 via-amber-500/10 to-orange-500/10 p-8'>
+            <Card className='relative overflow-hidden border-border/20 bg-gradient-to-br from-yellow-500/10 via-amber-500/10 to-orange-500/10 px-8 py-4'>
                 <div className='absolute -top-10 -right-10 h-40 w-40 rounded-full bg-yellow-400/10 blur-3xl' />
                 <div className='absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-amber-500/10 blur-3xl' />
 
-                <div className='relative flex flex-col items-center text-center gap-4'>
+                <div className='relative flex flex-col items-center text-center gap-3'>
                     <div className='flex items-center gap-3 text-yellow-300'>
                         <div className='h-12 w-12 rounded-full bg-gradient-to-r from-yellow-400/30 to-yellow-600/30 border border-yellow-500/40 flex items-center justify-center'>
                             <Star className='w-6 h-6' fill='currentColor' />
@@ -106,13 +106,8 @@ export default function StarsPage() {
             </Card>
 
             {user && (
-                <Card className='p-4 bg-card/10 border-border/20'>
-                    <div className='w-full max-w-2xl mx-auto space-y-2'>
-                        <div className='text-center'>
-                            <div className='text-xs tracking-wider uppercase text-white/70'>One‑tap top‑ups</div>
-                            <div className='text-[11px] text-white/60'>Choose a pack and recharge instantly</div>
-                        </div>
-                        <div className='grid grid-cols-3 md:grid-cols-6 gap-2'>
+                <div className='w-full max-w-2xl mx-auto'>
+                    <div className='grid grid-cols-3 md:grid-cols-6 gap-2'>
                             {[
                                 { id: 'pack-1', stars: 60 },
                                 { id: 'pack-2', stars: 130 },
@@ -161,8 +156,8 @@ export default function StarsPage() {
                                     </button>
                                 }
                             />
-                        </div>
-                        <div className='mt-2'>
+                    </div>
+                    <div className='mt-2'>
                             <PricingCTA
                                 mode='subscribe'
                                 plan='monthly'
@@ -188,9 +183,8 @@ export default function StarsPage() {
                                     </button>
                                 }
                             />
-                        </div>
                     </div>
-                </Card>
+                </div>
             )}
 
             {/* Ways to earn - Accordion */}
