@@ -253,32 +253,29 @@ export default async function PricingPage() {
                 {/* Infinity one-time pack below packs */}
                 <Card className='relative overflow-hidden p-6 rounded-xl bg-card/10 border-border/20 hover:brightness-110 transition'>
                     <div className='pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-amber-500/12 via-amber-600/10 to-orange-600/12' />
-                    <div className='grid md:grid-cols-3 gap-6 items-center relative z-10'>
-                        <div className='order-1 md:order-2 text-center'>
-                            <div className='w-16 h-16 mx-auto rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center'>
-                                <span className='text-5xl text-amber-200 leading-none'>∞</span>
-                            </div>
-                        </div>
-                        <div className='order-2 md:order-1 space-y-2'>
-                            <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-200'>
+                    <div className='relative z-10 grid grid-cols-1 gap-6 items-center'>
+                        <div className='space-y-2 text-left'>
+                            <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border bg-amber-400/15 border-amber-400/30 text-amber-200 absolute -top-3 left-2'>
                                 <InfinityIcon className='w-4 h-4' />
-                                One-time unlimited
+                                <span>One-time pack</span>
                             </div>
-                            <div className='inline-flex items-baseline gap-2'>
-                                <div className='text-3xl font-bold'>$9.99 / 30 days</div>
-                                <div className='text-sm text-white/70'>or $99.99 / 365 days</div>
+                            <div className='inline-flex items-center gap-2 justify-center w-full mt-2'>
+                                <span className='relative inline-flex items-center gap-3 px-5 py-2 rounded-full border bg-amber-400/15 border-amber-400/30 text-amber-200'>
+                                    <InfinityIcon className='w-7 h-7 text-amber-200' />
+                                    <span className='text-3xl font-extrabold leading-none text-amber-200'>Infinity</span>
+                                </span>
                             </div>
-                            <div className='text-sm text-muted-foreground'>no subscription · instant delivery</div>
+                            <div className='text-3xl font-bold'>$9.99</div>
+                            <div className='text-sm text-muted-foreground'>one-time · 30 days · instant delivery</div>
                         </div>
-                        <div className='order-3 space-y-3'>
-                            <ul className='mt-2 text-sm text-white/80 space-y-1'>
-                                <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-amber-200' /> Infinity stars (30 or 365 days)</li>
+                        <div className='space-y-3 text-left'>
+                            <ul className='text-sm text-white/80 space-y-1'>
+                                <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-amber-200' /> Infinity stars (30 days)</li>
                                 <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-amber-200' /> Instant delivery</li>
                                 <li className='flex items-center gap-2'><CheckCircle2 className='w-4 h-4 text-amber-200' /> One-time payment, no auto-renew</li>
                             </ul>
-                            <div className='flex gap-2'>
+                            <div>
                                 <PricingCTA mode='pack' packId='pack-infinity' infinityTerm='month' />
-                                <PricingCTA mode='pack' packId='pack-infinity' infinityTerm='year' />
                             </div>
                         </div>
                     </div>
