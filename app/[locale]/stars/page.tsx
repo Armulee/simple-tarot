@@ -51,9 +51,16 @@ export default function StarsPage() {
     return (
         <section className='relative z-10 max-w-4xl mx-auto px-6 py-10 space-y-4'>
             {/* Hero */}
-            <Card className='relative overflow-hidden border-border/20 bg-gradient-to-br from-yellow-500/10 via-amber-500/10 to-orange-500/10 px-8 py-4'>
-                <div className='absolute -top-10 -right-10 h-40 w-40 rounded-full bg-yellow-400/10 blur-3xl' />
-                <div className='absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-amber-500/10 blur-3xl' />
+            <Card className='relative overflow-hidden border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(234,179,8,0.35)] px-8 py-4'>
+                {/* Deep-space stars background */}
+                <div className='pointer-events-none absolute inset-0 opacity-40'>
+                    <div className='cosmic-stars-layer-3' />
+                    <div className='cosmic-stars-layer-4' />
+                    <div className='cosmic-stars-layer-5' />
+                </div>
+                {/* Golden aura behind card */}
+                <div className='pointer-events-none absolute -top-24 -left-24 h-64 w-64 rounded-full bg-gradient-to-br from-yellow-300/25 via-yellow-500/15 to-transparent blur-3xl' />
+                <div className='pointer-events-none absolute -bottom-28 -right-28 h-80 w-80 rounded-full bg-gradient-to-tl from-yellow-400/20 via-yellow-600/10 to-transparent blur-[100px]' />
 
                 <div className='relative flex flex-col items-center text-center gap-3'>
                     <div className='flex items-center gap-3 text-yellow-300'>
@@ -157,12 +164,12 @@ export default function StarsPage() {
                                 }
                             />
                     </div>
-                    <div className='mt-2'>
+                        <div className='mt-2'>
                             <PricingCTA
                                 mode='subscribe'
                                 plan='monthly'
                                 customTrigger={
-                                    <button type='button' className='w-full rounded-full bg-accent text-white border border-white/10 hover:brightness-110 transition px-4 py-2 text-sm font-semibold relative'>
+                                    <button type='button' className='w-full rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 transition px-4 py-2 text-sm font-semibold relative'>
                                         <span>Subscribe (Unlimited)</span>
                                         <Popover>
                                             <PopoverTrigger asChild>
