@@ -195,7 +195,7 @@ export default function StarsPage() {
             )}
 
             {/* Ways to earn - Accordion */}
-            <div className='space-y-4'>
+            <div className='space-y-4 mt-6'>
                 <h2 className='font-serif text-2xl font-semibold text-white text-center'>Ways to earn stars</h2>
                 <Accordion className='space-y-3'>
                     <AccordionItem className='rounded-xl border border-border/20 bg-card/10 px-2'>
