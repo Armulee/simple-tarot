@@ -27,10 +27,11 @@ export async function setDidCookie(did: string) {
   const sig = signDid(did)
   const value = `${did}.${sig}`
   const c = await cookies()
+  const isProd = process.env.NODE_ENV === "production"
   c.set(DID_COOKIE, value, {
     httpOnly: true,
     sameSite: "lax",
-    secure: true,
+    secure: isProd,
     path: "/",
     maxAge: TWO_YEARS,
   })

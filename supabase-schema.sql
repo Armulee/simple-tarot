@@ -76,6 +76,12 @@ alter table public.stars enable row level security;
 -- Removed star_identities as it's not used by the app
 drop table if exists public.star_identities;
 
+-- Ensure function signature changes can be applied cleanly by dropping dependents first
+-- This avoids: ERROR 42P13: cannot change return type of existing function
+drop function if exists public.star_spend(text, integer, uuid);
+drop function if exists public.star_add(text, integer, uuid);
+drop function if exists public.star_get_or_create(text, uuid);
+
 -- Helper: compute refill based on cap and interval hours per star
 -- For authenticated users we will pass p_interval_hours = 2
 -- For anonymous users we will bypass this function (daily reset logic applies elsewhere)

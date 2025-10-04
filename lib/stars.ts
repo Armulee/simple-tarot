@@ -60,7 +60,7 @@ export async function starAdd(user: User | null, amount: number): Promise<StarSt
   return { currentStars: row?.current_stars ?? 5, lastRefillAt: tsToMs(row?.last_refill_at), refillCap: cap }
 }
 
-export async function starSyncUserToDevice(_user: User): Promise<void> {
+export async function starSyncUserToDevice(): Promise<void> {
   // Server-side only: we will assume DID exists; optional route can be added if needed
   await fetch("/api/stars/get-or-create")
 }

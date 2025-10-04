@@ -8,6 +8,9 @@ import { useAuth } from "@/hooks/use-auth"
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { PricingCTA } from "@/components/pricing/pricing-cta"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { ChevronDown, Infinity as InfinityIcon } from "lucide-react"
 
 function formatRelativeTime(timestamp: number | null | undefined, nowMs: number): string {
     if (!timestamp) return "—"
@@ -46,13 +49,20 @@ export default function StarsPage() {
     const progress = Math.min(100, Math.max(0, 100 - (remainingMs / stepMs) * 100))
 
     return (
-        <section className='relative z-10 max-w-4xl mx-auto px-6 py-10 space-y-8'>
+        <section className='relative z-10 max-w-4xl mx-auto px-6 py-10 space-y-4'>
             {/* Hero */}
-            <Card className='relative overflow-hidden border-border/20 bg-gradient-to-br from-yellow-500/10 via-amber-500/10 to-orange-500/10 p-8'>
-                <div className='absolute -top-10 -right-10 h-40 w-40 rounded-full bg-yellow-400/10 blur-3xl' />
-                <div className='absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-amber-500/10 blur-3xl' />
+            <Card className='relative overflow-hidden border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(234,179,8,0.35)] px-8 py-4'>
+                {/* Deep-space stars background */}
+                <div className='pointer-events-none absolute inset-0 opacity-40'>
+                    <div className='cosmic-stars-layer-3' />
+                    <div className='cosmic-stars-layer-4' />
+                    <div className='cosmic-stars-layer-5' />
+                </div>
+                {/* Golden aura behind card */}
+                <div className='pointer-events-none absolute -top-24 -left-24 h-64 w-64 rounded-full bg-gradient-to-br from-yellow-300/25 via-yellow-500/15 to-transparent blur-3xl' />
+                <div className='pointer-events-none absolute -bottom-28 -right-28 h-80 w-80 rounded-full bg-gradient-to-tl from-yellow-400/20 via-yellow-600/10 to-transparent blur-[100px]' />
 
-                <div className='relative flex flex-col items-center text-center gap-4'>
+                <div className='relative flex flex-col items-center text-center gap-3'>
                     <div className='flex items-center gap-3 text-yellow-300'>
                         <div className='h-12 w-12 rounded-full bg-gradient-to-r from-yellow-400/30 to-yellow-600/30 border border-yellow-500/40 flex items-center justify-center'>
                             <Star className='w-6 h-6' fill='currentColor' />
@@ -84,15 +94,7 @@ export default function StarsPage() {
 
                     <div className='flex items-center justify-center'>
                         {user ? (
-                            <Link href='/pricing'>
-                                <Button
-                                    type='button'
-                                    className='rounded-full px-6 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.8)] hover:shadow-[0_18px_40px_-12px_rgba(234,179,8,0.9)] transition-shadow flex items-center gap-2'
-                                >
-                                    <Star className='w-4 h-4' fill='currentColor' />
-                                    <span className='font-semibold'>Purchase Stars</span>
-                                </Button>
-                            </Link>
+                            <></>
                         ) : (
                             <Link href='/signin'>
                                 <Button
@@ -105,11 +107,95 @@ export default function StarsPage() {
                             </Link>
                         )}
                     </div>
+
+                    
                 </div>
             </Card>
 
+            {user && (
+                <div className='w-full max-w-2xl mx-auto'>
+                    <div className='grid grid-cols-3 md:grid-cols-6 gap-2'>
+                            {[
+                                { id: 'pack-1', stars: 60 },
+                                { id: 'pack-2', stars: 130 },
+                                { id: 'pack-3', stars: 200 },
+                                { id: 'pack-5', stars: 350 },
+                                { id: 'pack-7', stars: 500 },
+                            ].map((p) => (
+                                <PricingCTA
+                                    key={p.id}
+                                    mode='pack'
+                                    packId={p.id}
+                                    customTrigger={
+                                        <button
+                                            type='button'
+                                            className='w-full rounded-full border border-yellow-500/40 bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 hover:from-yellow-400/30 hover:to-yellow-600/30 text-yellow-200 px-3 py-1.5 flex items-center justify-center gap-1.5 transition'
+                                        >
+                                            <Star className='w-3.5 h-3.5' fill='currentColor' />
+                                            <span className='text-sm font-semibold'>{p.stars}</span>
+                                        </button>
+                                    }
+                                />
+                            ))}
+                            <PricingCTA
+                                mode='pack'
+                                packId='pack-infinity'
+                                infinityTerm='month'
+                                customTrigger={
+                                    <button type='button' className='w-full h-8 rounded-full border border-yellow-500/40 bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 hover:from-yellow-400/30 hover:to-yellow-600/30 text-yellow-200 px-3 py-0 text-sm font-semibold flex items-center justify-center gap-1.5 transition'>
+                                        <Star className='w-3.5 h-3.5' fill='currentColor' />
+                                        <span className='text-xl leading-none'>∞</span>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <span
+                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                                    className='inline-flex items-center justify-center'
+                                                    role='button'
+                                                    aria-label='Choose infinity term'
+                                                >
+                                                    <ChevronDown className='w-4 h-4' />
+                                                </span>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-56 bg-card/95 border-border/30 p-2 space-y-1'>
+                                                <PricingCTA mode='pack' packId='pack-infinity' infinityTerm='month' customTrigger={<button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>One month $9.99</button>} />
+                                            </PopoverContent>
+                                        </Popover>
+                                    </button>
+                                }
+                            />
+                    </div>
+                        <div className='mt-2'>
+                            <PricingCTA
+                                mode='subscribe'
+                                plan='monthly'
+                                customTrigger={
+                                    <button type='button' className='w-full rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 transition px-4 py-2 text-sm font-semibold relative'>
+                                        <span>Subscribe (Unlimited)</span>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <span
+                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                                    className='absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center'
+                                                    role='button'
+                                                    aria-label='Choose subscription term'
+                                                >
+                                                    <ChevronDown className='w-4 h-4' />
+                                                </span>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-44 bg-card/95 border-border/30 p-2 space-y-1'>
+                                                <PricingCTA mode='subscribe' plan='monthly' customTrigger={<button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>Monthly $9.99</button>} />
+                                                <PricingCTA mode='subscribe' plan='annual' customTrigger={<button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>Annual $99.99</button>} />
+                                            </PopoverContent>
+                                        </Popover>
+                                    </button>
+                                }
+                            />
+                    </div>
+                </div>
+            )}
+
             {/* Ways to earn - Accordion */}
-            <div className='space-y-4'>
+            <div className='space-y-4 mt-6'>
                 <h2 className='font-serif text-2xl font-semibold text-white text-center'>Ways to earn stars</h2>
                 <Accordion className='space-y-3'>
                     <AccordionItem className='rounded-xl border border-border/20 bg-card/10 px-2'>
@@ -154,7 +240,7 @@ export default function StarsPage() {
                                 <div className='pointer-events-none absolute -top-10 -right-10 h-32 w-32 rounded-full bg-yellow-400/25 blur-3xl' />
                                 <div className='pointer-events-none absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-amber-400/20 blur-3xl' />
                                 <p>Need stars instantly? Buy star packs and use them right away.</p>
-                                <Link href='/pricing'>
+                                <Link href='/stars/purchase'>
                                     <Button className='rounded-full'>Purchase Stars</Button>
                                 </Link>
                             </div>

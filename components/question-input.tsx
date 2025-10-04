@@ -3,7 +3,7 @@ import { Send } from "lucide-react"
 import { Button } from "./ui/button"
 import { Label } from "./ui/label"
 import { useEffect, useState } from "react"
-import { useRouter, usePathname } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useTarot } from "@/contexts/tarot-context"
 import AutoHeightTextarea from "./ui/auto-height-textarea"
 import { useTranslations } from "next-intl"
@@ -27,7 +27,7 @@ export default function QuestionInput({
     followUp?: boolean
 }) {
     const t = useTranslations("QuestionInput")
-    const pathname = usePathname()
+    // removed unused pathname
     const [internalQuestion, setInternalQuestion] = useState("")
     const [isSmallDevice, setIsSmallDevice] = useState(false)
     const router = useRouter()
