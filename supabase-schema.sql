@@ -291,13 +291,16 @@ create or replace function public.star_add(
 declare
   v_row public.stars%rowtype;
   v_now timestamptz := now();
+  v_curr integer;
+  v_last timestamptz;
 begin
   select * from public.star_get_or_create(p_anon_device_id, p_user_id) into v_row;
   update public.stars s
      set current_stars = v_row.current_stars + greatest(0, coalesce(p_amount, 0)),
          updated_at = v_now
    where s.id = v_row.id
-   returning s.current_stars, s.last_refill_at;
+   returning s.current_stars, s.last_refill_at into v_curr, v_last;
+  return query select v_curr, v_last;
 end;
 $$ language plpgsql security definer set search_path = public;
 
@@ -305,3 +308,89 @@ $$ language plpgsql security definer set search_path = public;
 grant execute on function public.star_get_or_create(text, uuid) to anon, authenticated;
 grant execute on function public.star_spend(text, integer, uuid) to anon, authenticated;
 grant execute on function public.star_add(text, integer, uuid) to anon, authenticated;
+
+-- Billing tables
+-- Subscriptions: tracks recurring products
+create table if not exists public.billing_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  provider text not null default 'checkout_com',
+  provider_subscription_id text unique,
+  plan text,
+  status text not null default 'active',
+  current_period_start timestamptz,
+  current_period_end timestamptz,
+  cancel_at_period_end boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Transactions: records one-time and subscription charges
+create table if not exists public.billing_transactions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  type text not null check (type in ('one_time','subscription_initial','subscription_recurring','refund','chargeback')),
+  provider text not null default 'checkout_com',
+  provider_payment_id text,
+  amount_cents integer not null check (amount_cents >= 0),
+  currency text not null default 'USD',
+  reference text,
+  status text not null default 'succeeded',
+  subscription_id uuid references public.billing_subscriptions(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+-- Indexes
+create index if not exists idx_billing_transactions_user_id on public.billing_transactions(user_id);
+create index if not exists idx_billing_transactions_created_at on public.billing_transactions(created_at desc);
+create index if not exists idx_billing_subscriptions_user_id on public.billing_subscriptions(user_id);
+
+-- Enable RLS
+alter table public.billing_transactions enable row level security;
+alter table public.billing_subscriptions enable row level security;
+
+-- Policies: users can view their own billing data
+drop policy if exists "Users can view own transactions" on public.billing_transactions;
+create policy "Users can view own transactions" on public.billing_transactions
+  for select using (auth.uid() = user_id);
+
+drop policy if exists "Users can view own subscriptions" on public.billing_subscriptions;
+create policy "Users can view own subscriptions" on public.billing_subscriptions
+  for select using (auth.uid() = user_id);
+
+-- Insert/update policies are intentionally omitted; use service role via server routes
+
+-- Set stars to an absolute balance (authenticated users only). This enables pack purchases to exceed 12.
+drop function if exists public.star_set(text, integer, uuid);
+create or replace function public.star_set(
+  p_anon_device_id text,
+  p_new_balance integer,
+  p_user_id uuid default null
+) returns table (
+  current_stars integer,
+  last_refill_at timestamptz
+) as $$
+declare
+  v_row public.stars%rowtype;
+  v_now timestamptz := now();
+  v_target integer := greatest(0, coalesce(p_new_balance, 0));
+  v_curr integer;
+  v_last timestamptz;
+begin
+  -- Only allow explicit set for authenticated users; anonymous cannot set arbitrarily
+  if p_user_id is null then
+    raise exception 'star_set requires authenticated user';
+  end if;
+
+  select * from public.star_get_or_create(p_anon_device_id, p_user_id) into v_row;
+
+  update public.stars s
+     set current_stars = v_target,
+         updated_at = v_now
+   where s.id = v_row.id
+   returning s.current_stars, s.last_refill_at into v_curr, v_last;
+  return query select v_curr, v_last;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+grant execute on function public.star_set(text, integer, uuid) to authenticated;

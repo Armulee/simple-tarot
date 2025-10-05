@@ -23,7 +23,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-// import AdDialog from "@/components/ads/ad-dialog"
 
 export default function Interpretation() {
     const t = useTranslations("ReadingPage.interpretation")
@@ -32,10 +31,6 @@ export default function Interpretation() {
     const [copied, setCopied] = useState(false)
     const [isFollowUpMode, setIsFollowUpMode] = useState(false)
 
-    // Ad states
-    const [showAd, setShowAd] = useState(false)
-    // Simplified: rely on completion hook and local gating only
-    const [adCompleted, setAdCompleted] = useState(false)
     const [insufficientStars, setInsufficientStars] = useState(false)
     const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
 
@@ -144,7 +139,10 @@ export default function Interpretation() {
         // If previous run errored, don't charge next run
         if (!error) {
             // Will cost 1 star; block if none
-            if (!paidForInterpretation && (!Number.isFinite(stars as number) || (stars as number) < 1)) {
+            if (
+                !paidForInterpretation &&
+                (!Number.isFinite(stars as number) || (stars as number) < 1)
+            ) {
                 setShowNoStarsDialog(true)
                 return
             }
@@ -249,84 +247,41 @@ If the interpretation is too generic, add more details to make it more specific.
         setPaidForInterpretation,
     ])
 
-    const startAdProcess = useCallback(() => {
-        // If we already have interpretation, do not fetch again
-        if (interpretation) {
-            setAdCompleted(true)
-            return
-        }
-        // Pre-check to avoid showing ads when not enough stars (unless already paid)
-        if (!paidForInterpretation && !waiveChargeOnceRef.current && (!Number.isFinite(stars as number) || (stars as number) < 1)) {
-            setInsufficientStars(true)
-            return
-        }
-        // Fire off the interpretation request; reveal it after ad completes
-        getInterpretationAsync().catch(() => {})
-        setShowAd(true)
-    }, [getInterpretationAsync, stars, paidForInterpretation, interpretation])
-
-    // const handleAdCompleted = useCallback(() => {
-    //     setShowAd(false)
-    //     setAdCompleted(true)
-    // }, [])
-
-    const adsEnabled = false
-
-    // Show ads when interpretation component mounts (only if enabled)
-    useEffect(() => {
-        if (!adsEnabled) return
-        if (currentStep === "interpretation" && !hasInitiated.current) {
-            hasInitiated.current = true
-            // Reset charge gate for a brand-new interpretation run
-            chargedThisRunRef.current = false
-
-            // If interpretation is already available (restored), skip fetching and ads
-            if (interpretation) {
-                setAdCompleted(true)
-                setShowAd(false)
-                return
-            }
-
-            startAdProcess()
-        }
-    }, [currentStep, startAdProcess, adsEnabled, interpretation])
-
     // When ads are disabled, fetch interpretation immediately and mark ad as completed
     useEffect(() => {
-        if (adsEnabled) return
         if (currentStep === "interpretation" && !hasInitiated.current) {
             hasInitiated.current = true
             // Reset charge gate for a brand-new interpretation run
             chargedThisRunRef.current = false
 
-            // If interpretation exists, just show it without fetching/cost
-            if (interpretation) {
-                setShowAd(false)
-                setAdCompleted(true)
-                return
-            }
-
-            if (!paidForInterpretation && !waiveChargeOnceRef.current && (!Number.isFinite(stars as number) || (stars as number) < 1)) {
+            if (
+                !paidForInterpretation &&
+                !waiveChargeOnceRef.current &&
+                (!Number.isFinite(stars as number) || (stars as number) < 1)
+            ) {
                 setInsufficientStars(true)
                 return
             }
-            setShowAd(false)
-            setAdCompleted(true)
             getInterpretationAsync()
                 .then((value) => {
                     setInterpretation(value)
                 })
                 .catch(() => {})
         }
-    }, [adsEnabled, currentStep, getInterpretationAsync, setInterpretation, stars, interpretation, paidForInterpretation])
+    }, [
+        currentStep,
+        getInterpretationAsync,
+        setInterpretation,
+        stars,
+        interpretation,
+        paidForInterpretation,
+    ])
 
     // Reset component state for follow-up interpretations
     useEffect(() => {
         if (isFollowUp && followUpQuestion) {
             // Reset all component states for follow-up
             hasInitiated.current = false
-            setShowAd(false)
-            setAdCompleted(false)
             setIsFollowUpMode(true)
             // Ensure next interpretation charges a star
             chargedThisRunRef.current = false
@@ -345,21 +300,24 @@ If the interpretation is too generic, add more details to make it more specific.
 
     return (
         <>
-            {/* Ad Viewing - gated by env */}
-            {/* Ads removed */}
-
             {currentStep === "interpretation" && (
                 <div className='space-y-8'>
                     <AlertDialog open={showNoStarsDialog}>
                         <AlertDialogContent>
                             <AlertDialogHeader>
-                                <AlertDialogTitle>No stars left</AlertDialogTitle>
+                                <AlertDialogTitle>
+                                    No stars left
+                                </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    You don’t have enough stars to regenerate. Please wait for refill or purchase more stars.
+                                    You don’t have enough stars to regenerate.
+                                    Please wait for refill or purchase more
+                                    stars.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                                <AlertDialogAction onClick={() => setShowNoStarsDialog(false)}>
+                                <AlertDialogAction
+                                    onClick={() => setShowNoStarsDialog(false)}
+                                >
                                     Okay
                                 </AlertDialogAction>
                             </AlertDialogFooter>
@@ -370,13 +328,21 @@ If the interpretation is too generic, add more details to make it more specific.
                             <div className='text-center space-y-3'>
                                 <div className='flex items-center justify-center gap-2'>
                                     <Stars className='w-5 h-5 text-yellow-300' />
-                                    <h2 className='font-serif font-semibold text-lg'>Not enough stars</h2>
+                                    <h2 className='font-serif font-semibold text-lg'>
+                                        Not enough stars
+                                    </h2>
                                 </div>
                                 <p className='text-sm text-muted-foreground'>
-                                    You need 1 star to get an interpretation. Current balance: {stars}.
+                                    You need 1 star to get an interpretation.
+                                    Current balance: {stars}.
                                 </p>
                                 <div className='flex items-center justify-center gap-3'>
-                                    <Button type='button' onClick={() => router.push("/")}>Back to Home</Button>
+                                    <Button
+                                        type='button'
+                                        onClick={() => router.push("/")}
+                                    >
+                                        Back to Home
+                                    </Button>
                                 </div>
                             </div>
                         </Card>
@@ -458,7 +424,10 @@ If the interpretation is too generic, add more details to make it more specific.
                             </div>
                             <div className='flex items-center justify-center gap-2 text-xs text-yellow-300'>
                                 <Stars className='w-3.5 h-3.5' />
-                                <span>Consuming 1 star to reveal this interpretation.</span>
+                                <span>
+                                    Consuming 1 star to reveal this
+                                    interpretation.
+                                </span>
                             </div>
                             <p className='text-muted-foreground italic'>
                                 &ldquo;
@@ -520,24 +489,11 @@ If the interpretation is too generic, add more details to make it more specific.
                                     <div className='text-center space-y-6 py-8'>
                                         <div className='flex items-center justify-center space-x-3'>
                                             <Stars className='w-6 h-6 text-yellow-300' />
-                                            <span className='text-muted-foreground'>You need 1 star to view an interpretation.</span>
-                                        </div>
-                                    </div>
-                                ) : adsEnabled && !adCompleted ? (
-                                    <div className='text-center space-y-6 py-8'>
-                                        <div className='flex items-center justify-center space-x-3'>
-                                            <Sparkles className='w-6 h-6 text-primary' />
                                             <span className='text-muted-foreground'>
-                                                {showAd
-                                                    ? t("adViewing.title")
-                                                    : t("loading.title")}
+                                                You need 1 star to view an
+                                                interpretation.
                                             </span>
                                         </div>
-                                        <p className='text-sm text-muted-foreground'>
-                                            {showAd
-                                                ? t("adViewing.description")
-                                                : t("loading.subtitle")}
-                                        </p>
                                     </div>
                                 ) : error ? (
                                     <div className='text-center space-y-4'>
@@ -594,82 +550,90 @@ If the interpretation is too generic, add more details to make it more specific.
                         </div>
                     </Card>
 
-                    {adCompleted && (interpretation || finish || error) && (
-                        <>
-                            {/* Sharing - only show when not error */}
-                            {!error && (
-                                <div className='flex flex-wrap items-center justify-center gap-3'>
-                                    {shareButtons.map(
-                                        ({
-                                            id,
-                                            Icon,
-                                            className,
-                                            onClick,
-                                            label,
-                                        }) => (
-                                            <Button
-                                                key={id}
-                                                type='button'
-                                                onClick={onClick}
-                                                className={`relative group h-11 px-4 rounded-full border backdrop-blur-md shadow-[0_10px_20px_-10px_rgba(56,189,248,0.35)] transition-all ${className}`}
-                                            >
-                                                <span className='pointer-events-none absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 bg-white/10 blur-[1.5px] transition-opacity'></span>
-                                                <span className='relative z-10 flex items-center gap-2'>
-                                                    <Icon className='w-4 h-4' />
-                                                    <span className='text-sm font-medium'>
-                                                        {label}
+                    {interpretation ||
+                        finish ||
+                        (error && (
+                            <>
+                                {/* Sharing - only show when not error */}
+                                {!error && (
+                                    <div className='flex flex-wrap items-center justify-center gap-3'>
+                                        {shareButtons.map(
+                                            ({
+                                                id,
+                                                Icon,
+                                                className,
+                                                onClick,
+                                                label,
+                                            }) => (
+                                                <Button
+                                                    key={id}
+                                                    type='button'
+                                                    onClick={onClick}
+                                                    className={`relative group h-11 px-4 rounded-full border backdrop-blur-md shadow-[0_10px_20px_-10px_rgba(56,189,248,0.35)] transition-all ${className}`}
+                                                >
+                                                    <span className='pointer-events-none absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 bg-white/10 blur-[1.5px] transition-opacity'></span>
+                                                    <span className='relative z-10 flex items-center gap-2'>
+                                                        <Icon className='w-4 h-4' />
+                                                        <span className='text-sm font-medium'>
+                                                            {label}
+                                                        </span>
                                                     </span>
-                                                </span>
-                                            </Button>
-                                        )
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Action buttons - show when error, finished, or has interpretation (not while loading) */}
-                            {(error || finish || interpretation) && (
-                                <div className='flex flex-wrap items-center justify-center gap-3'>
-                                    <Button
-                                        type='button'
-                                        onClick={handleRegenerate}
-                                        disabled={isLoading}
-                                        size='lg'
-                                        className='bg-white/5 border border-white/20 hover:bg-white/10 hover:border-white/30 text-white px-8 rounded-full shadow-sm'
-                                    >
-                                        <RefreshCcw className='w-4 h-4 mr-2' />
-                                        {t("buttons.regenerate")} {!error && (
-                                            <span className='ml-1 text-xs text-yellow-300 font-semibold inline-flex items-center gap-1'>
-                                                (
-                                                <Star className='w-3.5 h-3.5' fill='currentColor' />
-                                                1)
-                                            </span>
+                                                </Button>
+                                            )
                                         )}
-                                    </Button>
-                                    <Button
-                                        type='button'
-                                        onClick={() => router.push("/")}
-                                        size='lg'
-                                        className='bg-white/5 border border-white/20 hover:bg-white/10 hover:border-white/30 text-white px-8 rounded-full shadow-sm'
-                                    >
-                                        <Stars className='w-4 h-4 mr-2' />
-                                        {t("buttons.newReading")}
-                                    </Button>
-                                </div>
-                            )}
+                                    </div>
+                                )}
 
-                            {/* Follow-up question - only show when not error */}
-                            {!error && (
-                                <div className='border-t border-border/20 pt-4'>
-                                    <QuestionInput
-                                        followUp={true}
-                                        id='follow-up-question'
-                                        label={t("followUp.label")}
-                                        placeholder={t("followUp.placeholder")}
-                                    />
-                                </div>
-                            )}
-                        </>
-                    )}
+                                {/* Action buttons - show when error, finished, or has interpretation (not while loading) */}
+                                {(error || finish || interpretation) && (
+                                    <div className='flex flex-wrap items-center justify-center gap-3'>
+                                        <Button
+                                            type='button'
+                                            onClick={handleRegenerate}
+                                            disabled={isLoading}
+                                            size='lg'
+                                            className='bg-white/5 border border-white/20 hover:bg-white/10 hover:border-white/30 text-white px-8 rounded-full shadow-sm'
+                                        >
+                                            <RefreshCcw className='w-4 h-4 mr-2' />
+                                            {t("buttons.regenerate")}{" "}
+                                            {!error && (
+                                                <span className='ml-1 text-xs text-yellow-300 font-semibold inline-flex items-center gap-1'>
+                                                    (
+                                                    <Star
+                                                        className='w-3.5 h-3.5'
+                                                        fill='currentColor'
+                                                    />
+                                                    1)
+                                                </span>
+                                            )}
+                                        </Button>
+                                        <Button
+                                            type='button'
+                                            onClick={() => router.push("/")}
+                                            size='lg'
+                                            className='bg-white/5 border border-white/20 hover:bg-white/10 hover:border-white/30 text-white px-8 rounded-full shadow-sm'
+                                        >
+                                            <Stars className='w-4 h-4 mr-2' />
+                                            {t("buttons.newReading")}
+                                        </Button>
+                                    </div>
+                                )}
+
+                                {/* Follow-up question - only show when not error */}
+                                {!error && (
+                                    <div className='border-t border-border/20 pt-4'>
+                                        <QuestionInput
+                                            followUp={true}
+                                            id='follow-up-question'
+                                            label={t("followUp.label")}
+                                            placeholder={t(
+                                                "followUp.placeholder"
+                                            )}
+                                        />
+                                    </div>
+                                )}
+                            </>
+                        ))}
 
                     {/* Disclaimer */}
                     <Card className='p-4 bg-card/5 backdrop-blur-sm border-border/10'>
@@ -682,4 +646,3 @@ If the interpretation is too generic, add more details to make it more specific.
         </>
     )
 }
-
