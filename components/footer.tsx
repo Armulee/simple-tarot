@@ -22,16 +22,22 @@ export default function Footer() {
                         </span>
                     </Link>
                     <div className='flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6'>
-                        <div className='hidden md:grid grid-cols-2 md:flex md:space-x-6 gap-4 md:gap-0 text-sm text-muted-foreground text-center md:text-left'>
+                        <div className='hidden md:flex gap-6 text-sm text-muted-foreground text-center md:text-left'>
+                            <Link
+                                href='/contact'
+                                className='w-fit hover:text-foreground transition-colors'
+                            >
+                                Contact & Support
+                            </Link>
                             <Link
                                 href='/privacy-policy'
-                                className='hover:text-foreground transition-colors'
+                                className='w-fit hover:text-foreground transition-colors'
                             >
                                 Privacy Policy
                             </Link>
                             <Link
                                 href='/terms-of-service'
-                                className='hover:text-foreground transition-colors'
+                                className='w-fit hover:text-foreground transition-colors'
                             >
                                 Terms of Service
                             </Link>

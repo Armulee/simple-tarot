@@ -91,24 +91,26 @@ export function Navbar({ locale }: { locale: string }) {
 
                     {/* Right side: Navigation links, Language dropdown, and Auth */}
                     <div className='flex items-center space-x-3'>
-                        <Link
-                            href='/'
-                            className='hidden md:block text-cosmic-light hover:text-white transition-colors'
-                        >
-                            {t("home")}
-                        </Link>
-                        <Link
-                            href='/about'
-                            className='hidden md:block text-cosmic-light hover:text-white transition-colors'
-                        >
-                            {t("about")}
-                        </Link>
-                        <Link
-                            href='/pricing'
-                            className='hidden md:block text-cosmic-light hover:text-white transition-colors'
-                        >
-                            Pricing
-                        </Link>
+                        <div className='flex items-center space-x-5'>
+                            <Link
+                                href='/'
+                                className='hidden md:block text-cosmic-light hover:text-white transition-colors'
+                            >
+                                {t("home")}
+                            </Link>
+                            <Link
+                                href='/about'
+                                className='hidden md:block text-cosmic-light hover:text-white transition-colors'
+                            >
+                                {t("about")}
+                            </Link>
+                            <Link
+                                href='/pricing'
+                                className='hidden md:block text-cosmic-light hover:text-white transition-colors'
+                            >
+                                Pricing
+                            </Link>
+                        </div>
                         <Sheet
                             open={mysticalOpen}
                             onOpenChange={setMysticalOpen}
@@ -215,13 +217,23 @@ export function Navbar({ locale }: { locale: string }) {
                                     variant='ghost'
                                     className='h-10 px-3 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 text-yellow-300 border border-yellow-500/30 flex items-center gap-2'
                                     onClick={(e) => {
-                                        if (choice === null || choice === "declined") {
+                                        if (
+                                            choice === null ||
+                                            choice === "declined"
+                                        ) {
                                             e.preventDefault()
                                             show()
                                         }
                                     }}
                                 >
-                                    <Star className={`w-4 h-4 ${initialized ? '' : 'animate-spin-slow'}`} fill='currentColor' />
+                                    <Star
+                                        className={`w-4 h-4 ${
+                                            initialized
+                                                ? ""
+                                                : "animate-spin-slow"
+                                        }`}
+                                        fill='currentColor'
+                                    />
                                     {initialized && (
                                         <span className='font-semibold'>
                                             {stars ?? 0}
@@ -238,13 +250,23 @@ export function Navbar({ locale }: { locale: string }) {
                                     variant='ghost'
                                     className='h-9 px-2 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 text-yellow-300 border border-yellow-500/30 flex items-center gap-1'
                                     onClick={(e) => {
-                                        if (choice === null || choice === "declined") {
+                                        if (
+                                            choice === null ||
+                                            choice === "declined"
+                                        ) {
                                             e.preventDefault()
                                             show()
                                         }
                                     }}
                                 >
-                                    <Star className={`w-4 h-4 ${initialized ? '' : 'animate-spin-slow'}`} fill='currentColor' />
+                                    <Star
+                                        className={`w-4 h-4 ${
+                                            initialized
+                                                ? ""
+                                                : "animate-spin-slow"
+                                        }`}
+                                        fill='currentColor'
+                                    />
                                     {initialized && (
                                         <span className='font-semibold'>
                                             {stars ?? 0}
@@ -259,7 +281,11 @@ export function Navbar({ locale }: { locale: string }) {
                             {!loading && user ? (
                                 <UserProfile variant='desktop' />
                             ) : (
-                                <Link href={`/signin?callbackUrl=${encodeURIComponent(pathname)}`}>
+                                <Link
+                                    href={`/signin?callbackUrl=${encodeURIComponent(
+                                        pathname
+                                    )}`}
+                                >
                                     <Button
                                         variant='outline'
                                         className='flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-white/10 text-white/90 border border-white/10 hover:bg-white/15 transition'
@@ -276,7 +302,11 @@ export function Navbar({ locale }: { locale: string }) {
                             {!loading && user ? (
                                 <UserProfile variant='mobile' />
                             ) : (
-                                <Link href={`/signin?callbackUrl=${encodeURIComponent(pathname)}`}>
+                                <Link
+                                    href={`/signin?callbackUrl=${encodeURIComponent(
+                                        pathname
+                                    )}`}
+                                >
                                     <Button
                                         variant='outline'
                                         size='icon'

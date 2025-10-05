@@ -60,7 +60,7 @@ const PACKS: Record<string, Pack> = {
 export default function PurchasePage() {
     const params = useSearchParams()
     const router = useRouter()
-    const { addStars, setStarsBalance, stars } = useStars()
+    const { setStarsBalance, stars } = useStars()
     const { user } = useAuth()
 
     const initialSelection = useMemo<SelectionKey | null>(() => {

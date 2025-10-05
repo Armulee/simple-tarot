@@ -193,7 +193,7 @@ export default function BillingPage() {
     }
 
     return (
-        <div className='min-h-screen bg-gradient-to-br from-[#0a0a1a] via-[#0d0b1f] to-[#0a0a1a] p-6 relative overflow-hidden'>
+        <div className='min-h-screen p-6 relative'>
             {/* Background decorative elements */}
             <div className='absolute inset-0 overflow-hidden pointer-events-none'>
                 <div className='absolute -top-40 -right-40 w-80 h-80 bg-yellow-400/5 rounded-full blur-3xl'></div>

@@ -13,6 +13,7 @@ import {
     LogIn,
     ShieldCheck,
     FileText,
+    MessageSquare,
 } from "lucide-react"
 import { useState } from "react"
 import {
@@ -202,6 +203,17 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
 
                         <li>
                             <Link
+                                href={"/contact"}
+                                className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
+                                onClick={() => onOpenChange(false)}
+                            >
+                                <MessageSquare className='w-4 h-4' />
+                                <span>Contact & Support</span>
+                            </Link>
+                        </li>
+
+                        <li>
+                            <Link
                                 href={"/privacy-policy"}
                                 className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
                                 onClick={() => onOpenChange(false)}
@@ -210,6 +222,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                 <span>{t("privacyPolicy")}</span>
                             </Link>
                         </li>
+
                         <li>
                             <Link
                                 href={"/terms-of-service"}
