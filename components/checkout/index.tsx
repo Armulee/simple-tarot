@@ -432,12 +432,7 @@ export function Checkout({
 
                         {/* Failure Slide */}
                         <SwiperSlide>
-                            <Failure
-                                onBack={() => {
-                                    setPaymentResult({ status: "idle" })
-                                    swiperRef.current?.swiper.slideTo(0)
-                                }}
-                            />
+                            <Failure />
                         </SwiperSlide>
                     </Swiper>
                     <DialogFooter>

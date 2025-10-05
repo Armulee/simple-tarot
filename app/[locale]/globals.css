@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "react-phone-number-input/style.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -511,4 +512,130 @@
 
 .animate-spin-slow {
   animation: spin-slow 2.2s linear infinite;
+}
+
+/* Star twinkle animations for pack cards */
+@keyframes star-twinkle {
+  0%, 100% { 
+    opacity: 0.3; 
+    transform: scale(1); 
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1.2); 
+  }
+}
+
+@keyframes star-twinkle-2 {
+  0%, 100% { 
+    opacity: 0.2; 
+    transform: scale(0.8); 
+  }
+  30% { 
+    opacity: 0.8; 
+    transform: scale(1.1); 
+  }
+  60% { 
+    opacity: 0.4; 
+    transform: scale(0.9); 
+  }
+}
+
+@keyframes star-twinkle-3 {
+  0%, 100% { 
+    opacity: 0.4; 
+    transform: scale(1.1); 
+  }
+  25% { 
+    opacity: 0.1; 
+    transform: scale(0.7); 
+  }
+  75% { 
+    opacity: 0.9; 
+    transform: scale(1.3); 
+  }
+}
+
+.animate-star-twinkle {
+  animation: star-twinkle 2s ease-in-out infinite;
+}
+
+.animate-star-twinkle-2 {
+  animation: star-twinkle-2 1.8s ease-in-out infinite;
+}
+
+.animate-star-twinkle-3 {
+  animation: star-twinkle-3 2.5s ease-in-out infinite;
+}
+
+/* Phone Input Custom Styling */
+.phone-input-container .PhoneInput {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 8px 12px;
+  transition: all 0.2s ease;
+}
+
+.phone-input-container .PhoneInput:focus-within {
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.phone-input-container .PhoneInputInput {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+}
+
+.phone-input-container .PhoneInputInput::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.phone-input-container .PhoneInputCountrySelect {
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.phone-input-container .PhoneInputCountrySelectArrow {
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid rgba(255, 255, 255, 0.6);
+  margin-left: 4px;
+}
+
+.phone-input-container .PhoneInputCountryIcon {
+  border-radius: 2px;
+}
+
+/* Dark theme for phone input dropdown */
+.phone-input-container .PhoneInputCountrySelectDropdown {
+  background: rgba(20, 20, 20, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.phone-input-container .PhoneInputCountryOption {
+  color: white;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.phone-input-container .PhoneInputCountryOption:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.phone-input-container .PhoneInputCountryOption--selected {
+  background: rgba(59, 130, 246, 0.2);
 }

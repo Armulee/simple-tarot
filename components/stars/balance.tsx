@@ -1,10 +1,8 @@
 "use client"
+
 import { Card } from "../ui/card"
 import { Star } from "lucide-react"
 import { Clock } from "lucide-react"
-import { Users } from "lucide-react"
-import { Button } from "../ui/button"
-import Link from "next/link"
 import { useStars } from "@/contexts/stars-context"
 import { useEffect, useMemo, useState } from "react"
 import { useAuth } from "@/hooks/use-auth"
@@ -46,73 +44,94 @@ export default function StarsBalance() {
         Math.max(0, 100 - (remainingMs / stepMs) * 100)
     )
     return (
-        <Card className='relative overflow-hidden border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(234,179,8,0.35)] px-8 py-4'>
-            {/* Deep-space stars background */}
-            <div className='pointer-events-none absolute inset-0 opacity-40'>
+        <Card className='group relative overflow-hidden border border-yellow-400/30 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl shadow-[0_20px_60px_-20px_rgba(234,179,8,0.4)] hover:shadow-[0_25px_80px_-25px_rgba(234,179,8,0.5)] transition-all duration-500 px-8 py-8'>
+            {/* Enhanced Deep-space stars background */}
+            <div className='pointer-events-none absolute inset-0 opacity-60'>
                 <div className='cosmic-stars-layer-3' />
                 <div className='cosmic-stars-layer-4' />
                 <div className='cosmic-stars-layer-5' />
+                <div className='cosmic-stars-layer-6' />
             </div>
-            {/* Golden aura behind card */}
-            <div className='pointer-events-none absolute -top-24 -left-24 h-64 w-64 rounded-full bg-gradient-to-br from-yellow-300/25 via-yellow-500/15 to-transparent blur-3xl' />
-            <div className='pointer-events-none absolute -bottom-28 -right-28 h-80 w-80 rounded-full bg-gradient-to-tl from-yellow-400/20 via-yellow-600/10 to-transparent blur-[100px]' />
 
-            <div className='relative flex flex-col items-center text-center gap-3'>
-                <div className='flex items-center gap-3 text-yellow-300'>
-                    <div className='h-12 w-12 rounded-full bg-gradient-to-r from-yellow-400/30 to-yellow-600/30 border border-yellow-500/40 flex items-center justify-center'>
-                        <Star className='w-6 h-6' fill='currentColor' />
+            {/* Enhanced Golden aura effects */}
+            <div className='pointer-events-none absolute -top-32 -left-32 h-80 w-80 rounded-full bg-gradient-to-br from-yellow-300/30 via-yellow-500/20 to-transparent blur-3xl animate-pulse' />
+            <div className='pointer-events-none absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-gradient-to-tl from-yellow-400/25 via-yellow-600/15 to-transparent blur-[120px] animate-pulse delay-1000' />
+            <div className='pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-64 w-64 rounded-full bg-gradient-to-r from-amber-400/15 via-yellow-500/10 to-orange-500/15 blur-2xl animate-pulse delay-2000' />
+
+            <div className='relative flex flex-col items-center text-center gap-6'>
+                {/* Enhanced Balance Display */}
+                <div className='flex items-center gap-6 text-yellow-300'>
+                    <div className='relative'>
+                        <div className='h-16 w-16 rounded-full bg-gradient-to-r from-yellow-400/40 to-yellow-600/40 border-2 border-yellow-500/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300'>
+                            <Star
+                                className='w-8 h-8 animate-spin-slow'
+                                fill='currentColor'
+                            />
+                        </div>
+                        {/* Orbiting particles */}
+                        <div className='absolute -top-2 -right-2 w-4 h-4 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 animate-ping' />
+                        <div className='absolute -bottom-1 -left-1 w-3 h-3 rounded-full bg-gradient-to-r from-yellow-300 to-amber-400 animate-pulse' />
                     </div>
-                    <div>
-                        <p className='text-sm text-muted-foreground'>
-                            Current Balance
+                    <div className='text-left'>
+                        <p className='text-xs text-gray-400 mb-1'>
+                            Stars available
                         </p>
-                        <p className='text-4xl font-bold text-white tracking-tight'>
+                        <p className='text-5xl md:text-6xl font-bold text-white tracking-tight bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 bg-clip-text text-transparent'>
                             {stars}
                         </p>
                     </div>
                 </div>
 
-                <div className='w-full max-w-xl space-y-2'>
-                    <div className='flex items-center justify-center gap-2 text-sm text-muted-foreground'>
-                        <Clock className='w-4 h-4' />
-                        <span>Next refill in</span>
-                        <span className='text-white font-medium'>{nextIn}</span>
+                {/* Enhanced Progress Section */}
+                <div className='w-full max-w-2xl space-y-4'>
+                    <div className='flex items-center justify-center gap-3 text-sm text-gray-300'>
+                        <div className='flex items-center gap-2'>
+                            <Clock className='w-5 h-5 text-yellow-400' />
+                            <span>Next refill</span>
+                        </div>
+                        <div className='px-3 py-1 rounded-full bg-gradient-to-r from-yellow-400/20 to-amber-500/20 border border-yellow-500/30'>
+                            <span className='text-white font-bold font-mono'>
+                                {nextIn}
+                            </span>
+                        </div>
                     </div>
-                    <div className='h-2 w-full rounded-full bg-white/10 overflow-hidden'>
+
+                    {/* Enhanced Progress Bar */}
+                    <div className='relative h-3 w-full rounded-full bg-gradient-to-r from-gray-800/50 to-gray-700/50 overflow-hidden border border-gray-600/30'>
                         <div
-                            className='h-full bg-gradient-to-r from-yellow-400/70 to-yellow-600/70'
+                            className='h-full bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 rounded-full transition-all duration-1000 ease-out relative overflow-hidden'
+                            style={{ width: `${progress}%` }}
+                        >
+                            {/* Animated shine effect */}
+                            <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse' />
+                        </div>
+                        {/* Progress glow */}
+                        <div
+                            className='absolute top-0 h-full bg-gradient-to-r from-yellow-400/50 via-amber-500/50 to-orange-500/50 blur-sm transition-all duration-1000 ease-out'
                             style={{ width: `${progress}%` }}
                         />
                     </div>
-                    <p className='text-xs text-muted-foreground text-center'>
-                        {user ? (
-                            <>
-                                Auto-refills by 1 star every 2 hours (up to{" "}
-                                {refillCap}).
-                            </>
-                        ) : (
-                            <>
-                                Refills to 5 at 00:00 (UTC+7). Countdown shows
-                                time until next midnight.
-                            </>
-                        )}
-                    </p>
-                </div>
 
-                <div className='flex items-center justify-center'>
-                    {user ? (
-                        <></>
-                    ) : (
-                        <Link href='/signin'>
-                            <Button
-                                type='button'
-                                className='rounded-full px-6 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.8)] hover:shadow-[0_18px_40px_-12px_rgba(234,179,8,0.9)] transition-shadow flex items-center gap-2'
-                            >
-                                <Users className='w-4 h-4' />
-                                <span className='font-semibold'>Sign in</span>
-                            </Button>
-                        </Link>
-                    )}
+                    {/* Enhanced Description */}
+                    <div className='p-4 rounded-xl bg-gradient-to-r from-white/5 to-white/10 border border-white/10 backdrop-blur-sm'>
+                        <p className='text-sm text-gray-300 leading-relaxed'>
+                            {user ? (
+                                <>
+                                    Auto-refills by 1 star every 2 hours (up to{" "}
+                                    {refillCap} stars).
+                                </>
+                            ) : (
+                                <>
+                                    <span className='text-gray-400'>
+                                        Anonymous User:
+                                    </span>{" "}
+                                    Refills to 5 stars at midnight (UTC+7).
+                                    Countdown shows time until next cosmic
+                                    alignment.
+                                </>
+                            )}
+                        </p>
+                    </div>
                 </div>
             </div>
         </Card>

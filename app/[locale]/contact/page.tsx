@@ -7,6 +7,12 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion"
 import { Mail, MessageSquare, Clock, Send, CheckCircle } from "lucide-react"
 
 export default function ContactPage() {
@@ -152,21 +158,23 @@ export default function ContactPage() {
                             </h2>
                         </div>
 
-                        <div className='space-y-4'>
+                        <Accordion className='w-full'>
                             {faqItems.map((faq, index) => (
-                                <div
+                                <AccordionItem
                                     key={index}
-                                    className='border-b border-white/10 pb-4 last:border-b-0'
+                                    className='border-b border-white/10 last:border-b-0'
                                 >
-                                    <h3 className='font-semibold text-white mb-2'>
-                                        {faq.question}
-                                    </h3>
-                                    <p className='text-sm text-gray-300 leading-relaxed'>
+                                    <AccordionTrigger className='text-left text-white hover:text-primary transition-colors duration-200 py-4'>
+                                        <span className='font-semibold'>
+                                            {faq.question}
+                                        </span>
+                                    </AccordionTrigger>
+                                    <AccordionContent className='text-gray-300 leading-relaxed pb-4'>
                                         {faq.answer}
-                                    </p>
-                                </div>
+                                    </AccordionContent>
+                                </AccordionItem>
                             ))}
-                        </div>
+                        </Accordion>
                     </div>
                 </Card>
 
@@ -193,8 +201,8 @@ export default function ContactPage() {
                             className='bg-card/50 border-border/30 p-6 shadow-xl shadow-black/20 backdrop-blur-sm hover:border-primary/40 transition-all duration-300'
                         >
                             <div className='flex items-start space-x-4'>
-                                <div className='w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center'>
-                                    <info.icon className='w-6 h-6 text-primary' />
+                                <div className='w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center'>
+                                    <info.icon className='w-6 h-6 text-accent' />
                                 </div>
                                 <div className='flex-1'>
                                     <div className='flex items-center space-x-2 mb-2'>
@@ -203,7 +211,7 @@ export default function ContactPage() {
                                         </h3>
                                         <Badge
                                             variant='outline'
-                                            className='bg-primary/20 text-primary border-primary/40 text-xs'
+                                            className='bg-accent/20 text-accent border-accent/40 text-xs'
                                         >
                                             {info.badge}
                                         </Badge>
@@ -211,7 +219,7 @@ export default function ContactPage() {
                                     <p className='text-sm text-gray-400 mb-1'>
                                         {info.description}
                                     </p>
-                                    <p className='text-sm text-primary font-medium'>
+                                    <p className='text-sm text-accent font-medium'>
                                         {info.value}
                                     </p>
                                 </div>

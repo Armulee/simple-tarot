@@ -1,145 +1,168 @@
 "use client"
 
 import { Checkout } from "../checkout"
-import { Star } from "lucide-react"
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
-import { ChevronDown } from "lucide-react"
-import { useAuth } from "@/hooks/use-auth"
+import { Star, Zap, Infinity } from "lucide-react"
+import InfinityPackDropdown from "./infinity-pack-dropdown"
 
 const packs = [
-    { id: "pack-1", stars: 60 },
-    { id: "pack-2", stars: 130 },
-    { id: "pack-3", stars: 200 },
-    { id: "pack-5", stars: 350 },
-    { id: "pack-7", stars: 500 },
+    { id: "pack-1", stars: 60, label: "Starter", color: "yellow" },
+    { id: "pack-2", stars: 130, label: "Explorer", color: "yellow" },
+    { id: "pack-3", stars: 200, label: "Seeker", color: "yellow" },
+    { id: "pack-5", stars: 350, label: "Mystic", color: "yellow" },
+    { id: "pack-7", stars: 500, label: "Master", color: "yellow" },
+    {
+        id: "pack-infinity",
+        stars: "Infinity",
+        label: "Unlimited",
+        color: "yellow",
+        isInfinity: true,
+    },
 ]
 
+const getColorClasses = (color: string) => {
+    const colorMap = {
+        blue: {
+            bg: "from-blue-400/20 to-cyan-500/20",
+            hoverBg: "hover:from-blue-400/30 hover:to-cyan-500/30",
+            border: "border-blue-500/40",
+            text: "text-blue-200",
+            icon: "text-blue-300",
+        },
+        green: {
+            bg: "from-green-400/20 to-emerald-500/20",
+            hoverBg: "hover:from-green-400/30 hover:to-emerald-500/30",
+            border: "border-green-500/40",
+            text: "text-green-200",
+            icon: "text-green-300",
+        },
+        purple: {
+            bg: "from-purple-400/20 to-violet-500/20",
+            hoverBg: "hover:from-purple-400/30 hover:to-violet-500/30",
+            border: "border-purple-500/40",
+            text: "text-purple-200",
+            icon: "text-purple-300",
+        },
+        amber: {
+            bg: "from-amber-400/20 to-orange-500/20",
+            hoverBg: "hover:from-amber-400/30 hover:to-orange-500/30",
+            border: "border-amber-500/40",
+            text: "text-amber-200",
+            icon: "text-amber-300",
+        },
+        rose: {
+            bg: "from-rose-400/20 to-pink-500/20",
+            hoverBg: "hover:from-rose-400/30 hover:to-pink-500/30",
+            border: "border-rose-500/40",
+            text: "text-rose-200",
+            icon: "text-rose-300",
+        },
+        yellow: {
+            bg: "from-amber-300/25 via-yellow-400/20 to-orange-400/25",
+            hoverBg:
+                "hover:from-amber-300/35 hover:via-yellow-400/30 hover:to-orange-400/35",
+            border: "border-gradient-to-r border-amber-400/50 border-yellow-500/40 border-orange-400/50",
+            text: "text-amber-100",
+            icon: "text-amber-200",
+        },
+    }
+    return colorMap[color as keyof typeof colorMap] || colorMap.blue
+}
+
 export default function OneTapTopUp() {
-    const { user } = useAuth()
     return (
-        <>
-            {user && (
-                <div className='w-full max-w-2xl mx-auto'>
-                    <div className='grid grid-cols-3 md:grid-cols-6 gap-2'>
-                        {packs.map((p) => (
+        <div className='w-full max-w-5xl mx-auto'>
+            {/* Star Packs Grid */}
+            <div className='mb-8'>
+                <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4'>
+                    {packs.map((p) => {
+                        const colors = getColorClasses(p.color)
+                        return (
                             <Checkout
                                 key={p.id}
                                 mode='pack'
                                 packId={p.id}
+                                infinityTerm={
+                                    p.isInfinity ? "month" : undefined
+                                }
                                 customTrigger={
                                     <button
                                         type='button'
-                                        className='w-full rounded-full border border-yellow-500/40 bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 hover:from-yellow-400/30 hover:to-yellow-600/30 text-yellow-200 px-3 py-1.5 flex items-center justify-center gap-1.5 transition'
+                                        className={`group relative w-full rounded-2xl border border-amber-400/50 bg-gradient-to-br ${colors.bg} ${colors.hoverBg} ${colors.text} px-4 py-6 flex flex-col items-center gap-3 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-amber-500/25 overflow-hidden`}
                                     >
-                                        <Star
-                                            className='w-3.5 h-3.5'
-                                            fill='currentColor'
+                                        {/* Modern gradient background */}
+                                        <div className='absolute inset-0 bg-gradient-to-br from-amber-300/20 via-yellow-400/15 to-orange-400/20 group-hover:from-amber-300/30 group-hover:via-yellow-400/25 group-hover:to-orange-400/30 transition-all duration-500' />
+
+                                        {/* Animated star field background */}
+                                        <div className='absolute inset-0 opacity-30 group-hover:opacity-50 transition-opacity duration-500'>
+                                            <div className='absolute top-2 left-3 w-1 h-1 bg-amber-200 rounded-full animate-star-twinkle' />
+                                            <div className='absolute top-4 right-4 w-1.5 h-1.5 bg-yellow-300 rounded-full animate-star-twinkle-2 delay-100' />
+                                            <div className='absolute bottom-3 left-4 w-1 h-1 bg-orange-200 rounded-full animate-star-twinkle-3 delay-200' />
+                                            <div className='absolute bottom-2 right-2 w-1 h-1 bg-amber-300 rounded-full animate-star-twinkle delay-300' />
+                                            <div className='absolute top-1/2 left-2 w-1 h-1 bg-yellow-200 rounded-full animate-star-twinkle-2 delay-400' />
+                                            <div className='absolute top-1/3 right-1/3 w-0.5 h-0.5 bg-orange-300 rounded-full animate-star-twinkle-3 delay-500' />
+                                            <div className='absolute bottom-1/3 right-1/4 w-1 h-1 bg-amber-400 rounded-full animate-star-twinkle delay-700' />
+                                        </div>
+
+                                        {/* Animated background glow */}
+                                        <div
+                                            className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${colors.bg} opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl`}
                                         />
-                                        <span className='text-sm font-semibold'>
-                                            {p.stars}
-                                        </span>
+
+                                        {/* Content */}
+                                        <div className='relative z-10 flex flex-col items-center gap-2'>
+                                            <div
+                                                className={`w-12 h-12 rounded-full bg-gradient-to-br from-amber-300/30 via-yellow-400/25 to-orange-400/30 border border-amber-400/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 relative overflow-hidden`}
+                                            >
+                                                {/* Star sparkle effect */}
+                                                <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse' />
+
+                                                {p.isInfinity ? (
+                                                    <Infinity
+                                                        className={`w-6 h-6 ${colors.icon} drop-shadow-sm`}
+                                                    />
+                                                ) : (
+                                                    <Star
+                                                        className={`w-6 h-6 ${colors.icon} drop-shadow-sm group-hover:animate-spin-slow`}
+                                                        fill='currentColor'
+                                                    />
+                                                )}
+                                            </div>
+
+                                            <div className='text-center'>
+                                                <p
+                                                    className={`text-2xl font-bold ${colors.text} drop-shadow-sm`}
+                                                >
+                                                    {p.stars}
+                                                </p>
+                                                <p className='text-xs text-amber-200/80 font-medium'>
+                                                    {p.label}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Enhanced hover effect indicator */}
+                                        <div
+                                            className={`absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-r from-amber-400/40 to-yellow-500/40 border border-amber-300/50 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110`}
+                                        >
+                                            <Zap className='w-2.5 h-2.5 text-white m-0.5 drop-shadow-sm' />
+                                        </div>
+
+                                        {/* Infinity pack dropdown */}
+                                        {p.isInfinity && (
+                                            <InfinityPackDropdown
+                                                packId={p.id}
+                                            />
+                                        )}
+
+                                        {/* Modern border glow effect */}
+                                        <div className='absolute inset-0 rounded-2xl border border-amber-400/30 group-hover:border-amber-400/60 transition-colors duration-300' />
                                     </button>
                                 }
                             />
-                        ))}
-                        <Checkout
-                            mode='pack'
-                            packId='pack-infinity'
-                            infinityTerm='month'
-                            customTrigger={
-                                <button
-                                    type='button'
-                                    className='w-full h-8 rounded-full border border-yellow-500/40 bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 hover:from-yellow-400/30 hover:to-yellow-600/30 text-yellow-200 px-3 py-0 text-sm font-semibold flex items-center justify-center gap-1.5 transition'
-                                >
-                                    <Star
-                                        className='w-3.5 h-3.5'
-                                        fill='currentColor'
-                                    />
-                                    <span className='text-xl leading-none'>
-                                        ∞
-                                    </span>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <span
-                                                onClick={(e) => {
-                                                    e.preventDefault()
-                                                    e.stopPropagation()
-                                                }}
-                                                className='inline-flex items-center justify-center'
-                                                role='button'
-                                                aria-label='Choose infinity term'
-                                            >
-                                                <ChevronDown className='w-4 h-4' />
-                                            </span>
-                                        </PopoverTrigger>
-                                        <PopoverContent className='w-56 bg-card/95 border-border/30 p-2 space-y-1'>
-                                            <Checkout
-                                                mode='pack'
-                                                packId='pack-infinity'
-                                                infinityTerm='month'
-                                                customTrigger={
-                                                    <button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>
-                                                        One month $9.99
-                                                    </button>
-                                                }
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
-                                </button>
-                            }
-                        />
-                    </div>
-                    <div className='mt-2'>
-                        <Checkout
-                            mode='subscribe'
-                            plan='monthly'
-                            customTrigger={
-                                <button
-                                    type='button'
-                                    className='w-full rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 transition px-4 py-2 text-sm font-semibold relative'
-                                >
-                                    <span>Subscribe (Unlimited)</span>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <span
-                                                onClick={(e) => {
-                                                    e.preventDefault()
-                                                    e.stopPropagation()
-                                                }}
-                                                className='absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center'
-                                                role='button'
-                                                aria-label='Choose subscription term'
-                                            >
-                                                <ChevronDown className='w-4 h-4' />
-                                            </span>
-                                        </PopoverTrigger>
-                                        <PopoverContent className='w-44 bg-card/95 border-border/30 p-2 space-y-1'>
-                                            <Checkout
-                                                mode='subscribe'
-                                                plan='monthly'
-                                                customTrigger={
-                                                    <button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>
-                                                        Monthly $9.99
-                                                    </button>
-                                                }
-                                            />
-                                            <Checkout
-                                                mode='subscribe'
-                                                plan='annual'
-                                                customTrigger={
-                                                    <button className='w-full text-left text-sm px-2 py-1 rounded hover:bg-white/10'>
-                                                        Annual $99.99
-                                                    </button>
-                                                }
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
-                                </button>
-                            }
-                        />
-                    </div>
+                        )
+                    })}
                 </div>
-            )}
-        </>
+            </div>
+        </div>
     )
 }

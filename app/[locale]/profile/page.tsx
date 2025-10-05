@@ -15,8 +15,18 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { User, Camera, Save, Calendar, Sparkles } from "lucide-react"
+import {
+    User,
+    Camera,
+    Save,
+    Calendar,
+    Sparkles,
+    Star,
+    Moon,
+    Sun,
+} from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
+import CosmicStars from "@/components/cosmic-stars"
 
 export default function ProfilePage() {
     const { user } = useAuth()
@@ -83,40 +93,60 @@ export default function ProfilePage() {
 
     return (
         <div className='min-h-screen p-6 relative overflow-hidden'>
+            {/* Cosmic Background */}
+            <CosmicStars />
+
+            {/* Floating Elements */}
+            <div className='absolute inset-0 pointer-events-none'>
+                <div className='absolute top-20 left-10 w-2 h-2 bg-accent/60 rounded-full animate-star-twinkle'></div>
+                <div className='absolute top-40 right-20 w-1 h-1 bg-accent/40 rounded-full animate-star-twinkle-2'></div>
+                <div className='absolute top-60 left-1/4 w-1.5 h-1.5 bg-accent/50 rounded-full animate-star-twinkle-3'></div>
+                <div className='absolute bottom-40 right-1/3 w-2 h-2 bg-accent/30 rounded-full animate-star-twinkle'></div>
+                <div className='absolute bottom-60 left-1/3 w-1 h-1 bg-accent/60 rounded-full animate-star-twinkle-2'></div>
+            </div>
+
             <div className='max-w-4xl mx-auto space-y-8 pt-10 relative z-10'>
                 {/* Header */}
-                <div className='text-center space-y-4'>
-                    <h1 className='text-4xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'>
-                        Profile Settings
-                    </h1>
-                    <p className='text-gray-300 text-lg max-w-2xl mx-auto'>
+                <div className='text-center space-y-6'>
+                    <div className='flex items-center justify-center space-x-3 mb-4'>
+                        <div className='p-3 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 backdrop-blur-sm border border-primary/30'>
+                            <User className='w-8 h-8 text-primary' />
+                        </div>
+                        <h1 className='text-4xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'>
+                            Profile Settings
+                        </h1>
+                    </div>
+                    <p className='text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed'>
                         Customize your profile information and reading
-                        preferences
+                        preferences to enhance your mystical journey
                     </p>
                 </div>
 
                 <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
                     {/* Profile Picture Section */}
-                    <Card className='bg-card/50 border-border/30 p-8 shadow-xl shadow-black/20 backdrop-blur-sm'>
+                    <Card className='bg-card/60 border-border/40 p-8 shadow-2xl shadow-black/30 backdrop-blur-md hover:shadow-primary/10 transition-all duration-500 group'>
                         <div className='text-center space-y-6'>
                             <div className='flex items-center justify-center space-x-2 mb-4'>
-                                <User className='w-6 h-6 text-primary' />
-                                <h2 className='text-2xl font-bold text-white'>
+                                <div className='p-2 rounded-lg bg-gradient-to-br from-accent/20 to-primary/20 border border-accent/30'>
+                                    <User className='w-5 h-5 text-accent' />
+                                </div>
+                                <h2 className='text-2xl font-bold text-accent'>
                                     Profile Picture
                                 </h2>
                             </div>
 
-                            <div className='relative inline-block'>
-                                <Avatar className='w-32 h-32 mx-auto border-4 border-primary/30'>
+                            <div className='relative inline-block group/avatar'>
+                                <Avatar className='w-32 h-32 mx-auto border-4 border-accent/40 shadow-lg shadow-accent/20 group-hover/avatar:shadow-accent/30 transition-all duration-300'>
                                     <AvatarImage
                                         src={profileData.profilePicture}
                                         alt='Profile'
+                                        className='group-hover/avatar:scale-105 transition-transform duration-300'
                                     />
-                                    <AvatarFallback className='bg-primary/20 text-primary text-3xl font-bold'>
+                                    <AvatarFallback className='bg-gradient-to-br from-accent/20 to-primary/20 text-accent text-3xl font-bold'>
                                         {getUserInitials()}
                                     </AvatarFallback>
                                 </Avatar>
-                                <label className='absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-colors'>
+                                <label className='absolute bottom-0 right-0 bg-accent text-accent-foreground rounded-full p-3 cursor-pointer hover:bg-accent/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-110'>
                                     <Camera className='w-4 h-4' />
                                     <input
                                         type='file'
@@ -127,7 +157,7 @@ export default function ProfilePage() {
                                 </label>
                             </div>
 
-                            <p className='text-sm text-gray-400'>
+                            <p className='text-sm text-muted-foreground'>
                                 Click the camera icon to upload a new profile
                                 picture
                             </p>
@@ -136,21 +166,24 @@ export default function ProfilePage() {
 
                     {/* Basic Information */}
                     <div className='lg:col-span-2 space-y-6'>
-                        <Card className='bg-card/50 border-border/30 p-8 shadow-xl shadow-black/20 backdrop-blur-sm'>
+                        <Card className='bg-card/60 border-border/40 p-8 shadow-2xl shadow-black/30 backdrop-blur-md hover:shadow-primary/10 transition-all duration-500 group'>
                             <div className='space-y-6'>
-                                <div className='flex items-center space-x-2 mb-6'>
-                                    <User className='w-6 h-6 text-secondary' />
-                                    <h2 className='text-2xl font-bold text-white'>
+                                <div className='flex items-center space-x-3 mb-6'>
+                                    <div className='p-2 rounded-lg bg-gradient-to-br from-accent/20 to-primary/20 border border-accent/30'>
+                                        <User className='w-5 h-5 text-accent' />
+                                    </div>
+                                    <h2 className='text-2xl font-bold text-accent'>
                                         Basic Information
                                     </h2>
                                 </div>
 
-                                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                                    <div>
+                                <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                                    <div className='space-y-2'>
                                         <Label
                                             htmlFor='name'
-                                            className='text-white font-medium'
+                                            className='text-accent font-semibold flex items-center gap-2'
                                         >
+                                            <Star className='w-4 h-4' />
                                             Full Name *
                                         </Label>
                                         <Input
@@ -162,15 +195,16 @@ export default function ProfilePage() {
                                                     e.target.value
                                                 )
                                             }
-                                            className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50'
+                                            className='bg-background/40 border-border/40 text-foreground placeholder-muted-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
                                             placeholder='Enter your full name'
                                         />
                                     </div>
-                                    <div>
+                                    <div className='space-y-2'>
                                         <Label
                                             htmlFor='gender'
-                                            className='text-white font-medium'
+                                            className='text-accent font-semibold flex items-center gap-2'
                                         >
+                                            <Moon className='w-4 h-4' />
                                             Gender
                                         </Label>
                                         <Select
@@ -182,15 +216,15 @@ export default function ProfilePage() {
                                                 )
                                             }
                                         >
-                                            <SelectTrigger className='bg-background/30 border-border/30 text-foreground focus:border-primary/50'>
+                                            <SelectTrigger className='bg-background/40 border-border/40 text-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'>
                                                 <SelectValue placeholder='Select gender' />
                                             </SelectTrigger>
-                                            <SelectContent className='bg-background/90 border-border/30'>
+                                            <SelectContent className='bg-background/95 border-border/40 backdrop-blur-md'>
                                                 {genderOptions.map((option) => (
                                                     <SelectItem
                                                         key={option.value}
                                                         value={option.value}
-                                                        className='text-foreground hover:bg-background/10'
+                                                        className='text-foreground hover:bg-accent/10 focus:bg-accent/10'
                                                     >
                                                         {option.label}
                                                     </SelectItem>
@@ -200,11 +234,12 @@ export default function ProfilePage() {
                                     </div>
                                 </div>
 
-                                <div>
+                                <div className='space-y-2'>
                                     <Label
                                         htmlFor='bio'
-                                        className='text-white font-medium'
+                                        className='text-accent font-semibold flex items-center gap-2'
                                     >
+                                        <Sparkles className='w-4 h-4' />
                                         Bio
                                     </Label>
                                     <Textarea
@@ -217,16 +252,17 @@ export default function ProfilePage() {
                                             )
                                         }
                                         rows={4}
-                                        className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50 resize-none'
+                                        className='bg-background/40 border-border/40 text-foreground placeholder-muted-foreground focus:border-accent/50 focus:ring-accent/20 resize-none transition-all duration-300'
                                         placeholder='Tell us about yourself...'
                                     />
                                 </div>
 
-                                <div>
+                                <div className='space-y-2'>
                                     <Label
                                         htmlFor='job'
-                                        className='text-white font-medium'
+                                        className='text-accent font-semibold flex items-center gap-2'
                                     >
+                                        <Sun className='w-4 h-4' />
                                         Occupation
                                     </Label>
                                     <Input
@@ -238,7 +274,7 @@ export default function ProfilePage() {
                                                 e.target.value
                                             )
                                         }
-                                        className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50'
+                                        className='bg-background/40 border-border/40 text-foreground placeholder-muted-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
                                         placeholder='Your profession or job title'
                                     />
                                 </div>
@@ -246,27 +282,30 @@ export default function ProfilePage() {
                         </Card>
 
                         {/* Birth Information */}
-                        <Card className='bg-card/50 border-border/30 p-8 shadow-xl shadow-black/20 backdrop-blur-sm'>
+                        <Card className='bg-card/60 border-border/40 p-8 shadow-2xl shadow-black/30 backdrop-blur-md hover:shadow-primary/10 transition-all duration-500 group'>
                             <div className='space-y-6'>
-                                <div className='flex items-center space-x-2 mb-6'>
-                                    <Calendar className='w-6 h-6 text-primary' />
-                                    <h2 className='text-2xl font-bold text-white'>
+                                <div className='flex items-center space-x-3 mb-6'>
+                                    <div className='p-2 rounded-lg bg-gradient-to-br from-accent/20 to-primary/20 border border-accent/30'>
+                                        <Calendar className='w-5 h-5 text-accent' />
+                                    </div>
+                                    <h2 className='text-2xl font-bold text-accent'>
                                         Birth Information
                                     </h2>
                                     <Badge
                                         variant='outline'
-                                        className='bg-primary/20 text-primary border-primary/40 text-xs'
+                                        className='bg-accent/20 text-accent border-accent/40 text-xs hover:bg-accent/30 transition-colors duration-300'
                                     >
                                         For Readings
                                     </Badge>
                                 </div>
 
-                                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                                    <div>
+                                <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                                    <div className='space-y-2'>
                                         <Label
                                             htmlFor='birthDate'
-                                            className='text-white font-medium'
+                                            className='text-accent font-semibold flex items-center gap-2'
                                         >
+                                            <Calendar className='w-4 h-4' />
                                             Birth Date
                                         </Label>
                                         <Input
@@ -279,14 +318,15 @@ export default function ProfilePage() {
                                                     e.target.value
                                                 )
                                             }
-                                            className='bg-background/30 border-border/30 text-foreground focus:border-primary/50'
+                                            className='bg-background/40 border-border/40 text-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
                                         />
                                     </div>
-                                    <div>
+                                    <div className='space-y-2'>
                                         <Label
                                             htmlFor='birthTime'
-                                            className='text-white font-medium'
+                                            className='text-accent font-semibold flex items-center gap-2'
                                         >
+                                            <Sun className='w-4 h-4' />
                                             Birth Time
                                         </Label>
                                         <Input
@@ -299,16 +339,17 @@ export default function ProfilePage() {
                                                     e.target.value
                                                 )
                                             }
-                                            className='bg-background/30 border-border/30 text-foreground focus:border-primary/50'
+                                            className='bg-background/40 border-border/40 text-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
                                         />
                                     </div>
                                 </div>
 
-                                <div>
+                                <div className='space-y-2'>
                                     <Label
                                         htmlFor='birthPlace'
-                                        className='text-white font-medium'
+                                        className='text-accent font-semibold flex items-center gap-2'
                                     >
+                                        <Star className='w-4 h-4' />
                                         Birth Place
                                     </Label>
                                     <Input
@@ -320,23 +361,26 @@ export default function ProfilePage() {
                                                 e.target.value
                                             )
                                         }
-                                        className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50'
+                                        className='bg-background/40 border-border/40 text-foreground placeholder-muted-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
                                         placeholder='City, Country'
                                     />
                                 </div>
 
-                                <div className='bg-primary/10 border border-primary/20 rounded-lg p-4'>
-                                    <div className='flex items-start space-x-3'>
-                                        <Sparkles className='w-5 h-5 text-primary mt-0.5' />
+                                <div className='bg-gradient-to-r from-accent/10 to-primary/10 border border-accent/20 rounded-xl p-6 backdrop-blur-sm'>
+                                    <div className='flex items-start space-x-4'>
+                                        <div className='p-2 rounded-lg bg-gradient-to-br from-accent/20 to-primary/20 border border-accent/30'>
+                                            <Sparkles className='w-5 h-5 text-accent' />
+                                        </div>
                                         <div>
-                                            <h4 className='text-sm font-medium text-primary'>
+                                            <h4 className='text-sm font-semibold text-accent mb-2'>
                                                 Reading Enhancement
                                             </h4>
-                                            <p className='text-xs text-primary/80 mt-1'>
+                                            <p className='text-xs text-muted-foreground leading-relaxed'>
                                                 Birth information helps us
                                                 provide more accurate and
                                                 personalized tarot readings and
-                                                horoscopes.
+                                                horoscopes tailored to your
+                                                cosmic profile.
                                             </p>
                                         </div>
                                     </div>
@@ -349,11 +393,11 @@ export default function ProfilePage() {
                             <Button
                                 onClick={handleSave}
                                 disabled={isLoading}
-                                className='bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-3 rounded-lg transition-all duration-300 shadow-lg shadow-primary/25'
+                                className='bg-gradient-to-r from-accent to-primary hover:from-accent/90 hover:to-primary/90 text-accent-foreground font-semibold px-8 py-3 rounded-xl transition-all duration-300 shadow-lg shadow-accent/25 hover:shadow-accent/40 hover:scale-105 disabled:hover:scale-100 disabled:opacity-70'
                             >
                                 {isLoading ? (
                                     <>
-                                        <div className='w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2' />
+                                        <div className='w-4 h-4 border-2 border-accent-foreground/30 border-t-accent-foreground rounded-full animate-spin mr-2' />
                                         Saving...
                                     </>
                                 ) : (
