@@ -104,20 +104,18 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       
       const finalScale = Math.max(minScale, newScale)
       
-      // Calculate zoom center relative to container
-      const zoomCenterX = mouseX - containerSize.width / 2
-      const zoomCenterY = mouseY - containerSize.height / 2
+      // Calculate the point on the image that should stay under the mouse
+      const imagePointX = (mouseX - imagePosition.x) / scale
+      const imagePointY = (mouseY - imagePosition.y) / scale
       
-      // Adjust image position to zoom at mouse position
-      const scaleChange = finalScale / scale
-      const newImageX = imagePosition.x - (zoomCenterX * (scaleChange - 1))
-      const newImageY = imagePosition.y - (zoomCenterY * (scaleChange - 1))
+      // Calculate new image position to keep that point under the mouse
+      const newImageX = mouseX - (imagePointX * finalScale)
+      const newImageY = mouseY - (imagePointY * finalScale)
       
       // Calculate bounds to keep image within reasonable limits
       const scaledImageWidth = imageSize.width * finalScale
       const scaledImageHeight = imageSize.height * finalScale
       
-      // Calculate maximum allowed position (image edges should not go too far outside container)
       const maxX = containerSize.width - scaledImageWidth + CROP_SIZE
       const maxY = containerSize.height - scaledImageHeight + CROP_SIZE
       const minX = -scaledImageWidth + CROP_SIZE
@@ -191,7 +189,7 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
         y: Math.max(minY, Math.min(newY, maxY))
       })
     } else if (e.touches.length === 2) {
-      // Two finger pinch - zoom
+      // Two finger pinch - zoom and drag simultaneously
       e.preventDefault()
       e.stopPropagation()
       
@@ -201,6 +199,10 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
         Math.pow(touch2.clientX - touch1.clientX, 2) +
         Math.pow(touch2.clientY - touch1.clientY, 2)
       )
+      
+      // Calculate current pinch center
+      const currentCenterX = (touch1.clientX + touch2.clientX) / 2
+      const currentCenterY = (touch1.clientY + touch2.clientY) / 2
       
       if (lastTouchDistance > 0) {
         const scaleChange = distance / lastTouchDistance
@@ -214,15 +216,17 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
           
           const finalScale = Math.max(minScale, newScale)
           
-          // Calculate zoom center relative to container
+          // Calculate the point on the image that should stay under the pinch center
           const rect = e.currentTarget.getBoundingClientRect()
-          const zoomCenterX = lastTouchCenter.x - rect.left - containerSize.width / 2
-          const zoomCenterY = lastTouchCenter.y - rect.top - containerSize.height / 2
+          const pinchX = currentCenterX - rect.left
+          const pinchY = currentCenterY - rect.top
           
-          // Adjust image position to zoom at pinch center
-          const scaleChangeFinal = finalScale / scale
-          const newImageX = imagePosition.x - (zoomCenterX * (scaleChangeFinal - 1))
-          const newImageY = imagePosition.y - (zoomCenterY * (scaleChangeFinal - 1))
+          const imagePointX = (pinchX - imagePosition.x) / scale
+          const imagePointY = (pinchY - imagePosition.y) / scale
+          
+          // Calculate new image position to keep that point under the pinch center
+          const newImageX = pinchX - (imagePointX * finalScale)
+          const newImageY = pinchY - (imagePointY * finalScale)
           
           // Calculate bounds to keep image within reasonable limits
           const scaledImageWidth = imageSize.width * finalScale
@@ -240,7 +244,32 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
           })
         }
       }
+      
+      // Handle drag movement during pinch
+      if (lastTouchCenter.x !== 0 && lastTouchCenter.y !== 0) {
+        const deltaX = currentCenterX - lastTouchCenter.x
+        const deltaY = currentCenterY - lastTouchCenter.y
+        
+        const newX = imagePosition.x + deltaX
+        const newY = imagePosition.y + deltaY
+        
+        // Calculate bounds to keep image within reasonable limits
+        const scaledImageWidth = imageSize.width * scale
+        const scaledImageHeight = imageSize.height * scale
+        
+        const maxX = containerSize.width - scaledImageWidth + CROP_SIZE
+        const maxY = containerSize.height - scaledImageHeight + CROP_SIZE
+        const minX = -scaledImageWidth + CROP_SIZE
+        const minY = -scaledImageHeight + CROP_SIZE
+        
+        setImagePosition({
+          x: Math.max(minX, Math.min(newX, maxX)),
+          y: Math.max(minY, Math.min(newY, maxY))
+        })
+      }
+      
       setLastTouchDistance(distance)
+      setLastTouchCenter({ x: currentCenterX, y: currentCenterY })
     }
   }
 
