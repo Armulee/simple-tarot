@@ -90,7 +90,7 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
     
     setScale(minScale)
     
-    // Center the image initially
+    // Center the image initially - position so image center aligns with container center
     setImagePosition({
       x: (containerWidth - displayWidth) / 2,
       y: (containerHeight - displayHeight) / 2
@@ -142,19 +142,20 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       const scaledImageWidth = imageSize.width * finalScale
       const scaledImageHeight = imageSize.height * finalScale
       
-      // Calculate the center of the container
+      // Calculate the center of the container (where the crop circle is)
       const centerX = containerSize.width / 2
       const centerY = containerSize.height / 2
       
-      // Calculate how much the image can move in each direction
-      // The image should be able to move so that any part can be centered
+      // Calculate how much the image can move so that any part can be centered
+      // The image center should be able to move from centerX - maxOffsetX to centerX + maxOffsetX
       const maxOffsetX = Math.max(0, (scaledImageWidth - CROP_SIZE) / 2)
       const maxOffsetY = Math.max(0, (scaledImageHeight - CROP_SIZE) / 2)
       
-      const maxX = centerX + maxOffsetX
-      const maxY = centerY + maxOffsetY
-      const minX = centerX - maxOffsetX
-      const minY = centerY - maxOffsetY
+      // Image position is the top-left corner, so we need to account for image size
+      const maxX = centerX + maxOffsetX - scaledImageWidth / 2
+      const maxY = centerY + maxOffsetY - scaledImageHeight / 2
+      const minX = centerX - maxOffsetX - scaledImageWidth / 2
+      const minY = centerY - maxOffsetY - scaledImageHeight / 2
       
       updateImageState({
         scale: finalScale,
@@ -216,18 +217,19 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       const scaledImageWidth = imageSize.width * scale
       const scaledImageHeight = imageSize.height * scale
       
-      // Calculate the center of the container
+      // Calculate the center of the container (where the crop circle is)
       const centerX = containerSize.width / 2
       const centerY = containerSize.height / 2
       
-      // Calculate how much the image can move in each direction
+      // Calculate how much the image can move so that any part can be centered
       const maxOffsetX = Math.max(0, (scaledImageWidth - CROP_SIZE) / 2)
       const maxOffsetY = Math.max(0, (scaledImageHeight - CROP_SIZE) / 2)
       
-      const maxX = centerX + maxOffsetX
-      const maxY = centerY + maxOffsetY
-      const minX = centerX - maxOffsetX
-      const minY = centerY - maxOffsetY
+      // Image position is the top-left corner, so we need to account for image size
+      const maxX = centerX + maxOffsetX - scaledImageWidth / 2
+      const maxY = centerY + maxOffsetY - scaledImageHeight / 2
+      const minX = centerX - maxOffsetX - scaledImageWidth / 2
+      const minY = centerY - maxOffsetY - scaledImageHeight / 2
       
       updateImageState({
         position: {
@@ -488,18 +490,19 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       const scaledImageWidth = imageSize.width * scale
       const scaledImageHeight = imageSize.height * scale
       
-      // Calculate the center of the container
+      // Calculate the center of the container (where the crop circle is)
       const centerX = containerSize.width / 2
       const centerY = containerSize.height / 2
       
-      // Calculate how much the image can move in each direction
+      // Calculate how much the image can move so that any part can be centered
       const maxOffsetX = Math.max(0, (scaledImageWidth - CROP_SIZE) / 2)
       const maxOffsetY = Math.max(0, (scaledImageHeight - CROP_SIZE) / 2)
       
-      const maxX = centerX + maxOffsetX
-      const maxY = centerY + maxOffsetY
-      const minX = centerX - maxOffsetX
-      const minY = centerY - maxOffsetY
+      // Image position is the top-left corner, so we need to account for image size
+      const maxX = centerX + maxOffsetX - scaledImageWidth / 2
+      const maxY = centerY + maxOffsetY - scaledImageHeight / 2
+      const minX = centerX - maxOffsetX - scaledImageWidth / 2
+      const minY = centerY - maxOffsetY - scaledImageHeight / 2
       
       updateImageState({
         position: {
@@ -568,7 +571,7 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
           {/* Image Crop Area */}
           <div 
             ref={containerRef}
-            className="flex-1 relative overflow-hidden bg-black flex items-center justify-center select-none"
+            className="flex-1 relative overflow-hidden bg-black select-none"
             style={{ touchAction: 'none' }}
             onMouseDown={handleMouseDown}
             onWheel={handleWheel}
