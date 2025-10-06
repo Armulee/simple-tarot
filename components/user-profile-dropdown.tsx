@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ConsistentAvatar } from "@/components/ui/consistent-avatar"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -68,18 +68,8 @@ export function UserProfileDropdown({
         if (onClose) onClose()
     }
 
-    const getUserInitials = () => {
-        const name =
-            user.user_metadata?.name || user.email?.split("@")[0] || "U"
-        return name.charAt(0).toUpperCase()
-    }
-
     const getUserName = () => {
         return user.user_metadata?.name || user.email?.split("@")[0] || "User"
-    }
-
-    const getUserAvatar = () => {
-        return user.user_metadata?.avatar_url || user.user_metadata?.picture
     }
 
     return (
@@ -91,15 +81,13 @@ export function UserProfileDropdown({
                     className='w-56 bg-card/95 backdrop-blur-md border-border/30'
                 >
                     <div className='flex items-center gap-2 p-2'>
-                        <Avatar className='w-8 h-8'>
-                            <AvatarImage
-                                src={getUserAvatar()}
-                                alt={getUserName()}
-                            />
-                            <AvatarFallback className='bg-primary/20 text-primary font-semibold'>
-                                {getUserInitials()}
-                            </AvatarFallback>
-                        </Avatar>
+                        <ConsistentAvatar 
+                            data={{
+                                name: user.user_metadata?.name,
+                                email: user.email
+                            }}
+                            size="sm"
+                        />
                         <div className='flex-1 min-w-0'>
                             <p className='text-sm font-medium truncate'>
                                 {getUserName()}

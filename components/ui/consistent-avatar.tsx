@@ -1,7 +1,7 @@
 "use client"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { getAvatarText, getAvatarAlt, getAvatarColorClass, type AvatarData } from "@/lib/avatar-utils"
+import { getAvatarText, getAvatarAlt, type AvatarData } from "@/lib/avatar-utils"
 import { cn } from "@/lib/utils"
 
 interface ConsistentAvatarProps {
@@ -20,15 +20,11 @@ const sizeClasses = {
 export function ConsistentAvatar({ data, className, size = 'md' }: ConsistentAvatarProps) {
     const text = getAvatarText(data)
     const alt = getAvatarAlt(data)
-    const colorClass = getAvatarColorClass(text)
     
     return (
         <Avatar className={cn(sizeClasses[size], className)}>
             <AvatarFallback 
-                className={cn(
-                    'bg-accent text-accent-foreground font-semibold',
-                    colorClass
-                )}
+                className="bg-accent text-accent-foreground font-semibold"
                 title={alt}
             >
                 {text}

@@ -7,7 +7,6 @@ import { supabase } from "@/lib/supabase"
 interface ProfileData {
   id: string
   name: string
-  avatar_url: string | null
   bio: string | null
   birth_date: string | null
   birth_time: string | null
