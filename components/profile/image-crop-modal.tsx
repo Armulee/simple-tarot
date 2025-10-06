@@ -111,6 +111,7 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!imageLoaded) return
     e.preventDefault()
+    e.stopPropagation()
     
     if (e.touches.length === 1) {
       // Single touch - drag crop area
@@ -122,6 +123,9 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       })
     } else if (e.touches.length === 2) {
       // Two finger pinch - zoom
+      e.preventDefault()
+      e.stopPropagation()
+      
       const touch1 = e.touches[0]
       const touch2 = e.touches[1]
       const distance = Math.sqrt(
@@ -141,6 +145,7 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!imageLoaded) return
     e.preventDefault()
+    e.stopPropagation()
     
     if (e.touches.length === 1 && isDragging) {
       // Single touch - drag crop area
@@ -157,6 +162,9 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       })
     } else if (e.touches.length === 2) {
       // Two finger pinch - zoom
+      e.preventDefault()
+      e.stopPropagation()
+      
       const touch1 = e.touches[0]
       const touch2 = e.touches[1]
       const distance = Math.sqrt(
@@ -189,7 +197,9 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
     }
   }
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
     setIsDragging(false)
     setLastTouchDistance(0)
   }
@@ -298,10 +308,21 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       }
     }
 
+    // Prevent page zoom when modal is open
+    const preventZoom = (e: TouchEvent) => {
+      if (e.touches.length > 1) {
+        e.preventDefault()
+      }
+    }
+
     window.addEventListener('resize', handleResize)
+    document.addEventListener('touchstart', preventZoom, { passive: false })
+    document.addEventListener('touchmove', preventZoom, { passive: false })
     
     return () => {
       window.removeEventListener('resize', handleResize)
+      document.removeEventListener('touchstart', preventZoom)
+      document.removeEventListener('touchmove', preventZoom)
     }
   }, [])
 
@@ -341,7 +362,10 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md w-full h-[90vh] p-0 overflow-hidden">
+      <DialogContent 
+        className="max-w-md w-full h-[90vh] p-0 overflow-hidden"
+        style={{ touchAction: 'none' }}
+      >
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
@@ -370,6 +394,7 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
           <div 
             ref={containerRef}
             className="flex-1 relative overflow-hidden bg-black flex items-center justify-center select-none"
+            style={{ touchAction: 'none' }}
             onMouseDown={handleMouseDown}
             onWheel={handleWheel}
             onTouchStart={handleTouchStart}
@@ -384,7 +409,8 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
                 className="max-w-full max-h-full object-contain"
                 style={{
                   transform: `scale(${scale}) rotate(${rotate}deg)`,
-                  transition: isDragging ? 'none' : 'transform 0.1s ease-out'
+                  transition: isDragging ? 'none' : 'transform 0.1s ease-out',
+                  touchAction: 'none'
                 }}
                 onLoad={onImageLoad}
                 draggable={false}
