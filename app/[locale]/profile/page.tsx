@@ -131,7 +131,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div className='max-w-4xl mx-auto space-y-6'>
-                    <Card className='bg-card/60 border-border/40 p-8 shadow-2xl shadow-black/30 backdrop-blur-md hover:shadow-primary/10 transition-all duration-500 group'>
+                    <Card className='bg-card/50 border-border/30 p-8 shadow-xl shadow-black/20 backdrop-blur-sm hover:border-primary/40 transition-all duration-300'>
                         <div className='space-y-6'>
                             <div className='flex items-center space-x-3 mb-6'>
                                 <div className='p-2 rounded-lg bg-gradient-to-br from-accent/20 to-primary/20 border border-accent/30'>

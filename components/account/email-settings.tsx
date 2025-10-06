@@ -39,8 +39,8 @@ export function EmailSettings() {
 
     return (
         <>
-            <Card className='bg-background/20 backdrop-blur-sm border border-border/30 hover:bg-background/30 transition-all duration-300'>
-                <div className='p-6 space-y-6'>
+            <Card className='bg-card/50 border-border/30 p-6 shadow-xl shadow-black/20 backdrop-blur-sm hover:border-primary/40 transition-all duration-300'>
+                <div className='space-y-6'>
                     <div className='flex items-center space-x-3'>
                         <div className='p-2 rounded-lg bg-primary/20'>
                             <Mail className='w-5 h-5 text-primary' />
