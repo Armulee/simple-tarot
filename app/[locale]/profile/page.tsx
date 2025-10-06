@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,63 +29,42 @@ import { useAuth } from "@/hooks/use-auth"
 import CosmicStars from "@/components/cosmic-stars"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
+import { ImageCropModal } from "@/components/profile/image-crop-modal"
+import { useProfile } from "@/contexts/profile-context"
 
 export default function ProfilePage() {
     const { user } = useAuth()
+    const { profile, updateProfile } = useProfile()
     const [isLoading, setIsLoading] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
+    const [cropModalOpen, setCropModalOpen] = useState(false)
+    const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [profileData, setProfileData] = useState({
-        name: user?.user_metadata?.name || "",
+        name: "",
         bio: "",
         birthDate: "",
         birthTime: "",
         birthPlace: "",
         job: "",
         gender: "",
-        profilePicture:
-            user?.user_metadata?.avatar_url ||
-            user?.user_metadata?.picture ||
-            "",
+        profilePicture: "",
     })
 
-    const loadProfileData = useCallback(async () => {
-        try {
-            const { data: { session } } = await supabase.auth.getSession()
-            if (!session) return
-
-            const response = await fetch("/api/profile", {
-                headers: {
-                    "Authorization": `Bearer ${session.access_token}`,
-                    "Content-Type": "application/json",
-                },
-            })
-
-            if (response.ok) {
-                const { profile } = await response.json()
-                if (profile) {
-                    setProfileData({
-                        name: profile.name || user?.user_metadata?.name || "",
-                        bio: profile.bio || "",
-                        birthDate: profile.birth_date || "",
-                        birthTime: profile.birth_time || "",
-                        birthPlace: profile.birth_place || "",
-                        job: profile.job || "",
-                        gender: profile.gender || "",
-                        profilePicture: profile.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "",
-                    })
-                }
-            }
-        } catch (error) {
-            console.error("Failed to load profile data:", error)
-        }
-    }, [user])
-
-    // Load profile data on component mount
+    // Update profile data when profile context changes
     useEffect(() => {
-        if (user) {
-            loadProfileData()
+        if (profile) {
+            setProfileData({
+                name: profile.name || user?.user_metadata?.name || "",
+                bio: profile.bio || "",
+                birthDate: profile.birth_date || "",
+                birthTime: profile.birth_time || "",
+                birthPlace: profile.birth_place || "",
+                job: profile.job || "",
+                gender: profile.gender || "",
+                profilePicture: profile.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "",
+            })
         }
-    }, [user, loadProfileData])
+    }, [profile, user])
 
     const handleInputChange = (field: string, value: string) => {
         setProfileData((prev) => ({
@@ -124,7 +103,8 @@ export default function ProfilePage() {
             })
 
             if (response.ok) {
-                const { message } = await response.json()
+                const { profile: updatedProfile, message } = await response.json()
+                updateProfile(updatedProfile)
                 toast.success("Profile updated successfully!", {
                     description: message || "Your profile has been saved"
                 })
@@ -144,7 +124,7 @@ export default function ProfilePage() {
         }
     }
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
 
@@ -164,6 +144,17 @@ export default function ProfilePage() {
             return
         }
 
+        setSelectedFile(file)
+        setCropModalOpen(true)
+    }
+
+    const handleCropComplete = async (croppedImageBlob: Blob) => {
+        if (croppedImageBlob.size === 0) {
+            // Remove avatar
+            await removeAvatar()
+            return
+        }
+
         setIsUploading(true)
         try {
             const { data: { session } } = await supabase.auth.getSession()
@@ -175,7 +166,7 @@ export default function ProfilePage() {
             }
 
             const formData = new FormData()
-            formData.append("file", file)
+            formData.append("file", croppedImageBlob, "profile-picture.jpg")
 
             const response = await fetch("/api/profile/upload", {
                 method: "POST",
@@ -187,11 +178,8 @@ export default function ProfilePage() {
 
             if (response.ok) {
                 const { avatar_url, message } = await response.json()
-                setProfileData(prev => ({
-                    ...prev,
-                    profilePicture: avatar_url
-                }))
-                toast.success("Profile picture uploaded successfully!", {
+                updateProfile({ avatar_url })
+                toast.success("Profile picture updated successfully!", {
                     description: message || "Your profile picture has been updated"
                 })
             } else {
@@ -203,6 +191,54 @@ export default function ProfilePage() {
         } catch (error) {
             console.error("Failed to upload image:", error)
             toast.error("Failed to upload profile picture", {
+                description: "Please try again"
+            })
+        } finally {
+            setIsUploading(false)
+        }
+    }
+
+    const removeAvatar = async () => {
+        setIsUploading(true)
+        try {
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session) {
+                toast.error("Authentication required", {
+                    description: "Please sign in to remove your profile picture"
+                })
+                return
+            }
+
+            const response = await fetch("/api/profile", {
+                method: "PUT",
+                headers: {
+                    "Authorization": `Bearer ${session.access_token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: profileData.name,
+                    bio: profileData.bio,
+                    birthDate: profileData.birthDate,
+                    birthTime: profileData.birthTime,
+                    birthPlace: profileData.birthPlace,
+                    job: profileData.job,
+                    gender: profileData.gender,
+                    avatar_url: null,
+                }),
+            })
+
+            if (response.ok) {
+                updateProfile({ avatar_url: null })
+                toast.success("Profile picture removed successfully!")
+            } else {
+                const { error } = await response.json()
+                toast.error("Failed to remove profile picture", {
+                    description: error || "Please try again"
+                })
+            }
+        } catch (error) {
+            console.error("Failed to remove avatar:", error)
+            toast.error("Failed to remove profile picture", {
                 description: "Please try again"
             })
         } finally {
@@ -547,6 +583,14 @@ export default function ProfilePage() {
                     </div>
                 </div>
             </div>
+
+            {/* Image Crop Modal */}
+            <ImageCropModal
+                isOpen={cropModalOpen}
+                onClose={() => setCropModalOpen(false)}
+                onCropComplete={handleCropComplete}
+                imageFile={selectedFile}
+            />
         </div>
     )
 }

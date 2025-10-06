@@ -25,6 +25,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { UserProfileDropdown } from "@/components/user-profile-dropdown"
 import { useAuth } from "@/hooks/use-auth"
+import { useProfile } from "@/contexts/profile-context"
 import mysticalServices from "./mystical-services"
 
 interface SidebarSheetProps {
@@ -34,23 +35,23 @@ interface SidebarSheetProps {
 
 export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
     const { user, loading } = useAuth()
+    const { profile } = useProfile()
     const [mysticalOpen, setMysticalOpen] = useState(true)
     const t = useTranslations("Sidebar")
     const s = useTranslations("Services")
     const a = useTranslations("Auth.SignIn")
 
     const getUserInitials = () => {
-        const name =
-            user?.user_metadata?.name || user?.email?.split("@")[0] || "U"
+        const name = profile?.name || user?.user_metadata?.name || user?.email?.split("@")[0] || "U"
         return name.charAt(0).toUpperCase()
     }
 
     const getUserName = () => {
-        return user?.user_metadata?.name || user?.email?.split("@")[0] || "User"
+        return profile?.name || user?.user_metadata?.name || user?.email?.split("@")[0] || "User"
     }
 
     const getUserAvatar = () => {
-        return user?.user_metadata?.avatar_url || ""
+        return profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || ""
     }
 
     return (

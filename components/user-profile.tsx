@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/use-auth"
+import { useProfile } from "@/contexts/profile-context"
 import { ChevronDown } from "lucide-react"
 import { UserProfileDropdown } from "@/components/user-profile-dropdown"
 
@@ -18,21 +19,21 @@ export function UserProfile({
     className,
 }: UserProfileProps) {
     const { user } = useAuth()
+    const { profile } = useProfile()
 
     if (!user) return null
 
     const getUserInitials = () => {
-        const name =
-            user.user_metadata?.name || user.email?.split("@")[0] || "U"
+        const name = profile?.name || user.user_metadata?.name || user.email?.split("@")[0] || "U"
         return name.charAt(0).toUpperCase()
     }
 
     const getUserName = () => {
-        return user.user_metadata?.name || user.email?.split("@")[0] || "User"
+        return profile?.name || user.user_metadata?.name || user.email?.split("@")[0] || "User"
     }
 
     const getUserAvatar = () => {
-        return user.user_metadata?.avatar_url || user.user_metadata?.picture
+        return profile?.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture
     }
 
     if (variant === "mobile") {
