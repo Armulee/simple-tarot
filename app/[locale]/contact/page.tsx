@@ -42,7 +42,7 @@ export default function ContactPage() {
         setError("")
 
         try {
-            const response = await fetch("/api/contact", {
+            const response = await fetch("https://resend.askingfate.com/contact", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -51,13 +51,16 @@ export default function ContactPage() {
             })
 
             if (!response.ok) {
-                throw new Error("Failed to send message")
+                const errorData = await response.json().catch(() => ({}))
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
             }
 
+            await response.json()
             setIsSubmitted(true)
             setFormData({ name: "", email: "", subject: "", message: "" })
         } catch (err) {
-            setError("Failed to send message. Please try again.")
+            const errorMessage = err instanceof Error ? err.message : "Failed to send message. Please try again."
+            setError(errorMessage)
             console.error("Contact form error:", err)
         } finally {
             setIsSubmitting(false)
