@@ -41,8 +41,23 @@ export default function ContactPage() {
         setIsSubmitting(true)
         setError("")
 
+        // Basic client-side validation
+        if (!formData.name.trim() || !formData.email.trim() || !formData.subject.trim() || !formData.message.trim()) {
+            setError("Please fill in all fields")
+            setIsSubmitting(false)
+            return
+        }
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(formData.email)) {
+            setError("Please enter a valid email address")
+            setIsSubmitting(false)
+            return
+        }
+
         try {
-            const response = await fetch("https://resend.askingfate.com/contact", {
+            const response = await fetch("/api/contact", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -52,12 +67,13 @@ export default function ContactPage() {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}))
-                throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
             }
 
-            await response.json()
+            const result = await response.json()
             setIsSubmitted(true)
             setFormData({ name: "", email: "", subject: "", message: "" })
+            console.log("Contact form submitted successfully:", result.message)
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : "Failed to send message. Please try again."
             setError(errorMessage)
