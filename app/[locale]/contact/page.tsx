@@ -1,12 +1,15 @@
 "use client"
 
 import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import {
     Accordion,
     AccordionContent,
@@ -14,69 +17,56 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion"
 import { Mail, MessageSquare, Clock, Send, CheckCircle } from "lucide-react"
+import { toast } from "sonner"
+
+const contactFormSchema = z.object({
+    name: z.string().min(2, "Name must be at least 2 characters").max(50, "Name must be less than 50 characters"),
+    email: z.string().email("Please enter a valid email address"),
+    subject: z.string().min(5, "Subject must be at least 5 characters").max(100, "Subject must be less than 100 characters"),
+    message: z.string().min(10, "Message must be at least 10 characters").max(1000, "Message must be less than 1000 characters"),
+})
+
+type ContactFormData = z.infer<typeof contactFormSchema>
 
 export default function ContactPage() {
-    const [formData, setFormData] = useState({
-        name: "",
-        email: "",
-        subject: "",
-        message: "",
-    })
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isSubmitted, setIsSubmitted] = useState(false)
-    const [error, setError] = useState("")
 
-    const handleInputChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
-        const { name, value } = e.target
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }))
-    }
+    const form = useForm<ContactFormData>({
+        resolver: zodResolver(contactFormSchema),
+        defaultValues: {
+            name: "",
+            email: "",
+            subject: "",
+            message: "",
+        },
+    })
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
+    const onSubmit = async (data: ContactFormData) => {
         setIsSubmitting(true)
-        setError("")
-
-        // Basic client-side validation
-        if (!formData.name.trim() || !formData.email.trim() || !formData.subject.trim() || !formData.message.trim()) {
-            setError("Please fill in all fields")
-            setIsSubmitting(false)
-            return
-        }
-
-        // Email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(formData.email)) {
-            setError("Please enter a valid email address")
-            setIsSubmitting(false)
-            return
-        }
 
         try {
-            const response = await fetch("/api/contact", {
+            const response = await fetch("https://resend.askingfate.com/contact", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(data),
             })
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}))
-                throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
             }
 
             const result = await response.json()
             setIsSubmitted(true)
-            setFormData({ name: "", email: "", subject: "", message: "" })
+            form.reset()
+            toast.success("Message sent successfully! We'll get back to you soon.")
             console.log("Contact form submitted successfully:", result.message)
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : "Failed to send message. Please try again."
-            setError(errorMessage)
+            toast.error(errorMessage)
             console.error("Contact form error:", err)
         } finally {
             setIsSubmitting(false)
@@ -258,110 +248,110 @@ export default function ContactPage() {
                                 </h2>
                             </div>
 
-                            <form onSubmit={handleSubmit} className='space-y-4'>
-                                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                                    <div>
-                                        <Label
-                                            htmlFor='name'
-                                            className='text-white font-medium'
-                                        >
-                                            Name *
-                                        </Label>
-                                        <Input
-                                            id='name'
-                                            name='name'
-                                            type='text'
-                                            required
-                                            value={formData.name}
-                                            onChange={handleInputChange}
-                                            className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50'
-                                            placeholder='Your name'
+                            <Form {...form}>
+                                <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+                                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                                        <FormField
+                                            control={form.control}
+                                            name="name"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className='text-white font-medium'>
+                                                        Name *
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            placeholder="Your name"
+                                                            className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50'
+                                                            {...field}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="email"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className='text-white font-medium'>
+                                                        Email *
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            type="email"
+                                                            placeholder="your@email.com"
+                                                            className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50'
+                                                            {...field}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
                                         />
                                     </div>
-                                    <div>
-                                        <Label
-                                            htmlFor='email'
-                                            className='text-white font-medium'
-                                        >
-                                            Email *
-                                        </Label>
-                                        <Input
-                                            id='email'
-                                            name='email'
-                                            type='email'
-                                            required
-                                            value={formData.email}
-                                            onChange={handleInputChange}
-                                            className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50'
-                                            placeholder='your@email.com'
-                                        />
-                                    </div>
-                                </div>
 
-                                <div>
-                                    <Label
-                                        htmlFor='subject'
-                                        className='text-white font-medium'
-                                    >
-                                        Subject *
-                                    </Label>
-                                    <Input
-                                        id='subject'
-                                        name='subject'
-                                        type='text'
-                                        required
-                                        value={formData.subject}
-                                        onChange={handleInputChange}
-                                        className='bg-black/30 border-yellow-400/30 text-white placeholder-gray-400 focus:border-yellow-400/50'
-                                        placeholder='What can we help you with?'
+                                    <FormField
+                                        control={form.control}
+                                        name="subject"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className='text-white font-medium'>
+                                                    Subject *
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="What can we help you with?"
+                                                        className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50'
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
                                     />
-                                </div>
 
-                                <div>
-                                    <Label
-                                        htmlFor='message'
-                                        className='text-white font-medium'
-                                    >
-                                        Message *
-                                    </Label>
-                                    <Textarea
-                                        id='message'
-                                        name='message'
-                                        required
-                                        rows={6}
-                                        value={formData.message}
-                                        onChange={handleInputChange}
-                                        className='bg-black/30 border-yellow-400/30 text-white placeholder-gray-400 focus:border-yellow-400/50 resize-none'
-                                        placeholder='Please describe your inquiry or concern in detail...'
+                                    <FormField
+                                        control={form.control}
+                                        name="message"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className='text-white font-medium'>
+                                                    Message *
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Textarea
+                                                        placeholder="Please describe your inquiry or concern in detail..."
+                                                        className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50 resize-none'
+                                                        rows={6}
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
                                     />
-                                </div>
 
-                                {error && (
-                                    <div className='p-3 bg-red-500/20 border border-red-400/30 rounded-lg'>
-                                        <p className='text-red-300 text-sm'>
-                                            {error}
-                                        </p>
-                                    </div>
-                                )}
-
-                                <Button
-                                    type='submit'
-                                    disabled={isSubmitting}
-                                    className='w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-lg transition-all duration-300 shadow-lg shadow-primary/25'
-                                >
-                                    {isSubmitting ? (
-                                        <>
-                                            <div className='w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2' />
-                                            Sending...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Send className='w-4 h-4 mr-2' />
-                                            Send Message
-                                        </>
-                                    )}
-                                </Button>
-                            </form>
+                                    <Button
+                                        type='submit'
+                                        disabled={isSubmitting}
+                                        className='w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-lg transition-all duration-300 shadow-lg shadow-primary/25'
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <div className='w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2' />
+                                                Sending...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Send className='w-4 h-4 mr-2' />
+                                                Send Message
+                                            </>
+                                        )}
+                                    </Button>
+                                </form>
+                            </Form>
                         </div>
                     </Card>
                 </div>
