@@ -230,22 +230,17 @@ export default function ProfilePage() {
                             </div>
 
                             <div className='relative inline-block group/avatar'>
-                                <Avatar className='w-32 h-32 mx-auto border-4 border-accent/40 shadow-lg shadow-accent/20 group-hover/avatar:shadow-accent/30 transition-all duration-300'>
-                                    <AvatarImage
-                                        src={profileData.profilePicture}
-                                        alt='Profile'
-                                        className='group-hover/avatar:scale-105 transition-transform duration-300'
-                                    />
-                                    <AvatarFallback className='bg-gradient-to-br from-accent/20 to-primary/20 text-accent text-3xl font-bold'>
-                                        {getUserInitials()}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <label className={`absolute bottom-0 right-0 bg-accent text-accent-foreground rounded-full p-3 cursor-pointer hover:bg-accent/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-110 ${isUploading ? 'opacity-70 cursor-not-allowed' : ''}`}>
-                                    {isUploading ? (
-                                        <div className='w-4 h-4 border-2 border-accent-foreground/30 border-t-accent-foreground rounded-full animate-spin' />
-                                    ) : (
-                                        <Camera className='w-4 h-4' />
-                                    )}
+                                <label className={`cursor-pointer ${isUploading ? 'cursor-not-allowed' : ''}`}>
+                                    <Avatar className='w-32 h-32 mx-auto border-4 border-accent/40 shadow-lg shadow-accent/20 group-hover/avatar:shadow-accent/30 transition-all duration-300 hover:border-accent/60 hover:shadow-accent/40'>
+                                        <AvatarImage
+                                            src={profileData.profilePicture}
+                                            alt='Profile'
+                                            className='group-hover/avatar:scale-105 transition-transform duration-300'
+                                        />
+                                        <AvatarFallback className='bg-gradient-to-br from-accent/20 to-primary/20 text-accent text-3xl font-bold'>
+                                            {getUserInitials()}
+                                        </AvatarFallback>
+                                    </Avatar>
                                     <input
                                         type='file'
                                         accept='image/*'
@@ -254,11 +249,17 @@ export default function ProfilePage() {
                                         className='hidden'
                                     />
                                 </label>
+                                <div className={`absolute bottom-0 right-0 bg-accent text-accent-foreground rounded-full p-3 pointer-events-none ${isUploading ? 'opacity-70' : ''}`}>
+                                    {isUploading ? (
+                                        <div className='w-4 h-4 border-2 border-accent-foreground/30 border-t-accent-foreground rounded-full animate-spin' />
+                                    ) : (
+                                        <Camera className='w-4 h-4' />
+                                    )}
+                                </div>
                             </div>
 
                             <p className='text-sm text-muted-foreground'>
-                                Click the camera icon to upload a new profile
-                                picture
+                                Click the avatar or camera icon to upload a new profile picture
                             </p>
                         </div>
                     </Card>
