@@ -95,9 +95,14 @@ export function PasswordSettings({ loginMethod }: PasswordSettingsProps) {
                     <div className='p-2 rounded-lg bg-primary/20'>
                         <Key className='w-5 h-5 text-primary' />
                     </div>
-                    <h2 className='text-2xl font-bold text-white'>
-                        Password Settings
-                    </h2>
+                    <div>
+                        <h2 className='text-2xl font-bold text-white'>
+                            Password Settings
+                        </h2>
+                        <p className='text-sm text-muted-foreground'>
+                            Manage your email & password login method
+                        </p>
+                    </div>
                 </div>
 
                 <div className='space-y-4'>

@@ -5,6 +5,7 @@ import {
     EmailSettings,
     PhoneSettings,
     PasswordSettings,
+    LoginMethods,
     AccountDeletion,
     useLoginMethod,
 } from "@/components/account"
@@ -58,6 +59,11 @@ export default function AccountPage() {
                     {/* Phone Settings */}
                     <div className='lg:col-span-1'>
                         <PhoneSettings locale={locale} />
+                    </div>
+
+                    {/* Login Methods */}
+                    <div className='lg:col-span-2'>
+                        <LoginMethods />
                     </div>
 
                     {/* Password Settings */}
