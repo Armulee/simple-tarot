@@ -28,6 +28,7 @@ import {
 import { useAuth } from "@/hooks/use-auth"
 import CosmicStars from "@/components/cosmic-stars"
 import { supabase } from "@/lib/supabase"
+import { toast } from "sonner"
 
 export default function ProfilePage() {
     const { user } = useAuth()
@@ -98,7 +99,9 @@ export default function ProfilePage() {
         try {
             const { data: { session } } = await supabase.auth.getSession()
             if (!session) {
-                alert("Please sign in to update your profile")
+                toast.error("Authentication required", {
+                    description: "Please sign in to update your profile"
+                })
                 return
             }
 
@@ -122,14 +125,20 @@ export default function ProfilePage() {
 
             if (response.ok) {
                 const { message } = await response.json()
-                alert(message || "Profile updated successfully!")
+                toast.success("Profile updated successfully!", {
+                    description: message || "Your profile has been saved"
+                })
             } else {
                 const { error } = await response.json()
-                alert(error || "Failed to update profile. Please try again.")
+                toast.error("Failed to update profile", {
+                    description: error || "Please try again"
+                })
             }
         } catch (error) {
             console.error("Failed to update profile:", error)
-            alert("Failed to update profile. Please try again.")
+            toast.error("Failed to update profile", {
+                description: "Please try again"
+            })
         } finally {
             setIsLoading(false)
         }
@@ -141,13 +150,17 @@ export default function ProfilePage() {
 
         // Validate file type
         if (!file.type.startsWith("image/")) {
-            alert("Please select an image file")
+            toast.error("Invalid file type", {
+                description: "Please select an image file"
+            })
             return
         }
 
         // Validate file size (5MB limit)
         if (file.size > 5 * 1024 * 1024) {
-            alert("File size must be less than 5MB")
+            toast.error("File too large", {
+                description: "File size must be less than 5MB"
+            })
             return
         }
 
@@ -155,7 +168,9 @@ export default function ProfilePage() {
         try {
             const { data: { session } } = await supabase.auth.getSession()
             if (!session) {
-                alert("Please sign in to upload a profile picture")
+                toast.error("Authentication required", {
+                    description: "Please sign in to upload a profile picture"
+                })
                 return
             }
 
@@ -176,14 +191,20 @@ export default function ProfilePage() {
                     ...prev,
                     profilePicture: avatar_url
                 }))
-                alert(message || "Profile picture uploaded successfully!")
+                toast.success("Profile picture uploaded successfully!", {
+                    description: message || "Your profile picture has been updated"
+                })
             } else {
                 const { error } = await response.json()
-                alert(error || "Failed to upload profile picture. Please try again.")
+                toast.error("Failed to upload profile picture", {
+                    description: error || "Please try again"
+                })
             }
         } catch (error) {
             console.error("Failed to upload image:", error)
-            alert("Failed to upload profile picture. Please try again.")
+            toast.error("Failed to upload profile picture", {
+                description: "Please try again"
+            })
         } finally {
             setIsUploading(false)
         }
