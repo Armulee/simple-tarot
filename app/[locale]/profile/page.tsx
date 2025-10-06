@@ -29,7 +29,6 @@ import { useAuth } from "@/hooks/use-auth"
 import CosmicStars from "@/components/cosmic-stars"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
-import { ImageCropModal } from "@/components/profile/image-crop-modal"
 import { useProfile } from "@/contexts/profile-context"
 
 export default function ProfilePage() {
@@ -37,8 +36,6 @@ export default function ProfilePage() {
     const { profile, updateProfile } = useProfile()
     const [isLoading, setIsLoading] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
-    const [cropModalOpen, setCropModalOpen] = useState(false)
-    const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [profileData, setProfileData] = useState({
         name: "",
         bio: "",
@@ -124,7 +121,7 @@ export default function ProfilePage() {
         }
     }
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
 
@@ -144,107 +141,37 @@ export default function ProfilePage() {
             return
         }
 
-        setSelectedFile(file)
-        setCropModalOpen(true)
-    }
-
-    const handleCropComplete = async (croppedImageBlob: Blob) => {
-        if (croppedImageBlob.size === 0) {
-            // Remove avatar
-            await removeAvatar()
-            return
-        }
-
         setIsUploading(true)
         try {
-            const { data: { session } } = await supabase.auth.getSession()
-            if (!session) {
-                toast.error("Authentication required", {
-                    description: "Please sign in to upload a profile picture"
-                })
-                return
-            }
-
             const formData = new FormData()
-            formData.append("file", croppedImageBlob, "profile-picture.jpg")
+            formData.append('file', file)
 
-            const response = await fetch("/api/profile/upload", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${session.access_token}`,
-                },
+            const response = await fetch('/api/profile/upload', {
+                method: 'POST',
                 body: formData,
             })
 
-            if (response.ok) {
-                const { avatar_url, message } = await response.json()
-                updateProfile({ avatar_url })
-                toast.success("Profile picture updated successfully!", {
-                    description: message || "Your profile picture has been updated"
-                })
-            } else {
-                const { error } = await response.json()
-                toast.error("Failed to upload profile picture", {
-                    description: error || "Please try again"
-                })
+            if (!response.ok) {
+                throw new Error('Upload failed')
             }
+
+            const data = await response.json()
+            
+            // Update profile context with new avatar URL
+            updateProfile({ avatar_url: data.avatarUrl })
+            
+            toast.success('Profile picture updated successfully!')
         } catch (error) {
-            console.error("Failed to upload image:", error)
-            toast.error("Failed to upload profile picture", {
-                description: "Please try again"
-            })
+            console.error('Upload error:', error)
+            toast.error('Failed to upload profile picture')
         } finally {
             setIsUploading(false)
+            // Reset file input
+            e.target.value = ''
         }
     }
 
-    const removeAvatar = async () => {
-        setIsUploading(true)
-        try {
-            const { data: { session } } = await supabase.auth.getSession()
-            if (!session) {
-                toast.error("Authentication required", {
-                    description: "Please sign in to remove your profile picture"
-                })
-                return
-            }
 
-            const response = await fetch("/api/profile", {
-                method: "PUT",
-                headers: {
-                    "Authorization": `Bearer ${session.access_token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    name: profileData.name,
-                    bio: profileData.bio,
-                    birthDate: profileData.birthDate,
-                    birthTime: profileData.birthTime,
-                    birthPlace: profileData.birthPlace,
-                    job: profileData.job,
-                    gender: profileData.gender,
-                    avatar_url: null,
-                }),
-            })
-
-            if (response.ok) {
-                updateProfile({ avatar_url: null })
-                toast.success("Profile picture removed successfully!")
-            } else {
-                const { error } = await response.json()
-                toast.error("Failed to remove profile picture", {
-                    description: error || "Please try again"
-                })
-            }
-        } catch (error) {
-            console.error("Failed to remove avatar:", error)
-            toast.error("Failed to remove profile picture", {
-                description: "Please try again"
-            })
-        } finally {
-            setIsUploading(false)
-        }
-    }
 
     const getUserInitials = () => {
         const name = profileData.name || user?.email?.split("@")[0] || "U"
@@ -581,13 +508,6 @@ export default function ProfilePage() {
                 </div>
             </div>
 
-            {/* Image Crop Modal */}
-            <ImageCropModal
-                isOpen={cropModalOpen}
-                onClose={() => setCropModalOpen(false)}
-                onCropComplete={handleCropComplete}
-                imageFile={selectedFile}
-            />
         </div>
     )
 }
