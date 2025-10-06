@@ -34,6 +34,24 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
 
   const CROP_SIZE = 280 // Fixed circular crop size
 
+  // Calculate boundaries for current scale
+  const calculateBounds = useCallback((currentScale: number) => {
+    const scaledWidth = imageSize.width * currentScale
+    const scaledHeight = imageSize.height * currentScale
+    const centerX = containerSize.width / 2
+    const centerY = containerSize.height / 2
+    
+    const maxOffsetX = Math.max(0, (scaledWidth - CROP_SIZE) / 2)
+    const maxOffsetY = Math.max(0, (scaledHeight - CROP_SIZE) / 2)
+    
+    return {
+      maxX: centerX + maxOffsetX - scaledWidth / 2,
+      maxY: centerY + maxOffsetY - scaledHeight / 2,
+      minX: centerX - maxOffsetX - scaledWidth / 2,
+      minY: centerY - maxOffsetY - scaledHeight / 2
+    }
+  }, [imageSize, containerSize])
+
   // Throttled update function to prevent excessive re-renders
   const updateImageState = useCallback((updates: { scale?: number; position?: { x: number; y: number } }) => {
     if (animationFrameRef.current) {
@@ -122,46 +140,23 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
     
     if (newScale !== scale) {
       // Calculate minimum scale to keep circle within image bounds
-      const minScaleX = CROP_SIZE / imageSize.width
-      const minScaleY = CROP_SIZE / imageSize.height
-      const minScale = Math.max(minScaleX, minScaleY, 0.5)
-      
+      const minScale = Math.max(CROP_SIZE / imageSize.width, CROP_SIZE / imageSize.height, 0.5)
       const finalScale = Math.max(minScale, newScale)
       
-      // Calculate the point on the image that should stay under the mouse
-      // First, convert mouse position to image coordinates (accounting for current scale)
+      // Calculate zoom at mouse position
       const imagePointX = (mouseX - imagePosition.x) / scale
       const imagePointY = (mouseY - imagePosition.y) / scale
-      
-      // Calculate new image position to keep that point under the mouse
-      // The point on the image should remain at the same mouse position
       const newImageX = mouseX - (imagePointX * finalScale)
       const newImageY = mouseY - (imagePointY * finalScale)
       
-      // Calculate bounds to keep image within reasonable limits
-      const scaledImageWidth = imageSize.width * finalScale
-      const scaledImageHeight = imageSize.height * finalScale
-      
-      // Calculate the center of the container (where the crop circle is)
-      const centerX = containerSize.width / 2
-      const centerY = containerSize.height / 2
-      
-      // Calculate how much the image can move so that any part can be centered
-      // The image center should be able to move from centerX - maxOffsetX to centerX + maxOffsetX
-      const maxOffsetX = Math.max(0, (scaledImageWidth - CROP_SIZE) / 2)
-      const maxOffsetY = Math.max(0, (scaledImageHeight - CROP_SIZE) / 2)
-      
-      // Image position is the top-left corner, so we need to account for image size
-      const maxX = centerX + maxOffsetX - scaledImageWidth / 2
-      const maxY = centerY + maxOffsetY - scaledImageHeight / 2
-      const minX = centerX - maxOffsetX - scaledImageWidth / 2
-      const minY = centerY - maxOffsetY - scaledImageHeight / 2
+      // Apply boundaries
+      const bounds = calculateBounds(finalScale)
       
       updateImageState({
         scale: finalScale,
         position: {
-          x: Math.max(minX, Math.min(newImageX, maxX)),
-          y: Math.max(minY, Math.min(newImageY, maxY))
+          x: Math.max(bounds.minX, Math.min(newImageX, bounds.maxX)),
+          y: Math.max(bounds.minY, Math.min(newImageY, bounds.maxY))
         }
       })
     }
@@ -213,28 +208,12 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       const newX = touch.clientX - dragStart.x
       const newY = touch.clientY - dragStart.y
       
-      // Calculate bounds to keep image within reasonable limits
-      const scaledImageWidth = imageSize.width * scale
-      const scaledImageHeight = imageSize.height * scale
-      
-      // Calculate the center of the container (where the crop circle is)
-      const centerX = containerSize.width / 2
-      const centerY = containerSize.height / 2
-      
-      // Calculate how much the image can move so that any part can be centered
-      const maxOffsetX = Math.max(0, (scaledImageWidth - CROP_SIZE) / 2)
-      const maxOffsetY = Math.max(0, (scaledImageHeight - CROP_SIZE) / 2)
-      
-      // Image position is the top-left corner, so we need to account for image size
-      const maxX = centerX + maxOffsetX - scaledImageWidth / 2
-      const maxY = centerY + maxOffsetY - scaledImageHeight / 2
-      const minX = centerX - maxOffsetX - scaledImageWidth / 2
-      const minY = centerY - maxOffsetY - scaledImageHeight / 2
+      const bounds = calculateBounds(scale)
       
       updateImageState({
         position: {
-          x: Math.max(minX, Math.min(newX, maxX)),
-          y: Math.max(minY, Math.min(newY, maxY))
+          x: Math.max(bounds.minX, Math.min(newX, bounds.maxX)),
+          y: Math.max(bounds.minY, Math.min(newY, bounds.maxY))
         }
       })
     } else if (e.touches.length === 2) {
@@ -258,47 +237,26 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
         const newScale = Math.max(0.5, Math.min(3, scale * scaleChange))
         
         if (newScale !== scale) {
-          // Calculate minimum scale to keep circle within image bounds
-          const minScaleX = CROP_SIZE / imageSize.width
-          const minScaleY = CROP_SIZE / imageSize.height
-          const minScale = Math.max(minScaleX, minScaleY, 0.5)
-          
+          const minScale = Math.max(CROP_SIZE / imageSize.width, CROP_SIZE / imageSize.height, 0.5)
           const finalScale = Math.max(minScale, newScale)
           
-          // Calculate the point on the image that should stay under the pinch center
+          // Calculate zoom at pinch center
           const rect = e.currentTarget.getBoundingClientRect()
           const pinchX = currentCenterX - rect.left
           const pinchY = currentCenterY - rect.top
           
           const imagePointX = (pinchX - imagePosition.x) / scale
           const imagePointY = (pinchY - imagePosition.y) / scale
-          
-          // Calculate new image position to keep that point under the pinch center
           const newImageX = pinchX - (imagePointX * finalScale)
           const newImageY = pinchY - (imagePointY * finalScale)
           
-          // Calculate bounds to keep image within reasonable limits
-          const scaledImageWidth = imageSize.width * finalScale
-          const scaledImageHeight = imageSize.height * finalScale
-          
-          // Calculate the center of the container
-          const centerX = containerSize.width / 2
-          const centerY = containerSize.height / 2
-          
-          // Calculate how much the image can move in each direction
-          const maxOffsetX = Math.max(0, (scaledImageWidth - CROP_SIZE) / 2)
-          const maxOffsetY = Math.max(0, (scaledImageHeight - CROP_SIZE) / 2)
-          
-          const maxX = centerX + maxOffsetX
-          const maxY = centerY + maxOffsetY
-          const minX = centerX - maxOffsetX
-          const minY = centerY - maxOffsetY
+          const bounds = calculateBounds(finalScale)
           
           updateImageState({
             scale: finalScale,
             position: {
-              x: Math.max(minX, Math.min(newImageX, maxX)),
-              y: Math.max(minY, Math.min(newImageY, maxY))
+              x: Math.max(bounds.minX, Math.min(newImageX, bounds.maxX)),
+              y: Math.max(bounds.minY, Math.min(newImageY, bounds.maxY))
             }
           })
         }
@@ -312,27 +270,12 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
         const newX = imagePosition.x + deltaX
         const newY = imagePosition.y + deltaY
         
-        // Calculate bounds to keep image within reasonable limits
-        const scaledImageWidth = imageSize.width * scale
-        const scaledImageHeight = imageSize.height * scale
-        
-        // Calculate the center of the container
-        const centerX = containerSize.width / 2
-        const centerY = containerSize.height / 2
-        
-        // Calculate how much the image can move in each direction
-        const maxOffsetX = Math.max(0, (scaledImageWidth - CROP_SIZE) / 2)
-        const maxOffsetY = Math.max(0, (scaledImageHeight - CROP_SIZE) / 2)
-        
-        const maxX = centerX + maxOffsetX
-        const maxY = centerY + maxOffsetY
-        const minX = centerX - maxOffsetX
-        const minY = centerY - maxOffsetY
+        const bounds = calculateBounds(scale)
         
         updateImageState({
           position: {
-            x: Math.max(minX, Math.min(newX, maxX)),
-            y: Math.max(minY, Math.min(newY, maxY))
+            x: Math.max(bounds.minX, Math.min(newX, bounds.maxX)),
+            y: Math.max(bounds.minY, Math.min(newY, bounds.maxY))
           }
         })
       }
@@ -486,28 +429,12 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       const newX = e.clientX - dragStart.x
       const newY = e.clientY - dragStart.y
       
-      // Calculate bounds to keep image within reasonable limits
-      const scaledImageWidth = imageSize.width * scale
-      const scaledImageHeight = imageSize.height * scale
-      
-      // Calculate the center of the container (where the crop circle is)
-      const centerX = containerSize.width / 2
-      const centerY = containerSize.height / 2
-      
-      // Calculate how much the image can move so that any part can be centered
-      const maxOffsetX = Math.max(0, (scaledImageWidth - CROP_SIZE) / 2)
-      const maxOffsetY = Math.max(0, (scaledImageHeight - CROP_SIZE) / 2)
-      
-      // Image position is the top-left corner, so we need to account for image size
-      const maxX = centerX + maxOffsetX - scaledImageWidth / 2
-      const maxY = centerY + maxOffsetY - scaledImageHeight / 2
-      const minX = centerX - maxOffsetX - scaledImageWidth / 2
-      const minY = centerY - maxOffsetY - scaledImageHeight / 2
+      const bounds = calculateBounds(scale)
       
       updateImageState({
         position: {
-          x: Math.max(minX, Math.min(newX, maxX)),
-          y: Math.max(minY, Math.min(newY, maxY))
+          x: Math.max(bounds.minX, Math.min(newX, bounds.maxX)),
+          y: Math.max(bounds.minY, Math.min(newY, bounds.maxY))
         }
       })
     }
@@ -525,7 +452,7 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       window.removeEventListener('mousemove', handleGlobalMouseMove)
       window.removeEventListener('mouseup', handleGlobalMouseUp)
     }
-  }, [isDragging, imageLoaded, dragStart, containerSize, imageSize, scale, imagePosition, updateImageState])
+  }, [isDragging, imageLoaded, dragStart, containerSize, imageSize, scale, imagePosition, updateImageState, calculateBounds])
 
   // Cleanup animation frame on unmount
   useEffect(() => {
