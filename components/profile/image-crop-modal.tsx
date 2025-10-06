@@ -27,6 +27,7 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [lastTouchDistance, setLastTouchDistance] = useState(0)
+  const [lastTouchCenter, setLastTouchCenter] = useState({ x: 0, y: 0 })
   const imageLoadRef = useRef(false)
 
   const CROP_SIZE = 280 // Fixed circular crop size
@@ -77,6 +78,35 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
     })
   }
 
+  const handleWheel = (e: React.WheelEvent) => {
+    if (!imageLoaded) return
+    e.preventDefault()
+    
+    const rect = e.currentTarget.getBoundingClientRect()
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
+    
+    const delta = e.deltaY > 0 ? 0.9 : 1.1
+    const newScale = Math.max(0.5, Math.min(3, scale * delta))
+    
+    if (newScale !== scale) {
+      // Calculate zoom center relative to container
+      const zoomCenterX = mouseX - containerSize.width / 2
+      const zoomCenterY = mouseY - containerSize.height / 2
+      
+      // Adjust crop position to zoom at mouse position
+      const scaleChange = newScale / scale
+      const newCropX = cropPosition.x - (zoomCenterX * (scaleChange - 1))
+      const newCropY = cropPosition.y - (zoomCenterY * (scaleChange - 1))
+      
+      setScale(newScale)
+      setCropPosition({
+        x: Math.max(0, Math.min(newCropX, containerSize.width - CROP_SIZE)),
+        y: Math.max(0, Math.min(newCropY, containerSize.height - CROP_SIZE))
+      })
+    }
+  }
+
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!imageLoaded) return
@@ -98,7 +128,13 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
         Math.pow(touch2.clientX - touch1.clientX, 2) +
         Math.pow(touch2.clientY - touch1.clientY, 2)
       )
+      
+      // Calculate center point of pinch
+      const centerX = (touch1.clientX + touch2.clientX) / 2
+      const centerY = (touch1.clientY + touch2.clientY) / 2
+      
       setLastTouchDistance(distance)
+      setLastTouchCenter({ x: centerX, y: centerY })
     }
   }
 
@@ -130,7 +166,24 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       
       if (lastTouchDistance > 0) {
         const scaleChange = distance / lastTouchDistance
-        setScale(prev => Math.max(0.5, Math.min(3, prev * scaleChange)))
+        const newScale = Math.max(0.5, Math.min(3, scale * scaleChange))
+        
+        if (newScale !== scale) {
+          // Calculate zoom center relative to container
+          const rect = e.currentTarget.getBoundingClientRect()
+          const zoomCenterX = lastTouchCenter.x - rect.left - containerSize.width / 2
+          const zoomCenterY = lastTouchCenter.y - rect.top - containerSize.height / 2
+          
+          // Adjust crop position to zoom at pinch center
+          const newCropX = cropPosition.x - (zoomCenterX * (scaleChange - 1))
+          const newCropY = cropPosition.y - (zoomCenterY * (scaleChange - 1))
+          
+          setScale(newScale)
+          setCropPosition({
+            x: Math.max(0, Math.min(newCropX, containerSize.width - CROP_SIZE)),
+            y: Math.max(0, Math.min(newCropY, containerSize.height - CROP_SIZE))
+          })
+        }
       }
       setLastTouchDistance(distance)
     }
@@ -227,6 +280,7 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
     setCropPosition({ x: 0, y: 0 })
     setIsDragging(false)
     setLastTouchDistance(0)
+    setLastTouchCenter({ x: 0, y: 0 })
     imageLoadRef.current = false
     onClose()
   }
@@ -317,6 +371,7 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
             ref={containerRef}
             className="flex-1 relative overflow-hidden bg-black flex items-center justify-center select-none"
             onMouseDown={handleMouseDown}
+            onWheel={handleWheel}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
