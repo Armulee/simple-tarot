@@ -336,7 +336,7 @@ export default function ProfilePage() {
                         </div>
                     </Card>
 
-                    {/* Basic Information */}
+                    {/* Profile Information */}
                     <div className='lg:col-span-2 space-y-6'>
                         <Card className='bg-card/60 border-border/40 p-8 shadow-2xl shadow-black/30 backdrop-blur-md hover:shadow-primary/10 transition-all duration-500 group'>
                             <div className='space-y-6'>
@@ -345,7 +345,7 @@ export default function ProfilePage() {
                                         <User className='w-5 h-5 text-accent' />
                                     </div>
                                     <h2 className='text-2xl font-bold text-accent'>
-                                        Basic Information
+                                        Profile Information
                                     </h2>
                                 </div>
 
@@ -450,110 +450,107 @@ export default function ProfilePage() {
                                         placeholder='Your profession or job title'
                                     />
                                 </div>
-                            </div>
-                        </Card>
 
-                        {/* Birth Information */}
-                        <Card className='bg-card/60 border-border/40 p-8 shadow-2xl shadow-black/30 backdrop-blur-md hover:shadow-primary/10 transition-all duration-500 group'>
-                            <div className='space-y-6'>
-                                <div className='flex items-center space-x-3 mb-6'>
-                                    <div className='p-2 rounded-lg bg-gradient-to-br from-accent/20 to-primary/20 border border-accent/30'>
-                                        <Calendar className='w-5 h-5 text-accent' />
-                                    </div>
-                                    <h2 className='text-2xl font-bold text-accent'>
-                                        Birth Information
-                                    </h2>
-                                    <Badge
-                                        variant='outline'
-                                        className='bg-accent/20 text-accent border-accent/40 text-xs hover:bg-accent/30 transition-colors duration-300'
-                                    >
-                                        For Readings
-                                    </Badge>
-                                </div>
-
-                                <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                                    <div className='space-y-2'>
-                                        <Label
-                                            htmlFor='birthDate'
-                                            className='text-accent font-semibold flex items-center gap-2'
-                                        >
-                                            <Calendar className='w-4 h-4' />
-                                            Birth Date
-                                        </Label>
-                                        <Input
-                                            id='birthDate'
-                                            type='date'
-                                            value={profileData.birthDate}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    "birthDate",
-                                                    e.target.value
-                                                )
-                                            }
-                                            className='bg-background/40 border-border/40 text-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
-                                        />
-                                    </div>
-                                    <div className='space-y-2'>
-                                        <Label
-                                            htmlFor='birthTime'
-                                            className='text-accent font-semibold flex items-center gap-2'
-                                        >
-                                            <Sun className='w-4 h-4' />
-                                            Birth Time
-                                        </Label>
-                                        <Input
-                                            id='birthTime'
-                                            type='time'
-                                            value={profileData.birthTime}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    "birthTime",
-                                                    e.target.value
-                                                )
-                                            }
-                                            className='bg-background/40 border-border/40 text-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className='space-y-2'>
-                                    <Label
-                                        htmlFor='birthPlace'
-                                        className='text-accent font-semibold flex items-center gap-2'
-                                    >
-                                        <Star className='w-4 h-4' />
-                                        Birth Place
-                                    </Label>
-                                    <Input
-                                        id='birthPlace'
-                                        value={profileData.birthPlace}
-                                        onChange={(e) =>
-                                            handleInputChange(
-                                                "birthPlace",
-                                                e.target.value
-                                            )
-                                        }
-                                        className='bg-background/40 border-border/40 text-foreground placeholder-muted-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
-                                        placeholder='City, Country'
-                                    />
-                                </div>
-
-                                <div className='bg-gradient-to-r from-accent/10 to-primary/10 border border-accent/20 rounded-xl p-6 backdrop-blur-sm'>
-                                    <div className='flex items-start space-x-4'>
+                                {/* Birth Information Section */}
+                                <div className='space-y-6 pt-6 border-t border-border/20'>
+                                    <div className='flex items-center space-x-3'>
                                         <div className='p-2 rounded-lg bg-gradient-to-br from-accent/20 to-primary/20 border border-accent/30'>
-                                            <Sparkles className='w-5 h-5 text-accent' />
+                                            <Calendar className='w-5 h-5 text-accent' />
                                         </div>
-                                        <div>
-                                            <h4 className='text-sm font-semibold text-accent mb-2'>
-                                                Reading Enhancement
-                                            </h4>
-                                            <p className='text-xs text-muted-foreground leading-relaxed'>
-                                                Birth information helps us
-                                                provide more accurate and
-                                                personalized tarot readings and
-                                                horoscopes tailored to your
-                                                cosmic profile.
-                                            </p>
+                                        <h3 className='text-xl font-bold text-accent'>
+                                            Birth Information
+                                        </h3>
+                                        <Badge
+                                            variant='outline'
+                                            className='bg-accent/20 text-accent border-accent/40 text-xs hover:bg-accent/30 transition-colors duration-300'
+                                        >
+                                            For Readings
+                                        </Badge>
+                                    </div>
+
+                                    <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                                        <div className='space-y-2'>
+                                            <Label
+                                                htmlFor='birthDate'
+                                                className='text-accent font-semibold flex items-center gap-2'
+                                            >
+                                                <Calendar className='w-4 h-4' />
+                                                Birth Date
+                                            </Label>
+                                            <Input
+                                                id='birthDate'
+                                                type='date'
+                                                value={profileData.birthDate}
+                                                onChange={(e) =>
+                                                    handleInputChange(
+                                                        "birthDate",
+                                                        e.target.value
+                                                    )
+                                                }
+                                                className='bg-background/40 border-border/40 text-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
+                                            />
+                                        </div>
+                                        <div className='space-y-2'>
+                                            <Label
+                                                htmlFor='birthTime'
+                                                className='text-accent font-semibold flex items-center gap-2'
+                                            >
+                                                <Sun className='w-4 h-4' />
+                                                Birth Time
+                                            </Label>
+                                            <Input
+                                                id='birthTime'
+                                                type='time'
+                                                value={profileData.birthTime}
+                                                onChange={(e) =>
+                                                    handleInputChange(
+                                                        "birthTime",
+                                                        e.target.value
+                                                    )
+                                                }
+                                                className='bg-background/40 border-border/40 text-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className='space-y-2'>
+                                        <Label
+                                            htmlFor='birthPlace'
+                                            className='text-accent font-semibold flex items-center gap-2'
+                                        >
+                                            <Star className='w-4 h-4' />
+                                            Birth Place
+                                        </Label>
+                                        <Input
+                                            id='birthPlace'
+                                            value={profileData.birthPlace}
+                                            onChange={(e) =>
+                                                handleInputChange(
+                                                    "birthPlace",
+                                                    e.target.value
+                                                )
+                                            }
+                                            className='bg-background/40 border-border/40 text-foreground placeholder-muted-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
+                                            placeholder='City, Country'
+                                        />
+                                    </div>
+
+                                    <div className='bg-gradient-to-r from-accent/10 to-primary/10 border border-accent/20 rounded-xl p-6 backdrop-blur-sm'>
+                                        <div className='flex items-start space-x-4'>
+                                            <div className='p-2 rounded-lg bg-gradient-to-br from-accent/20 to-primary/20 border border-accent/30'>
+                                                <Sparkles className='w-5 h-5 text-accent' />
+                                            </div>
+                                            <div>
+                                                <h4 className='text-sm font-semibold text-accent mb-2'>
+                                                    Reading Enhancement
+                                                </h4>
+                                                <p className='text-xs text-muted-foreground leading-relaxed'>
+                                                    Providing all your profile information including birth details, 
+                                                    personal background, and preferences helps us create more 
+                                                    accurate and personalized tarot readings and horoscopes 
+                                                    tailored specifically to your cosmic profile and life journey.
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
