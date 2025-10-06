@@ -15,12 +15,9 @@ export default function AccountPage() {
     const loginMethod = useLoginMethod()
 
     return (
-        <div className='min-h-screen bg-background relative overflow-hidden'>
-            {/* Background */}
-            <div className='absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5' />
-
+        <div className='min-h-screen relative'>
             {/* Main Content */}
-            <div className='relative z-10 container mx-auto px-4 py-8'>
+            <div className='container mx-auto px-4 py-8'>
                 {/* Header */}
                 <div className='text-center space-y-6 mb-12'>
                     <div className='flex items-center justify-center space-x-3 mb-4'>

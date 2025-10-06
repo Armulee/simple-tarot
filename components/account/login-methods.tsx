@@ -2,6 +2,7 @@
 
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Label } from "@/components/ui/label"
 import { 
     Shield, 
     Mail
@@ -17,60 +18,58 @@ export function LoginMethods() {
     }
 
     return (
-        <Card className="p-6 space-y-6">
-            <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20">
-                    <Shield className="w-5 h-5 text-primary" />
+        <Card className='bg-background/20 backdrop-blur-sm border border-border/30 hover:bg-background/30 transition-all duration-300'>
+            <div className='p-6 space-y-6'>
+                <div className='flex items-center space-x-3'>
+                    <div className='p-2 rounded-lg bg-primary/20'>
+                        <Shield className='w-5 h-5 text-primary' />
+                    </div>
+                    <h2 className='text-2xl font-bold text-white'>Login Methods</h2>
                 </div>
-                <div>
-                    <h3 className="text-xl font-semibold text-foreground">
-                        Login Methods
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                        Manage how you sign in to your account
+
+                <div className='space-y-4'>
+                    <div>
+                        <Label className='text-white font-medium'>
+                            Current Login Method
+                        </Label>
+                        <div className='flex items-center space-x-2 mt-1'>
+                            <div className='flex items-center space-x-3 p-3 rounded-lg bg-accent/20 border border-accent/40 flex-1'>
+                                <Mail className='w-5 h-5 text-accent' />
+                                <span className='text-sm font-medium text-white'>
+                                    {user?.email || 'No email found'}
+                                </span>
+                            </div>
+                            <Badge
+                                variant='outline'
+                                className='bg-accent/30 text-accent-foreground border-accent/50'
+                            >
+                                {getCurrentProvider() === 'email' ? 'Email & Password' : getCurrentProvider()}
+                            </Badge>
+                        </div>
+                    </div>
+                </div>
+
+                <div className='space-y-4'>
+                    <div>
+                        <Label className='text-white font-medium'>
+                            Available Login Methods
+                        </Label>
+                        <div className='p-4 rounded-lg bg-background/30 border border-border/50 text-center mt-1'>
+                            <p className='text-sm text-muted-foreground'>
+                                Currently, only email and password login is available. 
+                                Social login methods will be added in future updates.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className='p-4 rounded-lg bg-background/30 border border-border/50'>
+                    <p className='text-xs text-muted-foreground'>
+                        <strong>Note:</strong> Currently, only email and password login is available. 
+                        Social login methods will be added in future updates. You can manage your 
+                        password settings in the Password Settings section below.
                     </p>
                 </div>
-            </div>
-
-            {/* Current Login Method */}
-            <div className="space-y-3">
-                <h4 className="text-sm font-medium text-foreground">Current Login Method</h4>
-                <div className="flex items-center space-x-3 p-4 rounded-lg bg-accent/30 border-2 border-accent/60 shadow-lg">
-                    <div className="p-2 rounded-lg bg-accent/40">
-                        <Mail className="w-5 h-5 text-accent-foreground" />
-                    </div>
-                    <div className="flex-1">
-                        <span className="text-sm font-semibold text-foreground">
-                            {user?.email || 'No email found'}
-                        </span>
-                        <p className="text-xs text-muted-foreground">
-                            Your current login method
-                        </p>
-                    </div>
-                    <Badge variant="secondary" className="bg-accent/50 text-accent-foreground border-accent/60 font-medium">
-                        {getCurrentProvider() === 'email' ? 'Email & Password' : getCurrentProvider()}
-                    </Badge>
-                </div>
-            </div>
-
-            {/* Available Login Methods */}
-            <div className="space-y-3">
-                <h4 className="text-sm font-medium text-foreground">Available Login Methods</h4>
-                <div className="p-4 rounded-lg bg-muted/30 border border-muted text-center">
-                    <p className="text-sm text-muted-foreground">
-                        Currently, only email and password login is available. 
-                        Social login methods will be added in future updates.
-                    </p>
-                </div>
-            </div>
-
-            {/* Info */}
-            <div className="p-4 rounded-lg bg-muted/50 border border-muted">
-                <p className="text-xs text-muted-foreground">
-                    <strong>Note:</strong> Currently, only email and password login is available. 
-                    Social login methods will be added in future updates. You can manage your 
-                    password settings in the Password Settings section below.
-                </p>
             </div>
         </Card>
     )

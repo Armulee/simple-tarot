@@ -50,10 +50,10 @@ export function AccountDeletion() {
     }
 
     return (
-        <Card className='bg-background/20 backdrop-blur-sm border border-border/30 hover:bg-background/30 transition-all duration-300'>
+        <Card className='bg-red-500/10 backdrop-blur-sm border border-red-500/30 hover:bg-red-500/15 transition-all duration-300'>
             <div className='p-6 space-y-6'>
                 <div className='flex items-center space-x-3'>
-                    <div className='p-2 rounded-lg bg-red-500/20'>
+                    <div className='p-2 rounded-lg bg-red-500/30'>
                         <AlertTriangle className='w-5 h-5 text-red-400' />
                     </div>
                     <h2 className='text-2xl font-bold text-white'>
@@ -66,7 +66,7 @@ export function AccountDeletion() {
                         <h3 className='text-lg font-semibold text-white mb-2'>
                             Delete Account
                         </h3>
-                        <p className='text-muted-foreground text-sm leading-relaxed'>
+                        <p className='text-red-100 text-sm leading-relaxed'>
                             Once you delete your account, there is no going
                             back. Please be certain. This action will
                             permanently delete your account and all associated
