@@ -129,10 +129,12 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       const finalScale = Math.max(minScale, newScale)
       
       // Calculate the point on the image that should stay under the mouse
+      // First, convert mouse position to image coordinates (accounting for current scale)
       const imagePointX = (mouseX - imagePosition.x) / scale
       const imagePointY = (mouseY - imagePosition.y) / scale
       
       // Calculate new image position to keep that point under the mouse
+      // The point on the image should remain at the same mouse position
       const newImageX = mouseX - (imagePointX * finalScale)
       const newImageY = mouseY - (imagePointY * finalScale)
       
@@ -140,10 +142,19 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       const scaledImageWidth = imageSize.width * finalScale
       const scaledImageHeight = imageSize.height * finalScale
       
-      const maxX = containerSize.width - scaledImageWidth + CROP_SIZE
-      const maxY = containerSize.height - scaledImageHeight + CROP_SIZE
-      const minX = -scaledImageWidth + CROP_SIZE
-      const minY = -scaledImageHeight + CROP_SIZE
+      // Calculate the center of the container
+      const centerX = containerSize.width / 2
+      const centerY = containerSize.height / 2
+      
+      // Calculate how much the image can move in each direction
+      // The image should be able to move so that any part can be centered
+      const maxOffsetX = Math.max(0, (scaledImageWidth - CROP_SIZE) / 2)
+      const maxOffsetY = Math.max(0, (scaledImageHeight - CROP_SIZE) / 2)
+      
+      const maxX = centerX + maxOffsetX
+      const maxY = centerY + maxOffsetY
+      const minX = centerX - maxOffsetX
+      const minY = centerY - maxOffsetY
       
       updateImageState({
         scale: finalScale,
@@ -205,10 +216,18 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       const scaledImageWidth = imageSize.width * scale
       const scaledImageHeight = imageSize.height * scale
       
-      const maxX = containerSize.width - scaledImageWidth + CROP_SIZE
-      const maxY = containerSize.height - scaledImageHeight + CROP_SIZE
-      const minX = -scaledImageWidth + CROP_SIZE
-      const minY = -scaledImageHeight + CROP_SIZE
+      // Calculate the center of the container
+      const centerX = containerSize.width / 2
+      const centerY = containerSize.height / 2
+      
+      // Calculate how much the image can move in each direction
+      const maxOffsetX = Math.max(0, (scaledImageWidth - CROP_SIZE) / 2)
+      const maxOffsetY = Math.max(0, (scaledImageHeight - CROP_SIZE) / 2)
+      
+      const maxX = centerX + maxOffsetX
+      const maxY = centerY + maxOffsetY
+      const minX = centerX - maxOffsetX
+      const minY = centerY - maxOffsetY
       
       updateImageState({
         position: {
@@ -260,10 +279,18 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
           const scaledImageWidth = imageSize.width * finalScale
           const scaledImageHeight = imageSize.height * finalScale
           
-          const maxX = containerSize.width - scaledImageWidth + CROP_SIZE
-          const maxY = containerSize.height - scaledImageHeight + CROP_SIZE
-          const minX = -scaledImageWidth + CROP_SIZE
-          const minY = -scaledImageHeight + CROP_SIZE
+          // Calculate the center of the container
+          const centerX = containerSize.width / 2
+          const centerY = containerSize.height / 2
+          
+          // Calculate how much the image can move in each direction
+          const maxOffsetX = Math.max(0, (scaledImageWidth - CROP_SIZE) / 2)
+          const maxOffsetY = Math.max(0, (scaledImageHeight - CROP_SIZE) / 2)
+          
+          const maxX = centerX + maxOffsetX
+          const maxY = centerY + maxOffsetY
+          const minX = centerX - maxOffsetX
+          const minY = centerY - maxOffsetY
           
           updateImageState({
             scale: finalScale,
@@ -287,10 +314,18 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
         const scaledImageWidth = imageSize.width * scale
         const scaledImageHeight = imageSize.height * scale
         
-        const maxX = containerSize.width - scaledImageWidth + CROP_SIZE
-        const maxY = containerSize.height - scaledImageHeight + CROP_SIZE
-        const minX = -scaledImageWidth + CROP_SIZE
-        const minY = -scaledImageHeight + CROP_SIZE
+        // Calculate the center of the container
+        const centerX = containerSize.width / 2
+        const centerY = containerSize.height / 2
+        
+        // Calculate how much the image can move in each direction
+        const maxOffsetX = Math.max(0, (scaledImageWidth - CROP_SIZE) / 2)
+        const maxOffsetY = Math.max(0, (scaledImageHeight - CROP_SIZE) / 2)
+        
+        const maxX = centerX + maxOffsetX
+        const maxY = centerY + maxOffsetY
+        const minX = centerX - maxOffsetX
+        const minY = centerY - maxOffsetY
         
         updateImageState({
           position: {
@@ -453,10 +488,18 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       const scaledImageWidth = imageSize.width * scale
       const scaledImageHeight = imageSize.height * scale
       
-      const maxX = containerSize.width - scaledImageWidth + CROP_SIZE
-      const maxY = containerSize.height - scaledImageHeight + CROP_SIZE
-      const minX = -scaledImageWidth + CROP_SIZE
-      const minY = -scaledImageHeight + CROP_SIZE
+      // Calculate the center of the container
+      const centerX = containerSize.width / 2
+      const centerY = containerSize.height / 2
+      
+      // Calculate how much the image can move in each direction
+      const maxOffsetX = Math.max(0, (scaledImageWidth - CROP_SIZE) / 2)
+      const maxOffsetY = Math.max(0, (scaledImageHeight - CROP_SIZE) / 2)
+      
+      const maxX = centerX + maxOffsetX
+      const maxY = centerY + maxOffsetY
+      const minX = centerX - maxOffsetX
+      const minY = centerY - maxOffsetY
       
       updateImageState({
         position: {
