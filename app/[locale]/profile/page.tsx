@@ -113,31 +113,31 @@ export default function ProfilePage() {
     ]
 
     return (
-        <div className='min-h-screen relative'>
-            <div className='container mx-auto px-4 py-8'>
+        <div className='min-h-screen relative overflow-x-hidden'>
+            <div className='container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-full'>
                 <div className='text-center space-y-6 mb-12'>
                     <div className='flex items-center justify-center space-x-3 mb-4'>
                         <div className='p-3 rounded-full bg-gradient-to-br from-accent/20 to-primary/20 backdrop-blur-sm border border-accent/30'>
                             <Sparkles className='w-8 h-8 text-accent' />
                         </div>
-                        <h1 className='text-4xl font-bold text-transparent bg-gradient-to-r from-accent to-primary bg-clip-text'>
+                        <h1 className='text-3xl sm:text-4xl font-bold text-transparent bg-gradient-to-r from-accent to-primary bg-clip-text'>
                             Profile Settings
                         </h1>
                     </div>
-                    <p className='text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed'>
+                    <p className='text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto leading-relaxed px-4'>
                         Customize your profile information and reading
                         preferences to enhance your mystical journey
                     </p>
                 </div>
 
-                <div className='max-w-4xl mx-auto space-y-6'>
-                    <Card className='bg-card/50 border-border/30 p-8 shadow-xl shadow-black/20 backdrop-blur-sm hover:border-primary/40 transition-all duration-300'>
+                <div className='max-w-4xl mx-auto space-y-6 px-2 sm:px-0 w-full'>
+                    <Card className='bg-card/50 border-border/30 p-4 sm:p-6 lg:p-8 shadow-xl shadow-black/20 backdrop-blur-sm hover:border-primary/40 transition-all duration-300 w-full max-w-full overflow-hidden'>
                         <div className='space-y-6'>
                             <div className='flex items-center space-x-3 mb-6'>
                                 <div className='p-2 rounded-lg bg-gradient-to-br from-accent/20 to-primary/20 border border-accent/30'>
                                     <User className='w-5 h-5 text-accent' />
                                 </div>
-                                <h2 className='text-2xl font-bold text-accent'>
+                                <h2 className='text-xl sm:text-2xl font-bold text-accent'>
                                     Profile Information
                                 </h2>
                             </div>
@@ -308,11 +308,11 @@ export default function ProfilePage() {
                                 </div>
                             </div>
 
-                            <div className='flex justify-end pt-4'>
+                            <div className='flex justify-center sm:justify-end pt-4'>
                                 <Button
                                     onClick={handleSave}
                                     disabled={isLoading}
-                                    className='bg-gradient-to-r from-accent to-primary hover:from-accent/90 hover:to-primary/90 text-accent-foreground font-semibold px-8 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-accent/25'
+                                    className='bg-gradient-to-r from-accent to-primary hover:from-accent/90 hover:to-primary/90 text-accent-foreground font-semibold px-6 sm:px-8 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-accent/25 w-full sm:w-auto'
                                 >
                                     {isLoading ? (
                                         <div className='flex items-center space-x-2'>
