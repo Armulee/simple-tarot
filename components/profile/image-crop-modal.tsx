@@ -27,13 +27,16 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [lastTouchDistance, setLastTouchDistance] = useState(0)
+  const imageLoadRef = useRef(false)
 
   const CROP_SIZE = 280 // Fixed circular crop size
 
   const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget
     const container = containerRef.current
-    if (!container) return
+    if (!container || imageLoadRef.current) return // Prevent multiple calls
+
+    imageLoadRef.current = true
 
     const containerRect = container.getBoundingClientRect()
     const containerWidth = containerRect.width
@@ -142,6 +145,7 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
     setRotate(prev => (prev + 90) % 360)
   }
 
+
   const handleCropComplete = useCallback(async () => {
     if (!imgRef.current || !canvasRef.current || !imageFile) return
 
@@ -221,6 +225,9 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
     setRotate(0)
     setImageLoaded(false)
     setCropPosition({ x: 0, y: 0 })
+    setIsDragging(false)
+    setLastTouchDistance(0)
+    imageLoadRef.current = false
     onClose()
   }
 
@@ -237,6 +244,14 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       }
     }
 
+    window.addEventListener('resize', handleResize)
+    
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [])
+
+  useEffect(() => {
     const handleGlobalMouseMove = (e: MouseEvent) => {
       if (!isDragging || !imageLoaded) return
       e.preventDefault()
@@ -257,12 +272,12 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       setIsDragging(false)
     }
 
-    window.addEventListener('resize', handleResize)
-    window.addEventListener('mousemove', handleGlobalMouseMove)
-    window.addEventListener('mouseup', handleGlobalMouseUp)
+    if (isDragging) {
+      window.addEventListener('mousemove', handleGlobalMouseMove)
+      window.addEventListener('mouseup', handleGlobalMouseUp)
+    }
     
     return () => {
-      window.removeEventListener('resize', handleResize)
       window.removeEventListener('mousemove', handleGlobalMouseMove)
       window.removeEventListener('mouseup', handleGlobalMouseUp)
     }
