@@ -47,7 +47,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, bio, birthDate, birthTime, birthPlace, job, gender, avatar_url } = body
+    const { name, bio, birthDate, birthTime, birthPlace, job, gender } = body
 
     // Prepare profile data
     const profileData = {
@@ -59,7 +59,6 @@ export async function PUT(request: NextRequest) {
       birth_place: birthPlace || null,
       job: job || null,
       gender: gender || null,
-      avatar_url: avatar_url || null,
       updated_at: new Date().toISOString()
     }
 

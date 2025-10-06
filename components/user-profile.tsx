@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ConsistentAvatar } from "@/components/ui/consistent-avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useAuth } from "@/hooks/use-auth"
 import { useProfile } from "@/contexts/profile-context"
@@ -24,17 +24,8 @@ export function UserProfile({
 
     if (!user) return null
 
-    const getUserInitials = () => {
-        const name = profile?.name || user.email?.split("@")[0] || "U"
-        return name.charAt(0).toUpperCase()
-    }
-
     const getUserName = () => {
         return profile?.name || user.email?.split("@")[0] || "User"
-    }
-
-    const getUserAvatar = () => {
-        return profile?.avatar_url || undefined
     }
 
     // Show loading skeleton while profile is loading
@@ -96,12 +87,13 @@ export function UserProfile({
                     className={`text-white hover:bg-white/10 ${className || ""}`}
                     aria-label='Open user menu'
                 >
-                    <Avatar className='w-8 h-8'>
-                        <AvatarImage src={getUserAvatar()} alt={getUserName()} />
-                        <AvatarFallback className='bg-primary/20 text-primary font-semibold text-sm'>
-                            {getUserInitials()}
-                        </AvatarFallback>
-                    </Avatar>
+                    <ConsistentAvatar 
+                        data={{
+                            name: profile?.name,
+                            email: user.email
+                        }}
+                        size="sm"
+                    />
                 </Button>
             </UserProfileDropdown>
         )
@@ -117,12 +109,13 @@ export function UserProfile({
                 }`}
                 aria-label='Open user menu'
             >
-                <Avatar className='w-8 h-8'>
-                    <AvatarImage src={getUserAvatar()} alt={getUserName()} />
-                    <AvatarFallback className='bg-primary/20 text-primary font-semibold text-sm'>
-                        {getUserInitials()}
-                    </AvatarFallback>
-                </Avatar>
+                <ConsistentAvatar 
+                    data={{
+                        name: profile?.name,
+                        email: user.email
+                    }}
+                    size="sm"
+                />
                 <span className='hidden sm:block text-sm font-medium'>
                     {getUserName()}
                 </span>
@@ -137,12 +130,13 @@ export function UserProfile({
                 variant='ghost'
                 className='flex items-center gap-2 px-3 py-2 rounded-full hover:bg-white/10 text-white'
             >
-                <Avatar className='w-8 h-8'>
-                    <AvatarImage src={getUserAvatar()} alt={getUserName()} />
-                    <AvatarFallback className='bg-primary/20 text-primary font-semibold text-sm'>
-                        {getUserInitials()}
-                    </AvatarFallback>
-                </Avatar>
+                <ConsistentAvatar 
+                    data={{
+                        name: profile?.name,
+                        email: user.email
+                    }}
+                    size="sm"
+                />
                 <ChevronDown className='w-4 h-4' />
             </Button>
         </UserProfileDropdown>

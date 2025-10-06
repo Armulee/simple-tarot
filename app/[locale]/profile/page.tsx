@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ConsistentAvatar } from "@/components/ui/consistent-avatar"
 import {
     Select,
     SelectContent,
@@ -17,7 +17,6 @@ import {
 import { Badge } from "@/components/ui/badge"
 import {
     User,
-    Camera,
     Save,
     Calendar,
     Sparkles,
@@ -35,7 +34,6 @@ export default function ProfilePage() {
     const { user } = useAuth()
     const { profile, updateProfile } = useProfile()
     const [isLoading, setIsLoading] = useState(false)
-    const [isUploading, setIsUploading] = useState(false)
     const [profileData, setProfileData] = useState({
         name: "",
         bio: "",
@@ -44,7 +42,6 @@ export default function ProfilePage() {
         birthPlace: "",
         job: "",
         gender: "",
-        profilePicture: "",
     })
 
     // Update profile data when profile context changes
@@ -58,7 +55,6 @@ export default function ProfilePage() {
                 birthPlace: profile.birth_place || "",
                 job: profile.job || "",
                 gender: profile.gender || "",
-                profilePicture: profile.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "",
             })
         }
     }, [profile, user])
@@ -95,7 +91,6 @@ export default function ProfilePage() {
                     birthPlace: profileData.birthPlace,
                     job: profileData.job,
                     gender: profileData.gender,
-                    avatar_url: profileData.profilePicture,
                 }),
             })
 
@@ -121,62 +116,9 @@ export default function ProfilePage() {
         }
     }
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (!file) return
-
-        // Validate file type
-        if (!file.type.startsWith("image/")) {
-            toast.error("Invalid file type", {
-                description: "Please select an image file"
-            })
-            return
-        }
-
-        // Validate file size (5MB limit)
-        if (file.size > 5 * 1024 * 1024) {
-            toast.error("File too large", {
-                description: "File size must be less than 5MB"
-            })
-            return
-        }
-
-        setIsUploading(true)
-        try {
-            const formData = new FormData()
-            formData.append('file', file)
-
-            const response = await fetch('/api/profile/upload', {
-                method: 'POST',
-                body: formData,
-            })
-
-            if (!response.ok) {
-                throw new Error('Upload failed')
-            }
-
-            const data = await response.json()
-            
-            // Update profile context with new avatar URL
-            updateProfile({ avatar_url: data.avatarUrl })
-            
-            toast.success('Profile picture updated successfully!')
-        } catch (error) {
-            console.error('Upload error:', error)
-            toast.error('Failed to upload profile picture')
-        } finally {
-            setIsUploading(false)
-            // Reset file input
-            e.target.value = ''
-        }
-    }
 
 
 
-    const getUserInitials = () => {
-        const name = profileData.name || user?.email?.split("@")[0] || "U"
-        return name.charAt(0).toUpperCase()
-    }
 
     const genderOptions = [
         { value: "male", label: "Male" },
@@ -217,7 +159,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
-                    {/* Profile Picture Section */}
+                    {/* Profile Avatar Section */}
                     <Card className='bg-card/60 border-border/40 p-8 shadow-2xl shadow-black/30 backdrop-blur-md hover:shadow-primary/10 transition-all duration-500 group'>
                         <div className='text-center space-y-6'>
                             <div className='flex items-center justify-center space-x-2 mb-4'>
@@ -225,41 +167,23 @@ export default function ProfilePage() {
                                     <User className='w-5 h-5 text-accent' />
                                 </div>
                                 <h2 className='text-2xl font-bold text-accent'>
-                                    Profile Picture
+                                    Profile Avatar
                                 </h2>
                             </div>
 
-                            <div className='relative inline-block group/avatar'>
-                                <label className={`cursor-pointer ${isUploading ? 'cursor-not-allowed' : ''}`}>
-                                    <Avatar className='w-32 h-32 mx-auto border-4 border-accent/40 shadow-lg shadow-accent/20 group-hover/avatar:shadow-accent/30 transition-all duration-300 hover:border-accent/60 hover:shadow-accent/40'>
-                                        <AvatarImage
-                                            src={profileData.profilePicture}
-                                            alt='Profile'
-                                            className='group-hover/avatar:scale-105 transition-transform duration-300'
-                                        />
-                                        <AvatarFallback className='bg-gradient-to-br from-accent/20 to-primary/20 text-accent text-3xl font-bold'>
-                                            {getUserInitials()}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <input
-                                        type='file'
-                                        accept='image/*'
-                                        onChange={handleImageUpload}
-                                        disabled={isUploading}
-                                        className='hidden'
-                                    />
-                                </label>
-                                <div className={`absolute bottom-0 right-0 bg-accent text-accent-foreground rounded-full p-3 pointer-events-none ${isUploading ? 'opacity-70' : ''}`}>
-                                    {isUploading ? (
-                                        <div className='w-4 h-4 border-2 border-accent-foreground/30 border-t-accent-foreground rounded-full animate-spin' />
-                                    ) : (
-                                        <Camera className='w-4 h-4' />
-                                    )}
-                                </div>
+                            <div className='flex justify-center'>
+                                <ConsistentAvatar 
+                                    data={{
+                                        name: profileData.name,
+                                        email: user?.email
+                                    }}
+                                    size="xl"
+                                    className="w-32 h-32 border-4 border-accent/40 shadow-lg shadow-accent/20"
+                                />
                             </div>
 
                             <p className='text-sm text-muted-foreground'>
-                                Click the avatar or camera icon to upload a new profile picture
+                                Your avatar is automatically generated from your name
                             </p>
                         </div>
                     </Card>

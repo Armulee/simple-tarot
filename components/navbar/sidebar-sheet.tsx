@@ -22,7 +22,7 @@ import {
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ConsistentAvatar } from "@/components/ui/consistent-avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { UserProfileDropdown } from "@/components/user-profile-dropdown"
 import { useAuth } from "@/hooks/use-auth"
@@ -42,17 +42,8 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
     const s = useTranslations("Services")
     const a = useTranslations("Auth.SignIn")
 
-    const getUserInitials = () => {
-        const name = profile?.name || user?.email?.split("@")[0] || "U"
-        return name.charAt(0).toUpperCase()
-    }
-
     const getUserName = () => {
         return profile?.name || user?.email?.split("@")[0] || "User"
-    }
-
-    const getUserAvatar = () => {
-        return profile?.avatar_url || undefined
     }
 
     return (
@@ -101,15 +92,13 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                             </>
                                         ) : (
                                             <>
-                                                <Avatar className='w-10 h-10'>
-                                                    <AvatarImage
-                                                        src={getUserAvatar()}
-                                                        alt={getUserName()}
-                                                    />
-                                                    <AvatarFallback className='bg-primary/20 text-primary font-semibold'>
-                                                        {getUserInitials()}
-                                                    </AvatarFallback>
-                                                </Avatar>
+                                                <ConsistentAvatar 
+                                                    data={{
+                                                        name: profile?.name,
+                                                        email: user?.email
+                                                    }}
+                                                    size="md"
+                                                />
                                                 <div className='flex-1 min-w-0'>
                                                     <p className='text-sm font-medium text-white truncate'>
                                                         {getUserName()}
