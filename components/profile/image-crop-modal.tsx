@@ -66,6 +66,7 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!imageLoaded) return
+    e.preventDefault()
     setIsDragging(true)
     setDragStart({
       x: e.clientX - cropPosition.x,
@@ -73,28 +74,10 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
     })
   }
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !imageLoaded) return
-    
-    const newX = e.clientX - dragStart.x
-    const newY = e.clientY - dragStart.y
-    
-    // Constrain crop area within container bounds
-    const maxX = containerSize.width - CROP_SIZE
-    const maxY = containerSize.height - CROP_SIZE
-    
-    setCropPosition({
-      x: Math.max(0, Math.min(newX, maxX)),
-      y: Math.max(0, Math.min(newY, maxY))
-    })
-  }
-
-  const handleMouseUp = () => {
-    setIsDragging(false)
-  }
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!imageLoaded) return
+    e.preventDefault()
     
     if (e.touches.length === 1) {
       // Single touch - drag crop area
@@ -118,6 +101,7 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!imageLoaded) return
+    e.preventDefault()
     
     if (e.touches.length === 1 && isDragging) {
       // Single touch - drag crop area
@@ -125,8 +109,8 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       const newX = touch.clientX - dragStart.x
       const newY = touch.clientY - dragStart.y
       
-      const maxX = containerSize.width - CROP_SIZE
-      const maxY = containerSize.height - CROP_SIZE
+      const maxX = Math.max(0, containerSize.width - CROP_SIZE)
+      const maxY = Math.max(0, containerSize.height - CROP_SIZE)
       
       setCropPosition({
         x: Math.max(0, Math.min(newX, maxX)),
@@ -253,9 +237,36 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       }
     }
 
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !imageLoaded) return
+      e.preventDefault()
+      
+      const newX = e.clientX - dragStart.x
+      const newY = e.clientY - dragStart.y
+      
+      const maxX = Math.max(0, containerSize.width - CROP_SIZE)
+      const maxY = Math.max(0, containerSize.height - CROP_SIZE)
+      
+      setCropPosition({
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY))
+      })
+    }
+
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false)
+    }
+
     window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
+    window.addEventListener('mousemove', handleGlobalMouseMove)
+    window.addEventListener('mouseup', handleGlobalMouseUp)
+    
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      window.removeEventListener('mousemove', handleGlobalMouseMove)
+      window.removeEventListener('mouseup', handleGlobalMouseUp)
+    }
+  }, [isDragging, imageLoaded, dragStart, containerSize])
 
   if (!imageFile) return null
 
@@ -289,11 +300,8 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
           {/* Image Crop Area */}
           <div 
             ref={containerRef}
-            className="flex-1 relative overflow-hidden bg-black flex items-center justify-center"
+            className="flex-1 relative overflow-hidden bg-black flex items-center justify-center select-none"
             onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
