@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,10 +27,12 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import CosmicStars from "@/components/cosmic-stars"
+import { supabase } from "@/lib/supabase"
 
 export default function ProfilePage() {
     const { user } = useAuth()
     const [isLoading, setIsLoading] = useState(false)
+    const [isUploading, setIsUploading] = useState(false)
     const [profileData, setProfileData] = useState({
         name: user?.user_metadata?.name || "",
         bio: "",
@@ -45,6 +47,45 @@ export default function ProfilePage() {
             "",
     })
 
+    const loadProfileData = useCallback(async () => {
+        try {
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session) return
+
+            const response = await fetch("/api/profile", {
+                headers: {
+                    "Authorization": `Bearer ${session.access_token}`,
+                    "Content-Type": "application/json",
+                },
+            })
+
+            if (response.ok) {
+                const { profile } = await response.json()
+                if (profile) {
+                    setProfileData({
+                        name: profile.name || user?.user_metadata?.name || "",
+                        bio: profile.bio || "",
+                        birthDate: profile.birth_date || "",
+                        birthTime: profile.birth_time || "",
+                        birthPlace: profile.birth_place || "",
+                        job: profile.job || "",
+                        gender: profile.gender || "",
+                        profilePicture: profile.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "",
+                    })
+                }
+            }
+        } catch (error) {
+            console.error("Failed to load profile data:", error)
+        }
+    }, [user])
+
+    // Load profile data on component mount
+    useEffect(() => {
+        if (user) {
+            loadProfileData()
+        }
+    }, [user, loadProfileData])
+
     const handleInputChange = (field: string, value: string) => {
         setProfileData((prev) => ({
             ...prev,
@@ -55,14 +96,37 @@ export default function ProfilePage() {
     const handleSave = async () => {
         setIsLoading(true)
         try {
-            // TODO: Implement profile update API call
-            console.log("Saving profile:", profileData)
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session) {
+                alert("Please sign in to update your profile")
+                return
+            }
 
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 1000))
+            const response = await fetch("/api/profile", {
+                method: "PUT",
+                headers: {
+                    "Authorization": `Bearer ${session.access_token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: profileData.name,
+                    bio: profileData.bio,
+                    birthDate: profileData.birthDate,
+                    birthTime: profileData.birthTime,
+                    birthPlace: profileData.birthPlace,
+                    job: profileData.job,
+                    gender: profileData.gender,
+                    avatar_url: profileData.profilePicture,
+                }),
+            })
 
-            // Show success message
-            alert("Profile updated successfully!")
+            if (response.ok) {
+                const { message } = await response.json()
+                alert(message || "Profile updated successfully!")
+            } else {
+                const { error } = await response.json()
+                alert(error || "Failed to update profile. Please try again.")
+            }
         } catch (error) {
             console.error("Failed to update profile:", error)
             alert("Failed to update profile. Please try again.")
@@ -71,11 +135,57 @@ export default function ProfilePage() {
         }
     }
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
-        if (file) {
-            // TODO: Implement image upload
-            console.log("Uploading image:", file)
+        if (!file) return
+
+        // Validate file type
+        if (!file.type.startsWith("image/")) {
+            alert("Please select an image file")
+            return
+        }
+
+        // Validate file size (5MB limit)
+        if (file.size > 5 * 1024 * 1024) {
+            alert("File size must be less than 5MB")
+            return
+        }
+
+        setIsUploading(true)
+        try {
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session) {
+                alert("Please sign in to upload a profile picture")
+                return
+            }
+
+            const formData = new FormData()
+            formData.append("file", file)
+
+            const response = await fetch("/api/profile/upload", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${session.access_token}`,
+                },
+                body: formData,
+            })
+
+            if (response.ok) {
+                const { avatar_url, message } = await response.json()
+                setProfileData(prev => ({
+                    ...prev,
+                    profilePicture: avatar_url
+                }))
+                alert(message || "Profile picture uploaded successfully!")
+            } else {
+                const { error } = await response.json()
+                alert(error || "Failed to upload profile picture. Please try again.")
+            }
+        } catch (error) {
+            console.error("Failed to upload image:", error)
+            alert("Failed to upload profile picture. Please try again.")
+        } finally {
+            setIsUploading(false)
         }
     }
 
@@ -146,12 +256,17 @@ export default function ProfilePage() {
                                         {getUserInitials()}
                                     </AvatarFallback>
                                 </Avatar>
-                                <label className='absolute bottom-0 right-0 bg-accent text-accent-foreground rounded-full p-3 cursor-pointer hover:bg-accent/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-110'>
-                                    <Camera className='w-4 h-4' />
+                                <label className={`absolute bottom-0 right-0 bg-accent text-accent-foreground rounded-full p-3 cursor-pointer hover:bg-accent/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-110 ${isUploading ? 'opacity-70 cursor-not-allowed' : ''}`}>
+                                    {isUploading ? (
+                                        <div className='w-4 h-4 border-2 border-accent-foreground/30 border-t-accent-foreground rounded-full animate-spin' />
+                                    ) : (
+                                        <Camera className='w-4 h-4' />
+                                    )}
                                     <input
                                         type='file'
                                         accept='image/*'
                                         onChange={handleImageUpload}
+                                        disabled={isUploading}
                                         className='hidden'
                                     />
                                 </label>
