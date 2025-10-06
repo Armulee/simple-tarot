@@ -1,11 +1,9 @@
 "use client"
 
-import { useState, useRef, useCallback } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useState, useRef, useCallback, useEffect } from "react"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Crop, X, RotateCcw, Check } from "lucide-react"
-import ReactCrop, { Crop as CropType, PixelCrop, centerCrop, makeAspectCrop } from "react-image-crop"
-import "react-image-crop/dist/ReactCrop.css"
+import { RotateCw, X, Check } from "lucide-react"
 
 interface ImageCropModalProps {
   isOpen: boolean
@@ -15,73 +13,210 @@ interface ImageCropModalProps {
 }
 
 export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: ImageCropModalProps) {
-  const [crop, setCrop] = useState<CropType>()
-  const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
   const [scale, setScale] = useState(1)
   const [rotate, setRotate] = useState(0)
-  const [aspect, setAspect] = useState<number | undefined>(1)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
   
+  const containerRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
-  const previewCanvasRef = useRef<HTMLCanvasElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 })
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
+  const [cropPosition, setCropPosition] = useState({ x: 0, y: 0 })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [lastTouchDistance, setLastTouchDistance] = useState(0)
+
+  const CROP_SIZE = 280 // Fixed circular crop size
 
   const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
-    if (aspect) {
-      const { width, height } = e.currentTarget
-      const crop = centerCrop(
-        makeAspectCrop(
-          {
-            unit: '%',
-            width: 90,
-          },
-          aspect,
-          width,
-          height
-        ),
-        width,
-        height
-      )
-      setCrop(crop)
-    }
-  }, [aspect])
+    const img = e.currentTarget
+    const container = containerRef.current
+    if (!container) return
 
-  const onDownloadCropClick = useCallback(async () => {
-    if (!completedCrop || !previewCanvasRef.current || !imgRef.current) {
-      return
+    const containerRect = container.getBoundingClientRect()
+    const containerWidth = containerRect.width
+    const containerHeight = containerRect.height
+
+    // Calculate image size to fit container while maintaining aspect ratio
+    const imgAspect = img.naturalWidth / img.naturalHeight
+    const containerAspect = containerWidth / containerHeight
+
+    let displayWidth, displayHeight
+    if (imgAspect > containerAspect) {
+      displayWidth = containerWidth
+      displayHeight = containerWidth / imgAspect
+    } else {
+      displayHeight = containerHeight
+      displayWidth = containerHeight * imgAspect
     }
+
+    setImageSize({ width: displayWidth, height: displayHeight })
+    setContainerSize({ width: containerWidth, height: containerHeight })
+    
+    // Center the crop initially
+    setCropPosition({
+      x: (containerWidth - CROP_SIZE) / 2,
+      y: (containerHeight - CROP_SIZE) / 2
+    })
+    
+    setImageLoaded(true)
+  }, [])
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!imageLoaded) return
+    setIsDragging(true)
+    setDragStart({
+      x: e.clientX - cropPosition.x,
+      y: e.clientY - cropPosition.y
+    })
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !imageLoaded) return
+    
+    const newX = e.clientX - dragStart.x
+    const newY = e.clientY - dragStart.y
+    
+    // Constrain crop area within container bounds
+    const maxX = containerSize.width - CROP_SIZE
+    const maxY = containerSize.height - CROP_SIZE
+    
+    setCropPosition({
+      x: Math.max(0, Math.min(newX, maxX)),
+      y: Math.max(0, Math.min(newY, maxY))
+    })
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!imageLoaded) return
+    
+    if (e.touches.length === 1) {
+      // Single touch - drag crop area
+      const touch = e.touches[0]
+      setIsDragging(true)
+      setDragStart({
+        x: touch.clientX - cropPosition.x,
+        y: touch.clientY - cropPosition.y
+      })
+    } else if (e.touches.length === 2) {
+      // Two finger pinch - zoom
+      const touch1 = e.touches[0]
+      const touch2 = e.touches[1]
+      const distance = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) +
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+      )
+      setLastTouchDistance(distance)
+    }
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!imageLoaded) return
+    
+    if (e.touches.length === 1 && isDragging) {
+      // Single touch - drag crop area
+      const touch = e.touches[0]
+      const newX = touch.clientX - dragStart.x
+      const newY = touch.clientY - dragStart.y
+      
+      const maxX = containerSize.width - CROP_SIZE
+      const maxY = containerSize.height - CROP_SIZE
+      
+      setCropPosition({
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY))
+      })
+    } else if (e.touches.length === 2) {
+      // Two finger pinch - zoom
+      const touch1 = e.touches[0]
+      const touch2 = e.touches[1]
+      const distance = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) +
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+      )
+      
+      if (lastTouchDistance > 0) {
+        const scaleChange = distance / lastTouchDistance
+        setScale(prev => Math.max(0.5, Math.min(3, prev * scaleChange)))
+      }
+      setLastTouchDistance(distance)
+    }
+  }
+
+  const handleTouchEnd = () => {
+    setIsDragging(false)
+    setLastTouchDistance(0)
+  }
+
+  const handleRotate = () => {
+    setRotate(prev => (prev + 90) % 360)
+  }
+
+  const handleCropComplete = useCallback(async () => {
+    if (!imgRef.current || !canvasRef.current || !imageFile) return
 
     setIsProcessing(true)
     
     try {
-      const image = imgRef.current
-      const canvas = previewCanvasRef.current
-      const crop = completedCrop
-
-      const scaleX = image.naturalWidth / image.width
-      const scaleY = image.naturalHeight / image.height
+      const img = imgRef.current
+      const canvas = canvasRef.current
       const ctx = canvas.getContext('2d')
+      
+      if (!ctx) throw new Error('No 2d context')
 
-      if (!ctx) {
-        throw new Error('No 2d context')
-      }
+      // Set canvas size to crop size
+      canvas.width = CROP_SIZE
+      canvas.height = CROP_SIZE
 
-      const pixelRatio = window.devicePixelRatio
-      canvas.width = crop.width * pixelRatio * scaleX
-      canvas.height = crop.height * pixelRatio * scaleY
+      // Calculate the crop area in image coordinates
+      const scaleX = img.naturalWidth / imageSize.width
+      const scaleY = img.naturalHeight / imageSize.height
+      
+      // Calculate the center of the crop area
+      const cropCenterX = cropPosition.x + CROP_SIZE / 2
+      const cropCenterY = cropPosition.y + CROP_SIZE / 2
+      
+      // Calculate the image center
+      const imageCenterX = containerSize.width / 2
+      const imageCenterY = containerSize.height / 2
+      
+      // Calculate offset from image center
+      const offsetX = (cropCenterX - imageCenterX) * scaleX
+      const offsetY = (cropCenterY - imageCenterY) * scaleY
+      
+      // Calculate the crop area in natural image coordinates
+      const cropX = (img.naturalWidth / 2) + offsetX - (CROP_SIZE * scaleX) / 2
+      const cropY = (img.naturalHeight / 2) + offsetY - (CROP_SIZE * scaleY) / 2
+      const cropWidth = CROP_SIZE * scaleX
+      const cropHeight = CROP_SIZE * scaleY
 
-      ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0)
-      ctx.imageSmoothingQuality = 'high'
+      // Create a temporary canvas for rotation and scaling
+      const tempCanvas = document.createElement('canvas')
+      const tempCtx = tempCanvas.getContext('2d')
+      if (!tempCtx) throw new Error('No temp context')
 
+      tempCanvas.width = img.naturalWidth
+      tempCanvas.height = img.naturalHeight
+
+      // Apply rotation and scaling
+      tempCtx.save()
+      tempCtx.translate(img.naturalWidth / 2, img.naturalHeight / 2)
+      tempCtx.rotate((rotate * Math.PI) / 180)
+      tempCtx.scale(scale, scale)
+      tempCtx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2)
+      tempCtx.restore()
+
+      // Draw the cropped area to the final canvas
       ctx.drawImage(
-        image,
-        crop.x * scaleX,
-        crop.y * scaleY,
-        crop.width * scaleX,
-        crop.height * scaleY,
-        0,
-        0,
-        crop.width * scaleX,
-        crop.height * scaleY
+        tempCanvas,
+        cropX, cropY, cropWidth, cropHeight,
+        0, 0, CROP_SIZE, CROP_SIZE
       )
 
       canvas.toBlob((blob) => {
@@ -95,21 +230,14 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
     } finally {
       setIsProcessing(false)
     }
-  }, [completedCrop, onCropComplete, onClose])
+  }, [cropPosition, imageSize, containerSize, scale, rotate, imageFile, onCropComplete, onClose])
 
   const handleClose = () => {
-    setCrop(undefined)
-    setCompletedCrop(undefined)
     setScale(1)
     setRotate(0)
+    setImageLoaded(false)
+    setCropPosition({ x: 0, y: 0 })
     onClose()
-  }
-
-  const resetCrop = () => {
-    setCrop(undefined)
-    setCompletedCrop(undefined)
-    setScale(1)
-    setRotate(0)
   }
 
   const removeAvatar = () => {
@@ -117,157 +245,129 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
     onClose()
   }
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect()
+        setContainerSize({ width: rect.width, height: rect.height })
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   if (!imageFile) return null
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Crop className="w-5 h-5" />
-            Crop Profile Picture
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-6">
-          {/* Image Crop Area */}
-          <div className="flex justify-center">
-            <ReactCrop
-              crop={crop}
-              onChange={(_, percentCrop) => setCrop(percentCrop)}
-              onComplete={(c) => setCompletedCrop(c)}
-              aspect={aspect}
-              minWidth={100}
-              minHeight={100}
-              className="max-h-[400px]"
+      <DialogContent className="max-w-md w-full h-[90vh] p-0 overflow-hidden">
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b">
+            <Button
+              variant="ghost"
+              onClick={handleClose}
+              className="p-2"
             >
+              <X className="w-5 h-5" />
+            </Button>
+            <h2 className="text-lg font-semibold">Crop Photo</h2>
+            <Button
+              onClick={handleCropComplete}
+              disabled={!imageLoaded || isProcessing}
+              className="p-2"
+            >
+              {isProcessing ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Check className="w-5 h-5" />
+              )}
+            </Button>
+          </div>
+
+          {/* Image Crop Area */}
+          <div 
+            ref={containerRef}
+            className="flex-1 relative overflow-hidden bg-black flex items-center justify-center"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {imageFile && (
               <img
                 ref={imgRef}
-                alt="Crop me"
                 src={URL.createObjectURL(imageFile)}
+                alt="Crop me"
+                className="max-w-full max-h-full object-contain"
                 style={{
                   transform: `scale(${scale}) rotate(${rotate}deg)`,
-                  maxHeight: '400px',
-                  maxWidth: '100%',
+                  transition: isDragging ? 'none' : 'transform 0.1s ease-out'
                 }}
                 onLoad={onImageLoad}
+                draggable={false}
               />
-            </ReactCrop>
+            )}
+
+            {/* Overlay with circular crop area */}
+            <div className="absolute inset-0 pointer-events-none">
+              {/* Dark overlay */}
+              <div className="absolute inset-0 bg-black/50" />
+              
+              {/* Circular crop area */}
+              <div
+                className="absolute border-2 border-white rounded-full shadow-lg"
+                style={{
+                  width: CROP_SIZE,
+                  height: CROP_SIZE,
+                  left: cropPosition.x,
+                  top: cropPosition.y,
+                  pointerEvents: 'none'
+                }}
+              >
+                {/* Inner circle with reduced opacity */}
+                <div className="w-full h-full rounded-full bg-white/20" />
+              </div>
+            </div>
+
+            {/* Hidden canvas for processing */}
+            <canvas
+              ref={canvasRef}
+              className="hidden"
+            />
           </div>
 
           {/* Controls */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <label htmlFor="scale" className="text-sm font-medium">
-                  Scale:
-                </label>
-                <input
-                  id="scale"
-                  type="range"
-                  min="0.5"
-                  max="2"
-                  step="0.1"
-                  value={scale}
-                  onChange={(e) => setScale(Number(e.target.value))}
-                  className="w-20"
-                />
-                <span className="text-sm text-muted-foreground">{Math.round(scale * 100)}%</span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <label htmlFor="rotate" className="text-sm font-medium">
-                  Rotate:
-                </label>
-                <input
-                  id="rotate"
-                  type="range"
-                  min="-180"
-                  max="180"
-                  step="1"
-                  value={rotate}
-                  onChange={(e) => setRotate(Number(e.target.value))}
-                  className="w-20"
-                />
-                <span className="text-sm text-muted-foreground">{rotate}°</span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <label htmlFor="aspect" className="text-sm font-medium">
-                  Aspect:
-                </label>
-                <select
-                  id="aspect"
-                  value={aspect || ''}
-                  onChange={(e) => setAspect(e.target.value ? Number(e.target.value) : undefined)}
-                  className="px-2 py-1 border rounded text-sm"
-                >
-                  <option value="">Free</option>
-                  <option value={1}>1:1 (Square)</option>
-                  <option value={16/9}>16:9</option>
-                  <option value={4/3}>4:3</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
+          <div className="p-4 border-t bg-background">
+            <div className="flex items-center justify-center gap-6">
               <Button
-                variant="outline"
-                onClick={resetCrop}
-                className="flex items-center gap-2"
+                variant="ghost"
+                onClick={handleRotate}
+                className="p-3 rounded-full"
+                disabled={!imageLoaded}
               >
-                <RotateCcw className="w-4 h-4" />
-                Reset
+                <RotateCw className="w-6 h-6" />
               </Button>
-
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="destructive"
-                  onClick={removeAvatar}
-                  className="flex items-center gap-2"
-                >
-                  <X className="w-4 h-4" />
-                  Remove Avatar
-                </Button>
-
-                <Button
-                  onClick={onDownloadCropClick}
-                  disabled={!completedCrop || isProcessing}
-                  className="flex items-center gap-2"
-                >
-                  {isProcessing ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Check className="w-4 h-4" />
-                      Apply Crop
-                    </>
-                  )}
-                </Button>
-              </div>
+              
+              <Button
+                variant="ghost"
+                onClick={removeAvatar}
+                className="p-3 rounded-full text-red-500 hover:text-red-600"
+              >
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
+            
+            <div className="mt-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                Drag to move • Pinch to zoom • Tap rotate
+              </p>
             </div>
           </div>
-
-          {/* Preview */}
-          {completedCrop && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Preview:</h4>
-              <div className="flex justify-center">
-                <canvas
-                  ref={previewCanvasRef}
-                  className="border rounded-lg max-w-[200px] max-h-[200px]"
-                  style={{
-                    display: 'block',
-                    maxWidth: '100%',
-                    maxHeight: '200px',
-                  }}
-                />
-              </div>
-            </div>
-          )}
         </div>
       </DialogContent>
     </Dialog>
