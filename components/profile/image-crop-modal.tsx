@@ -29,8 +29,32 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
   const [lastTouchDistance, setLastTouchDistance] = useState(0)
   const [lastTouchCenter, setLastTouchCenter] = useState({ x: 0, y: 0 })
   const imageLoadRef = useRef(false)
+  const animationFrameRef = useRef<number | null>(null)
+  const pendingUpdateRef = useRef<{ scale?: number; position?: { x: number; y: number } } | null>(null)
 
   const CROP_SIZE = 280 // Fixed circular crop size
+
+  // Throttled update function to prevent excessive re-renders
+  const updateImageState = useCallback((updates: { scale?: number; position?: { x: number; y: number } }) => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current)
+    }
+    
+    pendingUpdateRef.current = { ...pendingUpdateRef.current, ...updates }
+    
+    animationFrameRef.current = requestAnimationFrame(() => {
+      if (pendingUpdateRef.current) {
+        if (pendingUpdateRef.current.scale !== undefined) {
+          setScale(pendingUpdateRef.current.scale)
+        }
+        if (pendingUpdateRef.current.position) {
+          setImagePosition(pendingUpdateRef.current.position)
+        }
+        pendingUpdateRef.current = null
+      }
+      animationFrameRef.current = null
+    })
+  }, [])
 
   const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget
@@ -121,10 +145,12 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       const minX = -scaledImageWidth + CROP_SIZE
       const minY = -scaledImageHeight + CROP_SIZE
       
-      setScale(finalScale)
-      setImagePosition({
-        x: Math.max(minX, Math.min(newImageX, maxX)),
-        y: Math.max(minY, Math.min(newImageY, maxY))
+      updateImageState({
+        scale: finalScale,
+        position: {
+          x: Math.max(minX, Math.min(newImageX, maxX)),
+          y: Math.max(minY, Math.min(newImageY, maxY))
+        }
       })
     }
   }
@@ -184,9 +210,11 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       const minX = -scaledImageWidth + CROP_SIZE
       const minY = -scaledImageHeight + CROP_SIZE
       
-      setImagePosition({
-        x: Math.max(minX, Math.min(newX, maxX)),
-        y: Math.max(minY, Math.min(newY, maxY))
+      updateImageState({
+        position: {
+          x: Math.max(minX, Math.min(newX, maxX)),
+          y: Math.max(minY, Math.min(newY, maxY))
+        }
       })
     } else if (e.touches.length === 2) {
       // Two finger pinch - zoom and drag simultaneously
@@ -237,10 +265,12 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
           const minX = -scaledImageWidth + CROP_SIZE
           const minY = -scaledImageHeight + CROP_SIZE
           
-          setScale(finalScale)
-          setImagePosition({
-            x: Math.max(minX, Math.min(newImageX, maxX)),
-            y: Math.max(minY, Math.min(newImageY, maxY))
+          updateImageState({
+            scale: finalScale,
+            position: {
+              x: Math.max(minX, Math.min(newImageX, maxX)),
+              y: Math.max(minY, Math.min(newImageY, maxY))
+            }
           })
         }
       }
@@ -262,9 +292,11 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
         const minX = -scaledImageWidth + CROP_SIZE
         const minY = -scaledImageHeight + CROP_SIZE
         
-        setImagePosition({
-          x: Math.max(minX, Math.min(newX, maxX)),
-          y: Math.max(minY, Math.min(newY, maxY))
+        updateImageState({
+          position: {
+            x: Math.max(minX, Math.min(newX, maxX)),
+            y: Math.max(minY, Math.min(newY, maxY))
+          }
         })
       }
       
@@ -360,6 +392,12 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
   }, [imagePosition, imageSize, containerSize, scale, rotate, imageFile, onCropComplete, onClose])
 
   const handleClose = () => {
+    // Cancel any pending animation frame
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current)
+      animationFrameRef.current = null
+    }
+    
     setScale(1)
     setRotate(0)
     setImageLoaded(false)
@@ -368,6 +406,7 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
     setLastTouchDistance(0)
     setLastTouchCenter({ x: 0, y: 0 })
     imageLoadRef.current = false
+    pendingUpdateRef.current = null
     onClose()
   }
 
@@ -419,9 +458,11 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       const minX = -scaledImageWidth + CROP_SIZE
       const minY = -scaledImageHeight + CROP_SIZE
       
-      setImagePosition({
-        x: Math.max(minX, Math.min(newX, maxX)),
-        y: Math.max(minY, Math.min(newY, maxY))
+      updateImageState({
+        position: {
+          x: Math.max(minX, Math.min(newX, maxX)),
+          y: Math.max(minY, Math.min(newY, maxY))
+        }
       })
     }
 
@@ -438,7 +479,16 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
       window.removeEventListener('mousemove', handleGlobalMouseMove)
       window.removeEventListener('mouseup', handleGlobalMouseUp)
     }
-  }, [isDragging, imageLoaded, dragStart, containerSize, imageSize, scale, imagePosition])
+  }, [isDragging, imageLoaded, dragStart, containerSize, imageSize, scale, imagePosition, updateImageState])
+
+  // Cleanup animation frame on unmount
+  useEffect(() => {
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+    }
+  }, [])
 
   if (!imageFile) return null
 
@@ -495,8 +545,9 @@ export function ImageCropModal({ isOpen, onClose, onCropComplete, imageFile }: I
                   left: imagePosition.x,
                   top: imagePosition.y,
                   transform: `scale(${scale}) rotate(${rotate}deg)`,
-                  transition: isDragging ? 'none' : 'transform 0.1s ease-out',
-                  touchAction: 'none'
+                  transition: isDragging ? 'none' : 'transform 0.05s ease-out, left 0.05s ease-out, top 0.05s ease-out',
+                  touchAction: 'none',
+                  willChange: isDragging ? 'transform, left, top' : 'auto'
                 }}
                 onLoad={onImageLoad}
                 draggable={false}
