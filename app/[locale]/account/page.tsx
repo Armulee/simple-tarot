@@ -17,7 +17,7 @@ export default function AccountPage() {
     return (
         <div className='min-h-screen relative overflow-x-hidden'>
             {/* Main Content */}
-            <div className='max-w-lg mx-auto px-4 sm:px-6 py-8 relative z-10'>
+            <div className='max-w-lg mx-auto px-4 sm:px-6 py-8 relative z-10 w-full'>
                 {/* Header */}
                 <div className='text-center space-y-6 mb-12'>
                     <div className='flex items-center justify-center space-x-3 mb-4'>
@@ -47,29 +47,29 @@ export default function AccountPage() {
                 </div>
 
                 {/* Settings Grid */}
-                <div className='grid gap-6 md:grid-cols-1 lg:grid-cols-2 w-full relative z-10'>
+                <div className='grid gap-6 md:grid-cols-1 lg:grid-cols-2 relative z-10 max-w-full'>
                     {/* Email Settings */}
-                    <div className='lg:col-span-1'>
+                    <div className='lg:col-span-1 min-w-0 overflow-hidden'>
                         <EmailSettings />
                     </div>
 
                     {/* Phone Settings */}
-                    <div className='lg:col-span-1'>
+                    <div className='lg:col-span-1 min-w-0 overflow-hidden'>
                         <PhoneSettings locale={locale} />
                     </div>
 
                     {/* Login Methods */}
-                    <div className='lg:col-span-2'>
+                    <div className='lg:col-span-2 min-w-0 overflow-hidden'>
                         <LoginMethods />
                     </div>
 
                     {/* Password Settings */}
-                    <div className='lg:col-span-1'>
+                    <div className='lg:col-span-1 min-w-0 overflow-hidden'>
                         <PasswordSettings loginMethod={loginMethod} />
                     </div>
 
                     {/* Account Deletion */}
-                    <div className='lg:col-span-1'>
+                    <div className='lg:col-span-1 min-w-0 overflow-hidden'>
                         <AccountDeletion />
                     </div>
                 </div>
