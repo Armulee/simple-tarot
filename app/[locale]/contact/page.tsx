@@ -16,7 +16,7 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion"
-import { Mail, MessageSquare, Clock, Send, CheckCircle } from "lucide-react"
+import { Mail, MessageSquare, Clock, Send } from "lucide-react"
 import { toast } from "sonner"
 
 const contactFormSchema = z.object({
@@ -30,7 +30,6 @@ type ContactFormData = z.infer<typeof contactFormSchema>
 
 export default function ContactPage() {
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [isSubmitted, setIsSubmitted] = useState(false)
 
     const form = useForm<ContactFormData>({
         resolver: zodResolver(contactFormSchema),
@@ -60,7 +59,6 @@ export default function ContactPage() {
             }
 
             const result = await response.json()
-            setIsSubmitted(true)
             form.reset()
             toast.success("Message sent successfully! We'll get back to you soon.")
             console.log("Contact form submitted successfully:", result.message)
@@ -116,32 +114,6 @@ export default function ContactPage() {
         },
     ]
 
-    if (isSubmitted) {
-        return (
-            <div className='min-h-screen p-6 relative overflow-hidden'>
-                <div className='max-w-4xl mx-auto pt-20 relative z-10'>
-                    <Card className='bg-card/50 border-border/30 p-16 text-center shadow-xl shadow-black/20 backdrop-blur-sm'>
-                        <div className='flex items-center justify-center mb-6'>
-                            <CheckCircle className='w-16 h-16 text-primary' />
-                        </div>
-                        <h1 className='text-3xl font-bold text-primary mb-4'>
-                            Message Sent Successfully!
-                        </h1>
-                        <p className='text-gray-300 text-lg mb-6'>
-                            Thank you for contacting us. We&apos;ll get back to
-                            you within 24-48 hours.
-                        </p>
-                        <Button
-                            onClick={() => setIsSubmitted(false)}
-                            className='bg-primary/20 border-primary/30 text-primary hover:bg-primary/30 hover:border-primary/50 transition-all duration-300'
-                        >
-                            Send Another Message
-                        </Button>
-                    </Card>
-                </div>
-            </div>
-        )
-    }
 
     return (
         <div className='min-h-screen p-6 relative overflow-hidden'>
