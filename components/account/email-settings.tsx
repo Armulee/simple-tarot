@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
 import { Mail, Plus, Edit } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { EmailDialog } from "./email-dialog"
@@ -61,12 +60,6 @@ export function EmailSettings() {
                                             disabled
                                             className='bg-background/30 border-border/50 text-white'
                                         />
-                                        <Badge
-                                            variant='outline'
-                                            className='bg-green-400/20 text-green-300 border-green-400/40'
-                                        >
-                                            Verified
-                                        </Badge>
                                     </div>
                                 </div>
                             </div>

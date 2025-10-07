@@ -17,7 +17,7 @@ export default function AccountPage() {
     return (
         <div className='min-h-screen relative'>
             {/* Main Content */}
-            <div className='container mx-auto px-4 py-8'>
+            <div className='container mx-auto px-4 py-8 relative z-10'>
                 {/* Header */}
                 <div className='text-center space-y-6 mb-12'>
                     <div className='flex items-center justify-center space-x-3 mb-4'>
@@ -47,7 +47,7 @@ export default function AccountPage() {
                 </div>
 
                 {/* Settings Grid */}
-                <div className='grid gap-6 md:grid-cols-1 lg:grid-cols-2 max-w-6xl mx-auto'>
+                <div className='grid gap-6 md:grid-cols-1 lg:grid-cols-2 max-w-6xl mx-auto relative z-10'>
                     {/* Email Settings */}
                     <div className='lg:col-span-1'>
                         <EmailSettings />
