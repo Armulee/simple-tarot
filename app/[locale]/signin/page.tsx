@@ -16,7 +16,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { supabase } from "@/lib/supabase"
-import { Mail, Key, ArrowLeft } from "lucide-react"
+import { Key, ArrowLeft, Wand2 } from "lucide-react"
 
 export default function SignInPage() {
     const t = useTranslations("Auth.SignIn")
@@ -206,12 +206,12 @@ export default function SignInPage() {
                             </div>
                         </div>
 
-                        <div className='space-y-3'>
+                        <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
                             <Button
                                 type='button'
                                 onClick={handleContinue}
                                 disabled={!isEmailValid || isCheckingEmail}
-                                className={`w-full py-6 text-lg font-semibold transition-all duration-300 border ${
+                                className={`py-4 text-sm font-semibold transition-all duration-300 border ${
                                     isEmailValid && !isCheckingEmail
                                         ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:shadow-xl border-blue-400/30 hover:border-blue-400/50 transform hover:scale-[1.02]'
                                         : 'bg-gray-500/20 text-gray-400 border-gray-500/30 cursor-not-allowed'
@@ -219,13 +219,15 @@ export default function SignInPage() {
                             >
                                 {isCheckingEmail ? (
                                     <>
-                                        <div className='w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2' />
-                                        Checking Email...
+                                        <div className='w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin mr-1' />
+                                        <span className='hidden sm:inline'>Checking...</span>
+                                        <span className='sm:hidden'>Checking</span>
                                     </>
                                 ) : (
                                     <>
-                                        <Key className='w-5 h-5 mr-2' />
-                                        🔐 Continue with Password
+                                        <Key className='w-4 h-4 mr-1' />
+                                        <span className='hidden sm:inline'>Enter Password</span>
+                                        <span className='sm:hidden'>Password</span>
                                     </>
                                 )}
                             </Button>
@@ -234,7 +236,7 @@ export default function SignInPage() {
                                 type='button'
                                 onClick={handleMagicLink}
                                 disabled={!isEmailValid || isMagicLinkLoading}
-                                className={`w-full py-6 text-lg font-medium transition-all duration-300 backdrop-blur-sm ${
+                                className={`py-4 text-sm font-medium transition-all duration-300 backdrop-blur-sm ${
                                     isEmailValid && !isMagicLinkLoading
                                         ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 text-purple-300 hover:from-purple-500/30 hover:to-pink-500/30 hover:border-purple-400/50 hover:shadow-lg hover:shadow-purple-500/25 transform hover:scale-[1.02]'
                                         : 'bg-gray-500/10 border border-gray-500/20 text-gray-400 cursor-not-allowed'
@@ -242,13 +244,15 @@ export default function SignInPage() {
                             >
                                 {isMagicLinkLoading ? (
                                     <>
-                                        <div className='w-4 h-4 border-2 border-purple-300/30 border-t-purple-300 rounded-full animate-spin mr-2' />
-                                        Sending Magic Link...
+                                        <div className='w-3 h-3 border-2 border-purple-300/30 border-t-purple-300 rounded-full animate-spin mr-1' />
+                                        <span className='hidden sm:inline'>Sending...</span>
+                                        <span className='sm:hidden'>Sending</span>
                                     </>
                                 ) : (
                                     <>
-                                        <Mail className='w-5 h-5 mr-2 text-purple-300' />
-                                        ✨ Continue with Magic Link
+                                        <Wand2 className='w-4 h-4 mr-1 text-purple-300' />
+                                        <span className='hidden sm:inline'>Magic Link</span>
+                                        <span className='sm:hidden'>Magic</span>
                                     </>
                                 )}
                             </Button>
