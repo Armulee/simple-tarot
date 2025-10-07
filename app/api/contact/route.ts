@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
 import React from "react"
-import { AdminNotificationEmail, UserAutoReplyEmail } from "../../../email-templates"
+import { AdminNotificationEmail, UserAutoReplyEmail } from "../../../components/email-templates"
 
 const resend = new Resend(process.env.RESEND_API_KEY || "dummy-key-for-build")
 
