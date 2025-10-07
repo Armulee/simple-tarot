@@ -199,17 +199,17 @@ export default function SignInPage() {
                                 type='button'
                                 onClick={handleContinue}
                                 disabled={!email || isCheckingEmail}
-                                className='w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-lg card-glow'
+                                className='w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-6 text-lg font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all duration-300 border border-primary/20'
                             >
                                 {isCheckingEmail ? (
                                     <>
                                         <div className='w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2' />
-                                        Checking...
+                                        Checking Email...
                                     </>
                                 ) : (
                                     <>
                                         <Key className='w-5 h-5 mr-2' />
-                                        Continue
+                                        Continue with Password
                                     </>
                                 )}
                             </Button>
@@ -218,18 +218,17 @@ export default function SignInPage() {
                                 type='button'
                                 onClick={handleMagicLink}
                                 disabled={!email || isMagicLinkLoading}
-                                variant='outline'
-                                className='w-full border-primary/30 text-primary hover:bg-primary/10 py-6 text-lg'
+                                className='w-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 text-purple-300 hover:from-purple-500/30 hover:to-pink-500/30 hover:border-purple-400/50 hover:shadow-lg hover:shadow-purple-500/25 py-6 text-lg font-medium transition-all duration-300 backdrop-blur-sm'
                             >
                                 {isMagicLinkLoading ? (
                                     <>
-                                        <div className='w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin mr-2' />
-                                        Sending...
+                                        <div className='w-4 h-4 border-2 border-purple-300/30 border-t-purple-300 rounded-full animate-spin mr-2' />
+                                        Sending Magic Link...
                                     </>
                                 ) : (
                                     <>
-                                        <Mail className='w-5 h-5 mr-2' />
-                                        Continue with Magic Link
+                                        <Mail className='w-5 h-5 mr-2 text-purple-300' />
+                                        ✨ Continue with Magic Link
                                     </>
                                 )}
                             </Button>
