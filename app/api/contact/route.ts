@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
         // Send email to admin
         const adminEmailResult = await resend.emails.send({
-            from: "contact@no-reply.askingfate.com",
+            from: "Contact Form <contact@no-reply.askingfate.com>",
             to: ["admin@askingfate.com"],
             subject: `[Contact Form] ${subject}`,
             react: React.createElement(AdminNotificationEmail, {
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
         // Send auto-reply to user
         const userEmailResult = await resend.emails.send({
-            from: "support@no-reply.askingfate.com",
+            from: "Asking Fate Support <support@no-reply.askingfate.com>",
             to: [email],
             subject: `Thank you for your message - ${subject}`,
             react: React.createElement(UserAutoReplyEmail, {
