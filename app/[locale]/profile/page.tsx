@@ -114,7 +114,7 @@ export default function ProfilePage() {
 
     return (
         <div className='min-h-screen relative overflow-x-hidden'>
-            <div className='container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-full'>
+            <div className='container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-full relative z-10'>
                 <div className='text-center space-y-6 mb-12'>
                     <div className='flex items-center justify-center space-x-3 mb-4'>
                         <div className='p-3 rounded-full bg-gradient-to-br from-accent/20 to-primary/20 backdrop-blur-sm border border-accent/30'>
