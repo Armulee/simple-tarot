@@ -80,7 +80,7 @@ export default function SignUpPage() {
     }
 
     return (
-        <div className='w-full mx-auto max-w-md space-y-8 relative z-10'>
+        <div className='w-full mx-auto max-w-md space-y-8 relative z-10 px-4 sm:px-6'>
             {/* Header */}
             <div className='text-center space-y-4'>
                 <div className='w-16 h-16 mx-auto rounded-full bg-secondary/20 flex items-center justify-center float-animation'>
