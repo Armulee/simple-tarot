@@ -206,7 +206,7 @@ export default function SignInPage() {
                             </div>
                         </div>
 
-                        <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                        <div className='flex flex-row gap-3'>
                             <Button
                                 type='button'
                                 onClick={handleContinue}
