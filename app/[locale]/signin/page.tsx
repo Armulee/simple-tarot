@@ -26,9 +26,21 @@ export default function SignInPage() {
     const [isMagicLinkLoading, setIsMagicLinkLoading] = useState(false)
     const [showPasswordInput, setShowPasswordInput] = useState(false)
     const [isCheckingEmail, setIsCheckingEmail] = useState(false)
+    const [isEmailValid, setIsEmailValid] = useState(false)
     const router = useRouter()
     const params = useSearchParams()
     const { signIn, user } = useAuth()
+
+    // Email validation function
+    const validateEmail = (email: string) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        return emailRegex.test(email)
+    }
+
+    // Update email validation when email changes
+    useEffect(() => {
+        setIsEmailValid(validateEmail(email))
+    }, [email])
 
     useEffect(() => {
         const err = params.get("error")
@@ -79,8 +91,8 @@ export default function SignInPage() {
     }
 
     const handleContinue = async () => {
-        if (!email) {
-            toast.error("Please enter your email address")
+        if (!isEmailValid) {
+            toast.error("Please enter a valid email address")
             return
         }
 
@@ -94,8 +106,8 @@ export default function SignInPage() {
     }
 
     const handleMagicLink = async () => {
-        if (!email) {
-            toast.error("Please enter your email address")
+        if (!isEmailValid) {
+            toast.error("Please enter a valid email address")
             return
         }
 
@@ -198,18 +210,22 @@ export default function SignInPage() {
                             <Button
                                 type='button'
                                 onClick={handleContinue}
-                                disabled={!email || isCheckingEmail}
-                                className='w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-6 text-lg font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all duration-300 border border-primary/20'
+                                disabled={!isEmailValid || isCheckingEmail}
+                                className={`w-full py-6 text-lg font-semibold transition-all duration-300 border ${
+                                    isEmailValid && !isCheckingEmail
+                                        ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:shadow-xl border-blue-400/30 hover:border-blue-400/50 transform hover:scale-[1.02]'
+                                        : 'bg-gray-500/20 text-gray-400 border-gray-500/30 cursor-not-allowed'
+                                }`}
                             >
                                 {isCheckingEmail ? (
                                     <>
-                                        <div className='w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2' />
+                                        <div className='w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2' />
                                         Checking Email...
                                     </>
                                 ) : (
                                     <>
                                         <Key className='w-5 h-5 mr-2' />
-                                        Continue with Password
+                                        🔐 Continue with Password
                                     </>
                                 )}
                             </Button>
@@ -217,8 +233,12 @@ export default function SignInPage() {
                             <Button
                                 type='button'
                                 onClick={handleMagicLink}
-                                disabled={!email || isMagicLinkLoading}
-                                className='w-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 text-purple-300 hover:from-purple-500/30 hover:to-pink-500/30 hover:border-purple-400/50 hover:shadow-lg hover:shadow-purple-500/25 py-6 text-lg font-medium transition-all duration-300 backdrop-blur-sm'
+                                disabled={!isEmailValid || isMagicLinkLoading}
+                                className={`w-full py-6 text-lg font-medium transition-all duration-300 backdrop-blur-sm ${
+                                    isEmailValid && !isMagicLinkLoading
+                                        ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 text-purple-300 hover:from-purple-500/30 hover:to-pink-500/30 hover:border-purple-400/50 hover:shadow-lg hover:shadow-purple-500/25 transform hover:scale-[1.02]'
+                                        : 'bg-gray-500/10 border border-gray-500/20 text-gray-400 cursor-not-allowed'
+                                }`}
                             >
                                 {isMagicLinkLoading ? (
                                     <>
