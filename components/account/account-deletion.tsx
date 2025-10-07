@@ -50,7 +50,7 @@ export function AccountDeletion() {
     }
 
     return (
-        <Card className='bg-red-500/10 backdrop-blur-sm border border-red-500/30 p-6 shadow-xl shadow-red-500/20 hover:bg-red-500/15 transition-all duration-300'>
+        <Card className='w-full bg-red-500/10 backdrop-blur-sm border border-red-500/30 p-6 shadow-xl shadow-red-500/20 hover:bg-red-500/15 transition-all duration-300'>
             <div className='space-y-6'>
                 <div className='flex items-center space-x-3'>
                     <div className='p-2 rounded-lg bg-red-500/30'>
