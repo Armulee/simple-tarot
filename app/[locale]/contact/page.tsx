@@ -46,7 +46,7 @@ export default function ContactPage() {
         setIsSubmitting(true)
 
         try {
-            const response = await fetch("https://resend.askingfate.com/contact", {
+            const response = await fetch("/api/contact", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
