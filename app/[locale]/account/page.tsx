@@ -15,9 +15,9 @@ export default function AccountPage() {
     const loginMethod = useLoginMethod()
 
     return (
-        <div className='min-h-screen relative'>
+        <div className='min-h-screen relative overflow-x-hidden'>
             {/* Main Content */}
-            <div className='max-w-lg mx-auto px-4 py-8 relative z-10'>
+            <div className='max-w-lg mx-auto px-4 sm:px-6 py-8 relative z-10'>
                 {/* Header */}
                 <div className='text-center space-y-6 mb-12'>
                     <div className='flex items-center justify-center space-x-3 mb-4'>
@@ -36,18 +36,18 @@ export default function AccountPage() {
                                 />
                             </svg>
                         </div>
-                        <h1 className='text-4xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'>
+                        <h1 className='text-3xl sm:text-4xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'>
                             Account Settings
                         </h1>
                     </div>
-                    <p className='text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed'>
+                    <p className='text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto leading-relaxed px-2'>
                         Manage your account information, security settings, and
                         preferences
                     </p>
                 </div>
 
                 {/* Settings Grid */}
-                <div className='grid gap-6 md:grid-cols-1 lg:grid-cols-2 max-w-6xl mx-auto relative z-10'>
+                <div className='grid gap-6 md:grid-cols-1 lg:grid-cols-2 w-full relative z-10'>
                     {/* Email Settings */}
                     <div className='lg:col-span-1'>
                         <EmailSettings />

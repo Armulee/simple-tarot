@@ -170,19 +170,19 @@ export function LoginMethods() {
                             Active Authentication Provider
                         </Label>
                         <div className='mt-3'>
-                            <div className={`flex items-center space-x-4 p-4 rounded-xl border-2 ${getProviderColor(getCurrentProvider() || 'email')} bg-gradient-to-r from-white/10 to-white/5`}>
-                                <div className='p-2 rounded-lg bg-white/20'>
+                            <div className={`flex items-center space-x-3 p-4 rounded-xl border-2 ${getProviderColor(getCurrentProvider() || 'email')} bg-gradient-to-r from-white/10 to-white/5`}>
+                                <div className='p-2 rounded-lg bg-white/20 flex-shrink-0'>
                                     {getProviderIcon(getCurrentProvider() || 'email')}
                                 </div>
-                                <div className='flex-1'>
-                                    <h3 className='font-semibold text-lg'>
+                                <div className='flex-1 min-w-0'>
+                                    <h3 className='font-semibold text-lg truncate'>
                                         {getProviderName(getCurrentProvider() || 'email')}
                                     </h3>
-                                    <p className='text-sm opacity-80'>
+                                    <p className='text-sm opacity-80 truncate'>
                                         {user?.email || 'No email found'}
                                     </p>
                                 </div>
-                                <div className='flex items-center space-x-2'>
+                                <div className='flex items-center space-x-2 flex-shrink-0'>
                                     <div className='w-3 h-3 rounded-full bg-green-500 animate-pulse'></div>
                                     <span className='text-sm font-medium'>Active</span>
                                 </div>
@@ -198,15 +198,15 @@ export function LoginMethods() {
                         </Label>
                         <div className='grid gap-3 mt-3'>
                             {/* Email & Password */}
-                            <div className={`flex items-center space-x-4 p-4 rounded-xl border ${isProviderLinked('email') ? 'border-green-400 bg-green-500/10' : 'border-border/50 bg-background/30'} transition-all duration-200`}>
-                                <div className='p-2 rounded-lg bg-blue-500/20'>
+                            <div className={`flex items-center space-x-3 p-4 rounded-xl border ${isProviderLinked('email') ? 'border-green-400 bg-green-500/10' : 'border-border/50 bg-background/30'} transition-all duration-200`}>
+                                <div className='p-2 rounded-lg bg-blue-500/20 flex-shrink-0'>
                                     <Mail className='w-5 h-5 text-blue-400' />
                                 </div>
-                                <div className='flex-1'>
-                                    <h3 className='font-medium text-white'>Email & Password</h3>
-                                    <p className='text-sm text-gray-300'>Secure email-based authentication</p>
+                                <div className='flex-1 min-w-0'>
+                                    <h3 className='font-medium text-white truncate'>Email & Password</h3>
+                                    <p className='text-sm text-gray-300 truncate'>Secure email-based authentication</p>
                                 </div>
-                                <div className='flex items-center space-x-2'>
+                                <div className='flex items-center space-x-2 flex-shrink-0'>
                                     {isProviderLinked('email') ? (
                                         <>
                                             <div className='flex items-center space-x-2 text-green-400'>
@@ -249,15 +249,15 @@ export function LoginMethods() {
                             </div>
 
                             {/* Google */}
-                            <div className={`flex items-center space-x-4 p-4 rounded-xl border ${isProviderLinked('google') ? 'border-green-400 bg-green-500/10' : 'border-border/50 bg-background/30'} transition-all duration-200`}>
-                                <div className='p-2 rounded-lg bg-red-500/20'>
+                            <div className={`flex items-center space-x-3 p-4 rounded-xl border ${isProviderLinked('google') ? 'border-green-400 bg-green-500/10' : 'border-border/50 bg-background/30'} transition-all duration-200`}>
+                                <div className='p-2 rounded-lg bg-red-500/20 flex-shrink-0'>
                                     <Chrome className='w-5 h-5 text-red-400' />
                                 </div>
-                                <div className='flex-1'>
-                                    <h3 className='font-medium text-white'>Google</h3>
-                                    <p className='text-sm text-gray-300'>Sign in with Google account</p>
+                                <div className='flex-1 min-w-0'>
+                                    <h3 className='font-medium text-white truncate'>Google</h3>
+                                    <p className='text-sm text-gray-300 truncate'>Sign in with Google account</p>
                                 </div>
-                                <div className='flex items-center space-x-2'>
+                                <div className='flex items-center space-x-2 flex-shrink-0'>
                                     {isProviderLinked('google') ? (
                                         <>
                                             <div className='flex items-center space-x-2 text-green-400'>
