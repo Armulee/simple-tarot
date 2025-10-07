@@ -67,7 +67,7 @@ export default function SignInPage() {
     }
 
     return (
-        <div className='w-full mx-auto max-w-md space-y-8 pt-6 pb-16'>
+        <div className='w-full mx-auto max-w-md space-y-8 pt-6 pb-16 relative z-10'>
             {/* Header */}
             <div className='text-center space-y-4'>
                 <div className='w-16 h-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center float-animation'>
