@@ -17,7 +17,7 @@ export default function AccountPage() {
     return (
         <div className='min-h-screen relative'>
             {/* Main Content */}
-            <div className='mx-auto px-4 py-8 relative z-10'>
+            <div className='max-w-lg mx-auto px-4 py-8 relative z-10'>
                 {/* Header */}
                 <div className='text-center space-y-6 mb-12'>
                     <div className='flex items-center justify-center space-x-3 mb-4'>
