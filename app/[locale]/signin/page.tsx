@@ -206,37 +206,12 @@ export default function SignInPage() {
                             </div>
                         </div>
 
-                        <div className='flex flex-row gap-3'>
-                            <Button
-                                type='button'
-                                onClick={handleContinue}
-                                disabled={!isEmailValid || isCheckingEmail}
-                                className={`py-4 text-sm font-semibold transition-all duration-300 border ${
-                                    isEmailValid && !isCheckingEmail
-                                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:shadow-xl border-blue-400/30 hover:border-blue-400/50 transform hover:scale-[1.02]'
-                                        : 'bg-gray-500/20 text-gray-400 border-gray-500/30 cursor-not-allowed'
-                                }`}
-                            >
-                                {isCheckingEmail ? (
-                                    <>
-                                        <div className='w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin mr-1' />
-                                        <span className='hidden sm:inline'>Checking...</span>
-                                        <span className='sm:hidden'>Checking</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Key className='w-4 h-4 mr-1' />
-                                        <span className='hidden sm:inline'>Continue</span>
-                                        <span className='sm:hidden'>Continue</span>
-                                    </>
-                                )}
-                            </Button>
-
+                        <div className='space-y-3'>
                             <Button
                                 type='button'
                                 onClick={handleMagicLink}
                                 disabled={!isEmailValid || isMagicLinkLoading}
-                                className={`py-4 text-sm font-semibold transition-all duration-300 border ${
+                                className={`w-full py-4 text-sm font-semibold transition-all duration-300 border ${
                                     isEmailValid && !isMagicLinkLoading
                                         ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:shadow-xl border-blue-400/30 hover:border-blue-400/50 transform hover:scale-[1.02]'
                                         : 'bg-gray-500/20 text-gray-400 border-gray-500/30 cursor-not-allowed'
@@ -253,6 +228,31 @@ export default function SignInPage() {
                                         <Wand2 className='w-4 h-4 mr-1' />
                                         <span className='hidden sm:inline'>Magic Link</span>
                                         <span className='sm:hidden'>Magic Link</span>
+                                    </>
+                                )}
+                            </Button>
+
+                            <Button
+                                type='button'
+                                onClick={handleContinue}
+                                disabled={!isEmailValid || isCheckingEmail}
+                                className={`w-full py-4 text-sm font-semibold transition-all duration-300 border ${
+                                    isEmailValid && !isCheckingEmail
+                                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:shadow-xl border-blue-400/30 hover:border-blue-400/50 transform hover:scale-[1.02]'
+                                        : 'bg-gray-500/20 text-gray-400 border-gray-500/30 cursor-not-allowed'
+                                }`}
+                            >
+                                {isCheckingEmail ? (
+                                    <>
+                                        <div className='w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin mr-1' />
+                                        <span className='hidden sm:inline'>Checking...</span>
+                                        <span className='sm:hidden'>Checking</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Key className='w-4 h-4 mr-1' />
+                                        <span className='hidden sm:inline'>Continue</span>
+                                        <span className='sm:hidden'>Continue</span>
                                     </>
                                 )}
                             </Button>
