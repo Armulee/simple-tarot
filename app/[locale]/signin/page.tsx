@@ -11,11 +11,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { GoogleSignInButton } from "@/components/auth/google-signin-button"
+import { AuthDivider } from "@/components/auth/auth-divider"
 import { useAuth } from "@/hooks/use-auth"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { supabase } from "@/lib/supabase"
-import { Key, ArrowLeft, Wand2, Mail } from "lucide-react"
+import { Key, ArrowLeft, Wand2 } from "lucide-react"
 
 export default function SignInPage() {
     const t = useTranslations("Auth.SignIn")
@@ -155,197 +156,183 @@ export default function SignInPage() {
     }
 
     return (
-        <div className='relative min-h-screen flex items-center justify-center px-4 sm:px-6'>
-            {/* Background decorative elements */}
-            <div className='absolute inset-0 overflow-hidden'>
-                <div className='absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-3xl animate-pulse'></div>
-                <div className='absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-500/20 to-cyan-500/20 rounded-full blur-3xl animate-pulse delay-1000'></div>
-                <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 rounded-full blur-3xl animate-pulse delay-500'></div>
+        <div className='w-full mx-auto max-w-md space-y-8 pt-6 pb-16 relative z-10 px-4 sm:px-6'>
+            {/* Header */}
+            <div className='text-center space-y-4'>
+                <div className='w-16 h-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center float-animation'>
+                    <span className='text-primary font-serif font-bold text-2xl'>
+                        ✦
+                    </span>
+                </div>
+                <div className='space-y-2'>
+                    <h1 className='font-serif font-bold text-3xl text-balance'>
+                        {t("title")}
+                    </h1>
+                    <p className='text-muted-foreground'>{t("subtitle")}</p>
+                </div>
             </div>
 
-            <div className='w-full max-w-md space-y-8 relative z-10'>
-                {/* Header with enhanced styling */}
-                <div className='text-center space-y-6'>
-                    <div className='inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 rounded-3xl shadow-2xl shadow-purple-500/25 mb-6 transform hover:scale-105 transition-transform duration-300'>
-                        <Key className='w-10 h-10 text-white' />
-                    </div>
-                    <div className='space-y-3'>
-                        <h1 className='text-5xl font-bold bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent sm:text-6xl'>
-                            {t("title")}
-                        </h1>
-                        <p className='text-xl text-gray-300 max-w-sm mx-auto leading-relaxed font-light'>{t("subtitle")}</p>
-                    </div>
-                </div>
+            {/* Google Sign In */}
+            <GoogleSignInButton>{t("google")}</GoogleSignInButton>
 
-                {/* Google Sign In */}
-                <GoogleSignInButton>{t("google")}</GoogleSignInButton>
+            <AuthDivider />
 
-                <div className='relative'>
-                    <div className='absolute inset-0 flex items-center'>
-                        <div className='w-full border-t border-white/20'></div>
-                    </div>
-                    <div className='relative flex justify-center text-sm'>
-                        <span className='px-6 bg-gradient-to-r from-purple-900/50 to-pink-900/50 text-gray-300 rounded-full backdrop-blur-sm font-medium'>
-                            Or continue with
-                        </span>
-                    </div>
-                </div>
+            {/* Email Input Form */}
+            {!showPasswordInput ? (
+                <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20 card-glow'>
+                    <div className='space-y-6'>
+                        <div className='space-y-2'>
+                            <Label
+                                htmlFor='email'
+                                className='text-sm font-medium'
+                            >
+                                {t("emailLabel")}
+                            </Label>
+                            <div className='relative'>
+                                <Input
+                                    id='email'
+                                    type='email'
+                                    placeholder={t("emailPlaceholder")}
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 floating-input'
+                                    required
+                                />
+                                <div className='absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-secondary/5 pointer-events-none opacity-0 transition-opacity duration-300 peer-focus:opacity-100'></div>
+                            </div>
+                        </div>
 
-                {/* Email Input Form */}
-                {!showPasswordInput ? (
-                    <Card className='p-8 bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-xl border border-white/20 shadow-2xl shadow-black/20 rounded-2xl'>
-                        <div className='space-y-8'>
-                            <div className='space-y-4'>
+                        <div className='space-y-3'>
+                            <Button
+                                type='button'
+                                onClick={handleMagicLink}
+                                disabled={!isEmailValid || isMagicLinkLoading}
+                                className={`w-full py-4 text-sm font-semibold transition-all duration-300 border ${
+                                    isEmailValid && !isMagicLinkLoading
+                                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:shadow-xl border-blue-400/30 hover:border-blue-400/50 transform hover:scale-[1.02]'
+                                        : 'bg-gray-500/20 text-gray-400 border-gray-500/30 cursor-not-allowed'
+                                }`}
+                            >
+                                {isMagicLinkLoading ? (
+                                    <>
+                                        <div className='w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin mr-1' />
+                                        <span className='hidden sm:inline'>Sending...</span>
+                                        <span className='sm:hidden'>Sending</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Wand2 className='w-4 h-4 mr-1' />
+                                        <span className='hidden sm:inline'>Magic Link</span>
+                                        <span className='sm:hidden'>Magic Link</span>
+                                    </>
+                                )}
+                            </Button>
+
+                            <Button
+                                type='button'
+                                onClick={handleContinue}
+                                disabled={!isEmailValid || isCheckingEmail}
+                                className={`w-full py-4 text-sm font-semibold transition-all duration-300 border ${
+                                    isEmailValid && !isCheckingEmail
+                                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:shadow-xl border-blue-400/30 hover:border-blue-400/50 transform hover:scale-[1.02]'
+                                        : 'bg-gray-500/20 text-gray-400 border-gray-500/30 cursor-not-allowed'
+                                }`}
+                            >
+                                {isCheckingEmail ? (
+                                    <>
+                                        <div className='w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin mr-1' />
+                                        <span className='hidden sm:inline'>Checking...</span>
+                                        <span className='sm:hidden'>Checking</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Key className='w-4 h-4 mr-1' />
+                                        <span className='hidden sm:inline'>Continue</span>
+                                        <span className='sm:hidden'>Continue</span>
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                </Card>
+            ) : (
+                /* Password Input Form */
+                <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20 card-glow'>
+                    <div className='space-y-6'>
+                        <div className='flex items-center justify-between'>
+                            <h2 className='text-lg font-semibold'>Enter your password</h2>
+                            <Button
+                                type='button'
+                                variant='ghost'
+                                size='sm'
+                                onClick={handleBackToEmail}
+                                className='text-muted-foreground hover:text-foreground'
+                            >
+                                <ArrowLeft className='w-4 h-4 mr-1' />
+                                Back
+                            </Button>
+                        </div>
+
+                        <div className='space-y-2'>
+                            <Label className='text-sm font-medium text-muted-foreground'>
+                                {email}
+                            </Label>
+                        </div>
+
+                        <form onSubmit={handlePasswordSubmit} className='space-y-6'>
+                            <div className='space-y-2'>
                                 <Label
-                                    htmlFor='email'
-                                    className='text-sm font-semibold text-white/90 flex items-center'
+                                    htmlFor='password'
+                                    className='text-sm font-medium'
                                 >
-                                    <Mail className='w-4 h-4 mr-2 text-purple-400' />
-                                    {t("emailLabel")}
+                                    {t("passwordLabel")}
                                 </Label>
-                                <div className='relative group'>
+                                <div className='relative'>
                                     <Input
-                                        id='email'
-                                        type='email'
-                                        placeholder={t("emailPlaceholder")}
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className='peer h-14 w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-white placeholder:text-gray-400 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/30 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-300 group-hover:bg-white/10'
+                                        id='password'
+                                        type='password'
+                                        placeholder={t("passwordPlaceholder")}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 floating-input'
                                         required
                                     />
-                                    <div className='absolute inset-0 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 pointer-events-none opacity-0 transition-opacity duration-300 peer-focus:opacity-100'></div>
+                                    <div className='absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-secondary/5 pointer-events-none opacity-0 transition-opacity duration-300 peer-focus:opacity-100'></div>
                                 </div>
                             </div>
 
-                            <div className='space-y-4'>
-                                <Button
-                                    type='button'
-                                    onClick={handleMagicLink}
-                                    disabled={!isEmailValid || isMagicLinkLoading}
-                                    className={`w-full h-14 text-sm font-semibold transition-all duration-300 rounded-xl border ${
-                                        isEmailValid && !isMagicLinkLoading
-                                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 hover:shadow-xl border-purple-400/30 hover:border-purple-400/50 transform hover:scale-[1.02]'
-                                            : 'bg-gray-500/20 text-gray-400 border-gray-500/30 cursor-not-allowed'
-                                    }`}
+                            <div className='flex items-center justify-between text-sm'>
+                                <Link
+                                    href='/forgot-password'
+                                    className='text-primary hover:text-primary/80 transition-colors'
                                 >
-                                    {isMagicLinkLoading ? (
-                                        <>
-                                            <div className='w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2' />
-                                            <span>Sending Magic Link...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Wand2 className='w-5 h-5 mr-2' />
-                                            <span>Continue with Magic Link</span>
-                                        </>
-                                    )}
-                                </Button>
-
-                                <Button
-                                    type='button'
-                                    onClick={handleContinue}
-                                    disabled={!isEmailValid || isCheckingEmail}
-                                    className={`w-full h-14 text-sm font-semibold transition-all duration-300 rounded-xl border ${
-                                        isEmailValid && !isCheckingEmail
-                                            ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:shadow-xl border-blue-400/30 hover:border-blue-400/50 transform hover:scale-[1.02]'
-                                            : 'bg-gray-500/20 text-gray-400 border-gray-500/30 cursor-not-allowed'
-                                    }`}
-                                >
-                                    {isCheckingEmail ? (
-                                        <>
-                                            <div className='w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2' />
-                                            <span>Checking Email...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Key className='w-5 h-5 mr-2' />
-                                            <span>Continue with Password</span>
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
-                        </div>
-                    </Card>
-                ) : (
-                    /* Password Input Form */
-                    <Card className='p-8 bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-xl border border-white/20 shadow-2xl shadow-black/20 rounded-2xl'>
-                        <div className='space-y-8'>
-                            <div className='flex items-center justify-between'>
-                                <h2 className='text-2xl font-bold text-white'>Enter your password</h2>
-                                <Button
-                                    type='button'
-                                    variant='ghost'
-                                    size='sm'
-                                    onClick={handleBackToEmail}
-                                    className='text-gray-400 hover:text-white transition-colors duration-200 group'
-                                >
-                                    <ArrowLeft className='w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform duration-200' />
-                                    Back
-                                </Button>
+                                    {t("forgot")}
+                                </Link>
                             </div>
 
-                            <div className='space-y-2'>
-                                <Label className='text-sm font-medium text-gray-300 bg-white/5 px-3 py-2 rounded-lg border border-white/10'>
-                                    {email}
-                                </Label>
-                            </div>
+                            <Button
+                                type='submit'
+                                disabled={!password}
+                                className='w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-lg card-glow'
+                            >
+                                {t("button")}
+                            </Button>
+                        </form>
+                    </div>
+                </Card>
+            )}
 
-                            <form onSubmit={handlePasswordSubmit} className='space-y-8'>
-                                <div className='space-y-4'>
-                                    <Label
-                                        htmlFor='password'
-                                        className='text-sm font-semibold text-white/90 flex items-center'
-                                    >
-                                        <Key className='w-4 h-4 mr-2 text-blue-400' />
-                                        {t("passwordLabel")}
-                                    </Label>
-                                    <div className='relative group'>
-                                        <Input
-                                            id='password'
-                                            type='password'
-                                            placeholder={t("passwordPlaceholder")}
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            className='peer h-14 w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-white placeholder:text-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-300 group-hover:bg-white/10'
-                                            required
-                                        />
-                                        <div className='absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 to-cyan-500/10 pointer-events-none opacity-0 transition-opacity duration-300 peer-focus:opacity-100'></div>
-                                    </div>
-                                </div>
-
-                                <div className='flex items-center justify-between text-sm'>
-                                    <Link
-                                        href='/forgot-password'
-                                        className='text-blue-400 hover:text-blue-300 transition-colors font-medium'
-                                    >
-                                        {t("forgot")}
-                                    </Link>
-                                </div>
-
-                                <Button
-                                    type='submit'
-                                    disabled={!password}
-                                    className='w-full h-14 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-xl rounded-xl'
-                                >
-                                    {t("button")}
-                                </Button>
-                            </form>
-                        </div>
-                    </Card>
-                )}
-
-                {/* Sign Up Link */}
-                <div className='text-center'>
-                    <p className='text-gray-300 text-lg'>
-                        {t("signupPrompt")}{" "}
-                        <Link
-                            href='/signup'
-                            className='text-transparent bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text hover:from-purple-300 hover:to-pink-300 transition-all duration-300 font-semibold'
-                        >
-                            {t("signupLink")}
-                        </Link>
-                    </p>
-                </div>
+            {/* Sign Up Link */}
+            <div className='text-center'>
+                <p className='text-muted-foreground'>
+                    {t("signupPrompt")}{" "}
+                    <Link
+                        href='/signup'
+                        className='text-primary hover:text-primary/80 transition-colors font-medium'
+                    >
+                        {t("signupLink")}
+                    </Link>
+                </p>
             </div>
         </div>
     )
