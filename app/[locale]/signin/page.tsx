@@ -213,7 +213,7 @@ export default function SignInPage() {
                                 disabled={!isEmailValid || isCheckingEmail}
                                 className={`py-4 text-sm font-semibold transition-all duration-300 border ${
                                     isEmailValid && !isCheckingEmail
-                                        ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:shadow-xl border-blue-400/30 hover:border-blue-400/50 transform hover:scale-[1.02]'
+                                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:shadow-xl border-blue-400/30 hover:border-blue-400/50 transform hover:scale-[1.02]'
                                         : 'bg-gray-500/20 text-gray-400 border-gray-500/30 cursor-not-allowed'
                                 }`}
                             >
@@ -226,8 +226,8 @@ export default function SignInPage() {
                                 ) : (
                                     <>
                                         <Key className='w-4 h-4 mr-1' />
-                                        <span className='hidden sm:inline'>Enter Password</span>
-                                        <span className='sm:hidden'>Password</span>
+                                        <span className='hidden sm:inline'>Continue</span>
+                                        <span className='sm:hidden'>Continue</span>
                                     </>
                                 )}
                             </Button>
@@ -236,23 +236,23 @@ export default function SignInPage() {
                                 type='button'
                                 onClick={handleMagicLink}
                                 disabled={!isEmailValid || isMagicLinkLoading}
-                                className={`py-4 text-sm font-medium transition-all duration-300 backdrop-blur-sm ${
+                                className={`py-4 text-sm font-semibold transition-all duration-300 border ${
                                     isEmailValid && !isMagicLinkLoading
-                                        ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 text-purple-300 hover:from-purple-500/30 hover:to-pink-500/30 hover:border-purple-400/50 hover:shadow-lg hover:shadow-purple-500/25 transform hover:scale-[1.02]'
-                                        : 'bg-gray-500/10 border border-gray-500/20 text-gray-400 cursor-not-allowed'
+                                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:shadow-xl border-blue-400/30 hover:border-blue-400/50 transform hover:scale-[1.02]'
+                                        : 'bg-gray-500/20 text-gray-400 border-gray-500/30 cursor-not-allowed'
                                 }`}
                             >
                                 {isMagicLinkLoading ? (
                                     <>
-                                        <div className='w-3 h-3 border-2 border-purple-300/30 border-t-purple-300 rounded-full animate-spin mr-1' />
+                                        <div className='w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin mr-1' />
                                         <span className='hidden sm:inline'>Sending...</span>
                                         <span className='sm:hidden'>Sending</span>
                                     </>
                                 ) : (
                                     <>
-                                        <Wand2 className='w-4 h-4 mr-1 text-purple-300' />
+                                        <Wand2 className='w-4 h-4 mr-1' />
                                         <span className='hidden sm:inline'>Magic Link</span>
-                                        <span className='sm:hidden'>Magic</span>
+                                        <span className='sm:hidden'>Magic Link</span>
                                     </>
                                 )}
                             </Button>
