@@ -67,7 +67,7 @@ export function UserProfile({
                     <div className="relative">
                         <WitchHat 
                             size="sm" 
-                            className="absolute -top-2 -right-1 z-10"
+                            className="absolute -top-2 -left-1 z-10"
                         />
                         <Skeleton className='w-8 h-8 rounded-full' />
                     </div>
@@ -87,7 +87,7 @@ export function UserProfile({
                     <div className="relative">
                         <WitchHat 
                             size="sm" 
-                            className="absolute -top-2 -right-1 z-10"
+                            className="absolute -top-2 -left-1 z-10"
                         />
                         <Skeleton className='w-8 h-8 rounded-full' />
                     </div>
@@ -109,7 +109,7 @@ export function UserProfile({
                     <div className="relative">
                         <WitchHat 
                             size="sm" 
-                            className="absolute -top-2 -right-1 z-10"
+                            className="absolute -top-2 -left-1 z-10"
                         />
                         <ConsistentAvatar 
                             data={{
@@ -137,7 +137,7 @@ export function UserProfile({
                     <div className="relative">
                         <WitchHat 
                             size="sm" 
-                            className="absolute -top-2 -right-1 z-10"
+                            className="absolute -top-2 -left-1 z-10"
                         />
                         <ConsistentAvatar 
                             data={{
@@ -164,7 +164,7 @@ export function UserProfile({
                     <div className="relative">
                         <WitchHat 
                             size="sm" 
-                            className="absolute -top-2 -right-1 z-10"
+                            className="absolute -top-2 -left-1 z-10"
                         />
                         <ConsistentAvatar 
                             data={{
