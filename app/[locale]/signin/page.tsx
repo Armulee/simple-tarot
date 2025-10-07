@@ -15,28 +15,15 @@ import { AuthDivider } from "@/components/auth/auth-divider"
 import { useAuth } from "@/hooks/use-auth"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
-import { supabase } from "@/lib/supabase"
-import { Key, ArrowLeft } from "lucide-react"
 
 export default function SignInPage() {
     const t = useTranslations("Auth.SignIn")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
-    const [isLoading, setIsLoading] = useState(false)
     const router = useRouter()
     const params = useSearchParams()
     const { signIn, user } = useAuth()
 
-    // Email validation function
-    const validateEmail = (email: string) => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        return emailRegex.test(email)
-    }
-
-    // Update email validation when email changes
-    useEffect(() => {
-        setIsEmailValid(validateEmail(email))
-    }, [email])
 
     useEffect(() => {
         const err = params.get("error")
@@ -55,51 +42,6 @@ export default function SignInPage() {
         router.replace(callbackUrl)
     }, [user, router, params])
 
-    const checkEmailExists = async (email: string) => {
-        setIsCheckingEmail(true)
-        try {
-            const { error } = await supabase.auth.signInWithPassword({
-                email,
-                password: 'dummy-password-to-check-email'
-            })
-            
-            if (error) {
-                if (error.message.includes('Invalid login credentials')) {
-                    // Email exists but password is wrong
-                    return true
-                } else if (error.message.includes('Email not confirmed')) {
-                    // Email exists but not confirmed
-                    return true
-                } else {
-                    // Email doesn't exist
-                    return false
-                }
-            } else {
-                // This shouldn't happen with dummy password, but if it does, email exists
-                return true
-            }
-        } catch (error) {
-            console.error('Error checking email:', error)
-            return false
-        } finally {
-            setIsCheckingEmail(false)
-        }
-    }
-
-    const handleContinue = async () => {
-        if (!isEmailValid) {
-            toast.error("Please enter a valid email address")
-            return
-        }
-
-        const emailExists = await checkEmailExists(email)
-        
-        if (emailExists) {
-            setShowPasswordInput(true)
-        } else {
-            toast.error("No account found with this email address. Please sign up first.")
-        }
-    }
 
 
     const handlePasswordSubmit = async (e: React.FormEvent) => {
@@ -120,10 +62,6 @@ export default function SignInPage() {
         }
     }
 
-    const handleBackToEmail = () => {
-        setShowPasswordInput(false)
-        setPassword("")
-    }
 
     return (
         <div className='w-full mx-auto max-w-md space-y-8 pt-6 pb-16 relative z-10 px-4 sm:px-6'>
@@ -147,123 +85,69 @@ export default function SignInPage() {
 
             <AuthDivider />
 
-            {/* Email Input Form */}
-            {!showPasswordInput ? (
-                <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20 card-glow'>
-                    <div className='space-y-6'>
-                        <div className='space-y-2'>
-                            <Label
-                                htmlFor='email'
-                                className='text-sm font-medium'
-                            >
-                                {t("emailLabel")}
-                            </Label>
-                            <div className='relative'>
-                                <Input
-                                    id='email'
-                                    type='email'
-                                    placeholder={t("emailPlaceholder")}
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 floating-input'
-                                    required
-                                />
-                                <div className='absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-secondary/5 pointer-events-none opacity-0 transition-opacity duration-300 peer-focus:opacity-100'></div>
-                            </div>
-                        </div>
-
-                        <Button
-                            type='button'
-                            onClick={handleContinue}
-                            disabled={!isEmailValid || isCheckingEmail}
-                            className={`w-full py-4 text-sm font-semibold transition-all duration-300 border ${
-                                isEmailValid && !isCheckingEmail
-                                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:shadow-xl border-blue-400/30 hover:border-blue-400/50 transform hover:scale-[1.02]'
-                                    : 'bg-gray-500/20 text-gray-400 border-gray-500/30 cursor-not-allowed'
-                            }`}
+            {/* Sign In Form */}
+            <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20 card-glow'>
+                <form onSubmit={handlePasswordSubmit} className='space-y-6'>
+                    <div className='space-y-2'>
+                        <Label
+                            htmlFor='email'
+                            className='text-sm font-medium'
                         >
-                            {isCheckingEmail ? (
-                                <>
-                                    <div className='w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin mr-1' />
-                                    <span className='hidden sm:inline'>Checking...</span>
-                                    <span className='sm:hidden'>Checking</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Key className='w-4 h-4 mr-1' />
-                                    <span className='hidden sm:inline'>Continue</span>
-                                    <span className='sm:hidden'>Continue</span>
-                                </>
-                            )}
-                        </Button>
-                    </div>
-                </Card>
-            ) : (
-                /* Password Input Form */
-                <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20 card-glow'>
-                    <div className='space-y-6'>
-                        <div className='flex items-center justify-between'>
-                            <h2 className='text-lg font-semibold'>Enter your password</h2>
-                            <Button
-                                type='button'
-                                variant='ghost'
-                                size='sm'
-                                onClick={handleBackToEmail}
-                                className='text-muted-foreground hover:text-foreground'
-                            >
-                                <ArrowLeft className='w-4 h-4 mr-1' />
-                                Back
-                            </Button>
+                            {t("emailLabel")}
+                        </Label>
+                        <div className='relative'>
+                            <Input
+                                id='email'
+                                type='email'
+                                placeholder={t("emailPlaceholder")}
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 floating-input'
+                                required
+                            />
+                            <div className='absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-secondary/5 pointer-events-none opacity-0 transition-opacity duration-300 peer-focus:opacity-100'></div>
                         </div>
-
-                        <div className='space-y-2'>
-                            <Label className='text-sm font-medium text-muted-foreground'>
-                                {email}
-                            </Label>
-                        </div>
-
-                        <form onSubmit={handlePasswordSubmit} className='space-y-6'>
-                            <div className='space-y-2'>
-                                <Label
-                                    htmlFor='password'
-                                    className='text-sm font-medium'
-                                >
-                                    {t("passwordLabel")}
-                                </Label>
-                                <div className='relative'>
-                                    <Input
-                                        id='password'
-                                        type='password'
-                                        placeholder={t("passwordPlaceholder")}
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 floating-input'
-                                        required
-                                    />
-                                    <div className='absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-secondary/5 pointer-events-none opacity-0 transition-opacity duration-300 peer-focus:opacity-100'></div>
-                                </div>
-                            </div>
-
-                            <div className='flex items-center justify-between text-sm'>
-                                <Link
-                                    href='/forgot-password'
-                                    className='text-primary hover:text-primary/80 transition-colors'
-                                >
-                                    {t("forgot")}
-                                </Link>
-                            </div>
-
-                            <Button
-                                type='submit'
-                                disabled={!password}
-                                className='w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-lg card-glow'
-                            >
-                                {t("button")}
-                            </Button>
-                        </form>
                     </div>
-                </Card>
-            )}
+
+                    <div className='space-y-2'>
+                        <Label
+                            htmlFor='password'
+                            className='text-sm font-medium'
+                        >
+                            {t("passwordLabel")}
+                        </Label>
+                        <div className='relative'>
+                            <Input
+                                id='password'
+                                type='password'
+                                placeholder={t("passwordPlaceholder")}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 floating-input'
+                                required
+                            />
+                            <div className='absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-secondary/5 pointer-events-none opacity-0 transition-opacity duration-300 peer-focus:opacity-100'></div>
+                        </div>
+                    </div>
+
+                    <div className='flex items-center justify-between text-sm'>
+                        <Link
+                            href='/forgot-password'
+                            className='text-primary hover:text-primary/80 transition-colors'
+                        >
+                            {t("forgot")}
+                        </Link>
+                    </div>
+
+                    <Button
+                        type='submit'
+                        disabled={!email || !password}
+                        className='w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-lg card-glow'
+                    >
+                        {t("button")}
+                    </Button>
+                </form>
+            </Card>
 
             {/* Sign Up Link */}
             <div className='text-center'>
@@ -271,7 +155,7 @@ export default function SignInPage() {
                     {t("signupPrompt")}{" "}
                     <Link
                         href='/signup'
-                        className='text-primary hover:text-primary/80 transition-colors font-medium'
+                        className='text-accent hover:text-accent/80 transition-colors font-medium'
                     >
                         {t("signupLink")}
                     </Link>

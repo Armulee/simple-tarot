@@ -258,7 +258,7 @@ export default function SignUpPage() {
                     {t("signinPrompt")}{" "}
                     <Link
                         href={`/signin?callbackUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '/')}`}
-                        className='text-secondary hover:text-secondary/80 transition-colors font-medium'
+                        className='text-accent hover:text-accent/80 transition-colors font-medium'
                     >
                         {t("signinLink")}
                     </Link>
