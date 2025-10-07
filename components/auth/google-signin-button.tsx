@@ -36,7 +36,7 @@ export function GoogleSignInButton({ className, children }: GoogleSignInButtonPr
       variant="outline"
       onClick={handleGoogleSignIn}
       disabled={isLoading}
-      className={`w-full py-6 bg-white/10 backdrop-blur-sm border-white/30 hover:bg-white/20 text-white hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] ${className}`}
+      className={`w-full py-4 text-sm font-semibold transition-all duration-300 border bg-card/10 backdrop-blur-sm border-border/20 hover:bg-card/20 text-foreground hover:text-foreground ${className}`}
     >
       {isLoading ? (
         <div className="flex items-center space-x-2">
