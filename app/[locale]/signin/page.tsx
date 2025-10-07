@@ -15,13 +15,17 @@ import { AuthDivider } from "@/components/auth/auth-divider"
 import { useAuth } from "@/hooks/use-auth"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
+import { supabase } from "@/lib/supabase"
+import { Mail, Key, ArrowLeft } from "lucide-react"
 
 export default function SignInPage() {
     const t = useTranslations("Auth.SignIn")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [isLoading, setIsLoading] = useState(false)
-    // removed unused local error state
+    const [isMagicLinkLoading, setIsMagicLinkLoading] = useState(false)
+    const [showPasswordInput, setShowPasswordInput] = useState(false)
+    const [isCheckingEmail, setIsCheckingEmail] = useState(false)
     const router = useRouter()
     const params = useSearchParams()
     const { signIn, user } = useAuth()
@@ -43,10 +47,83 @@ export default function SignInPage() {
         router.replace(callbackUrl)
     }, [user, router, params])
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const checkEmailExists = async (email: string) => {
+        setIsCheckingEmail(true)
+        try {
+            const { error } = await supabase.auth.signInWithPassword({
+                email,
+                password: 'dummy-password-to-check-email'
+            })
+            
+            if (error) {
+                if (error.message.includes('Invalid login credentials')) {
+                    // Email exists but password is wrong
+                    return true
+                } else if (error.message.includes('Email not confirmed')) {
+                    // Email exists but not confirmed
+                    return true
+                } else {
+                    // Email doesn't exist
+                    return false
+                }
+            } else {
+                // This shouldn't happen with dummy password, but if it does, email exists
+                return true
+            }
+        } catch (error) {
+            console.error('Error checking email:', error)
+            return false
+        } finally {
+            setIsCheckingEmail(false)
+        }
+    }
+
+    const handleContinue = async () => {
+        if (!email) {
+            toast.error("Please enter your email address")
+            return
+        }
+
+        const emailExists = await checkEmailExists(email)
+        
+        if (emailExists) {
+            setShowPasswordInput(true)
+        } else {
+            toast.error("No account found with this email address. Please sign up first.")
+        }
+    }
+
+    const handleMagicLink = async () => {
+        if (!email) {
+            toast.error("Please enter your email address")
+            return
+        }
+
+        setIsMagicLinkLoading(true)
+        try {
+            const { error } = await supabase.auth.signInWithOtp({
+                email,
+                options: {
+                    emailRedirectTo: `${window.location.origin}/auth/callback`
+                }
+            })
+
+            if (error) {
+                toast.error(error.message || "Failed to send magic link")
+            } else {
+                toast.success("Magic link sent! Check your email to sign in.")
+            }
+        } catch (error) {
+            console.error('Magic link error:', error)
+            toast.error("Failed to send magic link. Please try again.")
+        } finally {
+            setIsMagicLinkLoading(false)
+        }
+    }
+
+    const handlePasswordSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoading(true)
-        // no-op: we only show toasts for errors
 
         try {
             const { error } = await signIn(email, password)
@@ -59,11 +136,15 @@ export default function SignInPage() {
                 router.refresh()
             }
         } catch {
-            // show toast only; no local error state
             toast.error("An error occurred. Please try again.", { duration: Infinity, closeButton: true })
         } finally {
             setIsLoading(false)
         }
+    }
+
+    const handleBackToEmail = () => {
+        setShowPasswordInput(false)
+        setPassword("")
     }
 
     return (
@@ -88,10 +169,10 @@ export default function SignInPage() {
 
             <AuthDivider />
 
-            {/* Sign In Form */}
-            <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20 card-glow'>
-                <form onSubmit={handleSubmit} className='space-y-6'>
-                    <div className='space-y-4'>
+            {/* Email Input Form */}
+            {!showPasswordInput ? (
+                <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20 card-glow'>
+                    <div className='space-y-6'>
                         <div className='space-y-2'>
                             <Label
                                 htmlFor='email'
@@ -113,48 +194,114 @@ export default function SignInPage() {
                             </div>
                         </div>
 
-                        <div className='space-y-2'>
-                            <Label
-                                htmlFor='password'
-                                className='text-sm font-medium'
+                        <div className='space-y-3'>
+                            <Button
+                                type='button'
+                                onClick={handleContinue}
+                                disabled={!email || isCheckingEmail}
+                                className='w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-lg card-glow'
                             >
-                                {t("passwordLabel")}
-                            </Label>
-                            <div className='relative'>
-                                <Input
-                                    id='password'
-                                    type='password'
-                                    placeholder={t("passwordPlaceholder")}
-                                    value={password}
-                                    onChange={(e) =>
-                                        setPassword(e.target.value)
-                                    }
-                                    className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 floating-input'
-                                    required
-                                />
-                                <div className='absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-secondary/5 pointer-events-none opacity-0 transition-opacity duration-300 peer-focus:opacity-100'></div>
-                            </div>
+                                {isCheckingEmail ? (
+                                    <>
+                                        <div className='w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2' />
+                                        Checking...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Key className='w-5 h-5 mr-2' />
+                                        Continue
+                                    </>
+                                )}
+                            </Button>
+
+                            <Button
+                                type='button'
+                                onClick={handleMagicLink}
+                                disabled={!email || isMagicLinkLoading}
+                                variant='outline'
+                                className='w-full border-primary/30 text-primary hover:bg-primary/10 py-6 text-lg'
+                            >
+                                {isMagicLinkLoading ? (
+                                    <>
+                                        <div className='w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin mr-2' />
+                                        Sending...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Mail className='w-5 h-5 mr-2' />
+                                        Continue with Magic Link
+                                    </>
+                                )}
+                            </Button>
                         </div>
                     </div>
+                </Card>
+            ) : (
+                /* Password Input Form */
+                <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20 card-glow'>
+                    <div className='space-y-6'>
+                        <div className='flex items-center justify-between'>
+                            <h2 className='text-lg font-semibold'>Enter your password</h2>
+                            <Button
+                                type='button'
+                                variant='ghost'
+                                size='sm'
+                                onClick={handleBackToEmail}
+                                className='text-muted-foreground hover:text-foreground'
+                            >
+                                <ArrowLeft className='w-4 h-4 mr-1' />
+                                Back
+                            </Button>
+                        </div>
 
-                    <div className='flex items-center justify-between text-sm'>
-                        <Link
-                            href='/forgot-password'
-                            className='text-primary hover:text-primary/80 transition-colors'
-                        >
-                            {t("forgot")}
-                        </Link>
+                        <div className='space-y-2'>
+                            <Label className='text-sm font-medium text-muted-foreground'>
+                                {email}
+                            </Label>
+                        </div>
+
+                        <form onSubmit={handlePasswordSubmit} className='space-y-6'>
+                            <div className='space-y-2'>
+                                <Label
+                                    htmlFor='password'
+                                    className='text-sm font-medium'
+                                >
+                                    {t("passwordLabel")}
+                                </Label>
+                                <div className='relative'>
+                                    <Input
+                                        id='password'
+                                        type='password'
+                                        placeholder={t("passwordPlaceholder")}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 floating-input'
+                                        required
+                                    />
+                                    <div className='absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-secondary/5 pointer-events-none opacity-0 transition-opacity duration-300 peer-focus:opacity-100'></div>
+                                </div>
+                            </div>
+
+                            <div className='flex items-center justify-between text-sm'>
+                                <Link
+                                    href='/forgot-password'
+                                    className='text-primary hover:text-primary/80 transition-colors'
+                                >
+                                    {t("forgot")}
+                                </Link>
+                            </div>
+
+                            <Button
+                                type='submit'
+                                disabled={isLoading}
+                                className='w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-lg card-glow'
+                            >
+                                {isLoading ? t("buttonLoading") : t("button")}
+                            </Button>
+                        </form>
                     </div>
-
-                    <Button
-                        type='submit'
-                        disabled={isLoading}
-                        className='w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-lg card-glow'
-                    >
-                        {isLoading ? t("buttonLoading") : t("button")}
-                    </Button>
-                </form>
-            </Card>
+                </Card>
+            )}
 
             {/* Sign Up Link */}
             <div className='text-center'>
