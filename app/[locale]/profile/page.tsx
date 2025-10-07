@@ -137,7 +137,7 @@ export default function ProfilePage() {
                                 <div className='p-2 rounded-lg bg-gradient-to-br from-accent/20 to-primary/20 border border-accent/30'>
                                     <User className='w-5 h-5 text-accent' />
                                 </div>
-                                <h2 className='text-xl sm:text-2xl font-bold text-accent'>
+                                <h2 className='text-xl sm:text-2xl font-bold text-white'>
                                     Profile Information
                                 </h2>
                             </div>
@@ -146,7 +146,7 @@ export default function ProfilePage() {
                                 <div className='space-y-2'>
                                     <Label
                                         htmlFor='name'
-                                        className='text-accent font-semibold flex items-center gap-2'
+                                        className='text-white font-semibold flex items-center gap-2'
                                     >
                                         <Star className='w-4 h-4' />
                                         Full Name *
@@ -160,14 +160,14 @@ export default function ProfilePage() {
                                                 e.target.value
                                             )
                                         }
-                                        className='bg-background/40 border-border/40 text-foreground placeholder-muted-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
+                                        className='bg-background/40 border-border/40 text-white placeholder-gray-400 focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
                                         placeholder='Enter your full name'
                                     />
                                 </div>
                                 <div className='space-y-2'>
                                     <Label
                                         htmlFor='gender'
-                                        className='text-accent font-semibold flex items-center gap-2'
+                                        className='text-white font-semibold flex items-center gap-2'
                                     >
                                         <Moon className='w-4 h-4' />
                                         Gender
@@ -181,7 +181,7 @@ export default function ProfilePage() {
                                             )
                                         }
                                     >
-                                        <SelectTrigger className='bg-background/40 border-border/40 text-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'>
+                                        <SelectTrigger className='bg-background/40 border-border/40 text-white focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'>
                                             <SelectValue placeholder='Select gender' />
                                         </SelectTrigger>
                                         <SelectContent className='bg-background/95 border-border/40 backdrop-blur-md'>
@@ -189,7 +189,7 @@ export default function ProfilePage() {
                                                 <SelectItem
                                                     key={option.value}
                                                     value={option.value}
-                                                    className='text-foreground hover:bg-accent/20 focus:bg-accent/20'
+                                                    className='text-white hover:bg-accent/20 focus:bg-accent/20'
                                                 >
                                                     {option.label}
                                                 </SelectItem>
@@ -213,7 +213,7 @@ export default function ProfilePage() {
                                     onChange={(e) =>
                                         handleInputChange("bio", e.target.value)
                                     }
-                                    className='bg-background/40 border-border/40 text-foreground placeholder-muted-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300 min-h-[100px] resize-none'
+                                    className='bg-background/40 border-border/40 text-white placeholder-gray-400 focus:border-accent/50 focus:ring-accent/20 transition-all duration-300 min-h-[100px] resize-none'
                                     placeholder='Tell us about yourself...'
                                 />
                             </div>
@@ -222,7 +222,7 @@ export default function ProfilePage() {
                                 <div className='space-y-2'>
                                     <Label
                                         htmlFor='job'
-                                        className='text-accent font-semibold flex items-center gap-2'
+                                        className='text-white font-semibold flex items-center gap-2'
                                     >
                                         <Star className='w-4 h-4' />
                                         Occupation
@@ -236,14 +236,14 @@ export default function ProfilePage() {
                                                 e.target.value
                                             )
                                         }
-                                        className='bg-background/40 border-border/40 text-foreground placeholder-muted-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
+                                        className='bg-background/40 border-border/40 text-white placeholder-gray-400 focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
                                         placeholder='Your profession or occupation'
                                     />
                                 </div>
                                 <div className='space-y-2'>
                                     <Label
                                         htmlFor='birthPlace'
-                                        className='text-accent font-semibold flex items-center gap-2'
+                                        className='text-white font-semibold flex items-center gap-2'
                                     >
                                         <Calendar className='w-4 h-4' />
                                         Birth Place
@@ -257,7 +257,7 @@ export default function ProfilePage() {
                                                 e.target.value
                                             )
                                         }
-                                        className='bg-background/40 border-border/40 text-foreground placeholder-muted-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
+                                        className='bg-background/40 border-border/40 text-white placeholder-gray-400 focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
                                         placeholder='City, Country'
                                     />
                                 </div>
@@ -267,7 +267,7 @@ export default function ProfilePage() {
                                 <div className='space-y-2'>
                                     <Label
                                         htmlFor='birthDate'
-                                        className='text-accent font-semibold flex items-center gap-2'
+                                        className='text-white font-semibold flex items-center gap-2'
                                     >
                                         <Calendar className='w-4 h-4' />
                                         Birth Date
@@ -288,7 +288,7 @@ export default function ProfilePage() {
                                 <div className='space-y-2'>
                                     <Label
                                         htmlFor='birthTime'
-                                        className='text-accent font-semibold flex items-center gap-2'
+                                        className='text-white font-semibold flex items-center gap-2'
                                     >
                                         <Calendar className='w-4 h-4' />
                                         Birth Time

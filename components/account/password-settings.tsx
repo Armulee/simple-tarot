@@ -124,7 +124,7 @@ export function PasswordSettings({ loginMethod }: PasswordSettingsProps) {
                                         e.target.value
                                     )
                                 }
-                                className='bg-background/30 border-border/50 text-foreground placeholder-muted-foreground focus:border-primary/50 pr-10'
+                                className='bg-background/30 border-border/50 text-white placeholder-gray-400 focus:border-primary/50 pr-10'
                                 placeholder='Enter new password'
                                 disabled={isLoading}
                             />
@@ -165,7 +165,7 @@ export function PasswordSettings({ loginMethod }: PasswordSettingsProps) {
                                         e.target.value
                                     )
                                 }
-                                className='bg-background/30 border-border/50 text-foreground placeholder-muted-foreground focus:border-primary/50 pr-10'
+                                className='bg-background/30 border-border/50 text-white placeholder-gray-400 focus:border-primary/50 pr-10'
                                 placeholder='Confirm new password'
                                 disabled={isLoading}
                             />

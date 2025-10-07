@@ -204,7 +204,7 @@ export function LoginMethods() {
                                 </div>
                                 <div className='flex-1'>
                                     <h3 className='font-medium text-white'>Email & Password</h3>
-                                    <p className='text-sm text-muted-foreground'>Secure email-based authentication</p>
+                                    <p className='text-sm text-gray-300'>Secure email-based authentication</p>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     {isProviderLinked('email') ? (
@@ -255,7 +255,7 @@ export function LoginMethods() {
                                 </div>
                                 <div className='flex-1'>
                                     <h3 className='font-medium text-white'>Google</h3>
-                                    <p className='text-sm text-muted-foreground'>Sign in with Google account</p>
+                                    <p className='text-sm text-gray-300'>Sign in with Google account</p>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     {isProviderLinked('google') ? (
@@ -303,7 +303,7 @@ export function LoginMethods() {
                 </div>
 
                 <div className='p-4 rounded-lg bg-background/30 border border-border/50'>
-                    <p className='text-xs text-muted-foreground'>
+                    <p className='text-xs text-gray-400'>
                         <strong>Note:</strong> You can link multiple authentication methods to your account. 
                         You must keep at least one method active. Use the Password Settings section below 
                         to manage your email and password credentials.

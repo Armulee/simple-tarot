@@ -57,7 +57,7 @@ export function PhoneSettings({ locale }: PhoneSettingsProps) {
                                         <Input
                                             value={primaryPhoneNumber}
                                             disabled
-                                            className='bg-background/30 border-border/50 text-foreground'
+                                            className='bg-background/30 border-border/50 text-white'
                                         />
                                         <Badge
                                             variant='outline'

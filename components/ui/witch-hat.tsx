@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 
 interface WitchHatProps {
@@ -34,11 +35,13 @@ export function WitchHat({ className, size = "md" }: WitchHatProps) {
                 <div className="absolute inset-0 -m-2 rounded-full bg-primary/20 animate-ping" />
             )}
             
-            <svg
-                viewBox="0 0 24 24"
-                fill="none"
+            <Image
+                src="/assets/logo.png"
+                alt="Witch Hat Logo"
+                width={32}
+                height={32}
                 className={cn(
-                    "text-primary transition-all duration-300 relative z-10",
+                    "transition-all duration-300 relative z-10 object-contain",
                     sizeClasses[size],
                     isAnimating && "drop-shadow-lg"
                 )}
@@ -48,70 +51,7 @@ export function WitchHat({ className, size = "md" }: WitchHatProps) {
                         : "none",
                     filter: isAnimating ? "drop-shadow(0 0 8px currentColor)" : "none"
                 }}
-            >
-                {/* Witch Hat SVG Path */}
-                <path
-                    d="M12 2L8 8H16L12 2Z"
-                    fill="currentColor"
-                    className={isAnimating ? "animate-pulse" : ""}
-                />
-                <path
-                    d="M6 8H18L20 10V12H4V10L6 8Z"
-                    fill="currentColor"
-                    className={isAnimating ? "animate-pulse" : ""}
-                />
-                <path
-                    d="M8 12H16V14H8V12Z"
-                    fill="currentColor"
-                    className={isAnimating ? "animate-pulse" : ""}
-                />
-                
-                {/* Magical sparkles */}
-                {isAnimating && (
-                    <>
-                        <circle
-                            cx="6"
-                            cy="6"
-                            r="1"
-                            fill="currentColor"
-                            className="animate-ping opacity-75"
-                            style={{ animationDelay: "0.5s" }}
-                        />
-                        <circle
-                            cx="18"
-                            cy="6"
-                            r="1"
-                            fill="currentColor"
-                            className="animate-ping opacity-75"
-                            style={{ animationDelay: "1s" }}
-                        />
-                        <circle
-                            cx="12"
-                            cy="4"
-                            r="0.5"
-                            fill="currentColor"
-                            className="animate-ping opacity-75"
-                            style={{ animationDelay: "1.5s" }}
-                        />
-                        <circle
-                            cx="4"
-                            cy="10"
-                            r="0.8"
-                            fill="currentColor"
-                            className="animate-ping opacity-60"
-                            style={{ animationDelay: "2s" }}
-                        />
-                        <circle
-                            cx="20"
-                            cy="10"
-                            r="0.8"
-                            fill="currentColor"
-                            className="animate-ping opacity-60"
-                            style={{ animationDelay: "2.5s" }}
-                        />
-                    </>
-                )}
-            </svg>
+            />
             
             {/* Custom keyframes for the witch hat dance */}
             <style jsx>{`

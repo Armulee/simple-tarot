@@ -59,7 +59,7 @@ export function EmailSettings() {
                                         <Input
                                             value={emailData.currentEmail}
                                             disabled
-                                            className='bg-background/30 border-border/50 text-foreground'
+                                            className='bg-background/30 border-border/50 text-white'
                                         />
                                         <Badge
                                             variant='outline'

@@ -41,10 +41,10 @@ export function UserProfile({
                         aria-label='Open user menu'
                         disabled
                     >
-                        <div className="relative flex flex-col items-center">
+                        <div className="relative">
                             <WitchHat 
                                 size="sm" 
-                                className="mb-1 -mt-1"
+                                className="absolute -top-2 -right-1 z-10"
                             />
                             <Skeleton className='w-8 h-8 rounded-full' />
                         </div>
@@ -64,10 +64,10 @@ export function UserProfile({
                     aria-label='Open user menu'
                     disabled
                 >
-                    <div className="relative flex flex-col items-center">
+                    <div className="relative">
                         <WitchHat 
                             size="sm" 
-                            className="mb-1 -mt-1"
+                            className="absolute -top-2 -right-1 z-10"
                         />
                         <Skeleton className='w-8 h-8 rounded-full' />
                     </div>
@@ -84,10 +84,10 @@ export function UserProfile({
                     className='flex items-center gap-2 px-3 py-2 rounded-full hover:bg-white/10 text-white'
                     disabled
                 >
-                    <div className="relative flex flex-col items-center">
+                    <div className="relative">
                         <WitchHat 
                             size="sm" 
-                            className="mb-1 -mt-1"
+                            className="absolute -top-2 -right-1 z-10"
                         />
                         <Skeleton className='w-8 h-8 rounded-full' />
                     </div>
@@ -106,10 +106,10 @@ export function UserProfile({
                     className={`text-white hover:bg-white/10 ${className || ""}`}
                     aria-label='Open user menu'
                 >
-                    <div className="relative flex flex-col items-center">
+                    <div className="relative">
                         <WitchHat 
                             size="sm" 
-                            className="mb-1 -mt-1"
+                            className="absolute -top-2 -right-1 z-10"
                         />
                         <ConsistentAvatar 
                             data={{
@@ -134,19 +134,19 @@ export function UserProfile({
                 }`}
                 aria-label='Open user menu'
             >
-                <div className="relative flex flex-col items-center">
-                    <WitchHat 
-                        size="sm" 
-                        className="mb-1 -mt-1"
-                    />
-                    <ConsistentAvatar 
-                        data={{
-                            name: profile?.name,
-                            email: user.email
-                        }}
-                        size="sm"
-                    />
-                </div>
+                    <div className="relative">
+                        <WitchHat 
+                            size="sm" 
+                            className="absolute -top-2 -right-1 z-10"
+                        />
+                        <ConsistentAvatar 
+                            data={{
+                                name: profile?.name,
+                                email: user.email
+                            }}
+                            size="sm"
+                        />
+                    </div>
                 <span className='hidden sm:block text-sm font-medium'>
                     {getUserName()}
                 </span>
@@ -161,19 +161,19 @@ export function UserProfile({
                 variant='ghost'
                 className='flex items-center gap-2 px-3 py-2 rounded-full hover:bg-white/10 text-white'
             >
-                <div className="relative flex flex-col items-center">
-                    <WitchHat 
-                        size="sm" 
-                        className="mb-1 -mt-1"
-                    />
-                    <ConsistentAvatar 
-                        data={{
-                            name: profile?.name,
-                            email: user.email
-                        }}
-                        size="sm"
-                    />
-                </div>
+                    <div className="relative">
+                        <WitchHat 
+                            size="sm" 
+                            className="absolute -top-2 -right-1 z-10"
+                        />
+                        <ConsistentAvatar 
+                            data={{
+                                name: profile?.name,
+                                email: user.email
+                            }}
+                            size="sm"
+                        />
+                    </div>
                 <ChevronDown className='w-4 h-4' />
             </Button>
         </UserProfileDropdown>
