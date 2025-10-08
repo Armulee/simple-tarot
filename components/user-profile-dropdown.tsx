@@ -171,7 +171,7 @@ export function UserProfileDropdown({
                                 Theme
                             </DropdownMenuSubTrigger>
                             <DropdownMenuSubContent 
-                                className='w-56 bg-card/95 backdrop-blur-md border-border/30 z-50'
+                                className='w-48 bg-card/95 backdrop-blur-md border-border/30 z-50'
                                 sideOffset={-4}
                                 alignOffset={4}
                             >
