@@ -1,4 +1,4 @@
-import { ArrowUpAZ, BookOpen, Hash, Star, Palette } from "lucide-react"
+import { ArrowUpAZ, BookOpen, Hash, Star, Palette, Calendar, Hand } from "lucide-react"
 
 const mysticalServices = [
     {
@@ -9,9 +9,16 @@ const mysticalServices = [
         available: true,
     },
     {
-        id: "astrology",
+        id: "birthChart",
         href: "#",
-        label: "Astrology",
+        label: "Birth Chart",
+        Icon: Calendar,
+        available: false,
+    },
+    {
+        id: "horoscope",
+        href: "#",
+        label: "Horoscope",
         Icon: Star,
         available: false,
     },
@@ -34,6 +41,13 @@ const mysticalServices = [
         href: "#",
         label: "Lucky Colors",
         Icon: Palette,
+        available: false,
+    },
+    {
+        id: "palmistry",
+        href: "#",
+        label: "Palmistry",
+        Icon: Hand,
         available: false,
     },
 ] as const

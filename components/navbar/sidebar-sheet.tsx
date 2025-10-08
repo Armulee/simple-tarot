@@ -22,6 +22,7 @@ import {
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { ConsistentAvatar } from "@/components/ui/consistent-avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { UserProfileDropdown } from "@/components/user-profile-dropdown"
@@ -50,7 +51,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent
                 side='left'
-                className='md:hidden bg-card/95 backdrop-blur-md border-border/30 w-72 max-w-[85vw]'
+                className='md:hidden bg-card/95 backdrop-blur-md border-border/30 w-72 max-w-[85vw] flex flex-col'
             >
                 <SheetHeader>
                     <SheetTitle>
@@ -73,8 +74,9 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                         </Link>
                     </SheetTitle>
                 </SheetHeader>
-                <nav>
-                    <ul className='flex flex-col space-y-1 p-1'>
+                <ScrollArea className='flex-1 px-1'>
+                    <nav>
+                        <ul className='flex flex-col space-y-1 py-2'>
                         {/* Sign In / User Profile at the top */}
                         <li className='pb-2 border-b border-white/10 mb-2'>
                             {!loading && user ? (
@@ -236,8 +238,9 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                 <span>{t("termsOfService")}</span>
                             </Link>
                         </li>
-                    </ul>
-                </nav>
+                        </ul>
+                    </nav>
+                </ScrollArea>
             </SheetContent>
         </Sheet>
     )
