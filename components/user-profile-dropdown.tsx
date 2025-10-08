@@ -9,14 +9,24 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/use-auth"
-import { LogOut, CreditCard, Bell, User, Shield, Palette } from "lucide-react"
+import { LogOut, CreditCard, Bell, User, Shield, Palette, Moon, Sun, Star, Eye, Wand2, Check } from "lucide-react"
 import { NotificationSheet } from "@/components/notifications/notification-sheet"
 
 interface UserProfileDropdownProps {
     children: React.ReactNode
     onClose?: () => void
+}
+
+interface Theme {
+    id: string
+    name: string
+    icon: React.ReactNode
+    available: boolean
 }
 
 export function UserProfileDropdown({
@@ -27,6 +37,46 @@ export function UserProfileDropdown({
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
     const [notificationOpen, setNotificationOpen] = useState(false)
+    const [selectedTheme, setSelectedTheme] = useState("default")
+
+    const themes: Theme[] = [
+        {
+            id: "default",
+            name: "Default",
+            icon: <Palette className='w-4 h-4' />,
+            available: true,
+        },
+        {
+            id: "antiverse",
+            name: "Anti-Verse",
+            icon: <Moon className='w-4 h-4' />,
+            available: true,
+        },
+        {
+            id: "zodiac",
+            name: "Zodiac",
+            icon: <Star className='w-4 h-4' />,
+            available: true,
+        },
+        {
+            id: "singularity",
+            name: "Singularity",
+            icon: <Eye className='w-4 h-4' />,
+            available: true,
+        },
+        {
+            id: "luminous",
+            name: "Luminous",
+            icon: <Sun className='w-4 h-4' />,
+            available: true,
+        },
+        {
+            id: "mystic",
+            name: "Mystic",
+            icon: <Wand2 className='w-4 h-4' />,
+            available: true,
+        },
+    ]
 
     if (!user) return null
 
@@ -58,8 +108,10 @@ export function UserProfileDropdown({
         if (onClose) onClose()
     }
 
-    const handleThemeClick = () => {
-        router.push("/theme")
+    const handleThemeSelect = (themeId: string) => {
+        setSelectedTheme(themeId)
+        // TODO: Implement theme switching logic
+        console.log("Selected theme:", themeId)
         if (onClose) onClose()
     }
 
@@ -110,10 +162,30 @@ export function UserProfileDropdown({
                         <Shield className='w-4 h-4 mr-2' />
                         Account
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleThemeClick}>
-                        <Palette className='w-4 h-4 mr-2' />
-                        Theme
-                    </DropdownMenuItem>
+                    <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                            <Palette className='w-4 h-4 mr-2' />
+                            Theme
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent className='w-48'>
+                            {themes.map((theme) => (
+                                <DropdownMenuItem
+                                    key={theme.id}
+                                    onClick={() => handleThemeSelect(theme.id)}
+                                    disabled={!theme.available}
+                                    className='flex items-center justify-between'
+                                >
+                                    <div className='flex items-center'>
+                                        {theme.icon}
+                                        <span className='ml-2'>{theme.name}</span>
+                                    </div>
+                                    {selectedTheme === theme.id && (
+                                        <Check className='w-4 h-4 text-green-400' />
+                                    )}
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuSubContent>
+                    </DropdownMenuSub>
                     <DropdownMenuItem onClick={handleBillingClick}>
                         <CreditCard className='w-4 h-4 mr-2' />
                         Billing
