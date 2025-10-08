@@ -35,65 +35,7 @@ export function NotificationSheet({
     open,
     onOpenChange,
 }: NotificationSheetProps) {
-    const [notifications, setNotifications] = useState<Notification[]>([
-        {
-            id: "1",
-            type: "success",
-            title: "Reading Complete",
-            message:
-                "Your tarot reading is ready! View your interpretation now.",
-            timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
-            read: false,
-            action: {
-                label: "View Reading",
-                href: "/reading",
-            },
-        },
-        {
-            id: "2",
-            type: "info",
-            title: "Stars Purchased",
-            message:
-                "You've successfully purchased 50 stars. Start a new reading!",
-            timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-            read: false,
-            action: {
-                label: "New Reading",
-                href: "/",
-            },
-        },
-        {
-            id: "3",
-            type: "warning",
-            title: "Low Stars Balance",
-            message:
-                "You have 2 stars remaining. Consider purchasing more for future readings.",
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-            read: true,
-            action: {
-                label: "Buy Stars",
-                href: "/pricing",
-            },
-        },
-        {
-            id: "4",
-            type: "info",
-            title: "New Feature Available",
-            message:
-                "Check out our new horoscope feature in the mystical services menu!",
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-            read: true,
-        },
-        {
-            id: "5",
-            type: "success",
-            title: "Account Verified",
-            message:
-                "Your email has been successfully verified. Welcome to Asking Fate!",
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
-            read: true,
-        },
-    ])
+    const [notifications, setNotifications] = useState<Notification[]>([])
 
     const getNotificationIcon = (type: Notification["type"]) => {
         switch (type) {
@@ -141,21 +83,6 @@ export function NotificationSheet({
         }
     }
 
-    const markAsRead = (id: string) => {
-        setNotifications((prev) =>
-            prev.map((notification) =>
-                notification.id === id
-                    ? { ...notification, read: true }
-                    : notification
-            )
-        )
-    }
-
-    const markAllAsRead = () => {
-        setNotifications((prev) =>
-            prev.map((notification) => ({ ...notification, read: true }))
-        )
-    }
 
     const deleteNotification = (id: string) => {
         setNotifications((prev) =>
@@ -182,16 +109,6 @@ export function NotificationSheet({
                                 </Badge>
                             )}
                         </SheetTitle>
-                        {unreadCount > 0 && (
-                            <Button
-                                variant='ghost'
-                                size='sm'
-                                onClick={markAllAsRead}
-                                className='text-xs text-gray-400 hover:text-white'
-                            >
-                                Mark all read
-                            </Button>
-                        )}
                     </div>
                 </SheetHeader>
 
@@ -200,14 +117,13 @@ export function NotificationSheet({
                 <ScrollArea className='flex-1 mt-4'>
                     <div className='space-y-3'>
                         {notifications.length === 0 ? (
-                            <div className='text-center py-8'>
-                                <Bell className='w-12 h-12 text-gray-400 mx-auto mb-4' />
-                                <p className='text-gray-400'>
-                                    No notifications yet
+                            <div className='text-center py-12'>
+                                <Bell className='w-16 h-16 text-gray-500 mx-auto mb-4' />
+                                <p className='text-gray-400 text-lg font-medium'>
+                                    No notifications
                                 </p>
-                                <p className='text-sm text-gray-500 mt-1'>
-                                    We&apos;ll notify you about important
-                                    updates
+                                <p className='text-sm text-gray-500 mt-2'>
+                                    You&apos;re all caught up! We&apos;ll notify you about important updates.
                                 </p>
                             </div>
                         ) : (
@@ -273,9 +189,6 @@ export function NotificationSheet({
                                                     size='sm'
                                                     className='mt-3 text-xs border-white/20 text-white hover:bg-white/10'
                                                     onClick={() => {
-                                                        markAsRead(
-                                                            notification.id
-                                                        )
                                                         window.location.href =
                                                             notification.action!.href
                                                     }}
