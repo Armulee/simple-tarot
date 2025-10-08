@@ -12,6 +12,7 @@ import {
     DropdownMenuSub,
     DropdownMenuSubContent,
     DropdownMenuSubTrigger,
+    DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/use-auth"
 import { LogOut, CreditCard, Bell, User, Shield, Palette, Moon, Sun, Star, Eye, Wand2, Check } from "lucide-react"
@@ -131,6 +132,7 @@ export function UserProfileDropdown({
                 <DropdownMenuContent
                     align='end'
                     className='w-56 bg-card/95 backdrop-blur-md border-border/30'
+                    sideOffset={5}
                 >
                     <div className='flex items-center gap-2 p-2'>
                         <ConsistentAvatar 
@@ -150,46 +152,52 @@ export function UserProfileDropdown({
                         </div>
                     </div>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleNotificationsClick}>
-                        <Bell className='w-4 h-4 mr-2' />
-                        Notifications
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleProfileClick}>
-                        <User className='w-4 h-4 mr-2' />
-                        Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleAccountClick}>
-                        <Shield className='w-4 h-4 mr-2' />
-                        Account
-                    </DropdownMenuItem>
-                    <DropdownMenuSub>
-                        <DropdownMenuSubTrigger>
-                            <Palette className='w-4 h-4 mr-2' />
-                            Theme
-                        </DropdownMenuSubTrigger>
-                        <DropdownMenuSubContent className='w-48'>
-                            {themes.map((theme) => (
-                                <DropdownMenuItem
-                                    key={theme.id}
-                                    onClick={() => handleThemeSelect(theme.id)}
-                                    disabled={!theme.available}
-                                    className='flex items-center justify-between'
-                                >
-                                    <div className='flex items-center'>
-                                        {theme.icon}
-                                        <span className='ml-2'>{theme.name}</span>
-                                    </div>
-                                    {selectedTheme === theme.id && (
-                                        <Check className='w-4 h-4 text-green-400' />
-                                    )}
-                                </DropdownMenuItem>
-                            ))}
-                        </DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                    <DropdownMenuItem onClick={handleBillingClick}>
-                        <CreditCard className='w-4 h-4 mr-2' />
-                        Billing
-                    </DropdownMenuItem>
+                    <DropdownMenuGroup>
+                        <DropdownMenuItem onClick={handleNotificationsClick}>
+                            <Bell className='w-4 h-4 mr-2' />
+                            Notifications
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleProfileClick}>
+                            <User className='w-4 h-4 mr-2' />
+                            Profile
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleAccountClick}>
+                            <Shield className='w-4 h-4 mr-2' />
+                            Account
+                        </DropdownMenuItem>
+                        <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
+                                <Palette className='w-4 h-4 mr-2' />
+                                Theme
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent 
+                                className='w-52 bg-card/95 backdrop-blur-md border-border/30'
+                                sideOffset={4}
+                                alignOffset={-4}
+                            >
+                                {themes.map((theme) => (
+                                    <DropdownMenuItem
+                                        key={theme.id}
+                                        onClick={() => handleThemeSelect(theme.id)}
+                                        disabled={!theme.available}
+                                        className='flex items-center justify-between'
+                                    >
+                                        <div className='flex items-center'>
+                                            {theme.icon}
+                                            <span className='ml-2'>{theme.name}</span>
+                                        </div>
+                                        {selectedTheme === theme.id && (
+                                            <Check className='w-4 h-4 text-green-400' />
+                                        )}
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                        <DropdownMenuItem onClick={handleBillingClick}>
+                            <CreditCard className='w-4 h-4 mr-2' />
+                            Billing
+                        </DropdownMenuItem>
+                    </DropdownMenuGroup>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                         onClick={handleSignOut}
