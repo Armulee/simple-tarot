@@ -16,10 +16,17 @@
 
   "Services": {
     "tarot": "Tarot",
-    "astrology": "Astrology",
+    "birthChart": "Birth Chart",
+    "horoscope": "Horoscope",
     "namelogy": "Namelogy",
     "numerology": "Numerology",
-    "luckyColors": "Lucky Colors"
+    "luckyColors": "Lucky Colors",
+    "palmistry": "Palmistry"
+  },
+
+  "Languages": {
+    "en": "English",
+    "th": "ไทย"
   },
 
   "Home": {

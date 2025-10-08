@@ -41,6 +41,7 @@ import { useTranslations as useSidebarTranslations } from "next-intl"
 export function Navbar({ locale }: { locale: string }) {
     const t = useTranslations("Navbar")
     const s = useSidebarTranslations("Services")
+    const l = useTranslations("Languages")
     const [open, setOpen] = useState(false)
     const router = useRouter()
     const pathname = usePathname()
@@ -185,10 +186,10 @@ export function Navbar({ locale }: { locale: string }) {
                                     className='text-white border-white/30 hover:bg-white/10'
                                     aria-label='Change language'
                                 >
-                                    {locale.toUpperCase()}{" "}
+                                    {l(locale as keyof typeof l)}{" "}
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className='w-24 bg-card/95 backdrop-blur-md border-border/30'>
+                            <DropdownMenuContent className='w-32 bg-card/95 backdrop-blur-md border-border/30'>
                                 {routing.locales.map((loc) => (
                                     <DropdownMenuItem
                                         key={loc}
@@ -200,7 +201,7 @@ export function Navbar({ locale }: { locale: string }) {
                                         className='cursor-pointer'
                                     >
                                         <span className='flex-grow'>
-                                            {loc.toUpperCase()}
+                                            {l(loc as keyof typeof l)}
                                         </span>
                                         {locale === loc && (
                                             <Check className='ml-2 h-4 w-4' />

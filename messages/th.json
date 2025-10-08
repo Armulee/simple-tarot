@@ -16,10 +16,17 @@
 
   "Services": {
     "tarot": "ไพ่ทาโรต์",
-    "astrology": "โหราศาสตร์",
+    "birthChart": "ดวงชะตา",
+    "horoscope": "โหราศาสตร์",
     "namelogy": "นามศาสตร์",
     "numerology": "เลขศาสตร์",
-    "luckyColors": "สีมงคล"
+    "luckyColors": "สีมงคล",
+    "palmistry": "ดูลายมือ"
+  },
+
+  "Languages": {
+    "en": "English",
+    "th": "ไทย"
   },
 
   "Home": {
