@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
+import { useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,6 +30,7 @@ const contactFormSchema = z.object({
 type ContactFormData = z.infer<typeof contactFormSchema>
 
 export default function ContactPage() {
+    const t = useTranslations("Contact")
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const form = useForm<ContactFormData>({
@@ -60,10 +62,10 @@ export default function ContactPage() {
 
             const result = await response.json()
             form.reset()
-            toast.success("Message sent successfully! We'll get back to you soon.")
+            toast.success(t("form.success"))
             console.log("Contact form submitted successfully:", result.message)
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : "Failed to send message. Please try again."
+            const errorMessage = err instanceof Error ? err.message : t("form.error")
             toast.error(errorMessage)
             console.error("Contact form error:", err)
         } finally {
@@ -74,43 +76,43 @@ export default function ContactPage() {
     const contactInfo = [
         {
             icon: Mail,
-            title: "Email Support",
-            description: "Get help via email",
+            title: t("emailSupport"),
+            description: t("emailSupportDescription"),
             value: "admin@askingfate.com",
-            badge: "24-48h response",
+            badge: t("responseTime24h"),
         },
         {
             icon: MessageSquare,
-            title: "Live Chat",
-            description: "Chat with our support team",
-            value: "Available 9 AM - 6 PM EST",
-            badge: "Mon-Fri",
+            title: t("liveChat"),
+            description: t("liveChatDescription"),
+            value: t("availableHours"),
+            badge: t("weekdays"),
         },
         {
             icon: Clock,
-            title: "Response Time",
-            description: "Typical response time",
-            value: "Within 24-48 hours",
-            badge: "Business days",
+            title: t("responseTime"),
+            description: t("responseTimeDescription"),
+            value: t("responseTimeValue"),
+            badge: t("businessDays"),
         },
     ]
 
     const faqItems = [
         {
-            question: "How do I get more stars?",
-            answer: "You can purchase stars through our billing page or earn them through special promotions. Check the pricing page for current packages.",
+            question: t("faq.howToGetStars"),
+            answer: t("faq.howToGetStarsAnswer"),
         },
         {
-            question: "Can I get a refund?",
-            answer: "We offer refunds within 7 days of purchase for unused stars. Contact us with your transaction details for assistance.",
+            question: t("faq.refundPolicy"),
+            answer: t("faq.refundPolicyAnswer"),
         },
         {
-            question: "Is my reading data private?",
-            answer: "Yes, all your readings and personal information are kept completely private and secure. We never share your data with third parties.",
+            question: t("faq.dataPrivacy"),
+            answer: t("faq.dataPrivacyAnswer"),
         },
         {
-            question: "How accurate are the readings?",
-            answer: "Our AI-powered interpretations provide insightful guidance based on traditional tarot wisdom. Use them as a tool for reflection and personal growth.",
+            question: t("faq.readingAccuracy"),
+            answer: t("faq.readingAccuracyAnswer"),
         },
     ]
 
@@ -121,11 +123,10 @@ export default function ContactPage() {
                 {/* Header */}
                 <div className='text-center space-y-4'>
                     <h1 className='text-4xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'>
-                        Contact & Support
+                        {t("title")}
                     </h1>
                     <p className='text-gray-300 text-lg max-w-2xl mx-auto'>
-                        Need help? Have questions? We&apos;re here to assist you
-                        on your mystical journey.
+                        {t("subtitle")}
                     </p>
                 </div>
 
@@ -135,7 +136,7 @@ export default function ContactPage() {
                         <div className='flex items-center space-x-3'>
                             <MessageSquare className='w-6 h-6 text-secondary' />
                             <h2 className='text-2xl font-bold text-white'>
-                                Frequently Asked Questions
+                                {t("faqTitle")}
                             </h2>
                         </div>
 
@@ -163,13 +164,10 @@ export default function ContactPage() {
                 <Card className='bg-card/50 border-border/30 p-8 shadow-xl shadow-black/20 backdrop-blur-sm'>
                     <div className='text-center space-y-4'>
                         <h2 className='text-2xl font-bold text-white'>
-                            Still Need Help?
+                            {t("stillNeedHelp")}
                         </h2>
                         <p className='text-gray-300 max-w-2xl mx-auto'>
-                            If you can&apos;t find what you&apos;re looking for,
-                            don&apos;t hesitate to reach out. Our support team
-                            is dedicated to helping you have the best experience
-                            with Asking Fate.
+                            {t("stillNeedHelpDescription")}
                         </p>
                     </div>
                 </Card>
@@ -216,7 +214,7 @@ export default function ContactPage() {
                             <div className='flex items-center space-x-3'>
                                 <Send className='w-6 h-6 text-primary' />
                                 <h2 className='text-2xl font-bold text-white'>
-                                    Send us a Message
+                                    {t("sendMessage")}
                                 </h2>
                             </div>
 
@@ -229,11 +227,11 @@ export default function ContactPage() {
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel className='text-white font-medium'>
-                                                        Name *
+                                                        {t("form.name")} *
                                                     </FormLabel>
                                                     <FormControl>
                                                         <Input
-                                                            placeholder="Your name"
+                                                            placeholder={t("form.namePlaceholder")}
                                                             className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50'
                                                             {...field}
                                                         />
@@ -248,12 +246,12 @@ export default function ContactPage() {
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel className='text-white font-medium'>
-                                                        Email *
+                                                        {t("form.email")} *
                                                     </FormLabel>
                                                     <FormControl>
                                                         <Input
                                                             type="email"
-                                                            placeholder="your@email.com"
+                                                            placeholder={t("form.emailPlaceholder")}
                                                             className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50'
                                                             {...field}
                                                         />
@@ -270,11 +268,11 @@ export default function ContactPage() {
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel className='text-white font-medium'>
-                                                    Subject *
+                                                    {t("form.subject")} *
                                                 </FormLabel>
                                                 <FormControl>
                                                     <Input
-                                                        placeholder="What can we help you with?"
+                                                        placeholder={t("form.subjectPlaceholder")}
                                                         className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50'
                                                         {...field}
                                                     />
@@ -290,11 +288,11 @@ export default function ContactPage() {
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel className='text-white font-medium'>
-                                                    Message *
+                                                    {t("form.message")} *
                                                 </FormLabel>
                                                 <FormControl>
                                                     <Textarea
-                                                        placeholder="Please describe your inquiry or concern in detail..."
+                                                        placeholder={t("form.messagePlaceholder")}
                                                         className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50 resize-none'
                                                         rows={6}
                                                         {...field}
@@ -313,12 +311,12 @@ export default function ContactPage() {
                                         {isSubmitting ? (
                                             <>
                                                 <div className='w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2' />
-                                                Sending...
+                                                {t("form.submitting")}
                                             </>
                                         ) : (
                                             <>
                                                 <Send className='w-4 h-4 mr-2' />
-                                                Send Message
+                                                {t("form.submit")}
                                             </>
                                         )}
                                     </Button>
