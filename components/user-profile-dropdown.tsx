@@ -171,7 +171,7 @@ export function UserProfileDropdown({
                                 Theme
                             </DropdownMenuSubTrigger>
                             <DropdownMenuSubContent 
-                                className='w-44 bg-card/80 backdrop-blur-md border border-border/50 overflow-visible shadow-lg z-[10000]'
+                                className='w-fit bg-card/80 backdrop-blur-md border border-border/50 overflow-visible shadow-lg z-[10000]'
                                 sideOffset={-2}
                                 alignOffset={-2}
                             >
@@ -180,14 +180,18 @@ export function UserProfileDropdown({
                                         key={theme.id}
                                         onClick={() => handleThemeSelect(theme.id)}
                                         disabled={!theme.available}
-                                        className='flex items-center justify-between'
+                                        className={`flex items-center justify-between ${
+                                            selectedTheme === theme.id 
+                                                ? 'bg-accent text-accent-foreground' 
+                                                : ''
+                                        }`}
                                     >
                                         <div className='flex items-center'>
                                             {theme.icon}
                                             <span className='ml-2'>{theme.name}</span>
                                         </div>
                                         {selectedTheme === theme.id && (
-                                            <Check className='w-4 h-4 text-green-400' />
+                                            <Check className='w-4 h-4 text-white' />
                                         )}
                                     </DropdownMenuItem>
                                 ))}
