@@ -51,193 +51,199 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent
                 side='left'
-                className='md:hidden bg-card/95 backdrop-blur-md border-border/30 w-72 max-w-[85vw] flex flex-col h-full'
+                className='md:hidden bg-card/95 backdrop-blur-md border-border/30 w-72 max-w-[85vw] flex flex-col h-full p-0'
             >
-                <SheetHeader>
-                    <SheetTitle>
-                        <Link
-                            href='/'
-                            onClick={() => onOpenChange(false)}
-                            className='flex items-center space-x-2 group'
-                        >
-                            <Image
-                                src='/assets/logo.png'
-                                alt='Asking Fate logo'
-                                width={28}
-                                height={28}
-                                className='rounded-md object-contain group-hover:scale-110 transition-transform'
-                                priority
-                            />
-                            <span className='font-playfair text-lg font-bold text-white group-hover:text-cosmic-purple transition-colors'>
-                                Asking Fate
-                            </span>
-                        </Link>
-                    </SheetTitle>
-                </SheetHeader>
-                <ScrollArea className='flex-1 px-1 h-0'>
+                {/* Fixed Header Section */}
+                <div className='flex-shrink-0 p-6 pb-4 border-b border-white/10'>
+                    <SheetHeader className='mb-4'>
+                        <SheetTitle>
+                            <Link
+                                href='/'
+                                onClick={() => onOpenChange(false)}
+                                className='flex items-center space-x-2 group'
+                            >
+                                <Image
+                                    src='/assets/logo.png'
+                                    alt='Asking Fate logo'
+                                    width={28}
+                                    height={28}
+                                    className='rounded-md object-contain group-hover:scale-110 transition-transform'
+                                    priority
+                                />
+                                <span className='font-playfair text-lg font-bold text-white group-hover:text-cosmic-purple transition-colors'>
+                                    Asking Fate
+                                </span>
+                            </Link>
+                        </SheetTitle>
+                    </SheetHeader>
+                    
+                    {/* User Profile Section */}
+                    <div>
+                        {!loading && user ? (
+                            <UserProfileDropdown
+                                onClose={() => onOpenChange(false)}
+                            >
+                                <div className='flex items-center gap-3 p-3 rounded-lg bg-white/10 border border-white/10 hover:bg-white/15 transition-colors cursor-pointer'>
+                                    {profileLoading ? (
+                                        <>
+                                            <Skeleton className='w-10 h-10 rounded-full' />
+                                            <div className='flex-1 min-w-0 space-y-2'>
+                                                <Skeleton className='h-4 w-24' />
+                                                <Skeleton className='h-3 w-32' />
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <ConsistentAvatar 
+                                                data={{
+                                                    name: profile?.name,
+                                                    email: user?.email
+                                                }}
+                                                size="md"
+                                            />
+                                            <div className='flex-1 min-w-0'>
+                                                <p className='text-sm font-medium text-white truncate'>
+                                                    {getUserName()}
+                                                </p>
+                                                <p className='text-xs text-white/70 truncate'>
+                                                    {user.email}
+                                                </p>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </UserProfileDropdown>
+                        ) : (
+                            <Link
+                                href='/signin'
+                                className='flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-white/10 text-white/90 border border-white/10 hover:bg-white/15 transition'
+                                onClick={() => onOpenChange(false)}
+                            >
+                                <LogIn className='w-4 h-4' />
+                                <span>{a("button")}</span>
+                            </Link>
+                        )}
+                    </div>
+                </div>
+
+                {/* Scrollable Navigation Section */}
+                <ScrollArea className='flex-1 px-6 py-4'>
                     <nav>
-                        <ul className='flex flex-col space-y-1 py-2'>
-                        {/* Sign In / User Profile at the top */}
-                        <li className='pb-2 border-b border-white/10 mb-2'>
-                            {!loading && user ? (
-                                <UserProfileDropdown
-                                    onClose={() => onOpenChange(false)}
-                                >
-                                    <div className='flex items-center gap-3 p-3 rounded-lg bg-white/10 border border-white/10 hover:bg-white/15 transition-colors cursor-pointer'>
-                                        {profileLoading ? (
-                                            <>
-                                                <Skeleton className='w-10 h-10 rounded-full' />
-                                                <div className='flex-1 min-w-0 space-y-2'>
-                                                    <Skeleton className='h-4 w-24' />
-                                                    <Skeleton className='h-3 w-32' />
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <ConsistentAvatar 
-                                                    data={{
-                                                        name: profile?.name,
-                                                        email: user?.email
-                                                    }}
-                                                    size="md"
-                                                />
-                                                <div className='flex-1 min-w-0'>
-                                                    <p className='text-sm font-medium text-white truncate'>
-                                                        {getUserName()}
-                                                    </p>
-                                                    <p className='text-xs text-white/70 truncate'>
-                                                        {user.email}
-                                                    </p>
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
-                                </UserProfileDropdown>
-                            ) : (
+                        <ul className='flex flex-col space-y-1'>
+
+                            <li>
                                 <Link
-                                    href='/signin'
-                                    className='flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-white/10 text-white/90 border border-white/10 hover:bg-white/15 transition'
+                                    href={"/"}
+                                    className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
                                     onClick={() => onOpenChange(false)}
                                 >
-                                    <LogIn className='w-4 h-4' />
-                                    <span>{a("button")}</span>
+                                    <Home className='w-4 h-4' />
+                                    <span>{t("home")}</span>
                                 </Link>
-                            )}
-                        </li>
+                            </li>
+                            <li>
+                                <Link
+                                    href={"/about"}
+                                    className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
+                                    onClick={() => onOpenChange(false)}
+                                >
+                                    <Info className='w-4 h-4' />
+                                    <span>{t("about")}</span>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link
+                                    href={"/pricing"}
+                                    className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
+                                    onClick={() => onOpenChange(false)}
+                                >
+                                    <DollarSign className='w-4 h-4' />
+                                    <span>Pricing</span>
+                                </Link>
+                            </li>
 
-                        <li>
-                            <Link
-                                href={"/"}
-                                className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
-                                onClick={() => onOpenChange(false)}
-                            >
-                                <Home className='w-4 h-4' />
-                                <span>{t("home")}</span>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link
-                                href={"/about"}
-                                className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
-                                onClick={() => onOpenChange(false)}
-                            >
-                                <Info className='w-4 h-4' />
-                                <span>{t("about")}</span>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link
-                                href={"/pricing"}
-                                className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
-                                onClick={() => onOpenChange(false)}
-                            >
-                                <DollarSign className='w-4 h-4' />
-                                <span>Pricing</span>
-                            </Link>
-                        </li>
-
-                        {/* Active Service Dropdown */}
-                        <li>
-                            <button
-                                onClick={() => setMysticalOpen(!mysticalOpen)}
-                                className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors w-full'
-                            >
-                                <Sparkles className='w-4 h-4' />
-                                <span>{t("services")}</span>
-                                {mysticalOpen ? (
-                                    <ChevronUp className='w-4 h-4 ml-auto' />
-                                ) : (
-                                    <ChevronDown className='w-4 h-4 ml-auto' />
-                                )}
-                            </button>
-                            {mysticalOpen && (
-                                <ul className='ml-4 mt-1 space-y-1'>
-                                    {mysticalServices.map(
-                                        ({ id, href, Icon, available }) => (
-                                            <li key={id}>
-                                                {available ? (
-                                                    <Link
-                                                        href={
-                                                            id === "tarot"
-                                                                ? "/"
-                                                                : href
-                                                        }
-                                                        className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
-                                                        onClick={() =>
-                                                            onOpenChange(false)
-                                                        }
-                                                    >
-                                                        <Icon className='w-4 h-4' />
-                                                        <span>{s(id)}</span>
-                                                    </Link>
-                                                ) : (
-                                                    <div className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light/50 cursor-not-allowed opacity-60'>
-                                                        <Icon className='w-4 h-4' />
-                                                        <span>{s(id)}</span>
-                                                        <span className='ml-auto text-xs bg-white/10 px-2 py-1 rounded-full'>
-                                                            {t("comingSoon")}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </li>
-                                        )
+                            {/* Active Service Dropdown */}
+                            <li>
+                                <button
+                                    onClick={() => setMysticalOpen(!mysticalOpen)}
+                                    className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors w-full'
+                                >
+                                    <Sparkles className='w-4 h-4' />
+                                    <span>{t("services")}</span>
+                                    {mysticalOpen ? (
+                                        <ChevronUp className='w-4 h-4 ml-auto' />
+                                    ) : (
+                                        <ChevronDown className='w-4 h-4 ml-auto' />
                                     )}
-                                </ul>
-                            )}
-                        </li>
+                                </button>
+                                {mysticalOpen && (
+                                    <ul className='ml-4 mt-1 space-y-1'>
+                                        {mysticalServices.map(
+                                            ({ id, href, Icon, available }) => (
+                                                <li key={id}>
+                                                    {available ? (
+                                                        <Link
+                                                            href={
+                                                                id === "tarot"
+                                                                    ? "/"
+                                                                    : href
+                                                            }
+                                                            className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
+                                                            onClick={() =>
+                                                                onOpenChange(false)
+                                                            }
+                                                        >
+                                                            <Icon className='w-4 h-4' />
+                                                            <span>{s(id)}</span>
+                                                        </Link>
+                                                    ) : (
+                                                        <div className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light/50 cursor-not-allowed opacity-60'>
+                                                            <Icon className='w-4 h-4' />
+                                                            <span>{s(id)}</span>
+                                                            <span className='ml-auto text-xs bg-white/10 px-2 py-1 rounded-full'>
+                                                                {t("comingSoon")}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </li>
+                                            )
+                                        )}
+                                    </ul>
+                                )}
+                            </li>
 
-                        <li>
-                            <Link
-                                href={"/contact"}
-                                className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
-                                onClick={() => onOpenChange(false)}
-                            >
-                                <MessageSquare className='w-4 h-4' />
-                                <span>Contact & Support</span>
-                            </Link>
-                        </li>
+                            <li>
+                                <Link
+                                    href={"/contact"}
+                                    className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
+                                    onClick={() => onOpenChange(false)}
+                                >
+                                    <MessageSquare className='w-4 h-4' />
+                                    <span>Contact & Support</span>
+                                </Link>
+                            </li>
 
-                        <li>
-                            <Link
-                                href={"/privacy-policy"}
-                                className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
-                                onClick={() => onOpenChange(false)}
-                            >
-                                <ShieldCheck className='w-4 h-4' />
-                                <span>{t("privacyPolicy")}</span>
-                            </Link>
-                        </li>
+                            <li>
+                                <Link
+                                    href={"/privacy-policy"}
+                                    className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
+                                    onClick={() => onOpenChange(false)}
+                                >
+                                    <ShieldCheck className='w-4 h-4' />
+                                    <span>{t("privacyPolicy")}</span>
+                                </Link>
+                            </li>
 
-                        <li>
-                            <Link
-                                href={"/terms-of-service"}
-                                className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
-                                onClick={() => onOpenChange(false)}
-                            >
-                                <FileText className='w-4 h-4' />
-                                <span>{t("termsOfService")}</span>
-                            </Link>
-                        </li>
+                            <li>
+                                <Link
+                                    href={"/terms-of-service"}
+                                    className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
+                                    onClick={() => onOpenChange(false)}
+                                >
+                                    <FileText className='w-4 h-4' />
+                                    <span>{t("termsOfService")}</span>
+                                </Link>
+                            </li>
                         </ul>
                     </nav>
                 </ScrollArea>
