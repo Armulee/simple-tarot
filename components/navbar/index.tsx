@@ -92,7 +92,7 @@ export function Navbar({ locale }: { locale: string }) {
 
                     {/* Right side: Navigation links, Language dropdown, and Auth */}
                     <div className='flex items-center space-x-1'>
-                        <div className='flex items-center space-x-1'>
+                        <div className='flex items-center space-x-4 mr-4'>
                             <Link
                                 href='/'
                                 className='hidden md:block text-cosmic-light hover:text-white transition-colors'
