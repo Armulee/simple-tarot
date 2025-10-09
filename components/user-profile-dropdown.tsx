@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ConsistentAvatar } from "@/components/ui/consistent-avatar"
+import { useTranslations } from "next-intl"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -36,6 +37,7 @@ export function UserProfileDropdown({
 }: UserProfileDropdownProps) {
     const { user, signOut } = useAuth()
     const router = useRouter()
+    const t = useTranslations("UserProfile")
     const [isLoading, setIsLoading] = useState(false)
     const [notificationOpen, setNotificationOpen] = useState(false)
     const [selectedTheme, setSelectedTheme] = useState("default")
@@ -43,37 +45,37 @@ export function UserProfileDropdown({
     const themes: Theme[] = [
         {
             id: "default",
-            name: "Default",
+            name: t("themes.default"),
             icon: <Palette className='w-4 h-4' />,
             available: true,
         },
         {
             id: "antiverse",
-            name: "Anti-Verse",
+            name: t("themes.antiverse"),
             icon: <Moon className='w-4 h-4' />,
             available: true,
         },
         {
             id: "zodiac",
-            name: "Zodiac",
+            name: t("themes.zodiac"),
             icon: <Star className='w-4 h-4' />,
             available: true,
         },
         {
             id: "singularity",
-            name: "Singularity",
+            name: t("themes.singularity"),
             icon: <Eye className='w-4 h-4' />,
             available: true,
         },
         {
             id: "luminous",
-            name: "Luminous",
+            name: t("themes.luminous"),
             icon: <Sun className='w-4 h-4' />,
             available: true,
         },
         {
             id: "mystic",
-            name: "Mystic",
+            name: t("themes.mystic"),
             icon: <Wand2 className='w-4 h-4' />,
             available: true,
         },
@@ -155,20 +157,20 @@ export function UserProfileDropdown({
                     <DropdownMenuGroup>
                         <DropdownMenuItem onClick={handleNotificationsClick}>
                             <Bell className='w-4 h-4 mr-2' />
-                            Notifications
+                            {t("notifications")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleProfileClick}>
                             <User className='w-4 h-4 mr-2' />
-                            Profile
+                            {t("profile")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleAccountClick}>
                             <Shield className='w-4 h-4 mr-2' />
-                            Account
+                            {t("account")}
                         </DropdownMenuItem>
                         <DropdownMenuSub>
                             <DropdownMenuSubTrigger>
                                 <Palette className='w-4 h-4 mr-2' />
-                                Theme
+                                {t("theme")}
                             </DropdownMenuSubTrigger>
                             <DropdownMenuSubContent 
                                 className='w-fit bg-card border border-border/50 overflow-visible shadow-lg z-[9999]'
@@ -200,7 +202,7 @@ export function UserProfileDropdown({
                         </DropdownMenuSub>
                         <DropdownMenuItem onClick={handleBillingClick}>
                             <CreditCard className='w-4 h-4 mr-2' />
-                            Billing
+                            {t("billing")}
                         </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
@@ -210,7 +212,7 @@ export function UserProfileDropdown({
                         className='text-white bg-red-500/10 hover:bg-red-500/20 focus:bg-red-500/20 focus:text-white border border-red-500/20 hover:border-red-500/30'
                     >
                         <LogOut className='w-4 h-4 mr-2' />
-                        {isLoading ? "Signing out..." : "Sign out"}
+                        {isLoading ? t("signingOut") : t("signOut")}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

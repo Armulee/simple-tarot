@@ -11,7 +11,9 @@
     "privacyPolicy": "นโยบายความเป็นส่วนตัว",
     "termsOfService": "ข้อกำหนดในการให้บริการ",
     "home": "หน้าแรก",
-    "about": "เกี่ยวกับ"
+    "about": "เกี่ยวกับ",
+    "pricing": "ราคา",
+    "contactSupport": "ติดต่อ & สนับสนุน"
   },
 
   "Services": {
@@ -648,6 +650,106 @@
       "buttonLoading": "กำลังสร้างบัญชี...",
       "signinPrompt": "มีบัญชีอยู่แล้ว?",
       "signinLink": "ลงชื่อเข้าใช้"
+    }
+  },
+
+  "UserProfile": {
+    "notifications": "การแจ้งเตือน",
+    "profile": "โปรไฟล์",
+    "account": "บัญชี",
+    "theme": "ธีม",
+    "billing": "การเรียกเก็บเงิน",
+    "signOut": "ออกจากระบบ",
+    "signingOut": "กำลังออกจากระบบ...",
+    "themes": {
+      "default": "เริ่มต้น",
+      "antiverse": "แอนตี้เวิร์ส",
+      "zodiac": "ราศี",
+      "singularity": "ซิงกูลาริตี้",
+      "luminous": "ลูมินัส",
+      "mystic": "มิสติก"
+    }
+  },
+
+  "Notifications": {
+    "title": "การแจ้งเตือน",
+    "noNotifications": "ไม่มีการแจ้งเตือน",
+    "noNotificationsDescription": "คุณทันสมัยแล้ว! เราจะแจ้งเตือนคุณเกี่ยวกับการอัปเดตที่สำคัญ"
+  },
+
+  "Billing": {
+    "title": "การเรียกเก็บเงิน & การสมัครสมาชิก",
+    "subtitle": "จัดการการสมัครสมาชิกและข้อมูลการเรียกเก็บเงินของคุณ",
+    "currentPlan": "แพ็กเกจปัจจุบัน",
+    "planDetails": "รายละเอียดแพ็กเกจ",
+    "billingHistory": "ประวัติการเรียกเก็บเงิน",
+    "paymentMethod": "วิธีการชำระเงิน",
+    "nextBilling": "การเรียกเก็บเงินครั้งถัดไป",
+    "manageSubscription": "จัดการการสมัครสมาชิก",
+    "upgradePlan": "อัปเกรดแพ็กเกจ",
+    "viewInvoices": "ดูใบแจ้งหนี้",
+    "noTransactions": "ไม่พบธุรกรรม",
+    "transactionId": "รหัสธุรกรรม",
+    "amount": "จำนวนเงิน",
+    "status": "สถานะ",
+    "date": "วันที่",
+    "viewDetails": "ดูรายละเอียด"
+  },
+
+  "Contact": {
+    "title": "ติดต่อเรา",
+    "subtitle": "ติดต่อทีมคำแนะนำแห่งความลี้ลับของเรา",
+    "form": {
+      "name": "ชื่อ",
+      "namePlaceholder": "กรอกชื่อของคุณ",
+      "email": "อีเมล",
+      "emailPlaceholder": "กรอกอีเมลของคุณ",
+      "subject": "หัวข้อ",
+      "subjectPlaceholder": "เรื่องนี้เกี่ยวกับอะไร?",
+      "message": "ข้อความ",
+      "messagePlaceholder": "บอกเราว่าเราสามารถช่วยอะไรได้...",
+      "submit": "ส่งข้อความ",
+      "submitting": "กำลังส่ง...",
+      "success": "ส่งข้อความสำเร็จ!",
+      "error": "ส่งข้อความไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"
+    }
+  },
+
+  "Pricing": {
+    "title": "แพ็กเกจราคา",
+    "subtitle": "เลือกแพ็กเกจที่สมบูรณ์แบบสำหรับการเดินทางแห่งความลี้ลับของคุณ",
+    "monthly": "รายเดือน",
+    "yearly": "รายปี",
+    "mostPopular": "ยอดนิยม",
+    "getStarted": "เริ่มต้น",
+    "currentPlan": "แพ็กเกจปัจจุบัน",
+    "features": {
+      "unlimitedReadings": "การอ่านไม่จำกัด",
+      "premiumInsights": "ข้อมูลเชิงลึกพรีเมียม",
+      "prioritySupport": "การสนับสนุนลำดับความสำคัญ",
+      "exclusiveContent": "เนื้อหาเฉพาะ",
+      "advancedAnalytics": "การวิเคราะห์ขั้นสูง"
+    }
+  },
+
+  "Stars": {
+    "title": "ยอดดวงดาว",
+    "subtitle": "จัดการสกุลเงินจักรวาลของคุณ",
+    "currentBalance": "ยอดคงเหลือปัจจุบัน",
+    "addStars": "เพิ่มดวงดาว",
+    "purchaseHistory": "ประวัติการซื้อ",
+    "howItWorks": "วิธีการทำงาน",
+    "starPackages": {
+      "small": "แพ็กเล็ก",
+      "medium": "แพ็กกลาง",
+      "large": "แพ็กใหญ่",
+      "mega": "แพ็กเมก้า"
+    },
+    "transactions": {
+      "purchase": "ซื้อ",
+      "spent": "ใช้ไป",
+      "refund": "คืนเงิน",
+      "bonus": "โบนัส"
     }
   }
 }

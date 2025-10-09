@@ -11,7 +11,9 @@
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "home": "Home",
-    "about": "About"
+    "about": "About",
+    "pricing": "Pricing",
+    "contactSupport": "Contact & Support"
   },
 
   "Services": {
@@ -648,6 +650,106 @@
       "buttonLoading": "Creating Account...",
       "signinPrompt": "Already have an account?",
       "signinLink": "Sign in"
+    }
+  },
+
+  "UserProfile": {
+    "notifications": "Notifications",
+    "profile": "Profile",
+    "account": "Account",
+    "theme": "Theme",
+    "billing": "Billing",
+    "signOut": "Sign out",
+    "signingOut": "Signing out...",
+    "themes": {
+      "default": "Default",
+      "antiverse": "Anti-Verse",
+      "zodiac": "Zodiac",
+      "singularity": "Singularity",
+      "luminous": "Luminous",
+      "mystic": "Mystic"
+    }
+  },
+
+  "Notifications": {
+    "title": "Notifications",
+    "noNotifications": "No notifications",
+    "noNotificationsDescription": "You're all caught up! We'll notify you about important updates."
+  },
+
+  "Billing": {
+    "title": "Billing & Subscription",
+    "subtitle": "Manage your subscription and billing information",
+    "currentPlan": "Current Plan",
+    "planDetails": "Plan Details",
+    "billingHistory": "Billing History",
+    "paymentMethod": "Payment Method",
+    "nextBilling": "Next Billing",
+    "manageSubscription": "Manage Subscription",
+    "upgradePlan": "Upgrade Plan",
+    "viewInvoices": "View Invoices",
+    "noTransactions": "No transactions found",
+    "transactionId": "Transaction ID",
+    "amount": "Amount",
+    "status": "Status",
+    "date": "Date",
+    "viewDetails": "View Details"
+  },
+
+  "Contact": {
+    "title": "Contact Us",
+    "subtitle": "Get in touch with our mystical guidance team",
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Enter your name",
+      "email": "Email",
+      "emailPlaceholder": "Enter your email",
+      "subject": "Subject",
+      "subjectPlaceholder": "What's this about?",
+      "message": "Message",
+      "messagePlaceholder": "Tell us how we can help...",
+      "submit": "Send Message",
+      "submitting": "Sending...",
+      "success": "Message sent successfully!",
+      "error": "Failed to send message. Please try again."
+    }
+  },
+
+  "Pricing": {
+    "title": "Pricing Plans",
+    "subtitle": "Choose the perfect plan for your mystical journey",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "mostPopular": "Most Popular",
+    "getStarted": "Get Started",
+    "currentPlan": "Current Plan",
+    "features": {
+      "unlimitedReadings": "Unlimited Readings",
+      "premiumInsights": "Premium Insights",
+      "prioritySupport": "Priority Support",
+      "exclusiveContent": "Exclusive Content",
+      "advancedAnalytics": "Advanced Analytics"
+    }
+  },
+
+  "Stars": {
+    "title": "Star Balance",
+    "subtitle": "Manage your cosmic currency",
+    "currentBalance": "Current Balance",
+    "addStars": "Add Stars",
+    "purchaseHistory": "Purchase History",
+    "howItWorks": "How It Works",
+    "starPackages": {
+      "small": "Small Pack",
+      "medium": "Medium Pack",
+      "large": "Large Pack",
+      "mega": "Mega Pack"
+    },
+    "transactions": {
+      "purchase": "Purchase",
+      "spent": "Spent",
+      "refund": "Refund",
+      "bonus": "Bonus"
     }
   }
 }

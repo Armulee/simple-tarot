@@ -7,6 +7,7 @@ import {
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet"
+import { useTranslations } from "next-intl"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -35,6 +36,7 @@ export function NotificationSheet({
     open,
     onOpenChange,
 }: NotificationSheetProps) {
+    const t = useTranslations("Notifications")
     const [notifications, setNotifications] = useState<Notification[]>([])
 
     const getNotificationIcon = (type: Notification["type"]) => {
@@ -102,7 +104,7 @@ export function NotificationSheet({
                     <div className='flex items-center justify-between'>
                         <SheetTitle className='flex items-center space-x-2 text-white'>
                             <Bell className='w-5 h-5' />
-                            <span>Notifications</span>
+                            <span>{t("title")}</span>
                             {unreadCount > 0 && (
                                 <Badge className='bg-red-500 text-white text-xs'>
                                     {unreadCount}
@@ -120,10 +122,10 @@ export function NotificationSheet({
                             <div className='text-center py-12'>
                                 <Bell className='w-16 h-16 text-gray-500 mx-auto mb-4' />
                                 <p className='text-gray-400 text-lg font-medium'>
-                                    No notifications
+                                    {t("noNotifications")}
                                 </p>
                                 <p className='text-sm text-gray-500 mt-2'>
-                                    You&apos;re all caught up! We&apos;ll notify you about important updates.
+                                    {t("noNotificationsDescription")}
                                 </p>
                             </div>
                         ) : (

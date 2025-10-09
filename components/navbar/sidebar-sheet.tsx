@@ -157,7 +157,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                     onClick={() => onOpenChange(false)}
                                 >
                                     <DollarSign className='w-4 h-4' />
-                                    <span>Pricing</span>
+                                    <span>{t("pricing")}</span>
                                 </Link>
                             </li>
 
@@ -218,7 +218,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                     onClick={() => onOpenChange(false)}
                                 >
                                     <MessageSquare className='w-4 h-4' />
-                                    <span>Contact & Support</span>
+                                    <span>{t("contactSupport")}</span>
                                 </Link>
                             </li>
 
