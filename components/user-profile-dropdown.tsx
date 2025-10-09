@@ -171,7 +171,7 @@ export function UserProfileDropdown({
                                 Theme
                             </DropdownMenuSubTrigger>
                             <DropdownMenuSubContent 
-                                className='w-fit bg-card/80 backdrop-blur-md border border-border/50 overflow-visible shadow-lg z-[10000]'
+                                className='w-fit bg-card/80 backdrop-blur-md border border-border/50 overflow-visible shadow-lg z-[9999]'
                                 sideOffset={-2}
                                 alignOffset={-2}
                             >
@@ -187,12 +187,13 @@ export function UserProfileDropdown({
                                         }`}
                                     >
                                         <div className='flex items-center'>
-                                            {theme.icon}
+                                            {selectedTheme === theme.id ? (
+                                                <Check className='w-4 h-4' />
+                                            ) : (
+                                                theme.icon
+                                            )}
                                             <span className='ml-2'>{theme.name}</span>
                                         </div>
-                                        {selectedTheme === theme.id && (
-                                            <Check className='w-4 h-4 text-white' />
-                                        )}
                                     </DropdownMenuItem>
                                 ))}
                             </DropdownMenuSubContent>
