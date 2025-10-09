@@ -51,7 +51,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent
                 side='left'
-                className='md:hidden bg-card/95 backdrop-blur-md border-border/30 w-72 max-w-[85vw] flex flex-col'
+                className='md:hidden bg-card/95 backdrop-blur-md border-border/30 w-72 max-w-[85vw] flex flex-col h-full'
             >
                 <SheetHeader>
                     <SheetTitle>
@@ -74,7 +74,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                         </Link>
                     </SheetTitle>
                 </SheetHeader>
-                <ScrollArea className='flex-1 px-1'>
+                <ScrollArea className='flex-1 px-1 h-0'>
                     <nav>
                         <ul className='flex flex-col space-y-1 py-2'>
                         {/* Sign In / User Profile at the top */}
