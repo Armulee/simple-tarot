@@ -186,7 +186,7 @@ export function Navbar({ locale }: { locale: string }) {
                                     className='text-white border-white/30 hover:bg-white/10'
                                     aria-label='Change language'
                                 >
-                                    {l(locale as keyof typeof l)}{" "}
+                                    {locale.toUpperCase()}
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className='w-32 bg-card/95 backdrop-blur-md border-border/30'>
