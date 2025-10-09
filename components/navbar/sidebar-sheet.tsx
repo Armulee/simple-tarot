@@ -22,7 +22,6 @@ import {
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { ConsistentAvatar } from "@/components/ui/consistent-avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { UserProfileDropdown } from "@/components/user-profile-dropdown"
@@ -127,7 +126,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                 </div>
 
                 {/* Scrollable Navigation Section */}
-                <ScrollArea className='flex-1 px-6 py-4'>
+                <div className='flex-1 overflow-y-auto px-6 py-4'>
                     <nav>
                         <ul className='flex flex-col space-y-1'>
 
@@ -246,7 +245,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                             </li>
                         </ul>
                     </nav>
-                </ScrollArea>
+                </div>
             </SheetContent>
         </Sheet>
     )
