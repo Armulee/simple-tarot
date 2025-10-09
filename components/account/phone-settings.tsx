@@ -9,12 +9,14 @@ import { Phone, Plus, Edit } from "lucide-react"
 import { getDefaultCountry } from "./use-account-validation"
 import { PhoneDialog } from "./phone-dialog"
 import { PhoneOtpDialog } from "./phone-otp-dialog"
+import { useTranslations } from "next-intl"
 
 interface PhoneSettingsProps {
     locale: string
 }
 
 export function PhoneSettings({ locale }: PhoneSettingsProps) {
+    const t = useTranslations("Account.phoneSettings")
     // Mock primary phone number - in real app this would come from user data
     // Set to empty string to show no phone number state
     const primaryPhoneNumber = ""
@@ -42,7 +44,7 @@ export function PhoneSettings({ locale }: PhoneSettingsProps) {
                         <div className='p-2 rounded-lg bg-primary/20'>
                             <Phone className='w-5 h-5 text-primary' />
                         </div>
-                        <h2 className='text-2xl font-bold text-white'>Phone</h2>
+                        <h2 className='text-2xl font-bold text-white'>{t("title")}</h2>
                     </div>
 
                     <div className='space-y-4'>
@@ -50,7 +52,7 @@ export function PhoneSettings({ locale }: PhoneSettingsProps) {
                             <div className='space-y-4'>
                                 <div>
                                     <Label className='text-white font-medium'>
-                                        Primary Phone Number
+                                        {t("currentPhone")}
                                     </Label>
                                     <div className='flex items-center space-x-2 mt-1'>
                                         <Input
@@ -73,12 +75,12 @@ export function PhoneSettings({ locale }: PhoneSettingsProps) {
                             {primaryPhoneNumber ? (
                                 <>
                                     <Edit className='w-4 h-4 mr-2' />
-                                    Edit Phone
+                                    {t("editPhone")}
                                 </>
                             ) : (
                                 <>
                                     <Plus className='w-4 h-4 mr-2' />
-                                    Add Phone
+                                    {t("addPhone")}
                                 </>
                             )}
                         </Button>

@@ -15,9 +15,11 @@ import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 
 export function LoginMethods() {
     const { user } = useAuth()
+    const t = useTranslations("Account.loginMethods")
     const [isLinking, setIsLinking] = useState(false)
     const [linkingProvider, setLinkingProvider] = useState<string | null>(null)
 
@@ -45,8 +47,8 @@ export function LoginMethods() {
         try {
             if (provider === 'email') {
                 // For email, redirect to password settings or show message
-                toast.info("Email & Password Setup", {
-                    description: "Please use the Password Settings section below to set up your email and password."
+                toast.info(t("emailPasswordSetup"), {
+                    description: t("emailPasswordDescription")
                 })
                 return
             }
@@ -137,10 +139,10 @@ export function LoginMethods() {
     const getProviderName = (provider: string) => {
         switch (provider) {
             case 'google':
-                return 'Google'
+                return t("google")
             case 'email':
             default:
-                return 'Email & Password'
+                return t("emailPassword")
         }
     }
 
@@ -161,13 +163,13 @@ export function LoginMethods() {
                     <div className='p-2 rounded-lg bg-primary/20'>
                         <Shield className='w-5 h-5 text-primary' />
                     </div>
-                    <h2 className='text-2xl font-bold text-white'>Authentication</h2>
+                    <h2 className='text-2xl font-bold text-white'>{t("title")}</h2>
                 </div>
 
                 <div className='space-y-4'>
                     <div>
                         <Label className='text-white font-medium'>
-                            Active Authentication Provider
+                            {t("activeProvider")}
                         </Label>
                         <div className='mt-3'>
                             <div className={`flex items-center space-x-3 p-4 rounded-xl border-2 ${getProviderColor(getCurrentProvider() || 'email')} bg-gradient-to-r from-white/10 to-white/5`}>
@@ -194,7 +196,7 @@ export function LoginMethods() {
                 <div className='space-y-4'>
                     <div>
                         <Label className='text-white font-medium'>
-                            Available Authentication Methods
+                            {t("availableMethods")}
                         </Label>
                         <div className='grid gap-3 mt-3'>
                             {/* Email & Password */}
@@ -203,8 +205,8 @@ export function LoginMethods() {
                                     <Mail className='w-5 h-5 text-blue-400' />
                                 </div>
                                 <div className='flex-1 min-w-0'>
-                                    <h3 className='font-medium text-white truncate'>Email & Password</h3>
-                                    <p className='text-sm text-gray-300 truncate'>Secure email-based authentication</p>
+                                    <h3 className='font-medium text-white truncate'>{t("emailPassword")}</h3>
+                                    <p className='text-sm text-gray-300 truncate'>{t("emailPasswordDescription")}</p>
                                 </div>
                                 <div className='flex items-center space-x-2 flex-shrink-0'>
                                     {isProviderLinked('email') ? (
@@ -254,8 +256,8 @@ export function LoginMethods() {
                                     <Chrome className='w-5 h-5 text-red-400' />
                                 </div>
                                 <div className='flex-1 min-w-0'>
-                                    <h3 className='font-medium text-white truncate'>Google</h3>
-                                    <p className='text-sm text-gray-300 truncate'>Sign in with Google account</p>
+                                    <h3 className='font-medium text-white truncate'>{t("google")}</h3>
+                                    <p className='text-sm text-gray-300 truncate'>{t("googleSignInDescription")}</p>
                                 </div>
                                 <div className='flex items-center space-x-2 flex-shrink-0'>
                                     {isProviderLinked('google') ? (

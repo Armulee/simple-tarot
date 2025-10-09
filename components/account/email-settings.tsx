@@ -9,9 +9,11 @@ import { Mail, Plus, Edit } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { EmailDialog } from "./email-dialog"
 import { EmailOtpDialog } from "./email-otp-dialog"
+import { useTranslations } from "next-intl"
 
 export function EmailSettings() {
     const { user } = useAuth()
+    const t = useTranslations("Account.emailSettings")
     const [emailData, setEmailData] = useState({
         currentEmail: user?.email || "",
     })
@@ -44,7 +46,7 @@ export function EmailSettings() {
                         <div className='p-2 rounded-lg bg-primary/20'>
                             <Mail className='w-5 h-5 text-primary' />
                         </div>
-                        <h2 className='text-2xl font-bold text-white'>Email</h2>
+                        <h2 className='text-2xl font-bold text-white'>{t("title")}</h2>
                     </div>
 
                     <div className='space-y-4'>
@@ -52,7 +54,7 @@ export function EmailSettings() {
                             <div className='space-y-4'>
                                 <div>
                                     <Label className='text-white font-medium'>
-                                        Current Email Address
+                                        {t("currentEmail")}
                                     </Label>
                                     <div className='flex items-center space-x-2 mt-1'>
                                         <Input
@@ -75,12 +77,12 @@ export function EmailSettings() {
                             {emailData.currentEmail ? (
                                 <>
                                     <Edit className='w-4 h-4 mr-2' />
-                                    Edit Email
+                                    {t("editEmail")}
                                 </>
                             ) : (
                                 <>
                                     <Plus className='w-4 h-4 mr-2' />
-                                    Add Email
+                                    {t("addEmail")}
                                 </>
                             )}
                         </Button>
