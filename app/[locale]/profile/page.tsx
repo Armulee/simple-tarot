@@ -26,11 +26,13 @@ import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 import { useProfile } from "@/contexts/profile-context"
+import { useTranslations } from "next-intl"
 
 export default function ProfilePage() {
     const { user } = useAuth()
     const { profile, updateProfile } = useProfile()
     const [isLoading, setIsLoading] = useState(false)
+    const t = useTranslations("Profile")
     const [profileData, setProfileData] = useState({
         name: "",
         bio: "",
@@ -68,7 +70,7 @@ export default function ProfilePage() {
         try {
             const { data: { session } } = await supabase.auth.getSession()
             if (!session) {
-                toast.error("Please sign in to update your profile")
+                toast.error(t("signInRequired"))
                 return
             }
 
@@ -92,24 +94,24 @@ export default function ProfilePage() {
             if (response.ok) {
                 const { profile: updatedProfile } = await response.json()
                 updateProfile(updatedProfile)
-                toast.success("Profile updated successfully!")
+                toast.success(t("profileUpdated"))
             } else {
                 const errorData = await response.json()
-                toast.error(errorData.error || "Failed to update profile")
+                toast.error(errorData.error || t("updateFailed"))
             }
         } catch (error) {
             console.error("Profile update error:", error)
-            toast.error("Failed to update profile. Please try again.")
+            toast.error(t("updateFailed"))
         } finally {
             setIsLoading(false)
         }
     }
 
     const genderOptions = [
-        { value: "male", label: "Male" },
-        { value: "female", label: "Female" },
-        { value: "non-binary", label: "Non-binary" },
-        { value: "prefer-not-to-say", label: "Prefer not to say" },
+        { value: "male", label: t("genderOptions.male") },
+        { value: "female", label: t("genderOptions.female") },
+        { value: "non-binary", label: t("genderOptions.nonBinary") },
+        { value: "prefer-not-to-say", label: t("genderOptions.preferNotToSay") },
     ]
 
     return (
@@ -121,12 +123,11 @@ export default function ProfilePage() {
                             <Sparkles className='w-8 h-8 text-accent' />
                         </div>
                         <h1 className='text-3xl sm:text-4xl font-bold text-transparent bg-gradient-to-r from-accent to-primary bg-clip-text'>
-                            Profile Settings
+                            {t("title")}
                         </h1>
                     </div>
                     <p className='text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto leading-relaxed px-4'>
-                        Customize your profile information and reading
-                        preferences to enhance your mystical journey
+                        {t("subtitle")}
                     </p>
                 </div>
 
@@ -138,7 +139,7 @@ export default function ProfilePage() {
                                     <User className='w-5 h-5 text-accent' />
                                 </div>
                                 <h2 className='text-xl sm:text-2xl font-bold text-white'>
-                                    Profile Information
+                                    {t("profileInformation")}
                                 </h2>
                             </div>
 
@@ -149,7 +150,7 @@ export default function ProfilePage() {
                                         className='text-white font-semibold flex items-center gap-2'
                                     >
                                         <Star className='w-4 h-4' />
-                                        Full Name *
+                                        {t("fullNameRequired")}
                                     </Label>
                                     <Input
                                         id='name'
@@ -161,7 +162,7 @@ export default function ProfilePage() {
                                             )
                                         }
                                         className='bg-background/40 border-border/40 text-white placeholder-gray-400 focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
-                                        placeholder='Enter your full name'
+                                        placeholder={t("fullNamePlaceholder")}
                                     />
                                 </div>
                                 <div className='space-y-2'>
@@ -170,7 +171,7 @@ export default function ProfilePage() {
                                         className='text-white font-semibold flex items-center gap-2'
                                     >
                                         <Moon className='w-4 h-4' />
-                                        Gender
+                                        {t("gender")}
                                     </Label>
                                     <Select
                                         value={profileData.gender}
@@ -182,7 +183,7 @@ export default function ProfilePage() {
                                         }
                                     >
                                         <SelectTrigger className='bg-background/40 border-border/40 text-white focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'>
-                                            <SelectValue placeholder='Select gender' />
+                                            <SelectValue placeholder={t("genderPlaceholder")} />
                                         </SelectTrigger>
                                         <SelectContent className='bg-background/95 border-border/40 backdrop-blur-md'>
                                             {genderOptions.map((option) => (
@@ -205,7 +206,7 @@ export default function ProfilePage() {
                                     className='text-accent font-semibold flex items-center gap-2'
                                 >
                                     <Sun className='w-4 h-4' />
-                                    Bio
+                                    {t("bio")}
                                 </Label>
                                 <Textarea
                                     id='bio'
@@ -214,7 +215,7 @@ export default function ProfilePage() {
                                         handleInputChange("bio", e.target.value)
                                     }
                                     className='bg-background/40 border-border/40 text-white placeholder-gray-400 focus:border-accent/50 focus:ring-accent/20 transition-all duration-300 min-h-[100px] resize-none'
-                                    placeholder='Tell us about yourself...'
+                                    placeholder={t("bioPlaceholder")}
                                 />
                             </div>
 
@@ -225,7 +226,7 @@ export default function ProfilePage() {
                                         className='text-white font-semibold flex items-center gap-2'
                                     >
                                         <Star className='w-4 h-4' />
-                                        Occupation
+                                        {t("occupation")}
                                     </Label>
                                     <Input
                                         id='job'
@@ -237,7 +238,7 @@ export default function ProfilePage() {
                                             )
                                         }
                                         className='bg-background/40 border-border/40 text-white placeholder-gray-400 focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
-                                        placeholder='Your profession or occupation'
+                                        placeholder={t("occupationPlaceholder")}
                                     />
                                 </div>
                                 <div className='space-y-2'>
@@ -246,7 +247,7 @@ export default function ProfilePage() {
                                         className='text-white font-semibold flex items-center gap-2'
                                     >
                                         <Calendar className='w-4 h-4' />
-                                        Birth Place
+                                        {t("birthPlace")}
                                     </Label>
                                     <Input
                                         id='birthPlace'
@@ -258,7 +259,7 @@ export default function ProfilePage() {
                                             )
                                         }
                                         className='bg-background/40 border-border/40 text-white placeholder-gray-400 focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
-                                        placeholder='City, Country'
+                                        placeholder={t("birthPlacePlaceholder")}
                                     />
                                 </div>
                             </div>
@@ -270,7 +271,7 @@ export default function ProfilePage() {
                                         className='text-white font-semibold flex items-center gap-2'
                                     >
                                         <Calendar className='w-4 h-4' />
-                                        Birth Date
+                                        {t("birthDate")}
                                     </Label>
                                     <Input
                                         id='birthDate'
@@ -291,7 +292,7 @@ export default function ProfilePage() {
                                         className='text-white font-semibold flex items-center gap-2'
                                     >
                                         <Calendar className='w-4 h-4' />
-                                        Birth Time
+                                        {t("birthTime")}
                                     </Label>
                                     <Input
                                         id='birthTime'
@@ -317,12 +318,12 @@ export default function ProfilePage() {
                                     {isLoading ? (
                                         <div className='flex items-center space-x-2'>
                                             <div className='w-4 h-4 border-2 border-accent-foreground/30 border-t-accent-foreground rounded-full animate-spin' />
-                                            <span>Saving...</span>
+                                            <span>{t("saving")}</span>
                                         </div>
                                     ) : (
                                         <div className='flex items-center space-x-2'>
                                             <Save className='w-4 h-4' />
-                                            <span>Save Changes</span>
+                                            <span>{t("saveChanges")}</span>
                                         </div>
                                     )}
                                 </Button>

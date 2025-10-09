@@ -1,6 +1,7 @@
 "use client"
 
 import { useLocale } from "next-intl"
+import { useTranslations } from "next-intl"
 import {
     EmailSettings,
     PhoneSettings,
@@ -13,6 +14,7 @@ import {
 export default function AccountPage() {
     const locale = useLocale()
     const loginMethod = useLoginMethod()
+    const t = useTranslations("Account")
 
     return (
         <div className='min-h-screen relative overflow-x-hidden'>
@@ -37,12 +39,11 @@ export default function AccountPage() {
                             </svg>
                         </div>
                         <h1 className='text-3xl sm:text-4xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'>
-                            Account Settings
+                            {t("title")}
                         </h1>
                     </div>
                     <p className='text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto leading-relaxed px-2'>
-                        Manage your account information, security settings, and
-                        preferences
+                        {t("subtitle")}
                     </p>
                 </div>
 
