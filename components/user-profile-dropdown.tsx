@@ -131,7 +131,7 @@ export function UserProfileDropdown({
                 <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
                 <DropdownMenuContent
                     align='end'
-                    className='w-56 bg-card/95 backdrop-blur-md border-border/30 z-50'
+                    className='w-56 bg-card/95 backdrop-blur-md border-border/30 z-[60]'
                     sideOffset={5}
                 >
                     <div className='flex items-center gap-2 p-2'>
@@ -171,9 +171,9 @@ export function UserProfileDropdown({
                                 Theme
                             </DropdownMenuSubTrigger>
                             <DropdownMenuSubContent 
-                                className='w-48 bg-card/95 backdrop-blur-md border-border/30 z-50'
-                                sideOffset={-4}
-                                alignOffset={4}
+                                className='w-56 bg-card/95 backdrop-blur-md border-border/30 z-[100]'
+                                sideOffset={-2}
+                                alignOffset={-2}
                             >
                                 {themes.map((theme) => (
                                     <DropdownMenuItem
