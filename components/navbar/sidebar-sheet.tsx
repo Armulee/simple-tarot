@@ -53,7 +53,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                 className='md:hidden bg-card/95 backdrop-blur-md border-border/30 w-72 max-w-[85vw] flex flex-col h-full p-0'
             >
                 {/* Fixed Header Section */}
-                <div className='flex-shrink-0 p-6 pb-4 border-b border-white/10'>
+                <div className='flex-shrink-0 px-4 py-4 border-b border-white/10'>
                     <SheetHeader className='mb-4'>
                         <SheetTitle>
                             <Link
@@ -126,7 +126,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                 </div>
 
                 {/* Scrollable Navigation Section */}
-                <div className='flex-1 overflow-y-auto px-6 py-4'>
+                <div className='flex-1 overflow-y-auto px-4 py-4'>
                     <nav>
                         <ul className='flex flex-col space-y-1'>
 
