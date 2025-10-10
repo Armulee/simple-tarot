@@ -1,10 +1,12 @@
 "use client"
 
 import { useLocale } from "next-intl"
+import { useTranslations } from "next-intl"
 import {
     EmailSettings,
     PhoneSettings,
     PasswordSettings,
+    LoginMethods,
     AccountDeletion,
     useLoginMethod,
 } from "@/components/account"
@@ -12,14 +14,12 @@ import {
 export default function AccountPage() {
     const locale = useLocale()
     const loginMethod = useLoginMethod()
+    const t = useTranslations("Account")
 
     return (
-        <div className='min-h-screen bg-background relative overflow-hidden'>
-            {/* Background */}
-            <div className='absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5' />
-
+        <div className='min-h-screen relative overflow-x-hidden'>
             {/* Main Content */}
-            <div className='relative z-10 container mx-auto px-4 py-8'>
+            <div className='max-w-lg mx-auto px-4 sm:px-6 py-8 relative z-10 w-full'>
                 {/* Header */}
                 <div className='text-center space-y-6 mb-12'>
                     <div className='flex items-center justify-center space-x-3 mb-4'>
@@ -38,35 +38,39 @@ export default function AccountPage() {
                                 />
                             </svg>
                         </div>
-                        <h1 className='text-4xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'>
-                            Account Settings
+                        <h1 className='text-3xl sm:text-4xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'>
+                            {t("title")}
                         </h1>
                     </div>
-                    <p className='text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed'>
-                        Manage your account information, security settings, and
-                        preferences
+                    <p className='text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto leading-relaxed px-2'>
+                        {t("subtitle")}
                     </p>
                 </div>
 
                 {/* Settings Grid */}
-                <div className='grid gap-6 md:grid-cols-1 lg:grid-cols-2 max-w-6xl mx-auto'>
+                <div className='grid gap-6 md:grid-cols-1 lg:grid-cols-2 relative z-10 max-w-full'>
                     {/* Email Settings */}
-                    <div className='lg:col-span-1'>
+                    <div className='lg:col-span-1 min-w-0 overflow-hidden'>
                         <EmailSettings />
                     </div>
 
                     {/* Phone Settings */}
-                    <div className='lg:col-span-1'>
+                    <div className='lg:col-span-1 min-w-0 overflow-hidden'>
                         <PhoneSettings locale={locale} />
                     </div>
 
+                    {/* Login Methods */}
+                    <div className='lg:col-span-2 min-w-0 overflow-hidden'>
+                        <LoginMethods />
+                    </div>
+
                     {/* Password Settings */}
-                    <div className='lg:col-span-1'>
+                    <div className='lg:col-span-1 min-w-0 overflow-hidden'>
                         <PasswordSettings loginMethod={loginMethod} />
                     </div>
 
                     {/* Account Deletion */}
-                    <div className='lg:col-span-1'>
+                    <div className='lg:col-span-1 min-w-0 overflow-hidden'>
                         <AccountDeletion />
                     </div>
                 </div>

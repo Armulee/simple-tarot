@@ -1,76 +1,78 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
+import { Resend } from "resend"
+import React from "react"
+import { AdminNotificationEmail, UserAutoReplyEmail } from "../../../components/email-templates"
 
-interface ContactFormData {
-    name: string
-    email: string
-    subject: string
-    message: string
-}
+const resend = new Resend(process.env.RESEND_API_KEY || "dummy-key-for-build")
 
-export async function POST(req: NextRequest) {
+export async function POST(request: Request) {
     try {
-        const body = (await req.json()) as ContactFormData
-        const { name, email, subject, message } = body
+        const { name, email, subject, message } = await request.json()
 
         // Validate required fields
         if (!name || !email || !subject || !message) {
             return NextResponse.json(
-                { error: "All fields are required" },
+                {
+                    error: "Missing required fields: name, email, subject, message",
+                },
                 { status: 400 }
             )
         }
 
-        // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(email)) {
+        // Check if Resend API key is configured
+        if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === "dummy-key-for-build") {
             return NextResponse.json(
-                { error: "Invalid email format" },
-                { status: 400 }
+                { error: "Email service not configured" },
+                { status: 500 }
             )
         }
 
-        // For now, we'll just log the contact form submission
-        // In production, you would integrate with an email service like:
-        // - SendGrid
-        // - Resend
-        // - Nodemailer with SMTP
-        // - AWS SES
-        console.log("Contact Form Submission:", {
-            name,
-            email,
-            subject,
-            message,
-            timestamp: new Date().toISOString(),
+        // Send email to admin
+        const adminEmailResult = await resend.emails.send({
+            from: "Contact Form <contact@no-reply.askingfate.com>",
+            to: ["admin@askingfate.com"],
+            subject: `[Contact Form] ${subject}`,
+            react: React.createElement(AdminNotificationEmail, {
+                name,
+                email,
+                subject,
+                message,
+            }),
         })
 
-        // TODO: Implement actual email sending
-        // Example with Resend:
-        // await resend.emails.send({
-        //     from: 'noreply@askingfate.com',
-        //     to: 'admin@askingfate.com',
-        //     subject: `Contact Form: ${subject}`,
-        //     html: `
-        //         <h2>New Contact Form Submission</h2>
-        //         <p><strong>Name:</strong> ${name}</p>
-        //         <p><strong>Email:</strong> ${email}</p>
-        //         <p><strong>Subject:</strong> ${subject}</p>
-        //         <p><strong>Message:</strong></p>
-        //         <p>${message.replace(/\n/g, '<br>')}</p>
-        //     `
-        // })
+        // Send auto-reply to user
+        const userEmailResult = await resend.emails.send({
+            from: "Asking Fate Support <support@no-reply.askingfate.com>",
+            to: [email],
+            subject: `Thank you for your message - ${subject}`,
+            react: React.createElement(UserAutoReplyEmail, {
+                name,
+                subject,
+                message,
+            }),
+        })
 
-        return NextResponse.json(
-            {
-                success: true,
-                message:
-                    "Your message has been sent successfully. We'll get back to you within 24-48 hours.",
-            },
-            { status: 200 }
-        )
+        // Check if both emails were sent successfully
+        if (adminEmailResult.error || userEmailResult.error) {
+            console.error("Email sending errors:", {
+                adminError: adminEmailResult.error,
+                userError: userEmailResult.error,
+            })
+            return NextResponse.json(
+                { error: "Failed to send emails" },
+                { status: 500 }
+            )
+        }
+
+        return NextResponse.json({
+            message: "Form submitted successfully and emails sent",
+            adminEmailId: adminEmailResult.data?.id,
+            userEmailId: userEmailResult.data?.id,
+        })
     } catch (error) {
-        console.error("Contact form error:", error)
+        console.error("Error processing contact form:", error)
         return NextResponse.json(
-            { error: "Failed to send message. Please try again." },
+            { error: "Internal server error" },
             { status: 500 }
         )
     }

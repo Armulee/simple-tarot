@@ -20,11 +20,10 @@ export default function SignInPage() {
     const t = useTranslations("Auth.SignIn")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
-    const [isLoading, setIsLoading] = useState(false)
-    // removed unused local error state
     const router = useRouter()
     const params = useSearchParams()
     const { signIn, user } = useAuth()
+
 
     useEffect(() => {
         const err = params.get("error")
@@ -43,10 +42,10 @@ export default function SignInPage() {
         router.replace(callbackUrl)
     }, [user, router, params])
 
-    const handleSubmit = async (e: React.FormEvent) => {
+
+
+    const handlePasswordSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        setIsLoading(true)
-        // no-op: we only show toasts for errors
 
         try {
             const { error } = await signIn(email, password)
@@ -59,15 +58,13 @@ export default function SignInPage() {
                 router.refresh()
             }
         } catch {
-            // show toast only; no local error state
             toast.error("An error occurred. Please try again.", { duration: Infinity, closeButton: true })
-        } finally {
-            setIsLoading(false)
         }
     }
 
+
     return (
-        <div className='w-full mx-auto max-w-md space-y-8 pt-6 pb-16'>
+        <div className='w-full mx-auto max-w-md space-y-8 pt-6 pb-16 relative z-10 px-4 sm:px-6'>
             {/* Header */}
             <div className='text-center space-y-4'>
                 <div className='w-16 h-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center float-animation'>
@@ -90,50 +87,46 @@ export default function SignInPage() {
 
             {/* Sign In Form */}
             <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20 card-glow'>
-                <form onSubmit={handleSubmit} className='space-y-6'>
-                    <div className='space-y-4'>
-                        <div className='space-y-2'>
-                            <Label
-                                htmlFor='email'
-                                className='text-sm font-medium'
-                            >
-                                {t("emailLabel")}
-                            </Label>
-                            <div className='relative'>
-                                <Input
-                                    id='email'
-                                    type='email'
-                                    placeholder={t("emailPlaceholder")}
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 floating-input'
-                                    required
-                                />
-                                <div className='absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-secondary/5 pointer-events-none opacity-0 transition-opacity duration-300 peer-focus:opacity-100'></div>
-                            </div>
+                <form onSubmit={handlePasswordSubmit} className='space-y-6'>
+                    <div className='space-y-2'>
+                        <Label
+                            htmlFor='email'
+                            className='text-sm font-medium'
+                        >
+                            {t("emailLabel")}
+                        </Label>
+                        <div className='relative'>
+                            <Input
+                                id='email'
+                                type='email'
+                                placeholder={t("emailPlaceholder")}
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 floating-input'
+                                required
+                            />
+                            <div className='absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-secondary/5 pointer-events-none opacity-0 transition-opacity duration-300 peer-focus:opacity-100'></div>
                         </div>
+                    </div>
 
-                        <div className='space-y-2'>
-                            <Label
-                                htmlFor='password'
-                                className='text-sm font-medium'
-                            >
-                                {t("passwordLabel")}
-                            </Label>
-                            <div className='relative'>
-                                <Input
-                                    id='password'
-                                    type='password'
-                                    placeholder={t("passwordPlaceholder")}
-                                    value={password}
-                                    onChange={(e) =>
-                                        setPassword(e.target.value)
-                                    }
-                                    className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 floating-input'
-                                    required
-                                />
-                                <div className='absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-secondary/5 pointer-events-none opacity-0 transition-opacity duration-300 peer-focus:opacity-100'></div>
-                            </div>
+                    <div className='space-y-2'>
+                        <Label
+                            htmlFor='password'
+                            className='text-sm font-medium'
+                        >
+                            {t("passwordLabel")}
+                        </Label>
+                        <div className='relative'>
+                            <Input
+                                id='password'
+                                type='password'
+                                placeholder={t("passwordPlaceholder")}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className='bg-input/20 backdrop-blur-sm border-border/30 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 floating-input'
+                                required
+                            />
+                            <div className='absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-secondary/5 pointer-events-none opacity-0 transition-opacity duration-300 peer-focus:opacity-100'></div>
                         </div>
                     </div>
 
@@ -148,10 +141,10 @@ export default function SignInPage() {
 
                     <Button
                         type='submit'
-                        disabled={isLoading}
+                        disabled={!email || !password}
                         className='w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-lg card-glow'
                     >
-                        {isLoading ? t("buttonLoading") : t("button")}
+                        {t("button")}
                     </Button>
                 </form>
             </Card>
@@ -162,7 +155,7 @@ export default function SignInPage() {
                     {t("signupPrompt")}{" "}
                     <Link
                         href='/signup'
-                        className='text-primary hover:text-primary/80 transition-colors font-medium'
+                        className='text-accent hover:text-accent/80 transition-colors font-medium'
                     >
                         {t("signupLink")}
                     </Link>

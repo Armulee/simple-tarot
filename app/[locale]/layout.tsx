@@ -7,6 +7,7 @@ import { Suspense } from "react"
 import { TarotProvider } from "@/contexts/tarot-context"
 import { StarsProvider } from "@/contexts/stars-context"
 import { AuthProvider } from "@/contexts/auth-context"
+import { ProfileProvider } from "@/contexts/profile-context"
 import { Navbar } from "@/components/navbar"
 import "./globals.css"
 import Footer from "@/components/footer"
@@ -121,9 +122,10 @@ export default async function RootLayout({
                 <CosmicStars />
                 <NextIntlClientProvider messages={messages} locale={locale}>
                     <AuthProvider>
-                        <StarConsentProvider>
-                        <StarsProvider>
-                            <TarotProvider>
+                        <ProfileProvider>
+                            <StarConsentProvider>
+                            <StarsProvider>
+                                <TarotProvider>
                                 <div className='min-h-screen flex flex-col home-gradient'>
                                     <Navbar locale={locale} />
                                     <main className='pt-16 md:min-h-[calc(100dvh-65px)] min-h-[calc(100dvh-65px-4rem)] relative overflow-hidden'>
@@ -133,9 +135,10 @@ export default async function RootLayout({
                                     </main>
                                     <Footer />
                                 </div>
-                            </TarotProvider>
-                        </StarsProvider>
-                        </StarConsentProvider>
+                                </TarotProvider>
+                            </StarsProvider>
+                            </StarConsentProvider>
+                        </ProfileProvider>
                     </AuthProvider>
                 </NextIntlClientProvider>
                 <Analytics />

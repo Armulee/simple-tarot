@@ -4,6 +4,12 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   name text,
   avatar_url text,
+  bio text,
+  birth_date date,
+  birth_time time,
+  birth_place text,
+  job text,
+  gender text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -394,3 +400,19 @@ end;
 $$ language plpgsql security definer set search_path = public;
 
 grant execute on function public.star_set(text, integer, uuid) to authenticated;
+
+-- Storage bucket for profile pictures
+insert into storage.buckets (id, name, public) values ('avatars', 'avatars', true) on conflict (id) do nothing;
+
+-- Storage policies for avatars bucket
+create policy "Users can upload their own avatar" on storage.objects
+  for insert with check (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+
+create policy "Users can update their own avatar" on storage.objects
+  for update with check (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+
+create policy "Users can delete their own avatar" on storage.objects
+  for delete using (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+
+create policy "Avatar images are publicly accessible" on storage.objects
+  for select using (bucket_id = 'avatars');

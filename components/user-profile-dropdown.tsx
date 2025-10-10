@@ -2,21 +2,46 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ConsistentAvatar } from "@/components/ui/consistent-avatar"
+import { useTranslations } from "next-intl"
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
+    DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/use-auth"
-import { LogOut, CreditCard, Bell, User, Shield, Palette } from "lucide-react"
+import {
+    LogOut,
+    CreditCard,
+    Bell,
+    User,
+    Shield,
+    Palette,
+    Moon,
+    Sun,
+    Star,
+    Eye,
+    Wand2,
+    Check,
+} from "lucide-react"
 import { NotificationSheet } from "@/components/notifications/notification-sheet"
 
 interface UserProfileDropdownProps {
     children: React.ReactNode
     onClose?: () => void
+}
+
+interface Theme {
+    id: string
+    name: string
+    icon: React.ReactNode
+    available: boolean
 }
 
 export function UserProfileDropdown({
@@ -25,8 +50,49 @@ export function UserProfileDropdown({
 }: UserProfileDropdownProps) {
     const { user, signOut } = useAuth()
     const router = useRouter()
+    const t = useTranslations("UserProfile")
     const [isLoading, setIsLoading] = useState(false)
     const [notificationOpen, setNotificationOpen] = useState(false)
+    const [selectedTheme, setSelectedTheme] = useState("default")
+
+    const themes: Theme[] = [
+        {
+            id: "default",
+            name: t("themes.default"),
+            icon: <Palette className='w-4 h-4' />,
+            available: true,
+        },
+        {
+            id: "antiverse",
+            name: t("themes.antiverse"),
+            icon: <Moon className='w-4 h-4' />,
+            available: true,
+        },
+        {
+            id: "zodiac",
+            name: t("themes.zodiac"),
+            icon: <Star className='w-4 h-4' />,
+            available: true,
+        },
+        {
+            id: "singularity",
+            name: t("themes.singularity"),
+            icon: <Eye className='w-4 h-4' />,
+            available: true,
+        },
+        {
+            id: "luminous",
+            name: t("themes.luminous"),
+            icon: <Sun className='w-4 h-4' />,
+            available: true,
+        },
+        {
+            id: "mystic",
+            name: t("themes.mystic"),
+            icon: <Wand2 className='w-4 h-4' />,
+            available: true,
+        },
+    ]
 
     if (!user) return null
 
@@ -58,8 +124,10 @@ export function UserProfileDropdown({
         if (onClose) onClose()
     }
 
-    const handleThemeClick = () => {
-        router.push("/theme")
+    const handleThemeSelect = (themeId: string) => {
+        setSelectedTheme(themeId)
+        // TODO: Implement theme switching logic
+        console.log("Selected theme:", themeId)
         if (onClose) onClose()
     }
 
@@ -68,18 +136,8 @@ export function UserProfileDropdown({
         if (onClose) onClose()
     }
 
-    const getUserInitials = () => {
-        const name =
-            user.user_metadata?.name || user.email?.split("@")[0] || "U"
-        return name.charAt(0).toUpperCase()
-    }
-
     const getUserName = () => {
         return user.user_metadata?.name || user.email?.split("@")[0] || "User"
-    }
-
-    const getUserAvatar = () => {
-        return user.user_metadata?.avatar_url || user.user_metadata?.picture
     }
 
     return (
@@ -88,18 +146,17 @@ export function UserProfileDropdown({
                 <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
                 <DropdownMenuContent
                     align='end'
-                    className='w-56 bg-card/95 backdrop-blur-md border-border/30'
+                    className='w-56 bg-card/80 backdrop-blur-md border border-border/50 overflow-visible shadow-lg z-[9999]'
+                    sideOffset={5}
                 >
                     <div className='flex items-center gap-2 p-2'>
-                        <Avatar className='w-8 h-8'>
-                            <AvatarImage
-                                src={getUserAvatar()}
-                                alt={getUserName()}
-                            />
-                            <AvatarFallback className='bg-primary/20 text-primary font-semibold'>
-                                {getUserInitials()}
-                            </AvatarFallback>
-                        </Avatar>
+                        <ConsistentAvatar
+                            data={{
+                                name: user.user_metadata?.name,
+                                email: user.email,
+                            }}
+                            size='sm'
+                        />
                         <div className='flex-1 min-w-0'>
                             <p className='text-sm font-medium truncate'>
                                 {getUserName()}
@@ -110,26 +167,61 @@ export function UserProfileDropdown({
                         </div>
                     </div>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleNotificationsClick}>
-                        <Bell className='w-4 h-4 mr-2' />
-                        Notifications
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleProfileClick}>
-                        <User className='w-4 h-4 mr-2' />
-                        Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleAccountClick}>
-                        <Shield className='w-4 h-4 mr-2' />
-                        Account
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleThemeClick}>
-                        <Palette className='w-4 h-4 mr-2' />
-                        Theme
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleBillingClick}>
-                        <CreditCard className='w-4 h-4 mr-2' />
-                        Billing
-                    </DropdownMenuItem>
+                    <DropdownMenuGroup>
+                        <DropdownMenuItem onClick={handleNotificationsClick}>
+                            <Bell className='w-4 h-4 mr-2' />
+                            {t("notifications")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleProfileClick}>
+                            <User className='w-4 h-4 mr-2' />
+                            {t("profile")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleAccountClick}>
+                            <Shield className='w-4 h-4 mr-2' />
+                            {t("account")}
+                        </DropdownMenuItem>
+                        <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
+                                <Palette className='w-4 h-4 mr-2' />
+                                {t("theme")}
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent
+                                className='w-fit bg-card border border-border/50 overflow-visible shadow-lg z-[9999]'
+                                sideOffset={-2}
+                                alignOffset={-2}
+                            >
+                                {themes.map((theme) => (
+                                    <DropdownMenuItem
+                                        key={theme.id}
+                                        onClick={() =>
+                                            handleThemeSelect(theme.id)
+                                        }
+                                        disabled={!theme.available}
+                                        className={`flex items-center justify-between ${
+                                            selectedTheme === theme.id
+                                                ? "bg-accent text-accent-foreground"
+                                                : ""
+                                        }`}
+                                    >
+                                        <div className='flex items-center'>
+                                            {selectedTheme === theme.id ? (
+                                                <Check className='w-4 h-4' />
+                                            ) : (
+                                                theme.icon
+                                            )}
+                                            <span className='ml-2'>
+                                                {theme.name}
+                                            </span>
+                                        </div>
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                        <DropdownMenuItem onClick={handleBillingClick}>
+                            <CreditCard className='w-4 h-4 mr-2' />
+                            {t("billing")}
+                        </DropdownMenuItem>
+                    </DropdownMenuGroup>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                         onClick={handleSignOut}
@@ -137,7 +229,7 @@ export function UserProfileDropdown({
                         className='text-white bg-red-500/10 hover:bg-red-500/20 focus:bg-red-500/20 focus:text-white border border-red-500/20 hover:border-red-500/30'
                     >
                         <LogOut className='w-4 h-4 mr-2' />
-                        {isLoading ? "Signing out..." : "Sign out"}
+                        {isLoading ? t("signingOut") : t("signOut")}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

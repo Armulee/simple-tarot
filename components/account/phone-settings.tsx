@@ -5,17 +5,18 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
 import { Phone, Plus, Edit } from "lucide-react"
 import { getDefaultCountry } from "./use-account-validation"
 import { PhoneDialog } from "./phone-dialog"
 import { PhoneOtpDialog } from "./phone-otp-dialog"
+import { useTranslations } from "next-intl"
 
 interface PhoneSettingsProps {
     locale: string
 }
 
 export function PhoneSettings({ locale }: PhoneSettingsProps) {
+    const t = useTranslations("Account.phoneSettings")
     // Mock primary phone number - in real app this would come from user data
     // Set to empty string to show no phone number state
     const primaryPhoneNumber = ""
@@ -37,13 +38,13 @@ export function PhoneSettings({ locale }: PhoneSettingsProps) {
 
     return (
         <>
-            <Card className='bg-background/20 backdrop-blur-sm border border-border/30 hover:bg-background/30 transition-all duration-300'>
-                <div className='p-6 space-y-6'>
+            <Card className='w-full bg-card/50 border-border/30 p-6 shadow-xl shadow-black/20 backdrop-blur-sm hover:border-primary/40 transition-all duration-300'>
+                <div className='space-y-6'>
                     <div className='flex items-center space-x-3'>
                         <div className='p-2 rounded-lg bg-primary/20'>
                             <Phone className='w-5 h-5 text-primary' />
                         </div>
-                        <h2 className='text-2xl font-bold text-white'>Phone</h2>
+                        <h2 className='text-2xl font-bold text-white'>{t("title")}</h2>
                     </div>
 
                     <div className='space-y-4'>
@@ -51,20 +52,14 @@ export function PhoneSettings({ locale }: PhoneSettingsProps) {
                             <div className='space-y-4'>
                                 <div>
                                     <Label className='text-white font-medium'>
-                                        Primary Phone Number
+                                        {t("currentPhone")}
                                     </Label>
                                     <div className='flex items-center space-x-2 mt-1'>
                                         <Input
                                             value={primaryPhoneNumber}
                                             disabled
-                                            className='bg-background/30 border-border/50 text-foreground'
+                                            className='bg-background/30 border-border/50 text-white'
                                         />
-                                        <Badge
-                                            variant='outline'
-                                            className='bg-green-400/20 text-green-300 border-green-400/40'
-                                        >
-                                            Verified
-                                        </Badge>
                                     </div>
                                 </div>
                             </div>
@@ -80,12 +75,12 @@ export function PhoneSettings({ locale }: PhoneSettingsProps) {
                             {primaryPhoneNumber ? (
                                 <>
                                     <Edit className='w-4 h-4 mr-2' />
-                                    Edit Phone
+                                    {t("editPhone")}
                                 </>
                             ) : (
                                 <>
                                     <Plus className='w-4 h-4 mr-2' />
-                                    Add Phone
+                                    {t("addPhone")}
                                 </>
                             )}
                         </Button>

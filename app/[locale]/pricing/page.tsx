@@ -1,5 +1,6 @@
 // server component
 import { Card } from "@/components/ui/card"
+import { getTranslations } from "next-intl/server"
 import {
     Star,
     Crown,
@@ -32,25 +33,26 @@ export async function generateMetadata() {
 }
 
 export default async function PricingPage() {
+    const t = await getTranslations("Pricing")
     const basePerDollar = 60
     const packs: Pack[] = [
-        { id: "pack-1", priceUsd: 0.99, stars: 60, bonus: 0 },
-        { id: "pack-2", priceUsd: 1.99, stars: 130, bonus: 10 },
+        { id: "pack-1", priceUsd: 35, stars: 60, bonus: 0 },
+        { id: "pack-2", priceUsd: 70, stars: 130, bonus: 10 },
         {
             id: "pack-3",
-            priceUsd: 2.99,
+            priceUsd: 105,
             stars: 200,
             bonus: 200 - 3 * basePerDollar,
             label: "Popular",
         },
         {
             id: "pack-5",
-            priceUsd: 4.99,
+            priceUsd: 175,
             stars: 350,
             bonus: 350 - 5 * basePerDollar,
             label: "Best value",
         },
-        { id: "pack-7", priceUsd: 6.99, stars: 500, bonus: 80 },
+        { id: "pack-7", priceUsd: 245, stars: 500, bonus: 80 },
     ]
 
     // removed unused helpers (packStyles, badgeStyles, packAura)
@@ -125,14 +127,13 @@ export default async function PricingPage() {
             {/* Hero */}
             <div className='text-center space-y-4'>
                 <h1 className='font-serif font-bold text-4xl md:text-5xl'>
-                    Choose your stars, unlock deeper insights
+                    {t("heroTitle")}
                 </h1>
                 <p className='text-muted-foreground text-balance max-w-2xl mx-auto'>
-                    Flexible one-time packs and a simple monthly plan. Instant
-                    delivery. Cancel anytime.
+                    {t("heroDescription")}
                 </p>
                 <div className='text-xs text-white/70'>
-                    Prices in USD. Stars deliver instantly after purchase.
+                    {t("priceNote")}
                 </div>
             </div>
 
@@ -140,7 +141,7 @@ export default async function PricingPage() {
             <div className='flex items-center gap-3 mt-6'>
                 <span className='h-px flex-1 bg-white/60'></span>
                 <span className='text-xs tracking-wider uppercase text-white'>
-                    subscription plans
+                    {t("subscriptionPlans")}
                 </span>
                 <span className='h-px flex-1 bg-white/60'></span>
             </div>
@@ -152,9 +153,9 @@ export default async function PricingPage() {
                         <div className='order-2 md:order-1 space-y-1'>
                             <TabsList>
                                 <TabsTrigger value='monthly'>
-                                    Monthly
+                                    {t("monthly")}
                                 </TabsTrigger>
-                                <TabsTrigger value='annual'>Annual</TabsTrigger>
+                                <TabsTrigger value='annual'>{t("yearly")}</TabsTrigger>
                             </TabsList>
                         </div>
                         {/* Crown shown per tab in content sections to allow color change */}
@@ -171,26 +172,26 @@ export default async function PricingPage() {
                             <div className='order-2 md:order-1 space-y-2'>
                                 <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-violet-400/15 border border-violet-400/30 text-violet-300'>
                                     <Crown className='w-4 h-4' />
-                                    Monthly subscription
+                                    {t("monthlySubscription")}
                                 </div>
-                                <div className='text-3xl font-bold'>$9.99</div>
+                                <div className='text-3xl font-bold'>฿350</div>
                                 <div className='text-sm text-muted-foreground'>
-                                    per month · auto-renew · cancel anytime
+                                    {t("perMonth")} · {t("autoRenew")} · {t("cancelAnytime")}
                                 </div>
                             </div>
                             <div className='order-3 space-y-3'>
                                 <ul className='mt-2 text-sm text-white/80 space-y-1'>
                                     <li className='flex items-center gap-2'>
                                         <CheckCircle2 className='w-4 h-4 text-violet-300' />{" "}
-                                        Ongoing support for new features
+                                        {t("ongoingSupport")}
                                     </li>
                                     <li className='flex items-center gap-2'>
                                         <CheckCircle2 className='w-4 h-4 text-violet-300' />{" "}
-                                        Occasional bonus stars & perks
+                                        {t("bonusStars")}
                                     </li>
                                     <li className='flex items-center gap-2'>
                                         <CheckCircle2 className='w-4 h-4 text-violet-300' />{" "}
-                                        Cancel anytime from your account
+                                        {t("cancelFromAccount")}
                                     </li>
                                 </ul>
                                 <Checkout mode='subscribe' plan='monthly' />
@@ -209,36 +210,36 @@ export default async function PricingPage() {
                             <div className='order-2 md:order-1 space-y-2'>
                                 <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full bg-indigo-400/15 border border-indigo-400/30 text-indigo-300'>
                                     <Crown className='w-4 h-4' />
-                                    Annual subscription
+                                    {t("annualSubscription")}
                                 </div>
                                 <div className='inline-flex items-baseline gap-2'>
                                     <div className='text-3xl font-bold'>
-                                        $8.33
+                                        ฿292
                                     </div>
                                     <div className='text-sm text-white/70 line-through'>
-                                        $9.99
+                                        ฿350
                                     </div>
                                     <span className='text-xs px-2 py-0.5 rounded border bg-indigo-400/15 border-indigo-400/30 text-indigo-300 font-semibold'>
-                                        Save 17%
+                                        {t("save17")}
                                     </span>
                                 </div>
                                 <div className='text-sm text-muted-foreground'>
-                                    per month · billed $99.99/year
+                                    {t("perMonth")} · {t("billedYearly")}
                                 </div>
                             </div>
                             <div className='order-3 space-y-3'>
                                 <ul className='mt-2 text-sm text-white/80 space-y-1'>
                                     <li className='flex items-center gap-2'>
                                         <CheckCircle2 className='w-4 h-4 text-indigo-300' />{" "}
-                                        Best value yearly plan
+                                        {t("bestValueYearly")}
                                     </li>
                                     <li className='flex items-center gap-2'>
                                         <CheckCircle2 className='w-4 h-4 text-indigo-300' />{" "}
-                                        Same perks as monthly
+                                        {t("samePerks")}
                                     </li>
                                     <li className='flex items-center gap-2'>
                                         <CheckCircle2 className='w-4 h-4 text-indigo-300' />{" "}
-                                        Cancel renewal anytime
+                                        {t("cancelRenewal")}
                                     </li>
                                 </ul>
                                 <Checkout mode='subscribe' plan='annual' />
@@ -254,7 +255,7 @@ export default async function PricingPage() {
             <div className='flex items-center gap-3 mt-8'>
                 <span className='h-px flex-1 bg-white/60'></span>
                 <span className='text-xs tracking-wider uppercase text-white'>
-                    one-time star packs
+                    {t("oneTimePacks")}
                 </span>
                 <span className='h-px flex-1 bg-white/60'></span>
             </div>
@@ -318,7 +319,7 @@ export default async function PricingPage() {
                                             )}`}
                                         />
                                     )}
-                                    <span>{p.label || "One-time pack"}</span>
+                                    <span>{p.label || t("oneTime")}</span>
                                 </div>
                                 {/* Stars amount first (above price) with bonus badge at top-right */}
                                 <div className='inline-flex items-center gap-2 justify-center w-full mt-2'>
@@ -345,7 +346,7 @@ export default async function PricingPage() {
                                                 p.id
                                             )}`}
                                         >
-                                            stars
+                                            {t("stars")}
                                         </span>
                                         {p.bonus > 0 && (
                                             <span className='absolute -top-3 -right-3 rotate-6 text-xs px-2 py-0.5 rounded border bg-emerald-400 border-emerald-500 text-emerald-950 font-semibold'>
@@ -355,10 +356,10 @@ export default async function PricingPage() {
                                     </span>
                                 </div>
                                 <div className='text-3xl font-bold'>
-                                    ${p.priceUsd.toFixed(2)}
+                                    ฿{p.priceUsd.toFixed(0)}
                                 </div>
                                 <div className='text-sm text-muted-foreground'>
-                                    one-time · instant delivery
+                                    {t("oneTime")} · {t("instantDelivery")}
                                 </div>
                             </div>
                             <div className='space-y-3 text-left'>
@@ -369,7 +370,7 @@ export default async function PricingPage() {
                                                 p.id
                                             )}`}
                                         />{" "}
-                                        Instant delivery
+                                        {t("instantDelivery")}
                                     </li>
                                     <li className='flex items-center gap-2'>
                                         <CheckCircle2
@@ -377,7 +378,7 @@ export default async function PricingPage() {
                                                 p.id
                                             )}`}
                                         />{" "}
-                                        Secure checkout
+                                        {t("secureCheckout")}
                                     </li>
                                     {p.bonus > 0 && (
                                         <li className='flex items-center gap-2'>
@@ -386,7 +387,7 @@ export default async function PricingPage() {
                                                     p.id
                                                 )}`}
                                             />{" "}
-                                            Includes bonus stars
+                                            {t("includesBonus")}
                                         </li>
                                     )}
                                 </ul>
@@ -404,7 +405,7 @@ export default async function PricingPage() {
                         <div className='space-y-2 text-left'>
                             <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border bg-amber-400/15 border-amber-400/30 text-amber-200 absolute -top-3 left-2'>
                                 <InfinityIcon className='w-4 h-4' />
-                                <span>One-time pack</span>
+                                <span>{t("oneTime")}</span>
                             </div>
                             <div className='inline-flex items-center gap-2 justify-center w-full mt-2'>
                                 <span className='relative inline-flex items-center gap-3 px-5 py-2 rounded-full border bg-amber-400/15 border-amber-400/30 text-amber-200'>
@@ -414,24 +415,24 @@ export default async function PricingPage() {
                                     </span>
                                 </span>
                             </div>
-                            <div className='text-3xl font-bold'>$9.99</div>
+                            <div className='text-3xl font-bold'>฿350</div>
                             <div className='text-sm text-muted-foreground'>
-                                one-time · 30 days · instant delivery
+                                {t("oneTime")} · 30 {t("days")} · {t("instantDelivery")}
                             </div>
                         </div>
                         <div className='space-y-3 text-left'>
                             <ul className='text-sm text-white/80 space-y-1'>
                                 <li className='flex items-center gap-2'>
                                     <CheckCircle2 className='w-4 h-4 text-amber-200' />{" "}
-                                    Infinity stars (30 days)
+                                    {t("infinityStars")}
                                 </li>
                                 <li className='flex items-center gap-2'>
                                     <CheckCircle2 className='w-4 h-4 text-amber-200' />{" "}
-                                    Instant delivery
+                                    {t("instantDelivery")}
                                 </li>
                                 <li className='flex items-center gap-2'>
                                     <CheckCircle2 className='w-4 h-4 text-amber-200' />{" "}
-                                    One-time payment, no auto-renew
+                                    {t("oneTimePayment")}
                                 </li>
                             </ul>
                             <div>
@@ -451,27 +452,27 @@ export default async function PricingPage() {
                 {[
                     {
                         icon: <Lock className='w-5 h-5 text-primary' />,
-                        title: "Sign in",
-                        desc: "Create or sign in to your account",
+                        title: t("signIn"),
+                        desc: t("signInDesc"),
                     },
                     {
                         icon: <Star className='w-5 h-5 text-yellow-300' />,
-                        title: "Pick a pack",
-                        desc: "$1=60 stars, larger packs include bonus",
+                        title: t("pickPack"),
+                        desc: t("pickPackDesc"),
                     },
                     {
                         icon: (
                             <CreditCard className='w-5 h-5 text-emerald-300' />
                         ),
-                        title: "Pay securely",
-                        desc: "Processed by trusted providers",
+                        title: t("paySecurely"),
+                        desc: t("paySecurelyDesc"),
                     },
                     {
                         icon: (
                             <CheckCircle2 className='w-5 h-5 text-emerald-300' />
                         ),
-                        title: "Instant delivery",
-                        desc: "Stars appear right after payment",
+                        title: t("instantDelivery"),
+                        desc: t("instantDeliveryDesc"),
                     },
                 ].map((step) => (
                     <Card
@@ -504,11 +505,10 @@ export default async function PricingPage() {
                         </div>
                         <div>
                             <div className='font-semibold'>
-                                Trusted & transparent
+                                {t("trustedTransparent")}
                             </div>
                             <div className='text-sm text-muted-foreground'>
-                                Clear pricing. No hidden fees. Stars are for
-                                readings.
+                                {t("trustedTransparentDesc")}
                             </div>
                         </div>
                     </div>
@@ -519,10 +519,9 @@ export default async function PricingPage() {
                             <Lock className='w-5 h-5 text-white/90' />
                         </div>
                         <div>
-                            <div className='font-semibold'>Secure checkout</div>
+                            <div className='font-semibold'>{t("secureCheckout")}</div>
                             <div className='text-sm text-muted-foreground'>
-                                Payments handled by reputable processors with
-                                encryption.
+                                {t("secureCheckoutDesc")}
                             </div>
                         </div>
                     </div>
@@ -534,11 +533,10 @@ export default async function PricingPage() {
                         </div>
                         <div>
                             <div className='font-semibold'>
-                                Ongoing improvements
+                                {t("ongoingImprovements")}
                             </div>
                             <div className='text-sm text-muted-foreground'>
-                                Your support helps us ship better AI readings
-                                and features.
+                                {t("ongoingImprovementsDesc")}
                             </div>
                         </div>
                     </div>
@@ -549,20 +547,18 @@ export default async function PricingPage() {
             <div className='grid md:grid-cols-2 gap-6'>
                 <Card className='p-6 bg-card/10 border-border/20'>
                     <h3 className='font-serif font-semibold text-lg mb-2'>
-                        How fast do stars arrive?
+                        {t("howFastStars")}
                     </h3>
                     <p className='text-sm text-muted-foreground'>
-                        Instantly after payment. If you don&apos;t see them,
-                        refresh the stars page.
+                        {t("howFastStarsAnswer")}
                     </p>
                 </Card>
                 <Card className='p-6 bg-card/10 border-border/20'>
                     <h3 className='font-serif font-semibold text-lg mb-2'>
-                        What is the bonus?
+                        {t("whatIsBonus")}
                     </h3>
                     <p className='text-sm text-muted-foreground'>
-                        $1 always equals 60 stars. Bigger packs include extra
-                        bonus stars on top of the base amount.
+                        {t("whatIsBonusAnswer")}
                     </p>
                 </Card>
             </div>
