@@ -125,12 +125,12 @@
     @apply border-border outline-ring/50;
   }
   html {
+    /* Keep default background for non-themed state */
     background-color: oklch(0.35 0.15 264);
     min-height: 100vh;
   }
   body {
-    background-color: oklch(0.145 0.02 264);
-    color: oklch(0.985 0 0);
+    /* Body colors are controlled via CSS variables elsewhere */
     min-height: 100vh;
   }
 }
@@ -501,6 +501,31 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Theme-aware html background without changing default */
+@layer base {
+  /* When a theme is selected, switch html background to the theme background */
+  html[data-theme] {
+    background-color: var(--background);
+  }
+
+  /* Per-theme html background tuning */
+  html[data-theme="antiverse"] {
+    background-color: oklch(0.08 0.02 264);
+  }
+  html[data-theme="zodiac"] {
+    background-color: oklch(0.12 0.05 280);
+  }
+  html[data-theme="singularity"] {
+    background-color: oklch(0.06 0 0);
+  }
+  html[data-theme="luminous"] {
+    background-color: oklch(0.22 0.1 95);
+  }
+  html[data-theme="mystic"] {
+    background-color: oklch(0.11 0.06 240);
   }
 }
 

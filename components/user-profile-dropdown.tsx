@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { ConsistentAvatar } from "@/components/ui/consistent-avatar"
 import { useTranslations } from "next-intl"
@@ -54,6 +54,27 @@ export function UserProfileDropdown({
     const [isLoading, setIsLoading] = useState(false)
     const [notificationOpen, setNotificationOpen] = useState(false)
     const [selectedTheme, setSelectedTheme] = useState("default")
+
+    const applyTheme = (themeId: string) => {
+        const root = document.documentElement
+        if (themeId === "default") {
+            root.removeAttribute("data-theme")
+        } else {
+            root.setAttribute("data-theme", themeId)
+        }
+    }
+
+    useEffect(() => {
+        try {
+            const savedTheme = localStorage.getItem("themeId")
+            if (savedTheme) {
+                setSelectedTheme(savedTheme)
+                applyTheme(savedTheme)
+            }
+        } catch (error) {
+            // ignore read errors
+        }
+    }, [])
 
     const themes: Theme[] = [
         {
@@ -126,8 +147,12 @@ export function UserProfileDropdown({
 
     const handleThemeSelect = (themeId: string) => {
         setSelectedTheme(themeId)
-        // TODO: Implement theme switching logic
-        console.log("Selected theme:", themeId)
+        try {
+            localStorage.setItem("themeId", themeId)
+        } catch (error) {
+            // ignore write errors
+        }
+        applyTheme(themeId)
         if (onClose) onClose()
     }
 
