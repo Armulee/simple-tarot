@@ -111,6 +111,20 @@ export default async function RootLayout({
     return (
         <html lang={locale}>
             <head>
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+  (function(){
+    try {
+      var themeId = localStorage.getItem('themeId');
+      if (themeId && themeId !== 'default') {
+        document.documentElement.setAttribute('data-theme', themeId);
+      }
+    } catch (e) {}
+  })();
+                        `,
+                    }}
+                />
                 <meta
                     name='google-adsense-account'
                     content='ca-pub-9151677091179897'
