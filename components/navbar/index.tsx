@@ -41,6 +41,7 @@ import { useTranslations as useSidebarTranslations } from "next-intl"
 export function Navbar({ locale }: { locale: string }) {
     const t = useTranslations("Navbar")
     const s = useSidebarTranslations("Services")
+    const l = useTranslations("Languages")
     const [open, setOpen] = useState(false)
     const router = useRouter()
     const pathname = usePathname()
@@ -90,8 +91,8 @@ export function Navbar({ locale }: { locale: string }) {
                     </div>
 
                     {/* Right side: Navigation links, Language dropdown, and Auth */}
-                    <div className='flex items-center space-x-3'>
-                        <div className='flex items-center space-x-5'>
+                    <div className='flex items-center space-x-1'>
+                        <div className='flex items-center space-x-4 mr-4'>
                             <Link
                                 href='/'
                                 className='hidden md:block text-cosmic-light hover:text-white transition-colors'
@@ -118,7 +119,7 @@ export function Navbar({ locale }: { locale: string }) {
                             <SheetTrigger asChild>
                                 <Button
                                     variant='ghost'
-                                    className='inline-flex items-center space-x-2 text-white hover:bg-white/10 px-4 py-2 rounded-md transition-colors'
+                                    className='inline-flex items-center space-x-1 text-white hover:bg-white/10 px-4 py-2 rounded-md transition-colors'
                                 >
                                     <Sparkles className='h-4 w-4' />
                                     <span>{s("tarot")}</span>
@@ -185,10 +186,10 @@ export function Navbar({ locale }: { locale: string }) {
                                     className='text-white border-white/30 hover:bg-white/10'
                                     aria-label='Change language'
                                 >
-                                    {locale.toUpperCase()}{" "}
+                                    {locale.toUpperCase()}
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className='w-24 bg-card/95 backdrop-blur-md border-border/30'>
+                            <DropdownMenuContent className='w-32 bg-card/95 backdrop-blur-md border-border/30'>
                                 {routing.locales.map((loc) => (
                                     <DropdownMenuItem
                                         key={loc}
@@ -200,7 +201,7 @@ export function Navbar({ locale }: { locale: string }) {
                                         className='cursor-pointer'
                                     >
                                         <span className='flex-grow'>
-                                            {loc.toUpperCase()}
+                                            {l(loc as keyof typeof l)}
                                         </span>
                                         {locale === loc && (
                                             <Check className='ml-2 h-4 w-4' />
@@ -245,7 +246,7 @@ export function Navbar({ locale }: { locale: string }) {
 
                         {/* Mobile: Star balance next to sign-in/profile */}
                         <div className='md:hidden flex items-center'>
-                            <Link href='/stars' className='mr-2'>
+                            <Link href='/stars' className='mr-1'>
                                 <Button
                                     variant='ghost'
                                     className='h-9 px-2 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 text-yellow-300 border border-yellow-500/30 flex items-center gap-1'

@@ -89,15 +89,20 @@ export function PasswordSettings({ loginMethod }: PasswordSettingsProps) {
     }
 
     return (
-        <Card className='bg-background/20 backdrop-blur-sm border border-border/30 hover:bg-background/30 transition-all duration-300'>
-            <div className='p-6 space-y-6'>
+        <Card className='w-full bg-card/50 border-border/30 p-6 shadow-xl shadow-black/20 backdrop-blur-sm hover:border-primary/40 transition-all duration-300'>
+            <div className='space-y-6'>
                 <div className='flex items-center space-x-3'>
                     <div className='p-2 rounded-lg bg-primary/20'>
                         <Key className='w-5 h-5 text-primary' />
                     </div>
-                    <h2 className='text-2xl font-bold text-white'>
-                        Password Settings
-                    </h2>
+                    <div>
+                        <h2 className='text-2xl font-bold text-white'>
+                            Password Settings
+                        </h2>
+                        <p className='text-sm text-muted-foreground'>
+                            Manage your email & password login method
+                        </p>
+                    </div>
                 </div>
 
                 <div className='space-y-4'>
@@ -119,7 +124,7 @@ export function PasswordSettings({ loginMethod }: PasswordSettingsProps) {
                                         e.target.value
                                     )
                                 }
-                                className='bg-background/30 border-border/50 text-foreground placeholder-muted-foreground focus:border-primary/50 pr-10'
+                                className='bg-background/30 border-border/50 text-white placeholder-gray-400 focus:border-primary/50 pr-10'
                                 placeholder='Enter new password'
                                 disabled={isLoading}
                             />
@@ -160,7 +165,7 @@ export function PasswordSettings({ loginMethod }: PasswordSettingsProps) {
                                         e.target.value
                                     )
                                 }
-                                className='bg-background/30 border-border/50 text-foreground placeholder-muted-foreground focus:border-primary/50 pr-10'
+                                className='bg-background/30 border-border/50 text-white placeholder-gray-400 focus:border-primary/50 pr-10'
                                 placeholder='Confirm new password'
                                 disabled={isLoading}
                             />

@@ -80,7 +80,7 @@ export default function SignUpPage() {
     }
 
     return (
-        <div className='w-full mx-auto max-w-md space-y-8'>
+        <div className='w-full mx-auto max-w-md space-y-8 relative z-10 px-4 sm:px-6'>
             {/* Header */}
             <div className='text-center space-y-4'>
                 <div className='w-16 h-16 mx-auto rounded-full bg-secondary/20 flex items-center justify-center float-animation'>
@@ -258,7 +258,7 @@ export default function SignUpPage() {
                     {t("signinPrompt")}{" "}
                     <Link
                         href={`/signin?callbackUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '/')}`}
-                        className='text-secondary hover:text-secondary/80 transition-colors font-medium'
+                        className='text-accent hover:text-accent/80 transition-colors font-medium'
                     >
                         {t("signinLink")}
                     </Link>

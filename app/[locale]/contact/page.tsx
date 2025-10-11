@@ -1,45 +1,50 @@
 "use client"
 
 import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import {
     Accordion,
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion"
-import { Mail, MessageSquare, Clock, Send, CheckCircle } from "lucide-react"
+import { Mail, MessageSquare, Clock, Send } from "lucide-react"
+import { toast } from "sonner"
+
+const contactFormSchema = z.object({
+    name: z.string().min(2, "Name must be at least 2 characters").max(50, "Name must be less than 50 characters"),
+    email: z.string().email("Please enter a valid email address"),
+    subject: z.string().min(5, "Subject must be at least 5 characters").max(100, "Subject must be less than 100 characters"),
+    message: z.string().min(10, "Message must be at least 10 characters").max(1000, "Message must be less than 1000 characters"),
+})
+
+type ContactFormData = z.infer<typeof contactFormSchema>
 
 export default function ContactPage() {
-    const [formData, setFormData] = useState({
-        name: "",
-        email: "",
-        subject: "",
-        message: "",
-    })
+    const t = useTranslations("Contact")
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [isSubmitted, setIsSubmitted] = useState(false)
-    const [error, setError] = useState("")
 
-    const handleInputChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
-        const { name, value } = e.target
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }))
-    }
+    const form = useForm<ContactFormData>({
+        resolver: zodResolver(contactFormSchema),
+        defaultValues: {
+            name: "",
+            email: "",
+            subject: "",
+            message: "",
+        },
+    })
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
+    const onSubmit = async (data: ContactFormData) => {
         setIsSubmitting(true)
-        setError("")
 
         try {
             const response = await fetch("/api/contact", {
@@ -47,17 +52,21 @@ export default function ContactPage() {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(data),
             })
 
             if (!response.ok) {
-                throw new Error("Failed to send message")
+                const errorData = await response.json().catch(() => ({}))
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
             }
 
-            setIsSubmitted(true)
-            setFormData({ name: "", email: "", subject: "", message: "" })
+            const result = await response.json()
+            form.reset()
+            toast.success(t("form.success"))
+            console.log("Contact form submitted successfully:", result.message)
         } catch (err) {
-            setError("Failed to send message. Please try again.")
+            const errorMessage = err instanceof Error ? err.message : t("form.error")
+            toast.error(errorMessage)
             console.error("Contact form error:", err)
         } finally {
             setIsSubmitting(false)
@@ -67,72 +76,46 @@ export default function ContactPage() {
     const contactInfo = [
         {
             icon: Mail,
-            title: "Email Support",
-            description: "Get help via email",
+            title: t("emailSupport"),
+            description: t("emailSupportDescription"),
             value: "admin@askingfate.com",
-            badge: "24-48h response",
+            badge: t("responseTime24h"),
         },
         {
             icon: MessageSquare,
-            title: "Live Chat",
-            description: "Chat with our support team",
-            value: "Available 9 AM - 6 PM EST",
-            badge: "Mon-Fri",
+            title: t("liveChat"),
+            description: t("liveChatDescription"),
+            value: t("availableHours"),
+            badge: t("weekdays"),
         },
         {
             icon: Clock,
-            title: "Response Time",
-            description: "Typical response time",
-            value: "Within 24-48 hours",
-            badge: "Business days",
+            title: t("responseTime"),
+            description: t("responseTimeDescription"),
+            value: t("responseTimeValue"),
+            badge: t("businessDays"),
         },
     ]
 
     const faqItems = [
         {
-            question: "How do I get more stars?",
-            answer: "You can purchase stars through our billing page or earn them through special promotions. Check the pricing page for current packages.",
+            question: t("faq.howToGetStars"),
+            answer: t("faq.howToGetStarsAnswer"),
         },
         {
-            question: "Can I get a refund?",
-            answer: "We offer refunds within 7 days of purchase for unused stars. Contact us with your transaction details for assistance.",
+            question: t("faq.refundPolicy"),
+            answer: t("faq.refundPolicyAnswer"),
         },
         {
-            question: "Is my reading data private?",
-            answer: "Yes, all your readings and personal information are kept completely private and secure. We never share your data with third parties.",
+            question: t("faq.dataPrivacy"),
+            answer: t("faq.dataPrivacyAnswer"),
         },
         {
-            question: "How accurate are the readings?",
-            answer: "Our AI-powered interpretations provide insightful guidance based on traditional tarot wisdom. Use them as a tool for reflection and personal growth.",
+            question: t("faq.readingAccuracy"),
+            answer: t("faq.readingAccuracyAnswer"),
         },
     ]
 
-    if (isSubmitted) {
-        return (
-            <div className='min-h-screen p-6 relative overflow-hidden'>
-                <div className='max-w-4xl mx-auto pt-20 relative z-10'>
-                    <Card className='bg-card/50 border-border/30 p-16 text-center shadow-xl shadow-black/20 backdrop-blur-sm'>
-                        <div className='flex items-center justify-center mb-6'>
-                            <CheckCircle className='w-16 h-16 text-primary' />
-                        </div>
-                        <h1 className='text-3xl font-bold text-primary mb-4'>
-                            Message Sent Successfully!
-                        </h1>
-                        <p className='text-gray-300 text-lg mb-6'>
-                            Thank you for contacting us. We&apos;ll get back to
-                            you within 24-48 hours.
-                        </p>
-                        <Button
-                            onClick={() => setIsSubmitted(false)}
-                            className='bg-primary/20 border-primary/30 text-primary hover:bg-primary/30 hover:border-primary/50 transition-all duration-300'
-                        >
-                            Send Another Message
-                        </Button>
-                    </Card>
-                </div>
-            </div>
-        )
-    }
 
     return (
         <div className='min-h-screen p-6 relative overflow-hidden'>
@@ -140,11 +123,10 @@ export default function ContactPage() {
                 {/* Header */}
                 <div className='text-center space-y-4'>
                     <h1 className='text-4xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'>
-                        Contact & Support
+                        {t("title")}
                     </h1>
                     <p className='text-gray-300 text-lg max-w-2xl mx-auto'>
-                        Need help? Have questions? We&apos;re here to assist you
-                        on your mystical journey.
+                        {t("subtitle")}
                     </p>
                 </div>
 
@@ -154,7 +136,7 @@ export default function ContactPage() {
                         <div className='flex items-center space-x-3'>
                             <MessageSquare className='w-6 h-6 text-secondary' />
                             <h2 className='text-2xl font-bold text-white'>
-                                Frequently Asked Questions
+                                {t("faqTitle")}
                             </h2>
                         </div>
 
@@ -182,13 +164,10 @@ export default function ContactPage() {
                 <Card className='bg-card/50 border-border/30 p-8 shadow-xl shadow-black/20 backdrop-blur-sm'>
                     <div className='text-center space-y-4'>
                         <h2 className='text-2xl font-bold text-white'>
-                            Still Need Help?
+                            {t("stillNeedHelp")}
                         </h2>
                         <p className='text-gray-300 max-w-2xl mx-auto'>
-                            If you can&apos;t find what you&apos;re looking for,
-                            don&apos;t hesitate to reach out. Our support team
-                            is dedicated to helping you have the best experience
-                            with Asking Fate.
+                            {t("stillNeedHelpDescription")}
                         </p>
                     </div>
                 </Card>
@@ -235,114 +214,114 @@ export default function ContactPage() {
                             <div className='flex items-center space-x-3'>
                                 <Send className='w-6 h-6 text-primary' />
                                 <h2 className='text-2xl font-bold text-white'>
-                                    Send us a Message
+                                    {t("sendMessage")}
                                 </h2>
                             </div>
 
-                            <form onSubmit={handleSubmit} className='space-y-4'>
-                                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                                    <div>
-                                        <Label
-                                            htmlFor='name'
-                                            className='text-white font-medium'
-                                        >
-                                            Name *
-                                        </Label>
-                                        <Input
-                                            id='name'
-                                            name='name'
-                                            type='text'
-                                            required
-                                            value={formData.name}
-                                            onChange={handleInputChange}
-                                            className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50'
-                                            placeholder='Your name'
+                            <Form {...form}>
+                                <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+                                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                                        <FormField
+                                            control={form.control}
+                                            name="name"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className='text-white font-medium'>
+                                                        {t("form.name")} *
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            placeholder={t("form.namePlaceholder")}
+                                                            className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50'
+                                                            {...field}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="email"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className='text-white font-medium'>
+                                                        {t("form.email")} *
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            type="email"
+                                                            placeholder={t("form.emailPlaceholder")}
+                                                            className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50'
+                                                            {...field}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
                                         />
                                     </div>
-                                    <div>
-                                        <Label
-                                            htmlFor='email'
-                                            className='text-white font-medium'
-                                        >
-                                            Email *
-                                        </Label>
-                                        <Input
-                                            id='email'
-                                            name='email'
-                                            type='email'
-                                            required
-                                            value={formData.email}
-                                            onChange={handleInputChange}
-                                            className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50'
-                                            placeholder='your@email.com'
-                                        />
-                                    </div>
-                                </div>
 
-                                <div>
-                                    <Label
-                                        htmlFor='subject'
-                                        className='text-white font-medium'
-                                    >
-                                        Subject *
-                                    </Label>
-                                    <Input
-                                        id='subject'
-                                        name='subject'
-                                        type='text'
-                                        required
-                                        value={formData.subject}
-                                        onChange={handleInputChange}
-                                        className='bg-black/30 border-yellow-400/30 text-white placeholder-gray-400 focus:border-yellow-400/50'
-                                        placeholder='What can we help you with?'
+                                    <FormField
+                                        control={form.control}
+                                        name="subject"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className='text-white font-medium'>
+                                                    {t("form.subject")} *
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder={t("form.subjectPlaceholder")}
+                                                        className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50'
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
                                     />
-                                </div>
 
-                                <div>
-                                    <Label
-                                        htmlFor='message'
-                                        className='text-white font-medium'
-                                    >
-                                        Message *
-                                    </Label>
-                                    <Textarea
-                                        id='message'
-                                        name='message'
-                                        required
-                                        rows={6}
-                                        value={formData.message}
-                                        onChange={handleInputChange}
-                                        className='bg-black/30 border-yellow-400/30 text-white placeholder-gray-400 focus:border-yellow-400/50 resize-none'
-                                        placeholder='Please describe your inquiry or concern in detail...'
+                                    <FormField
+                                        control={form.control}
+                                        name="message"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className='text-white font-medium'>
+                                                    {t("form.message")} *
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Textarea
+                                                        placeholder={t("form.messagePlaceholder")}
+                                                        className='bg-background/30 border-border/30 text-foreground placeholder-muted-foreground focus:border-primary/50 resize-none'
+                                                        rows={6}
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
                                     />
-                                </div>
 
-                                {error && (
-                                    <div className='p-3 bg-red-500/20 border border-red-400/30 rounded-lg'>
-                                        <p className='text-red-300 text-sm'>
-                                            {error}
-                                        </p>
-                                    </div>
-                                )}
-
-                                <Button
-                                    type='submit'
-                                    disabled={isSubmitting}
-                                    className='w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-lg transition-all duration-300 shadow-lg shadow-primary/25'
-                                >
-                                    {isSubmitting ? (
-                                        <>
-                                            <div className='w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2' />
-                                            Sending...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Send className='w-4 h-4 mr-2' />
-                                            Send Message
-                                        </>
-                                    )}
-                                </Button>
-                            </form>
+                                    <Button
+                                        type='submit'
+                                        disabled={isSubmitting}
+                                        className='w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-lg transition-all duration-300 shadow-lg shadow-primary/25'
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <div className='w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2' />
+                                                {t("form.submitting")}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Send className='w-4 h-4 mr-2' />
+                                                {t("form.submit")}
+                                            </>
+                                        )}
+                                    </Button>
+                                </form>
+                            </Form>
                         </div>
                     </Card>
                 </div>

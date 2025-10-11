@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/hooks/use-auth"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Card } from "@/components/ui/card"
@@ -41,6 +42,7 @@ type Tx = {
 
 export default function BillingPage() {
     const { user } = useAuth()
+    const t = useTranslations("Billing")
     const [txs, setTxs] = useState<Tx[]>([])
     const [loading, setLoading] = useState(false)
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
@@ -104,13 +106,13 @@ export default function BillingPage() {
         } else if (tx.payment_method?.type === "digital_wallet") {
             return {
                 icon: <Smartphone className='w-4 h-4' />,
-                text: "Digital Wallet",
+                text: t("digitalWallet"),
                 type: "digital_wallet",
             }
         } else {
             return {
                 icon: <Wallet className='w-4 h-4' />,
-                text: "Payment",
+                text: t("payment"),
                 type: "unknown",
             }
         }
@@ -205,10 +207,10 @@ export default function BillingPage() {
                 {/* Header */}
                 <div className='text-center'>
                     <h1 className='text-4xl font-serif font-bold drop-shadow-lg'>
-                        Transaction History
+                        {t("title")}
                     </h1>
                     <p className='text-gray-300 font-light text-sm mt-2'>
-                        View your purchase records and billing information
+                        {t("subtitle")}
                     </p>
                 </div>
 
@@ -219,7 +221,7 @@ export default function BillingPage() {
                             {/* Date Range Filter */}
                             <div className='flex items-center space-x-3'>
                                 <span className='font-semibold'>
-                                    Filter by Date:
+                                    {t("filterByDate")}:
                                 </span>
                                 <Popover>
                                     <PopoverTrigger asChild>
@@ -248,7 +250,7 @@ export default function BillingPage() {
                                                     )
                                                 )
                                             ) : (
-                                                <span>Pick a date</span>
+                                                <span>{t("pickDate")}</span>
                                             )}
                                         </Button>
                                     </PopoverTrigger>
@@ -276,7 +278,7 @@ export default function BillingPage() {
                                     }}
                                     className='bg-red-500/20 border-red-400/30 text-red-300 hover:bg-red-500/30 hover:border-red-400/50 transition-all duration-300'
                                 >
-                                    Clear Filters
+                                    {t("clearFilters")}
                                 </Button>
                             )}
                         </div>
@@ -298,7 +300,7 @@ export default function BillingPage() {
                                     style={{ animationDelay: "0.4s" }}
                                 />
                                 <span className='text-yellow-300 ml-4 text-lg font-medium'>
-                                    Loading your magical history...
+                                    {t("loadingHistory")}
                                 </span>
                             </div>
                         </Card>
@@ -310,11 +312,10 @@ export default function BillingPage() {
                                 ✨
                             </div>
                             <h3 className='text-2xl font-bold text-yellow-300 mb-3'>
-                                No purchases yet
+                                {t("noPurchases")}
                             </h3>
                             <p className='text-gray-300 text-lg font-light'>
-                                Your magical journey starts with your first star
-                                purchase
+                                {t("noPurchasesDescription")}
                             </p>
                         </Card>
                     )}
@@ -336,27 +337,27 @@ export default function BillingPage() {
 
                                     {/* Transactions for this period */}
                                     <div className='space-y-3'>
-                                        {periodTxs.map((t) => {
+                                        {periodTxs.map((transaction) => {
                                             const amount =
-                                                (t.amount_cents ?? 0) / 100
+                                                (transaction.amount_cents ?? 0) / 100
                                             const { date, time } = formatDate(
-                                                t.created_at
+                                                transaction.created_at
                                             )
                                             const stars = getStarsFromReference(
-                                                t.reference
+                                                transaction.reference
                                             )
                                             const isSubscription =
-                                                t.type.startsWith(
+                                                transaction.type.startsWith(
                                                     "subscription"
                                                 )
 
                                             const paymentMethod =
-                                                getPaymentMethodDisplay(t)
+                                                getPaymentMethodDisplay(transaction)
 
                                             return (
                                                 <Link
-                                                    href={`/billing/transactions/${t.id}`}
-                                                    key={t.id}
+                                                    href={`/billing/transactions/${transaction.id}`}
+                                                    key={transaction.id}
                                                 >
                                                     <Card className='bg-gradient-to-r from-black/40 to-black/20 border-yellow-400/20 hover:border-yellow-400/50 transition-all duration-500 hover:shadow-2xl hover:shadow-yellow-400/20 relative pt-6 pb-0 backdrop-blur-sm group cursor-pointer'>
                                                         {/* Date and Time badges positioned at top left */}
@@ -412,15 +413,15 @@ export default function BillingPage() {
                                                                     <div className='flex items-center space-x-3'>
                                                                         <h3 className='text-xl font-bold text-white group-hover:text-yellow-300 transition-colors duration-300'>
                                                                             {stars
-                                                                                ? `${stars} Stars`
-                                                                                : "Purchase"}
+                                                                                ? `${stars} ${t("stars")}`
+                                                                                : t("purchase")}
                                                                         </h3>
                                                                         {isSubscription && (
                                                                             <Badge
                                                                                 variant='secondary'
                                                                                 className='bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-purple-200 border-purple-400/50 shadow-lg shadow-purple-500/20 backdrop-blur-sm'
                                                                             >
-                                                                                Subscription
+                                                                                {t("subscription")}
                                                                             </Badge>
                                                                         )}
                                                                     </div>
