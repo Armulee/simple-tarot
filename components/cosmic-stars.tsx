@@ -66,8 +66,9 @@ export default function CosmicStars() {
             {stars.map((star) => (
                 <div
                     key={star.id}
-                    className='absolute bg-white rounded-full pointer-events-none'
+                    className='absolute rounded-full pointer-events-none'
                     style={{
+                        backgroundColor: "var(--cosmic-star-color)",
                         width: star.size,
                         height: star.size,
                         top: star.top,

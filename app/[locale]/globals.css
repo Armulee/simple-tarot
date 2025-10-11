@@ -41,6 +41,11 @@
   --font-source-sans: "Source Sans Pro", sans-serif;
   --font-playfair: "Playfair Display", serif;
   --font-geist-mono: "Geist Mono", monospace;
+  /* Themed gradient + stars */
+  --home-gradient-top: oklch(0.2 0.1 264);
+  --home-gradient-mid: oklch(0.145 0.02 264);
+  --home-gradient-bottom: oklch(0.08 0.02 280);
+  --cosmic-star-color: white;
 }
 
 .dark {
@@ -112,6 +117,10 @@ html[data-theme="antiverse"] {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.985 0 0 / 0.18);
   --sidebar-ring: oklch(0.985 0 0 / 0.28);
+  --home-gradient-top: oklch(0.16 0.08 270);
+  --home-gradient-mid: oklch(0.08 0.02 264);
+  --home-gradient-bottom: oklch(0.05 0.02 280);
+  --cosmic-star-color: oklch(0.98 0.03 270);
 }
 
 html[data-theme="zodiac"] {
@@ -147,6 +156,10 @@ html[data-theme="zodiac"] {
   --sidebar-accent-foreground: oklch(0.18 0.02 90);
   --sidebar-border: oklch(0.985 0 0 / 0.2);
   --sidebar-ring: oklch(0.985 0 0 / 0.3);
+  --home-gradient-top: oklch(0.24 0.12 255);
+  --home-gradient-mid: oklch(0.12 0.05 255);
+  --home-gradient-bottom: oklch(0.08 0.04 280);
+  --cosmic-star-color: oklch(0.95 0.08 95);
 }
 
 html[data-theme="singularity"] {
@@ -182,6 +195,10 @@ html[data-theme="singularity"] {
   --sidebar-accent-foreground: oklch(0.16 0.02 200);
   --sidebar-border: oklch(0.985 0 0 / 0.16);
   --sidebar-ring: oklch(0.985 0 0 / 0.26);
+  --home-gradient-top: oklch(0.18 0.08 230);
+  --home-gradient-mid: oklch(0.08 0.03 260);
+  --home-gradient-bottom: oklch(0.04 0.02 270);
+  --cosmic-star-color: oklch(0.9 0.16 230);
 }
 
 html[data-theme="luminous"] {
@@ -217,6 +234,10 @@ html[data-theme="luminous"] {
   --sidebar-accent-foreground: oklch(0.2 0.02 95);
   --sidebar-border: oklch(0.2 0 0 / 0.12);
   --sidebar-ring: oklch(0.2 0 0 / 0.16);
+  --home-gradient-top: oklch(0.98 0.05 95);
+  --home-gradient-mid: oklch(0.96 0.03 95);
+  --home-gradient-bottom: oklch(0.92 0.03 95);
+  --cosmic-star-color: oklch(0.55 0.15 270);
 }
 
 html[data-theme="mystic"] {
@@ -252,6 +273,10 @@ html[data-theme="mystic"] {
   --sidebar-accent-foreground: oklch(0.16 0.03 320);
   --sidebar-border: oklch(0.985 0 0 / 0.18);
   --sidebar-ring: oklch(0.985 0 0 / 0.28);
+  --home-gradient-top: oklch(0.2 0.08 220);
+  --home-gradient-mid: oklch(0.12 0.06 210);
+  --home-gradient-bottom: oklch(0.08 0.05 240);
+  --cosmic-star-color: oklch(0.9 0.14 320);
 }
 
 @theme inline {
@@ -477,10 +502,12 @@ html[data-theme="mystic"] {
 
 /* Home section gradient */
 .home-gradient {
-  background: radial-gradient(ellipse at top,
-    oklch(0.2 0.1 264) 0%,
-    oklch(0.145 0.02 264) 50%,
-    oklch(0.08 0.02 280) 100%);
+  background: radial-gradient(
+    ellipse at top,
+    var(--home-gradient-top) 0%,
+    var(--home-gradient-mid) 50%,
+    var(--home-gradient-bottom) 100%
+  );
 }
 
 .cosmic-stars-layer-3 {
