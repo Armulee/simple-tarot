@@ -16,9 +16,6 @@ import {
     DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/use-auth"
-<<<<<<< HEAD
-import { LogOut, CreditCard, Bell, User, Shield, Palette, Moon, Sun, Star, Eye, Wand2, Check } from "lucide-react"
-=======
 import {
     LogOut,
     CreditCard,
@@ -33,7 +30,6 @@ import {
     Wand2,
     Check,
 } from "lucide-react"
->>>>>>> 8fb5c0644a643586f48cb396d255b1ef5e159eec
 import { NotificationSheet } from "@/components/notifications/notification-sheet"
 
 interface UserProfileDropdownProps {
@@ -154,21 +150,12 @@ export function UserProfileDropdown({
                     sideOffset={5}
                 >
                     <div className='flex items-center gap-2 p-2'>
-<<<<<<< HEAD
-                        <ConsistentAvatar 
-                            data={{
-                                name: user.user_metadata?.name,
-                                email: user.email
-                            }}
-                            size="sm"
-=======
                         <ConsistentAvatar
                             data={{
                                 name: user.user_metadata?.name,
                                 email: user.email,
                             }}
                             size='sm'
->>>>>>> 8fb5c0644a643586f48cb396d255b1ef5e159eec
                         />
                         <div className='flex-1 min-w-0'>
                             <p className='text-sm font-medium truncate'>
@@ -198,11 +185,7 @@ export function UserProfileDropdown({
                                 <Palette className='w-4 h-4 mr-2' />
                                 {t("theme")}
                             </DropdownMenuSubTrigger>
-<<<<<<< HEAD
-                            <DropdownMenuSubContent 
-=======
                             <DropdownMenuSubContent
->>>>>>> 8fb5c0644a643586f48cb396d255b1ef5e159eec
                                 className='w-fit bg-card border border-border/50 overflow-visible shadow-lg z-[9999]'
                                 sideOffset={-2}
                                 alignOffset={-2}
@@ -210,14 +193,6 @@ export function UserProfileDropdown({
                                 {themes.map((theme) => (
                                     <DropdownMenuItem
                                         key={theme.id}
-<<<<<<< HEAD
-                                        onClick={() => handleThemeSelect(theme.id)}
-                                        disabled={!theme.available}
-                                        className={`flex items-center justify-between ${
-                                            selectedTheme === theme.id 
-                                                ? 'bg-accent text-accent-foreground' 
-                                                : ''
-=======
                                         onClick={() =>
                                             handleThemeSelect(theme.id)
                                         }
@@ -226,7 +201,6 @@ export function UserProfileDropdown({
                                             selectedTheme === theme.id
                                                 ? "bg-accent text-accent-foreground"
                                                 : ""
->>>>>>> 8fb5c0644a643586f48cb396d255b1ef5e159eec
                                         }`}
                                     >
                                         <div className='flex items-center'>
@@ -235,13 +209,9 @@ export function UserProfileDropdown({
                                             ) : (
                                                 theme.icon
                                             )}
-<<<<<<< HEAD
-                                            <span className='ml-2'>{theme.name}</span>
-=======
                                             <span className='ml-2'>
                                                 {theme.name}
                                             </span>
->>>>>>> 8fb5c0644a643586f48cb396d255b1ef5e159eec
                                         </div>
                                     </DropdownMenuItem>
                                 ))}

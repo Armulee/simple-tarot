@@ -43,8 +43,4 @@ export function getAvatarAlt(data: AvatarData): string {
  */
 export function getAvatarColorClass(): string {
     return 'bg-accent'
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 8fb5c0644a643586f48cb396d255b1ef5e159eec
