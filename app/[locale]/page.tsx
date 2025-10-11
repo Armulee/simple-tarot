@@ -40,7 +40,7 @@ export default function HomePage() {
                         <TypewriterText
                             text={t("hero.line1")}
                             speed={60}
-                            className='text-white'
+                            className='text-foreground'
                         />
                         <br />
                         <TypewriterText
