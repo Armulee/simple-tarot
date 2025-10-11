@@ -14,12 +14,12 @@ export function getAvatarText(data: AvatarData): string {
     if (data.name && data.name.trim()) {
         return data.name.trim().charAt(0).toUpperCase()
     }
-    
+
     if (data.email && data.email.trim()) {
         return data.email.trim().charAt(0).toUpperCase()
     }
-    
-    return '?'
+
+    return "?"
 }
 
 /**
@@ -29,12 +29,12 @@ export function getAvatarAlt(data: AvatarData): string {
     if (data.name && data.name.trim()) {
         return `${data.name.trim()}'s avatar`
     }
-    
+
     if (data.email && data.email.trim()) {
         return `${data.email.trim()}'s avatar`
     }
-    
-    return 'User avatar'
+
+    return "User avatar"
 }
 
 /**
@@ -42,5 +42,5 @@ export function getAvatarAlt(data: AvatarData): string {
  * All avatars will use the same accent background
  */
 export function getAvatarColorClass(): string {
-    return 'bg-accent'
+    return "bg-accent"
 }
