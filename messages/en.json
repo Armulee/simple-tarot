@@ -2,7 +2,8 @@
   "Navbar": {
     "brand": "Asking Fate",
     "home": "Home",
-    "about": "About"
+    "about": "About",
+    "pricing": "Pricing"
   },
 
   "Sidebar": {
@@ -757,6 +758,7 @@
     "heroTitle": "Choose your stars, unlock deeper insights",
     "heroDescription": "Flexible one-time packs and a simple monthly plan. Instant delivery. Cancel anytime.",
     "priceNote": "Prices in THB. Stars deliver instantly after purchase.",
+    "currency": "Currency",
     "subscriptionPlans": "subscription plans",
     "oneTimePacks": "one-time star packs",
     "monthly": "Monthly",
@@ -769,11 +771,14 @@
     "perMonth": "per month",
     "autoRenew": "auto-renew",
     "cancelAnytime": "cancel anytime",
-    "billedYearly": "billed ฿3,299/year",
+    "billedYearly": "billed yearly",
     "save17": "Save 17%",
-    "oneTime": "one-time",
+    "oneTime": "One-time",
     "instantDelivery": "instant delivery",
     "days": "days",
+    "stars": "stars",
+    "popular": "Popular",
+    "bestValue": "Best value",
     "ongoingSupport": "Ongoing support for new features",
     "bonusStars": "Occasional bonus stars & perks",
     "cancelFromAccount": "Cancel anytime from your account",
@@ -829,6 +834,16 @@
       "refund": "Refund",
       "bonus": "Bonus"
     }
+  },
+
+  "Checkout": {
+    "purchase": "Purchase",
+    "subscribe": "Subscribe",
+    "checkout": "Checkout",
+    "loading": "Loading...",
+    "done": "Done",
+    "back": "Back",
+    "signInToSubscribe": "Sign in to subscribe"
   }
 }
 

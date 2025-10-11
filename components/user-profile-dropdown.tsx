@@ -10,38 +10,15 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-    DropdownMenuSub,
-    DropdownMenuSubContent,
-    DropdownMenuSubTrigger,
     DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/use-auth"
-import {
-    LogOut,
-    CreditCard,
-    Bell,
-    User,
-    Shield,
-    Palette,
-    Moon,
-    Sun,
-    Star,
-    Eye,
-    Wand2,
-    Check,
-} from "lucide-react"
+import { LogOut, CreditCard, Bell, User, Shield } from "lucide-react"
 import { NotificationSheet } from "@/components/notifications/notification-sheet"
 
 interface UserProfileDropdownProps {
     children: React.ReactNode
     onClose?: () => void
-}
-
-interface Theme {
-    id: string
-    name: string
-    icon: React.ReactNode
-    available: boolean
 }
 
 export function UserProfileDropdown({
@@ -53,46 +30,6 @@ export function UserProfileDropdown({
     const t = useTranslations("UserProfile")
     const [isLoading, setIsLoading] = useState(false)
     const [notificationOpen, setNotificationOpen] = useState(false)
-    const [selectedTheme, setSelectedTheme] = useState("default")
-
-    const themes: Theme[] = [
-        {
-            id: "default",
-            name: t("themes.default"),
-            icon: <Palette className='w-4 h-4' />,
-            available: true,
-        },
-        {
-            id: "antiverse",
-            name: t("themes.antiverse"),
-            icon: <Moon className='w-4 h-4' />,
-            available: true,
-        },
-        {
-            id: "zodiac",
-            name: t("themes.zodiac"),
-            icon: <Star className='w-4 h-4' />,
-            available: true,
-        },
-        {
-            id: "singularity",
-            name: t("themes.singularity"),
-            icon: <Eye className='w-4 h-4' />,
-            available: true,
-        },
-        {
-            id: "luminous",
-            name: t("themes.luminous"),
-            icon: <Sun className='w-4 h-4' />,
-            available: true,
-        },
-        {
-            id: "mystic",
-            name: t("themes.mystic"),
-            icon: <Wand2 className='w-4 h-4' />,
-            available: true,
-        },
-    ]
 
     if (!user) return null
 
@@ -121,13 +58,6 @@ export function UserProfileDropdown({
 
     const handleAccountClick = () => {
         router.push("/account")
-        if (onClose) onClose()
-    }
-
-    const handleThemeSelect = (themeId: string) => {
-        setSelectedTheme(themeId)
-        // TODO: Implement theme switching logic
-        console.log("Selected theme:", themeId)
         if (onClose) onClose()
     }
 
@@ -180,43 +110,6 @@ export function UserProfileDropdown({
                             <Shield className='w-4 h-4 mr-2' />
                             {t("account")}
                         </DropdownMenuItem>
-                        <DropdownMenuSub>
-                            <DropdownMenuSubTrigger>
-                                <Palette className='w-4 h-4 mr-2' />
-                                {t("theme")}
-                            </DropdownMenuSubTrigger>
-                            <DropdownMenuSubContent
-                                className='w-fit bg-card border border-border/50 overflow-visible shadow-lg z-[9999]'
-                                sideOffset={-2}
-                                alignOffset={-2}
-                            >
-                                {themes.map((theme) => (
-                                    <DropdownMenuItem
-                                        key={theme.id}
-                                        onClick={() =>
-                                            handleThemeSelect(theme.id)
-                                        }
-                                        disabled={!theme.available}
-                                        className={`flex items-center justify-between ${
-                                            selectedTheme === theme.id
-                                                ? "bg-accent text-accent-foreground"
-                                                : ""
-                                        }`}
-                                    >
-                                        <div className='flex items-center'>
-                                            {selectedTheme === theme.id ? (
-                                                <Check className='w-4 h-4' />
-                                            ) : (
-                                                theme.icon
-                                            )}
-                                            <span className='ml-2'>
-                                                {theme.name}
-                                            </span>
-                                        </div>
-                                    </DropdownMenuItem>
-                                ))}
-                            </DropdownMenuSubContent>
-                        </DropdownMenuSub>
                         <DropdownMenuItem onClick={handleBillingClick}>
                             <CreditCard className='w-4 h-4 mr-2' />
                             {t("billing")}

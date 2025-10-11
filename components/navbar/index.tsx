@@ -7,40 +7,23 @@ import { usePathname, useRouter } from "@/i18n/navigation"
 import { routing } from "@/i18n/routing"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
-import {
-    Menu,
-    ChevronDown,
-    BookOpen,
-    LogIn,
-    Sparkles,
-    Check,
-    Star,
-} from "lucide-react"
+import { Menu, LogIn, Check, Star } from "lucide-react"
 import { SidebarSheet } from "./sidebar-sheet"
 import { UserProfile } from "@/components/user-profile"
 // Avatar imports removed (unused)
 import { useAuth } from "@/hooks/use-auth"
 import { useStars } from "@/contexts/stars-context"
 import { useStarConsent } from "@/components/star-consent"
-import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-} from "@/components/ui/sheet"
+import MysticalServicesSheet from "./mystical-services-sheet"
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "../ui/dropdown-menu"
-import mysticalServices from "./mystical-services"
-import { useTranslations as useSidebarTranslations } from "next-intl"
 
 export function Navbar({ locale }: { locale: string }) {
     const t = useTranslations("Navbar")
-    const s = useSidebarTranslations("Services")
     const l = useTranslations("Languages")
     const [open, setOpen] = useState(false)
     const router = useRouter()
@@ -91,91 +74,43 @@ export function Navbar({ locale }: { locale: string }) {
                     </div>
 
                     {/* Right side: Navigation links, Language dropdown, and Auth */}
-                    <div className='flex items-center space-x-1'>
-                        <div className='flex items-center space-x-4 mr-4'>
+                    <div className='flex items-center space-x-2'>
+                        <div className='flex items-center mr-4'>
                             <Link
                                 href='/'
-                                className='hidden md:block text-cosmic-light hover:text-white transition-colors'
+                                className={`hidden md:block px-3 py-1.5 rounded-md transition-colors mr-4 ${
+                                    pathname === "/"
+                                        ? "bg-accent text-white"
+                                        : "text-cosmic-light hover:text-white hover:bg-white/5"
+                                }`}
                             >
                                 {t("home")}
                             </Link>
                             <Link
                                 href='/about'
-                                className='hidden md:block text-cosmic-light hover:text-white transition-colors'
+                                className={`hidden md:block px-3 py-1.5 rounded-md transition-colors mr-4 ${
+                                    pathname === "/about"
+                                        ? "bg-accent text-white"
+                                        : "text-cosmic-light hover:text-white hover:bg-white/5"
+                                }`}
                             >
                                 {t("about")}
                             </Link>
                             <Link
                                 href='/pricing'
-                                className='hidden md:block text-cosmic-light hover:text-white transition-colors'
+                                className={`hidden md:block px-3 py-1.5 rounded-md transition-colors mr-4 ${
+                                    pathname === "/pricing"
+                                        ? "bg-accent text-white"
+                                        : "text-cosmic-light hover:text-white hover:bg-white/5"
+                                }`}
                             >
-                                Pricing
+                                {t("pricing")}
                             </Link>
                         </div>
-                        <Sheet
-                            open={mysticalOpen}
-                            onOpenChange={setMysticalOpen}
-                        >
-                            <SheetTrigger asChild>
-                                <Button
-                                    variant='ghost'
-                                    className='inline-flex items-center space-x-1 text-white hover:bg-white/10 px-4 py-2 rounded-md transition-colors'
-                                >
-                                    <Sparkles className='h-4 w-4' />
-                                    <span>{s("tarot")}</span>
-                                    <ChevronDown className='h-4 w-4' />
-                                </Button>
-                            </SheetTrigger>
-                            <SheetContent
-                                side='right'
-                                className='w-80 bg-card/95 backdrop-blur-md border-border/30'
-                            >
-                                <SheetHeader>
-                                    <SheetTitle className='flex items-center space-x-2 text-white'>
-                                        <BookOpen className='h-5 w-5' />
-                                        <span>{s("tarot")}</span>
-                                    </SheetTitle>
-                                </SheetHeader>
-                                <div className='mt-8 space-y-2'>
-                                    {mysticalServices.map(
-                                        ({ id, href, Icon, available }) => (
-                                            <div key={id}>
-                                                {available ? (
-                                                    <Link
-                                                        href={
-                                                            id === "tarot"
-                                                                ? "/"
-                                                                : href
-                                                        }
-                                                        className='flex items-center space-x-3 px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors group'
-                                                        onClick={() =>
-                                                            setMysticalOpen(
-                                                                false
-                                                            )
-                                                        }
-                                                    >
-                                                        <Icon className='h-5 w-5 text-primary' />
-                                                        <span className='font-medium'>
-                                                            {s(id)}
-                                                        </span>
-                                                    </Link>
-                                                ) : (
-                                                    <div className='flex items-center space-x-3 px-4 py-3 rounded-lg text-white/50 cursor-not-allowed opacity-60'>
-                                                        <Icon className='h-5 w-5' />
-                                                        <span className='font-medium'>
-                                                            {s(id)}
-                                                        </span>
-                                                        <span className='ml-auto text-xs bg-white/10 px-2 py-1 rounded-full'>
-                                                            Coming Soon
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )
-                                    )}
-                                </div>
-                            </SheetContent>
-                        </Sheet>
+                        <MysticalServicesSheet
+                            mysticalOpen={mysticalOpen}
+                            setMysticalOpen={setMysticalOpen}
+                        />
 
                         {/* Language Dropdown */}
                         <DropdownMenu>
@@ -183,7 +118,7 @@ export function Navbar({ locale }: { locale: string }) {
                                 <Button
                                     variant='outline'
                                     size='sm'
-                                    className='text-white border-white/30 hover:bg-white/10'
+                                    className='text-white bg-primary/20 border-white/20 hover:bg-primary/30'
                                     aria-label='Change language'
                                 >
                                     {locale.toUpperCase()}

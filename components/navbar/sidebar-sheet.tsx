@@ -3,6 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
+import { usePathname } from "@/i18n/navigation"
 import {
     Home,
     Info,
@@ -38,6 +39,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
     const { user, loading } = useAuth()
     const { profile, loading: profileLoading } = useProfile()
     const [mysticalOpen, setMysticalOpen] = useState(true)
+    const pathname = usePathname()
     const t = useTranslations("Sidebar")
     const s = useTranslations("Services")
     const a = useTranslations("Auth.SignIn")
@@ -54,7 +56,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
             >
                 {/* Fixed Header Section */}
                 <div className='flex-shrink-0 px-4 py-4 border-b border-white/10 overflow-visible'>
-                    <SheetHeader className='mb-4'>
+                    <SheetHeader>
                         <SheetTitle>
                             <Link
                                 href='/'
@@ -75,65 +77,67 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                             </Link>
                         </SheetTitle>
                     </SheetHeader>
-                    
+
                     {/* User Profile Section */}
-                    <div>
-                        {!loading && user ? (
-                            <UserProfileDropdown
-                                onClose={() => onOpenChange(false)}
-                            >
-                                <div className='flex items-center gap-3 p-3 rounded-lg bg-white/10 border border-white/10 hover:bg-white/15 transition-colors cursor-pointer'>
-                                    {profileLoading ? (
-                                        <>
-                                            <Skeleton className='w-10 h-10 rounded-full' />
-                                            <div className='flex-1 min-w-0 space-y-2'>
-                                                <Skeleton className='h-4 w-24' />
-                                                <Skeleton className='h-3 w-32' />
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <ConsistentAvatar 
-                                                data={{
-                                                    name: profile?.name,
-                                                    email: user?.email
-                                                }}
-                                                size="md"
-                                            />
-                                            <div className='flex-1 min-w-0'>
-                                                <p className='text-sm font-medium text-white truncate'>
-                                                    {getUserName()}
-                                                </p>
-                                                <p className='text-xs text-white/70 truncate'>
-                                                    {user.email}
-                                                </p>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            </UserProfileDropdown>
-                        ) : (
-                            <Link
-                                href='/signin'
-                                className='flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-white/10 text-white/90 border border-white/10 hover:bg-white/15 transition'
-                                onClick={() => onOpenChange(false)}
-                            >
-                                <LogIn className='w-4 h-4' />
-                                <span>{a("button")}</span>
-                            </Link>
-                        )}
-                    </div>
+
+                    {!loading && user ? (
+                        <UserProfileDropdown
+                            onClose={() => onOpenChange(false)}
+                        >
+                            <div className='flex items-center gap-3 p-3 rounded-lg bg-white/10 border border-white/10 hover:bg-white/15 transition-colors cursor-pointer'>
+                                {profileLoading ? (
+                                    <>
+                                        <Skeleton className='w-10 h-10 rounded-full' />
+                                        <div className='flex-1 min-w-0 space-y-2'>
+                                            <Skeleton className='h-4 w-24' />
+                                            <Skeleton className='h-3 w-32' />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <ConsistentAvatar
+                                            data={{
+                                                name: profile?.name,
+                                                email: user?.email,
+                                            }}
+                                            size='md'
+                                        />
+                                        <div className='flex-1 min-w-0'>
+                                            <p className='text-sm font-medium text-white truncate'>
+                                                {getUserName()}
+                                            </p>
+                                            <p className='text-xs text-white/70 truncate'>
+                                                {user.email}
+                                            </p>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </UserProfileDropdown>
+                    ) : (
+                        <Link
+                            href='/signin'
+                            className='flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-white/10 text-white/90 border border-white/10 hover:bg-white/15 transition'
+                            onClick={() => onOpenChange(false)}
+                        >
+                            <LogIn className='w-4 h-4' />
+                            <span>{a("button")}</span>
+                        </Link>
+                    )}
                 </div>
 
                 {/* Scrollable Navigation Section */}
-                <div className='flex-1 overflow-y-auto px-4 py-4'>
+                <div className='flex-1 overflow-y-auto px-4'>
                     <nav>
                         <ul className='flex flex-col space-y-1'>
-
                             <li>
                                 <Link
                                     href={"/"}
-                                    className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
+                                    className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                                        pathname === "/"
+                                            ? "bg-accent text-white"
+                                            : "text-cosmic-light hover:text-white hover:bg-white/10"
+                                    }`}
                                     onClick={() => onOpenChange(false)}
                                 >
                                     <Home className='w-4 h-4' />
@@ -143,7 +147,11 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                             <li>
                                 <Link
                                     href={"/about"}
-                                    className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
+                                    className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                                        pathname === "/about"
+                                            ? "bg-accent text-white"
+                                            : "text-cosmic-light hover:text-white hover:bg-white/10"
+                                    }`}
                                     onClick={() => onOpenChange(false)}
                                 >
                                     <Info className='w-4 h-4' />
@@ -153,7 +161,11 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                             <li>
                                 <Link
                                     href={"/pricing"}
-                                    className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
+                                    className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                                        pathname === "/pricing"
+                                            ? "bg-accent text-white"
+                                            : "text-cosmic-light hover:text-white hover:bg-white/10"
+                                    }`}
                                     onClick={() => onOpenChange(false)}
                                 >
                                     <DollarSign className='w-4 h-4' />
@@ -164,7 +176,9 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                             {/* Active Service Dropdown */}
                             <li>
                                 <button
-                                    onClick={() => setMysticalOpen(!mysticalOpen)}
+                                    onClick={() =>
+                                        setMysticalOpen(!mysticalOpen)
+                                    }
                                     className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors w-full'
                                 >
                                     <Sparkles className='w-4 h-4' />
@@ -178,34 +192,48 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                 {mysticalOpen && (
                                     <ul className='ml-4 mt-1 space-y-1'>
                                         {mysticalServices.map(
-                                            ({ id, href, Icon, available }) => (
-                                                <li key={id}>
-                                                    {available ? (
-                                                        <Link
-                                                            href={
-                                                                id === "tarot"
-                                                                    ? "/"
-                                                                    : href
-                                                            }
-                                                            className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light hover:text-white hover:bg-white/10 transition-colors'
-                                                            onClick={() =>
-                                                                onOpenChange(false)
-                                                            }
-                                                        >
-                                                            <Icon className='w-4 h-4' />
-                                                            <span>{s(id)}</span>
-                                                        </Link>
-                                                    ) : (
-                                                        <div className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light/50 cursor-not-allowed opacity-60'>
-                                                            <Icon className='w-4 h-4' />
-                                                            <span>{s(id)}</span>
-                                                            <span className='ml-auto text-xs bg-white/10 px-2 py-1 rounded-full'>
-                                                                {t("comingSoon")}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                </li>
-                                            )
+                                            ({ id, href, Icon, available }) => {
+                                                const itemPath =
+                                                    id === "tarot" ? "/" : href
+                                                const isActive =
+                                                    pathname === itemPath
+                                                return (
+                                                    <li key={id}>
+                                                        {available ? (
+                                                            <Link
+                                                                href={itemPath}
+                                                                className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                                                                    isActive
+                                                                        ? "bg-accent/50 text-white"
+                                                                        : "text-cosmic-light hover:text-white hover:bg-white/10"
+                                                                }`}
+                                                                onClick={() =>
+                                                                    onOpenChange(
+                                                                        false
+                                                                    )
+                                                                }
+                                                            >
+                                                                <Icon className='w-4 h-4' />
+                                                                <span>
+                                                                    {s(id)}
+                                                                </span>
+                                                            </Link>
+                                                        ) : (
+                                                            <div className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light/50 cursor-not-allowed opacity-60'>
+                                                                <Icon className='w-4 h-4' />
+                                                                <span>
+                                                                    {s(id)}
+                                                                </span>
+                                                                <span className='ml-auto text-xs bg-white/10 px-2 py-1 rounded-full'>
+                                                                    {t(
+                                                                        "comingSoon"
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </li>
+                                                )
+                                            }
                                         )}
                                     </ul>
                                 )}

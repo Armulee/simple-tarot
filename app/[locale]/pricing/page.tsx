@@ -1,6 +1,7 @@
-// server component
+"use client"
+
+import { useState } from "react"
 import { Card } from "@/components/ui/card"
-import { getTranslations } from "next-intl/server"
 import {
     Star,
     Crown,
@@ -9,113 +10,115 @@ import {
     CreditCard,
     CheckCircle2,
     Sparkles,
-    Sparkle,
     Infinity as InfinityIcon,
 } from "lucide-react"
 import { Checkout } from "@/components/checkout"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { useTranslations } from "next-intl"
+import { useParams } from "next/navigation"
+
 type Pack = {
     id: string
+    priceThb: number
     priceUsd: number
     stars: number
     bonus: number
     label?: string
 }
 
-export const dynamic = "force-static"
+type Currency = "THB" | "USD"
 
-export async function generateMetadata() {
-    return {
-        title: "Pricing | Simple Tarot",
-        description:
-            "Choose a star pack or subscribe monthly to support Simple Tarot.",
-    }
-}
+export default function PricingPage() {
+    const t = useTranslations("Pricing")
+    const params = useParams()
+    const locale = params.locale as string
 
-export default async function PricingPage() {
-    const t = await getTranslations("Pricing")
+    // Default currency based on locale
+    const defaultCurrency: Currency = locale === "th" ? "THB" : "USD"
+    const [currency, setCurrency] = useState<Currency>(defaultCurrency)
     const basePerDollar = 60
+
+    // How it works
+    const getCurrencySymbol = () => (currency === "THB" ? "฿" : "$")
+
+    const howItWorks = [
+        {
+            icon: <Lock className='w-5 h-5 text-white' />,
+            title: t("signIn"),
+            desc: t("signInDesc"),
+        },
+        {
+            icon: <Star className='w-5 h-5 text-yellow-300' />,
+            title: t("pickPack"),
+            desc: `${getCurrencySymbol()}1=60 stars, larger packs include bonus`,
+        },
+        {
+            icon: <CreditCard className='w-5 h-5 text-emerald-300' />,
+            title: t("paySecurely"),
+            desc: t("paySecurelyDesc"),
+        },
+        {
+            icon: <CheckCircle2 className='w-5 h-5 text-emerald-300' />,
+            title: t("instantDelivery"),
+            desc: t("instantDeliveryDesc"),
+        },
+    ]
+
+    // Pricing constants
+    const prices = {
+        monthly: { thb: 349, usd: 9.99 },
+        annual: { thb: 3499, usd: 99.99, monthlyThb: 292, monthlyUsd: 8.34 },
+        infinity: { thb: 349, usd: 9.99 },
+    }
+
     const packs: Pack[] = [
-        { id: "pack-1", priceUsd: 35, stars: 60, bonus: 0 },
-        { id: "pack-2", priceUsd: 70, stars: 130, bonus: 10 },
+        { id: "pack-1", priceThb: 35, priceUsd: 0.99, stars: 60, bonus: 0 },
+        { id: "pack-2", priceThb: 69, priceUsd: 1.99, stars: 130, bonus: 10 },
         {
             id: "pack-3",
-            priceUsd: 105,
+            priceThb: 99,
+            priceUsd: 2.99,
             stars: 200,
             bonus: 200 - 3 * basePerDollar,
-            label: "Popular",
+            label: t("popular"),
         },
         {
             id: "pack-5",
-            priceUsd: 175,
+            priceThb: 169,
+            priceUsd: 4.99,
             stars: 350,
             bonus: 350 - 5 * basePerDollar,
-            label: "Best value",
+            label: t("bestValue"),
         },
-        { id: "pack-7", priceUsd: 245, stars: 500, bonus: 80 },
+        { id: "pack-7", priceThb: 249, priceUsd: 6.99, stars: 500, bonus: 80 },
     ]
 
-    // removed unused helpers (packStyles, badgeStyles, packAura)
-
-    // removed unused renderPackIcon
-
-    // removed unused packCircleClasses
-
-    const packIconColor = (id: string) => {
-        switch (id) {
-            case "pack-1":
-                return "text-yellow-300"
-            case "pack-2":
-                return "text-emerald-300"
-            case "pack-3":
-                return "text-pink-300"
-            case "pack-5":
-                return "text-cyan-300"
-            case "pack-7":
-                return "text-purple-300"
-            default:
-                return "text-white/80"
+    // Format price based on currency
+    const formatPrice = (thb: number, usd: number) => {
+        if (currency === "THB") {
+            return `฿${thb.toFixed(0)}`
         }
+        return `$${usd.toFixed(usd < 10 ? 2 : 0)}`
     }
 
-    const packBadgeClasses = (id: string) => {
-        switch (id) {
-            case "pack-1":
-                return "bg-yellow-400/15 border-yellow-400/30 text-yellow-300"
-            case "pack-2":
-                return "bg-emerald-400/15 border-emerald-400/30 text-emerald-300"
-            case "pack-3":
-                return "bg-pink-400/15 border-pink-400/30 text-pink-300"
-            case "pack-5":
-                return "bg-cyan-400/15 border-cyan-400/30 text-cyan-300"
-            case "pack-7":
-                return "bg-purple-400/15 border-purple-400/30 text-purple-300"
-            default:
-                return "bg-white/10 border-white/20 text-white/80"
-        }
+    const packIconColor = () => {
+        return "text-yellow-300"
     }
 
-    // Gradient overlays for pack cards to visually match unlimited plan cards
-    const packOverlay = (id: string) => {
-        switch (id) {
-            case "pack-1":
-                // amber/orange palette
-                return "from-amber-500/12 via-amber-600/10 to-orange-600/12"
-            case "pack-2":
-                // emerald/teal palette
-                return "from-emerald-500/12 via-green-500/10 to-teal-600/12"
-            case "pack-3":
-                // rose/red palette
-                return "from-rose-500/12 via-pink-600/10 to-red-600/12"
-            case "pack-5":
-                // cyan/indigo palette
-                return "from-cyan-500/12 via-sky-500/10 to-indigo-600/12"
-            case "pack-7":
-                // purple/violet palette
-                return "from-purple-500/12 via-violet-500/10 to-fuchsia-600/12"
-            default:
-                return "from-white/5 via-white/5 to-white/5"
-        }
+    const packBadgeClasses = () => {
+        return "border-yellow-400/30 text-yellow-300"
+    }
+
+    // Gradient overlays for pack cards - all using yellow/amber palette
+    const packOverlay = () => {
+        return "from-amber-500/12 via-amber-600/10 to-orange-600/12"
     }
 
     // removed unused renderCenterIcon
@@ -132,8 +135,37 @@ export default async function PricingPage() {
                 <p className='text-muted-foreground text-balance max-w-2xl mx-auto'>
                     {t("heroDescription")}
                 </p>
-                <div className='text-xs text-white/70'>
-                    {t("priceNote")}
+                <div className='text-xs text-white/70'>{t("priceNote")}</div>
+
+                {/* Currency Selector */}
+                <div className='flex items-center justify-center pt-4'>
+                    <span className='text-sm text-white/70 px-4 py-2 bg-white/30 border-border/30 rounded-l-md'>
+                        {t("currency")}:
+                    </span>
+                    <Select
+                        value={currency}
+                        onValueChange={(value) =>
+                            setCurrency(value as Currency)
+                        }
+                    >
+                        <SelectTrigger className='w-[100px] bg-accent/30 border-border/30 rounded-r-md rounded-l-none'>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className='bg-black border-border/30'>
+                            <SelectItem value='USD'>
+                                <div className='flex items-center gap-2'>
+                                    <span className='text-lg'>🇺🇸</span>
+                                    <span>USD ($)</span>
+                                </div>
+                            </SelectItem>
+                            <SelectItem value='THB'>
+                                <div className='flex items-center gap-2'>
+                                    <span className='text-lg'>🇹🇭</span>
+                                    <span>THB (฿)</span>
+                                </div>
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
 
@@ -155,7 +187,9 @@ export default async function PricingPage() {
                                 <TabsTrigger value='monthly'>
                                     {t("monthly")}
                                 </TabsTrigger>
-                                <TabsTrigger value='annual'>{t("yearly")}</TabsTrigger>
+                                <TabsTrigger value='annual'>
+                                    {t("yearly")}
+                                </TabsTrigger>
                             </TabsList>
                         </div>
                         {/* Crown shown per tab in content sections to allow color change */}
@@ -174,9 +208,18 @@ export default async function PricingPage() {
                                     <Crown className='w-4 h-4' />
                                     {t("monthlySubscription")}
                                 </div>
-                                <div className='text-3xl font-bold'>฿350</div>
+                                <div className='text-3xl font-bold'>
+                                    {formatPrice(
+                                        prices.monthly.thb,
+                                        prices.monthly.usd
+                                    )}
+                                    <span className='text-sm text-white/70'>
+                                        /month
+                                    </span>
+                                </div>
                                 <div className='text-sm text-muted-foreground'>
-                                    {t("perMonth")} · {t("autoRenew")} · {t("cancelAnytime")}
+                                    {t("perMonth")} · {t("autoRenew")} ·{" "}
+                                    {t("cancelAnytime")}
                                 </div>
                             </div>
                             <div className='order-3 space-y-3'>
@@ -214,17 +257,31 @@ export default async function PricingPage() {
                                 </div>
                                 <div className='inline-flex items-baseline gap-2'>
                                     <div className='text-3xl font-bold'>
-                                        ฿292
+                                        {formatPrice(
+                                            prices.annual.monthlyThb,
+                                            prices.annual.monthlyUsd
+                                        )}{" "}
                                     </div>
                                     <div className='text-sm text-white/70 line-through'>
-                                        ฿350
+                                        {formatPrice(
+                                            prices.monthly.thb,
+                                            prices.monthly.usd
+                                        )}{" "}
                                     </div>
+                                    <span className='text-sm text-white/70'>
+                                        /month
+                                    </span>
                                     <span className='text-xs px-2 py-0.5 rounded border bg-indigo-400/15 border-indigo-400/30 text-indigo-300 font-semibold'>
                                         {t("save17")}
                                     </span>
                                 </div>
                                 <div className='text-sm text-muted-foreground'>
-                                    {t("perMonth")} · {t("billedYearly")}
+                                    {t("perMonth")} · {t("billedYearly")} (
+                                    {formatPrice(
+                                        prices.annual.thb,
+                                        prices.annual.usd
+                                    )}
+                                    )
                                 </div>
                             </div>
                             <div className='order-3 space-y-3'>
@@ -268,83 +325,34 @@ export default async function PricingPage() {
                         className={`relative overflow-visible border-0 p-6 rounded-xl bg-card/10 hover:brightness-110 transition`}
                     >
                         <div
-                            className={`pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br ${packOverlay(
-                                p.id
-                            )}`}
+                            className={`pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br ${packOverlay()}`}
                         />
                         <div className='grid grid-cols-1 gap-6 items-center'>
                             <div className='space-y-2 text-left'>
                                 <div
-                                    className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border ${packBadgeClasses(
-                                        p.id
-                                    )
-                                        .replace("/15", "/100")
-                                        .replace(
-                                            "/15",
-                                            "/100"
-                                        )} absolute -top-3 left-2`}
+                                    className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border ${packBadgeClasses()} absolute -top-3 left-2`}
                                 >
-                                    {p.id === "pack-1" && (
-                                        <Star
-                                            className={`w-4 h-4 ${packIconColor(
-                                                p.id
-                                            )}`}
-                                        />
-                                    )}
-                                    {p.id === "pack-2" && (
-                                        <Star
-                                            className={`w-4 h-4 ${packIconColor(
-                                                p.id
-                                            )}`}
-                                        />
-                                    )}
-                                    {p.id === "pack-3" && (
-                                        <Sparkle
-                                            className={`w-4 h-4 ${packIconColor(
-                                                p.id
-                                            )}`}
-                                        />
-                                    )}
-                                    {p.id === "pack-5" && (
-                                        <Sparkles
-                                            className={`w-4 h-4 ${packIconColor(
-                                                p.id
-                                            )}`}
-                                        />
-                                    )}
-                                    {p.id === "pack-7" && (
-                                        <Star
-                                            className={`w-4 h-4 ${packIconColor(
-                                                p.id
-                                            )}`}
-                                        />
-                                    )}
+                                    <Star
+                                        className={`w-4 h-4 ${packIconColor()}`}
+                                    />
                                     <span>{p.label || t("oneTime")}</span>
                                 </div>
                                 {/* Stars amount first (above price) with bonus badge at top-right */}
                                 <div className='inline-flex items-center gap-2 justify-center w-full mt-2'>
                                     <span
-                                        className={`relative inline-flex items-center gap-3 px-5 py-2 rounded-full border ${packBadgeClasses(
-                                            p.id
-                                        )}`}
+                                        className={`relative inline-flex items-center gap-3 px-5 py-2 rounded-full border ${packBadgeClasses()}`}
                                     >
                                         <Star
-                                            className={`w-7 h-7 ${packIconColor(
-                                                p.id
-                                            )}`}
+                                            className={`w-7 h-7 ${packIconColor()}`}
                                             fill='currentColor'
                                         />
                                         <span
-                                            className={`text-3xl font-extrabold leading-none ${packIconColor(
-                                                p.id
-                                            )}`}
+                                            className={`text-3xl font-extrabold leading-none ${packIconColor()}`}
                                         >
                                             {p.stars}
                                         </span>
                                         <span
-                                            className={`text-3xl font-extrabold leading-none ${packIconColor(
-                                                p.id
-                                            )}`}
+                                            className={`text-3xl font-extrabold leading-none ${packIconColor()}`}
                                         >
                                             {t("stars")}
                                         </span>
@@ -356,7 +364,7 @@ export default async function PricingPage() {
                                     </span>
                                 </div>
                                 <div className='text-3xl font-bold'>
-                                    ฿{p.priceUsd.toFixed(0)}
+                                    {formatPrice(p.priceThb, p.priceUsd)}
                                 </div>
                                 <div className='text-sm text-muted-foreground'>
                                     {t("oneTime")} · {t("instantDelivery")}
@@ -366,26 +374,20 @@ export default async function PricingPage() {
                                 <ul className='text-sm text-white/80 space-y-1'>
                                     <li className='flex items-center gap-2'>
                                         <CheckCircle2
-                                            className={`w-4 h-4 ${packIconColor(
-                                                p.id
-                                            )}`}
+                                            className={`w-4 h-4 ${packIconColor()}`}
                                         />{" "}
                                         {t("instantDelivery")}
                                     </li>
                                     <li className='flex items-center gap-2'>
                                         <CheckCircle2
-                                            className={`w-4 h-4 ${packIconColor(
-                                                p.id
-                                            )}`}
+                                            className={`w-4 h-4 ${packIconColor()}`}
                                         />{" "}
                                         {t("secureCheckout")}
                                     </li>
                                     {p.bonus > 0 && (
                                         <li className='flex items-center gap-2'>
                                             <CheckCircle2
-                                                className={`w-4 h-4 ${packIconColor(
-                                                    p.id
-                                                )}`}
+                                                className={`w-4 h-4 ${packIconColor()}`}
                                             />{" "}
                                             {t("includesBonus")}
                                         </li>
@@ -399,39 +401,59 @@ export default async function PricingPage() {
                     </Card>
                 ))}
                 {/* Infinity one-time pack below packs */}
-                <Card className='relative overflow-hidden p-6 rounded-xl bg-card/10 border-border/20 hover:brightness-110 transition'>
+                <Card className='relative p-6 rounded-xl bg-card/10 border-border/20 hover:brightness-110 transition'>
                     <div className='pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-amber-500/12 via-amber-600/10 to-orange-600/12' />
-                    <div className='relative z-10 grid grid-cols-1 gap-6 items-center'>
+                    <div className='z-10 grid grid-cols-1 gap-6 items-center'>
                         <div className='space-y-2 text-left'>
-                            <div className='inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border bg-amber-400/15 border-amber-400/30 text-amber-200 absolute -top-3 left-2'>
+                            <div
+                                className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border ${packBadgeClasses()} absolute -top-3 left-2`}
+                            >
                                 <InfinityIcon className='w-4 h-4' />
                                 <span>{t("oneTime")}</span>
                             </div>
                             <div className='inline-flex items-center gap-2 justify-center w-full mt-2'>
-                                <span className='relative inline-flex items-center gap-3 px-5 py-2 rounded-full border bg-amber-400/15 border-amber-400/30 text-amber-200'>
-                                    <InfinityIcon className='w-7 h-7 text-amber-200' />
-                                    <span className='text-3xl font-extrabold leading-none text-amber-200'>
+                                <span
+                                    className={`relative inline-flex items-center gap-3 px-5 py-2 rounded-full border ${packBadgeClasses()}`}
+                                >
+                                    <InfinityIcon
+                                        className={`w-7 h-7 ${packIconColor()}`}
+                                    />
+                                    <span
+                                        className={`text-3xl font-extrabold leading-none ${packIconColor()}`}
+                                    >
                                         Infinity
                                     </span>
                                 </span>
                             </div>
-                            <div className='text-3xl font-bold'>฿350</div>
+                            <div className='text-3xl font-bold'>
+                                {formatPrice(
+                                    prices.infinity.thb,
+                                    prices.infinity.usd
+                                )}
+                            </div>
                             <div className='text-sm text-muted-foreground'>
-                                {t("oneTime")} · 30 {t("days")} · {t("instantDelivery")}
+                                {t("oneTime")} · 30 {t("days")} ·{" "}
+                                {t("instantDelivery")}
                             </div>
                         </div>
                         <div className='space-y-3 text-left'>
                             <ul className='text-sm text-white/80 space-y-1'>
                                 <li className='flex items-center gap-2'>
-                                    <CheckCircle2 className='w-4 h-4 text-amber-200' />{" "}
+                                    <CheckCircle2
+                                        className={`w-4 h-4 ${packIconColor()}`}
+                                    />{" "}
                                     {t("infinityStars")}
                                 </li>
                                 <li className='flex items-center gap-2'>
-                                    <CheckCircle2 className='w-4 h-4 text-amber-200' />{" "}
+                                    <CheckCircle2
+                                        className={`w-4 h-4 ${packIconColor()}`}
+                                    />{" "}
                                     {t("instantDelivery")}
                                 </li>
                                 <li className='flex items-center gap-2'>
-                                    <CheckCircle2 className='w-4 h-4 text-amber-200' />{" "}
+                                    <CheckCircle2
+                                        className={`w-4 h-4 ${packIconColor()}`}
+                                    />{" "}
                                     {t("oneTimePayment")}
                                 </li>
                             </ul>
@@ -448,39 +470,17 @@ export default async function PricingPage() {
             </div>
 
             {/* How it works */}
+            <h4 className='text-2xl font-bold mb-4'>
+                Steps to pay for your stars
+            </h4>
             <div className='grid md:grid-cols-4 gap-4'>
-                {[
-                    {
-                        icon: <Lock className='w-5 h-5 text-primary' />,
-                        title: t("signIn"),
-                        desc: t("signInDesc"),
-                    },
-                    {
-                        icon: <Star className='w-5 h-5 text-yellow-300' />,
-                        title: t("pickPack"),
-                        desc: t("pickPackDesc"),
-                    },
-                    {
-                        icon: (
-                            <CreditCard className='w-5 h-5 text-emerald-300' />
-                        ),
-                        title: t("paySecurely"),
-                        desc: t("paySecurelyDesc"),
-                    },
-                    {
-                        icon: (
-                            <CheckCircle2 className='w-5 h-5 text-emerald-300' />
-                        ),
-                        title: t("instantDelivery"),
-                        desc: t("instantDeliveryDesc"),
-                    },
-                ].map((step) => (
+                {howItWorks.map((step) => (
                     <Card
                         key={step.title}
-                        className='p-4 bg-card/10 border-border/20'
+                        className='p-4 bg-primary/30 border-border/20 backdrop-blur-sm'
                     >
                         <div className='flex items-start gap-3'>
-                            <div className='w-9 h-9 rounded-full bg-white/10 flex items-center justify-center'>
+                            <div className='w-9 h-9 flex-shrink-0 rounded-full bg-accent flex items-center justify-center'>
                                 {step.icon}
                             </div>
                             <div>
@@ -500,7 +500,7 @@ export default async function PricingPage() {
             <div className='grid md:grid-cols-3 gap-4'>
                 <Card className='p-5 bg-card/10 border-border/20'>
                     <div className='flex items-start gap-3'>
-                        <div className='w-10 h-10 rounded-full bg-white/10 flex items-center justify-center'>
+                        <div className='w-10 h-10 flex-shrink-0 rounded-full bg-white/10 flex items-center justify-center'>
                             <Shield className='w-5 h-5 text-white/90' />
                         </div>
                         <div>
@@ -515,11 +515,13 @@ export default async function PricingPage() {
                 </Card>
                 <Card className='p-5 bg-card/10 border-border/20'>
                     <div className='flex items-start gap-3'>
-                        <div className='w-10 h-10 rounded-full bg-white/10 flex items-center justify-center'>
+                        <div className='w-10 h-10 flex-shrink-0 rounded-full bg-white/10 flex items-center justify-center'>
                             <Lock className='w-5 h-5 text-white/90' />
                         </div>
                         <div>
-                            <div className='font-semibold'>{t("secureCheckout")}</div>
+                            <div className='font-semibold'>
+                                {t("secureCheckout")}
+                            </div>
                             <div className='text-sm text-muted-foreground'>
                                 {t("secureCheckoutDesc")}
                             </div>
@@ -528,7 +530,7 @@ export default async function PricingPage() {
                 </Card>
                 <Card className='p-5 bg-card/10 border-border/20'>
                     <div className='flex items-start gap-3'>
-                        <div className='w-10 h-10 rounded-full bg-white/10 flex items-center justify-center'>
+                        <div className='w-10 h-10 flex-shrink-0 rounded-full bg-white/10 flex items-center justify-center'>
                             <Sparkles className='w-5 h-5 text-white/90' />
                         </div>
                         <div>

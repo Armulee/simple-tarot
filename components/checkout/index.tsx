@@ -20,6 +20,7 @@ import Summary from "./summary"
 import Payment from "./payment"
 import Success from "./success"
 import Failure from "./failure"
+import { useTranslations } from "next-intl"
 import "swiper/css"
 
 type CheckoutMode = "pack" | "subscribe"
@@ -39,6 +40,7 @@ export function Checkout({
 }) {
     const { user } = useAuth()
     const { setStarsBalance, stars } = useStars()
+    const t = useTranslations("Checkout")
     const [open, setOpen] = useState(false)
     const [currentSlide, setCurrentSlide] = useState(0)
     const [creatingSession, setCreatingSession] = useState(false)
@@ -373,7 +375,7 @@ export function Checkout({
                                 setOpen(true)
                             }}
                         >
-                            {mode === "pack" ? "Purchase" : "Subscribe"}
+                            {mode === "pack" ? t("purchase") : t("subscribe")}
                         </Button>
                     )}
                 </DialogTrigger>
@@ -384,7 +386,7 @@ export function Checkout({
                 >
                     <DialogHeader className='mb-3'>
                         <DialogTitle className='text-yellow-300 font-serif text-xl'>
-                            Checkout
+                            {t("checkout")}
                         </DialogTitle>
                     </DialogHeader>
 
@@ -442,7 +444,7 @@ export function Checkout({
                                 onClick={() => handleCheckout()}
                                 disabled={creatingSession}
                             >
-                                {creatingSession ? "Loading..." : "Checkout"}
+                                {creatingSession ? t("loading") : t("checkout")}
                             </Button>
                         )}
                         {currentSlide === 2 && (
@@ -450,7 +452,7 @@ export function Checkout({
                                 className='w-full rounded-full bg-blue-500 text-black hover:bg-blue-400'
                                 onClick={() => setOpen(false)}
                             >
-                                Done
+                                {t("done")}
                             </Button>
                         )}
                         {currentSlide !== 0 && currentSlide !== 2 && (
@@ -462,7 +464,7 @@ export function Checkout({
                                         swiperRef.current?.swiper.slideTo(0)
                                     }}
                                 >
-                                    Back
+                                    {t("back")}
                                 </Button>
                             </div>
                         )}
@@ -480,7 +482,7 @@ export function Checkout({
             <Button
                 className={`w-full rounded-full bg-white text-black hover:brightness-90`}
             >
-                Sign in to subscribe
+                {t("signInToSubscribe")}
             </Button>
         </Link>
     )

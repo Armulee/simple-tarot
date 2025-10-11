@@ -17,7 +17,6 @@ import { hasLocale } from "next-intl"
 import { routing } from "@/i18n/routing"
 import { notFound } from "next/navigation"
 import { getMessages, getTranslations } from "next-intl/server"
-import Script from "next/script"
 import { StarConsentProvider } from "@/components/star-consent"
 
 /* Updated fonts to match mystical design brief */
@@ -124,19 +123,19 @@ export default async function RootLayout({
                     <AuthProvider>
                         <ProfileProvider>
                             <StarConsentProvider>
-                            <StarsProvider>
-                                <TarotProvider>
-                                <div className='min-h-screen flex flex-col home-gradient'>
-                                    <Navbar locale={locale} />
-                                    <main className='pt-16 md:min-h-[calc(100dvh-65px)] min-h-[calc(100dvh-65px-4rem)] relative overflow-hidden'>
-                                        <Suspense fallback={null}>
-                                            {children}
-                                        </Suspense>
-                                    </main>
-                                    <Footer />
-                                </div>
-                                </TarotProvider>
-                            </StarsProvider>
+                                <StarsProvider>
+                                    <TarotProvider>
+                                        <div className='min-h-screen flex flex-col home-gradient -z-10'>
+                                            <Navbar locale={locale} />
+                                            <main className='pt-16 md:min-h-[calc(100dvh-65px)] min-h-[calc(100dvh-65px-4rem)] relative overflow-hidden'>
+                                                <Suspense fallback={null}>
+                                                    {children}
+                                                </Suspense>
+                                            </main>
+                                            <Footer />
+                                        </div>
+                                    </TarotProvider>
+                                </StarsProvider>
                             </StarConsentProvider>
                         </ProfileProvider>
                     </AuthProvider>
@@ -147,11 +146,6 @@ export default async function RootLayout({
                     theme='dark'
                     richColors
                     closeButton
-                />
-
-                <Script
-                    type='text/javascript'
-                    src='https://cdn.applixir.com/applixir.app.v6.0.1.js'
                 />
             </body>
         </html>
