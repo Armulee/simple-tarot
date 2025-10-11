@@ -26,9 +26,9 @@ export default function MysticalServicesSheet({
         <Sheet open={mysticalOpen} onOpenChange={setMysticalOpen}>
             <SheetTrigger asChild>
                 <Button
-                    variant='outline'
+                    variant='ghost'
                     size='sm'
-                    className='inline-flex items-center space-x-1 text-white bg-primary/20 border-white/20 hover:bg-primary/30'
+                    className='inline-flex items-center space-x-1 text-white hover:bg-white/10 hover:bg-transparent'
                 >
                     <Sparkles className='h-4 w-4' />
                     <span>{s("tarot")}</span>

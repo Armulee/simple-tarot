@@ -169,11 +169,14 @@ export default function CardSelection({
                     <AlertDialogHeader>
                         <AlertDialogTitle>No stars left</AlertDialogTitle>
                         <AlertDialogDescription>
-                            You don’t have enough stars to continue. Please wait for refill or purchase more stars.
+                            You don’t have enough stars to continue. Please wait
+                            for refill or purchase more stars.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogAction onClick={() => setShowNoStarsDialog(false)}>
+                        <AlertDialogAction
+                            onClick={() => setShowNoStarsDialog(false)}
+                        >
                             Okay
                         </AlertDialogAction>
                     </AlertDialogFooter>
@@ -276,8 +279,13 @@ export default function CardSelection({
                                 })}
                             </p>
                             <p className='text-xs text-yellow-300 flex items-center justify-center gap-1'>
-                                <Star className='w-3.5 h-3.5' fill='currentColor' />
-                                {"Starting the interpretation will consume 1 star."}
+                                <Star
+                                    className='w-3.5 h-3.5'
+                                    fill='currentColor'
+                                />
+                                {
+                                    "Starting the interpretation will consume 1 star."
+                                }
                             </p>
                         </div>
 

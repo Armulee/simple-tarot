@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Sparkles, RefreshCcw, Loader2, Stars, Star } from "lucide-react"
+import { Sparkles, RefreshCcw, Stars, Star } from "lucide-react"
 import { FaShareNodes, FaCopy, FaDownload, FaCheck } from "react-icons/fa6"
 import { useEffect, useRef, useState, useCallback } from "react"
 import { useCompletion } from "@ai-sdk/react"
@@ -222,14 +222,17 @@ export default function Interpretation() {
         const prompt = `Question: "${currentQuestion}"
 Cards: ${selectedCards.map((c) => c.meaning).join(", ")}
 
-From this information, provide a concise interpretation of the cards that directly addresses the user's question. If the interpretation is harm user's feeling, tone it down to be more positive and uplifting. Answer it as paragraph. No more than 100 words.
+Goal: Provide a concise interpretation that directly answers the question.
 
-If the interpretation is too negative, tone it down to be more positive and uplifting.
-If the interpretation is too positive, tone it down to be more realistic and down to earth.
-If the interpretation is too vague, add more details to make it more specific.
-If the interpretation is too long, shorten it to be more concise.
-If the interpretation is too short, add more details to make it more specific.
-If the interpretation is too generic, add more details to make it more specific.`
+Silent steps (do not reveal):
+1) Classify the question intent into: love/relationships, work/career, finances, health/wellbeing, personal growth, spiritual, or general.
+2) Map the listed cards to that intent and emphasize the most relevant angles.
+3) Do not fetch or cite external sources (e.g., thetarotguide.com). Use only the provided card names (and reversed markers) as context.
+
+Output:
+- One short paragraph, <= 100 words.
+- Clear, grounded. Mention cards only if essential.
+- Answer directly to the question. ground it; if vague, add specificity; if too long, trim; if too short, enrich with specifics.`
 
         const result = await complete(prompt)
 
@@ -423,7 +426,13 @@ If the interpretation is too generic, add more details to make it more specific.
                                             {t("followUp.badge")}
                                         </Badge>
                                     )}
-                                    {t("title")}
+                                    &ldquo;
+                                    {getCleanQuestionText(
+                                        isFollowUp && followUpQuestion
+                                            ? followUpQuestion
+                                            : question || ""
+                                    )}
+                                    &rdquo;
                                 </h1>
                                 <Sparkles className='w-6 h-6 text-primary' />
                             </div>
@@ -434,23 +443,26 @@ If the interpretation is too generic, add more details to make it more specific.
                                     interpretation.
                                 </span>
                             </div>
-                            <p className='text-muted-foreground italic'>
-                                &ldquo;
-                                {getCleanQuestionText(
-                                    isFollowUp && followUpQuestion
-                                        ? followUpQuestion
-                                        : question || ""
-                                )}
-                                &rdquo;
-                            </p>
 
                             {/* Card Images with Badges on Top */}
                             <div className='flex flex-wrap gap-6 justify-center'>
                                 {selectedCards.map((card, index) => (
                                     <div
                                         key={index}
-                                        className='flex flex-col items-center gap-3'
+                                        className='flex flex-col items-center gap-3 relative animate-slide-up'
+                                        style={{
+                                            animationDelay: `${index * 150}ms`,
+                                            animationFillMode: "both",
+                                        }}
                                     >
+                                        {/* Glow effect behind card */}
+                                        <div
+                                            className='absolute inset-0 -z-10 bg-gradient-to-br from-primary/30 via-accent/30 to-primary/30 blur-xl opacity-50 scale-110 animate-pulse'
+                                            style={{
+                                                animationDelay: `${index * 150 + 500}ms`,
+                                            }}
+                                        />
+
                                         {/* Badge on top */}
                                         <Badge
                                             variant='secondary'
@@ -474,22 +486,50 @@ If the interpretation is too generic, add more details to make it more specific.
                     </Card>
 
                     {/* AI Interpretation */}
-                    <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20 card-glow'>
+                    <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20 card-glow overflow-hidden'>
                         <div className='space-y-6'>
                             <div className='flex items-center space-x-3'>
-                                <div className='w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center'>
+                                <div
+                                    className='w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center animate-fade-up'
+                                    style={{
+                                        animationDelay: "0ms",
+                                        animationDuration: "300ms",
+                                        animationFillMode: "both",
+                                    }}
+                                >
                                     <Sparkles className='w-5 h-5 text-primary' />
                                 </div>
                                 <div>
-                                    <h2 className='font-serif font-semibold text-xl'>
+                                    <h2
+                                        className='font-serif font-semibold text-xl animate-fade-up'
+                                        style={{
+                                            animationDelay: "0ms",
+                                            animationDuration: "300ms",
+                                            animationFillMode: "both",
+                                        }}
+                                    >
                                         {t("sectionTitle")}
                                     </h2>
-                                    <p className='text-sm text-muted-foreground'>
+                                    <p
+                                        className='text-sm text-muted-foreground animate-fade-up'
+                                        style={{
+                                            animationDelay: "0ms",
+                                            animationDuration: "300ms",
+                                            animationFillMode: "both",
+                                        }}
+                                    >
                                         {t("sectionSubtitle")}
                                     </p>
                                 </div>
                             </div>
-                            <div className='prose prose-invert max-w-none'>
+                            <div
+                                className='prose prose-invert max-w-none animate-expand-vertical'
+                                style={{
+                                    animationDelay: "300ms",
+                                    animationDuration: "1s",
+                                    animationFillMode: "both",
+                                }}
+                            >
                                 {insufficientStars ? (
                                     <div className='text-center space-y-6 py-8'>
                                         <div className='flex items-center justify-center space-x-3'>
@@ -506,50 +546,18 @@ If the interpretation is too generic, add more details to make it more specific.
                                             {t("error")}
                                         </p>
                                     </div>
-                                ) : isLoading ? (
-                                    <div className='text-center space-y-6 py-8'>
-                                        <div className='flex items-center justify-center space-x-3'>
-                                            <Loader2 className='w-6 h-6 text-primary animate-spin' />
-                                            <span className='text-muted-foreground'>
-                                                {t("loading.title")}
-                                            </span>
-                                        </div>
-                                        <div className='space-y-2'>
-                                            <div className='flex justify-center space-x-1'>
-                                                <div
-                                                    className='w-2 h-2 bg-primary rounded-full animate-bounce'
-                                                    style={{
-                                                        animationDelay: "0ms",
-                                                    }}
-                                                ></div>
-                                                <div
-                                                    className='w-2 h-2 bg-primary rounded-full animate-bounce'
-                                                    style={{
-                                                        animationDelay: "150ms",
-                                                    }}
-                                                ></div>
-                                                <div
-                                                    className='w-2 h-2 bg-primary rounded-full animate-bounce'
-                                                    style={{
-                                                        animationDelay: "300ms",
-                                                    }}
-                                                ></div>
-                                            </div>
-                                            <p className='text-sm text-muted-foreground'>
-                                                {t("loading.subtitle")}
-                                            </p>
-                                        </div>
-                                    </div>
                                 ) : (
-                                    <>
+                                    <div
+                                        className='text-foreground leading-relaxed whitespace-pre-wrap mb-4 animate-fade-up'
+                                        style={{
+                                            animationDelay: "600ms",
+                                            animationDuration: "500ms",
+                                            animationFillMode: "both",
+                                        }}
+                                    >
                                         {/* Interpretation */}
-                                        <div className='text-foreground leading-relaxed whitespace-pre-wrap mb-4'>
-                                            {interpretation ??
-                                                (isFollowUpMode
-                                                    ? ""
-                                                    : completion)}
-                                        </div>
-                                    </>
+                                        {interpretation ?? completion}
+                                    </div>
                                 )}
                             </div>
                         </div>
