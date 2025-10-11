@@ -56,7 +56,9 @@ export default function Interpretation() {
         },
     })
 
-    const { spendStars, stars } = useStars()
+    const { spendStars, stars, addStars } = useStars()
+
+    const sharedAwardedRef = useRef(false)
 
     const shareImage = async () => {
         try {
@@ -75,12 +77,52 @@ export default function Interpretation() {
             const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
             const filename = `reading-${timestamp}.png`
             const file = new File([blob], filename, { type: "image/png" })
+            const shareTitle = "Asking Fate Reading"
+            const shareText = [
+                question ? `Question: "${question}"` : "",
+                (interpretation ?? completion)
+                    ? `Interpretation: ${(interpretation ?? completion)
+                          .toString()
+                          .slice(0, 500)}`
+                    : "",
+                "dooduang.ai",
+            ]
+                .filter(Boolean)
+                .join("\n\n")
+
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({
-                    files: [file],
-                    title: "Asking Fate Reading",
-                })
-                return
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: shareTitle,
+                        text: shareText,
+                    })
+                    if (!sharedAwardedRef.current) {
+                        addStars(1)
+                        sharedAwardedRef.current = true
+                    }
+                    return
+                } catch (err) {
+                    // User may cancel or share may fail; do not award, continue to fallback below
+                }
+            } else if (typeof navigator.share === "function") {
+                try {
+                    await navigator.share({
+                        title: shareTitle,
+                        text: shareText,
+                        url:
+                            typeof window !== "undefined"
+                                ? window.location.origin
+                                : "https://dooduang.ai",
+                    })
+                    if (!sharedAwardedRef.current) {
+                        addStars(1)
+                        sharedAwardedRef.current = true
+                    }
+                    return
+                } catch (err) {
+                    // User may cancel or share may fail; do not award, continue to fallback below
+                }
             }
             // Fallback to download if files can't be shared
             const url = URL.createObjectURL(blob)
@@ -152,6 +194,7 @@ export default function Interpretation() {
         setInterpretation(null)
         hasInitiated.current = false
         chargedThisRunRef.current = false
+        sharedAwardedRef.current = false
         setInsufficientStars(false)
         if (error) {
             waiveChargeOnceRef.current = true
@@ -261,6 +304,7 @@ Output:
             hasInitiated.current = true
             // Reset charge gate for a brand-new interpretation run
             chargedThisRunRef.current = false
+            sharedAwardedRef.current = false
 
             if (
                 !paidForInterpretation &&
@@ -293,6 +337,7 @@ Output:
             setIsFollowUpMode(true)
             // Ensure next interpretation charges a star
             chargedThisRunRef.current = false
+            sharedAwardedRef.current = false
         } else if (!isFollowUp && hasInitiated.current) {
             // Reset follow-up mode when not in follow-up
             setIsFollowUpMode(false)
