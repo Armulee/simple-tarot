@@ -90,4 +90,8 @@ export function useProfile() {
     throw new Error("useProfile must be used within a ProfileProvider")
   }
   return context
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 8fb5c0644a643586f48cb396d255b1ef5e159eec
