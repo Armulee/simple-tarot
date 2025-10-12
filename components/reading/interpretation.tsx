@@ -13,6 +13,7 @@ import QuestionInput from "../question-input"
 import { CardImage } from "../card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
+import { useAuth } from "@/hooks/use-auth"
 import { useStars } from "@/contexts/stars-context"
 import {
     AlertDialog,
@@ -56,7 +57,8 @@ export default function Interpretation() {
         },
     })
 
-    const { spendStars, stars, addStars } = useStars()
+    const { spendStars, stars, addStars, setStarsBalance } = useStars()
+    const { user } = useAuth()
 
     // Share reward limits
     const SHARE_DAILY_LIMIT = 3
@@ -72,11 +74,12 @@ export default function Interpretation() {
         lastRewardedAtMs: number | null
     }
 
-    const getLocalDateKey = (): string => {
-        const d = new Date()
-        const y = d.getFullYear()
-        const m = String(d.getMonth() + 1).padStart(2, "0")
-        const day = String(d.getDate()).padStart(2, "0")
+    const getBangkokDateKey = (): string => {
+        const offsetMs = 7 * 60 * 60 * 1000
+        const bkk = new Date(Date.now() + offsetMs)
+        const y = bkk.getUTCFullYear()
+        const m = String(bkk.getUTCMonth() + 1).padStart(2, "0")
+        const day = String(bkk.getUTCDate()).padStart(2, "0")
         return `${y}-${m}-${day}`
     }
 
@@ -84,17 +87,17 @@ export default function Interpretation() {
         try {
             const raw = localStorage.getItem("share-reward-v1")
             if (!raw) {
-                return { dateKey: getLocalDateKey(), count: 0, lastRewardedAtMs: null }
+                return { dateKey: getBangkokDateKey(), count: 0, lastRewardedAtMs: null }
             }
             const parsed: unknown = JSON.parse(raw)
             if (typeof parsed !== "object" || parsed === null) {
-                return { dateKey: getLocalDateKey(), count: 0, lastRewardedAtMs: null }
+                return { dateKey: getBangkokDateKey(), count: 0, lastRewardedAtMs: null }
             }
             const obj = parsed as Partial<Record<keyof ShareRewardState, unknown>>
             const dateKey =
                 typeof obj.dateKey === "string" && obj.dateKey
                     ? obj.dateKey
-                    : getLocalDateKey()
+                    : getBangkokDateKey()
             const count = typeof obj.count === "number" && Number.isFinite(obj.count)
                 ? Math.max(0, Math.floor(obj.count))
                 : 0
@@ -104,7 +107,7 @@ export default function Interpretation() {
                     : null
             return { dateKey, count, lastRewardedAtMs }
         } catch {
-            return { dateKey: getLocalDateKey(), count: 0, lastRewardedAtMs: null }
+            return { dateKey: getBangkokDateKey(), count: 0, lastRewardedAtMs: null }
         }
     }
 
@@ -115,7 +118,7 @@ export default function Interpretation() {
     }
 
     const normalizeShareRewardState = (state: ShareRewardState): ShareRewardState => {
-        const today = getLocalDateKey()
+        const today = getBangkokDateKey()
         if (state.dateKey !== today) {
             return { dateKey: today, count: 0, lastRewardedAtMs: state.lastRewardedAtMs }
         }
@@ -138,6 +141,10 @@ export default function Interpretation() {
     useEffect(() => {
         if (typeof window === "undefined") return
         refreshShareRewardUi()
+        const id = window.setInterval(() => {
+            refreshShareRewardUi()
+        }, 1000)
+        return () => window.clearInterval(id)
     }, [refreshShareRewardUi])
 
     const maybeAwardShareStar = () => {
@@ -152,8 +159,21 @@ export default function Interpretation() {
             refreshShareRewardUi()
             return
         }
-        // Award
-        addStars(1)
+        // Award (user -> server share-award uncapped; anon -> addStars)
+        try {
+            if (user?.id) {
+                await fetch("/api/stars/share-award", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_id: user.id }),
+                })
+                const current = typeof stars === "number" ? stars : 0
+                setStarsBalance(current + 1)
+            } else {
+                // Anonymous: use addStars which posts to star_add (no cap)
+                addStars(1)
+            }
+        } catch {}
         const next: ShareRewardState = {
             dateKey: current.dateKey,
             count: used + 1,
@@ -705,22 +725,16 @@ Output:
                             {/* Sharing - only show when not error */}
                             {!error && (
                                 <div className='flex flex-col items-center justify-center gap-3'>
-                                    <div className='text-xs text-muted-foreground'>
-                                        Get 1 free star for sharing this result. Limit 3/day
-                                        <span className='mx-1'>•</span>
-                                        Cooldown 1 hour between rewards
-                                        <span className='mx-2 font-semibold text-yellow-300'>({
+                                    <div className='text-xs text-yellow-300 text-center'>
+                                        Get 1 free star for sharing this result.
+                                        <span className='ml-2 font-semibold'>({
                                             SHARE_DAILY_LIMIT - shareRewardLeft
                                         }/{SHARE_DAILY_LIMIT})</span>
-                                        {shareCooldownMs > 0 && (
-                                            <span className='ml-1'>
-                                                Next in ~{
-                                                    Math.ceil(
-                                                        shareCooldownMs / (60 * 1000)
-                                                    )
-                                                }m
-                                            </span>
-                                        )}
+                                    </div>
+                                    <div className='text-[10px] text-gray-400 text-center'>
+                                        {shareCooldownMs <= 0
+                                            ? "Cooldown 1 hour between rewards"
+                                            : `Cooldown ${Math.max(0, Math.floor(shareCooldownMs / 1000))}s`}
                                     </div>
                                     <div className='flex flex-wrap items-center justify-center gap-3'>
                                     {shareButtons.map(
