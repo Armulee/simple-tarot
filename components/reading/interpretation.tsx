@@ -24,6 +24,12 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
 
 export default function Interpretation() {
     const t = useTranslations("ReadingPage.interpretation")
@@ -316,6 +322,8 @@ export default function Interpretation() {
         }
     }
 
+    const [shareOpen, setShareOpen] = useState(false)
+
     const shareButtons = [
         {
             id: "share",
@@ -323,7 +331,7 @@ export default function Interpretation() {
             label: t("actions.share"),
             className:
                 "border-white/20 text-white bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 hover:from-indigo-500/30 hover:via-purple-500/30 hover:to-cyan-500/30",
-            onClick: shareImage,
+            onClick: () => setShareOpen(true),
         },
         {
             id: "copy",
@@ -770,6 +778,89 @@ Output:
                                         )
                                     )}
                                     </div>
+                                    {/* Share Sheet */}
+                                    <Dialog open={shareOpen} onOpenChange={setShareOpen}>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>Share</DialogTitle>
+                                            </DialogHeader>
+                                            <div className='space-y-3'>
+                                                <div className='text-sm text-muted-foreground'>
+                                                    Choose a platform to share or copy the link.
+                                                </div>
+                                                <div className='grid grid-cols-3 gap-3'>
+                                                    {[
+                                                        { id: "facebook", label: "Facebook", href: (u: string) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}` },
+                                                        { id: "twitter", label: "Twitter/X", href: (u: string, t?: string) => `https://twitter.com/intent/tweet?url=${encodeURIComponent(u)}${t ? `&text=${encodeURIComponent(t)}` : ""}` },
+                                                        { id: "line", label: "LINE", href: (u: string) => `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(u)}` },
+                                                        { id: "whatsapp", label: "WhatsApp", href: (u: string) => `https://api.whatsapp.com/send?text=${encodeURIComponent(u)}` },
+                                                        { id: "telegram", label: "Telegram", href: (u: string) => `https://t.me/share/url?url=${encodeURIComponent(u)}` },
+                                                        { id: "reddit", label: "Reddit", href: (u: string, t?: string) => `https://www.reddit.com/submit?url=${encodeURIComponent(u)}${t ? `&title=${encodeURIComponent(t)}` : ""}` },
+                                                    ].map((p) => (
+                                                        <button
+                                                            key={p.id}
+                                                            type='button'
+                                                            onClick={async () => {
+                                                                // Ensure link exists by creating a share record first
+                                                                const createRes = await fetch("/api/interpretations/share", {
+                                                                    method: "POST",
+                                                                    headers: { "Content-Type": "application/json" },
+                                                                    body: JSON.stringify({
+                                                                        question,
+                                                                        cards: selectedCards.map((c) => c.meaning),
+                                                                        interpretation: interpretation ?? completion,
+                                                                    }),
+                                                                })
+                                                                if (!createRes.ok) return
+                                                                const { id } = await createRes.json()
+                                                                const link = typeof window !== "undefined" ? `${window.location.origin}/tarot/${id}` : `https://dooduang.ai/tarot/${id}`
+                                                                const text = question ? `"${question}" — AI tarot interpretation` : undefined
+                                                                window.open(p.href(link, text), "_blank", "noopener,noreferrer")
+                                                                // Award star under constraints
+                                                                await maybeAwardShareStar()
+                                                            }}
+                                                            className='text-sm px-3 py-2 rounded-md border border-white/10 hover:bg-white/5'
+                                                        >
+                                                            {p.label}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <div className='flex gap-2'>
+                                                    <input
+                                                        className='flex-1 bg-transparent border rounded px-3 py-2 text-sm'
+                                                        readOnly
+                                                        value={typeof window !== "undefined" ? window.location.href : ""}
+                                                    />
+                                                    <Button
+                                                        type='button'
+                                                        onClick={async () => {
+                                                            try {
+                                                                // Create link if not existing in clipboard flow too
+                                                                const createRes = await fetch("/api/interpretations/share", {
+                                                                    method: "POST",
+                                                                    headers: { "Content-Type": "application/json" },
+                                                                    body: JSON.stringify({
+                                                                        question,
+                                                                        cards: selectedCards.map((c) => c.meaning),
+                                                                        interpretation: interpretation ?? completion,
+                                                                    }),
+                                                                })
+                                                                if (!createRes.ok) return
+                                                                const { id } = await createRes.json()
+                                                                const link = typeof window !== "undefined" ? `${window.location.origin}/tarot/${id}` : `https://dooduang.ai/tarot/${id}`
+                                                                await navigator.clipboard.writeText(link)
+                                                                setCopied(true)
+                                                                window.setTimeout(() => setCopied(false), 1500)
+                                                                await maybeAwardShareStar()
+                                                            } catch {}
+                                                        }}
+                                                    >
+                                                        {copied ? "Copied" : "Copy Link"}
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </DialogContent>
+                                    </Dialog>
                                 </div>
                             )}
 

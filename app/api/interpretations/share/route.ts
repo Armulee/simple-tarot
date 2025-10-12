@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
       ? body.cards.map((c: unknown) => String(c)).slice(0, 10)
       : []
     const interpretation = (body?.interpretation ?? "").toString().slice(0, 5000)
+    const ownerUserId: string | null = typeof body?.user_id === "string" && body.user_id ? body.user_id : null
 
     if (!question || !interpretation) {
       return NextResponse.json({ error: "MISSING_FIELDS" }, { status: 400 })
@@ -30,7 +31,8 @@ export async function POST(req: NextRequest) {
       .from("shared_tarot")
       .insert({
         id: shortId,
-        did,
+        did, // owner DID (device id)
+        owner_user_id: ownerUserId,
         question,
         cards,
         interpretation,
