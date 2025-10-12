@@ -36,12 +36,8 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog"
+import ShareComponent from "./share-component"
+//
 
 export default function Interpretation() {
     const t = useTranslations("ReadingPage.interpretation")
@@ -742,149 +738,14 @@ Output:
                                         </Link>
                                     </div>
                                     <div className='flex flex-wrap items-center justify-center gap-3'>
-                                    {shareButtons.map(
-                                        ({
-                                            id,
-                                            Icon,
-                                            className,
-                                            onClick,
-                                            label,
-                                        }) => (
-                                            <Button
-                                                key={id}
-                                                type='button'
-                                                onClick={onClick}
-                                                className={`relative group h-11 px-4 rounded-full border backdrop-blur-md shadow-[0_10px_20px_-10px_rgba(56,189,248,0.35)] transition-all ${className}`}
-                                            >
-                                                <span className='pointer-events-none absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 bg-white/10 blur-[1.5px] transition-opacity'></span>
-                                                <span className='relative z-10 flex items-center gap-2'>
-                                                    <Icon className='w-4 h-4' />
-                                                    <span className='text-sm font-medium'>
-                                                        {label}
-                                                    </span>
-                                                </span>
-                                            </Button>
-                                        )
-                                    )}
+                                        <ShareComponent
+                                            question={isFollowUp && followUpQuestion ? followUpQuestion : question}
+                        cards={selectedCards.map((c) => c.meaning)}
+                        interpretation={interpretation ?? completion}
+                        buttonClassName='relative group h-11 px-4 rounded-full border backdrop-blur-md shadow-[0_10px_20px_-10px_rgba(56,189,248,0.35)] transition-all border-white/20 text-white bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 hover:from-indigo-500/30 hover:via-purple-500/30 hover:to-cyan-500/30'
+                        buttonLabel={t("actions.share")}
+                                        />
                                     </div>
-                                    {/* Share Sheet */}
-                                    <Dialog open={shareOpen} onOpenChange={setShareOpen}>
-                                        <DialogContent>
-                                            <DialogHeader>
-                                                <DialogTitle>Share</DialogTitle>
-                                            </DialogHeader>
-                                            <div className='space-y-3'>
-                                                <div className='text-sm text-muted-foreground'>
-                                                    Choose a platform to share or copy the link.
-                                                </div>
-                                                <div className='grid grid-cols-3 gap-3'>
-                                                    {[
-                                                        {
-                                                            id: "facebook",
-                                                            label: "Facebook",
-                                                            icon: <FaFacebook className='w-5 h-5' />,
-                                                            href: (u: string) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}`,
-                                                        },
-                                                        {
-                                                            id: "twitter",
-                                                            label: "Twitter/X",
-                                                            icon: <FaTwitter className='w-5 h-5' />,
-                                                            href: (u: string, t?: string) => `https://twitter.com/intent/tweet?url=${encodeURIComponent(u)}${t ? `&text=${encodeURIComponent(t)}` : ""}`,
-                                                        },
-                                                        {
-                                                            id: "line",
-                                                            label: "LINE",
-                                                            icon: <FaLine className='w-5 h-5' />,
-                                                            href: (u: string) => `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(u)}`,
-                                                        },
-                                                        {
-                                                            id: "whatsapp",
-                                                            label: "WhatsApp",
-                                                            icon: <FaWhatsapp className='w-5 h-5' />,
-                                                            href: (u: string) => `https://api.whatsapp.com/send?text=${encodeURIComponent(u)}`,
-                                                        },
-                                                        {
-                                                            id: "telegram",
-                                                            label: "Telegram",
-                                                            icon: <FaTelegram className='w-5 h-5' />,
-                                                            href: (u: string) => `https://t.me/share/url?url=${encodeURIComponent(u)}`,
-                                                        },
-                                                        {
-                                                            id: "reddit",
-                                                            label: "Reddit",
-                                                            icon: <FaReddit className='w-5 h-5' />,
-                                                            href: (u: string, t?: string) => `https://www.reddit.com/submit?url=${encodeURIComponent(u)}${t ? `&title=${encodeURIComponent(t)}` : ""}`,
-                                                        },
-                                                    ].map((p) => (
-                                                        <button
-                                                            key={p.id}
-                                                            type='button'
-                                                            onClick={async () => {
-                                                                // Ensure link exists by creating a share record first
-                                                                const createRes = await fetch("/api/interpretations/share", {
-                                                                    method: "POST",
-                                                                    headers: { "Content-Type": "application/json" },
-                                                                    body: JSON.stringify({
-                                                                        question,
-                                                                        cards: selectedCards.map((c) => c.meaning),
-                                                                        interpretation: interpretation ?? completion,
-                                                                    }),
-                                                                })
-                                                                if (!createRes.ok) return
-                                                                const { id } = await createRes.json()
-                                                                const link = typeof window !== "undefined" ? `${window.location.origin}/tarot/${id}` : `https://dooduang.ai/tarot/${id}`
-                                                                const text = question ? `"${question}" — AI tarot interpretation` : undefined
-                                                                window.open(p.href(link, text), "_blank", "noopener,noreferrer")
-                                                                // Award star under constraints
-                                                                await maybeAwardShareStar()
-                                                            }}
-                                                            className='px-3 py-2 rounded-md border border-white/10 hover:bg-white/5 text-center'
-                                                        >
-                                                            <div className='flex items-center justify-center'>
-                                                                {p.icon}
-                                                            </div>
-                                                            <div className='text-[10px] mt-1 text-muted-foreground'>
-                                                                {p.label}
-                                                            </div>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                                <div className='flex gap-2'>
-                                                    <input
-                                                        className='flex-1 bg-transparent border rounded px-3 py-2 text-sm'
-                                                        readOnly
-                                                        value={typeof window !== "undefined" ? window.location.href : ""}
-                                                    />
-                                                    <Button
-                                                        type='button'
-                                                        onClick={async () => {
-                                                            try {
-                                                                // Create link if not existing in clipboard flow too
-                                                                const createRes = await fetch("/api/interpretations/share", {
-                                                                    method: "POST",
-                                                                    headers: { "Content-Type": "application/json" },
-                                                                    body: JSON.stringify({
-                                                                        question,
-                                                                        cards: selectedCards.map((c) => c.meaning),
-                                                                        interpretation: interpretation ?? completion,
-                                                                    }),
-                                                                })
-                                                                if (!createRes.ok) return
-                                                                const { id } = await createRes.json()
-                                                                const link = typeof window !== "undefined" ? `${window.location.origin}/tarot/${id}` : `https://dooduang.ai/tarot/${id}`
-                                                                await navigator.clipboard.writeText(link)
-                                                                setCopied(true)
-                                                                window.setTimeout(() => setCopied(false), 1500)
-                                                                await maybeAwardShareStar()
-                                                            } catch {}
-                                                        }}
-                                                    >
-                                                        {copied ? "Copied" : "Copy Link"}
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </DialogContent>
-                                    </Dialog>
                                 </div>
                             )}
 
