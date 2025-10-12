@@ -12,7 +12,7 @@ export const websiteStructuredData = {
         target: {
             "@type": "EntryPoint",
             urlTemplate:
-                "https://askingfate.com/reading?q={search_term_string}",
+                "https://askingfate.com/tarot?q={search_term_string}",
         },
         "query-input": "required name=search_term_string",
     },

@@ -250,7 +250,7 @@ export default function AboutPage() {
                                     size='lg'
                                     className='bg-primary hover:bg-primary/90 text-primary-foreground px-8 card-glow'
                                 >
-                                    <Link href='/reading'>
+                                    <Link href='/tarot'>
                                         Start Your First Reading
                                     </Link>
                                 </Button>
@@ -260,7 +260,7 @@ export default function AboutPage() {
                                     size='lg'
                                     className='border-border/30 hover:bg-card/20 bg-transparent px-8'
                                 >
-                                    <Link href='/reading'>Start Reading</Link>
+                                    <Link href='/tarot'>Start Reading</Link>
                                 </Button>
                             </div>
                         </div>

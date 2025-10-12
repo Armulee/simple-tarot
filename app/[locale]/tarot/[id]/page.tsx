@@ -12,7 +12,7 @@ async function getShared(id: string) {
   return data
 }
 
-export default async function SharedInterpretationPage({ params }: { params: { id: string } }) {
+export default async function SharedTarotPage({ params }: { params: { id: string } }) {
   const id = (params?.id ?? "").toString()
   const data = await getShared(id)
   if (!data) return notFound()
@@ -21,7 +21,7 @@ export default async function SharedInterpretationPage({ params }: { params: { i
       <Card className="p-8 bg-card/10 backdrop-blur-sm border-border/20">
         <div className="flex items-center gap-2 mb-4">
           <Sparkles className="w-5 h-5 text-primary" />
-          <h1 className="font-serif text-2xl">Shared Reading</h1>
+          <h1 className="font-serif text-2xl">Shared Tarot</h1>
         </div>
         <div className="space-y-6">
           <div>

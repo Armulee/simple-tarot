@@ -38,7 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     const entries: MetadataRoute.Sitemap = [
         await withAlternates("/", { changeFrequency: "daily", priority: 1 }),
-        await withAlternates("/reading", {
+        await withAlternates("/tarot", {
             changeFrequency: "daily",
             priority: 0.9,
         }),
@@ -60,17 +60,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         }),
         // Dynamic reading types (query params)
         await withAlternates(
-            "/reading",
+            "/tarot",
             { changeFrequency: "weekly", priority: 0.8 },
             "?type=simple"
         ),
         await withAlternates(
-            "/reading",
+            "/tarot",
             { changeFrequency: "weekly", priority: 0.8 },
             "?type=intermediate"
         ),
         await withAlternates(
-            "/reading",
+            "/tarot",
             { changeFrequency: "weekly", priority: 0.8 },
             "?type=advanced"
         ),

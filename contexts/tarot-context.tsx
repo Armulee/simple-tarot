@@ -115,10 +115,10 @@ export function TarotProvider({ children }: { children: ReactNode }) {
         setTimeout(() => setIsClearing(false), 50)
     }
 
-    // Restore reading state when entering /reading (supports locale prefixes)
+    // Restore reading state when entering /tarot (supports locale prefixes)
     useEffect(() => {
         if (typeof window === "undefined") return
-        if (!pathname || !pathname.includes("/reading")) return
+        if (!pathname || !pathname.includes("/tarot")) return
         try {
             const raw = localStorage.getItem(STORAGE_KEY)
             if (raw) {
@@ -154,10 +154,10 @@ export function TarotProvider({ children }: { children: ReactNode }) {
         setQuestion((prev) => (prev === null ? "" : prev))
     }, [pathname])
 
-    // Persist reading state while on /reading (supports locale prefixes)
+    // Persist reading state while on /tarot (supports locale prefixes)
     useEffect(() => {
         if (typeof window === "undefined") return
-        if (!pathname || !pathname.includes("/reading")) return
+        if (!pathname || !pathname.includes("/tarot")) return
         if (isClearing) return // Don't save during clearing process
         if (question === null) return // Skip until hydration completes
         try {
@@ -188,7 +188,7 @@ export function TarotProvider({ children }: { children: ReactNode }) {
         isClearing,
     ])
 
-    // Preserve in-memory state across routes; do not reset on leaving /reading.
+    // Preserve in-memory state across routes; do not reset on leaving /tarot.
     // State will be reset only when a new question is submitted via QuestionInput.
 
     return (

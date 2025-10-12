@@ -74,7 +74,7 @@ export default function Interpretation() {
             })
             if (!createRes.ok) throw new Error("SHARE_CREATE_FAILED")
             const { id } = await createRes.json()
-            const link = typeof window !== "undefined" ? `${window.location.origin}/share/${id}` : `https://dooduang.ai/share/${id}`
+            const link = typeof window !== "undefined" ? `${window.location.origin}/tarot/${id}` : `https://dooduang.ai/tarot/${id}`
 
             // 2) Copy link to clipboard
             try {

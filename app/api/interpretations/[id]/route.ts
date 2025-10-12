@@ -9,7 +9,7 @@ export async function GET(_req: NextRequest, context: { params: Promise<{ id: st
     if (!id) return NextResponse.json({ error: "BAD_ID" }, { status: 400 })
 
     const { data, error } = await supabase
-      .from("shared_interpretations")
+      .from("shared_tarot")
       .select("id, question, cards, interpretation, created_at")
       .eq("id", id)
       .maybeSingle()

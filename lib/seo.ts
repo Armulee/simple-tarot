@@ -159,7 +159,7 @@ export const pageMetadata = {
             "free tarot reading",
             "tarot card interpretation",
         ],
-        url: "/reading",
+        url: "/tarot",
     }),
 
     about: generatePageMetadata({

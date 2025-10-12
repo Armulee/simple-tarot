@@ -33,7 +33,7 @@ export type ReadingConfig = {
     }
 }
 
-export default async function RedirectPage() {
+export default async function ReadingPage() {
     const t = await getTranslations("Reading.types")
     const readingConfig: ReadingConfig = {
         simple: {

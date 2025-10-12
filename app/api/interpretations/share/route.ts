@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     const shortId = Math.random().toString(36).slice(2, 10)
 
     const { error } = await supabaseAdmin
-      .from("shared_interpretations")
+      .from("shared_tarot")
       .insert({
         id: shortId,
         did,

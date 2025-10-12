@@ -82,10 +82,10 @@ export default function manifest(): MetadataRoute.Manifest {
         ],
         shortcuts: [
             {
-                name: "Start Reading",
-                short_name: "Reading",
+                name: "Start Tarot",
+                short_name: "Tarot",
                 description: "Begin your AI tarot card reading",
-                url: "/reading",
+                url: "/tarot",
                 icons: [
                     {
                         src: "/icons/shortcut-reading.png",

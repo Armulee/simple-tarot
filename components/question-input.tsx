@@ -78,7 +78,7 @@ export default function QuestionInput({
                     })
                     localStorage.setItem("reading-state-v1", payload)
                 } catch {}
-                router.push("/reading")
+                    router.push("/tarot")
             }
         }
     }
