@@ -1,6 +1,6 @@
 import { streamText } from "ai"
 
-const MODEL = "openai/gpt-5-nano"
+const MODEL = "openai/gpt-5-mini"
 
 export async function POST(req: Request) {
     try {
@@ -14,6 +14,7 @@ export async function POST(req: Request) {
 
         const result = streamText({
             model: MODEL,
+            maxOutputTokens: 512,
             system: `You are an expert tarot reader.
 
         Your task: Answer the user's question directly and succinctly. Start with the direct answer in the first sentence. Avoid detours, disclaimers, or describing your process.
