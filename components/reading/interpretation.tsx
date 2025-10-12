@@ -725,10 +725,10 @@ Output:
                                 <div className='flex flex-col items-center justify-center gap-3'>
                                     <div className='text-xs text-center text-white'>
                                         Get 1 free star for each new person who visits your shared link.
-                                        <Link href='/learn/share-rewards' className='underline underline-offset-2 ml-1 text-blue-300 hover:text-blue-200'>
+                                        <br />
+                                        <Link href='/learn/share-rewards' className='underline underline-offset-2 text-blue-300 hover:text-blue-200'>
                                             Learn more
                                         </Link>
-                                        
                                     </div>
                                     <div className='flex flex-wrap items-center justify-center gap-3'>
                                     {shareButtons.map(
