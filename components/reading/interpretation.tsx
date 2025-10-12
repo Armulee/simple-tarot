@@ -546,6 +546,15 @@ Output:
                                             {t("error")}
                                         </p>
                                     </div>
+                                ) : isLoading && !interpretation && !completion ? (
+                                    <div className='text-center space-y-6 py-8'>
+                                        <div className='flex items-center justify-center space-x-3'>
+                                            <div className='animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent'></div>
+                                            <span className='text-muted-foreground'>
+                                                {t("preparingInterpretation")}
+                                            </span>
+                                        </div>
+                                    </div>
                                 ) : (
                                     <div
                                         className='text-foreground leading-relaxed whitespace-pre-wrap mb-4 animate-fade-up'

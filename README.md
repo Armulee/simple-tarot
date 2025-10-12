@@ -7,7 +7,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 Create a `.env.local` file in the root directory with the following variables:
 
 ```bash
-# OpenAI API Key for GPT-4o model
+# OpenAI API Key for GPT-5-mini model
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
