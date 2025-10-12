@@ -13,6 +13,7 @@ import QuestionInput from "../question-input"
 import { CardImage } from "../card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
+import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
 import { useStars } from "@/contexts/stars-context"
 import {
@@ -72,7 +73,6 @@ export default function Interpretation() {
     const [shareRewardLeft, setShareRewardLeft] = useState<number>(
         SHARE_DAILY_LIMIT
     )
-    const [shareCooldownMs, setShareCooldownMs] = useState<number>(0)
 
     type ShareRewardState = {
         dateKey: string
@@ -89,7 +89,7 @@ export default function Interpretation() {
         return `${y}-${m}-${day}`
     }
 
-    const loadShareRewardState = (): ShareRewardState => {
+    const loadShareRewardState = useCallback((): ShareRewardState => {
         try {
             const raw = localStorage.getItem("share-reward-v1")
             if (!raw) {
@@ -115,7 +115,7 @@ export default function Interpretation() {
         } catch {
             return { dateKey: getBangkokDateKey(), count: 0, lastRewardedAtMs: null }
         }
-    }
+    }, [])
 
     const saveShareRewardState = (state: ShareRewardState) => {
         try {
@@ -123,34 +123,24 @@ export default function Interpretation() {
         } catch {}
     }
 
-    const normalizeShareRewardState = (state: ShareRewardState): ShareRewardState => {
+    const normalizeShareRewardState = useCallback((state: ShareRewardState): ShareRewardState => {
         const today = getBangkokDateKey()
         if (state.dateKey !== today) {
             return { dateKey: today, count: 0, lastRewardedAtMs: state.lastRewardedAtMs }
         }
         return state
-    }
+    }, [])
 
     const refreshShareRewardUi = useCallback(() => {
         const current = loadShareRewardState()
         const state = normalizeShareRewardState(current)
         const used = Math.max(0, Math.min(SHARE_DAILY_LIMIT, state.count))
         setShareRewardLeft(Math.max(0, SHARE_DAILY_LIMIT - used))
-        if (state.lastRewardedAtMs) {
-            const diff = Date.now() - state.lastRewardedAtMs
-            setShareCooldownMs(Math.max(0, SHARE_COOLDOWN_MS - diff))
-        } else {
-            setShareCooldownMs(0)
-        }
-    }, [loadShareRewardState, normalizeShareRewardState, SHARE_COOLDOWN_MS])
+    }, [loadShareRewardState, normalizeShareRewardState])
 
     useEffect(() => {
         if (typeof window === "undefined") return
         refreshShareRewardUi()
-        const id = window.setInterval(() => {
-            refreshShareRewardUi()
-        }, 1000)
-        return () => window.clearInterval(id)
     }, [refreshShareRewardUi])
 
     const maybeAwardShareStar = async () => {
@@ -735,9 +725,9 @@ Output:
                                 <div className='flex flex-col items-center justify-center gap-3'>
                                     <div className='text-xs text-center text-white'>
                                         Get 1 free star for each new person who visits your shared link.
-                                        <a href='/learn/share-rewards' className='underline underline-offset-2 ml-1 text-blue-300 hover:text-blue-200'>
+                                        <Link href='/learn/share-rewards' className='underline underline-offset-2 ml-1 text-blue-300 hover:text-blue-200'>
                                             Learn more
-                                        </a>
+                                        </Link>
                                         <span className='ml-2 font-semibold text-yellow-300'>({
                                             SHARE_DAILY_LIMIT - shareRewardLeft
                                         }/{SHARE_DAILY_LIMIT})</span>
