@@ -728,9 +728,7 @@ Output:
                                         <Link href='/learn/share-rewards' className='underline underline-offset-2 ml-1 text-blue-300 hover:text-blue-200'>
                                             Learn more
                                         </Link>
-                                        <span className='ml-2 font-semibold text-yellow-300'>({
-                                            SHARE_DAILY_LIMIT - shareRewardLeft
-                                        }/{SHARE_DAILY_LIMIT})</span>
+                                        
                                     </div>
                                     <div className='flex flex-wrap items-center justify-center gap-3'>
                                     {shareButtons.map(
