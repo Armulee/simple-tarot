@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 
         Your task: Answer the user's question directly and succinctly. Start with the direct answer in the first sentence. Avoid detours, disclaimers, or describing your process.
 
-        Style: Clear, groundedม answer directly to the question. Use 2–5 short sentences (max ~90 words).
+        Style: Clear, grounded, answer directly to the question. Use 2–5 short sentences (max ~90 words).
 
         Constraints (default): Do not explain card symbolism, numerology, suits, spreads, upright/reversed meanings, or imagery. Do not list deep details of the cards. Mention cards only if essential and keep it brief.
 
