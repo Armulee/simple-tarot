@@ -1,10 +1,6 @@
 import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase"
-import { cookies } from "next/headers"
-import { DID_COOKIE } from "@/lib/server/did"
 import { Card } from "@/components/ui/card"
-import { cookies } from "next/headers"
-import { supabase as s } from "@/lib/supabase"
 import { Sparkles } from "lucide-react"
 
 async function getShared(id: string) {
