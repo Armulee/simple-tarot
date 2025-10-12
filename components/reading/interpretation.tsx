@@ -62,40 +62,43 @@ export default function Interpretation() {
 
     const shareImage = async () => {
         try {
-            const res = await fetch("/api/share-image", {
+            // 1) Persist shared interpretation to get a link
+            const createRes = await fetch("/api/interpretations/share", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     question,
                     cards: selectedCards.map((c) => c.meaning),
                     interpretation: interpretation ?? completion,
-                    width: 1080,
-                    height: 1350,
                 }),
             })
-            const blob = await res.blob()
-            const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
-            const filename = `reading-${timestamp}.png`
-            const file = new File([blob], filename, { type: "image/png" })
+            if (!createRes.ok) throw new Error("SHARE_CREATE_FAILED")
+            const { id } = await createRes.json()
+            const link = typeof window !== "undefined" ? `${window.location.origin}/share/${id}` : `https://dooduang.ai/share/${id}`
+
+            // 2) Copy link to clipboard
+            try {
+                await navigator.clipboard.writeText(link)
+                setCopied(true)
+                window.setTimeout(() => setCopied(false), 1500)
+            } catch {}
+
             const shareTitle = "Asking Fate Reading"
             const shareText = [
                 question ? `Question: "${question}"` : "",
-                (interpretation ?? completion)
-                    ? `Interpretation: ${(interpretation ?? completion)
-                          .toString()
-                          .slice(0, 500)}`
-                    : "",
-                "dooduang.ai",
+                "Read my AI tarot interpretation",
+                link,
             ]
                 .filter(Boolean)
                 .join("\n\n")
 
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            // 3) Try to open native share sheet with link
+            if (navigator.canShare && navigator.canShare({ url: link })) {
                 try {
                     await navigator.share({
-                        files: [file],
                         title: shareTitle,
                         text: shareText,
+                        url: link,
                     })
                     if (!sharedAwardedRef.current) {
                         addStars(1)
@@ -110,10 +113,7 @@ export default function Interpretation() {
                     await navigator.share({
                         title: shareTitle,
                         text: shareText,
-                        url:
-                            typeof window !== "undefined"
-                                ? window.location.origin
-                                : "https://dooduang.ai",
+                        url: link,
                     })
                     if (!sharedAwardedRef.current) {
                         addStars(1)
@@ -124,15 +124,10 @@ export default function Interpretation() {
                     // User may cancel or share may fail; do not award, continue to fallback below
                 }
             }
-            // Fallback to download if files can't be shared
-            const url = URL.createObjectURL(blob)
-            const a = document.createElement("a")
-            a.href = url
-            a.download = filename
-            document.body.appendChild(a)
-            a.click()
-            a.remove()
-            URL.revokeObjectURL(url)
+            // 4) Fallback: show a prompt with the link if share not available
+            try {
+                window.prompt("Copy this link", link)
+            } catch {}
         } catch (e) {
             console.error(e)
         }
