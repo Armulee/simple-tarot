@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { readAndVerifyDid } from "@/lib/server/did"
-import { supabase } from "@/lib/supabase"
+import { supabase, supabaseAdmin } from "@/lib/supabase"
 
 // Award 1 star for sharing, ignoring refill caps.
 // If authenticated, adds to user balance; otherwise, adds to device id (DID).
@@ -12,67 +12,91 @@ export async function POST(req: NextRequest) {
       owner_did?: string | null
       shared_id?: string | null
     }
-    const userId: string | null = body?.user_id ?? null
+    const viewerUserId: string | null = body?.user_id ?? null
     const ownerUserId: string | null = body?.owner_user_id ?? null
     const ownerDid: string | null = body?.owner_did ?? null
     const sharedId: string | null = body?.shared_id ?? null
 
-    if (userId) {
+    const db = supabaseAdmin || supabase
+
+    const getBangkokDateKey = (): string => {
+      const offsetMs = 7 * 60 * 60 * 1000
+      const bkk = new Date(Date.now() + offsetMs)
+      const y = bkk.getUTCFullYear()
+      const m = String(bkk.getUTCMonth() + 1).padStart(2, "0")
+      const d = String(bkk.getUTCDate()).padStart(2, "0")
+      return `${y}-${m}-${d}`
+    }
+    const dateKey = getBangkokDateKey()
+
+    if (viewerUserId) {
       // If visitor is the owner (by user id), do not award
-      if (ownerUserId && ownerUserId === userId) {
+      if (ownerUserId && ownerUserId === viewerUserId) {
         return NextResponse.json({ data: { ok: true, skipped: true } })
       }
-      // Get current, then set to current + 1 (no cap)
-      const { data: currentData, error: currentErr } = await supabase.rpc(
-        "star_get_or_create",
-        {
-          p_anon_device_id: null,
-          p_user_id: userId,
-        }
-      )
-      if (currentErr) {
-        return NextResponse.json({ error: currentErr.message }, { status: 400 })
-      }
-      // Cap total awards for this visitor to 5 across all shares
-      // We use a separate table to track visitor awards per owner/share
+      // Check duplicate for this share today by visitor_user_id
       if (sharedId) {
-        const { data: visit, error: visitErr } = await supabase
+        const { data: visit, error: visitErr } = await db
           .from("share_visit_awards")
           .select("id")
           .eq("shared_id", sharedId)
-          .eq("visitor_user_id", userId)
+          .eq("visitor_user_id", viewerUserId)
+          .eq("date_key", dateKey)
           .maybeSingle()
-        if (!visit && !visitErr) {
-          // Before award, check global cap 5 for this visitor
-          const { count, error: cntErr } = await supabase
+        if (visit) return NextResponse.json({ data: { ok: true, duplicate: true } })
+        if (visitErr && visitErr.message) {
+          // continue; we'll attempt to insert and let DB enforce constraints if any
+        }
+        // Cap total awards for the owner to 5 per day across all shares
+        if (ownerUserId || ownerDid) {
+          const { count, error: cntErr } = await db
             .from("share_visit_awards")
             .select("id", { count: "exact", head: true })
-            .eq("visitor_user_id", userId)
+            .eq("date_key", dateKey)
+            .or(
+              ownerUserId
+                ? `owner_user_id.eq.${ownerUserId}`
+                : `owner_did.eq.${ownerDid}`
+            )
           if (!cntErr && typeof count === "number" && count >= 5) {
-            return NextResponse.json({ data: { ok: true, capped: true } })
+            return NextResponse.json({ data: { ok: true, owner_capped: true } })
           }
-          await supabase.from("share_visit_awards").insert({
-            shared_id: sharedId,
-            visitor_user_id: userId,
-          })
-        } else if (visit) {
-          return NextResponse.json({ data: { ok: true, duplicate: true } })
         }
+        await db.from("share_visit_awards").insert({
+          shared_id: sharedId,
+          visitor_user_id: viewerUserId,
+          date_key: dateKey,
+          owner_user_id: ownerUserId,
+          owner_did: ownerDid,
+        })
       }
-      const row = (currentData?.[0] ?? {}) as { current_stars?: number }
-      const current = Number.isFinite(row.current_stars as number)
-        ? (row.current_stars as number)
-        : 0
-      const next = Math.max(0, current + 1)
-      const { data, error } = await supabase.rpc("star_set", {
-        p_anon_device_id: null,
-        p_new_balance: next,
-        p_user_id: userId,
-      })
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 400 })
+      // Award to owner (user or DID)
+      if (ownerUserId) {
+        const { data: currentData, error: currentErr } = await supabase.rpc(
+          "star_get_or_create",
+          { p_anon_device_id: null, p_user_id: ownerUserId }
+        )
+        if (currentErr) return NextResponse.json({ error: currentErr.message }, { status: 400 })
+        const row = (currentData?.[0] ?? {}) as { current_stars?: number }
+        const current = Number.isFinite(row.current_stars as number) ? (row.current_stars as number) : 0
+        const next = Math.max(0, current + 1)
+        const { data, error } = await supabase.rpc("star_set", {
+          p_anon_device_id: null,
+          p_new_balance: next,
+          p_user_id: ownerUserId,
+        })
+        if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+        return NextResponse.json({ data })
+      } else if (ownerDid) {
+        const { data, error } = await supabase.rpc("star_add", {
+          p_anon_device_id: ownerDid,
+          p_amount: 1,
+          p_user_id: null,
+        })
+        if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+        return NextResponse.json({ data })
       }
-      return NextResponse.json({ data })
+      return NextResponse.json({ data: { ok: true } })
     }
 
     // Anonymous: use DID and increment by 1
@@ -83,35 +107,67 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ data: { ok: true, skipped: true } })
     }
     if (sharedId) {
-      const { data: visit, error: visitErr } = await supabase
+      const { data: visit, error: visitErr } = await db
         .from("share_visit_awards")
         .select("id")
         .eq("shared_id", sharedId)
         .eq("visitor_did", did)
+        .eq("date_key", dateKey)
         .maybeSingle()
-      if (!visit && !visitErr) {
-        const { count, error: cntErr } = await supabase
+      if (visit) return NextResponse.json({ data: { ok: true, duplicate: true } })
+      if (visitErr && visitErr.message) {
+        // continue
+      }
+      // Owner cap 5/day
+      if (ownerUserId || ownerDid) {
+        const { count, error: cntErr } = await db
           .from("share_visit_awards")
           .select("id", { count: "exact", head: true })
-          .eq("visitor_did", did)
+          .eq("date_key", dateKey)
+          .or(
+            ownerUserId
+              ? `owner_user_id.eq.${ownerUserId}`
+              : `owner_did.eq.${ownerDid}`
+          )
         if (!cntErr && typeof count === "number" && count >= 5) {
-          return NextResponse.json({ data: { ok: true, capped: true } })
+          return NextResponse.json({ data: { ok: true, owner_capped: true } })
         }
-        await supabase.from("share_visit_awards").insert({
-          shared_id: sharedId,
-          visitor_did: did,
-        })
-      } else if (visit) {
-        return NextResponse.json({ data: { ok: true, duplicate: true } })
       }
+      await db.from("share_visit_awards").insert({
+        shared_id: sharedId,
+        visitor_did: did,
+        date_key: dateKey,
+        owner_user_id: ownerUserId,
+        owner_did: ownerDid,
+      })
     }
-    const { data, error } = await supabase.rpc("star_add", {
-      p_anon_device_id: did,
-      p_amount: 1,
-      p_user_id: null,
-    })
-    if (error) return NextResponse.json({ error: error.message }, { status: 400 })
-    return NextResponse.json({ data })
+    // Award to owner (user or DID)
+    if (ownerUserId) {
+      const { data: currentData, error: currentErr } = await supabase.rpc(
+        "star_get_or_create",
+        { p_anon_device_id: null, p_user_id: ownerUserId }
+      )
+      if (currentErr) return NextResponse.json({ error: currentErr.message }, { status: 400 })
+      const row = (currentData?.[0] ?? {}) as { current_stars?: number }
+      const current = Number.isFinite(row.current_stars as number) ? (row.current_stars as number) : 0
+      const next = Math.max(0, current + 1)
+      const { data, error } = await supabase.rpc("star_set", {
+        p_anon_device_id: null,
+        p_new_balance: next,
+        p_user_id: ownerUserId,
+      })
+      if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+      return NextResponse.json({ data })
+    } else if (ownerDid) {
+      const { data, error } = await supabase.rpc("star_add", {
+        p_anon_device_id: ownerDid,
+        p_amount: 1,
+        p_user_id: null,
+      })
+      if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+      return NextResponse.json({ data })
+    }
+    return NextResponse.json({ data: { ok: true } })
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "INTERNAL_ERROR"
     return NextResponse.json({ error: message }, { status: 500 })
