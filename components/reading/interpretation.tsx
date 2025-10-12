@@ -733,25 +733,15 @@ Output:
                             {/* Sharing - only show when not error */}
                             {!error && (
                                 <div className='flex flex-col items-center justify-center gap-3'>
-                                    {(() => {
-                                        const isCd = shareCooldownMs > 0
-                                        const totalSec = Math.max(0, Math.ceil(shareCooldownMs / 1000))
-                                        const mm = String(Math.floor(totalSec / 60)).padStart(2, "0")
-                                        const ss = String(totalSec % 60).padStart(2, "0")
-                                        return (
-                                            <>
-                                                <div className={`text-xs text-center ${isCd ? "text-gray-400" : "text-white"}`}>
-                                                    Get 1 free star for sharing this result.
-                                                    <span className={`ml-2 font-semibold ${isCd ? "text-gray-400" : "text-yellow-300"}`}>
-                                                        ({SHARE_DAILY_LIMIT - shareRewardLeft}/{SHARE_DAILY_LIMIT})
-                                                    </span>
-                                                </div>
-                                                <div className='text-[10px] text-gray-400 text-center'>
-                                                    {isCd ? `Cooldown ${mm}:${ss}` : "Cooldown 1 hour between rewards"}
-                                                </div>
-                                            </>
-                                        )
-                                    })()}
+                                    <div className='text-xs text-center text-white'>
+                                        Get 1 free star for each new person who visits your shared link.
+                                        <a href='/learn/share-rewards' className='underline underline-offset-2 ml-1 text-blue-300 hover:text-blue-200'>
+                                            Learn more
+                                        </a>
+                                        <span className='ml-2 font-semibold text-yellow-300'>({
+                                            SHARE_DAILY_LIMIT - shareRewardLeft
+                                        }/{SHARE_DAILY_LIMIT})</span>
+                                    </div>
                                     <div className='flex flex-wrap items-center justify-center gap-3'>
                                     {shareButtons.map(
                                         ({
