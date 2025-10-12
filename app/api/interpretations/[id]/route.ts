@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 
 // Fetch a shared interpretation by id
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const id = (params?.id ?? "").toString().slice(0, 32)
+    const { id: rawId } = await context.params
+    const id = (rawId ?? "").toString().slice(0, 32)
     if (!id) return NextResponse.json({ error: "BAD_ID" }, { status: 400 })
 
     const { data, error } = await supabase
