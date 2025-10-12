@@ -86,14 +86,23 @@ export default function Interpretation() {
             if (!raw) {
                 return { dateKey: getLocalDateKey(), count: 0, lastRewardedAtMs: null }
             }
-            const data = JSON.parse(raw) as ShareRewardState
-            return {
-                dateKey: data?.dateKey || getLocalDateKey(),
-                count: Number.isFinite((data as any)?.count) ? (data as any).count : 0,
-                lastRewardedAtMs: Number.isFinite((data as any)?.lastRewardedAtMs)
-                    ? (data as any).lastRewardedAtMs
-                    : null,
+            const parsed: unknown = JSON.parse(raw)
+            if (typeof parsed !== "object" || parsed === null) {
+                return { dateKey: getLocalDateKey(), count: 0, lastRewardedAtMs: null }
             }
+            const obj = parsed as Partial<Record<keyof ShareRewardState, unknown>>
+            const dateKey =
+                typeof obj.dateKey === "string" && obj.dateKey
+                    ? obj.dateKey
+                    : getLocalDateKey()
+            const count = typeof obj.count === "number" && Number.isFinite(obj.count)
+                ? Math.max(0, Math.floor(obj.count))
+                : 0
+            const lastRewardedAtMs =
+                typeof obj.lastRewardedAtMs === "number" && Number.isFinite(obj.lastRewardedAtMs)
+                    ? obj.lastRewardedAtMs
+                    : null
+            return { dateKey, count, lastRewardedAtMs }
         } catch {
             return { dateKey: getLocalDateKey(), count: 0, lastRewardedAtMs: null }
         }
@@ -113,8 +122,9 @@ export default function Interpretation() {
         return state
     }
 
-    const refreshShareRewardUi = () => {
-        const state = normalizeShareRewardState(loadShareRewardState())
+    const refreshShareRewardUi = useCallback(() => {
+        const current = loadShareRewardState()
+        const state = normalizeShareRewardState(current)
         const used = Math.max(0, Math.min(SHARE_DAILY_LIMIT, state.count))
         setShareRewardLeft(Math.max(0, SHARE_DAILY_LIMIT - used))
         if (state.lastRewardedAtMs) {
@@ -123,12 +133,12 @@ export default function Interpretation() {
         } else {
             setShareCooldownMs(0)
         }
-    }
+    }, [])
 
     useEffect(() => {
         if (typeof window === "undefined") return
         refreshShareRewardUi()
-    }, [])
+    }, [refreshShareRewardUi])
 
     const maybeAwardShareStar = () => {
         const current = normalizeShareRewardState(loadShareRewardState())
