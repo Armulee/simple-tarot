@@ -725,17 +725,25 @@ Output:
                             {/* Sharing - only show when not error */}
                             {!error && (
                                 <div className='flex flex-col items-center justify-center gap-3'>
-                                    <div className='text-xs text-yellow-300 text-center'>
-                                        Get 1 free star for sharing this result.
-                                        <span className='ml-2 font-semibold'>({
-                                            SHARE_DAILY_LIMIT - shareRewardLeft
-                                        }/{SHARE_DAILY_LIMIT})</span>
-                                    </div>
-                                    <div className='text-[10px] text-gray-400 text-center'>
-                                        {shareCooldownMs <= 0
-                                            ? "Cooldown 1 hour between rewards"
-                                            : `Cooldown ${Math.max(0, Math.floor(shareCooldownMs / 1000))}s`}
-                                    </div>
+                                    {(() => {
+                                        const isCd = shareCooldownMs > 0
+                                        const totalSec = Math.max(0, Math.ceil(shareCooldownMs / 1000))
+                                        const mm = String(Math.floor(totalSec / 60)).padStart(2, "0")
+                                        const ss = String(totalSec % 60).padStart(2, "0")
+                                        return (
+                                            <>
+                                                <div className={`text-xs text-center ${isCd ? "text-gray-400" : "text-white"}`}>
+                                                    Get 1 free star for sharing this result.
+                                                    <span className={`ml-2 font-semibold ${isCd ? "text-gray-400" : "text-yellow-300"}`}>
+                                                        ({SHARE_DAILY_LIMIT - shareRewardLeft}/{SHARE_DAILY_LIMIT})
+                                                    </span>
+                                                </div>
+                                                <div className='text-[10px] text-gray-400 text-center'>
+                                                    {isCd ? `Cooldown ${mm}:${ss}` : "Cooldown 1 hour between rewards"}
+                                                </div>
+                                            </>
+                                        )
+                                    })()}
                                     <div className='flex flex-wrap items-center justify-center gap-3'>
                                     {shareButtons.map(
                                         ({
