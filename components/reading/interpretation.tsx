@@ -58,7 +58,100 @@ export default function Interpretation() {
 
     const { spendStars, stars, addStars } = useStars()
 
-    const sharedAwardedRef = useRef(false)
+    // Share reward limits
+    const SHARE_DAILY_LIMIT = 3
+    const SHARE_COOLDOWN_MS = 60 * 60 * 1000
+    const [shareRewardLeft, setShareRewardLeft] = useState<number>(
+        SHARE_DAILY_LIMIT
+    )
+    const [shareCooldownMs, setShareCooldownMs] = useState<number>(0)
+
+    type ShareRewardState = {
+        dateKey: string
+        count: number
+        lastRewardedAtMs: number | null
+    }
+
+    const getLocalDateKey = (): string => {
+        const d = new Date()
+        const y = d.getFullYear()
+        const m = String(d.getMonth() + 1).padStart(2, "0")
+        const day = String(d.getDate()).padStart(2, "0")
+        return `${y}-${m}-${day}`
+    }
+
+    const loadShareRewardState = (): ShareRewardState => {
+        try {
+            const raw = localStorage.getItem("share-reward-v1")
+            if (!raw) {
+                return { dateKey: getLocalDateKey(), count: 0, lastRewardedAtMs: null }
+            }
+            const data = JSON.parse(raw) as ShareRewardState
+            return {
+                dateKey: data?.dateKey || getLocalDateKey(),
+                count: Number.isFinite((data as any)?.count) ? (data as any).count : 0,
+                lastRewardedAtMs: Number.isFinite((data as any)?.lastRewardedAtMs)
+                    ? (data as any).lastRewardedAtMs
+                    : null,
+            }
+        } catch {
+            return { dateKey: getLocalDateKey(), count: 0, lastRewardedAtMs: null }
+        }
+    }
+
+    const saveShareRewardState = (state: ShareRewardState) => {
+        try {
+            localStorage.setItem("share-reward-v1", JSON.stringify(state))
+        } catch {}
+    }
+
+    const normalizeShareRewardState = (state: ShareRewardState): ShareRewardState => {
+        const today = getLocalDateKey()
+        if (state.dateKey !== today) {
+            return { dateKey: today, count: 0, lastRewardedAtMs: state.lastRewardedAtMs }
+        }
+        return state
+    }
+
+    const refreshShareRewardUi = () => {
+        const state = normalizeShareRewardState(loadShareRewardState())
+        const used = Math.max(0, Math.min(SHARE_DAILY_LIMIT, state.count))
+        setShareRewardLeft(Math.max(0, SHARE_DAILY_LIMIT - used))
+        if (state.lastRewardedAtMs) {
+            const diff = Date.now() - state.lastRewardedAtMs
+            setShareCooldownMs(Math.max(0, SHARE_COOLDOWN_MS - diff))
+        } else {
+            setShareCooldownMs(0)
+        }
+    }
+
+    useEffect(() => {
+        if (typeof window === "undefined") return
+        refreshShareRewardUi()
+    }, [])
+
+    const maybeAwardShareStar = () => {
+        const current = normalizeShareRewardState(loadShareRewardState())
+        const now = Date.now()
+        const used = Math.max(0, Math.min(SHARE_DAILY_LIMIT, current.count))
+        const inCooldown =
+            typeof current.lastRewardedAtMs === "number" &&
+            now - current.lastRewardedAtMs < SHARE_COOLDOWN_MS
+        const canAward = used < SHARE_DAILY_LIMIT && !inCooldown
+        if (!canAward) {
+            refreshShareRewardUi()
+            return
+        }
+        // Award
+        addStars(1)
+        const next: ShareRewardState = {
+            dateKey: current.dateKey,
+            count: used + 1,
+            lastRewardedAtMs: now,
+        }
+        saveShareRewardState(next)
+        refreshShareRewardUi()
+    }
 
     const shareImage = async () => {
         try {
@@ -100,10 +193,8 @@ export default function Interpretation() {
                         text: shareText,
                         url: link,
                     })
-                    if (!sharedAwardedRef.current) {
-                        addStars(1)
-                        sharedAwardedRef.current = true
-                    }
+                    // Award only if under limit and not in cooldown
+                    maybeAwardShareStar()
                     return
                 } catch {
                     // User may cancel or share may fail; do not award, continue to fallback below
@@ -115,10 +206,8 @@ export default function Interpretation() {
                         text: shareText,
                         url: link,
                     })
-                    if (!sharedAwardedRef.current) {
-                        addStars(1)
-                        sharedAwardedRef.current = true
-                    }
+                    // Award only if under limit and not in cooldown
+                    maybeAwardShareStar()
                     return
                 } catch {
                     // User may cancel or share may fail; do not award, continue to fallback below
@@ -189,7 +278,6 @@ export default function Interpretation() {
         setInterpretation(null)
         hasInitiated.current = false
         chargedThisRunRef.current = false
-        sharedAwardedRef.current = false
         setInsufficientStars(false)
         if (error) {
             waiveChargeOnceRef.current = true
@@ -299,7 +387,6 @@ Output:
             hasInitiated.current = true
             // Reset charge gate for a brand-new interpretation run
             chargedThisRunRef.current = false
-            sharedAwardedRef.current = false
 
             if (
                 !paidForInterpretation &&
@@ -332,7 +419,6 @@ Output:
             setIsFollowUpMode(true)
             // Ensure next interpretation charges a star
             chargedThisRunRef.current = false
-            sharedAwardedRef.current = false
         } else if (!isFollowUp && hasInitiated.current) {
             // Reset follow-up mode when not in follow-up
             setIsFollowUpMode(false)
@@ -608,7 +694,25 @@ Output:
                         <>
                             {/* Sharing - only show when not error */}
                             {!error && (
-                                <div className='flex flex-wrap items-center justify-center gap-3'>
+                                <div className='flex flex-col items-center justify-center gap-3'>
+                                    <div className='text-xs text-muted-foreground'>
+                                        Get 1 free star for sharing this result. Limit 3/day
+                                        <span className='mx-1'>•</span>
+                                        Cooldown 1 hour between rewards
+                                        <span className='mx-2 font-semibold text-yellow-300'>({
+                                            SHARE_DAILY_LIMIT - shareRewardLeft
+                                        }/{SHARE_DAILY_LIMIT})</span>
+                                        {shareCooldownMs > 0 && (
+                                            <span className='ml-1'>
+                                                Next in ~{
+                                                    Math.ceil(
+                                                        shareCooldownMs / (60 * 1000)
+                                                    )
+                                                }m
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className='flex flex-wrap items-center justify-center gap-3'>
                                     {shareButtons.map(
                                         ({
                                             id,
@@ -633,6 +737,7 @@ Output:
                                             </Button>
                                         )
                                     )}
+                                    </div>
                                 </div>
                             )}
 
