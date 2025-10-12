@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     // Generate a short id
     const shortId = Math.random().toString(36).slice(2, 10)
 
-    const { error } = await (supabaseAdmin as any)
+    const { error } = await supabaseAdmin
       .from("shared_interpretations")
       .insert({
         id: shortId,
@@ -42,7 +42,8 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ id: shortId })
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "INTERNAL_ERROR" }, { status: 500 })
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "INTERNAL_ERROR"
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

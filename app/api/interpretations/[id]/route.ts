@@ -17,7 +17,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     if (!data) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 })
 
     return NextResponse.json({ data })
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "INTERNAL_ERROR" }, { status: 500 })
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "INTERNAL_ERROR"
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

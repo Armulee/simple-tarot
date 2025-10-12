@@ -105,7 +105,7 @@ export default function Interpretation() {
                         sharedAwardedRef.current = true
                     }
                     return
-                } catch (err) {
+                } catch {
                     // User may cancel or share may fail; do not award, continue to fallback below
                 }
             } else if (typeof navigator.share === "function") {
@@ -120,7 +120,7 @@ export default function Interpretation() {
                         sharedAwardedRef.current = true
                     }
                     return
-                } catch (err) {
+                } catch {
                     // User may cancel or share may fail; do not award, continue to fallback below
                 }
             }
