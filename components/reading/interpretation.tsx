@@ -768,12 +768,66 @@ Output:
                                                 </div>
                                                 <div className='grid grid-cols-3 gap-3'>
                                                     {[
-                                                        { id: "facebook", label: "Facebook", href: (u: string) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}` },
-                                                        { id: "twitter", label: "Twitter/X", href: (u: string, t?: string) => `https://twitter.com/intent/tweet?url=${encodeURIComponent(u)}${t ? `&text=${encodeURIComponent(t)}` : ""}` },
-                                                        { id: "line", label: "LINE", href: (u: string) => `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(u)}` },
-                                                        { id: "whatsapp", label: "WhatsApp", href: (u: string) => `https://api.whatsapp.com/send?text=${encodeURIComponent(u)}` },
-                                                        { id: "telegram", label: "Telegram", href: (u: string) => `https://t.me/share/url?url=${encodeURIComponent(u)}` },
-                                                        { id: "reddit", label: "Reddit", href: (u: string, t?: string) => `https://www.reddit.com/submit?url=${encodeURIComponent(u)}${t ? `&title=${encodeURIComponent(t)}` : ""}` },
+                                                        {
+                                                            id: "facebook",
+                                                            label: "Facebook",
+                                                            icon: (
+                                                                <svg viewBox='0 0 24 24' className='w-5 h-5 fill-current'>
+                                                                    <path d='M22 12.06C22 6.49 17.52 2 11.94 2S2 6.49 2 12.06c0 5 3.66 9.14 8.44 9.94v-7.03H7.9v-2.91h2.54V9.41c0-2.51 1.5-3.9 3.79-3.9 1.1 0 2.26.2 2.26.2v2.48h-1.27c-1.25 0-1.64.78-1.64 1.57v1.88h2.79l-.45 2.91h-2.34V22c4.78-.8 8.44-4.94 8.44-9.94Z' />
+                                                                </svg>
+                                                            ),
+                                                            href: (u: string) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}`,
+                                                        },
+                                                        {
+                                                            id: "twitter",
+                                                            label: "Twitter/X",
+                                                            icon: (
+                                                                <svg viewBox='0 0 24 24' className='w-5 h-5 fill-current'>
+                                                                    <path d='M18.244 2H21l-6.5 7.43L22 22h-6.91l-4.51-5.87L4.5 22H2l7.18-8.21L2 2h7.09l4.09 5.45L18.244 2Zm-1.21 18h1.81L7.5 4h-1.8l11.334 16Z' />
+                                                                </svg>
+                                                            ),
+                                                            href: (u: string, t?: string) => `https://twitter.com/intent/tweet?url=${encodeURIComponent(u)}${t ? `&text=${encodeURIComponent(t)}` : ""}`,
+                                                        },
+                                                        {
+                                                            id: "line",
+                                                            label: "LINE",
+                                                            icon: (
+                                                                <svg viewBox='0 0 24 24' className='w-5 h-5 fill-current'>
+                                                                    <path d='M19 3H5C3.35 3 2 4.35 2 6v12c0 1.65 1.35 3 3 3h14c1.65 0 3-1.35 3-3V6c0-1.65-1.35-3-3-3Zm-1.44 9.43c-.03.04-.07.09-.12.14-1.23 1.23-3.53 2.51-8.07 2.51h-.37l-2.55 1.86a.5.5 0 0 1-.79-.41v-1.46C4.47 14.3 4 13.2 4 12c0-2.96 3.02-5.36 6.75-5.36 3.72 0 6.75 2.4 6.75 5.36 0 .53-.13 1.04-.39 1.43Z' />
+                                                                </svg>
+                                                            ),
+                                                            href: (u: string) => `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(u)}`,
+                                                        },
+                                                        {
+                                                            id: "whatsapp",
+                                                            label: "WhatsApp",
+                                                            icon: (
+                                                                <svg viewBox='0 0 24 24' className='w-5 h-5 fill-current'>
+                                                                    <path d='M.057 24l1.687-6.163A11.867 11.867 0 0 1 0 11.9C0 5.327 5.373 0 12 0c3.19 0 6.167 1.243 8.413 3.488A11.82 11.82 0 0 1 24 11.9c0 6.627-5.373 12-12 12-2.042 0-4.025-.506-5.788-1.463L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.591 5.448 0 9.89-4.434 9.89-9.884a9.86 9.86 0 0 0-2.896-6.994A9.825 9.825 0 0 0 12 2.02c-5.45 0-9.884 4.433-9.884 9.883 0 2.183.713 4.207 1.937 5.853l-.637 2.327 2.238-.59zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.03-.967-.272-.099-.47-.149-.668.149-.198.297-.767.967-.94 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.654-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.173.198-.297.297-.495.099-.198.05-.372-.025-.521-.074-.149-.668-1.611-.916-2.207-.242-.58-.487-.5-.668-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.096 3.2 5.076 4.487.709.306 1.262.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z' />
+                                                                </svg>
+                                                            ),
+                                                            href: (u: string) => `https://api.whatsapp.com/send?text=${encodeURIComponent(u)}`,
+                                                        },
+                                                        {
+                                                            id: "telegram",
+                                                            label: "Telegram",
+                                                            icon: (
+                                                                <svg viewBox='0 0 24 24' className='w-5 h-5 fill-current'>
+                                                                    <path d='M9.04 15.68 8.9 19.4a.87.87 0 0 0 .7-.34l1.68-1.6 3.48 2.56c.64.35 1.1.16 1.28-.6l2.32-10.88c.21-.96-.35-1.34-.98-1.1L3.5 11.54c-.94.37-.92.9-.16 1.14l4.6 1.44 10.7-6.74-9.6 8.3Z' />
+                                                                </svg>
+                                                            ),
+                                                            href: (u: string) => `https://t.me/share/url?url=${encodeURIComponent(u)}`,
+                                                        },
+                                                        {
+                                                            id: "reddit",
+                                                            label: "Reddit",
+                                                            icon: (
+                                                                <svg viewBox='0 0 24 24' className='w-5 h-5 fill-current'>
+                                                                    <path d='M12 2c5.523 0 10 3.806 10 8.5S17.523 19 12 19 2 15.194 2 10.5C2 5.806 6.477 2 12 2Zm5.5 9.25c-.69 0-1.25.56-1.25 1.25 0 .69.56 1.25 1.25 1.25s1.25-.56 1.25-1.25-.56-1.25-1.25-1.25Zm-11 0c-.69 0-1.25.56-1.25 1.25 0 .69.56 1.25 1.25 1.25s1.25-.56 1.25-1.25-.56-1.25-1.25-1.25ZM12 17c1.932 0 3.5-.672 3.5-1.5S13.932 14 12 14s-3.5.672-3.5 1.5.568 1.5 3.5 1.5Z' />
+                                                                </svg>
+                                                            ),
+                                                            href: (u: string, t?: string) => `https://www.reddit.com/submit?url=${encodeURIComponent(u)}${t ? `&title=${encodeURIComponent(t)}` : ""}`,
+                                                        },
                                                     ].map((p) => (
                                                         <button
                                                             key={p.id}
@@ -797,9 +851,14 @@ Output:
                                                                 // Award star under constraints
                                                                 await maybeAwardShareStar()
                                                             }}
-                                                            className='text-sm px-3 py-2 rounded-md border border-white/10 hover:bg-white/5'
+                                                            className='px-3 py-2 rounded-md border border-white/10 hover:bg-white/5 text-center'
                                                         >
-                                                            {p.label}
+                                                            <div className='flex items-center justify-center'>
+                                                                {p.icon}
+                                                            </div>
+                                                            <div className='text-[10px] mt-1 text-muted-foreground'>
+                                                                {p.label}
+                                                            </div>
                                                         </button>
                                                     ))}
                                                 </div>
