@@ -136,7 +136,7 @@ export default function Interpretation() {
         } else {
             setShareCooldownMs(0)
         }
-    }, [])
+    }, [loadShareRewardState, normalizeShareRewardState, SHARE_COOLDOWN_MS])
 
     useEffect(() => {
         if (typeof window === "undefined") return
@@ -147,7 +147,7 @@ export default function Interpretation() {
         return () => window.clearInterval(id)
     }, [refreshShareRewardUi])
 
-    const maybeAwardShareStar = () => {
+    const maybeAwardShareStar = async () => {
         const current = normalizeShareRewardState(loadShareRewardState())
         const now = Date.now()
         const used = Math.max(0, Math.min(SHARE_DAILY_LIMIT, current.count))
@@ -224,7 +224,7 @@ export default function Interpretation() {
                         url: link,
                     })
                     // Award only if under limit and not in cooldown
-                    maybeAwardShareStar()
+                    await maybeAwardShareStar()
                     return
                 } catch {
                     // User may cancel or share may fail; do not award, continue to fallback below
@@ -237,7 +237,7 @@ export default function Interpretation() {
                         url: link,
                     })
                     // Award only if under limit and not in cooldown
-                    maybeAwardShareStar()
+                    await maybeAwardShareStar()
                     return
                 } catch {
                     // User may cancel or share may fail; do not award, continue to fallback below
