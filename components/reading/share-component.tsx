@@ -169,91 +169,106 @@ export default function ShareComponent({
                 {
                   id: "messenger",
                   label: "Messenger",
-                  icon: <FaFacebookMessenger className='w-5 h-5 text-[#0084FF]' />,
+                  icon: <FaFacebookMessenger className='w-5 h-5 text-white' />,
+                  bg: "#0084FF",
                   href: (u: string) => `https://www.messenger.com/t/?link=${encodeURIComponent(u)}`,
                 },
                 {
                   id: "facebook",
                   label: "Facebook",
-                  icon: <FaFacebook className='w-5 h-5 text-[#1877F2]' />,
+                  icon: <FaFacebook className='w-5 h-5 text-white' />,
+                  bg: "#1877F2",
                   href: (u: string) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}`,
                 },
                 {
                   id: "instagram",
                   label: "Instagram",
-                  icon: <SiInstagram className='w-5 h-5 text-[#E4405F]' />,
+                  icon: <SiInstagram className='w-5 h-5 text-white' />,
+                  bg: "#E4405F",
                   href: (_u: string) => null, // not supported via web intent
                 },
                 {
                   id: "threads",
                   label: "Threads",
-                  icon: <SiThreads className='w-5 h-5 text-black' />,
+                  icon: <SiThreads className='w-5 h-5 text-white' />,
+                  bg: "#000000",
                   href: (u: string, t?: string) => `https://www.threads.net/intent/post?url=${encodeURIComponent(u)}${t ? `&text=${encodeURIComponent(t)}` : ""}`,
                 },
                 {
                   id: "tiktok",
                   label: "TikTok",
-                  icon: <SiTiktok className='w-5 h-5 text-black' />,
+                  icon: <SiTiktok className='w-5 h-5 text-white' />,
+                  bg: "#000000",
                   href: (_u: string) => null, // not supported via web intent
                 },
                 {
                   id: "x",
                   label: "X",
                   icon: <FaXTwitter className='w-5 h-5 text-white' />,
+                  bg: "#000000",
                   href: (u: string, t?: string) => `https://twitter.com/intent/tweet?url=${encodeURIComponent(u)}${t ? `&text=${encodeURIComponent(t)}` : ""}`,
                 },
                 {
                   id: "line",
                   label: "LINE",
-                  icon: <FaLine className='w-5 h-5 text-[#00C300]' />,
+                  icon: <FaLine className='w-5 h-5 text-white' />,
+                  bg: "#00C300",
                   href: (u: string) => `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(u)}`,
                 },
                 {
                   id: "whatsapp",
                   label: "WhatsApp",
-                  icon: <FaWhatsapp className='w-5 h-5 text-[#25D366]' />,
+                  icon: <FaWhatsapp className='w-5 h-5 text-white' />,
+                  bg: "#25D366",
                   href: (u: string) => `https://api.whatsapp.com/send?text=${encodeURIComponent(u)}`,
                 },
                 {
                   id: "telegram",
                   label: "Telegram",
-                  icon: <FaTelegram className='w-5 h-5 text-[#24A1DE]' />,
+                  icon: <FaTelegram className='w-5 h-5 text-white' />,
+                  bg: "#24A1DE",
                   href: (u: string) => `https://t.me/share/url?url=${encodeURIComponent(u)}`,
                 },
                 {
                   id: "snapchat",
                   label: "Snapchat",
-                  icon: <SiSnapchat className='w-5 h-5 text-[#FFFC00]' />,
+                  icon: <SiSnapchat className='w-5 h-5 text-black' />,
+                  bg: "#FFFC00",
                   href: (_u: string) => null, // limited web support
                 },
                 {
                   id: "discord",
                   label: "Discord",
-                  icon: <SiDiscord className='w-5 h-5 text-[#5865F2]' />,
+                  icon: <SiDiscord className='w-5 h-5 text-white' />,
+                  bg: "#5865F2",
                   href: (_u: string) => null, // no public share intent
                 },
                 {
                   id: "pinterest",
                   label: "Pinterest",
-                  icon: <SiPinterest className='w-5 h-5 text-[#E60023]' />,
+                  icon: <SiPinterest className='w-5 h-5 text-white' />,
+                  bg: "#E60023",
                   href: (u: string, t?: string) => `https://www.pinterest.com/pin/create/button/?url=${encodeURIComponent(u)}${t ? `&description=${encodeURIComponent(t)}` : ""}`,
                 },
                 {
                   id: "tumblr",
                   label: "Tumblr",
-                  icon: <SiTumblr className='w-5 h-5 text-[#36465D]' />,
+                  icon: <SiTumblr className='w-5 h-5 text-white' />,
+                  bg: "#36465D",
                   href: (u: string, t?: string) => `https://www.tumblr.com/widgets/share/tool?canonicalUrl=${encodeURIComponent(u)}${t ? `&caption=${encodeURIComponent(t)}` : ""}`,
                 },
                 {
                   id: "wechat",
                   label: "WeChat",
-                  icon: <SiWechat className='w-5 h-5 text-[#07C160]' />,
+                  icon: <SiWechat className='w-5 h-5 text-white' />,
+                  bg: "#07C160",
                   href: (_u: string) => null, // requires WeChat JS SDK in WeChat WebView
                 },
                 {
                   id: "reddit",
                   label: "Reddit",
-                  icon: <FaReddit className='w-5 h-5 text-[#FF4500]' />,
+                  icon: <FaReddit className='w-5 h-5 text-white' />,
+                  bg: "#FF4500",
                   href: (u: string, t?: string) => `https://www.reddit.com/submit?url=${encodeURIComponent(u)}${t ? `&title=${encodeURIComponent(t)}` : ""}`,
                 },
               ].map((p) => (
@@ -277,9 +292,14 @@ export default function ShareComponent({
                       }
                       await maybeAwardShareStar()
                     }}
-                    className='px-3 py-2 rounded-md hover:bg-white/5 text-center flex-shrink-0'
+                    className='px-2 py-2 rounded-md text-center flex-shrink-0'
                   >
-                    <div className='flex items-center justify-center'>{p.icon}</div>
+                    <div
+                      className='flex items-center justify-center h-10 w-10 rounded-full'
+                      style={{ backgroundColor: (p as any).bg || '#444' }}
+                    >
+                      {p.icon}
+                    </div>
                     <div className='text-[10px] mt-1 text-muted-foreground hidden sm:block'>{p.label}</div>
                   </button>
                 </SwiperSlide>
