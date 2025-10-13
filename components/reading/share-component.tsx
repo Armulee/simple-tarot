@@ -136,7 +136,7 @@ export default function ShareComponent({
       lastRewardedAtMs: now,
     }
     saveShareRewardState(next)
-  }, [addStars, setStarsBalance, stars, user, loadShareRewardState, normalize])
+  }, [addStars, setStarsBalance, stars, user, loadShareRewardState, normalize, SHARE_COOLDOWN_MS, saveShareRewardState])
 
   const ensureShareLink = useCallback(async (): Promise<string | null> => {
     try {

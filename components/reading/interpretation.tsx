@@ -4,18 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Sparkles, RefreshCcw, Stars, Star } from "lucide-react"
-import {
-    FaShareNodes,
-    FaCopy,
-    FaDownload,
-    FaCheck,
-    FaFacebook,
-    FaTwitter,
-    FaLine,
-    FaWhatsapp,
-    FaTelegram,
-    FaReddit,
-} from "react-icons/fa6"
+import { FaShareNodes, FaCopy, FaDownload, FaCheck } from "react-icons/fa6"
 import { useEffect, useRef, useState, useCallback } from "react"
 import { useCompletion } from "@ai-sdk/react"
 import { useTarot } from "@/contexts/tarot-context"
@@ -186,74 +175,7 @@ export default function Interpretation() {
         refreshShareRewardUi()
     }
 
-    const shareImage = async () => {
-        try {
-            // 1) Persist shared interpretation to get a link
-            const createRes = await fetch("/api/interpretations/share", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    question,
-                    cards: selectedCards.map((c) => c.meaning),
-                    interpretation: interpretation ?? completion,
-                }),
-            })
-            if (!createRes.ok) throw new Error("SHARE_CREATE_FAILED")
-            const { id } = await createRes.json()
-            const link = typeof window !== "undefined" ? `${window.location.origin}/tarot/${id}` : `https://dooduang.ai/tarot/${id}`
-
-            // 2) Copy link to clipboard
-            try {
-                await navigator.clipboard.writeText(link)
-                setCopied(true)
-                window.setTimeout(() => setCopied(false), 1500)
-            } catch {}
-
-            const shareTitle = "Asking Fate Reading"
-            const shareText = [
-                question ? `Question: "${question}"` : "",
-                "Read my AI tarot interpretation",
-                link,
-            ]
-                .filter(Boolean)
-                .join("\n\n")
-
-            // 3) Try to open native share sheet with link
-            if (navigator.canShare && navigator.canShare({ url: link })) {
-                try {
-                    await navigator.share({
-                        title: shareTitle,
-                        text: shareText,
-                        url: link,
-                    })
-                    // Award only if under limit and not in cooldown
-                    await maybeAwardShareStar()
-                    return
-                } catch {
-                    // User may cancel or share may fail; do not award, continue to fallback below
-                }
-            } else if (typeof navigator.share === "function") {
-                try {
-                    await navigator.share({
-                        title: shareTitle,
-                        text: shareText,
-                        url: link,
-                    })
-                    // Award only if under limit and not in cooldown
-                    await maybeAwardShareStar()
-                    return
-                } catch {
-                    // User may cancel or share may fail; do not award, continue to fallback below
-                }
-            }
-            // 4) Fallback: show a prompt with the link if share not available
-            try {
-                window.prompt("Copy this link", link)
-            } catch {}
-        } catch (e) {
-            console.error(e)
-        }
-    }
+    // share logic moved to ShareComponent
 
     const handleCopy = async () => {
         const textOnly = (interpretation ?? completion) || ""
