@@ -95,7 +95,7 @@ export default function CardSelection({
         setSelectedCards([])
     }
 
-    const handleCardsSelected = (
+    const handleCardsSelected = async (
         cards: { name: string; isReversed: boolean }[]
     ) => {
         // If not enough stars, block and show dialog; do not mutate state
@@ -123,8 +123,37 @@ export default function CardSelection({
             clearInterpretationCache()
         }
 
-        // Go directly to interpretation
-        setCurrentStep("interpretation")
+        // Create tarot reading entry and redirect to the new page
+        try {
+            const currentQuestion = isFollowUp && followUpQuestion ? followUpQuestion : question
+            const cardNames = cards.map(card => 
+                card.isReversed ? `${card.name} (Reversed)` : card.name
+            )
+
+            const response = await fetch("/api/tarot/create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    question: currentQuestion,
+                    cards: cardNames,
+                    user_id: null, // Will be handled by the API based on auth
+                }),
+            })
+
+            if (response.ok) {
+                const { id } = await response.json()
+                // Redirect to the new tarot reading page
+                window.location.href = `/tarot/${id}`
+            } else {
+                console.error("Failed to create tarot reading")
+                // Fallback to old flow
+                setCurrentStep("interpretation")
+            }
+        } catch (error) {
+            console.error("Error creating tarot reading:", error)
+            // Fallback to old flow
+            setCurrentStep("interpretation")
+        }
     }
 
     // Clear interpretation cache for new readings - no-op

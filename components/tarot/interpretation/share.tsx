@@ -174,9 +174,25 @@ const shareOptions = [
     },
 ]
 
-export default function ShareSection() {
-    const { question, selectedCards, interpretation } = useTarot()
-    const cards = selectedCards.map((c) => c.meaning)
+interface ShareSectionProps {
+    question?: string
+    cards?: string[]
+    interpretation?: string
+    readingId?: string
+}
+
+export default function ShareSection({ 
+    question: propQuestion, 
+    cards: propCards, 
+    interpretation: propInterpretation,
+    readingId: propReadingId 
+}: ShareSectionProps = {}) {
+    const { question: contextQuestion, selectedCards, interpretation: contextInterpretation } = useTarot()
+    const question = propQuestion || contextQuestion
+    const cards = propCards || selectedCards.map((c) => c.meaning)
+    const interpretation = propInterpretation || contextInterpretation
+    const readingId = propReadingId
+    
     const [, setCopied] = useState(false)
     const { user } = useAuth()
     const navGuardRef = useRef<HTMLDivElement>(null)
@@ -267,6 +283,25 @@ export default function ShareSection() {
 
     const ensureShareLink = useCallback(async (): Promise<string | null> => {
         try {
+            // If we have a readingId, use the new tarot/[id] link
+            if (readingId) {
+                const origin =
+                    typeof window !== "undefined"
+                        ? window.location.origin
+                        : "https://dooduang.ai"
+                const link = `${origin}/tarot/${readingId}`
+                
+                // Mark this user as the original sharer
+                try {
+                    localStorage.setItem('is-original-sharer', 'true')
+                } catch (error) {
+                    console.error('Error marking original sharer:', error)
+                }
+                
+                return link
+            }
+
+            // Fallback to old behavior for backward compatibility
             // Check cache first
             if (question && interpretation) {
                 const cachedLink = shareLinkCache.get(
@@ -357,7 +392,7 @@ export default function ShareSection() {
         } catch {
             return null
         }
-    }, [question, cards, interpretation, user?.id])
+    }, [readingId, question, cards, interpretation, user?.id])
 
     return (
         <div className='relative overflow-hidden group'>

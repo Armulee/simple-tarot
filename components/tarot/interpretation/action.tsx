@@ -24,14 +24,31 @@ import { useRouter } from "next/navigation"
 import { useStars } from "@/contexts/stars-context"
 import { useCompletion } from "@ai-sdk/react"
 
-export default function ActionSection() {
+interface ActionSectionProps {
+    question?: string
+    cards?: string[]
+    interpretation?: string
+    readingId?: string
+}
+
+export default function ActionSection({ 
+    question: propQuestion, 
+    cards: propCards, 
+    interpretation: propInterpretation,
+    readingId: propReadingId 
+}: ActionSectionProps = {}) {
     const {
-        question,
-        selectedCards: cards,
-        interpretation,
+        question: contextQuestion,
+        selectedCards,
+        interpretation: contextInterpretation,
         setInterpretation,
         setPaidForInterpretation,
     } = useTarot()
+    const question = propQuestion || contextQuestion
+    const cards = propCards || selectedCards.map((c) => c.meaning)
+    const interpretation = propInterpretation || contextInterpretation
+    const readingId = propReadingId
+    
     const [copiedLink, setCopiedLink] = useState(false)
     const [copiedText, setCopiedText] = useState(false)
     const { user } = useAuth()
@@ -81,6 +98,16 @@ export default function ActionSection() {
 
     const ensureShareLink = useCallback(async (): Promise<string | null> => {
         try {
+            // If we have a readingId, use the new tarot/[id] link
+            if (readingId) {
+                const origin =
+                    typeof window !== "undefined"
+                        ? window.location.origin
+                        : "https://dooduang.ai"
+                return `${origin}/tarot/${readingId}`
+            }
+
+            // Fallback to old behavior for backward compatibility
             // First, check if this interpretation already exists
             const checkRes = await fetch("/api/interpretations/check", {
                 method: "POST",
@@ -126,7 +153,7 @@ export default function ActionSection() {
         } catch {
             return null
         }
-    }, [question, cards, interpretation, user?.id])
+    }, [readingId, question, cards, interpretation, user?.id])
 
     const handleRegenerate = useCallback(async () => {
         try {
