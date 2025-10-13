@@ -2,12 +2,7 @@
 
 import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { useRef, useEffect } from "react"
 import {
   FaShareNodes,
   FaFacebook,
@@ -37,7 +32,6 @@ export default function ShareComponent({
   buttonClassName,
   buttonLabel = "Share",
 }: ShareComponentProps) {
-  const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const { user } = useAuth()
   const { addStars, stars, setStarsBalance } = useStars()
@@ -147,27 +141,11 @@ export default function ShareComponent({
   }, [question, cards, interpretation, user?.id])
 
   return (
-    <>
-      <Button
-        type='button'
-        onClick={() => setOpen(true)}
-        className={buttonClassName}
-      >
-        <span className='relative z-10 flex items-center gap-2'>
-          <FaShareNodes className='w-4 h-4' />
-          <span className='text-sm font-medium'>{buttonLabel}</span>
-        </span>
-      </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Share</DialogTitle>
-          </DialogHeader>
-          <div className='space-y-3'>
-            <div className='text-sm text-muted-foreground'>
-              Choose a platform to share or copy the link.
-            </div>
-            <div className='grid grid-cols-3 gap-3'>
+    <div className='w-full'>
+      <div className='text-sm text-muted-foreground mb-2'>
+        Share your reading
+      </div>
+      <div className='flex items-center gap-3 overflow-x-auto no-scrollbar py-1'>
               {[
                 {
                   id: "facebook",
@@ -216,14 +194,14 @@ export default function ShareComponent({
                     window.open(p.href(link, text), "_blank", "noopener,noreferrer")
                     await maybeAwardShareStar()
                   }}
-                  className='px-3 py-2 rounded-md border border-white/10 hover:bg-white/5 text-center'
+                  className='px-3 py-2 rounded-md border border-white/10 hover:bg-white/5 text-center flex-shrink-0'
                 >
                   <div className='flex items-center justify-center'>{p.icon}</div>
                   <div className='text-[10px] mt-1 text-muted-foreground'>{p.label}</div>
                 </button>
               ))}
-            </div>
-            <div className='flex gap-2'>
+      </div>
+      <div className='flex gap-2 mt-3'>
               <input
                 className='flex-1 bg-transparent border rounded px-3 py-2 text-sm'
                 readOnly
@@ -248,10 +226,7 @@ export default function ShareComponent({
                   <span className='inline-flex items-center gap-2'><FaCopy className='w-4 h-4' /> Copy Link</span>
                 )}
               </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+      </div>
+    </div>
   )
 }

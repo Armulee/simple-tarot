@@ -737,13 +737,11 @@ Output:
                                             Learn more
                                         </Link>
                                     </div>
-                                    <div className='flex flex-wrap items-center justify-center gap-3'>
+                                    <div className='w-full max-w-2xl'>
                                         <ShareComponent
                                             question={isFollowUp && followUpQuestion ? followUpQuestion : question}
-                        cards={selectedCards.map((c) => c.meaning)}
-                        interpretation={interpretation ?? completion}
-                        buttonClassName='relative group h-11 px-4 rounded-full border backdrop-blur-md shadow-[0_10px_20px_-10px_rgba(56,189,248,0.35)] transition-all border-white/20 text-white bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 hover:from-indigo-500/30 hover:via-purple-500/30 hover:to-cyan-500/30'
-                        buttonLabel={t("actions.share")}
+                                            cards={selectedCards.map((c) => c.meaning)}
+                                            interpretation={interpretation ?? completion}
                                         />
                                     </div>
                                 </div>
