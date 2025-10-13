@@ -66,9 +66,7 @@ export default function Interpretation() {
     // Share reward limits
     const SHARE_DAILY_LIMIT = 3
     const SHARE_COOLDOWN_MS = 60 * 60 * 1000
-    const [shareRewardLeft, setShareRewardLeft] = useState<number>(
-        SHARE_DAILY_LIMIT
-    )
+    // no banner count usage here
 
     type ShareRewardState = {
         dateKey: string
@@ -129,9 +127,7 @@ export default function Interpretation() {
 
     const refreshShareRewardUi = useCallback(() => {
         const current = loadShareRewardState()
-        const state = normalizeShareRewardState(current)
-        const used = Math.max(0, Math.min(SHARE_DAILY_LIMIT, state.count))
-        setShareRewardLeft(Math.max(0, SHARE_DAILY_LIMIT - used))
+        void normalizeShareRewardState(current)
     }, [loadShareRewardState, normalizeShareRewardState])
 
     useEffect(() => {
@@ -139,41 +135,7 @@ export default function Interpretation() {
         refreshShareRewardUi()
     }, [refreshShareRewardUi])
 
-    const maybeAwardShareStar = async () => {
-        const current = normalizeShareRewardState(loadShareRewardState())
-        const now = Date.now()
-        const used = Math.max(0, Math.min(SHARE_DAILY_LIMIT, current.count))
-        const inCooldown =
-            typeof current.lastRewardedAtMs === "number" &&
-            now - current.lastRewardedAtMs < SHARE_COOLDOWN_MS
-        const canAward = used < SHARE_DAILY_LIMIT && !inCooldown
-        if (!canAward) {
-            refreshShareRewardUi()
-            return
-        }
-        // Award (user -> server share-award uncapped; anon -> addStars)
-        try {
-            if (user?.id) {
-                await fetch("/api/stars/share-award", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ user_id: user.id }),
-                })
-                const current = typeof stars === "number" ? stars : 0
-                setStarsBalance(current + 1)
-            } else {
-                // Anonymous: use addStars which posts to star_add (no cap)
-                addStars(1)
-            }
-        } catch {}
-        const next: ShareRewardState = {
-            dateKey: current.dateKey,
-            count: used + 1,
-            lastRewardedAtMs: now,
-        }
-        saveShareRewardState(next)
-        refreshShareRewardUi()
-    }
+    // share award handled in ShareComponent now
 
     // share logic moved to ShareComponent
 
