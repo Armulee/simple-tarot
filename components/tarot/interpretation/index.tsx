@@ -12,7 +12,6 @@ import QuestionInput from "../../question-input"
 import { CardImage } from "../../card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
-import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
 import { useStars } from "@/contexts/stars-context"
 import {

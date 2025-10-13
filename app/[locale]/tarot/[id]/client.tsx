@@ -37,8 +37,8 @@ export default function TarotReadingClient({
     question,
     cards,
     initialInterpretation,
-    ownerDid,
-    ownerUserId,
+    ownerDid: _ownerDid,
+    ownerUserId: _ownerUserId,
 }: TarotReadingClientProps) {
     const t = useTranslations("ReadingPage.interpretation")
     const [interpretation, setInterpretation] = useState<string | null>(initialInterpretation)
@@ -55,8 +55,8 @@ export default function TarotReadingClient({
         const checkOwnership = async () => {
             try {
                 const did = await fetch("/api/did").then(res => res.json()).then(data => data.did).catch(() => null)
-                const isOwnerByDid = did && ownerDid && did === ownerDid
-                const isOwnerByUserId = user?.id && ownerUserId && user.id === ownerUserId
+                const isOwnerByDid = did && _ownerDid && did === _ownerDid
+                const isOwnerByUserId = user?.id && _ownerUserId && user.id === _ownerUserId
                 setIsOwner(!!(isOwnerByDid || isOwnerByUserId))
             } catch (error) {
                 console.error("Error checking ownership:", error)
@@ -64,7 +64,7 @@ export default function TarotReadingClient({
             }
         }
         checkOwnership()
-    }, [user?.id, ownerDid, ownerUserId])
+    }, [user?.id, _ownerDid, _ownerUserId])
 
     const { completion, complete } = useCompletion({
         api: "/api/interpret-cards/question",
@@ -148,7 +148,7 @@ Output:
                     <AlertDialogHeader>
                         <AlertDialogTitle>No stars left</AlertDialogTitle>
                         <AlertDialogDescription>
-                            You don't have enough stars to view this interpretation.
+                            You don&apos;t have enough stars to view this interpretation.
                             Please wait for refill or purchase more stars.
                         </AlertDialogDescription>
                     </AlertDialogHeader>

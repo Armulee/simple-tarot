@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
         const interpretation = (body?.interpretation ?? "")
             .toString()
             .slice(0, 5000)
-        const _ownerUserId: string | null =
+        const ownerUserId: string | null =
             typeof body?.user_id === "string" && body.user_id
                 ? body.user_id
                 : null
@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
             .eq("question", question)
             .eq("interpretation", interpretation)
             .eq("did", did) // Only check for the same device/user
+            .eq("owner_user_id", ownerUserId) // Also check for the same user
             .order("created_at", { ascending: false })
             .limit(1)
             .maybeSingle()

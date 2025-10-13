@@ -201,43 +201,14 @@ function extractKeywords(question: string): string[] {
     return words.slice(0, 3) // Take first 3 meaningful words
 }
 
-/**
- * Find matching tarot cards in the cards array
- */
-function findMatchingCards(cards: string[]): string[] {
-    return cards
-        .map((card) =>
-            card
-                .toLowerCase()
-                .replace(/[^\w\s]/g, "")
-                .replace(/\s+/g, "-")
-        )
-        .filter((card) =>
-            TAROT_CARDS.some(
-                (tarotCard) =>
-                    card.includes(tarotCard) || tarotCard.includes(card)
-            )
-        )
-        .slice(0, 2) // Take first 2 matching cards
-}
-
-/**
- * Find matching themes in the question
- */
-function findMatchingThemes(question: string): string[] {
-    const lowerQuestion = question.toLowerCase()
-    return QUESTION_THEMES.filter((theme) =>
-        lowerQuestion.includes(theme)
-    ).slice(0, 2) // Take first 2 matching themes
-}
 
 /**
  * Generate a readable slug from the question text
  */
 export function generateTarotSlug(
     question: string,
-    cards: string[],
-    interpretation?: string
+    _cards: string[],
+    _interpretation?: string
 ): string {
     // Clean and slugify the question directly
     let baseSlug = slugify(question)
