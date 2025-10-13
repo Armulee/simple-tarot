@@ -20,7 +20,7 @@ import {
   FaFacebookMessenger,
   FaEnvelope,
   FaCommentDots,
-  FaSyncAlt,
+  FaArrowsRotate,
   FaPlus,
   FaLink,
   FaRegFileLines,
@@ -344,7 +344,7 @@ export default function ShareComponent({
       {/* Actions row as icon badges */}
       <Swiper modules={[FreeMode]} freeMode slidesPerView={'auto'} spaceBetween={12} className='py-2'>
         {[
-          { id: 'regen', label: 'Regenerate', icon: <FaSyncAlt className='w-5 h-5 text-white' />, bg: '#6366F1', onClick: async () => onRegenerate && onRegenerate() },
+          { id: 'regen', label: 'Regenerate', icon: <FaArrowsRotate className='w-5 h-5 text-white' />, bg: '#6366F1', onClick: async () => onRegenerate && onRegenerate() },
           { id: 'new', label: 'New Reading', icon: <FaPlus className='w-5 h-5 text-white' />, bg: '#22C55E', onClick: async () => onNewReading && onNewReading() },
           { id: 'copy-link', label: 'Copy Link', icon: <FaLink className='w-5 h-5 text-white' />, bg: '#06B6D4', onClick: async () => { const link = await ensureShareLink(); if (!link) return; await navigator.clipboard.writeText(link); setCopied(true); window.setTimeout(() => setCopied(false), 1500); } },
           { id: 'copy-text', label: 'Copy Result', icon: <FaRegFileLines className='w-5 h-5 text-white' />, bg: '#10B981', onClick: async () => { const text = interpretation ? String(interpretation) : ''; if (!text) return; await navigator.clipboard.writeText(text); setCopied(true); window.setTimeout(() => setCopied(false), 1500); } },
