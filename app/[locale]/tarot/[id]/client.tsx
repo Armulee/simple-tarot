@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { useCompletion } from "@ai-sdk/react"
 import { Card } from "@/components/ui/card"
-import { Sparkles, Stars } from "lucide-react"
+import { Sparkles, Stars, Home, ArrowRight, UserPlus } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useStars } from "@/contexts/stars-context"
 import {
@@ -18,6 +18,9 @@ import {
 import ShareSection from "@/components/tarot/interpretation/share"
 import ActionSection from "@/components/tarot/interpretation/action"
 import QuestionInput from "@/components/question-input"
+import StarCard from "@/components/star-card"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 import { useTranslations } from "next-intl"
 
 interface TarotReadingClientProps {
@@ -43,8 +46,25 @@ export default function TarotReadingClient({
     const [error, setError] = useState<string | null>(null)
     const [insufficientStars, setInsufficientStars] = useState(false)
     const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
+    const [isOwner, setIsOwner] = useState(false)
     const { user } = useAuth()
     const { spendStars, stars } = useStars()
+
+    // Check if current user is the owner
+    useEffect(() => {
+        const checkOwnership = async () => {
+            try {
+                const did = await fetch("/api/did").then(res => res.json()).then(data => data.did).catch(() => null)
+                const isOwnerByDid = did && ownerDid && did === ownerDid
+                const isOwnerByUserId = user?.id && ownerUserId && user.id === ownerUserId
+                setIsOwner(!!(isOwnerByDid || isOwnerByUserId))
+            } catch (error) {
+                console.error("Error checking ownership:", error)
+                setIsOwner(false)
+            }
+        }
+        checkOwnership()
+    }, [user?.id, ownerDid, ownerUserId])
 
     const { completion, complete } = useCompletion({
         api: "/api/interpret-cards/question",
@@ -177,6 +197,15 @@ Output:
                             >
                                 {t("sectionSubtitle")}
                             </p>
+                            {/* Only show star consumption text for owners */}
+                            {isOwner && (
+                                <div className='flex items-center justify-center gap-2 text-xs text-yellow-300 mt-2'>
+                                    <Stars className='w-3.5 h-3.5' />
+                                    <span>
+                                        Consuming 1 star to reveal this interpretation.
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div
@@ -232,34 +261,105 @@ Output:
                 </div>
             </Card>
 
-            {/* Show action buttons and sharing when interpretation is complete */}
+            {/* Show different content based on ownership */}
             {interpretation && (
                 <>
-                    {/* Sharing and Actions */}
-                    <div className='w-full max-w-4xl space-y-6'>
-                        <ShareSection 
-                            question={question}
-                            cards={cards}
-                            interpretation={interpretation}
-                            readingId={readingId}
-                        />
-                        <ActionSection 
-                            question={question}
-                            cards={cards}
-                            interpretation={interpretation}
-                            readingId={readingId}
-                        />
-                    </div>
+                    {isOwner ? (
+                        <>
+                            {/* Owner: Show Actions and Sharing (swapped positions) */}
+                            <div className='w-full max-w-4xl space-y-6'>
+                                <ActionSection 
+                                    question={question}
+                                    cards={cards}
+                                    interpretation={interpretation}
+                                    readingId={readingId}
+                                />
+                                <ShareSection 
+                                    question={question}
+                                    cards={cards}
+                                    interpretation={interpretation}
+                                    readingId={readingId}
+                                />
+                            </div>
 
-                    {/* Follow-up question */}
-                    <div className='border-t border-border/20 pt-4'>
-                        <QuestionInput
-                            followUp={true}
-                            id='follow-up-question'
-                            label={t("followUp.label")}
-                            placeholder={t("followUp.placeholder")}
-                        />
-                    </div>
+                            {/* Follow-up question for owners */}
+                            <div className='border-t border-border/20 pt-4'>
+                                <QuestionInput
+                                    followUp={true}
+                                    id='follow-up-question'
+                                    label={t("followUp.label")}
+                                    placeholder={t("followUp.placeholder")}
+                                />
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            {/* Non-owner: Show CTA Section */}
+                            <div className='w-full max-w-4xl mx-auto space-y-6'>
+                                <StarCard>
+                                    <div className='relative z-10 text-center space-y-10'>
+                                        {/* Header with enhanced styling */}
+                                        <div className='space-y-6'>
+                                            <div className='flex items-center justify-center gap-4'>
+                                                <Sparkles className='w-8 h-8 text-yellow-300 animate-pulse' />
+                                                <h2 className='font-serif font-bold text-4xl text-yellow-300'>
+                                                    Get your own reading
+                                                </h2>
+                                                <Sparkles
+                                                    className='w-8 h-8 text-yellow-300 animate-pulse'
+                                                    style={{ animationDelay: "0.5s" }}
+                                                />
+                                            </div>
+                                            <p className='text-white/75 max-w-3xl mx-auto leading-relaxed font-medium'>
+                                                The cards have spoken to you. Now let them
+                                                reveal the secrets of your own journey.
+                                                <span className='text-white font-bold'>
+                                                    {" "}
+                                                    Ask your question
+                                                </span>{" "}
+                                                and receive
+                                                <span className='text-white font-bold'>
+                                                    {" "}
+                                                    personalized guidance
+                                                </span>{" "}
+                                                from the ancient wisdom of tarot.
+                                            </p>
+                                        </div>
+
+                                        {/* Enhanced CTA Buttons */}
+                                        <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
+                                            <Link href='/'>
+                                                <Button
+                                                    size='lg'
+                                                    className='bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.45)] px-12 py-5 text-xl font-bold group transition-all duration-300 transform hover:scale-110'
+                                                >
+                                                    <div className='flex items-center gap-4'>
+                                                        <Home className='w-6 h-6' />
+                                                        <span>Ask Your Question</span>
+                                                        <ArrowRight className='w-6 h-6 group-hover:translate-x-2 transition-transform duration-300' />
+                                                    </div>
+                                                </Button>
+                                            </Link>
+
+                                            <Link href='/signup'>
+                                                <Button
+                                                    variant='outline'
+                                                    size='lg'
+                                                    className='px-3 py-2 rounded-md border border-white/20 text-white bg-primary hover:bg-white/10 px-12 py-5 text-xl font-bold group transition-all duration-300 transform hover:scale-110'
+                                                >
+                                                    <div className='flex items-center gap-4'>
+                                                        <UserPlus className='w-6 h-6' />
+                                                        <span>Create Account</span>
+                                                        <ArrowRight className='w-6 h-6 group-hover:translate-x-2 transition-transform duration-300' />
+                                                    </div>
+                                                </Button>
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </StarCard>
+                            </div>
+                        </>
+                    )}
                 </>
             )}
         </>
