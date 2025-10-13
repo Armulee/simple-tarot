@@ -38,8 +38,6 @@ type ShareComponentProps = {
   question: string | null
   cards: string[]
   interpretation: string | null
-  buttonClassName?: string
-  buttonLabel?: string
   onRegenerate?: () => void
   onNewReading?: () => void
 }
@@ -48,8 +46,8 @@ export default function ShareComponent({
   question,
   cards,
   interpretation,
-  buttonClassName,
-  buttonLabel = "Share",
+  onRegenerate,
+  onNewReading,
 }: ShareComponentProps) {
   const [copied, setCopied] = useState(false)
   const { user } = useAuth()
@@ -325,7 +323,7 @@ export default function ShareComponent({
                   >
                     <div
                       className='flex items-center justify-center h-10 w-10 rounded-full'
-                      style={{ backgroundColor: (p as { bg?: string }).bg || '#444' }}
+                      style={{ backgroundColor: (p as { bg?: string }).bg ?? '#444' }}
                     >
                       {p.icon}
                     </div>
