@@ -96,11 +96,11 @@ export default function ShareComponent({
     }
   }, [getBangkokDateKey])
 
-  const saveShareRewardState = (state: ShareRewardState) => {
+  const saveShareRewardState = useCallback((state: ShareRewardState) => {
     try {
       localStorage.setItem("share-reward-v1", JSON.stringify(state))
     } catch {}
-  }
+  }, [])
 
   const normalize = useCallback(
     (state: ShareRewardState): ShareRewardState => {
@@ -304,12 +304,12 @@ export default function ShareComponent({
                       const link = await ensureShareLink()
                       if (!link) return
                       const text = question ? `"${question}" — AI tarot interpretation` : undefined
-                      const href = p.href(link, text)
-                      if (p.id === 'more' && typeof navigator !== 'undefined' && typeof (navigator as any).share === 'function') {
+                    const href = p.href(link, text)
+                    if (p.id === 'more' && typeof navigator !== 'undefined' && typeof (navigator as unknown as { share?: (data: { title?: string; text?: string; url?: string }) => Promise<void> }).share === 'function') {
                         try {
-                          await (navigator as any).share({ title: 'My Tarot Reading', text: text || undefined, url: link })
+                          await (navigator as unknown as { share: (data: { title?: string; text?: string; url?: string }) => Promise<void> }).share({ title: 'My Tarot Reading', text: text || undefined, url: link })
                         } catch {}
-                      } else if (href) {
+                    } else if (href) {
                         window.open(href, "_blank", "noopener,noreferrer")
                       } else {
                         try {
@@ -325,7 +325,7 @@ export default function ShareComponent({
                   >
                     <div
                       className='flex items-center justify-center h-10 w-10 rounded-full'
-                      style={{ backgroundColor: (p as any).bg || '#444' }}
+                      style={{ backgroundColor: (p as { bg?: string }).bg || '#444' }}
                     >
                       {p.icon}
                     </div>

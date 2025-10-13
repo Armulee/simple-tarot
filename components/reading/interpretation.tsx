@@ -203,34 +203,7 @@ export default function Interpretation() {
         }
     }
 
-    const [shareOpen, setShareOpen] = useState(false)
-
-    const shareButtons = [
-        {
-            id: "share",
-            Icon: FaShareNodes,
-            label: t("actions.share"),
-            className:
-                "border-white/20 text-white bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 hover:from-indigo-500/30 hover:via-purple-500/30 hover:to-cyan-500/30",
-            onClick: () => setShareOpen(true),
-        },
-        {
-            id: "copy",
-            Icon: copied ? FaCheck : FaCopy,
-            label: copied ? t("actions.copied") : t("actions.copy"),
-            className:
-                "border-white/20 text-white bg-white/10 hover:bg-white/20",
-            onClick: handleCopy,
-        },
-        {
-            id: "download",
-            Icon: FaDownload,
-            label: t("actions.download"),
-            className:
-                "border-cyan-400/30 text-white bg-cyan-400/15 hover:bg-cyan-400/25",
-            onClick: handleDownload,
-        },
-    ]
+    // removed old share buttons/state
 
     const hasInitiated = useRef(false)
     const lastRunHadErrorRef = useRef(false)
