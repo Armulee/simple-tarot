@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useRef, useEffect } from "react"
 import {
   FaShareNodes,
@@ -201,7 +202,7 @@ export default function ShareComponent({
                 </button>
               ))}
       </div>
-      <div className='flex gap-2 mt-3'>
+      <div className='flex gap-2 mt-3 items-center'>
               <input
                 className='flex-1 bg-transparent border rounded px-3 py-2 text-sm'
                 readOnly
@@ -226,6 +227,53 @@ export default function ShareComponent({
                   <span className='inline-flex items-center gap-2'><FaCopy className='w-4 h-4' /> Copy Link</span>
                 )}
               </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant='outline' className='px-3 py-2'>Download</Button>
+                </PopoverTrigger>
+                <PopoverContent>
+                  <div className='space-y-2'>
+                    <div className='text-sm font-medium'>Download as</div>
+                    <div className='flex gap-2'>
+                      <Button
+                        variant='outline'
+                        onClick={async () => {
+                          try {
+                            const res = await fetch("/api/share-image", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                question,
+                                cards,
+                                interpretation,
+                                width: 1080,
+                                height: 1350,
+                              }),
+                            })
+                            const blob = await res.blob()
+                            const ts = new Date().toISOString().replace(/[:.]/g, "-")
+                            const url = URL.createObjectURL(blob)
+                            const a = document.createElement("a")
+                            a.href = url
+                            a.download = `reading-${ts}.png`
+                            document.body.appendChild(a)
+                            a.click()
+                            a.remove()
+                            URL.revokeObjectURL(url)
+                          } catch {}
+                        }}
+                      >Image</Button>
+                      <Button
+                        variant='outline'
+                        onClick={async () => {
+                          // Placeholder: implement server video render if available
+                          alert("Video download is not available yet.")
+                        }}
+                      >Video</Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
       </div>
     </div>
   )
