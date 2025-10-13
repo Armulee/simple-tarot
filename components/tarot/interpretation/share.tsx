@@ -180,6 +180,57 @@ export default function ShareSection() {
     const [, setCopied] = useState(false)
     const { user } = useAuth()
     const navGuardRef = useRef<HTMLDivElement>(null)
+    const [earnedStars, setEarnedStars] = useState(0)
+    const maxStars = 5
+
+    // Load earned stars from localStorage
+    useEffect(() => {
+        const loadEarnedStars = () => {
+            try {
+                const stored = localStorage.getItem('share-earned-stars')
+                if (stored) {
+                    const parsed = parseInt(stored, 10)
+                    if (!isNaN(parsed) && parsed >= 0) {
+                        setEarnedStars(Math.min(parsed, maxStars))
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading earned stars:', error)
+            }
+        }
+        loadEarnedStars()
+    }, [maxStars])
+
+    // Function to increment earned stars (to be called when someone visits shared link)
+    const incrementEarnedStars = useCallback(() => {
+        setEarnedStars(prev => {
+            const newValue = Math.min(prev + 1, maxStars)
+            try {
+                localStorage.setItem('share-earned-stars', newValue.toString())
+            } catch (error) {
+                console.error('Error saving earned stars:', error)
+            }
+            return newValue
+        })
+    }, [maxStars])
+
+    // Check if this is a shared link visit and increment stars
+    useEffect(() => {
+        const checkSharedLinkVisit = () => {
+            // Check if we're on a shared link page (URL contains /share/tarot/)
+            if (typeof window !== 'undefined' && window.location.pathname.includes('/share/tarot/')) {
+                // Check if this is a new visitor (not the original sharer)
+                const isNewVisitor = !localStorage.getItem('is-original-sharer')
+                if (isNewVisitor) {
+                    // Increment stars for the original sharer
+                    incrementEarnedStars()
+                    // Mark this as a new visitor to prevent multiple increments
+                    localStorage.setItem('is-new-visitor', 'true')
+                }
+            }
+        }
+        checkSharedLinkVisit()
+    }, [incrementEarnedStars])
 
     useEffect(() => {
         const el = navGuardRef.current
@@ -260,6 +311,13 @@ export default function ShareSection() {
                         )
                     }
 
+                    // Mark this user as the original sharer
+                    try {
+                        localStorage.setItem('is-original-sharer', 'true')
+                    } catch (error) {
+                        console.error('Error marking original sharer:', error)
+                    }
+
                     return link
                 }
             }
@@ -286,6 +344,13 @@ export default function ShareSection() {
             // Cache the result
             if (question && interpretation) {
                 shareLinkCache.set(question, cards, interpretation, link)
+            }
+
+            // Mark this user as the original sharer
+            try {
+                localStorage.setItem('is-original-sharer', 'true')
+            } catch (error) {
+                console.error('Error marking original sharer:', error)
             }
 
             return link
@@ -315,7 +380,7 @@ export default function ShareSection() {
                         </h3>
                         <p className='text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300'>
                             Get 1 free star for each new person who visits your
-                            shared link{" "}
+                            shared link ({earnedStars}/{maxStars}){" "}
                             <Link
                                 href='/articles/share-rewards'
                                 className='underline underline-offset-2 text-blue-300 hover:text-blue-200'
