@@ -20,15 +20,15 @@ import {
   FaFacebookMessenger,
   FaEnvelope,
   FaCommentDots,
-  FaSync,
+  FaSyncAlt,
   FaPlus,
   FaLink,
-  FaFileLines,
+  FaRegFileLines,
   FaDownload,
   FaFlag,
   FaThumbsUp,
   FaThumbsDown,
-  FaCommentAlt,
+  FaComment,
 } from "react-icons/fa6"
 import {
   SiInstagram,
@@ -344,15 +344,15 @@ export default function ShareComponent({
       {/* Actions row as icon badges */}
       <Swiper modules={[FreeMode]} freeMode slidesPerView={'auto'} spaceBetween={12} className='py-2'>
         {[
-          { id: 'regen', label: 'Regenerate', icon: <FaSync className='w-5 h-5 text-white' />, bg: '#6366F1', onClick: async () => onRegenerate && onRegenerate() },
+          { id: 'regen', label: 'Regenerate', icon: <FaSyncAlt className='w-5 h-5 text-white' />, bg: '#6366F1', onClick: async () => onRegenerate && onRegenerate() },
           { id: 'new', label: 'New Reading', icon: <FaPlus className='w-5 h-5 text-white' />, bg: '#22C55E', onClick: async () => onNewReading && onNewReading() },
           { id: 'copy-link', label: 'Copy Link', icon: <FaLink className='w-5 h-5 text-white' />, bg: '#06B6D4', onClick: async () => { const link = await ensureShareLink(); if (!link) return; await navigator.clipboard.writeText(link); setCopied(true); window.setTimeout(() => setCopied(false), 1500); } },
-          { id: 'copy-text', label: 'Copy Result', icon: <FaFileLines className='w-5 h-5 text-white' />, bg: '#10B981', onClick: async () => { const text = interpretation ? String(interpretation) : ''; if (!text) return; await navigator.clipboard.writeText(text); setCopied(true); window.setTimeout(() => setCopied(false), 1500); } },
+          { id: 'copy-text', label: 'Copy Result', icon: <FaRegFileLines className='w-5 h-5 text-white' />, bg: '#10B981', onClick: async () => { const text = interpretation ? String(interpretation) : ''; if (!text) return; await navigator.clipboard.writeText(text); setCopied(true); window.setTimeout(() => setCopied(false), 1500); } },
           { id: 'download', label: 'Download', icon: <FaDownload className='w-5 h-5 text-white' />, bg: '#0EA5E9', onClick: async () => { try { const res = await fetch('/api/share-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question, cards, interpretation, width: 1080, height: 1350 }) }); const blob = await res.blob(); const ts = new Date().toISOString().replace(/[:.]/g,'-'); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `reading-${ts}.png`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);} catch {} } },
           { id: 'report', label: 'Report', icon: <FaFlag className='w-5 h-5 text-white' />, bg: '#EF4444', onClick: async () => { const link = await ensureShareLink(); const mailto = `mailto:?subject=${encodeURIComponent('Report Tarot Reading')}&body=${encodeURIComponent(link || '')}`; window.location.href = mailto; } },
           { id: 'vote-up', label: 'Vote Up', icon: <FaThumbsUp className='w-5 h-5 text-white' />, bg: '#22C55E', onClick: async () => { const link = await ensureShareLink(); const id = (link||'').split('/').pop()||''; try{ localStorage.setItem(`share-vote-${id}`,'up'); }catch{} } },
           { id: 'vote-down', label: 'Vote Down', icon: <FaThumbsDown className='w-5 h-5 text-white' />, bg: '#F59E0B', onClick: async () => { const link = await ensureShareLink(); const id = (link||'').split('/').pop()||''; try{ localStorage.setItem(`share-vote-${id}`,'down'); }catch{} } },
-          { id: 'feedback', label: 'Feedback', icon: <FaCommentAlt className='w-5 h-5 text-white' />, bg: '#8B5CF6', onClick: async () => { window.open('/contact?subject=Feedback%20on%20Tarot%20Reading','_blank'); } },
+          { id: 'feedback', label: 'Feedback', icon: <FaComment className='w-5 h-5 text-white' />, bg: '#8B5CF6', onClick: async () => { window.open('/contact?subject=Feedback%20on%20Tarot%20Reading','_blank'); } },
         ].map((a) => (
           <SwiperSlide key={a.id} style={{ width: 'auto' }}>
             <button type='button' onClick={a.onClick} className='px-2 py-2 rounded-md text-center flex-shrink-0'>

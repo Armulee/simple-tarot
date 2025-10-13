@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Sparkles, RefreshCcw, Stars, Star } from "lucide-react"
-import { FaShareNodes, FaCopy, FaDownload, FaCheck } from "react-icons/fa6"
 import { useEffect, useRef, useState, useCallback } from "react"
 import { useCompletion } from "@ai-sdk/react"
 import { useTarot } from "@/contexts/tarot-context"
@@ -60,13 +59,11 @@ export default function Interpretation() {
         },
     })
 
-    const { spendStars, stars, addStars, setStarsBalance } = useStars()
-    const { user } = useAuth()
+    const { spendStars, stars } = useStars()
+    const { } = useAuth()
 
     // Share reward limits
-    const SHARE_DAILY_LIMIT = 3
-    const SHARE_COOLDOWN_MS = 60 * 60 * 1000
-    // no banner count usage here
+    // no local share counters here; handled by ShareComponent
 
     type ShareRewardState = {
         dateKey: string
@@ -111,11 +108,7 @@ export default function Interpretation() {
         }
     }, [])
 
-    const saveShareRewardState = (state: ShareRewardState) => {
-        try {
-            localStorage.setItem("share-reward-v1", JSON.stringify(state))
-        } catch {}
-    }
+    // no-op: local share reward persistence handled elsewhere
 
     const normalizeShareRewardState = useCallback((state: ShareRewardState): ShareRewardState => {
         const today = getBangkokDateKey()
