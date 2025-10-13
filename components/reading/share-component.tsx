@@ -18,6 +18,8 @@ import {
   FaCheck,
   FaCopy,
   FaFacebookMessenger,
+  FaEnvelope,
+  FaCommentDots,
 } from "react-icons/fa6"
 import {
   SiInstagram,
@@ -167,6 +169,20 @@ export default function ShareComponent({
       >
               {[
                 {
+                  id: "sms",
+                  label: "SMS",
+                  icon: <FaCommentDots className='w-5 h-5 text-white' />,
+                  bg: "#34C759",
+                  href: (u: string, t?: string) => `sms:?&body=${encodeURIComponent(`${t ? t + " " : ""}${u}`)}`,
+                },
+                {
+                  id: "email",
+                  label: "Email",
+                  icon: <FaEnvelope className='w-5 h-5 text-white' />,
+                  bg: "#EA4335",
+                  href: (u: string, t?: string) => `mailto:?subject=${encodeURIComponent("Check out my tarot reading")}&body=${encodeURIComponent(`${t ? t + "\n\n" : ""}${u}`)}`,
+                },
+                {
                   id: "messenger",
                   label: "Messenger",
                   icon: <FaFacebookMessenger className='w-5 h-5 text-white' />,
@@ -271,6 +287,13 @@ export default function ShareComponent({
                   bg: "#FF4500",
                   href: (u: string, t?: string) => `https://www.reddit.com/submit?url=${encodeURIComponent(u)}${t ? `&title=${encodeURIComponent(t)}` : ""}`,
                 },
+                {
+                  id: "more",
+                  label: "More",
+                  icon: <FaShareNodes className='w-5 h-5 text-white' />,
+                  bg: "#6B7280",
+                  href: (_u: string) => null,
+                },
               ].map((p) => (
                 <SwiperSlide key={p.id} style={{ width: 'auto' }}>
                   <button
@@ -280,7 +303,11 @@ export default function ShareComponent({
                       if (!link) return
                       const text = question ? `"${question}" — AI tarot interpretation` : undefined
                       const href = p.href(link, text)
-                      if (href) {
+                      if (p.id === 'more' && typeof navigator !== 'undefined' && typeof (navigator as any).share === 'function') {
+                        try {
+                          await (navigator as any).share({ title: 'My Tarot Reading', text: text || undefined, url: link })
+                        } catch {}
+                      } else if (href) {
                         window.open(href, "_blank", "noopener,noreferrer")
                       } else {
                         try {
