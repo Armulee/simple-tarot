@@ -10,14 +10,25 @@ import "swiper/css/free-mode"
 import {
   FaShareNodes,
   FaFacebook,
-  FaTwitter,
+  FaXTwitter,
   FaLine,
   FaWhatsapp,
   FaTelegram,
   FaReddit,
   FaCheck,
   FaCopy,
+  FaFacebookMessenger,
 } from "react-icons/fa6"
+import {
+  SiInstagram,
+  SiThreads,
+  SiTiktok,
+  SiSnapchat,
+  SiDiscord,
+  SiPinterest,
+  SiTumblr,
+  SiWechat,
+} from "react-icons/si"
 import { useAuth } from "@/hooks/use-auth"
 import { useStars } from "@/contexts/stars-context"
 
@@ -156,15 +167,39 @@ export default function ShareComponent({
       >
               {[
                 {
+                  id: "messenger",
+                  label: "Messenger",
+                  icon: <FaFacebookMessenger className='w-5 h-5 text-[#0084FF]' />,
+                  href: (u: string) => `https://www.messenger.com/t/?link=${encodeURIComponent(u)}`,
+                },
+                {
                   id: "facebook",
                   label: "Facebook",
                   icon: <FaFacebook className='w-5 h-5 text-[#1877F2]' />,
                   href: (u: string) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}`,
                 },
                 {
-                  id: "twitter",
-                  label: "Twitter/X",
-                  icon: <FaTwitter className='w-5 h-5 text-[#1DA1F2]' />,
+                  id: "instagram",
+                  label: "Instagram",
+                  icon: <SiInstagram className='w-5 h-5 text-[#E4405F]' />,
+                  href: (_u: string) => null, // not supported via web intent
+                },
+                {
+                  id: "threads",
+                  label: "Threads",
+                  icon: <SiThreads className='w-5 h-5 text-black' />,
+                  href: (u: string, t?: string) => `https://www.threads.net/intent/post?url=${encodeURIComponent(u)}${t ? `&text=${encodeURIComponent(t)}` : ""}`,
+                },
+                {
+                  id: "tiktok",
+                  label: "TikTok",
+                  icon: <SiTiktok className='w-5 h-5 text-black' />,
+                  href: (_u: string) => null, // not supported via web intent
+                },
+                {
+                  id: "x",
+                  label: "X",
+                  icon: <FaXTwitter className='w-5 h-5 text-white' />,
                   href: (u: string, t?: string) => `https://twitter.com/intent/tweet?url=${encodeURIComponent(u)}${t ? `&text=${encodeURIComponent(t)}` : ""}`,
                 },
                 {
@@ -186,6 +221,36 @@ export default function ShareComponent({
                   href: (u: string) => `https://t.me/share/url?url=${encodeURIComponent(u)}`,
                 },
                 {
+                  id: "snapchat",
+                  label: "Snapchat",
+                  icon: <SiSnapchat className='w-5 h-5 text-[#FFFC00]' />,
+                  href: (_u: string) => null, // limited web support
+                },
+                {
+                  id: "discord",
+                  label: "Discord",
+                  icon: <SiDiscord className='w-5 h-5 text-[#5865F2]' />,
+                  href: (_u: string) => null, // no public share intent
+                },
+                {
+                  id: "pinterest",
+                  label: "Pinterest",
+                  icon: <SiPinterest className='w-5 h-5 text-[#E60023]' />,
+                  href: (u: string, t?: string) => `https://www.pinterest.com/pin/create/button/?url=${encodeURIComponent(u)}${t ? `&description=${encodeURIComponent(t)}` : ""}`,
+                },
+                {
+                  id: "tumblr",
+                  label: "Tumblr",
+                  icon: <SiTumblr className='w-5 h-5 text-[#36465D]' />,
+                  href: (u: string, t?: string) => `https://www.tumblr.com/widgets/share/tool?canonicalUrl=${encodeURIComponent(u)}${t ? `&caption=${encodeURIComponent(t)}` : ""}`,
+                },
+                {
+                  id: "wechat",
+                  label: "WeChat",
+                  icon: <SiWechat className='w-5 h-5 text-[#07C160]' />,
+                  href: (_u: string) => null, // requires WeChat JS SDK in WeChat WebView
+                },
+                {
                   id: "reddit",
                   label: "Reddit",
                   icon: <FaReddit className='w-5 h-5 text-[#FF4500]' />,
@@ -199,7 +264,17 @@ export default function ShareComponent({
                       const link = await ensureShareLink()
                       if (!link) return
                       const text = question ? `"${question}" — AI tarot interpretation` : undefined
-                      window.open(p.href(link, text), "_blank", "noopener,noreferrer")
+                      const href = p.href(link, text)
+                      if (href) {
+                        window.open(href, "_blank", "noopener,noreferrer")
+                      } else {
+                        try {
+                          await navigator.clipboard.writeText(link)
+                          setCopied(true)
+                          window.setTimeout(() => setCopied(false), 1500)
+                          // Optionally notify user
+                        } catch {}
+                      }
                       await maybeAwardShareStar()
                     }}
                     className='px-3 py-2 rounded-md hover:bg-white/5 text-center flex-shrink-0'
@@ -211,15 +286,13 @@ export default function ShareComponent({
               ))}
       </Swiper>
       <div className='mt-3'>
-        <div className='flex'>
+        <div className='flex items-center gap-2'>
               <input
                 className='flex-1 bg-transparent border rounded px-3 py-2 text-sm'
                 readOnly
                 value={typeof window !== "undefined" ? window.location.href : ""}
               />
-        </div>
-        <div className='flex gap-2 mt-2'>
-          <Button
+          <button
             type='button'
             onClick={async () => {
               try {
@@ -231,13 +304,26 @@ export default function ShareComponent({
                 await maybeAwardShareStar()
               } catch {}
             }}
+            className='p-2 rounded-md border border-white/10 hover:bg-white/5'
+            aria-label='Copy link'
+            title='Copy link'
           >
-            {copied ? (
-              <span className='inline-flex items-center gap-2'><FaCheck className='w-4 h-4' /> <span className='hidden sm:inline'>Copied</span></span>
-            ) : (
-              <span className='inline-flex items-center gap-2'><FaCopy className='w-4 h-4' /> <span className='hidden sm:inline'>Copy Link</span></span>
-            )}
-          </Button>
+            {copied ? <FaCheck className='w-4 h-4' /> : <FaCopy className='w-4 h-4' />}
+          </button>
+        </div>
+        <div className='flex gap-2 mt-2'>
+          <Button
+            variant='outline'
+            onClick={async () => {
+              try {
+                const text = interpretation ? String(interpretation) : ""
+                if (!text) return
+                await navigator.clipboard.writeText(text)
+                setCopied(true)
+                window.setTimeout(() => setCopied(false), 1500)
+              } catch {}
+            }}
+          >Copy Result</Button>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant='outline' className='px-3 py-2'>Download</Button>
