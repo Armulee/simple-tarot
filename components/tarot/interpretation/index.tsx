@@ -3,13 +3,13 @@
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Sparkles, RefreshCcw, Stars, Star } from "lucide-react"
+import { Sparkles, Stars } from "lucide-react"
 import { useEffect, useRef, useState, useCallback } from "react"
 import { useCompletion } from "@ai-sdk/react"
 import { useTarot } from "@/contexts/tarot-context"
 import { useRouter } from "next/navigation"
-import QuestionInput from "../question-input"
-import { CardImage } from "../card-image"
+import QuestionInput from "../../question-input"
+import { CardImage } from "../../card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
@@ -24,14 +24,14 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import ShareComponent from "./share-component"
+import ShareSection from "./share"
+import ActionSection from "./action"
 //
 
 export default function Interpretation() {
     const t = useTranslations("ReadingPage.interpretation")
     const router = useRouter()
     const [finish, setFinish] = useState(false)
-    const [copied, setCopied] = useState(false)
     const [isFollowUpMode, setIsFollowUpMode] = useState(false)
 
     const [insufficientStars, setInsufficientStars] = useState(false)
@@ -48,7 +48,7 @@ export default function Interpretation() {
         paidForInterpretation,
         setPaidForInterpretation,
     } = useTarot()
-    const { completion, isLoading, error, complete } = useCompletion({
+    const { completion, error, complete } = useCompletion({
         // api: "/api/interpret-cards/mockup",
         api: "/api/interpret-cards/question",
         onFinish: (_, completion) => {
@@ -60,10 +60,10 @@ export default function Interpretation() {
     })
 
     const { spendStars, stars } = useStars()
-    const { } = useAuth()
+    const {} = useAuth()
 
     // Share reward limits
-    // no local share counters here; handled by ShareComponent
+    // no local share counters here; handled by ShareSection and ActionSection
 
     type ShareRewardState = {
         dateKey: string
@@ -84,39 +84,62 @@ export default function Interpretation() {
         try {
             const raw = localStorage.getItem("share-reward-v1")
             if (!raw) {
-                return { dateKey: getBangkokDateKey(), count: 0, lastRewardedAtMs: null }
+                return {
+                    dateKey: getBangkokDateKey(),
+                    count: 0,
+                    lastRewardedAtMs: null,
+                }
             }
             const parsed: unknown = JSON.parse(raw)
             if (typeof parsed !== "object" || parsed === null) {
-                return { dateKey: getBangkokDateKey(), count: 0, lastRewardedAtMs: null }
+                return {
+                    dateKey: getBangkokDateKey(),
+                    count: 0,
+                    lastRewardedAtMs: null,
+                }
             }
-            const obj = parsed as Partial<Record<keyof ShareRewardState, unknown>>
+            const obj = parsed as Partial<
+                Record<keyof ShareRewardState, unknown>
+            >
             const dateKey =
                 typeof obj.dateKey === "string" && obj.dateKey
                     ? obj.dateKey
                     : getBangkokDateKey()
-            const count = typeof obj.count === "number" && Number.isFinite(obj.count)
-                ? Math.max(0, Math.floor(obj.count))
-                : 0
+            const count =
+                typeof obj.count === "number" && Number.isFinite(obj.count)
+                    ? Math.max(0, Math.floor(obj.count))
+                    : 0
             const lastRewardedAtMs =
-                typeof obj.lastRewardedAtMs === "number" && Number.isFinite(obj.lastRewardedAtMs)
+                typeof obj.lastRewardedAtMs === "number" &&
+                Number.isFinite(obj.lastRewardedAtMs)
                     ? obj.lastRewardedAtMs
                     : null
             return { dateKey, count, lastRewardedAtMs }
         } catch {
-            return { dateKey: getBangkokDateKey(), count: 0, lastRewardedAtMs: null }
+            return {
+                dateKey: getBangkokDateKey(),
+                count: 0,
+                lastRewardedAtMs: null,
+            }
         }
     }, [])
 
     // no-op: local share reward persistence handled elsewhere
 
-    const normalizeShareRewardState = useCallback((state: ShareRewardState): ShareRewardState => {
-        const today = getBangkokDateKey()
-        if (state.dateKey !== today) {
-            return { dateKey: today, count: 0, lastRewardedAtMs: state.lastRewardedAtMs }
-        }
-        return state
-    }, [])
+    const normalizeShareRewardState = useCallback(
+        (state: ShareRewardState): ShareRewardState => {
+            const today = getBangkokDateKey()
+            if (state.dateKey !== today) {
+                return {
+                    dateKey: today,
+                    count: 0,
+                    lastRewardedAtMs: state.lastRewardedAtMs,
+                }
+            }
+            return state
+        },
+        []
+    )
 
     const refreshShareRewardUi = useCallback(() => {
         const current = loadShareRewardState()
@@ -127,74 +150,6 @@ export default function Interpretation() {
         if (typeof window === "undefined") return
         refreshShareRewardUi()
     }, [refreshShareRewardUi])
-
-    // share award handled in ShareComponent now
-
-    // share logic moved to ShareComponent
-
-    const handleCopy = async () => {
-        const textOnly = (interpretation ?? completion) || ""
-        await navigator.clipboard.writeText(textOnly)
-        setCopied(true)
-        window.setTimeout(() => setCopied(false), 1500)
-    }
-
-    const handleDownload = async () => {
-        try {
-            const res = await fetch("/api/share-image", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    question,
-                    cards: selectedCards.map((c) => c.meaning),
-                    interpretation: interpretation ?? completion,
-                    width: 1080,
-                    height: 1350,
-                }),
-            })
-            const blob = await res.blob()
-            const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
-            const filename = `reading-${timestamp}.png`
-            const url = URL.createObjectURL(blob)
-            const a = document.createElement("a")
-            a.href = url
-            a.download = filename
-            document.body.appendChild(a)
-            a.click()
-            a.remove()
-            URL.revokeObjectURL(url)
-        } catch (e) {
-            console.error(e)
-        }
-    }
-
-    const handleRegenerate = () => {
-        if (isLoading) return
-        // If previous run errored, don't charge next run
-        if (!error) {
-            // Will cost 1 star; block if none
-            if (
-                !paidForInterpretation &&
-                (!Number.isFinite(stars as number) || (stars as number) < 1)
-            ) {
-                setShowNoStarsDialog(true)
-                return
-            }
-        }
-
-        setFinish(false)
-        setInterpretation(null)
-        hasInitiated.current = false
-        chargedThisRunRef.current = false
-        setInsufficientStars(false)
-        if (error) {
-            waiveChargeOnceRef.current = true
-        } else {
-            setPaidForInterpretation(false)
-        }
-    }
 
     // removed old share buttons/state
 
@@ -579,56 +534,11 @@ Output:
                         <>
                             {/* Sharing - only show when not error */}
                             {!error && (
-                                <div className='flex flex-col items-center justify-center gap-3'>
-                                    <div className='text-xs text-center text-white'>
-                                        Get 1 free star for each new person who visits your shared link.
-                                        <br />
-                                        <Link href='/learn/share-rewards' className='underline underline-offset-2 text-blue-300 hover:text-blue-200'>
-                                            Learn more
-                                        </Link>
-                                    </div>
-                                    <div className='w-full max-w-2xl'>
-                                        <ShareComponent
-                                            question={isFollowUp && followUpQuestion ? followUpQuestion : question}
-                                            cards={selectedCards.map((c) => c.meaning)}
-                                            interpretation={interpretation ?? completion}
-                                        />
-                                    </div>
+                                <div className='w-full max-w-4xl space-y-6'>
+                                    <ShareSection />
+                                    <ActionSection />
                                 </div>
                             )}
-
-                            {/* Action buttons - show when error, finished, or has interpretation (not while loading) */}
-                            <div className='flex flex-wrap items-center justify-center gap-3'>
-                                <Button
-                                    type='button'
-                                    onClick={handleRegenerate}
-                                    disabled={isLoading}
-                                    size='lg'
-                                    className='bg-white/5 border border-white/20 hover:bg-white/10 hover:border-white/30 text-white px-8 rounded-full shadow-sm'
-                                >
-                                    <RefreshCcw className='w-4 h-4 mr-2' />
-                                    {t("buttons.regenerate")}{" "}
-                                    {!error && (
-                                        <span className='ml-1 text-xs text-yellow-300 font-semibold inline-flex items-center gap-1'>
-                                            (
-                                            <Star
-                                                className='w-3.5 h-3.5'
-                                                fill='currentColor'
-                                            />
-                                            1)
-                                        </span>
-                                    )}
-                                </Button>
-                                <Button
-                                    type='button'
-                                    onClick={() => router.push("/")}
-                                    size='lg'
-                                    className='bg-white/5 border border-white/20 hover:bg-white/10 hover:border-white/30 text-white px-8 rounded-full shadow-sm'
-                                >
-                                    <Stars className='w-4 h-4 mr-2' />
-                                    {t("buttons.newReading")}
-                                </Button>
-                            </div>
 
                             {/* Follow-up question - only show when not error */}
                             {!error && (

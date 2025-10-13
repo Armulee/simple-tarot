@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { Sparkle } from "lucide-react"
 
 type ConsentChoice = "accepted" | "declined" | null
 
@@ -164,6 +165,48 @@ export function StarsDialog({
                 className
             )}
         >
+            {/* Beautiful ping orbs */}
+            <Sparkle
+                className='absolute top-16 left-16 w-3 h-3 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                style={{ animationDelay: "0.5s" }}
+            />
+            <Sparkle
+                className='absolute top-24 right-20 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                style={{ animationDelay: "1.2s" }}
+            />
+            <Sparkle
+                className='absolute top-40 left-1/3 w-2.5 h-2.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                style={{ animationDelay: "2.8s" }}
+            />
+            <Sparkle
+                className='absolute top-32 right-1/4 w-1.5 h-1.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                style={{ animationDelay: "3.5s" }}
+            />
+            <Sparkle
+                className='absolute bottom-20 left-20 w-3.5 h-3.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                style={{ animationDelay: "1.8s" }}
+            />
+            <Sparkle
+                className='absolute bottom-32 right-16 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                style={{ animationDelay: "4.2s" }}
+            />
+            <Sparkle
+                className='absolute bottom-16 right-1/3 w-2.5 h-2.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                style={{ animationDelay: "2.1s" }}
+            />
+            <Sparkle
+                className='absolute top-1/2 left-12 w-1.5 h-1.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                style={{ animationDelay: "3.8s" }}
+            />
+            <Sparkle
+                className='absolute top-1/3 right-12 w-3 h-3 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                style={{ animationDelay: "0.9s" }}
+            />
+            <Sparkle
+                className='absolute bottom-1/3 left-1/4 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                style={{ animationDelay: "4.7s" }}
+            />
+
             {/* Deep-space stars background */}
             <div className='pointer-events-none absolute inset-0 opacity-40'>
                 <div className='cosmic-stars-layer-3' />

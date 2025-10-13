@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
-import ReadingType from "@/components/reading/reading-type"
-import CardSelection from "@/components/reading/card-selection"
-import Interpretation from "@/components/reading/interpretation"
-import ReadingGuard from "@/components/reading/reading-guard"
+import ReadingType from "@/components/tarot/reading-type"
+import CardSelection from "@/components/tarot/card-selection"
+import Interpretation from "@/components/tarot/interpretation"
+import ReadingGuard from "@/components/tarot/reading-guard"
 import { getTranslations } from "next-intl/server"
 import { getTranslations as getT } from "next-intl/server"
 
