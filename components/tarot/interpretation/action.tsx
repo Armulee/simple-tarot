@@ -114,7 +114,7 @@ export default function ActionSection({
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     question,
-                    cards: cards.map((c) => c.meaning),
+                    cards: cards,
                     interpretation,
                     user_id: user?.id ?? null,
                 }),
@@ -138,7 +138,7 @@ export default function ActionSection({
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     question,
-                    cards: cards.map((c) => c.meaning),
+                    cards: cards,
                     interpretation,
                     user_id: user?.id ?? null,
                 }),
@@ -171,7 +171,7 @@ export default function ActionSection({
             setInterpretation(null)
 
             // Build the prompt for interpretation
-            const cardNames = cards.map((card) => card.meaning).join(", ")
+            const cardNames = cards.join(", ")
             const prompt = `Question: ${question}
 
 Cards drawn: ${cardNames}
@@ -343,7 +343,7 @@ Please provide a tarot interpretation for this question and these cards. Focus o
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             question,
-                            cards: cards.map((c) => c.meaning),
+                            cards: cards,
                             interpretation,
                             width: 1080,
                             height: 1350,

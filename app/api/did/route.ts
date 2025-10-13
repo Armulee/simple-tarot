@@ -5,7 +5,7 @@ export async function GET() {
     try {
         const did = await readAndVerifyDid()
         return NextResponse.json({ did })
-    } catch (error) {
+    } catch {
         return NextResponse.json({ did: null })
     }
 }
