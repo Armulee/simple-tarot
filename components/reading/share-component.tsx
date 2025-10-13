@@ -40,6 +40,8 @@ type ShareComponentProps = {
   interpretation: string | null
   buttonClassName?: string
   buttonLabel?: string
+  onRegenerate?: () => void
+  onNewReading?: () => void
 }
 
 export default function ShareComponent({
@@ -331,6 +333,48 @@ export default function ShareComponent({
                   </button>
                 </SwiperSlide>
               ))}
+      </Swiper>
+      {/* Actions row */}
+      <Swiper
+        modules={[FreeMode]}
+        freeMode
+        slidesPerView={'auto'}
+        spaceBetween={12}
+        className='py-2'
+      >
+        {[
+          { id: 'regen', label: 'Regenerate', onClick: async () => onRegenerate && onRegenerate() },
+          { id: 'new', label: 'New Reading', onClick: async () => onNewReading && onNewReading() },
+          { id: 'copy-link', label: 'Copy Link', onClick: async () => {
+            const link = await ensureShareLink(); if (!link) return; await navigator.clipboard.writeText(link); setCopied(true); window.setTimeout(() => setCopied(false), 1500);
+          } },
+          { id: 'copy-text', label: 'Copy Result', onClick: async () => {
+            const text = interpretation ? String(interpretation) : ''; if (!text) return; await navigator.clipboard.writeText(text); setCopied(true); window.setTimeout(() => setCopied(false), 1500);
+          } },
+          { id: 'download', label: 'Download', onClick: async () => {
+            try { const res = await fetch('/api/share-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question, cards, interpretation, width: 1080, height: 1350 }) }); const blob = await res.blob(); const ts = new Date().toISOString().replace(/[:.]/g,'-'); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `reading-${ts}.png`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);} catch {}
+          } },
+          { id: 'report', label: 'Report', onClick: async () => {
+            const link = await ensureShareLink(); const mailto = `mailto:?subject=${encodeURIComponent('Report Tarot Reading')}&body=${encodeURIComponent(link || '')}`; window.location.href = mailto;
+          } },
+          { id: 'vote-up', label: 'Vote Up', onClick: async () => {
+            const link = await ensureShareLink(); const id = (link||'').split('/').pop()||''; try{ localStorage.setItem(`share-vote-${id}`,'up'); }catch{} }
+          },
+          { id: 'vote-down', label: 'Vote Down', onClick: async () => {
+            const link = await ensureShareLink(); const id = (link||'').split('/').pop()||''; try{ localStorage.setItem(`share-vote-${id}`,'down'); }catch{} }
+          },
+          { id: 'feedback', label: 'Feedback', onClick: async () => { window.open('/contact?subject=Feedback%20on%20Tarot%20Reading','_blank'); } },
+        ].map((a) => (
+          <SwiperSlide key={a.id} style={{ width: 'auto' }}>
+            <button
+              type='button'
+              onClick={a.onClick}
+              className='px-3 py-2 rounded-md hover:bg-white/5 text-center flex-shrink-0 text-[10px] text-muted-foreground'
+            >
+              {a.label}
+            </button>
+          </SwiperSlide>
+        ))}
       </Swiper>
       <div className='mt-3'>
         <div className='flex items-center gap-2'>
