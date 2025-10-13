@@ -35,20 +35,12 @@ import { useTarot } from "@/contexts/tarot-context"
 
 const shareOptions = [
     {
-        id: "sms",
-        label: "SMS",
-        icon: <FaCommentDots className='w-5.5 h-5.5 text-white' />,
-        bg: "linear-gradient(135deg, #34C759, #30A46C)",
-        href: (u: string, t?: string) =>
-            `sms:?&body=${encodeURIComponent(`${t ? t + " " : ""}${u}`)}`,
-    },
-    {
-        id: "email",
-        label: "Email",
-        icon: <FaEnvelope className='w-5.5 h-5.5 text-white' />,
-        bg: "linear-gradient(135deg, #EA4335, #D33B2C)",
-        href: (u: string, t?: string) =>
-            `mailto:?subject=${encodeURIComponent("Check out my tarot reading")}&body=${encodeURIComponent(`${t ? t + "\n\n" : ""}${u}`)}`,
+        id: "facebook",
+        label: "Facebook",
+        icon: <FaFacebook className='w-5.5 h-5.5 text-white' />,
+        bg: "linear-gradient(135deg, #1877F2, #0D5FCC)",
+        href: (u: string) =>
+            `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}`,
     },
     {
         id: "messenger",
@@ -57,14 +49,6 @@ const shareOptions = [
         bg: "linear-gradient(135deg, #0084FF, #0066CC)",
         href: (u: string) =>
             `https://www.messenger.com/t/?link=${encodeURIComponent(u)}`,
-    },
-    {
-        id: "facebook",
-        label: "Facebook",
-        icon: <FaFacebook className='w-5.5 h-5.5 text-white' />,
-        bg: "linear-gradient(135deg, #1877F2, #0D5FCC)",
-        href: (u: string) =>
-            `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}`,
     },
     {
         id: "instagram",
@@ -164,6 +148,22 @@ const shareOptions = [
         bg: "linear-gradient(135deg, #FF4500, #E63900)",
         href: (u: string, t?: string) =>
             `https://www.reddit.com/submit?url=${encodeURIComponent(u)}${t ? `&title=${encodeURIComponent(t)}` : ""}`,
+    },
+    {
+        id: "sms",
+        label: "SMS",
+        icon: <FaCommentDots className='w-5.5 h-5.5 text-white' />,
+        bg: "linear-gradient(135deg, #34C759, #30A46C)",
+        href: (u: string, t?: string) =>
+            `sms:?&body=${encodeURIComponent(`${t ? t + " " : ""}${u}`)}`,
+    },
+    {
+        id: "email",
+        label: "Email",
+        icon: <FaEnvelope className='w-5.5 h-5.5 text-white' />,
+        bg: "linear-gradient(135deg, #EA4335, #D33B2C)",
+        href: (u: string, t?: string) =>
+            `mailto:?subject=${encodeURIComponent("Check out my tarot reading")}&body=${encodeURIComponent(`${t ? t + "\n\n" : ""}${u}`)}`,
     },
     {
         id: "more",
@@ -342,8 +342,13 @@ export default function ShareSection() {
                             sensitivity: 1,
                             releaseOnEdges: true,
                         }}
-                        slidesPerView={"auto"}
+                        slidesPerView={4.5}
                         spaceBetween={8}
+                        breakpoints={{
+                            640: {
+                                slidesPerView: "auto",
+                            },
+                        }}
                         className='py-2'
                     >
                         {shareOptions.map((option, index) => (

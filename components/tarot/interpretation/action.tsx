@@ -359,8 +359,13 @@ Please provide a tarot interpretation for this question and these cards. Focus o
                             sensitivity: 1,
                             releaseOnEdges: true,
                         }}
-                        slidesPerView={"auto"}
+                        slidesPerView={4.5}
                         spaceBetween={8}
+                        breakpoints={{
+                            640: {
+                                slidesPerView: "auto",
+                            },
+                        }}
                         className='py-2'
                     >
                         {actionOptions.map((action, index) => (
