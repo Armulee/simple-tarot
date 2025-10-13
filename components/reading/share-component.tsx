@@ -3,7 +3,10 @@
 import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { useRef, useEffect } from "react"
+import { Swiper, SwiperSlide } from "swiper/react"
+import { FreeMode } from "swiper/modules"
+import "swiper/css"
+import "swiper/css/free-mode"
 import {
   FaShareNodes,
   FaFacebook,
@@ -143,98 +146,106 @@ export default function ShareComponent({
 
   return (
     <div className='w-full'>
-      <div className='text-sm text-muted-foreground mb-2'>
-        Share your reading
-      </div>
-      <div className='flex items-center gap-3 overflow-x-auto no-scrollbar py-1'>
+      <div className='text-sm text-muted-foreground mb-2'>Share your reading</div>
+      <Swiper
+        modules={[FreeMode]}
+        freeMode
+        slidesPerView={'auto'}
+        spaceBetween={12}
+        className='py-1'
+      >
               {[
                 {
                   id: "facebook",
                   label: "Facebook",
-                  icon: <FaFacebook className='w-5 h-5' />,
+                  icon: <FaFacebook className='w-5 h-5 text-[#1877F2]' />,
                   href: (u: string) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}`,
                 },
                 {
                   id: "twitter",
                   label: "Twitter/X",
-                  icon: <FaTwitter className='w-5 h-5' />,
+                  icon: <FaTwitter className='w-5 h-5 text-[#1DA1F2]' />,
                   href: (u: string, t?: string) => `https://twitter.com/intent/tweet?url=${encodeURIComponent(u)}${t ? `&text=${encodeURIComponent(t)}` : ""}`,
                 },
                 {
                   id: "line",
                   label: "LINE",
-                  icon: <FaLine className='w-5 h-5' />,
+                  icon: <FaLine className='w-5 h-5 text-[#00C300]' />,
                   href: (u: string) => `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(u)}`,
                 },
                 {
                   id: "whatsapp",
                   label: "WhatsApp",
-                  icon: <FaWhatsapp className='w-5 h-5' />,
+                  icon: <FaWhatsapp className='w-5 h-5 text-[#25D366]' />,
                   href: (u: string) => `https://api.whatsapp.com/send?text=${encodeURIComponent(u)}`,
                 },
                 {
                   id: "telegram",
                   label: "Telegram",
-                  icon: <FaTelegram className='w-5 h-5' />,
+                  icon: <FaTelegram className='w-5 h-5 text-[#24A1DE]' />,
                   href: (u: string) => `https://t.me/share/url?url=${encodeURIComponent(u)}`,
                 },
                 {
                   id: "reddit",
                   label: "Reddit",
-                  icon: <FaReddit className='w-5 h-5' />,
+                  icon: <FaReddit className='w-5 h-5 text-[#FF4500]' />,
                   href: (u: string, t?: string) => `https://www.reddit.com/submit?url=${encodeURIComponent(u)}${t ? `&title=${encodeURIComponent(t)}` : ""}`,
                 },
               ].map((p) => (
-                <button
-                  key={p.id}
-                  type='button'
-                  onClick={async () => {
-                    const link = await ensureShareLink()
-                    if (!link) return
-                    const text = question ? `"${question}" — AI tarot interpretation` : undefined
-                    window.open(p.href(link, text), "_blank", "noopener,noreferrer")
-                    await maybeAwardShareStar()
-                  }}
-                  className='px-3 py-2 rounded-md border border-white/10 hover:bg-white/5 text-center flex-shrink-0'
-                >
-                  <div className='flex items-center justify-center'>{p.icon}</div>
-                  <div className='text-[10px] mt-1 text-muted-foreground'>{p.label}</div>
-                </button>
+                <SwiperSlide key={p.id} style={{ width: 'auto' }}>
+                  <button
+                    type='button'
+                    onClick={async () => {
+                      const link = await ensureShareLink()
+                      if (!link) return
+                      const text = question ? `"${question}" — AI tarot interpretation` : undefined
+                      window.open(p.href(link, text), "_blank", "noopener,noreferrer")
+                      await maybeAwardShareStar()
+                    }}
+                    className='px-3 py-2 rounded-md hover:bg-white/5 text-center flex-shrink-0'
+                  >
+                    <div className='flex items-center justify-center'>{p.icon}</div>
+                    <div className='text-[10px] mt-1 text-muted-foreground hidden sm:block'>{p.label}</div>
+                  </button>
+                </SwiperSlide>
               ))}
-      </div>
-      <div className='flex gap-2 mt-3 items-center'>
+      </Swiper>
+      <div className='mt-3'>
+        <div className='flex'>
               <input
                 className='flex-1 bg-transparent border rounded px-3 py-2 text-sm'
                 readOnly
                 value={typeof window !== "undefined" ? window.location.href : ""}
               />
-              <Button
-                type='button'
-                onClick={async () => {
-                  try {
-                    const link = await ensureShareLink()
-                    if (!link) return
-                    await navigator.clipboard.writeText(link)
-                    setCopied(true)
-                    window.setTimeout(() => setCopied(false), 1500)
-                    await maybeAwardShareStar()
-                  } catch {}
-                }}
-              >
-                {copied ? (
-                  <span className='inline-flex items-center gap-2'><FaCheck className='w-4 h-4' /> Copied</span>
-                ) : (
-                  <span className='inline-flex items-center gap-2'><FaCopy className='w-4 h-4' /> Copy Link</span>
-                )}
-              </Button>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant='outline' className='px-3 py-2'>Download</Button>
-                </PopoverTrigger>
-                <PopoverContent>
-                  <div className='space-y-2'>
-                    <div className='text-sm font-medium'>Download as</div>
-                    <div className='flex gap-2'>
+        </div>
+        <div className='flex gap-2 mt-2'>
+          <Button
+            type='button'
+            onClick={async () => {
+              try {
+                const link = await ensureShareLink()
+                if (!link) return
+                await navigator.clipboard.writeText(link)
+                setCopied(true)
+                window.setTimeout(() => setCopied(false), 1500)
+                await maybeAwardShareStar()
+              } catch {}
+            }}
+          >
+            {copied ? (
+              <span className='inline-flex items-center gap-2'><FaCheck className='w-4 h-4' /> <span className='hidden sm:inline'>Copied</span></span>
+            ) : (
+              <span className='inline-flex items-center gap-2'><FaCopy className='w-4 h-4' /> <span className='hidden sm:inline'>Copy Link</span></span>
+            )}
+          </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant='outline' className='px-3 py-2'>Download</Button>
+            </PopoverTrigger>
+            <PopoverContent>
+              <div className='space-y-2'>
+                <div className='text-sm font-medium'>Download as</div>
+                <div className='flex gap-2'>
                       <Button
                         variant='outline'
                         onClick={async () => {
@@ -270,10 +281,11 @@ export default function ShareComponent({
                           alert("Video download is not available yet.")
                         }}
                       >Video</Button>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
     </div>
   )
