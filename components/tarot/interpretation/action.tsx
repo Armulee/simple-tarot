@@ -204,9 +204,45 @@ Please provide a tarot interpretation for this question and these cards. Focus o
             onClick: async () => {
                 const link = await ensureShareLink()
                 if (!link) return
-                await navigator.clipboard.writeText(link)
-                setCopiedLink(true)
-                window.setTimeout(() => setCopiedLink(false), 2000)
+                
+                try {
+                    // Try modern clipboard API first
+                    if (navigator.clipboard && window.isSecureContext) {
+                        await navigator.clipboard.writeText(link)
+                        setCopiedLink(true)
+                        window.setTimeout(() => setCopiedLink(false), 2000)
+                        return
+                    }
+                } catch (error) {
+                    console.log('Clipboard API failed, trying fallback:', error)
+                }
+                
+                // Fallback for Safari and older browsers
+                try {
+                    const textArea = document.createElement('textarea')
+                    textArea.value = link
+                    textArea.style.position = 'fixed'
+                    textArea.style.left = '-999999px'
+                    textArea.style.top = '-999999px'
+                    document.body.appendChild(textArea)
+                    textArea.focus()
+                    textArea.select()
+                    
+                    const successful = document.execCommand('copy')
+                    document.body.removeChild(textArea)
+                    
+                    if (successful) {
+                        setCopiedLink(true)
+                        window.setTimeout(() => setCopiedLink(false), 2000)
+                    } else {
+                        // If both methods fail, show the link in an alert
+                        alert(`Copy this link: ${link}`)
+                    }
+                } catch (fallbackError) {
+                    console.error('Fallback copy failed:', fallbackError)
+                    // Last resort: show the link
+                    alert(`Copy this link: ${link}`)
+                }
             },
         },
         {
@@ -226,9 +262,45 @@ Please provide a tarot interpretation for this question and these cards. Focus o
             onClick: async () => {
                 const text = interpretation ? String(interpretation) : ""
                 if (!text) return
-                await navigator.clipboard.writeText(text)
-                setCopiedText(true)
-                window.setTimeout(() => setCopiedText(false), 2000)
+                
+                try {
+                    // Try modern clipboard API first
+                    if (navigator.clipboard && window.isSecureContext) {
+                        await navigator.clipboard.writeText(text)
+                        setCopiedText(true)
+                        window.setTimeout(() => setCopiedText(false), 2000)
+                        return
+                    }
+                } catch (error) {
+                    console.log('Clipboard API failed, trying fallback:', error)
+                }
+                
+                // Fallback for Safari and older browsers
+                try {
+                    const textArea = document.createElement('textarea')
+                    textArea.value = text
+                    textArea.style.position = 'fixed'
+                    textArea.style.left = '-999999px'
+                    textArea.style.top = '-999999px'
+                    document.body.appendChild(textArea)
+                    textArea.focus()
+                    textArea.select()
+                    
+                    const successful = document.execCommand('copy')
+                    document.body.removeChild(textArea)
+                    
+                    if (successful) {
+                        setCopiedText(true)
+                        window.setTimeout(() => setCopiedText(false), 2000)
+                    } else {
+                        // If both methods fail, show the text in an alert
+                        alert(`Copy this text: ${text}`)
+                    }
+                } catch (fallbackError) {
+                    console.error('Fallback copy failed:', fallbackError)
+                    // Last resort: show the text
+                    alert(`Copy this text: ${text}`)
+                }
             },
         },
         {

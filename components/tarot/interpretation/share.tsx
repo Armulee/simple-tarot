@@ -467,15 +467,43 @@ export default function ShareSection() {
                                             )
                                         } else {
                                             try {
-                                                await navigator.clipboard.writeText(
-                                                    link
-                                                )
-                                                setCopied(true)
-                                                window.setTimeout(
-                                                    () => setCopied(false),
-                                                    1500
-                                                )
-                                            } catch {}
+                                                // Try modern clipboard API first
+                                                if (navigator.clipboard && window.isSecureContext) {
+                                                    await navigator.clipboard.writeText(link)
+                                                    setCopied(true)
+                                                    window.setTimeout(() => setCopied(false), 1500)
+                                                    return
+                                                }
+                                            } catch (error) {
+                                                console.log('Clipboard API failed, trying fallback:', error)
+                                            }
+                                            
+                                            // Fallback for Safari and older browsers
+                                            try {
+                                                const textArea = document.createElement('textarea')
+                                                textArea.value = link
+                                                textArea.style.position = 'fixed'
+                                                textArea.style.left = '-999999px'
+                                                textArea.style.top = '-999999px'
+                                                document.body.appendChild(textArea)
+                                                textArea.focus()
+                                                textArea.select()
+                                                
+                                                const successful = document.execCommand('copy')
+                                                document.body.removeChild(textArea)
+                                                
+                                                if (successful) {
+                                                    setCopied(true)
+                                                    window.setTimeout(() => setCopied(false), 1500)
+                                                } else {
+                                                    // If both methods fail, show the link in an alert
+                                                    alert(`Copy this link: ${link}`)
+                                                }
+                                            } catch (fallbackError) {
+                                                console.error('Fallback copy failed:', fallbackError)
+                                                // Last resort: show the link
+                                                alert(`Copy this link: ${link}`)
+                                            }
                                         }
                                     }}
                                     className='group relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg w-full'
