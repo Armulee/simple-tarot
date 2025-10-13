@@ -20,6 +20,15 @@ import {
   FaFacebookMessenger,
   FaEnvelope,
   FaCommentDots,
+  FaSync,
+  FaPlus,
+  FaLink,
+  FaFileLines,
+  FaDownload,
+  FaFlag,
+  FaThumbsUp,
+  FaThumbsDown,
+  FaCommentAlt,
 } from "react-icons/fa6"
 import {
   SiInstagram,
@@ -332,136 +341,30 @@ export default function ShareComponent({
                 </SwiperSlide>
               ))}
       </Swiper>
-      {/* Actions row */}
-      <Swiper
-        modules={[FreeMode]}
-        freeMode
-        slidesPerView={'auto'}
-        spaceBetween={12}
-        className='py-2'
-      >
+      {/* Actions row as icon badges */}
+      <Swiper modules={[FreeMode]} freeMode slidesPerView={'auto'} spaceBetween={12} className='py-2'>
         {[
-          { id: 'regen', label: 'Regenerate', onClick: async () => onRegenerate && onRegenerate() },
-          { id: 'new', label: 'New Reading', onClick: async () => onNewReading && onNewReading() },
-          { id: 'copy-link', label: 'Copy Link', onClick: async () => {
-            const link = await ensureShareLink(); if (!link) return; await navigator.clipboard.writeText(link); setCopied(true); window.setTimeout(() => setCopied(false), 1500);
-          } },
-          { id: 'copy-text', label: 'Copy Result', onClick: async () => {
-            const text = interpretation ? String(interpretation) : ''; if (!text) return; await navigator.clipboard.writeText(text); setCopied(true); window.setTimeout(() => setCopied(false), 1500);
-          } },
-          { id: 'download', label: 'Download', onClick: async () => {
-            try { const res = await fetch('/api/share-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question, cards, interpretation, width: 1080, height: 1350 }) }); const blob = await res.blob(); const ts = new Date().toISOString().replace(/[:.]/g,'-'); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `reading-${ts}.png`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);} catch {}
-          } },
-          { id: 'report', label: 'Report', onClick: async () => {
-            const link = await ensureShareLink(); const mailto = `mailto:?subject=${encodeURIComponent('Report Tarot Reading')}&body=${encodeURIComponent(link || '')}`; window.location.href = mailto;
-          } },
-          { id: 'vote-up', label: 'Vote Up', onClick: async () => {
-            const link = await ensureShareLink(); const id = (link||'').split('/').pop()||''; try{ localStorage.setItem(`share-vote-${id}`,'up'); }catch{} }
-          },
-          { id: 'vote-down', label: 'Vote Down', onClick: async () => {
-            const link = await ensureShareLink(); const id = (link||'').split('/').pop()||''; try{ localStorage.setItem(`share-vote-${id}`,'down'); }catch{} }
-          },
-          { id: 'feedback', label: 'Feedback', onClick: async () => { window.open('/contact?subject=Feedback%20on%20Tarot%20Reading','_blank'); } },
+          { id: 'regen', label: 'Regenerate', icon: <FaSync className='w-5 h-5 text-white' />, bg: '#6366F1', onClick: async () => onRegenerate && onRegenerate() },
+          { id: 'new', label: 'New Reading', icon: <FaPlus className='w-5 h-5 text-white' />, bg: '#22C55E', onClick: async () => onNewReading && onNewReading() },
+          { id: 'copy-link', label: 'Copy Link', icon: <FaLink className='w-5 h-5 text-white' />, bg: '#06B6D4', onClick: async () => { const link = await ensureShareLink(); if (!link) return; await navigator.clipboard.writeText(link); setCopied(true); window.setTimeout(() => setCopied(false), 1500); } },
+          { id: 'copy-text', label: 'Copy Result', icon: <FaFileLines className='w-5 h-5 text-white' />, bg: '#10B981', onClick: async () => { const text = interpretation ? String(interpretation) : ''; if (!text) return; await navigator.clipboard.writeText(text); setCopied(true); window.setTimeout(() => setCopied(false), 1500); } },
+          { id: 'download', label: 'Download', icon: <FaDownload className='w-5 h-5 text-white' />, bg: '#0EA5E9', onClick: async () => { try { const res = await fetch('/api/share-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question, cards, interpretation, width: 1080, height: 1350 }) }); const blob = await res.blob(); const ts = new Date().toISOString().replace(/[:.]/g,'-'); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `reading-${ts}.png`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);} catch {} } },
+          { id: 'report', label: 'Report', icon: <FaFlag className='w-5 h-5 text-white' />, bg: '#EF4444', onClick: async () => { const link = await ensureShareLink(); const mailto = `mailto:?subject=${encodeURIComponent('Report Tarot Reading')}&body=${encodeURIComponent(link || '')}`; window.location.href = mailto; } },
+          { id: 'vote-up', label: 'Vote Up', icon: <FaThumbsUp className='w-5 h-5 text-white' />, bg: '#22C55E', onClick: async () => { const link = await ensureShareLink(); const id = (link||'').split('/').pop()||''; try{ localStorage.setItem(`share-vote-${id}`,'up'); }catch{} } },
+          { id: 'vote-down', label: 'Vote Down', icon: <FaThumbsDown className='w-5 h-5 text-white' />, bg: '#F59E0B', onClick: async () => { const link = await ensureShareLink(); const id = (link||'').split('/').pop()||''; try{ localStorage.setItem(`share-vote-${id}`,'down'); }catch{} } },
+          { id: 'feedback', label: 'Feedback', icon: <FaCommentAlt className='w-5 h-5 text-white' />, bg: '#8B5CF6', onClick: async () => { window.open('/contact?subject=Feedback%20on%20Tarot%20Reading','_blank'); } },
         ].map((a) => (
           <SwiperSlide key={a.id} style={{ width: 'auto' }}>
-            <button
-              type='button'
-              onClick={a.onClick}
-              className='px-3 py-2 rounded-md hover:bg-white/5 text-center flex-shrink-0 text-[10px] text-muted-foreground'
-            >
-              {a.label}
+            <button type='button' onClick={a.onClick} className='px-2 py-2 rounded-md text-center flex-shrink-0'>
+              <div className='flex items-center justify-center h-10 w-10 rounded-full' style={{ backgroundColor: (a as { bg?: string }).bg ?? '#444' }}>
+                {a.icon}
+              </div>
+              <div className='text-[10px] mt-1 text-muted-foreground hidden sm:block'>{a.label}</div>
             </button>
           </SwiperSlide>
         ))}
       </Swiper>
-      <div className='mt-3'>
-        <div className='flex items-center gap-2'>
-              <input
-                className='flex-1 bg-transparent border rounded px-3 py-2 text-sm'
-                readOnly
-                value={typeof window !== "undefined" ? window.location.href : ""}
-              />
-          <button
-            type='button'
-            onClick={async () => {
-              try {
-                const link = await ensureShareLink()
-                if (!link) return
-                await navigator.clipboard.writeText(link)
-                setCopied(true)
-                window.setTimeout(() => setCopied(false), 1500)
-                await maybeAwardShareStar()
-              } catch {}
-            }}
-            className='p-2 rounded-md border border-white/10 hover:bg-white/5'
-            aria-label='Copy link'
-            title='Copy link'
-          >
-            {copied ? <FaCheck className='w-4 h-4' /> : <FaCopy className='w-4 h-4' />}
-          </button>
-        </div>
-        <div className='flex gap-2 mt-2'>
-          <Button
-            variant='outline'
-            onClick={async () => {
-              try {
-                const text = interpretation ? String(interpretation) : ""
-                if (!text) return
-                await navigator.clipboard.writeText(text)
-                setCopied(true)
-                window.setTimeout(() => setCopied(false), 1500)
-              } catch {}
-            }}
-          >Copy Result</Button>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant='outline' className='px-3 py-2'>Download</Button>
-            </PopoverTrigger>
-            <PopoverContent>
-              <div className='space-y-2'>
-                <div className='text-sm font-medium'>Download as</div>
-                <div className='flex gap-2'>
-                      <Button
-                        variant='outline'
-                        onClick={async () => {
-                          try {
-                            const res = await fetch("/api/share-image", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({
-                                question,
-                                cards,
-                                interpretation,
-                                width: 1080,
-                                height: 1350,
-                              }),
-                            })
-                            const blob = await res.blob()
-                            const ts = new Date().toISOString().replace(/[:.]/g, "-")
-                            const url = URL.createObjectURL(blob)
-                            const a = document.createElement("a")
-                            a.href = url
-                            a.download = `reading-${ts}.png`
-                            document.body.appendChild(a)
-                            a.click()
-                            a.remove()
-                            URL.revokeObjectURL(url)
-                          } catch {}
-                        }}
-                      >Image</Button>
-                      <Button
-                        variant='outline'
-                        onClick={async () => {
-                          // Placeholder: implement server video render if available
-                          alert("Video download is not available yet.")
-                        }}
-                      >Video</Button>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
+      {/* Removed legacy link/copy/download rows per request */}
     </div>
   )
 }
