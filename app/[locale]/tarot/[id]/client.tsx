@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 import BrandLoader from "@/components/brand-loader"
-import DIDConsentDialog from "@/components/did-consent-dialog"
+import HardStarConsent from "@/components/hard-star-consent"
 
 interface TarotReadingClientProps {
     readingId: string
@@ -207,7 +207,7 @@ Output:
     if (showDIDConsent) {
         return (
             <>
-                <DIDConsentDialog 
+                <HardStarConsent 
                     open={showDIDConsent} 
                     onAccept={handleDIDConsentAccept} 
                 />
