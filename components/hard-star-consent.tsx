@@ -88,10 +88,8 @@ export default function HardStarConsent({ open, onAccept }: HardStarConsentProps
                 />
 
                 {/* Deep-space stars background */}
-                <div className='pointer-events-none absolute inset-0 opacity-40'>
-                    <div className='cosmic-stars-layer-3' />
-                    <div className='cosmic-stars-layer-4' />
-                    <div className='cosmic-stars-layer-5' />
+                <div className='pointer-events-none absolute inset-0 opacity-20'>
+                    <div className='w-full h-full bg-gradient-to-br from-yellow-400/5 via-transparent to-yellow-600/5' />
                 </div>
                 {/* Golden aura behind dialog */}
                 <div className='pointer-events-none absolute -top-24 -left-24 h-64 w-64 rounded-full bg-gradient-to-br from-yellow-300/25 via-yellow-500/15 to-transparent blur-3xl animate-pulse' />
@@ -100,21 +98,21 @@ export default function HardStarConsent({ open, onAccept }: HardStarConsentProps
                     style={{ animationDelay: "0.8s" }}
                 />
 
-                <div className="relative z-10 p-6 max-w-lg mx-auto">
+                <div className="relative z-20 p-6 max-w-lg mx-auto min-h-[200px] flex flex-col justify-center bg-black/20 rounded-lg">
                     <SheetHeader>
-                        <SheetTitle className='text-yellow-300 font-serif text-xl'>
+                        <SheetTitle className='text-yellow-300 font-serif text-xl mb-4'>
                             Cookies Required
                         </SheetTitle>
-                        <SheetDescription className='text-white/85'>
+                        <SheetDescription className='text-white/85 mb-4'>
                             We need to store a device ID to track your readings and prevent duplicate star awards.
                         </SheetDescription>
                     </SheetHeader>
                     
-                    <div className='text-xs text-white/70 mb-6 mt-4'>
+                    <div className='text-xs text-white/70 mb-6'>
                         This data is stored securely and not shared with third parties.
                     </div>
                     
-                    <div className='flex gap-3 justify-end'>
+                    <div className='flex gap-3 justify-end mt-auto'>
                         <Button
                             onClick={handleAccept}
                             disabled={isAccepting}
