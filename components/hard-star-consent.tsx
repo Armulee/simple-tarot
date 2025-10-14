@@ -99,7 +99,7 @@ export default function HardStarConsent({ open, onAccept }: HardStarConsentProps
                 />
 
                 <div className="relative z-20 p-4 max-w-lg mx-auto min-h-[200px] flex flex-col justify-center bg-black/20 rounded-lg">
-                    <SheetHeader>
+                    <SheetHeader className="p-0">
                         <SheetTitle className='text-yellow-300 font-serif text-lg mb-2'>
                             Cookies Required
                         </SheetTitle>
