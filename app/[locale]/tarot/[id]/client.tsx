@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 import BrandLoader from "@/components/brand-loader"
+import HardStarConsent from "@/components/hard-star-consent"
 
 interface TarotReadingClientProps {
     readingId: string
@@ -47,6 +48,8 @@ export default function TarotReadingClient({
     const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
     const [isOwner, setIsOwner] = useState(false)
     const [isAuthLoading, setIsAuthLoading] = useState(true)
+    const [showDIDConsent, setShowDIDConsent] = useState(false)
+    const [, setHasDID] = useState<boolean | null>(null)
     const { user } = useAuth()
 
     // Check if current user is the owner
@@ -57,13 +60,23 @@ export default function TarotReadingClient({
                 const data = await response.json()
                 const did = data.did
                 
-                // Always allow viewing, just check ownership for UI differences
+                // Check if user has a DID
+                if (!did) {
+                    setHasDID(false)
+                    setShowDIDConsent(true)
+                    setIsAuthLoading(false)
+                    return
+                }
+                
+                setHasDID(true)
                 const isOwnerByDid = did && _ownerDid && did === _ownerDid
                 const isOwnerByUserId = user?.id && _ownerUserId && user.id === _ownerUserId
                 setIsOwner(!!(isOwnerByDid || isOwnerByUserId))
             } catch (error) {
                 console.error("Error checking ownership:", error)
                 setIsOwner(false)
+                setHasDID(false)
+                setShowDIDConsent(true)
             } finally {
                 setIsAuthLoading(false)
             }
@@ -104,6 +117,26 @@ export default function TarotReadingClient({
         }
     }, [completion])
 
+    // Handle DID consent acceptance
+    const handleDIDConsentAccept = () => {
+        setShowDIDConsent(false)
+        setHasDID(true)
+        // Re-check ownership with the new DID
+        const checkOwnership = async () => {
+            try {
+                const response = await fetch("/api/did")
+                const data = await response.json()
+                const did = data.did
+                const isOwnerByDid = did && _ownerDid && did === _ownerDid
+                const isOwnerByUserId = user?.id && _ownerUserId && user.id === _ownerUserId
+                setIsOwner(!!(isOwnerByDid || isOwnerByUserId))
+            } catch (error) {
+                console.error("Error checking ownership after consent:", error)
+                setIsOwner(false)
+            }
+        }
+        checkOwnership()
+    }
 
     const generateInterpretation = useCallback(async () => {
         if (!interpretation && !isGenerating) {
@@ -170,6 +203,17 @@ Output:
         return <BrandLoader label="Loading your reading..." />
     }
 
+    // Show DID consent dialog if user has no DID
+    if (showDIDConsent) {
+        return (
+            <>
+                <HardStarConsent 
+                    open={showDIDConsent} 
+                    onAccept={handleDIDConsentAccept} 
+                />
+            </>
+        )
+    }
 
     return (
         <>
