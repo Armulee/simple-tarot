@@ -98,34 +98,36 @@ export default function HardStarConsent({ open, onAccept }: HardStarConsentProps
                     style={{ animationDelay: "0.8s" }}
                 />
 
-                <div className="relative z-20 p-4 max-w-lg mx-auto min-h-[200px] flex flex-col justify-center bg-black/20 rounded-lg">
+                <div className="relative z-20 p-4 max-w-4xl mx-auto min-h-[120px] flex flex-col justify-center bg-black/20 rounded-lg">
                     <SheetHeader className="p-0">
                         <SheetTitle className='text-yellow-300 font-serif text-lg mb-2'>
                             Cookie Consent
                         </SheetTitle>
-                        <SheetDescription className='text-white/85 mb-2 text-sm'>
-                            We use cookies to enhance your experience, analyze site traffic, and personalize content. By continuing to use our site, you consent to our use of cookies.
-                        </SheetDescription>
                     </SheetHeader>
                     
-                    <div className='text-xs text-white/70 mb-4'>
-                        Learn more in our{" "}
-                        <a 
-                            href="/privacy-policy" 
-                            className="underline text-yellow-300 hover:text-yellow-200"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            Privacy Policy
-                        </a>
-                        .
-                    </div>
-                    
-                    <div className='flex gap-2 justify-end mt-auto'>
+                    <div className='flex items-end gap-4'>
+                        <div className='flex-1'>
+                            <SheetDescription className='text-white/85 mb-2 text-sm'>
+                                We use cookies to enhance your experience, analyze site traffic, and personalize content. By continuing to use our site, you consent to our use of cookies.
+                            </SheetDescription>
+                            <div className='text-xs text-white/70'>
+                                Learn more in our{" "}
+                                <a 
+                                    href="/privacy-policy" 
+                                    className="underline text-yellow-300 hover:text-yellow-200"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Privacy Policy
+                                </a>
+                                .
+                            </div>
+                        </div>
+                        
                         <Button
                             onClick={handleAccept}
                             disabled={isAccepting}
-                            className='px-4 py-2 rounded-md bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.45)]'
+                            className='px-4 py-2 rounded-md bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.45)] flex-shrink-0'
                         >
                             {isAccepting ? "Setting up..." : "Accept"}
                         </Button>
