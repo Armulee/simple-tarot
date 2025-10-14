@@ -44,7 +44,7 @@ export default function CardSelection({
         setFollowUpQuestion,
     } = useTarot()
     const isMobile = useIsMobile()
-    const { stars } = useStars()
+    const { stars, spendStars } = useStars()
 
     // Desktop-only spread mode selection; mobile is forced to linear
     const [spreadMode, setSpreadMode] = useState<"circular" | "linear">(
@@ -129,6 +129,13 @@ export default function CardSelection({
             const cardNames = cards.map(card => 
                 card.isReversed ? `${card.name} (Reversed)` : card.name
             )
+
+            // Deduct star before creating the reading
+            const starSuccess = spendStars(1)
+            if (!starSuccess) {
+                setShowNoStarsDialog(true)
+                return
+            }
 
             const response = await fetch("/api/tarot/create", {
                 method: "POST",

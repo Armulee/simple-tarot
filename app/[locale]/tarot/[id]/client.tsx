@@ -5,7 +5,6 @@ import { useCompletion } from "@ai-sdk/react"
 import { Card } from "@/components/ui/card"
 import { Sparkles, Stars, Home, ArrowRight, UserPlus } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
-import { useStars } from "@/contexts/stars-context"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -44,11 +43,9 @@ export default function TarotReadingClient({
     const [interpretation, setInterpretation] = useState<string | null>(initialInterpretation)
     const [isGenerating, setIsGenerating] = useState(false)
     const [error, setError] = useState<string | null>(null)
-    const [insufficientStars, setInsufficientStars] = useState(false)
     const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
     const [isOwner, setIsOwner] = useState(false)
     const { user } = useAuth()
-    const { spendStars, stars } = useStars()
 
     // Check if current user is the owner
     useEffect(() => {
@@ -94,19 +91,7 @@ export default function TarotReadingClient({
 
     const generateInterpretation = useCallback(async () => {
         if (!interpretation && !isGenerating) {
-            // Check if user has enough stars
-            if (!Number.isFinite(stars as number) || (stars as number) < 1) {
-                setInsufficientStars(true)
-                return
-            }
-
-            // Spend a star
-            const success = spendStars(1)
-            if (!success) {
-                setInsufficientStars(true)
-                return
-            }
-
+            // No star deduction here - stars are deducted during card selection
             setIsGenerating(true)
             setError(null)
 
@@ -131,7 +116,7 @@ Output:
             // Generate interpretation
             await complete(prompt)
         }
-    }, [interpretation, isGenerating, stars, spendStars, cards, question, complete])
+    }, [interpretation, isGenerating, cards, question, complete])
 
     // Auto-generate interpretation on first visit if not already present
     useEffect(() => {
@@ -216,17 +201,7 @@ Output:
                             animationFillMode: "both",
                         }}
                     >
-                        {insufficientStars ? (
-                            <div className='text-center space-y-6 py-8'>
-                                <div className='flex items-center justify-center space-x-3'>
-                                    <Stars className='w-6 h-6 text-yellow-300' />
-                                    <span className='text-muted-foreground'>
-                                        You need 1 star to view this interpretation.
-                                        Current balance: {stars}.
-                                    </span>
-                                </div>
-                            </div>
-                        ) : error ? (
+                        {error ? (
                             <div className='text-center space-y-4'>
                                 <p className='text-destructive'>{error}</p>
                                 <button
