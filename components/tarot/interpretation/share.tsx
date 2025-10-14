@@ -199,54 +199,49 @@ export default function ShareSection({
     const [earnedStars, setEarnedStars] = useState(0)
     const maxStars = 5
 
-    // Load earned stars from localStorage
+    // Load earned stars from database
     useEffect(() => {
-        const loadEarnedStars = () => {
+        const loadEarnedStars = async () => {
+            if (!readingId) return
+            
             try {
-                const stored = localStorage.getItem('share-earned-stars')
-                if (stored) {
-                    const parsed = parseInt(stored, 10)
-                    if (!isNaN(parsed) && parsed >= 0) {
-                        setEarnedStars(Math.min(parsed, maxStars))
-                    }
+                const response = await fetch(`/api/tarot/earned-stars?readingId=${readingId}`)
+                if (response.ok) {
+                    const data = await response.json()
+                    setEarnedStars(data.earnedStars || 0)
                 }
             } catch (error) {
                 console.error('Error loading earned stars:', error)
             }
         }
         loadEarnedStars()
-    }, [maxStars])
+    }, [readingId])
 
-    // Function to increment earned stars (to be called when someone visits shared link)
-    const incrementEarnedStars = useCallback(() => {
-        setEarnedStars(prev => {
-            const newValue = Math.min(prev + 1, maxStars)
-            try {
-                localStorage.setItem('share-earned-stars', newValue.toString())
-            } catch (error) {
-                console.error('Error saving earned stars:', error)
+    // Refresh earned stars when the component mounts or readingId changes
+    const refreshEarnedStars = useCallback(async () => {
+        if (!readingId) return
+        
+        try {
+            const response = await fetch(`/api/tarot/earned-stars?readingId=${readingId}`)
+            if (response.ok) {
+                const data = await response.json()
+                setEarnedStars(data.earnedStars || 0)
             }
-            return newValue
-        })
-    }, [maxStars])
-
-    // Check if this is a shared link visit and increment stars
-    useEffect(() => {
-        const checkSharedLinkVisit = () => {
-            // Check if we're on a shared link page (URL contains /share/tarot/)
-            if (typeof window !== 'undefined' && window.location.pathname.includes('/share/tarot/')) {
-                // Check if this is a new visitor (not the original sharer)
-                const isNewVisitor = !localStorage.getItem('is-original-sharer')
-                if (isNewVisitor) {
-                    // Increment stars for the original sharer
-                    incrementEarnedStars()
-                    // Mark this as a new visitor to prevent multiple increments
-                    localStorage.setItem('is-new-visitor', 'true')
-                }
-            }
+        } catch (error) {
+            console.error('Error refreshing earned stars:', error)
         }
-        checkSharedLinkVisit()
-    }, [incrementEarnedStars])
+    }, [readingId])
+
+    // Periodically refresh earned stars to show real-time updates
+    useEffect(() => {
+        if (!readingId) return
+
+        const interval = setInterval(() => {
+            refreshEarnedStars()
+        }, 10000) // Refresh every 10 seconds
+
+        return () => clearInterval(interval)
+    }, [readingId, refreshEarnedStars])
 
     useEffect(() => {
         const el = navGuardRef.current

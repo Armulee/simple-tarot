@@ -125,6 +125,30 @@ Output:
         }
     }, [interpretation, isGenerating, error, generateInterpretation])
 
+    // Award stars to owner when visitor views the page
+    useEffect(() => {
+        const awardStarsToOwner = async () => {
+            try {
+                await fetch("/api/stars/share-award", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        owner_user_id: _ownerUserId,
+                        owner_did: _ownerDid,
+                        shared_id: readingId,
+                    }),
+                })
+            } catch (error) {
+                console.error("Failed to award stars to owner:", error)
+            }
+        }
+        
+        // Only award stars if there's an interpretation (meaning the reading is complete)
+        if (interpretation) {
+            awardStarsToOwner()
+        }
+    }, [interpretation, readingId, _ownerUserId, _ownerDid])
+
     return (
         <>
             {/* No Stars Dialog */}
