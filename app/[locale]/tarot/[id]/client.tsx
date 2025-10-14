@@ -203,18 +203,6 @@ Output:
         return <BrandLoader label="Loading your reading..." />
     }
 
-    // Show DID consent dialog if user has no DID
-    if (showDIDConsent) {
-        return (
-            <>
-                <HardStarConsent 
-                    open={showDIDConsent} 
-                    onAccept={handleDIDConsentAccept} 
-                />
-            </>
-        )
-    }
-
     return (
         <>
             {/* No Stars Dialog */}
@@ -427,6 +415,12 @@ Output:
                     )}
                 </>
             )}
+
+            {/* Hard Star Consent */}
+            <HardStarConsent 
+                open={showDIDConsent} 
+                onAccept={handleDIDConsentAccept} 
+            />
         </>
     )
 }
