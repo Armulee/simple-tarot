@@ -98,7 +98,7 @@ export default function HardStarConsent({ open, onAccept }: HardStarConsentProps
                     style={{ animationDelay: "0.8s" }}
                 />
 
-                <div className="relative z-20 p-6 max-w-lg mx-auto min-h-[200px] flex flex-col justify-center bg-black/20 rounded-lg">
+                <div className="relative z-20 p-6 max-w-lg mx-auto min-h-[300px] flex flex-col justify-center bg-black/20 rounded-lg">
                     <SheetHeader>
                         <SheetTitle className='text-yellow-300 font-serif text-xl mb-4'>
                             Cookies Required
