@@ -398,30 +398,32 @@ export default function ShareSection({
             <div className='absolute inset-0 rounded-xl border border-primary/20 group-hover:border-primary/40 transition-all duration-500' />
 
             {/* Content */}
-            <div className='relative p-6'>
-                {/* Header */}
-                <div className='flex items-center gap-3 mb-6 animate-fade-up'>
-                    <div className='p-2 rounded-full bg-primary/20 backdrop-blur-sm group-hover:bg-primary/30 transition-all duration-300'>
-                        <Share2 className='w-5 h-5 text-primary group-hover:scale-110 transition-transform duration-300' />
-                    </div>
-                    <div>
-                        <h3 className='font-serif font-semibold text-lg text-foreground group-hover:text-primary/90 transition-colors duration-300'>
-                            Share Your Reading
-                        </h3>
-                        <p className='text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300'>
-                            Get 1 free star for each new person who visits your
-                            shared link ({earnedStars}/{maxStars}){" "}
-                            <Link
-                                href='/articles/share-rewards'
-                                className='underline underline-offset-2 text-blue-300 hover:text-blue-200'
-                            >
-                                Learn more
-                            </Link>
-                        </p>
+            <div className='relative'>
+                {/* Header with padding */}
+                <div className='px-6 pt-6 pb-4'>
+                    <div className='flex items-center gap-3 mb-6 animate-fade-up'>
+                        <div className='p-2 rounded-full bg-primary/20 backdrop-blur-sm group-hover:bg-primary/30 transition-all duration-300'>
+                            <Share2 className='w-5 h-5 text-primary group-hover:scale-110 transition-transform duration-300' />
+                        </div>
+                        <div>
+                            <h3 className='font-serif font-semibold text-lg text-foreground group-hover:text-primary/90 transition-colors duration-300'>
+                                Share Your Reading
+                            </h3>
+                            <p className='text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300'>
+                                Get 1 free star for each new person who visits your
+                                shared link ({earnedStars}/{maxStars}){" "}
+                                <Link
+                                    href='/articles/share-rewards'
+                                    className='underline underline-offset-2 text-blue-300 hover:text-blue-200'
+                                >
+                                    Learn more
+                                </Link>
+                            </p>
+                        </div>
                     </div>
                 </div>
 
-                {/* Share Options */}
+                {/* Share Options - Full width swiper */}
                 <div
                     ref={navGuardRef}
                     style={{
@@ -439,7 +441,7 @@ export default function ShareSection({
                         }}
                         slidesPerView="auto"
                         spaceBetween={8}
-                        className='py-2'
+                        className='py-2 px-6'
                     >
                         {shareOptions.map((option, index) => (
                             <SwiperSlide
