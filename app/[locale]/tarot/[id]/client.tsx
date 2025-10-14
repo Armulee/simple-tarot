@@ -214,6 +214,16 @@ Output:
         }
     }, [interpretation, awardStarsToOwner])
 
+    // Refresh earned stars after awarding to update the display
+    useEffect(() => {
+        if (hasAwardedStars) {
+            // Trigger a custom event to refresh earned stars in share section
+            if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("earned-stars-updated"))
+            }
+        }
+    }, [hasAwardedStars])
+
     // Show loader while auth is loading
     if (isAuthLoading) {
         return <BrandLoader label="Loading your reading..." />

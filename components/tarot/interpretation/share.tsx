@@ -243,6 +243,23 @@ export default function ShareSection({
         return () => clearInterval(interval)
     }, [readingId, refreshEarnedStars])
 
+    // Listen for earned stars updates from other components
+    useEffect(() => {
+        const handleEarnedStarsUpdate = () => {
+            refreshEarnedStars()
+        }
+
+        if (typeof window !== "undefined") {
+            window.addEventListener("earned-stars-updated", handleEarnedStarsUpdate)
+        }
+
+        return () => {
+            if (typeof window !== "undefined") {
+                window.removeEventListener("earned-stars-updated", handleEarnedStarsUpdate)
+            }
+        }
+    }, [refreshEarnedStars])
+
     useEffect(() => {
         const el = navGuardRef.current
         if (!el) return
