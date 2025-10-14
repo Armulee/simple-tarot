@@ -105,11 +105,12 @@ export default function HardStarConsent({ open, onAccept }: HardStarConsentProps
                         </SheetTitle>
                     </SheetHeader>
                     
-                    <div className='flex items-end gap-4'>
-                        <div className='flex-1'>
-                            <SheetDescription className='text-white/85 mb-2 text-sm'>
-                                We use cookies to enhance your experience, analyze site traffic, and personalize content. By continuing to use our site, you consent to our use of cookies.
-                            </SheetDescription>
+                    <div className='space-y-3'>
+                        <SheetDescription className='text-white/85 text-sm'>
+                            We use cookies to enhance your experience, analyze site traffic, and personalize content. By continuing to use our site, you consent to our use of cookies.
+                        </SheetDescription>
+                        
+                        <div className='flex justify-between items-end'>
                             <div className='text-xs text-white/70'>
                                 Learn more in our{" "}
                                 <a 
@@ -122,15 +123,15 @@ export default function HardStarConsent({ open, onAccept }: HardStarConsentProps
                                 </a>
                                 .
                             </div>
+                            
+                            <Button
+                                onClick={handleAccept}
+                                disabled={isAccepting}
+                                className='px-4 py-2 rounded-md bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.45)]'
+                            >
+                                {isAccepting ? "Setting up..." : "Accept"}
+                            </Button>
                         </div>
-                        
-                        <Button
-                            onClick={handleAccept}
-                            disabled={isAccepting}
-                            className='px-4 py-2 rounded-md bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.45)] flex-shrink-0'
-                        >
-                            {isAccepting ? "Setting up..." : "Accept"}
-                        </Button>
                     </div>
                 </div>
             </SheetContent>
