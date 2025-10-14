@@ -123,6 +123,9 @@ export default function QuestionInput({
         } catch {
             // ignore
         }
+
+        // Navigate to tarot page for follow-up reading
+        router.push("/tarot")
     }
 
     // Detect small devices
