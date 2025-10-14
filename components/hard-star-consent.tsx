@@ -25,6 +25,16 @@ export default function HardStarConsent({ open, onAccept }: HardStarConsentProps
         try {
             // Generate a new DID by calling the API (reusing the same logic as StarConsent)
             await fetch("/api/device/init", { method: "POST" })
+            
+            // Dispatch the same event as StarConsent to grant 5 stars
+            if (typeof window !== "undefined") {
+                window.dispatchEvent(
+                    new CustomEvent("cookie-consent-changed", {
+                        detail: { choice: "accepted" },
+                    })
+                )
+            }
+            
             onAccept()
         } catch (error) {
             console.error("Failed to generate DID:", error)
