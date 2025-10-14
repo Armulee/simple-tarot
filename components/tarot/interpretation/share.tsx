@@ -442,19 +442,14 @@ export default function ShareSection({
                             sensitivity: 1,
                             releaseOnEdges: true,
                         }}
-                        slidesPerView={4.5}
+                        slidesPerView="auto"
                         spaceBetween={8}
-                        breakpoints={{
-                            640: {
-                                slidesPerView: "auto",
-                            },
-                        }}
                         className='py-2'
                     >
                         {shareOptions.map((option, index) => (
                             <SwiperSlide
                                 key={option.id}
-                                style={{ width: "70px" }}
+                                className="!w-auto"
                             >
                                 <button
                                     type='button'

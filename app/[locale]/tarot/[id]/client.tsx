@@ -242,7 +242,7 @@ Output:
                     {isOwner ? (
                         <>
                             {/* Owner: Show Actions and Sharing (swapped positions) */}
-                            <div className='w-full max-w-4xl space-y-6'>
+                            <div className='w-full space-y-6'>
                                 <ActionSection 
                                     question={question}
                                     cards={cards}
@@ -270,7 +270,7 @@ Output:
                     ) : (
                         <>
                             {/* Non-owner: Show CTA Section */}
-                            <div className='w-full max-w-4xl mx-auto space-y-6'>
+                            <div className='w-full space-y-6'>
                                 <StarCard>
                                     <div className='relative z-10 text-center space-y-10'>
                                         {/* Header with enhanced styling */}
