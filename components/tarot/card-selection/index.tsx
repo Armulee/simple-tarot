@@ -14,6 +14,7 @@ import { useTranslations } from "next-intl"
 import { InlineQuestionEdit } from "../inline-question-edit"
 // import AdDialog from "@/components/ads/ad-dialog"
 import { useStars } from "@/contexts/stars-context"
+import BrandLoader from "@/components/brand-loader"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -63,6 +64,7 @@ export default function CardSelection({
 
     // Dialog state
     const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
+    const [isCreatingReading, setIsCreatingReading] = useState(false)
 
     // Clear previous selections whenever we enter the card selection step (including follow-up)
     useEffect(() => {
@@ -125,6 +127,7 @@ export default function CardSelection({
 
         // Create tarot reading entry and redirect to the new page
         try {
+            setIsCreatingReading(true)
             const currentQuestion = isFollowUp && followUpQuestion ? followUpQuestion : question
             const cardNames = cards.map(card => 
                 card.isReversed ? `${card.name} (Reversed)` : card.name
@@ -134,6 +137,7 @@ export default function CardSelection({
             const starSuccess = spendStars(1)
             if (!starSuccess) {
                 setShowNoStarsDialog(true)
+                setIsCreatingReading(false)
                 return
             }
 
@@ -153,11 +157,13 @@ export default function CardSelection({
                 window.location.href = `/tarot/${id}`
             } else {
                 console.error("Failed to create tarot reading")
+                setIsCreatingReading(false)
                 // Fallback to old flow
                 setCurrentStep("interpretation")
             }
         } catch (error) {
             console.error("Error creating tarot reading:", error)
+            setIsCreatingReading(false)
             // Fallback to old flow
             setCurrentStep("interpretation")
         }
@@ -199,6 +205,11 @@ export default function CardSelection({
 
     return (
         <>
+            {/* Creating Reading Loader */}
+            {isCreatingReading && (
+                <BrandLoader label="Creating your reading..." />
+            )}
+
             {/* No Stars Dialog */}
             <AlertDialog open={showNoStarsDialog}>
                 <AlertDialogContent>

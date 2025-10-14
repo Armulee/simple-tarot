@@ -21,6 +21,7 @@ import StarCard from "@/components/star-card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
+import BrandLoader from "@/components/brand-loader"
 
 interface TarotReadingClientProps {
     readingId: string
@@ -45,6 +46,7 @@ export default function TarotReadingClient({
     const [error, setError] = useState<string | null>(null)
     const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
     const [isOwner, setIsOwner] = useState(false)
+    const [isAuthLoading, setIsAuthLoading] = useState(true)
     const { user } = useAuth()
 
     // Check if current user is the owner
@@ -58,6 +60,8 @@ export default function TarotReadingClient({
             } catch (error) {
                 console.error("Error checking ownership:", error)
                 setIsOwner(false)
+            } finally {
+                setIsAuthLoading(false)
             }
         }
         checkOwnership()
@@ -88,6 +92,13 @@ export default function TarotReadingClient({
             setIsGenerating(false)
         },
     })
+
+    // Hide generating loader when streaming starts
+    useEffect(() => {
+        if (completion && completion.length > 0) {
+            setIsGenerating(false)
+        }
+    }, [completion])
 
     const generateInterpretation = useCallback(async () => {
         if (!interpretation && !isGenerating) {
@@ -148,6 +159,11 @@ Output:
             awardStarsToOwner()
         }
     }, [interpretation, readingId, _ownerUserId, _ownerDid])
+
+    // Show loader while auth is loading
+    if (isAuthLoading) {
+        return <BrandLoader label="Loading your reading..." />
+    }
 
     return (
         <>
@@ -253,7 +269,7 @@ Output:
                                     animationFillMode: "both",
                                 }}
                             >
-                                {interpretation ?? completion}
+                                {interpretation || completion}
                             </div>
                         )}
                     </div>
