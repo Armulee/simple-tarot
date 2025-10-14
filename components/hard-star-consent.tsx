@@ -101,15 +101,24 @@ export default function HardStarConsent({ open, onAccept }: HardStarConsentProps
                 <div className="relative z-20 p-4 max-w-lg mx-auto min-h-[200px] flex flex-col justify-center bg-black/20 rounded-lg">
                     <SheetHeader className="p-0">
                         <SheetTitle className='text-yellow-300 font-serif text-lg mb-2'>
-                            Cookies Required
+                            Cookie Consent
                         </SheetTitle>
                         <SheetDescription className='text-white/85 mb-2 text-sm'>
-                            We need to store a device ID to track your readings and prevent duplicate star awards.
+                            We use cookies to enhance your experience, analyze site traffic, and personalize content. By continuing to use our site, you consent to our use of cookies.
                         </SheetDescription>
                     </SheetHeader>
                     
                     <div className='text-xs text-white/70 mb-4'>
-                        This data is stored securely and not shared with third parties.
+                        Learn more in our{" "}
+                        <a 
+                            href="/privacy-policy" 
+                            className="underline text-yellow-300 hover:text-yellow-200"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Privacy Policy
+                        </a>
+                        .
                     </div>
                     
                     <div className='flex gap-2 justify-end mt-auto'>
