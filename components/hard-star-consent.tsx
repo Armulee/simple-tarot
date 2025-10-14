@@ -42,7 +42,7 @@ export default function HardStarConsent({ open, onAccept }: HardStarConsentProps
                 className={cn(
                     "h-auto max-h-[80vh] overflow-y-auto [&>button]:!hidden",
                     "border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(234,179,8,0.35)]",
-                    "relative overflow-hidden"
+                    "overflow-hidden"
                 )}
             >
                 {/* Beautiful ping orbs */}
