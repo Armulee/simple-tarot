@@ -272,8 +272,8 @@ Output:
                             >
                                 {t("sectionSubtitle")}
                             </p>
-                            {/* Only show star consumption text for owners */}
-                            {isOwner && (
+                            {/* Only show star consumption text for owners and when no error */}
+                            {isOwner && !error && (
                                 <div className='flex items-center justify-center gap-2 text-xs text-yellow-300 mt-2'>
                                     <Stars className='w-3.5 h-3.5' />
                                     <span>
@@ -326,8 +326,8 @@ Output:
                 </div>
             </Card>
 
-            {/* Show different content based on ownership */}
-            {interpretation && (
+            {/* Show different content based on ownership - only if no error */}
+            {interpretation && !error && (
                 <>
                     {isOwner ? (
                         <>
