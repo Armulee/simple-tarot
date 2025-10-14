@@ -50,6 +50,8 @@ export default function TarotReadingClient({
     const [isAuthLoading, setIsAuthLoading] = useState(true)
     const [showDIDConsent, setShowDIDConsent] = useState(false)
     const [, setHasDID] = useState<boolean | null>(null)
+    const [hasAwardedStars, setHasAwardedStars] = useState(false)
+    const [hasAttemptedGeneration, setHasAttemptedGeneration] = useState(false)
     const { user } = useAuth()
 
     // Check if current user is the owner
@@ -105,8 +107,10 @@ export default function TarotReadingClient({
             }
         },
         onError: (error) => {
+            console.error("AI interpretation error:", error)
             setError(error.message)
             setIsGenerating(false)
+            setHasAttemptedGeneration(true) // Mark as attempted to prevent retry
         },
     })
 
@@ -167,36 +171,48 @@ Output:
         }
     }, [interpretation, isGenerating, cards, question, complete])
 
+    // Award stars to owner when visitor views the page
+    const awardStarsToOwner = useCallback(async () => {
+        if (hasAwardedStars) return // Prevent multiple calls
+        
+        try {
+            const response = await fetch("/api/stars/share-award", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    user_id: user?.id || null, // Pass the visitor's user ID (null for anonymous)
+                    owner_user_id: _ownerUserId,
+                    owner_did: _ownerDid,
+                    shared_id: readingId,
+                }),
+            })
+            
+            if (response.ok) {
+                const data = await response.json()
+                console.log("Star award result:", data)
+                setHasAwardedStars(true) // Mark as awarded
+            } else {
+                console.error("Failed to award stars:", await response.text())
+            }
+        } catch (error) {
+            console.error("Failed to award stars to owner:", error)
+        }
+    }, [_ownerUserId, _ownerDid, readingId, hasAwardedStars, user?.id])
+
     // Auto-generate interpretation on first visit if not already present
     useEffect(() => {
-        if (!interpretation && !isGenerating && !error) {
+        if (!interpretation && !isGenerating && !error && !hasAttemptedGeneration) {
+            setHasAttemptedGeneration(true)
             generateInterpretation()
         }
-    }, [interpretation, isGenerating, error, generateInterpretation])
+    }, [interpretation, isGenerating, error, hasAttemptedGeneration, generateInterpretation])
 
-    // Award stars to owner when visitor views the page
+    // Award stars to owner when interpretation is available
     useEffect(() => {
-        const awardStarsToOwner = async () => {
-            try {
-                await fetch("/api/stars/share-award", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        owner_user_id: _ownerUserId,
-                        owner_did: _ownerDid,
-                        shared_id: readingId,
-                    }),
-                })
-            } catch (error) {
-                console.error("Failed to award stars to owner:", error)
-            }
-        }
-        
-        // Only award stars if there's an interpretation (meaning the reading is complete)
         if (interpretation) {
             awardStarsToOwner()
         }
-    }, [interpretation, readingId, _ownerUserId, _ownerDid])
+    }, [interpretation, awardStarsToOwner])
 
     // Show loader while auth is loading
     if (isAuthLoading) {
