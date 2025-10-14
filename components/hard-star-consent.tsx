@@ -7,10 +7,10 @@ import {
     SheetHeader,
     SheetTitle,
     SheetDescription,
-    SheetFooter,
 } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { Shield, Cookie, Eye, Sparkle } from "lucide-react"
+import { Sparkle } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface HardStarConsentProps {
     open: boolean
@@ -41,69 +41,89 @@ export default function HardStarConsent({ open, onAccept }: HardStarConsentProps
                 side="bottom" 
                 className="h-auto max-h-[80vh] overflow-y-auto [&>button]:!hidden"
             >
-                <div className="flex flex-col items-center text-center space-y-6 py-8">
-                    {/* Icon */}
-                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center relative">
-                        <Shield className="w-8 h-8 text-primary" />
-                        {/* Sparkle effects */}
-                        <Sparkle className="absolute -top-1 -right-1 w-3 h-3 text-yellow-400 animate-ping" style={{ animationDelay: "0.5s" }} />
-                        <Sparkle className="absolute -bottom-1 -left-1 w-2 h-2 text-yellow-400 animate-ping" style={{ animationDelay: "1.2s" }} />
+                <div className={cn(
+                    "max-w-lg w-[92vw] border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(234,179,8,0.35)]",
+                    "relative overflow-hidden mx-auto my-8"
+                )}>
+                    {/* Beautiful ping orbs */}
+                    <Sparkle
+                        className='absolute top-16 left-16 w-3 h-3 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                        style={{ animationDelay: "0.5s" }}
+                    />
+                    <Sparkle
+                        className='absolute top-24 right-20 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                        style={{ animationDelay: "1.2s" }}
+                    />
+                    <Sparkle
+                        className='absolute top-40 left-1/3 w-2.5 h-2.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                        style={{ animationDelay: "2.8s" }}
+                    />
+                    <Sparkle
+                        className='absolute top-32 right-1/4 w-1.5 h-1.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                        style={{ animationDelay: "3.5s" }}
+                    />
+                    <Sparkle
+                        className='absolute bottom-20 left-20 w-3.5 h-3.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                        style={{ animationDelay: "1.8s" }}
+                    />
+                    <Sparkle
+                        className='absolute bottom-32 right-16 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                        style={{ animationDelay: "4.2s" }}
+                    />
+                    <Sparkle
+                        className='absolute bottom-16 right-1/3 w-2.5 h-2.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                        style={{ animationDelay: "2.1s" }}
+                    />
+                    <Sparkle
+                        className='absolute top-1/2 left-12 w-1.5 h-1.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                        style={{ animationDelay: "3.8s" }}
+                    />
+                    <Sparkle
+                        className='absolute top-1/3 right-12 w-3 h-3 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                        style={{ animationDelay: "0.9s" }}
+                    />
+                    <Sparkle
+                        className='absolute bottom-1/3 left-1/4 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                        style={{ animationDelay: "4.7s" }}
+                    />
+
+                    {/* Deep-space stars background */}
+                    <div className='pointer-events-none absolute inset-0 opacity-40'>
+                        <div className='cosmic-stars-layer-3' />
+                        <div className='cosmic-stars-layer-4' />
+                        <div className='cosmic-stars-layer-5' />
                     </div>
+                    {/* Golden aura behind dialog */}
+                    <div className='pointer-events-none absolute -top-24 -left-24 h-64 w-64 rounded-full bg-gradient-to-br from-yellow-300/25 via-yellow-500/15 to-transparent blur-3xl animate-pulse' />
+                    <div
+                        className='pointer-events-none absolute -bottom-28 -right-28 h-80 w-80 rounded-full bg-gradient-to-tl from-yellow-400/20 via-yellow-600/10 to-transparent blur-[100px] animate-pulse'
+                        style={{ animationDelay: "0.8s" }}
+                    />
 
-                    {/* Header */}
-                    <SheetHeader className="space-y-4">
-                        <SheetTitle className="text-2xl font-bold text-yellow-300 font-serif">
-                            Device Identification Required
-                        </SheetTitle>
-                        <SheetDescription className="text-base leading-relaxed max-w-md text-white/85">
-                            To provide you with the best experience and ensure proper functionality, 
-                            we need to create a unique device identifier for your browser.
-                        </SheetDescription>
-                    </SheetHeader>
-
-                    {/* Content */}
-                    <div className="space-y-6 max-w-lg">
-                        <div className="space-y-4">
-                            <div className="flex items-start space-x-3">
-                                <Cookie className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
-                                <div className="text-left">
-                                    <h4 className="font-semibold text-sm text-yellow-300">What we collect:</h4>
-                                    <p className="text-sm text-white/70 mt-1">
-                                        A unique device identifier (DID) stored locally in your browser to track your tarot readings and prevent duplicate star awards.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-start space-x-3">
-                                <Eye className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
-                                <div className="text-left">
-                                    <h4 className="font-semibold text-sm text-yellow-300">How we use it:</h4>
-                                    <p className="text-sm text-white/70 mt-1">
-                                        To identify you as the owner of your tarot readings and ensure you don&apos;t earn stars from viewing your own shared links.
-                                    </p>
-                                </div>
-                            </div>
+                    <div className="relative z-10 p-6">
+                        <SheetHeader>
+                            <SheetTitle className='text-yellow-300 font-serif text-xl'>
+                                Cookies Required
+                            </SheetTitle>
+                            <SheetDescription className='text-white/85'>
+                                We need to store a device ID to track your readings and prevent duplicate star awards.
+                            </SheetDescription>
+                        </SheetHeader>
+                        
+                        <div className='text-xs text-white/70 mb-6 mt-4'>
+                            This data is stored locally in your browser and not shared with third parties.
                         </div>
-
-                        <div className="bg-gradient-to-r from-yellow-400/10 to-yellow-600/10 rounded-lg p-4 border border-yellow-400/20">
-                            <p className="text-sm text-white/70">
-                                <strong className="text-yellow-300">Note:</strong> This identifier is stored locally in your browser and is not shared with third parties. 
-                                You can clear it anytime by clearing your browser&apos;s local storage.
-                            </p>
+                        
+                        <div className='flex gap-3 justify-end'>
+                            <Button
+                                onClick={handleAccept}
+                                disabled={isAccepting}
+                                className='px-3 py-2 rounded-md bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.45)]'
+                            >
+                                {isAccepting ? "Setting up..." : "Accept"}
+                            </Button>
                         </div>
                     </div>
-
-                    {/* Footer */}
-                    <SheetFooter className="w-full">
-                        <Button 
-                            onClick={handleAccept}
-                            disabled={isAccepting}
-                            className="w-full sm:w-auto min-w-[200px] bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.45)]"
-                            size="lg"
-                        >
-                            {isAccepting ? "Setting up..." : "Accept & Continue"}
-                        </Button>
-                    </SheetFooter>
                 </div>
             </SheetContent>
         </Sheet>
