@@ -510,7 +510,7 @@ export default function ShareSection({
                         className='py-2 px-6'
                     >
                         {shareOptions.map((option, index) => (
-                            <SwiperSlide key={option.id} className='!w-auto'>
+                            <SwiperSlide key={option.id} className='!w-28 sm:!w-32'>
                                 <button
                                     type='button'
                                     onClick={async () => {

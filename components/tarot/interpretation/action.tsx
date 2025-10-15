@@ -467,7 +467,7 @@ Please provide a tarot interpretation for this question and these cards. Focus o
                         {actionOptions.map((action, index) => (
                             <SwiperSlide
                                 key={action.id}
-                                className="!w-auto"
+                                className='!w-28 sm:!w-32'
                             >
                                 <button
                                     type='button'
