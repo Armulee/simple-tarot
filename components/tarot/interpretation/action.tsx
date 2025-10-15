@@ -7,7 +7,6 @@ import "swiper/css"
 import "swiper/css/free-mode"
 import {
     FaArrowsRotate,
-    FaPlus,
     FaLink,
     FaRegFileLines,
     FaDownload,
@@ -16,13 +15,25 @@ import {
     FaThumbsDown,
     FaComment,
     FaCheck,
+    FaXmark,
 } from "react-icons/fa6"
+import { Sparkles } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { Settings } from "lucide-react"
 import { useTarot } from "@/contexts/tarot-context"
 import { useRouter } from "next/navigation"
 import { useStars } from "@/contexts/stars-context"
 import { useCompletion } from "@ai-sdk/react"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface ActionSectionProps {
     question?: string
@@ -54,6 +65,14 @@ export default function ActionSection({
     const { user } = useAuth()
     const router = useRouter()
     const { spendStars, stars } = useStars()
+    const [showStarNote, setShowStarNote] = useState(false)
+    const [isDownloading, setIsDownloading] = useState(false)
+    const [showReport, setShowReport] = useState(false)
+    const [reportReason, setReportReason] = useState("")
+    const [reportDetails, setReportDetails] = useState("")
+    const [voteState, setVoteState] = useState<"up" | "down" | null>(null)
+    const [showFeedback, setShowFeedback] = useState(false)
+    const [rating, setRating] = useState<number>(0)
     const navGuardRef = useRef<HTMLDivElement>(null)
 
     const { complete } = useCompletion({
@@ -204,12 +223,16 @@ Please provide a tarot interpretation for this question and these cards. Focus o
             icon: <FaArrowsRotate className='w-4 h-4 text-white' />,
             bg: "linear-gradient(135deg, #6366F1, #4F46E5)",
             description: "Get a new interpretation",
-            onClick: handleRegenerate,
+            onClick: async () => {
+                setShowStarNote(true)
+                await handleRegenerate()
+                setTimeout(() => setShowStarNote(false), 2000)
+            },
         },
         {
             id: "new",
             label: "New Reading",
-            icon: <FaPlus className='w-4 h-4 text-white' />,
+            icon: <Sparkles className='w-4 h-4 text-white' />,
             bg: "linear-gradient(135deg, #22C55E, #16A34A)",
             description: "Start fresh",
             onClick: async () => router.push("/"),
@@ -335,9 +358,13 @@ Please provide a tarot interpretation for this question and these cards. Focus o
             label: "Download",
             icon: <FaDownload className='w-4 h-4 text-white' />,
             bg: "linear-gradient(135deg, #0EA5E9, #0284C7)",
-            description: "Save as image",
+            description: "Save image or video",
             onClick: async () => {
                 try {
+                    setIsDownloading(true)
+                    // Open a small chooser: for brevity, use prompt
+                    const choice = window.prompt("Download type: image or video? (image/video)", "image")
+                    const type = (choice || "image").toLowerCase()
                     const res = await fetch("/api/share-image", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -345,8 +372,11 @@ Please provide a tarot interpretation for this question and these cards. Focus o
                             question,
                             cards: cards,
                             interpretation,
-                            width: 1080,
-                            height: 1350,
+                            width: 1170, // iPhone portrait logical width
+                            height: 2532, // iPhone portrait logical height
+                            branding: "Asking Fate",
+                            theme: "cosmic",
+                            type,
                         }),
                     })
                     const blob = await res.blob()
@@ -354,12 +384,16 @@ Please provide a tarot interpretation for this question and these cards. Focus o
                     const url = URL.createObjectURL(blob)
                     const a = document.createElement("a")
                     a.href = url
-                    a.download = `reading-${ts}.png`
+                    a.download = `reading-${ts}.${type === "video" ? "mp4" : "png"}`
                     document.body.appendChild(a)
                     a.click()
                     a.remove()
                     URL.revokeObjectURL(url)
-                } catch {}
+                } catch (e) {
+                    console.error(e)
+                } finally {
+                    setIsDownloading(false)
+                }
             },
         },
         {
@@ -368,57 +402,72 @@ Please provide a tarot interpretation for this question and these cards. Focus o
             icon: <FaFlag className='w-4 h-4 text-white' />,
             bg: "linear-gradient(135deg, #EF4444, #DC2626)",
             description: "Report issue",
-            onClick: async () => {
-                const link = await ensureShareLink()
-                const mailto = `mailto:?subject=${encodeURIComponent("Report Tarot Reading")}&body=${encodeURIComponent(link || "")}`
-                window.location.href = mailto
-            },
+            onClick: async () => setShowReport(true),
         },
-        {
-            id: "vote-up",
-            label: "Vote Up",
-            icon: <FaThumbsUp className='w-4 h-4 text-white' />,
-            bg: "linear-gradient(135deg, #22C55E, #16A34A)",
-            description: "Like this reading",
-            onClick: async () => {
-                const link = await ensureShareLink()
-                const id = (link || "").split("/").pop() || ""
-                try {
-                    localStorage.setItem(`share-vote-${id}`, "up")
-                } catch {}
-            },
-        },
-        {
-            id: "vote-down",
-            label: "Vote Down",
-            icon: <FaThumbsDown className='w-4 h-4 text-white' />,
-            bg: "linear-gradient(135deg, #F59E0B, #D97706)",
-            description: "Dislike this reading",
-            onClick: async () => {
-                const link = await ensureShareLink()
-                const id = (link || "").split("/").pop() || ""
-                try {
-                    localStorage.setItem(`share-vote-${id}`, "down")
-                } catch {}
-            },
-        },
+        voteState !== "up"
+            ? {
+                  id: "vote-up",
+                  label: "Vote Up",
+                  icon: <FaThumbsUp className='w-4 h-4 text-white' />,
+                  bg: "linear-gradient(135deg, #22C55E, #16A34A)",
+                  description: "Like this reading",
+                  onClick: async () => {
+                      setVoteState("up")
+                      // TODO: call /api/feedbacks to upsert vote_up=true
+                  },
+              }
+            : {
+                  id: "vote-up-cancel",
+                  label: "Vote Up",
+                  icon: <FaXmark className='w-4 h-4 text-white' />,
+                  bg: "linear-gradient(135deg, #6B7280, #4B5563)",
+                  description: "Remove vote up",
+                  onClick: async () => {
+                      setVoteState(null)
+                      // TODO: call /api/feedbacks to remove vote
+                  },
+              },
+        voteState !== "down"
+            ? {
+                  id: "vote-down",
+                  label: "Vote Down",
+                  icon: <FaThumbsDown className='w-4 h-4 text-white' />,
+                  bg: "linear-gradient(135deg, #F59E0B, #D97706)",
+                  description: "Dislike this reading",
+                  onClick: async () => {
+                      setVoteState("down")
+                      // TODO: call /api/feedbacks to upsert vote_down=true
+                  },
+              }
+            : {
+                  id: "vote-down-cancel",
+                  label: "Vote Down",
+                  icon: <FaXmark className='w-4 h-4 text-white' />,
+                  bg: "linear-gradient(135deg, #6B7280, #4B5563)",
+                  description: "Remove vote down",
+                  onClick: async () => {
+                      setVoteState(null)
+                      // TODO: call /api/feedbacks to remove vote
+                  },
+              },
         {
             id: "feedback",
             label: "Feedback",
             icon: <FaComment className='w-4 h-4 text-white' />,
             bg: "linear-gradient(135deg, #8B5CF6, #7C3AED)",
             description: "Share feedback",
-            onClick: async () => {
-                window.open(
-                    "/contact?subject=Feedback%20on%20Tarot%20Reading",
-                    "_blank"
-                )
-            },
+            onClick: async () => setShowFeedback(true),
         },
     ]
 
     return (
         <div className='relative overflow-hidden group'>
+            {/* Slide-up loader for download */}
+            {isDownloading && (
+                <div className='fixed bottom-0 left-0 right-0 z-50 animate-slide-up bg-black/60 backdrop-blur-sm p-4 text-center text-white'>
+                    Preparing your {"content"}...
+                </div>
+            )}
             {/* Background gradient with animation */}
             <div className='absolute inset-0 bg-gradient-to-br from-accent/5 via-primary/5 to-accent/5 rounded-xl transition-all duration-500 group-hover:from-accent/10 group-hover:via-primary/10 group-hover:to-accent/10' />
 
@@ -504,6 +553,123 @@ Please provide a tarot interpretation for this question and these cards. Focus o
                     </Swiper>
                 </div>
             </div>
+            {/* Star deduction note */}
+            {showStarNote && (
+                <div className='mt-2 text-center text-yellow-300 text-xs flex items-center gap-1 justify-center'>
+                    <span className='inline-block w-3 h-3 rounded-full bg-yellow-300'></span>
+                    <span>Star -1 for regeneration</span>
+                </div>
+            )}
+
+            {/* Report dialog */}
+            <AlertDialog open={showReport}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Report this reading</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Select a reason and optionally add details.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className='space-y-2'>
+                        <select
+                            className='w-full bg-background border border-border/40 rounded-md p-2'
+                            value={reportReason}
+                            onChange={(e) => setReportReason(e.target.value)}
+                        >
+                            <option value=''>Select a reason</option>
+                            <option value='inappropriate'>Inappropriate content</option>
+                            <option value='spam'>Spam or misleading</option>
+                            <option value='harassment'>Harassment or hate</option>
+                            <option value='privacy'>Privacy concern</option>
+                            <option value='other'>Other</option>
+                        </select>
+                        {reportReason === 'other' && (
+                            <textarea
+                                className='w-full bg-background border border-border/40 rounded-md p-2'
+                                placeholder='Please describe...'
+                                value={reportDetails}
+                                onChange={(e) => setReportDetails(e.target.value)}
+                            />
+                        )}
+                    </div>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setShowReport(false)}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={async () => {
+                                if (!reportReason) return
+                                try {
+                                    const res = await fetch('/api/reports', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            reading_id: readingId,
+                                            reason: reportReason,
+                                            details: reportDetails || undefined,
+                                        }),
+                                    })
+                                    if (res.ok) setShowReport(false)
+                                } catch {}
+                            }}
+                        >
+                            Submit
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Feedback dialog */}
+            <AlertDialog open={showFeedback}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Share your feedback</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            How helpful was this interpretation?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className='flex items-center justify-center gap-2 py-2'>
+                        {[1,2,3,4,5].map((n) => (
+                            <button
+                                key={n}
+                                type='button'
+                                onClick={() => setRating(n)}
+                                className={`w-8 h-8 rounded-full ${rating >= n ? 'bg-yellow-400' : 'bg-zinc-700'}`}
+                                aria-label={`Rate ${n}`}
+                            />
+                        ))}
+                    </div>
+                    <textarea
+                        className='w-full bg-background border border-border/40 rounded-md p-2'
+                        placeholder='Optional comments'
+                        value={reportDetails}
+                        onChange={(e) => setReportDetails(e.target.value)}
+                    />
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setShowFeedback(false)}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={async () => {
+                                try {
+                                    const res = await fetch('/api/feedbacks', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            reading_id: readingId,
+                                            rating,
+                                            comment: reportDetails || undefined,
+                                        }),
+                                    })
+                                    if (res.ok) setShowFeedback(false)
+                                } catch {}
+                            }}
+                        >
+                            Submit
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }

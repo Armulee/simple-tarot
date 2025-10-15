@@ -254,7 +254,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             if (document.visibilityState === "visible") {
                 void reconcile()
             }
-        }, 15000)
+        }, 5000)
 
         return () => {
             cancelled = true
