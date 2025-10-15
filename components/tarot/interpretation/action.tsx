@@ -462,9 +462,11 @@ Please provide a tarot interpretation for this question and these cards. Focus o
                         }}
                         slidesPerView={4.5}
                         breakpoints={{
-                            640: { // sm and up
-                                slidesPerView: 'auto' as const,
-                            },
+                            640: { slidesPerView: 5.5 },
+                            768: { slidesPerView: 6.5 },
+                            1024: { slidesPerView: 8 },
+                            1280: { slidesPerView: 9.5 },
+                            1536: { slidesPerView: 10.5 },
                         }}
                         spaceBetween={8}
                         className='py-2 px-6'
@@ -472,7 +474,6 @@ Please provide a tarot interpretation for this question and these cards. Focus o
                         {actionOptions.map((action, index) => (
                             <SwiperSlide
                                 key={action.id}
-                                className='sm:!w-32'
                             >
                                 <button
                                     type='button'
