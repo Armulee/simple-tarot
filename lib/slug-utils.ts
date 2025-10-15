@@ -4,7 +4,8 @@
 
 // Removed unused TAROT_CARDS constant
 
-// Common question themes for slug generation
+// Common question themes for slug generation (currently unused but kept for future use)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const QUESTION_THEMES = [
     "love",
     "relationship",
@@ -126,8 +127,8 @@ function extractKeywords(question: string): string[] {
  */
 export function generateTarotSlug(
     question: string,
-    _cards: string[],
-    _interpretation?: string
+    _cards: string[], // eslint-disable-line @typescript-eslint/no-unused-vars
+    _interpretation?: string // eslint-disable-line @typescript-eslint/no-unused-vars
 ): string {
     // Clean and slugify the question directly
     let baseSlug = slugify(question)

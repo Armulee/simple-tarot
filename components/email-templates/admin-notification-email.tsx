@@ -1,4 +1,6 @@
 import React from "react"
+import Head from "next/head"
+import Image from "next/image"
 
 interface AdminNotificationEmailProps {
     name: string
@@ -24,10 +26,10 @@ export const AdminNotificationEmail: React.FC<AdminNotificationEmailProps> = ({
                 fontFamily: "'Poppins','Helvetica Neue',Arial,sans-serif",
             }}
         >
-            <head>
+            <Head>
                 <meta charSet='UTF-8' />
                 <title>New Contact Form Submission - AskingFate</title>
-            </head>
+            </Head>
             <body
                 style={{
                     margin: 0,
@@ -50,9 +52,11 @@ export const AdminNotificationEmail: React.FC<AdminNotificationEmailProps> = ({
                         backdropFilter: "blur(6px)",
                     }}
                 >
-                    <img
+                    <Image
                         src='https://askingfate.com/assets/logo.png'
                         alt='AskingFate Logo'
+                        width={100}
+                        height={100}
                         style={{
                             width: "100px",
                             height: "auto",
