@@ -87,7 +87,7 @@ export default function TarotReadingClient({
             }
         }
         checkOwnership()
-    }, []) // Remove dependencies to prevent re-runs
+    }, [_ownerDid, _ownerUserId, user?.id]) // Include all dependencies
 
     const { completion, complete } = useCompletion({
         api: "/api/interpret-cards/question",
@@ -256,6 +256,7 @@ Output:
         cards,
         question,
         complete,
+        readingId,
     ])
 
     // Award stars to owner when interpretation is available

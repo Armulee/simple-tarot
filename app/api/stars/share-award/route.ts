@@ -79,9 +79,8 @@ export async function POST(req: NextRequest) {
             }
             // Award to owner (user or DID)
             if (ownerUserId) {
-                const { data: currentData, error: currentErr } = await (
-                    db as any
-                ).rpc("star_get_or_create", {
+            const { data: currentData, error: currentErr } = await db
+                .rpc("star_get_or_create", {
                     p_anon_device_id: null,
                     p_user_id: ownerUserId,
                 })
@@ -97,7 +96,7 @@ export async function POST(req: NextRequest) {
                     ? (row.current_stars as number)
                     : 0
                 const next = Math.max(0, current + 1)
-                const { data, error } = await (db as any).rpc("star_set", {
+                const { data, error } = await db.rpc("star_set", {
                     p_anon_device_id: null,
                     p_new_balance: next,
                     p_user_id: ownerUserId,
@@ -114,7 +113,7 @@ export async function POST(req: NextRequest) {
                     const body = `You have a new visitor. Tap to view.`
                     if (sharedId) {
                         // Aggregate by (user_id, shared_id, date_key)
-                        const { data: existing } = await (db as any)
+                        const { data: existing } = await db
                             .from("notifications")
                             .select("id, visits_count")
                             .eq("user_id", ownerUserId)
@@ -123,7 +122,7 @@ export async function POST(req: NextRequest) {
                             .eq("date_key", dateKey)
                             .maybeSingle()
                         if (existing?.id) {
-                            await (db as any)
+                            await db
                                 .from("notifications")
                                 .update({
                                     title,
@@ -135,7 +134,7 @@ export async function POST(req: NextRequest) {
                                 })
                                 .eq("id", existing.id)
                         } else {
-                            await (db as any).from("notifications").insert({
+                            await db.from("notifications").insert({
                                 user_id: ownerUserId,
                                 type: "share_visit",
                                 title,
@@ -150,7 +149,7 @@ export async function POST(req: NextRequest) {
                 } catch {}
                 return NextResponse.json({ data })
             } else if (ownerDid) {
-                const { data, error } = await (db as any).rpc("star_add", {
+                const { data, error } = await db.rpc("star_add", {
                     p_anon_device_id: ownerDid,
                     p_amount: 1,
                     p_user_id: null,
@@ -216,12 +215,11 @@ export async function POST(req: NextRequest) {
         }
         // Award to owner (user or DID)
         if (ownerUserId) {
-            const { data: currentData, error: currentErr } = await (
-                db as any
-            ).rpc("star_get_or_create", {
-                p_anon_device_id: null,
-                p_user_id: ownerUserId,
-            })
+            const { data: currentData, error: currentErr } = await db
+                .rpc("star_get_or_create", {
+                    p_anon_device_id: null,
+                    p_user_id: ownerUserId,
+                })
             if (currentErr)
                 return NextResponse.json(
                     { error: currentErr.message },
@@ -232,7 +230,7 @@ export async function POST(req: NextRequest) {
                 ? (row.current_stars as number)
                 : 0
             const next = Math.max(0, current + 1)
-            const { data, error } = await (db as any).rpc("star_set", {
+            const { data, error } = await db.rpc("star_set", {
                 p_anon_device_id: null,
                 p_new_balance: next,
                 p_user_id: ownerUserId,
@@ -244,7 +242,7 @@ export async function POST(req: NextRequest) {
                 )
             return NextResponse.json({ data })
         } else if (ownerDid) {
-            const { data, error } = await (db as any).rpc("star_add", {
+            const { data, error } = await db.rpc("star_add", {
                 p_anon_device_id: ownerDid,
                 p_amount: 1,
                 p_user_id: null,

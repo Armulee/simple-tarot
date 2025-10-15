@@ -1,4 +1,6 @@
 import React from "react"
+import Head from "next/head"
+import Image from "next/image"
 
 interface UserAutoReplyEmailProps {
     name: string
@@ -22,10 +24,10 @@ export const UserAutoReplyEmail: React.FC<UserAutoReplyEmailProps> = ({
                 fontFamily: "'Poppins','Helvetica Neue',Arial,sans-serif",
             }}
         >
-            <head>
+            <Head>
                 <meta charSet='UTF-8' />
                 <title>Thank you for contacting Asking Fate</title>
-            </head>
+            </Head>
             <body
                 style={{
                     margin: 0,
@@ -48,9 +50,11 @@ export const UserAutoReplyEmail: React.FC<UserAutoReplyEmailProps> = ({
                         backdropFilter: "blur(6px)",
                     }}
                 >
-                    <img
+                    <Image
                         src='https://askingfate.com/assets/logo.png'
                         alt='AskingFate Logo'
+                        width={100}
+                        height={100}
                         style={{
                             width: "100px",
                             height: "auto",
