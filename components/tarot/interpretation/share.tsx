@@ -32,6 +32,15 @@ import { Share2 } from "lucide-react"
 import { shareLinkCache } from "@/lib/share-cache"
 import Link from "next/link"
 import { useTarot } from "@/contexts/tarot-context"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 const shareOptions = [
     {
@@ -202,6 +211,8 @@ export default function ShareSection({
     const navGuardRef = useRef<HTMLDivElement>(null)
     const [earnedStars, setEarnedStars] = useState(0)
     const maxStars = 5
+    const [unavailableOpen, setUnavailableOpen] = useState(false)
+    const [unavailableLabel, setUnavailableLabel] = useState<string>("")
 
     // Load earned stars from database on mount
     useEffect(() => {
@@ -563,73 +574,9 @@ export default function ShareSection({
                                                 "noopener,noreferrer"
                                             )
                                         } else {
-                                            try {
-                                                // Try modern clipboard API first
-                                                if (
-                                                    navigator.clipboard &&
-                                                    window.isSecureContext
-                                                ) {
-                                                    await navigator.clipboard.writeText(
-                                                        link
-                                                    )
-                                                    setCopied(true)
-                                                    window.setTimeout(
-                                                        () => setCopied(false),
-                                                        1500
-                                                    )
-                                                    return
-                                                }
-                                            } catch (error) {
-                                                console.log(
-                                                    "Clipboard API failed, trying fallback:",
-                                                    error
-                                                )
-                                            }
-
-                                            // Fallback for Safari and older browsers
-                                            try {
-                                                const textArea =
-                                                    document.createElement(
-                                                        "textarea"
-                                                    )
-                                                textArea.value = link
-                                                textArea.style.position =
-                                                    "fixed"
-                                                textArea.style.left =
-                                                    "-999999px"
-                                                textArea.style.top = "-999999px"
-                                                document.body.appendChild(
-                                                    textArea
-                                                )
-                                                textArea.focus()
-                                                textArea.select()
-
-                                                const successful =
-                                                    document.execCommand("copy")
-                                                document.body.removeChild(
-                                                    textArea
-                                                )
-
-                                                if (successful) {
-                                                    setCopied(true)
-                                                    window.setTimeout(
-                                                        () => setCopied(false),
-                                                        1500
-                                                    )
-                                                } else {
-                                                    // If both methods fail, show the link in an alert
-                                                    alert(
-                                                        `Copy this link: ${link}`
-                                                    )
-                                                }
-                                            } catch (fallbackError) {
-                                                console.error(
-                                                    "Fallback copy failed:",
-                                                    fallbackError
-                                                )
-                                                // Last resort: show the link
-                                                alert(`Copy this link: ${link}`)
-                                            }
+                                            // Unavailable platform: show dialog instead of copy fallback
+                                            setUnavailableLabel(option.label)
+                                            setUnavailableOpen(true)
                                         }
                                     }}
                                     className='group relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg w-full'
@@ -657,6 +604,22 @@ export default function ShareSection({
                         ))}
                     </Swiper>
                 </div>
+            {/* Unavailable share dialog */}
+            <AlertDialog open={unavailableOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Sharing unavailable</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {unavailableLabel} sharing is currently unavailable and still in work.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogAction onClick={() => setUnavailableOpen(false)}>
+                            OK
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
             </div>
         </div>
     )
