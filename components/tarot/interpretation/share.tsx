@@ -203,24 +203,18 @@ export default function ShareSection({
     const [earnedStars, setEarnedStars] = useState(0)
     const maxStars = 5
 
-    // Load earned stars from database - only once on mount (dedup per reading in this tab)
+    // Load earned stars from database on mount
     useEffect(() => {
         const loadEarnedStars = async () => {
             if (!readingId) return
 
             try {
-                const key =
-                    typeof window !== "undefined"
-                        ? `reading:${readingId}:earnedStarsLoaded`
-                        : null
-                if (key && sessionStorage.getItem(key)) return
                 const response = await fetch(
                     `/api/tarot/earned-stars?readingId=${readingId}`
                 )
                 if (response.ok) {
                     const data = await response.json()
                     setEarnedStars(data.earnedStars || 0)
-                    if (key) sessionStorage.setItem(key, "1")
                 }
             } catch (error) {
                 console.error("Error loading earned stars:", error)
