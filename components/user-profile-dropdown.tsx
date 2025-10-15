@@ -13,7 +13,7 @@ import {
     DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/use-auth"
-import { LogOut, CreditCard, Bell, User, Shield } from "lucide-react"
+import { LogOut, CreditCard, Bell, User, Shield, BookOpen } from "lucide-react"
 import { NotificationSheet } from "@/components/notifications/notification-sheet"
 
 interface UserProfileDropdownProps {
@@ -66,6 +66,11 @@ export function UserProfileDropdown({
         if (onClose) onClose()
     }
 
+    const handleYourReadingClick = () => {
+        router.push("/reading/history")
+        if (onClose) onClose()
+    }
+
     const getUserName = () => {
         return user.user_metadata?.name || user.email?.split("@")[0] || "User"
     }
@@ -101,6 +106,10 @@ export function UserProfileDropdown({
                         <DropdownMenuItem onClick={handleNotificationsClick}>
                             <Bell className='w-4 h-4 mr-2' />
                             {t("notifications")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleYourReadingClick}>
+                            <BookOpen className='w-4 h-4 mr-2' />
+                            Your Reading
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleProfileClick}>
                             <User className='w-4 h-4 mr-2' />

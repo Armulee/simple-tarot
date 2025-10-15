@@ -181,67 +181,72 @@ interface ShareSectionProps {
     readingId?: string
 }
 
-export default function ShareSection({ 
-    question: propQuestion, 
-    cards: propCards, 
+export default function ShareSection({
+    question: propQuestion,
+    cards: propCards,
     interpretation: propInterpretation,
-    readingId: propReadingId 
+    readingId: propReadingId,
 }: ShareSectionProps = {}) {
-    const { question: contextQuestion, selectedCards, interpretation: contextInterpretation } = useTarot()
+    const {
+        question: contextQuestion,
+        selectedCards,
+        interpretation: contextInterpretation,
+    } = useTarot()
     const question = propQuestion || contextQuestion
     const cards = propCards || selectedCards.map((c) => c.meaning)
     const interpretation = propInterpretation || contextInterpretation
     const readingId = propReadingId
-    
+
     const [, setCopied] = useState(false)
     const { user } = useAuth()
     const navGuardRef = useRef<HTMLDivElement>(null)
     const [earnedStars, setEarnedStars] = useState(0)
     const maxStars = 5
 
-    // Load earned stars from database
+    // Load earned stars from database - only once on mount (dedup per reading in this tab)
     useEffect(() => {
         const loadEarnedStars = async () => {
             if (!readingId) return
-            
+
             try {
-                const response = await fetch(`/api/tarot/earned-stars?readingId=${readingId}`)
+                const key =
+                    typeof window !== "undefined"
+                        ? `reading:${readingId}:earnedStarsLoaded`
+                        : null
+                if (key && sessionStorage.getItem(key)) return
+                const response = await fetch(
+                    `/api/tarot/earned-stars?readingId=${readingId}`
+                )
                 if (response.ok) {
                     const data = await response.json()
                     setEarnedStars(data.earnedStars || 0)
+                    if (key) sessionStorage.setItem(key, "1")
                 }
             } catch (error) {
-                console.error('Error loading earned stars:', error)
+                console.error("Error loading earned stars:", error)
             }
         }
         loadEarnedStars()
     }, [readingId])
 
-    // Refresh earned stars when the component mounts or readingId changes
+    // Refresh earned stars function - only used when needed
     const refreshEarnedStars = useCallback(async () => {
         if (!readingId) return
-        
+
         try {
-            const response = await fetch(`/api/tarot/earned-stars?readingId=${readingId}`)
+            const response = await fetch(
+                `/api/tarot/earned-stars?readingId=${readingId}`
+            )
             if (response.ok) {
                 const data = await response.json()
                 setEarnedStars(data.earnedStars || 0)
             }
         } catch (error) {
-            console.error('Error refreshing earned stars:', error)
+            console.error("Error refreshing earned stars:", error)
         }
     }, [readingId])
 
-    // Periodically refresh earned stars to show real-time updates
-    useEffect(() => {
-        if (!readingId) return
-
-        const interval = setInterval(() => {
-            refreshEarnedStars()
-        }, 10000) // Refresh every 10 seconds
-
-        return () => clearInterval(interval)
-    }, [readingId, refreshEarnedStars])
+    // Note: Removed visibility change listener to reduce API calls
 
     // Listen for earned stars updates from other components
     useEffect(() => {
@@ -250,12 +255,18 @@ export default function ShareSection({
         }
 
         if (typeof window !== "undefined") {
-            window.addEventListener("earned-stars-updated", handleEarnedStarsUpdate)
+            window.addEventListener(
+                "earned-stars-updated",
+                handleEarnedStarsUpdate
+            )
         }
 
         return () => {
             if (typeof window !== "undefined") {
-                window.removeEventListener("earned-stars-updated", handleEarnedStarsUpdate)
+                window.removeEventListener(
+                    "earned-stars-updated",
+                    handleEarnedStarsUpdate
+                )
             }
         }
     }, [refreshEarnedStars])
@@ -302,14 +313,14 @@ export default function ShareSection({
                         ? window.location.origin
                         : "https://dooduang.ai"
                 const link = `${origin}/tarot/${readingId}`
-                
+
                 // Mark this user as the original sharer
                 try {
-                    localStorage.setItem('is-original-sharer', 'true')
+                    localStorage.setItem("is-original-sharer", "true")
                 } catch (error) {
-                    console.error('Error marking original sharer:', error)
+                    console.error("Error marking original sharer:", error)
                 }
-                
+
                 return link
             }
 
@@ -360,9 +371,9 @@ export default function ShareSection({
 
                     // Mark this user as the original sharer
                     try {
-                        localStorage.setItem('is-original-sharer', 'true')
+                        localStorage.setItem("is-original-sharer", "true")
                     } catch (error) {
-                        console.error('Error marking original sharer:', error)
+                        console.error("Error marking original sharer:", error)
                     }
 
                     return link
@@ -395,9 +406,9 @@ export default function ShareSection({
 
             // Mark this user as the original sharer
             try {
-                localStorage.setItem('is-original-sharer', 'true')
+                localStorage.setItem("is-original-sharer", "true")
             } catch (error) {
-                console.error('Error marking original sharer:', error)
+                console.error("Error marking original sharer:", error)
             }
 
             return link
@@ -427,8 +438,8 @@ export default function ShareSection({
                                 Share Your Reading
                             </h3>
                             <p className='text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300'>
-                                Get 1 free star for each new person who visits your
-                                shared link ({earnedStars}/{maxStars}){" "}
+                                Get 1 free star for each new person who visits
+                                your shared link ({earnedStars}/{maxStars}){" "}
                                 <Link
                                     href='/articles/share-rewards'
                                     className='underline underline-offset-2 text-blue-300 hover:text-blue-200'
@@ -456,15 +467,12 @@ export default function ShareSection({
                             sensitivity: 1,
                             releaseOnEdges: true,
                         }}
-                        slidesPerView="auto"
+                        slidesPerView='auto'
                         spaceBetween={8}
                         className='py-2 px-6'
                     >
                         {shareOptions.map((option, index) => (
-                            <SwiperSlide
-                                key={option.id}
-                                className="!w-auto"
-                            >
+                            <SwiperSlide key={option.id} className='!w-auto'>
                                 <button
                                     type='button'
                                     onClick={async () => {
@@ -512,39 +520,68 @@ export default function ShareSection({
                                         } else {
                                             try {
                                                 // Try modern clipboard API first
-                                                if (navigator.clipboard && window.isSecureContext) {
-                                                    await navigator.clipboard.writeText(link)
+                                                if (
+                                                    navigator.clipboard &&
+                                                    window.isSecureContext
+                                                ) {
+                                                    await navigator.clipboard.writeText(
+                                                        link
+                                                    )
                                                     setCopied(true)
-                                                    window.setTimeout(() => setCopied(false), 1500)
+                                                    window.setTimeout(
+                                                        () => setCopied(false),
+                                                        1500
+                                                    )
                                                     return
                                                 }
                                             } catch (error) {
-                                                console.log('Clipboard API failed, trying fallback:', error)
+                                                console.log(
+                                                    "Clipboard API failed, trying fallback:",
+                                                    error
+                                                )
                                             }
-                                            
+
                                             // Fallback for Safari and older browsers
                                             try {
-                                                const textArea = document.createElement('textarea')
+                                                const textArea =
+                                                    document.createElement(
+                                                        "textarea"
+                                                    )
                                                 textArea.value = link
-                                                textArea.style.position = 'fixed'
-                                                textArea.style.left = '-999999px'
-                                                textArea.style.top = '-999999px'
-                                                document.body.appendChild(textArea)
+                                                textArea.style.position =
+                                                    "fixed"
+                                                textArea.style.left =
+                                                    "-999999px"
+                                                textArea.style.top = "-999999px"
+                                                document.body.appendChild(
+                                                    textArea
+                                                )
                                                 textArea.focus()
                                                 textArea.select()
-                                                
-                                                const successful = document.execCommand('copy')
-                                                document.body.removeChild(textArea)
-                                                
+
+                                                const successful =
+                                                    document.execCommand("copy")
+                                                document.body.removeChild(
+                                                    textArea
+                                                )
+
                                                 if (successful) {
                                                     setCopied(true)
-                                                    window.setTimeout(() => setCopied(false), 1500)
+                                                    window.setTimeout(
+                                                        () => setCopied(false),
+                                                        1500
+                                                    )
                                                 } else {
                                                     // If both methods fail, show the link in an alert
-                                                    alert(`Copy this link: ${link}`)
+                                                    alert(
+                                                        `Copy this link: ${link}`
+                                                    )
                                                 }
                                             } catch (fallbackError) {
-                                                console.error('Fallback copy failed:', fallbackError)
+                                                console.error(
+                                                    "Fallback copy failed:",
+                                                    fallbackError
+                                                )
                                                 // Last resort: show the link
                                                 alert(`Copy this link: ${link}`)
                                             }

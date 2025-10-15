@@ -184,24 +184,21 @@ export default function Interpretation() {
             }
         }
 
-        const prompt = `Question: "${currentQuestion}"
+        const prompt = `Question: "${question}"
 Cards: ${selectedCards.map((c) => c.meaning).join(", ")}
 
-Goal: Provide a concise interpretation that directly answers the question.
+Your task: Offer one short, gentle tarot insight (<=100 words) that clearly answers the question.  
+Write like a calm, wise reader giving heartfelt guidance.
 
-Silent steps (do not reveal):
-1) Classify the question intent into: love/relationships, work/career, finances, health/wellbeing, personal growth, spiritual, or general.
-2) Map the listed cards to that intent and emphasize the most relevant angles.
-3) Do not fetch or cite external sources (e.g., thetarotguide.com). Use only the provided card names (and reversed markers) as context.
+Do not list or analyze cards unless needed for clarity.  
+Focus on the message or energy the cards suggest for the user’s situation.  
+If the question is vague, interpret intuitively and ground it with helpful specifics.
 
-Output:
-- One short paragraph, <= 100 words.
-- Clear, grounded. Mention cards only if essential.
-- Answer directly to the question. ground it; if vague, add specificity; if too long, trim; if too short, enrich with specifics.`
+Tone: warm, intuitive, and natural — sound human, not robotic.
+`
 
         const result = await complete(prompt)
 
-        setInterpretation(result || "")
         return result || ""
     }, [
         complete,
@@ -209,7 +206,6 @@ Output:
         followUpQuestion,
         question,
         selectedCards,
-        setInterpretation,
         spendStars,
         paidForInterpretation,
         setPaidForInterpretation,
@@ -235,11 +231,7 @@ Output:
                 setInsufficientStars(true)
                 return
             }
-            getInterpretationAsync()
-                .then((value) => {
-                    setInterpretation(value)
-                })
-                .catch(() => {})
+            getInterpretationAsync().catch(() => {})
         }
     }, [
         currentStep,

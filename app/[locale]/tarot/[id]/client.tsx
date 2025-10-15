@@ -42,7 +42,9 @@ export default function TarotReadingClient({
     ownerUserId: _ownerUserId,
 }: TarotReadingClientProps) {
     const t = useTranslations("ReadingPage.interpretation")
-    const [interpretation, setInterpretation] = useState<string | null>(initialInterpretation)
+    const [interpretation, setInterpretation] = useState<string | null>(
+        initialInterpretation
+    )
     const [isGenerating, setIsGenerating] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
@@ -54,14 +56,14 @@ export default function TarotReadingClient({
     const [hasAttemptedGeneration, setHasAttemptedGeneration] = useState(false)
     const { user } = useAuth()
 
-    // Check if current user is the owner
+    // Check if current user is the owner - only once on mount
     useEffect(() => {
         const checkOwnership = async () => {
             try {
                 const response = await fetch("/api/did")
                 const data = await response.json()
                 const did = data.did
-                
+
                 // Check if user has a DID
                 if (!did) {
                     setHasDID(false)
@@ -69,10 +71,11 @@ export default function TarotReadingClient({
                     setIsAuthLoading(false)
                     return
                 }
-                
+
                 setHasDID(true)
                 const isOwnerByDid = did && _ownerDid && did === _ownerDid
-                const isOwnerByUserId = user?.id && _ownerUserId && user.id === _ownerUserId
+                const isOwnerByUserId =
+                    user?.id && _ownerUserId && user.id === _ownerUserId
                 setIsOwner(!!(isOwnerByDid || isOwnerByUserId))
             } catch (error) {
                 console.error("Error checking ownership:", error)
@@ -84,24 +87,34 @@ export default function TarotReadingClient({
             }
         }
         checkOwnership()
-    }, [user?.id, _ownerDid, _ownerUserId])
+    }, []) // Remove dependencies to prevent re-runs
 
     const { completion, complete } = useCompletion({
         api: "/api/interpret-cards/question",
         onFinish: async (_, completion) => {
             setInterpretation(completion)
             setIsGenerating(false)
-            
+
             // Save the interpretation to the database
             try {
-                await fetch("/api/tarot/update", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        id: readingId,
-                        interpretation: completion,
-                    }),
-                })
+                // Dedup save per readingId in this tab/session
+                const saveKey =
+                    typeof window !== "undefined"
+                        ? `reading:${readingId}:saved`
+                        : null
+                if (saveKey && sessionStorage.getItem(saveKey)) {
+                    // Already saved this session
+                } else {
+                    if (saveKey) sessionStorage.setItem(saveKey, "1")
+                    await fetch("/api/tarot/update", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            id: readingId,
+                            interpretation: completion,
+                        }),
+                    })
+                }
             } catch (error) {
                 console.error("Failed to save interpretation:", error)
             }
@@ -111,6 +124,14 @@ export default function TarotReadingClient({
             setError(error.message)
             setIsGenerating(false)
             setHasAttemptedGeneration(true) // Mark as attempted to prevent retry
+            // Allow retry by clearing generation guard
+            try {
+                const genKey =
+                    typeof window !== "undefined"
+                        ? `reading:${readingId}:gen`
+                        : null
+                if (genKey) sessionStorage.removeItem(genKey)
+            } catch {}
         },
     })
 
@@ -125,26 +146,73 @@ export default function TarotReadingClient({
     const handleDIDConsentAccept = () => {
         setShowDIDConsent(false)
         setHasDID(true)
-        // Re-check ownership with the new DID
-        const checkOwnership = async () => {
-            try {
-                const response = await fetch("/api/did")
-                const data = await response.json()
-                const did = data.did
-                const isOwnerByDid = did && _ownerDid && did === _ownerDid
-                const isOwnerByUserId = user?.id && _ownerUserId && user.id === _ownerUserId
-                setIsOwner(!!(isOwnerByDid || isOwnerByUserId))
-            } catch (error) {
-                console.error("Error checking ownership after consent:", error)
-                setIsOwner(false)
+        // Assume ownership check is valid after consent
+        const isOwnerByUserId =
+            user?.id && _ownerUserId && user.id === _ownerUserId
+        setIsOwner(!!isOwnerByUserId)
+        // Retry star award now that DID exists (if we already have interpretation)
+        try {
+            if (interpretation && !hasAwardedStars) {
+                awardStarsToOwner()
             }
-        }
-        checkOwnership()
+        } catch {}
     }
 
-    const generateInterpretation = useCallback(async () => {
-        if (!interpretation && !isGenerating) {
-            // No star deduction here - stars are deducted during card selection
+    // Award stars to owner when visitor views the page
+    const awardStarsToOwner = useCallback(async () => {
+        // Dedup per readingId in this tab/session
+        const awardKey =
+            typeof window !== "undefined"
+                ? `reading:${readingId}:awarded`
+                : null
+        if (hasAwardedStars) return
+        if (awardKey && sessionStorage.getItem(awardKey)) return
+
+        try {
+            const response = await fetch("/api/stars/share-award", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    user_id: user?.id || null, // Pass the visitor's user ID (null for anonymous)
+                    owner_user_id: _ownerUserId,
+                    owner_did: _ownerDid,
+                    shared_id: readingId,
+                }),
+            })
+
+            if (response.ok) {
+                const data = await response.json()
+                console.log("Star award result:", data)
+                setHasAwardedStars(true) // Mark as awarded
+                if (awardKey) sessionStorage.setItem(awardKey, "1")
+            } else {
+                console.error("Failed to award stars:", await response.text())
+            }
+        } catch (error) {
+            console.error("Failed to award stars to owner:", error)
+        }
+    }, [_ownerUserId, _ownerDid, readingId, hasAwardedStars, user?.id])
+
+    // Auto-generate interpretation on first visit if not already present
+    useEffect(() => {
+        if (
+            !interpretation &&
+            !isGenerating &&
+            !error &&
+            !hasAttemptedGeneration
+        ) {
+            // Dedup generation per readingId in this tab/session (guards StrictMode double-mount)
+            const genKey =
+                typeof window !== "undefined"
+                    ? `reading:${readingId}:gen`
+                    : null
+            if (genKey && sessionStorage.getItem(genKey)) {
+                return
+            }
+            if (genKey) sessionStorage.setItem(genKey, "1")
+            setHasAttemptedGeneration(true)
+
+            // Generate interpretation directly here
             setIsGenerating(true)
             setError(null)
 
@@ -167,45 +235,28 @@ Output:
 - Answer directly to the question. ground it; if vague, add specificity; if too long, trim; if too short, enrich with specifics.`
 
             // Generate interpretation
-            await complete(prompt)
-        }
-    }, [interpretation, isGenerating, cards, question, complete])
-
-    // Award stars to owner when visitor views the page
-    const awardStarsToOwner = useCallback(async () => {
-        if (hasAwardedStars) return // Prevent multiple calls
-        
-        try {
-            const response = await fetch("/api/stars/share-award", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    user_id: user?.id || null, // Pass the visitor's user ID (null for anonymous)
-                    owner_user_id: _ownerUserId,
-                    owner_did: _ownerDid,
-                    shared_id: readingId,
-                }),
+            complete(prompt).catch((error) => {
+                console.error("AI interpretation error:", error)
+                setError(error.message)
+                setIsGenerating(false)
+                try {
+                    const k =
+                        typeof window !== "undefined"
+                            ? `reading:${readingId}:gen`
+                            : null
+                    if (k) sessionStorage.removeItem(k)
+                } catch {}
             })
-            
-            if (response.ok) {
-                const data = await response.json()
-                console.log("Star award result:", data)
-                setHasAwardedStars(true) // Mark as awarded
-            } else {
-                console.error("Failed to award stars:", await response.text())
-            }
-        } catch (error) {
-            console.error("Failed to award stars to owner:", error)
         }
-    }, [_ownerUserId, _ownerDid, readingId, hasAwardedStars, user?.id])
-
-    // Auto-generate interpretation on first visit if not already present
-    useEffect(() => {
-        if (!interpretation && !isGenerating && !error && !hasAttemptedGeneration) {
-            setHasAttemptedGeneration(true)
-            generateInterpretation()
-        }
-    }, [interpretation, isGenerating, error, hasAttemptedGeneration, generateInterpretation])
+    }, [
+        interpretation,
+        isGenerating,
+        error,
+        hasAttemptedGeneration,
+        cards,
+        question,
+        complete,
+    ])
 
     // Award stars to owner when interpretation is available
     useEffect(() => {
@@ -226,7 +277,7 @@ Output:
 
     // Show loader while auth is loading
     if (isAuthLoading) {
-        return <BrandLoader label="Loading your reading..." />
+        return <BrandLoader label='Loading your reading...' />
     }
 
     return (
@@ -237,8 +288,9 @@ Output:
                     <AlertDialogHeader>
                         <AlertDialogTitle>No stars left</AlertDialogTitle>
                         <AlertDialogDescription>
-                            You don&apos;t have enough stars to view this interpretation.
-                            Please wait for refill or purchase more stars.
+                            You don&apos;t have enough stars to view this
+                            interpretation. Please wait for refill or purchase
+                            more stars.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -291,7 +343,8 @@ Output:
                                 <div className='flex items-center justify-center gap-2 text-xs text-yellow-300 mt-2'>
                                     <Stars className='w-3.5 h-3.5' />
                                     <span>
-                                        Consuming 1 star to reveal this interpretation.
+                                        Consuming 1 star to reveal this
+                                        interpretation.
                                     </span>
                                 </div>
                             )}
@@ -309,7 +362,11 @@ Output:
                             <div className='text-center space-y-4'>
                                 <p className='text-destructive'>{error}</p>
                                 <button
-                                    onClick={generateInterpretation}
+                                    onClick={() => {
+                                        setIsGenerating(true)
+                                        setError(null)
+                                        setHasAttemptedGeneration(false)
+                                    }}
                                     className='px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90'
                                 >
                                     Try Again
@@ -347,13 +404,13 @@ Output:
                         <>
                             {/* Owner: Show Actions and Sharing (swapped positions) */}
                             <div className='w-full space-y-6'>
-                                <ActionSection 
+                                <ActionSection
                                     question={question}
                                     cards={cards}
                                     interpretation={interpretation}
                                     readingId={readingId}
                                 />
-                                <ShareSection 
+                                <ShareSection
                                     question={question}
                                     cards={cards}
                                     interpretation={interpretation}
@@ -386,12 +443,15 @@ Output:
                                                 </h2>
                                                 <Sparkles
                                                     className='w-8 h-8 text-yellow-300 animate-pulse'
-                                                    style={{ animationDelay: "0.5s" }}
+                                                    style={{
+                                                        animationDelay: "0.5s",
+                                                    }}
                                                 />
                                             </div>
                                             <p className='text-white/75 max-w-3xl mx-auto leading-relaxed font-medium'>
-                                                The cards have spoken to you. Now let them
-                                                reveal the secrets of your own journey.
+                                                The cards have spoken to you.
+                                                Now let them reveal the secrets
+                                                of your own journey.
                                                 <span className='text-white font-bold'>
                                                     {" "}
                                                     Ask your question
@@ -401,7 +461,8 @@ Output:
                                                     {" "}
                                                     personalized guidance
                                                 </span>{" "}
-                                                from the ancient wisdom of tarot.
+                                                from the ancient wisdom of
+                                                tarot.
                                             </p>
                                         </div>
 
@@ -414,7 +475,9 @@ Output:
                                                 >
                                                     <div className='flex items-center gap-4'>
                                                         <Home className='w-6 h-6' />
-                                                        <span>Ask Your Question</span>
+                                                        <span>
+                                                            Ask Your Question
+                                                        </span>
                                                         <ArrowRight className='w-6 h-6 group-hover:translate-x-2 transition-transform duration-300' />
                                                     </div>
                                                 </Button>
@@ -428,7 +491,9 @@ Output:
                                                 >
                                                     <div className='flex items-center gap-4'>
                                                         <UserPlus className='w-6 h-6' />
-                                                        <span>Create Account</span>
+                                                        <span>
+                                                            Create Account
+                                                        </span>
                                                         <ArrowRight className='w-6 h-6 group-hover:translate-x-2 transition-transform duration-300' />
                                                     </div>
                                                 </Button>
@@ -443,9 +508,9 @@ Output:
             )}
 
             {/* Hard Star Consent */}
-            <HardStarConsent 
-                open={showDIDConsent} 
-                onAccept={handleDIDConsentAccept} 
+            <HardStarConsent
+                open={showDIDConsent}
+                onAccept={handleDIDConsentAccept}
             />
         </>
     )

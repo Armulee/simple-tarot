@@ -24,9 +24,9 @@ async function getTarotReading(id: string) {
 export default async function TarotReadingPage({
     params,
 }: {
-    params: { id: string }
+    params: Promise<{ id: string }>
 }) {
-    const id = (params?.id ?? "").toString()
+    const { id } = await params
     const data = await getTarotReading(id)
     if (!data) return notFound()
 
@@ -54,8 +54,8 @@ export default async function TarotReadingPage({
           })
         : []
 
-            return (
-                <div className='space-y-8 px-4 max-w-xl mx-auto'>
+    return (
+        <div className='space-y-8 px-4 max-w-xl mx-auto'>
             {/* Header */}
             <Card className='px-6 pt-10 pb-6 border-0 relative overflow-hidden'>
                 {/* Background card images with aura */}

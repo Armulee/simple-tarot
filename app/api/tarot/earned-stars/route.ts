@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
         }
 
         const { searchParams } = new URL(req.url)
-        const readingId = searchParams.get('readingId')
+        const readingId = searchParams.get("readingId")
 
         if (!readingId) {
             return NextResponse.json(
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
         // Get the reading details to find the owner
         const { data: reading, error: readingError } = await supabaseAdmin
             .from("tarot_readings")
-            .select("owner_user_id, owner_did")
+            .select("owner_user_id, did")
             .eq("id", readingId)
             .maybeSingle()
 
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
             )
         }
 
-        // Count earned stars from share_visit_awards table
+        // Count earned stars from share_visit_awards table (unified schema)
         const { count, error: countError } = await supabaseAdmin
             .from("share_visit_awards")
             .select("id", { count: "exact", head: true })
@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
             earnedStars,
             maxStars,
             ownerUserId: reading.owner_user_id,
-            ownerDid: reading.owner_did,
+            ownerDid: reading.did,
         })
     } catch (e: unknown) {
         const message = e instanceof Error ? e.message : "INTERNAL_ERROR"

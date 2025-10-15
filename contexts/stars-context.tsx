@@ -83,28 +83,31 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             setInitialized(false)
             return
         }
-        ;(async () => {
-            try {
-                const state = await starGetOrCreate(user ?? null)
-                if (cancelled) return
-                setStars(state.currentStars)
-                setNextRefillAt(
-                    computeNextRefillAt(
-                        state.currentStars,
-                        state.lastRefillAt,
-                        refillCap,
-                        Boolean(user)
+        // Skip API call if already initialized to prevent duplicate calls
+        if (!initialized) {
+            ;(async () => {
+                try {
+                    const state = await starGetOrCreate(user ?? null)
+                    if (cancelled) return
+                    setStars(state.currentStars)
+                    setNextRefillAt(
+                        computeNextRefillAt(
+                            state.currentStars,
+                            state.lastRefillAt,
+                            refillCap,
+                            Boolean(user)
+                        )
                     )
-                )
-                setFirstLoginBonusGranted(state.firstLoginBonusGranted)
-                setFirstTimeLoginGrant(state.firstTimeLoginGrant)
-                setInitialized(true)
-            } catch {}
-        })()
+                    setFirstLoginBonusGranted(state.firstLoginBonusGranted)
+                    setFirstTimeLoginGrant(state.firstTimeLoginGrant)
+                    setInitialized(true)
+                } catch {}
+            })()
+        }
         return () => {
             cancelled = true
         }
-    }, [user, refillCap, computeNextRefillAt])
+    }, [user?.id, refillCap, computeNextRefillAt]) // Only depend on user.id, not the whole user object
 
     // Initialize stars after consent is accepted
     type CookieConsentChangedDetail = { choice: "accepted" | "declined" }

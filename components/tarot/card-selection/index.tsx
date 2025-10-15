@@ -15,6 +15,7 @@ import { InlineQuestionEdit } from "../inline-question-edit"
 // import AdDialog from "@/components/ads/ad-dialog"
 import { useStars } from "@/contexts/stars-context"
 import BrandLoader from "@/components/brand-loader"
+import { useAuth } from "@/hooks/use-auth"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -44,6 +45,7 @@ export default function CardSelection({
         followUpQuestion,
         setFollowUpQuestion,
     } = useTarot()
+    const { user } = useAuth()
     const isMobile = useIsMobile()
     const { stars, spendStars } = useStars()
 
@@ -128,8 +130,9 @@ export default function CardSelection({
         // Create tarot reading entry and redirect to the new page
         try {
             setIsCreatingReading(true)
-            const currentQuestion = isFollowUp && followUpQuestion ? followUpQuestion : question
-            const cardNames = cards.map(card => 
+            const currentQuestion =
+                isFollowUp && followUpQuestion ? followUpQuestion : question
+            const cardNames = cards.map((card) =>
                 card.isReversed ? `${card.name} (Reversed)` : card.name
             )
 
@@ -147,7 +150,7 @@ export default function CardSelection({
                 body: JSON.stringify({
                     question: currentQuestion,
                     cards: cardNames,
-                    user_id: null, // Will be handled by the API based on auth
+                    user_id: user?.id || null,
                 }),
             })
 
@@ -207,7 +210,7 @@ export default function CardSelection({
         <>
             {/* Creating Reading Loader */}
             {isCreatingReading && (
-                <BrandLoader label="Creating your reading..." />
+                <BrandLoader label='Creating your reading...' />
             )}
 
             {/* No Stars Dialog */}
