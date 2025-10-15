@@ -193,6 +193,88 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         }
     }, [initialized, user, refillCap, computeNextRefillAt, stars, nextRefillAt])
 
+    // Broadcast helper to notify other tabs/components to refresh
+    const broadcastStarsUpdate = useCallback(() => {
+        try {
+            if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("stars-balance-updated"))
+                if ("BroadcastChannel" in window) {
+                    const bc = new BroadcastChannel("stars-balance")
+                    bc.postMessage({ ts: Date.now() })
+                    bc.close()
+                }
+            }
+        } catch {}
+    }, [])
+
+    // Reconcile periodically and on visibility change / cross-tab events
+    useEffect(() => {
+        if (!initialized) return
+        if (!hasCookieConsent()) return
+        let cancelled = false
+        const reconcile = async () => {
+            try {
+                if (document.visibilityState !== "visible") return
+                const state = await starGetOrCreate(user ?? null)
+                if (cancelled) return
+                setStars(state.currentStars)
+                setNextRefillAt(
+                    computeNextRefillAt(
+                        state.currentStars,
+                        state.lastRefillAt,
+                        refillCap,
+                        Boolean(user)
+                    )
+                )
+            } catch {}
+        }
+
+        const onVisibility = () => {
+            if (document.visibilityState === "visible") {
+                void reconcile()
+            }
+        }
+
+        let bc: BroadcastChannel | null = null
+        const onCustomUpdate = () => void reconcile()
+        if (typeof window !== "undefined") {
+            window.addEventListener(
+                "stars-balance-updated",
+                onCustomUpdate as EventListener
+            )
+            document.addEventListener("visibilitychange", onVisibility)
+            if ("BroadcastChannel" in window) {
+                bc = new BroadcastChannel("stars-balance")
+                const onMessage = () => void reconcile()
+                bc.addEventListener("message", onMessage as EventListener)
+            }
+        }
+
+        const id = window.setInterval(() => {
+            if (document.visibilityState === "visible") {
+                void reconcile()
+            }
+        }, 15000)
+
+        return () => {
+            cancelled = true
+            window.clearInterval(id)
+            if (typeof window !== "undefined") {
+                window.removeEventListener(
+                    "stars-balance-updated",
+                    onCustomUpdate as EventListener
+                )
+                document.removeEventListener(
+                    "visibilitychange",
+                    onVisibility
+                )
+                if (bc) {
+                    bc.close()
+                }
+            }
+        }
+    }, [initialized, user, refillCap, computeNextRefillAt])
+
     const addStars = useCallback(
         (amount: number) => {
             if (!Number.isFinite(amount) || amount <= 0) return
@@ -217,6 +299,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                             Boolean(user)
                         )
                     )
+                    broadcastStarsUpdate()
                 } catch {
                     // On failure, trigger a refresh to reconcile
                     try {
@@ -230,11 +313,12 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                                 Boolean(user)
                             )
                         )
+                        broadcastStarsUpdate()
                     } catch {}
                 }
             })()
         },
-        [user, computeNextRefillAt, refillCap]
+        [user, computeNextRefillAt, refillCap, broadcastStarsUpdate]
     )
 
     // For purchases: explicitly set absolute balance. Requires logged-in user.
@@ -257,6 +341,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                             Boolean(user)
                         )
                     )
+                    broadcastStarsUpdate()
                 } catch {
                     try {
                         const state = await starGetOrCreate(user ?? null)
@@ -269,11 +354,12 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                                 Boolean(user)
                             )
                         )
+                        broadcastStarsUpdate()
                     } catch {}
                 }
             })()
         },
-        [user, computeNextRefillAt, refillCap]
+        [user, computeNextRefillAt, refillCap, broadcastStarsUpdate]
     )
 
     const spendStars = useCallback(
@@ -315,6 +401,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                                 Boolean(user)
                             )
                         )
+                        broadcastStarsUpdate()
                         return
                     }
                     setStars(state.currentStars)
@@ -326,6 +413,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                             Boolean(user)
                         )
                     )
+                    broadcastStarsUpdate()
                 } catch {
                     try {
                         const refreshed = await starGetOrCreate(user ?? null)
@@ -338,12 +426,13 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                                 Boolean(user)
                             )
                         )
+                        broadcastStarsUpdate()
                     } catch {}
                 }
             })()
             return true
         },
-        [initialized, user, refillCap, computeNextRefillAt, nextRefillAt]
+        [initialized, user, refillCap, computeNextRefillAt, nextRefillAt, broadcastStarsUpdate]
     )
 
     const resetStars = useCallback(
