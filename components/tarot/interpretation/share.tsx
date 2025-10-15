@@ -246,11 +246,11 @@ export default function ShareSection({
         }
     }, [readingId])
 
-    // Note: Removed visibility change listener to reduce API calls
-
     // Listen for earned stars updates from other components
     useEffect(() => {
         const handleEarnedStarsUpdate = () => {
+            // Optimistically bump UI by +1 (capped), then reconcile with server
+            setEarnedStars((prev) => Math.min((prev || 0) + 1, maxStars))
             refreshEarnedStars()
         }
 
@@ -259,6 +259,16 @@ export default function ShareSection({
                 "earned-stars-updated",
                 handleEarnedStarsUpdate
             )
+
+            // Cross-tab sync via BroadcastChannel when available
+            try {
+                if ("BroadcastChannel" in window) {
+                    const bc = new BroadcastChannel("tarot-earned-stars")
+                    const onMessage = () => handleEarnedStarsUpdate()
+                    bc.addEventListener("message", onMessage)
+                    ;(window as unknown as { __tarotEarnedBc?: BroadcastChannel }).__tarotEarnedBc = bc
+                }
+            } catch {}
         }
 
         return () => {
@@ -267,9 +277,43 @@ export default function ShareSection({
                     "earned-stars-updated",
                     handleEarnedStarsUpdate
                 )
+                try {
+                    const w = window as unknown as { __tarotEarnedBc?: BroadcastChannel }
+                    const bc = w.__tarotEarnedBc
+                    if (bc) {
+                        bc.close()
+                        w.__tarotEarnedBc = undefined
+                    }
+                } catch {}
             }
         }
-    }, [refreshEarnedStars])
+    }, [refreshEarnedStars, maxStars])
+
+    // Refresh when tab becomes visible (owner may be watching while others visit)
+    useEffect(() => {
+        if (!readingId) return
+        const onVisibilityChange = () => {
+            if (document.visibilityState === "visible") {
+                refreshEarnedStars()
+            }
+        }
+        document.addEventListener("visibilitychange", onVisibilityChange)
+        return () => {
+            document.removeEventListener(
+                "visibilitychange",
+                onVisibilityChange
+            )
+        }
+    }, [readingId, refreshEarnedStars])
+
+    // Lightweight polling to keep header fresh while viewing
+    useEffect(() => {
+        if (!readingId) return
+        const intervalId = window.setInterval(() => {
+            refreshEarnedStars()
+        }, 15000) // 15s polling
+        return () => window.clearInterval(intervalId)
+    }, [readingId, refreshEarnedStars])
 
     useEffect(() => {
         const el = navGuardRef.current
