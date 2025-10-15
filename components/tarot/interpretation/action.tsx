@@ -460,14 +460,19 @@ Please provide a tarot interpretation for this question and these cards. Focus o
                             sensitivity: 1,
                             releaseOnEdges: true,
                         }}
-                        slidesPerView="auto"
+                        slidesPerView={4.5}
+                        breakpoints={{
+                            640: { // sm and up
+                                slidesPerView: 'auto' as const,
+                            },
+                        }}
                         spaceBetween={8}
                         className='py-2 px-6'
                     >
                         {actionOptions.map((action, index) => (
                             <SwiperSlide
                                 key={action.id}
-                                className='!w-28 sm:!w-32'
+                                className='sm:!w-32'
                             >
                                 <button
                                     type='button'

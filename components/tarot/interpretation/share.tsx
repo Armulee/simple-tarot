@@ -505,12 +505,17 @@ export default function ShareSection({
                             sensitivity: 1,
                             releaseOnEdges: true,
                         }}
-                        slidesPerView='auto'
+                        slidesPerView={4.5}
+                        breakpoints={{
+                            640: { // sm and up
+                                slidesPerView: 'auto' as const,
+                            },
+                        }}
                         spaceBetween={8}
                         className='py-2 px-6'
                     >
                         {shareOptions.map((option, index) => (
-                            <SwiperSlide key={option.id} className='!w-28 sm:!w-32'>
+                            <SwiperSlide key={option.id} className='sm:!w-32'>
                                 <button
                                     type='button'
                                     onClick={async () => {
