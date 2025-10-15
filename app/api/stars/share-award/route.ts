@@ -41,6 +41,19 @@ export async function POST(req: NextRequest) {
             if (ownerId === visitorId) {
                 return NextResponse.json({ data: { ok: true, skipped: true } })
             }
+            // Global visitor daily cap: only one award per visitor per day across all shares/owners
+            {
+                const { count: vCount, error: vErr } = await db
+                    .from("share_visit_awards")
+                    .select("id", { count: "exact", head: true })
+                    .eq("date_key", dateKey)
+                    .eq("visitor_id", visitorId)
+                if (!vErr && typeof vCount === "number" && vCount >= 1) {
+                    return NextResponse.json({
+                        data: { ok: true, visitor_capped: true },
+                    })
+                }
+            }
             // Check duplicate for this share today by visitor_user_id
             if (sharedId) {
                 const { data: visit, error: visitErr } = await db
@@ -177,6 +190,19 @@ export async function POST(req: NextRequest) {
         // If visitor is the owner, do not award
         if (ownerId === visitorId) {
             return NextResponse.json({ data: { ok: true, skipped: true } })
+        }
+        // Global visitor daily cap: only one award per visitor per day across all shares/owners
+        {
+            const { count: vCount, error: vErr } = await db
+                .from("share_visit_awards")
+                .select("id", { count: "exact", head: true })
+                .eq("date_key", dateKey)
+                .eq("visitor_id", visitorId)
+            if (!vErr && typeof vCount === "number" && vCount >= 1) {
+                return NextResponse.json({
+                    data: { ok: true, visitor_capped: true },
+                })
+            }
         }
         if (sharedId) {
             const { data: visit, error: visitErr } = await db
