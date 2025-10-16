@@ -34,6 +34,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 
 interface ActionSectionProps {
     question?: string
@@ -359,42 +360,7 @@ Please provide a tarot interpretation for this question and these cards. Focus o
             icon: <FaDownload className='w-4 h-4 text-white' />,
             bg: "linear-gradient(135deg, #0EA5E9, #0284C7)",
             description: "Save image or video",
-            onClick: async () => {
-                try {
-                    setIsDownloading(true)
-                    // Open a small chooser: for brevity, use prompt
-                    const choice = window.prompt("Download type: image or video? (image/video)", "image")
-                    const type = (choice || "image").toLowerCase()
-                    const res = await fetch("/api/share-image", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            question,
-                            cards: cards,
-                            interpretation,
-                            width: 1170, // iPhone portrait logical width
-                            height: 2532, // iPhone portrait logical height
-                            branding: "Asking Fate",
-                            theme: "cosmic",
-                            type,
-                        }),
-                    })
-                    const blob = await res.blob()
-                    const ts = new Date().toISOString().replace(/[:.]/g, "-")
-                    const url = URL.createObjectURL(blob)
-                    const a = document.createElement("a")
-                    a.href = url
-                    a.download = `reading-${ts}.${type === "video" ? "mp4" : "png"}`
-                    document.body.appendChild(a)
-                    a.click()
-                    a.remove()
-                    URL.revokeObjectURL(url)
-                } catch (e) {
-                    console.error(e)
-                } finally {
-                    setIsDownloading(false)
-                }
-            },
+            onClick: async () => {}, // handled by Popover wrapper
         },
         {
             id: "report",
@@ -524,30 +490,132 @@ Please provide a tarot interpretation for this question and these cards. Focus o
                             <SwiperSlide
                                 key={action.id}
                             >
-                                <button
-                                    type='button'
-                                    onClick={action.onClick}
-                                    className='group relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg w-full'
-                                    style={{
-                                        animationDelay: `${index * 50}ms`,
-                                        animationFillMode: "both",
-                                    }}
-                                >
-                                    {/* Icon container with gradient background */}
-                                    <div
-                                        className='relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
-                                        style={{ background: action.bg }}
+                                {action.id === 'download' ? (
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <button
+                                                type='button'
+                                                className='group relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg w-full'
+                                                style={{
+                                                    animationDelay: `${index * 50}ms`,
+                                                    animationFillMode: "both",
+                                                }}
+                                            >
+                                                <div
+                                                    className='relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
+                                                    style={{ background: action.bg }}
+                                                >
+                                                    {action.icon}
+                                                    <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                                                </div>
+                                                <span className='text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-300 text-center leading-tight'>
+                                                    {action.label}
+                                                </span>
+                                            </button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className='w-56'>
+                                            <div className='space-y-2'>
+                                                <button
+                                                    type='button'
+                                                    className='w-full px-3 py-2 rounded-md bg-primary/20 hover:bg-primary/30 text-sm'
+                                                    onClick={async () => {
+                                                        try {
+                                                            setIsDownloading(true)
+                                                            const type = 'image'
+                                                            const res = await fetch('/api/share-image', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({
+                                                                    question,
+                                                                    cards: cards,
+                                                                    interpretation,
+                                                                    width: 1170,
+                                                                    height: 2532,
+                                                                    branding: 'Asking Fate',
+                                                                    theme: 'cosmic',
+                                                                    type,
+                                                                }),
+                                                            })
+                                                            const blob = await res.blob()
+                                                            const ts = new Date().toISOString().replace(/[:.]/g, '-')
+                                                            const url = URL.createObjectURL(blob)
+                                                            const a = document.createElement('a')
+                                                            a.href = url
+                                                            a.download = `reading-${ts}.png`
+                                                            document.body.appendChild(a)
+                                                            a.click()
+                                                            a.remove()
+                                                            URL.revokeObjectURL(url)
+                                                        } finally {
+                                                            setIsDownloading(false)
+                                                        }
+                                                    }}
+                                                >
+                                                    Download Image
+                                                </button>
+                                                <button
+                                                    type='button'
+                                                    className='w-full px-3 py-2 rounded-md bg-accent/20 hover:bg-accent/30 text-sm'
+                                                    onClick={async () => {
+                                                        try {
+                                                            setIsDownloading(true)
+                                                            const type = 'video'
+                                                            const res = await fetch('/api/share-image', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({
+                                                                    question,
+                                                                    cards: cards,
+                                                                    interpretation,
+                                                                    width: 1170,
+                                                                    height: 2532,
+                                                                    branding: 'Asking Fate',
+                                                                    theme: 'cosmic',
+                                                                    type,
+                                                                }),
+                                                            })
+                                                            const blob = await res.blob()
+                                                            const ts = new Date().toISOString().replace(/[:.]/g, '-')
+                                                            const url = URL.createObjectURL(blob)
+                                                            const a = document.createElement('a')
+                                                            a.href = url
+                                                            a.download = `reading-${ts}.mp4`
+                                                            document.body.appendChild(a)
+                                                            a.click()
+                                                            a.remove()
+                                                            URL.revokeObjectURL(url)
+                                                        } finally {
+                                                            setIsDownloading(false)
+                                                        }
+                                                    }}
+                                                >
+                                                    Download Video (15s)
+                                                </button>
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
+                                ) : (
+                                    <button
+                                        type='button'
+                                        onClick={action.onClick}
+                                        className='group relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg w-full'
+                                        style={{
+                                            animationDelay: `${index * 50}ms`,
+                                            animationFillMode: 'both',
+                                        }}
                                     >
-                                        {action.icon}
-                                        {/* Hover glow effect */}
-                                        <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
-                                    </div>
-
-                                    {/* Label */}
-                                    <span className='text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-300 text-center leading-tight'>
-                                        {action.label}
-                                    </span>
-                                </button>
+                                        <div
+                                            className='relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
+                                            style={{ background: action.bg }}
+                                        >
+                                            {action.icon}
+                                            <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                                        </div>
+                                        <span className='text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-300 text-center leading-tight'>
+                                            {action.label}
+                                        </span>
+                                    </button>
+                                )}
                             </SwiperSlide>
                         ))}
                     </Swiper>
