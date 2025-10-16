@@ -17,7 +17,7 @@ import {
     FaCheck,
     FaXmark,
 } from "react-icons/fa6"
-import { Sparkles } from "lucide-react"
+import { Sparkles, Star } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { Settings } from "lucide-react"
 import { useTarot } from "@/contexts/tarot-context"
@@ -277,7 +277,9 @@ Output:
             label: (
                 <span className='leading-tight text-center'>
                     <span className='block'>Regenerate</span>
-                    <span className='block text-[10px] text-yellow-300'>-1 star</span>
+                    <span className='block text-[10px] text-yellow-300'>
+                        -1 <Star className='inline w-3 h-3 text-yellow-300' />
+                    </span>
                 </span>
             ),
             icon: <FaArrowsRotate className='w-4 h-4 text-white' />,
