@@ -22,10 +22,12 @@ import { useAuth } from "@/hooks/use-auth"
 import { useStars } from "@/contexts/stars-context"
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 export default function ReferralPage() {
     const { user, loading: authLoading } = useAuth()
     const { stars } = useStars()
+    const router = useRouter()
     const [referralLink, setReferralLink] = useState<string>("")
     const [copied, setCopied] = useState(false)
     const [referralStats, setReferralStats] = useState({
@@ -42,6 +44,18 @@ export default function ReferralPage() {
             setReferralLink(link)
         }
     }, [user?.id])
+
+    // Handle unauthenticated users
+    useEffect(() => {
+        if (!authLoading && !user) {
+            toast.info("Please sign in to access your referral program", {
+                duration: 4000,
+            })
+            // Redirect to signin with callback URL
+            const callbackUrl = encodeURIComponent(window.location.pathname)
+            router.push(`/signin?callbackUrl=${callbackUrl}`)
+        }
+    }, [authLoading, user, router])
 
     const copyToClipboard = async () => {
         if (!referralLink) return
@@ -88,31 +102,10 @@ export default function ReferralPage() {
     if (!user) {
         return (
             <div className="min-h-screen flex items-center justify-center px-4">
-                <Card className="max-w-md w-full">
-                    <CardHeader className="text-center">
-                        <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-gradient-to-r from-yellow-400/20 to-amber-500/20 border border-yellow-500/30 flex items-center justify-center">
-                            <Users className="w-8 h-8 text-yellow-400" />
-                        </div>
-                        <CardTitle className="text-2xl font-serif text-white">
-                            Sign In Required
-                        </CardTitle>
-                        <CardDescription className="text-gray-400">
-                            You need to be signed in to access your referral program
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <Link href="/signin">
-                            <Button className="w-full rounded-full bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-black hover:from-yellow-300 hover:via-amber-400 hover:to-orange-400 transition-all duration-300">
-                                Sign In
-                            </Button>
-                        </Link>
-                        <Link href="/signup">
-                            <Button variant="outline" className="w-full rounded-full border-yellow-500/40 text-yellow-300 hover:bg-yellow-500/10 hover:border-yellow-400/60">
-                                Create Account
-                            </Button>
-                        </Link>
-                    </CardContent>
-                </Card>
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400 mx-auto mb-4"></div>
+                    <p className="text-gray-400">Redirecting to sign in...</p>
+                </div>
             </div>
         )
     }
