@@ -41,6 +41,19 @@ export async function POST(req: NextRequest) {
             if (ownerId === visitorId) {
                 return NextResponse.json({ data: { ok: true, skipped: true } })
             }
+            // Global visitor daily cap: only one award per visitor per day across all shares/owners
+            {
+                const { count: vCount, error: vErr } = await db
+                    .from("share_visit_awards")
+                    .select("id", { count: "exact", head: true })
+                    .eq("date_key", dateKey)
+                    .eq("visitor_id", visitorId)
+                if (!vErr && typeof vCount === "number" && vCount >= 1) {
+                    return NextResponse.json({
+                        data: { ok: true, visitor_capped: true },
+                    })
+                }
+            }
             // Check duplicate for this share today by visitor_user_id
             if (sharedId) {
                 const { data: visit, error: visitErr } = await db
@@ -57,14 +70,14 @@ export async function POST(req: NextRequest) {
                 if (visitErr && visitErr.message) {
                     // continue; we'll attempt to insert and let DB enforce constraints if any
                 }
-                // Cap total awards for the owner to 5 per day across all shares
+                // Cap total awards for the owner to 3 per day across all shares
                 if (ownerId) {
                     const { count, error: cntErr } = await db
                         .from("share_visit_awards")
                         .select("id", { count: "exact", head: true })
                         .eq("date_key", dateKey)
                         .eq("owner_id", ownerId)
-                    if (!cntErr && typeof count === "number" && count >= 5) {
+                    if (!cntErr && typeof count === "number" && count >= 3) {
                         return NextResponse.json({
                             data: { ok: true, owner_capped: true },
                         })
@@ -178,6 +191,19 @@ export async function POST(req: NextRequest) {
         if (ownerId === visitorId) {
             return NextResponse.json({ data: { ok: true, skipped: true } })
         }
+        // Global visitor daily cap: only one award per visitor per day across all shares/owners
+        {
+            const { count: vCount, error: vErr } = await db
+                .from("share_visit_awards")
+                .select("id", { count: "exact", head: true })
+                .eq("date_key", dateKey)
+                .eq("visitor_id", visitorId)
+            if (!vErr && typeof vCount === "number" && vCount >= 1) {
+                return NextResponse.json({
+                    data: { ok: true, visitor_capped: true },
+                })
+            }
+        }
         if (sharedId) {
             const { data: visit, error: visitErr } = await db
                 .from("share_visit_awards")
@@ -193,14 +219,14 @@ export async function POST(req: NextRequest) {
             if (visitErr && visitErr.message) {
                 // continue
             }
-            // Owner cap 5/day
+            // Owner cap 3/day
             if (ownerId) {
                 const { count, error: cntErr } = await db
                     .from("share_visit_awards")
                     .select("id", { count: "exact", head: true })
                     .eq("date_key", dateKey)
                     .eq("owner_id", ownerId)
-                if (!cntErr && typeof count === "number" && count >= 5) {
+                if (!cntErr && typeof count === "number" && count >= 3) {
                     return NextResponse.json({
                         data: { ok: true, owner_capped: true },
                     })

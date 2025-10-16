@@ -32,6 +32,15 @@ import { Share2 } from "lucide-react"
 import { shareLinkCache } from "@/lib/share-cache"
 import Link from "next/link"
 import { useTarot } from "@/contexts/tarot-context"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 const shareOptions = [
     {
@@ -201,26 +210,22 @@ export default function ShareSection({
     const { user } = useAuth()
     const navGuardRef = useRef<HTMLDivElement>(null)
     const [earnedStars, setEarnedStars] = useState(0)
-    const maxStars = 5
+    const maxStars = 3
+    const [unavailableOpen, setUnavailableOpen] = useState(false)
+    const [unavailableLabel, setUnavailableLabel] = useState<string>("")
 
-    // Load earned stars from database - only once on mount (dedup per reading in this tab)
+    // Load earned stars from database on mount
     useEffect(() => {
         const loadEarnedStars = async () => {
             if (!readingId) return
 
             try {
-                const key =
-                    typeof window !== "undefined"
-                        ? `reading:${readingId}:earnedStarsLoaded`
-                        : null
-                if (key && sessionStorage.getItem(key)) return
                 const response = await fetch(
                     `/api/tarot/earned-stars?readingId=${readingId}`
                 )
                 if (response.ok) {
                     const data = await response.json()
                     setEarnedStars(data.earnedStars || 0)
-                    if (key) sessionStorage.setItem(key, "1")
                 }
             } catch (error) {
                 console.error("Error loading earned stars:", error)
@@ -246,11 +251,11 @@ export default function ShareSection({
         }
     }, [readingId])
 
-    // Note: Removed visibility change listener to reduce API calls
-
     // Listen for earned stars updates from other components
     useEffect(() => {
         const handleEarnedStarsUpdate = () => {
+            // Optimistically bump UI by +1 (capped), then reconcile with server
+            setEarnedStars((prev) => Math.min((prev || 0) + 1, maxStars))
             refreshEarnedStars()
         }
 
@@ -259,6 +264,16 @@ export default function ShareSection({
                 "earned-stars-updated",
                 handleEarnedStarsUpdate
             )
+
+            // Cross-tab sync via BroadcastChannel when available
+            try {
+                if ("BroadcastChannel" in window) {
+                    const bc = new BroadcastChannel("tarot-earned-stars")
+                    const onMessage = () => handleEarnedStarsUpdate()
+                    bc.addEventListener("message", onMessage)
+                    ;(window as unknown as { __tarotEarnedBc?: BroadcastChannel }).__tarotEarnedBc = bc
+                }
+            } catch {}
         }
 
         return () => {
@@ -267,9 +282,43 @@ export default function ShareSection({
                     "earned-stars-updated",
                     handleEarnedStarsUpdate
                 )
+                try {
+                    const w = window as unknown as { __tarotEarnedBc?: BroadcastChannel }
+                    const bc = w.__tarotEarnedBc
+                    if (bc) {
+                        bc.close()
+                        w.__tarotEarnedBc = undefined
+                    }
+                } catch {}
             }
         }
-    }, [refreshEarnedStars])
+    }, [refreshEarnedStars, maxStars])
+
+    // Refresh when tab becomes visible (owner may be watching while others visit)
+    useEffect(() => {
+        if (!readingId) return
+        const onVisibilityChange = () => {
+            if (document.visibilityState === "visible") {
+                refreshEarnedStars()
+            }
+        }
+        document.addEventListener("visibilitychange", onVisibilityChange)
+        return () => {
+            document.removeEventListener(
+                "visibilitychange",
+                onVisibilityChange
+            )
+        }
+    }, [readingId, refreshEarnedStars])
+
+    // Lightweight polling to keep header fresh while viewing
+    useEffect(() => {
+        if (!readingId) return
+        const intervalId = window.setInterval(() => {
+            refreshEarnedStars()
+        }, 15000) // 15s polling
+        return () => window.clearInterval(intervalId)
+    }, [readingId, refreshEarnedStars])
 
     useEffect(() => {
         const el = navGuardRef.current
@@ -467,12 +516,19 @@ export default function ShareSection({
                             sensitivity: 1,
                             releaseOnEdges: true,
                         }}
-                        slidesPerView='auto'
+                        slidesPerView={4.5}
+                        breakpoints={{
+                            640: { slidesPerView: 5.5 },
+                            768: { slidesPerView: 6.5 },
+                            1024: { slidesPerView: 8 },
+                            1280: { slidesPerView: 9.5 },
+                            1536: { slidesPerView: 10.5 },
+                        }}
                         spaceBetween={8}
                         className='py-2 px-6'
                     >
                         {shareOptions.map((option, index) => (
-                            <SwiperSlide key={option.id} className='!w-auto'>
+                            <SwiperSlide key={option.id}>
                                 <button
                                     type='button'
                                     onClick={async () => {
@@ -518,73 +574,9 @@ export default function ShareSection({
                                                 "noopener,noreferrer"
                                             )
                                         } else {
-                                            try {
-                                                // Try modern clipboard API first
-                                                if (
-                                                    navigator.clipboard &&
-                                                    window.isSecureContext
-                                                ) {
-                                                    await navigator.clipboard.writeText(
-                                                        link
-                                                    )
-                                                    setCopied(true)
-                                                    window.setTimeout(
-                                                        () => setCopied(false),
-                                                        1500
-                                                    )
-                                                    return
-                                                }
-                                            } catch (error) {
-                                                console.log(
-                                                    "Clipboard API failed, trying fallback:",
-                                                    error
-                                                )
-                                            }
-
-                                            // Fallback for Safari and older browsers
-                                            try {
-                                                const textArea =
-                                                    document.createElement(
-                                                        "textarea"
-                                                    )
-                                                textArea.value = link
-                                                textArea.style.position =
-                                                    "fixed"
-                                                textArea.style.left =
-                                                    "-999999px"
-                                                textArea.style.top = "-999999px"
-                                                document.body.appendChild(
-                                                    textArea
-                                                )
-                                                textArea.focus()
-                                                textArea.select()
-
-                                                const successful =
-                                                    document.execCommand("copy")
-                                                document.body.removeChild(
-                                                    textArea
-                                                )
-
-                                                if (successful) {
-                                                    setCopied(true)
-                                                    window.setTimeout(
-                                                        () => setCopied(false),
-                                                        1500
-                                                    )
-                                                } else {
-                                                    // If both methods fail, show the link in an alert
-                                                    alert(
-                                                        `Copy this link: ${link}`
-                                                    )
-                                                }
-                                            } catch (fallbackError) {
-                                                console.error(
-                                                    "Fallback copy failed:",
-                                                    fallbackError
-                                                )
-                                                // Last resort: show the link
-                                                alert(`Copy this link: ${link}`)
-                                            }
+                                            // Unavailable platform: show dialog instead of copy fallback
+                                            setUnavailableLabel(option.label)
+                                            setUnavailableOpen(true)
                                         }
                                     }}
                                     className='group relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg w-full'
@@ -612,6 +604,22 @@ export default function ShareSection({
                         ))}
                     </Swiper>
                 </div>
+            {/* Unavailable share dialog */}
+            <AlertDialog open={unavailableOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Sharing unavailable</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {unavailableLabel} sharing is currently unavailable and still in work.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogAction onClick={() => setUnavailableOpen(false)}>
+                            OK
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
             </div>
         </div>
     )

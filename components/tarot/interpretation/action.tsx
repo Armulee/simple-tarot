@@ -7,7 +7,6 @@ import "swiper/css"
 import "swiper/css/free-mode"
 import {
     FaArrowsRotate,
-    FaPlus,
     FaLink,
     FaRegFileLines,
     FaDownload,
@@ -16,26 +15,43 @@ import {
     FaThumbsDown,
     FaComment,
     FaCheck,
+    FaXmark,
 } from "react-icons/fa6"
+import { Sparkles, Star } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { Settings } from "lucide-react"
 import { useTarot } from "@/contexts/tarot-context"
 import { useRouter } from "next/navigation"
 import { useStars } from "@/contexts/stars-context"
 import { useCompletion } from "@ai-sdk/react"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
+import { useEffect as ReactUseEffect } from "react"
+import { toast } from "sonner"
 
 interface ActionSectionProps {
     question?: string
     cards?: string[]
     interpretation?: string
     readingId?: string
+    onInterpretationChange?: (text: string) => void
 }
 
-export default function ActionSection({ 
-    question: propQuestion, 
-    cards: propCards, 
+export default function ActionSection({
+    question: propQuestion,
+    cards: propCards,
     interpretation: propInterpretation,
-    readingId: propReadingId 
+    readingId: propReadingId,
+    onInterpretationChange,
 }: ActionSectionProps = {}) {
     const {
         question: contextQuestion,
@@ -54,12 +70,35 @@ export default function ActionSection({
     const { user } = useAuth()
     const router = useRouter()
     const { spendStars, stars } = useStars()
+    const [isDownloading, setIsDownloading] = useState(false)
+    const [showReport, setShowReport] = useState(false)
+    const [reportReason, setReportReason] = useState("")
+    const [reportDetails, setReportDetails] = useState("")
+    const [voteState, setVoteState] = useState<"up" | "down" | null>(null)
+    const [showFeedback, setShowFeedback] = useState(false)
+    const [rating, setRating] = useState<number>(0)
     const navGuardRef = useRef<HTMLDivElement>(null)
+    const [versions, setVersions] = useState<Array<{ id: number; reading_id: string; content: string; created_at: string }>>([])
+    const loadVersions = useCallback(async () => {
+        try {
+            if (!readingId) return
+            const res = await fetch(`/api/tarot/versions?readingId=${readingId}`)
+            if (!res.ok) return
+            const data = await res.json()
+            setVersions(Array.isArray(data.versions) ? data.versions : [])
+        } catch {}
+    }, [readingId])
+    ReactUseEffect(() => { void loadVersions() }, [loadVersions])
 
     const { complete } = useCompletion({
         api: "/api/interpret-cards/question",
         onFinish: (_, completion) => {
-            setInterpretation(completion)
+            // Prefer parent callback when provided (e.g., owner detail page)
+            if (typeof onInterpretationChange === "function") {
+                onInterpretationChange(completion)
+            } else {
+                setInterpretation(completion)
+            }
         },
     })
 
@@ -164,26 +203,60 @@ export default function ActionSection({
             }
 
             // Spend a star for regeneration
-            await spendStars(1)
+            const ok = await spendStars(1)
+            if (ok) {
+                toast.warning("-1 star for regeneration")
+            } else {
+                toast.error("Not enough stars to regenerate")
+                return
+            }
             setPaidForInterpretation(true)
 
             // Clear current interpretation
             setInterpretation(null)
 
-            // Build the prompt for interpretation
+            // Build the prompt (match initial generation logic)
             const cardNames = cards.join(", ")
-            const prompt = `Question: ${question}
+            const prompt = `Question: "${question}"
 
-Cards drawn: ${cardNames}
+Cards: ${cardNames}
 
-Please provide a tarot interpretation for this question and these cards. Focus on:
-- Direct, practical guidance
-- Clear, grounded answer
-- Mention cards only if essential
-- Answer directly to the question`
+Goal: Provide a concise interpretation that directly answers the question.
+
+Silent steps (do not reveal):
+1) Classify the question intent into: love/relationships, work/career, finances, health/wellbeing, personal growth, spiritual, or general.
+2) Map the listed cards to that intent and emphasize the most relevant angles.
+3) Do not fetch or cite external sources (e.g., thetarotguide.com). Use only the provided card names (and reversed markers) as context.
+
+Output:
+- One short paragraph, <= 100 words.
+- Clear, grounded. Mention cards only if essential.
+- Answer directly to the question. ground it; if vague, add specificity; if too long, trim; if too short, enrich with specifics.`
 
             // Generate new interpretation
-            await complete(prompt)
+            const newText = await complete(prompt)
+            if (!newText) {
+                toast.error("Failed to generate a new interpretation")
+                return
+            }
+
+            // Persist current interpretation to DB and versions if we have a readingId
+            try {
+                if (readingId && newText) {
+                    await fetch("/api/tarot/update", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ id: readingId, interpretation: newText }),
+                    })
+                    await fetch("/api/tarot/versions", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ reading_id: readingId, content: newText }),
+                    })
+                    // Reload versions list
+                    await loadVersions()
+                }
+            } catch {}
         } catch (error) {
             console.error("Error regenerating interpretation:", error)
         }
@@ -194,22 +267,32 @@ Please provide a tarot interpretation for this question and these cards. Focus o
         spendStars,
         setPaidForInterpretation,
         setInterpretation,
+        onInterpretationChange,
         complete,
     ])
 
     const actionOptions = [
         {
             id: "regen",
-            label: "Regenerate",
+            label: (
+                <span className='leading-tight text-center'>
+                    <span className='block'>Regenerate</span>
+                    <span className='block text-[10px] text-yellow-300'>
+                        -1 <Star className='inline w-3 h-3 text-yellow-300' fill='currentColor' />
+                    </span>
+                </span>
+            ),
             icon: <FaArrowsRotate className='w-4 h-4 text-white' />,
             bg: "linear-gradient(135deg, #6366F1, #4F46E5)",
             description: "Get a new interpretation",
-            onClick: handleRegenerate,
+            onClick: async () => {
+                await handleRegenerate()
+            },
         },
         {
             id: "new",
             label: "New Reading",
-            icon: <FaPlus className='w-4 h-4 text-white' />,
+            icon: <Sparkles className='w-4 h-4 text-white' />,
             bg: "linear-gradient(135deg, #22C55E, #16A34A)",
             description: "Start fresh",
             onClick: async () => router.push("/"),
@@ -335,32 +418,16 @@ Please provide a tarot interpretation for this question and these cards. Focus o
             label: "Download",
             icon: <FaDownload className='w-4 h-4 text-white' />,
             bg: "linear-gradient(135deg, #0EA5E9, #0284C7)",
-            description: "Save as image",
-            onClick: async () => {
-                try {
-                    const res = await fetch("/api/share-image", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            question,
-                            cards: cards,
-                            interpretation,
-                            width: 1080,
-                            height: 1350,
-                        }),
-                    })
-                    const blob = await res.blob()
-                    const ts = new Date().toISOString().replace(/[:.]/g, "-")
-                    const url = URL.createObjectURL(blob)
-                    const a = document.createElement("a")
-                    a.href = url
-                    a.download = `reading-${ts}.png`
-                    document.body.appendChild(a)
-                    a.click()
-                    a.remove()
-                    URL.revokeObjectURL(url)
-                } catch {}
-            },
+            description: "Save image or video",
+            onClick: async () => {}, // handled by Popover wrapper
+        },
+        {
+            id: "versions",
+            label: "Versions",
+            icon: <FaRegFileLines className='w-4 h-4 text-white' />,
+            bg: "linear-gradient(135deg, #9333EA, #7E22CE)",
+            description: "View versions",
+            onClick: async () => {},
         },
         {
             id: "report",
@@ -368,57 +435,72 @@ Please provide a tarot interpretation for this question and these cards. Focus o
             icon: <FaFlag className='w-4 h-4 text-white' />,
             bg: "linear-gradient(135deg, #EF4444, #DC2626)",
             description: "Report issue",
-            onClick: async () => {
-                const link = await ensureShareLink()
-                const mailto = `mailto:?subject=${encodeURIComponent("Report Tarot Reading")}&body=${encodeURIComponent(link || "")}`
-                window.location.href = mailto
-            },
+            onClick: async () => setShowReport(true),
         },
-        {
-            id: "vote-up",
-            label: "Vote Up",
-            icon: <FaThumbsUp className='w-4 h-4 text-white' />,
-            bg: "linear-gradient(135deg, #22C55E, #16A34A)",
-            description: "Like this reading",
-            onClick: async () => {
-                const link = await ensureShareLink()
-                const id = (link || "").split("/").pop() || ""
-                try {
-                    localStorage.setItem(`share-vote-${id}`, "up")
-                } catch {}
-            },
-        },
-        {
-            id: "vote-down",
-            label: "Vote Down",
-            icon: <FaThumbsDown className='w-4 h-4 text-white' />,
-            bg: "linear-gradient(135deg, #F59E0B, #D97706)",
-            description: "Dislike this reading",
-            onClick: async () => {
-                const link = await ensureShareLink()
-                const id = (link || "").split("/").pop() || ""
-                try {
-                    localStorage.setItem(`share-vote-${id}`, "down")
-                } catch {}
-            },
-        },
+        voteState !== "up"
+            ? {
+                  id: "vote-up",
+                  label: "Vote Up",
+                  icon: <FaThumbsUp className='w-4 h-4 text-white' />,
+                  bg: "linear-gradient(135deg, #22C55E, #16A34A)",
+                  description: "Like this reading",
+                  onClick: async () => {
+                      setVoteState("up")
+                      // TODO: call /api/feedbacks to upsert vote_up=true
+                  },
+              }
+            : {
+                  id: "vote-up-cancel",
+                  label: "Vote Up",
+                  icon: <FaXmark className='w-4 h-4 text-white' />,
+                  bg: "linear-gradient(135deg, #6B7280, #4B5563)",
+                  description: "Remove vote up",
+                  onClick: async () => {
+                      setVoteState(null)
+                      // TODO: call /api/feedbacks to remove vote
+                  },
+              },
+        voteState !== "down"
+            ? {
+                  id: "vote-down",
+                  label: "Vote Down",
+                  icon: <FaThumbsDown className='w-4 h-4 text-white' />,
+                  bg: "linear-gradient(135deg, #F59E0B, #D97706)",
+                  description: "Dislike this reading",
+                  onClick: async () => {
+                      setVoteState("down")
+                      // TODO: call /api/feedbacks to upsert vote_down=true
+                  },
+              }
+            : {
+                  id: "vote-down-cancel",
+                  label: "Vote Down",
+                  icon: <FaXmark className='w-4 h-4 text-white' />,
+                  bg: "linear-gradient(135deg, #6B7280, #4B5563)",
+                  description: "Remove vote down",
+                  onClick: async () => {
+                      setVoteState(null)
+                      // TODO: call /api/feedbacks to remove vote
+                  },
+              },
         {
             id: "feedback",
             label: "Feedback",
             icon: <FaComment className='w-4 h-4 text-white' />,
             bg: "linear-gradient(135deg, #8B5CF6, #7C3AED)",
             description: "Share feedback",
-            onClick: async () => {
-                window.open(
-                    "/contact?subject=Feedback%20on%20Tarot%20Reading",
-                    "_blank"
-                )
-            },
+            onClick: async () => setShowFeedback(true),
         },
     ]
 
     return (
         <div className='relative overflow-hidden group'>
+            {/* Slide-up loader for download */}
+            {isDownloading && (
+                <div className='fixed bottom-0 left-0 right-0 z-50 animate-slide-up bg-black/60 backdrop-blur-sm p-4 text-center text-white'>
+                    Preparing your {"content"}...
+                </div>
+            )}
             {/* Background gradient with animation */}
             <div className='absolute inset-0 bg-gradient-to-br from-accent/5 via-primary/5 to-accent/5 rounded-xl transition-all duration-500 group-hover:from-accent/10 group-hover:via-primary/10 group-hover:to-accent/10' />
 
@@ -460,44 +542,326 @@ Please provide a tarot interpretation for this question and these cards. Focus o
                             sensitivity: 1,
                             releaseOnEdges: true,
                         }}
-                        slidesPerView="auto"
+                        slidesPerView={4.5}
+                        breakpoints={{
+                            640: { slidesPerView: 5.5 },
+                            768: { slidesPerView: 6.5 },
+                            1024: { slidesPerView: 8 },
+                            1280: { slidesPerView: 9.5 },
+                            1536: { slidesPerView: 10.5 },
+                        }}
                         spaceBetween={8}
                         className='py-2 px-6'
                     >
                         {actionOptions.map((action, index) => (
                             <SwiperSlide
                                 key={action.id}
-                                className="!w-auto"
                             >
-                                <button
-                                    type='button'
-                                    onClick={action.onClick}
-                                    className='group relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg w-full'
-                                    style={{
-                                        animationDelay: `${index * 50}ms`,
-                                        animationFillMode: "both",
-                                    }}
-                                >
-                                    {/* Icon container with gradient background */}
-                                    <div
-                                        className='relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
-                                        style={{ background: action.bg }}
+                                {action.id === 'download' ? (
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <button
+                                                type='button'
+                                                className='group relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg w-full'
+                                                style={{
+                                                    animationDelay: `${index * 50}ms`,
+                                                    animationFillMode: "both",
+                                                }}
+                                            >
+                                                <div
+                                                    className='relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
+                                                    style={{ background: action.bg }}
+                                                >
+                                                    {action.icon}
+                                                    <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                                                </div>
+                                                <span className='text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-300 text-center leading-tight'>
+                                                    {action.label}
+                                                </span>
+                                            </button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className='w-56'>
+                                            <div className='space-y-2'>
+                                                <button
+                                                    type='button'
+                                                    className='w-full px-3 py-2 rounded-md bg-primary/20 hover:bg-primary/30 text-sm'
+                                                    onClick={async () => {
+                                                        try {
+                                                            setIsDownloading(true)
+                                                            const type = 'image'
+                                                            const res = await fetch('/api/share-image', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({
+                                                                    question,
+                                                                    cards: cards,
+                                                                    interpretation,
+                                                                    width: 1170,
+                                                                    height: 2532,
+                                                                    branding: 'Asking Fate',
+                                                                    theme: 'cosmic',
+                                                                    type,
+                                                                }),
+                                                            })
+                                                            const blob = await res.blob()
+                                                            const ts = new Date().toISOString().replace(/[:.]/g, '-')
+                                                            const url = URL.createObjectURL(blob)
+                                                            const a = document.createElement('a')
+                                                            a.href = url
+                                                            a.download = `reading-${ts}.png`
+                                                            document.body.appendChild(a)
+                                                            a.click()
+                                                            a.remove()
+                                                            URL.revokeObjectURL(url)
+                                                        } finally {
+                                                            setIsDownloading(false)
+                                                        }
+                                                    }}
+                                                >
+                                                    Download Image
+                                                </button>
+                                                <button
+                                                    type='button'
+                                                    className='w-full px-3 py-2 rounded-md bg-accent/20 hover:bg-accent/30 text-sm'
+                                                    onClick={async () => {
+                                                        try {
+                                                            setIsDownloading(true)
+                                                            const type = 'video'
+                                                            const res = await fetch('/api/share-image', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({
+                                                                    question,
+                                                                    cards: cards,
+                                                                    interpretation,
+                                                                    width: 1170,
+                                                                    height: 2532,
+                                                                    branding: 'Asking Fate',
+                                                                    theme: 'cosmic',
+                                                                    type,
+                                                                }),
+                                                            })
+                                                            const blob = await res.blob()
+                                                            const ts = new Date().toISOString().replace(/[:.]/g, '-')
+                                                            const url = URL.createObjectURL(blob)
+                                                            const a = document.createElement('a')
+                                                            a.href = url
+                                                            a.download = `reading-${ts}.mp4`
+                                                            document.body.appendChild(a)
+                                                            a.click()
+                                                            a.remove()
+                                                            URL.revokeObjectURL(url)
+                                                        } finally {
+                                                            setIsDownloading(false)
+                                                        }
+                                                    }}
+                                                >
+                                                    Download Video (15s)
+                                                </button>
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
+                                ) : action.id === 'versions' ? (
+                                    versions.length > 0 ? (
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <button
+                                                    type='button'
+                                                    className='group relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg w-full'
+                                                    style={{
+                                                        animationDelay: `${index * 50}ms`,
+                                                        animationFillMode: 'both',
+                                                    }}
+                                                >
+                                                    <div
+                                                        className='relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
+                                                        style={{ background: action.bg }}
+                                                    >
+                                                        {action.icon}
+                                                        <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                                                    </div>
+                                                    <span className='text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-300 text-center leading-tight'>
+                                                        {typeof action.label === 'string' ? action.label : 'Versions'}
+                                                    </span>
+                                                </button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-72'>
+                                                <div className='max-h-64 overflow-auto space-y-2'>
+                                                    {versions.map((v) => (
+                                                        <button
+                                                            key={v.id}
+                                                            type='button'
+                                                            className='w-full text-left px-2 py-1 rounded hover:bg-white/10 text-sm'
+                                                            onClick={() => {
+                                                                if (typeof (onInterpretationChange) === 'function') onInterpretationChange(v.content)
+                                                                else setInterpretation(v.content)
+                                                            }}
+                                                        >
+                                                            {new Date(v.created_at).toLocaleString()}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
+                                    ) : (
+                                        <button
+                                            type='button'
+                                            disabled
+                                            className='group relative flex flex-col items-center gap-2 p-3 rounded-xl w-full opacity-50 cursor-not-allowed'
+                                            style={{
+                                                animationDelay: `${index * 50}ms`,
+                                                animationFillMode: 'both',
+                                            }}
+                                        >
+                                            <div
+                                                className='relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg'
+                                                style={{ background: action.bg }}
+                                            >
+                                                {action.icon}
+                                            </div>
+                                            <span className='text-xs font-medium text-foreground/60 text-center leading-tight'>
+                                                Versions
+                                            </span>
+                                        </button>
+                                    )
+                                ) : (
+                                    <button
+                                        type='button'
+                                        onClick={action.onClick}
+                                        className='group relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg w-full'
+                                        style={{
+                                            animationDelay: `${index * 50}ms`,
+                                            animationFillMode: 'both',
+                                        }}
                                     >
-                                        {action.icon}
-                                        {/* Hover glow effect */}
-                                        <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
-                                    </div>
-
-                                    {/* Label */}
-                                    <span className='text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-300 text-center leading-tight'>
-                                        {action.label}
-                                    </span>
-                                </button>
+                                        <div
+                                            className='relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
+                                            style={{ background: action.bg }}
+                                        >
+                                            {action.icon}
+                                            <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                                        </div>
+                                        <span className='text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-300 text-center leading-tight'>
+                                            {action.label}
+                                        </span>
+                                    </button>
+                                )}
                             </SwiperSlide>
                         ))}
                     </Swiper>
                 </div>
             </div>
+            {/* Removed inline star deduction note; using toast instead */}
+
+            {/* Report dialog */}
+            <AlertDialog open={showReport}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Report this reading</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Select a reason and optionally add details.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className='space-y-2'>
+                        <select
+                            className='w-full bg-background border border-border/40 rounded-md p-2'
+                            value={reportReason}
+                            onChange={(e) => setReportReason(e.target.value)}
+                        >
+                            <option value=''>Select a reason</option>
+                            <option value='inappropriate'>Inappropriate content</option>
+                            <option value='spam'>Spam or misleading</option>
+                            <option value='harassment'>Harassment or hate</option>
+                            <option value='privacy'>Privacy concern</option>
+                            <option value='other'>Other</option>
+                        </select>
+                        {reportReason === 'other' && (
+                            <textarea
+                                className='w-full bg-background border border-border/40 rounded-md p-2'
+                                placeholder='Please describe...'
+                                value={reportDetails}
+                                onChange={(e) => setReportDetails(e.target.value)}
+                            />
+                        )}
+                    </div>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setShowReport(false)}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={async () => {
+                                if (!reportReason) return
+                                try {
+                                    const res = await fetch('/api/reports', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            reading_id: readingId,
+                                            reason: reportReason,
+                                            details: reportDetails || undefined,
+                                        }),
+                                    })
+                                    if (res.ok) setShowReport(false)
+                                } catch {}
+                            }}
+                        >
+                            Submit
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Feedback dialog */}
+            <AlertDialog open={showFeedback}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Share your feedback</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            How helpful was this interpretation?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className='flex items-center justify-center gap-2 py-2'>
+                        {[1,2,3,4,5].map((n) => (
+                            <button
+                                key={n}
+                                type='button'
+                                onClick={() => setRating(n)}
+                                className={`w-8 h-8 rounded-full ${rating >= n ? 'bg-yellow-400' : 'bg-zinc-700'}`}
+                                aria-label={`Rate ${n}`}
+                            />
+                        ))}
+                    </div>
+                    <textarea
+                        className='w-full bg-background border border-border/40 rounded-md p-2'
+                        placeholder='Optional comments'
+                        value={reportDetails}
+                        onChange={(e) => setReportDetails(e.target.value)}
+                    />
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setShowFeedback(false)}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={async () => {
+                                try {
+                                    const res = await fetch('/api/feedbacks', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            reading_id: readingId,
+                                            rating,
+                                            comment: reportDetails || undefined,
+                                        }),
+                                    })
+                                    if (res.ok) setShowFeedback(false)
+                                } catch {}
+                            }}
+                        >
+                            Submit
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }

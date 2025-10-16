@@ -1,0 +1,6 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "react-phone-number-input/style.css";
+
+/* Re-export all styles from localized globals */
+@import "./[locale]/globals.css";

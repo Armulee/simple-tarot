@@ -8,6 +8,7 @@ import { getCleanQuestionText } from "@/lib/question-utils"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import StarCard from "@/components/star-card"
+import ShareAwardClient from "@/components/tarot/share-award-client"
 
 async function getShared(id: string) {
     const { data } = await supabase
@@ -31,23 +32,7 @@ export default async function SharedTarotPage({
     const id = (params?.id ?? "").toString()
     const data = await getShared(id)
     if (!data) return notFound()
-    // Award owner on visit (deduped and capped on server)
-    try {
-        // We do not know the viewer user id on server here; client can also call with user id.
-        await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/stars/share-award`,
-            {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    owner_user_id: data.owner_user_id ?? null,
-                    owner_did: data.did ?? null,
-                    shared_id: data.id,
-                }),
-                cache: "no-store",
-            }
-        )
-    } catch {}
+    // Client will perform award and broadcast updates
     // Parse cards data
     const selectedCards = Array.isArray(data.cards)
         ? data.cards.map((cardName: string, index: number) => {
@@ -74,6 +59,12 @@ export default async function SharedTarotPage({
 
     return (
         <div className='space-y-8 px-4'>
+            {/* Client-side award & broadcast */}
+            <ShareAwardClient
+                sharedId={data.id}
+                ownerUserId={data.owner_user_id ?? null}
+                ownerDid={data.did ?? null}
+            />
             {/* Header */}
             <Card className='px-6 pt-10 pb-6 border-0 relative overflow-hidden'>
                 {/* Background card images with aura */}

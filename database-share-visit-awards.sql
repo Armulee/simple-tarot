@@ -16,6 +16,7 @@ CREATE INDEX IF NOT EXISTS idx_share_visit_awards_shared_id ON share_visit_award
 CREATE INDEX IF NOT EXISTS idx_share_visit_awards_date_key ON share_visit_awards(date_key);
 CREATE INDEX IF NOT EXISTS idx_share_visit_awards_lookup ON share_visit_awards(shared_id, visitor_id, date_key);
 CREATE INDEX IF NOT EXISTS idx_share_visit_awards_owner_cap ON share_visit_awards(date_key, owner_id);
+CREATE INDEX IF NOT EXISTS idx_share_visit_awards_visitor_cap ON share_visit_awards(date_key, visitor_id);
 
 -- RLS
 ALTER TABLE share_visit_awards ENABLE ROW LEVEL SECURITY;

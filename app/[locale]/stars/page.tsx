@@ -153,8 +153,7 @@ export default function StarsPage() {
                                             Purchase Stars
                                         </h3>
                                         <p className='text-sm text-gray-300'>
-                                            Instant cosmic energy for immediate
-                                            use
+                                            Instant top‑up
                                         </p>
                                     </div>
                                     <span className='text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-yellow-400/30 to-amber-500/30 border border-yellow-500/40 text-yellow-200 flex items-center gap-1.5 font-medium'>
@@ -172,38 +171,11 @@ export default function StarsPage() {
                                     <div className='pointer-events-none absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-amber-400/15 blur-3xl animate-pulse delay-1000' />
 
                                     <div className='relative z-10'>
-                                        <div className='flex items-start gap-4 mb-4'>
-                                            <div className='w-10 h-10 rounded-full bg-gradient-to-r from-yellow-400/20 to-amber-500/20 border border-yellow-500/30 flex items-center justify-center flex-shrink-0'>
-                                                <Zap className='w-5 h-5 text-yellow-300' />
-                                            </div>
-                                            <div>
-                                                <h4 className='text-lg font-semibold text-white mb-2'>
-                                                    Instant Cosmic Energy
-                                                </h4>
-                                                <p className='text-gray-300 leading-relaxed'>
-                                                    Need stars instantly? Buy
-                                                    star packs and use them
-                                                    right away for immediate
-                                                    access to readings and
-                                                    premium features.
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <div className='flex flex-col sm:flex-row gap-3'>
-                                            <Link
-                                                href='/stars/purchase'
-                                                className='flex-1'
-                                            >
-                                                <Button className='w-full rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 text-black hover:from-yellow-300 hover:to-amber-400 font-semibold py-3 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-yellow-500/25'>
-                                                    <Gift className='w-4 h-4 mr-2' />
-                                                    Purchase Stars
-                                                </Button>
-                                            </Link>
-                                            <Link
-                                                href='/pricing'
-                                                className='flex-1'
-                                            >
+                                        <p className='text-gray-300 leading-relaxed mb-4'>
+                                            Need stars right now? Choose a plan and get stars added to your balance immediately after checkout. View pricing to compare options.
+                                        </p>
+                                        <div className='flex flex-col gap-3'>
+                                            <Link href='/pricing'>
                                                 <Button
                                                     variant='outline'
                                                     className='w-full rounded-full border-yellow-500/40 text-yellow-300 hover:bg-yellow-500/10 hover:border-yellow-400/60 py-3 transition-all duration-300'
@@ -237,8 +209,7 @@ export default function StarsPage() {
                                             Create Content About Us
                                         </h3>
                                         <p className='text-sm text-gray-300'>
-                                            Share your mystical experiences and
-                                            earn rewards
+                                            Create content. Earn stars.
                                         </p>
                                     </div>
                                     <span className='text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-400/30 to-pink-500/30 border border-purple-500/40 text-purple-200 flex items-center gap-1.5 font-medium'>
@@ -256,21 +227,9 @@ export default function StarsPage() {
                                     <div className='pointer-events-none absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-pink-400/15 blur-3xl animate-pulse delay-1000' />
 
                                     <div className='relative z-10'>
-                                        <div className='flex items-start gap-4 mb-4'>
-                                            <div className='w-10 h-10 rounded-full bg-gradient-to-r from-purple-400/20 to-pink-500/20 border border-purple-500/30 flex items-center justify-center flex-shrink-0'>
-                                                <Megaphone className='w-5 h-5 text-purple-300' />
-                                            </div>
-                                            <div>
-                                                <h4 className='text-lg font-semibold text-white mb-2'>
-                                                    Share Your Journey
-                                                </h4>
-                                                <p className='text-gray-300 leading-relaxed mb-4'>
-                                                    Create content about your
-                                                    tarot experiences and earn
-                                                    stars based on content type.
-                                                </p>
-                                            </div>
-                                        </div>
+                                        <p className='text-gray-300 leading-relaxed mb-4'>
+                                            Create content about Asking Fate—text, images, or video—and earn stars based on format. Submit a public link; we review within 24–48 hours.
+                                        </p>
 
                                         <div className='grid gap-3 mb-4'>
                                             <div className='flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10'>
@@ -331,15 +290,24 @@ export default function StarsPage() {
                                             approve manually within 24-48 hours.
                                         </p>
 
+                                        <div className='flex flex-col gap-3'>
+                                        <Link href='/articles/create-content-about-us'>
+                                            <Button
+                                                variant='outline'
+                                                className='w-full rounded-full border-purple-500/40 text-purple-300 hover:bg-purple-500/10 hover:border-purple-400/60 py-3 transition-all duration-300'
+                                            >
+                                                Learn More
+                                            </Button>
+                                        </Link>
                                         <Link href='/stars/submit-content'>
                                             <Button
                                                 variant='outline'
                                                 className='w-full rounded-full border-purple-500/40 text-purple-300 hover:bg-purple-500/10 hover:border-purple-400/60 py-3 transition-all duration-300'
                                             >
-                                                <Megaphone className='w-4 h-4 mr-2' />
                                                 Submit Content
                                             </Button>
                                         </Link>
+                                        </div>
                                     </div>
                                 </div>
                             </AccordionContent>
@@ -365,8 +333,7 @@ export default function StarsPage() {
                                             Share a Reading
                                         </h3>
                                         <p className='text-sm text-gray-300'>
-                                            Spread the wisdom and earn cosmic
-                                            energy
+                                            Share a link. Earn up to 3/day.
                                         </p>
                                     </div>
                                     <span className='text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-400/30 to-cyan-500/30 border border-blue-500/40 text-blue-200 flex items-center gap-1.5 font-medium'>
@@ -384,46 +351,16 @@ export default function StarsPage() {
                                     <div className='pointer-events-none absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-cyan-400/15 blur-3xl animate-pulse delay-1000' />
 
                                     <div className='relative z-10'>
-                                        <div className='flex items-start gap-4 mb-4'>
-                                            <div className='w-10 h-10 rounded-full bg-gradient-to-r from-blue-400/20 to-cyan-500/20 border border-blue-500/30 flex items-center justify-center flex-shrink-0'>
-                                                <Share2 className='w-5 h-5 text-blue-300' />
-                                            </div>
-                                            <div>
-                                                <h4 className='text-lg font-semibold text-white mb-2'>
-                                                    Spread the Wisdom
-                                                </h4>
-                                                <p className='text-gray-300 leading-relaxed'>
-                                                    Share your tarot readings
-                                                    with friends, family, or on
-                                                    social media to earn +1 star
-                                                    and help others discover
-                                                    their path.
-                                                </p>
-                                            </div>
-                                        </div>
+                                        <p className='text-gray-300 leading-relaxed mb-4'>
+                                            Earn +1 star for each unique visitor who opens your shared reading—capped at 3 stars per day. Awards apply automatically.
+                                        </p>
 
-                                        <div className='p-4 rounded-lg bg-white/5 border border-white/10 mb-4'>
-                                            <div className='flex items-center gap-3 mb-2'>
-                                                <Heart className='w-5 h-5 text-red-400' />
-                                                <span className='text-white font-medium'>
-                                                    Why share?
-                                                </span>
-                                            </div>
-                                            <p className='text-gray-300 text-sm'>
-                                                Help others discover their
-                                                cosmic path while earning
-                                                rewards for spreading mystical
-                                                wisdom.
-                                            </p>
-                                        </div>
-
-                                        <Link href='/'>
+                                        <Link href='/articles/share-rewards'>
                                             <Button
                                                 variant='outline'
                                                 className='w-full rounded-full border-blue-500/40 text-blue-300 hover:bg-blue-500/10 hover:border-blue-400/60 py-3 transition-all duration-300'
                                             >
-                                                <Share2 className='w-4 h-4 mr-2' />
-                                                Go to Readings
+                                                Learn More
                                             </Button>
                                         </Link>
                                     </div>
@@ -451,7 +388,7 @@ export default function StarsPage() {
                                             Refer a Friend
                                         </h3>
                                         <p className='text-sm text-gray-300'>
-                                            Bring others to the cosmic journey
+                                            Invite friends. Earn together.
                                         </p>
                                     </div>
                                     <span className='text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-green-400/30 to-emerald-500/30 border border-green-500/40 text-green-200 flex items-center gap-1.5 font-medium'>
@@ -469,48 +406,28 @@ export default function StarsPage() {
                                     <div className='pointer-events-none absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-emerald-400/15 blur-3xl animate-pulse delay-1000' />
 
                                     <div className='relative z-10'>
-                                        <div className='flex items-start gap-4 mb-4'>
-                                            <div className='w-10 h-10 rounded-full bg-gradient-to-r from-green-400/20 to-emerald-500/20 border border-green-500/30 flex items-center justify-center flex-shrink-0'>
-                                                <Users className='w-5 h-5 text-green-300' />
-                                            </div>
-                                            <div>
-                                                <h4 className='text-lg font-semibold text-white mb-2'>
-                                                    Expand the Cosmic Circle
-                                                </h4>
-                                                <p className='text-gray-300 leading-relaxed'>
-                                                    Invite friends to join your
-                                                    mystical journey. You and
-                                                    your friend each get +5
-                                                    stars when they sign up and
-                                                    complete their first
-                                                    reading.
-                                                </p>
-                                            </div>
-                                        </div>
+                                        <p className='text-gray-300 leading-relaxed mb-4'>
+                                            Share your referral link. You and your friend each earn 5 stars (up to 10 friends per week). If 10 friends register within a week, you receive a 10‑star bonus. Stars are granted when invited friends complete registration.
+                                        </p>
 
-                                        <div className='p-4 rounded-lg bg-white/5 border border-white/10 mb-4'>
-                                            <div className='flex items-center gap-3 mb-2'>
-                                                <Users className='w-5 h-5 text-green-400' />
-                                                <span className='text-white font-medium'>
-                                                    Win-Win Rewards
-                                                </span>
-                                            </div>
-                                            <p className='text-gray-300 text-sm'>
-                                                Both you and your friend receive
-                                                5 stars when they join and
-                                                complete their first reading.
-                                            </p>
-                                        </div>
-
-                                        <Link href='/contact'>
+                                        <div className='flex flex-col gap-3'>
+                                        <Link href='/articles/referral-program'>
                                             <Button
                                                 variant='outline'
                                                 className='w-full rounded-full border-green-500/40 text-green-300 hover:bg-green-500/10 hover:border-green-400/60 py-3 transition-all duration-300'
                                             >
-                                                <Users className='w-4 h-4 mr-2' />
-                                                Get Referral Link
+                                                Learn More
                                             </Button>
                                         </Link>
+                                        <Link href='/referral'>
+                                            <Button
+                                                variant='outline'
+                                                className='w-full rounded-full border-green-500/40 text-green-300 hover:bg-green-500/10 hover:border-green-400/60 py-3 transition-all duration-300'
+                                            >
+                                                View Referral Link
+                                            </Button>
+                                        </Link>
+                                        </div>
                                     </div>
                                 </div>
                             </AccordionContent>

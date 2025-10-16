@@ -7,6 +7,8 @@ import { useAuth } from "@/hooks/use-auth"
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getCleanQuestionText } from "@/lib/question-utils"
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
+import { ChevronDown } from "lucide-react"
 
 type ReadingRow = {
     id: string
@@ -88,32 +90,79 @@ export default function ReadingHistory() {
                 </div>
             )
         }
+        // Group follow-ups: assume main interpretations are those whose question text is not a follow-up marker; we group exact same question text together
+        const groups = readings.reduce<Record<string, ReadingRow[]>>((acc, row) => {
+            const key = getCleanQuestionText(row.question || "")
+            if (!acc[key]) acc[key] = []
+            acc[key].push(row)
+            return acc
+        }, {})
+
+        const entries = Object.entries(groups)
         return (
             <div className='space-y-3'>
-                {readings.map((r) => {
-                    const question = getCleanQuestionText(r.question || "")
-                    const date = new Date(r.created_at)
-                    const dateStr = isNaN(date.getTime())
-                        ? ""
-                        : date.toLocaleString()
+                {entries.map(([question, items]) => {
+                    const sorted = items.slice().sort((a, b) => a.created_at.localeCompare(b.created_at))
+                    const main = sorted[0]
+                    const followUps = sorted.slice(1)
+                    const hasFollowUps = followUps.length > 0
+                    const mainDate = new Date(main.created_at)
+                    const mainDateStr = isNaN(mainDate.getTime()) ? "" : mainDate.toLocaleString()
+
                     return (
-                        <Link key={r.id} href={`/tarot/${r.id}`}>
-                            <Card className='p-4 hover:bg-card/60 transition-colors'>
-                                <div className='flex items-start justify-between gap-4'>
-                                    <div className='min-w-0'>
-                                        <p className='text-sm font-medium truncate'>
-                                            {question || "(No question)"}
-                                        </p>
-                                        <p className='text-xs text-muted-foreground mt-1 truncate'>
-                                            {r.cards?.join(", ") || ""}
-                                        </p>
-                                    </div>
-                                    <div className='text-xs text-muted-foreground whitespace-nowrap'>
-                                        {dateStr}
-                                    </div>
-                                </div>
-                            </Card>
-                        </Link>
+                        <div key={question} className='mb-3'>
+                            {hasFollowUps ? (
+                                <Accordion>
+                                    <AccordionItem>
+                                        <AccordionTrigger className='hover:no-underline'>
+                                            <div className='flex items-start justify-between w-full gap-4'>
+                                                <div className='min-w-0 text-left'>
+                                                    <p className='text-sm font-medium truncate'>{question || "(No question)"}</p>
+                                                    <p className='text-xs text-muted-foreground mt-1 truncate'>{main.cards?.join(", ") || ""}</p>
+                                                </div>
+                                                <div className='flex items-center gap-2 text-xs text-muted-foreground whitespace-nowrap'>
+                                                    {mainDateStr}
+                                                    <ChevronDown className='w-4 h-4' />
+                                                </div>
+                                            </div>
+                                        </AccordionTrigger>
+                                        <AccordionContent>
+                                            <div className='space-y-2'>
+                                                {followUps.map((fu) => {
+                                                    const date = new Date(fu.created_at)
+                                                    const dateStr = isNaN(date.getTime()) ? "" : date.toLocaleString()
+                                                    return (
+                                                        <Link key={fu.id} href={`/tarot/${fu.id}`}>
+                                                            <Card className='p-3 hover:bg-card/60 transition-colors'>
+                                                                <div className='flex items-start justify-between gap-4'>
+                                                                    <div className='min-w-0 text-left'>
+                                                                        <p className='text-sm font-medium truncate'>Follow-up</p>
+                                                                        <p className='text-xs text-muted-foreground mt-1 truncate'>{fu.cards?.join(", ") || ""}</p>
+                                                                    </div>
+                                                                    <div className='text-xs text-muted-foreground whitespace-nowrap'>{dateStr}</div>
+                                                                </div>
+                                                            </Card>
+                                                        </Link>
+                                                    )
+                                                })}
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                </Accordion>
+                            ) : (
+                                <Link href={`/tarot/${main.id}`}>
+                                    <Card className='p-4 hover:bg-card/60 transition-colors'>
+                                        <div className='flex items-start justify-between gap-4'>
+                                            <div className='min-w-0'>
+                                                <p className='text-sm font-medium truncate'>{question || "(No question)"}</p>
+                                                <p className='text-xs text-muted-foreground mt-1 truncate'>{main.cards?.join(", ") || ""}</p>
+                                            </div>
+                                            <div className='text-xs text-muted-foreground whitespace-nowrap'>{mainDateStr}</div>
+                                        </div>
+                                    </Card>
+                                </Link>
+                            )}
+                        </div>
                     )
                 })}
             </div>
