@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Ghost, Home } from "lucide-react"
+import "./globals.css"
 
 export default function NotFound() {
   return (
