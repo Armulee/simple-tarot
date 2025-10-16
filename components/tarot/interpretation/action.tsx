@@ -70,7 +70,6 @@ export default function ActionSection({
     const { user } = useAuth()
     const router = useRouter()
     const { spendStars, stars } = useStars()
-    const [showStarNote, setShowStarNote] = useState(false)
     const [isDownloading, setIsDownloading] = useState(false)
     const [showReport, setShowReport] = useState(false)
     const [reportReason, setReportReason] = useState("")
@@ -206,7 +205,7 @@ export default function ActionSection({
             // Spend a star for regeneration
             const ok = await spendStars(1)
             if (ok) {
-                toast.success("-1 star for regeneration")
+                toast.warning("-1 star for regeneration")
             } else {
                 toast.error("Not enough stars to regenerate")
                 return
@@ -216,17 +215,23 @@ export default function ActionSection({
             // Clear current interpretation
             setInterpretation(null)
 
-            // Build the prompt for interpretation
+            // Build the prompt (match initial generation logic)
             const cardNames = cards.join(", ")
-            const prompt = `Question: ${question}
+            const prompt = `Question: "${question}"
 
-Cards drawn: ${cardNames}
+Cards: ${cardNames}
 
-Please provide a tarot interpretation for this question and these cards. Focus on:
-- Direct, practical guidance
-- Clear, grounded answer
-- Mention cards only if essential
-- Answer directly to the question`
+Goal: Provide a concise interpretation that directly answers the question.
+
+Silent steps (do not reveal):
+1) Classify the question intent into: love/relationships, work/career, finances, health/wellbeing, personal growth, spiritual, or general.
+2) Map the listed cards to that intent and emphasize the most relevant angles.
+3) Do not fetch or cite external sources (e.g., thetarotguide.com). Use only the provided card names (and reversed markers) as context.
+
+Output:
+- One short paragraph, <= 100 words.
+- Clear, grounded. Mention cards only if essential.
+- Answer directly to the question. ground it; if vague, add specificity; if too long, trim; if too short, enrich with specifics.`
 
             // Generate new interpretation
             const newText = await complete(prompt)
@@ -279,9 +284,7 @@ Please provide a tarot interpretation for this question and these cards. Focus o
             bg: "linear-gradient(135deg, #6366F1, #4F46E5)",
             description: "Get a new interpretation",
             onClick: async () => {
-                setShowStarNote(true)
                 await handleRegenerate()
-                setTimeout(() => setShowStarNote(false), 2000)
             },
         },
         {
@@ -746,13 +749,7 @@ Please provide a tarot interpretation for this question and these cards. Focus o
                     </Swiper>
                 </div>
             </div>
-            {/* Star deduction note */}
-            {showStarNote && (
-                <div className='mt-2 text-center text-yellow-300 text-xs flex items-center gap-1 justify-center'>
-                    <span className='inline-block w-3 h-3 rounded-full bg-yellow-300'></span>
-                    <span>Star -1 for regeneration</span>
-                </div>
-            )}
+            {/* Removed inline star deduction note; using toast instead */}
 
             {/* Report dialog */}
             <AlertDialog open={showReport}>
