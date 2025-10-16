@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
             totalCount = count || 0
         }
 
-        const maxStars = 5
+        const maxStars = 3
         const earnedStars = Math.min(totalCount, maxStars)
 
         return NextResponse.json({

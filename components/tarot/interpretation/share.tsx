@@ -210,7 +210,7 @@ export default function ShareSection({
     const { user } = useAuth()
     const navGuardRef = useRef<HTMLDivElement>(null)
     const [earnedStars, setEarnedStars] = useState(0)
-    const maxStars = 5
+    const maxStars = 3
     const [unavailableOpen, setUnavailableOpen] = useState(false)
     const [unavailableLabel, setUnavailableLabel] = useState<string>("")
 

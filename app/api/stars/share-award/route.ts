@@ -70,14 +70,14 @@ export async function POST(req: NextRequest) {
                 if (visitErr && visitErr.message) {
                     // continue; we'll attempt to insert and let DB enforce constraints if any
                 }
-                // Cap total awards for the owner to 5 per day across all shares
+                // Cap total awards for the owner to 3 per day across all shares
                 if (ownerId) {
                     const { count, error: cntErr } = await db
                         .from("share_visit_awards")
                         .select("id", { count: "exact", head: true })
                         .eq("date_key", dateKey)
                         .eq("owner_id", ownerId)
-                    if (!cntErr && typeof count === "number" && count >= 5) {
+                    if (!cntErr && typeof count === "number" && count >= 3) {
                         return NextResponse.json({
                             data: { ok: true, owner_capped: true },
                         })
@@ -219,14 +219,14 @@ export async function POST(req: NextRequest) {
             if (visitErr && visitErr.message) {
                 // continue
             }
-            // Owner cap 5/day
+            // Owner cap 3/day
             if (ownerId) {
                 const { count, error: cntErr } = await db
                     .from("share_visit_awards")
                     .select("id", { count: "exact", head: true })
                     .eq("date_key", dateKey)
                     .eq("owner_id", ownerId)
-                if (!cntErr && typeof count === "number" && count >= 5) {
+                if (!cntErr && typeof count === "number" && count >= 3) {
                     return NextResponse.json({
                         data: { ok: true, owner_capped: true },
                     })
