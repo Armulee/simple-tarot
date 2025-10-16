@@ -175,8 +175,8 @@ export default function StarsPage() {
                                         <p className='text-gray-300 leading-relaxed mb-4'>
                                             Need stars instantly? Choose a plan that fits you.
                                         </p>
-                                        <div className='flex flex-col sm:flex-row gap-3'>
-                                            <Link href='/pricing' className='flex-1'>
+                                        <div className='flex flex-col gap-3'>
+                                            <Link href='/pricing'>
                                                 <Button
                                                     variant='outline'
                                                     className='w-full rounded-full border-yellow-500/40 text-yellow-300 hover:bg-yellow-500/10 hover:border-yellow-400/60 py-3 transition-all duration-300'
@@ -292,7 +292,7 @@ export default function StarsPage() {
                                             approve manually within 24-48 hours.
                                         </p>
 
-                                        <div className='flex gap-3'>
+                                        <div className='flex flex-col gap-3'>
                                         <Link href='/articles/create-content-about-us'>
                                             <Button
                                                 variant='outline'
@@ -413,7 +413,7 @@ export default function StarsPage() {
                                             You and your friend each earn 5 stars, max 10 friends/week. If 10 friends register in a week, you get a 10-star bonus. Stars grant when invited friends complete registration.
                                         </p>
 
-                                        <div className='flex gap-3'>
+                                        <div className='flex flex-col gap-3'>
                                         <Link href='/articles/referral-program'>
                                             <Button
                                                 variant='outline'
