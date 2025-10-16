@@ -278,7 +278,7 @@ Output:
                 <span className='leading-tight text-center'>
                     <span className='block'>Regenerate</span>
                     <span className='block text-[10px] text-yellow-300'>
-                        -1 <Star className='inline w-3 h-3 text-yellow-300' />
+                        -1 <Star className='inline w-3 h-3 text-yellow-300' fill='currentColor' />
                     </span>
                 </span>
             ),
