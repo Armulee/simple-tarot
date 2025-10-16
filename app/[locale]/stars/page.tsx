@@ -153,8 +153,7 @@ export default function StarsPage() {
                                             Purchase Stars
                                         </h3>
                                         <p className='text-sm text-gray-300'>
-                                            Instant cosmic energy for immediate
-                                            use
+                                            Instant top‑up
                                         </p>
                                     </div>
                                     <span className='text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-yellow-400/30 to-amber-500/30 border border-yellow-500/40 text-yellow-200 flex items-center gap-1.5 font-medium'>
@@ -173,7 +172,7 @@ export default function StarsPage() {
 
                                     <div className='relative z-10'>
                                         <p className='text-gray-300 leading-relaxed mb-4'>
-                                            Need stars instantly? Choose a plan that fits you.
+                                            Need stars right now? Choose a plan and get stars added to your balance immediately after checkout. View pricing to compare options.
                                         </p>
                                         <div className='flex flex-col gap-3'>
                                             <Link href='/pricing'>
@@ -210,8 +209,7 @@ export default function StarsPage() {
                                             Create Content About Us
                                         </h3>
                                         <p className='text-sm text-gray-300'>
-                                            Share your mystical experiences and
-                                            earn rewards
+                                            Create content. Earn stars.
                                         </p>
                                     </div>
                                     <span className='text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-400/30 to-pink-500/30 border border-purple-500/40 text-purple-200 flex items-center gap-1.5 font-medium'>
@@ -230,7 +228,7 @@ export default function StarsPage() {
 
                                     <div className='relative z-10'>
                                         <p className='text-gray-300 leading-relaxed mb-4'>
-                                            Create content about us and get rewarded.
+                                            Create content about Asking Fate—text, images, or video—and earn stars based on format. Submit a public link; we review within 24–48 hours.
                                         </p>
 
                                         <div className='grid gap-3 mb-4'>
@@ -335,8 +333,7 @@ export default function StarsPage() {
                                             Share a Reading
                                         </h3>
                                         <p className='text-sm text-gray-300'>
-                                            Spread the wisdom and earn cosmic
-                                            energy
+                                            Share a link. Earn up to 3/day.
                                         </p>
                                     </div>
                                     <span className='text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-400/30 to-cyan-500/30 border border-blue-500/40 text-blue-200 flex items-center gap-1.5 font-medium'>
@@ -355,7 +352,7 @@ export default function StarsPage() {
 
                                     <div className='relative z-10'>
                                         <p className='text-gray-300 leading-relaxed mb-4'>
-                                            We grant +1 star for each unique visitor to your shared reading, up to 3 per day.
+                                            Earn +1 star for each unique visitor who opens your shared reading—capped at 3 stars per day. Awards apply automatically.
                                         </p>
 
                                         <Link href='/articles/share-rewards'>
@@ -391,7 +388,7 @@ export default function StarsPage() {
                                             Refer a Friend
                                         </h3>
                                         <p className='text-sm text-gray-300'>
-                                            Bring others to the cosmic journey
+                                            Invite friends. Earn together.
                                         </p>
                                     </div>
                                     <span className='text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-green-400/30 to-emerald-500/30 border border-green-500/40 text-green-200 flex items-center gap-1.5 font-medium'>
@@ -410,7 +407,7 @@ export default function StarsPage() {
 
                                     <div className='relative z-10'>
                                         <p className='text-gray-300 leading-relaxed mb-4'>
-                                            You and your friend each earn 5 stars, max 10 friends/week. If 10 friends register in a week, you get a 10-star bonus. Stars grant when invited friends complete registration.
+                                            Share your referral link. You and your friend each earn 5 stars (up to 10 friends per week). If 10 friends register within a week, you receive a 10‑star bonus. Stars are granted when invited friends complete registration.
                                         </p>
 
                                         <div className='flex flex-col gap-3'>
