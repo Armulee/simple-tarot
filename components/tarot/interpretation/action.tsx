@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { useEffect as ReactUseEffect } from "react"
+import { toast } from "sonner"
 
 interface ActionSectionProps {
     question?: string
@@ -203,7 +204,13 @@ export default function ActionSection({
             }
 
             // Spend a star for regeneration
-            await spendStars(1)
+            const ok = await spendStars(1)
+            if (ok) {
+                toast.success("-1 star for regeneration")
+            } else {
+                toast.error("Not enough stars to regenerate")
+                return
+            }
             setPaidForInterpretation(true)
 
             // Clear current interpretation
@@ -223,6 +230,10 @@ Please provide a tarot interpretation for this question and these cards. Focus o
 
             // Generate new interpretation
             const newText = await complete(prompt)
+            if (!newText) {
+                toast.error("Failed to generate a new interpretation")
+                return
+            }
 
             // Persist current interpretation to DB and versions if we have a readingId
             try {
@@ -237,6 +248,8 @@ Please provide a tarot interpretation for this question and these cards. Focus o
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ reading_id: readingId, content: newText }),
                     })
+                    // Reload versions list
+                    await loadVersions()
                 }
             } catch {}
         } catch (error) {
