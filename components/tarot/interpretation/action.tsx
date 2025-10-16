@@ -403,18 +403,14 @@ Please provide a tarot interpretation for this question and these cards. Focus o
             description: "Save image or video",
             onClick: async () => {}, // handled by Popover wrapper
         },
-        ...(readingId
-            ? [
-                  {
-                      id: "versions",
-                      label: "Versions",
-                      icon: <FaRegFileLines className='w-4 h-4 text-white' />,
-                      bg: "linear-gradient(135deg, #9333EA, #7E22CE)",
-                      description: "View versions",
-                      onClick: async () => {},
-                  },
-              ]
-            : []),
+        {
+            id: "versions",
+            label: "Versions",
+            icon: <FaRegFileLines className='w-4 h-4 text-white' />,
+            bg: "linear-gradient(135deg, #9333EA, #7E22CE)",
+            description: "View versions",
+            onClick: async () => {},
+        },
         {
             id: "report",
             label: "Report",
@@ -648,49 +644,68 @@ Please provide a tarot interpretation for this question and these cards. Focus o
                                         </PopoverContent>
                                     </Popover>
                                 ) : action.id === 'versions' ? (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <button
-                                                type='button'
-                                                className='group relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg w-full'
-                                                style={{
-                                                    animationDelay: `${index * 50}ms`,
-                                                    animationFillMode: 'both',
-                                                }}
-                                            >
-                                                <div
-                                                    className='relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
-                                                    style={{ background: action.bg }}
+                                    versions.length > 0 ? (
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <button
+                                                    type='button'
+                                                    className='group relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg w-full'
+                                                    style={{
+                                                        animationDelay: `${index * 50}ms`,
+                                                        animationFillMode: 'both',
+                                                    }}
                                                 >
-                                                    {action.icon}
-                                                    <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
-                                                </div>
-                                                <span className='text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-300 text-center leading-tight'>
-                                                    {typeof action.label === 'string' ? action.label : 'Versions'}
-                                                </span>
-                                            </button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className='w-72'>
-                                            <div className='max-h-64 overflow-auto space-y-2'>
-                                                {versions.length === 0 && (
-                                                    <div className='text-xs text-muted-foreground'>No versions yet.</div>
-                                                )}
-                                                {versions.map((v) => (
-                                                    <button
-                                                        key={v.id}
-                                                        type='button'
-                                                        className='w-full text-left px-2 py-1 rounded hover:bg-white/10 text-sm'
-                                                        onClick={() => {
-                                                            if (typeof (onInterpretationChange) === 'function') onInterpretationChange(v.content)
-                                                            else setInterpretation(v.content)
-                                                        }}
+                                                    <div
+                                                        className='relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
+                                                        style={{ background: action.bg }}
                                                     >
-                                                        {new Date(v.created_at).toLocaleString()}
-                                                    </button>
-                                                ))}
+                                                        {action.icon}
+                                                        <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                                                    </div>
+                                                    <span className='text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-300 text-center leading-tight'>
+                                                        {typeof action.label === 'string' ? action.label : 'Versions'}
+                                                    </span>
+                                                </button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-72'>
+                                                <div className='max-h-64 overflow-auto space-y-2'>
+                                                    {versions.map((v) => (
+                                                        <button
+                                                            key={v.id}
+                                                            type='button'
+                                                            className='w-full text-left px-2 py-1 rounded hover:bg-white/10 text-sm'
+                                                            onClick={() => {
+                                                                if (typeof (onInterpretationChange) === 'function') onInterpretationChange(v.content)
+                                                                else setInterpretation(v.content)
+                                                            }}
+                                                        >
+                                                            {new Date(v.created_at).toLocaleString()}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
+                                    ) : (
+                                        <button
+                                            type='button'
+                                            disabled
+                                            className='group relative flex flex-col items-center gap-2 p-3 rounded-xl w-full opacity-50 cursor-not-allowed'
+                                            style={{
+                                                animationDelay: `${index * 50}ms`,
+                                                animationFillMode: 'both',
+                                            }}
+                                        >
+                                            <div
+                                                className='relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg'
+                                                style={{ background: action.bg }}
+                                            >
+                                                {action.icon}
                                             </div>
-                                        </PopoverContent>
-                                    </Popover>
+                                            <span className='text-xs font-medium text-foreground/60 text-center leading-tight'>
+                                                Versions
+                                            </span>
+                                        </button>
+                                    )
                                 ) : (
                                     <button
                                         type='button'
