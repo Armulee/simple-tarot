@@ -40,7 +40,7 @@ export default function ReferralPage() {
     useEffect(() => {
         if (user?.id) {
             const baseUrl = window.location.origin
-            const link = `${baseUrl}/signup?ref=${user.id}`
+            const link = `${baseUrl}?ref=${user.id}`
             setReferralLink(link)
         }
     }, [user?.id])
