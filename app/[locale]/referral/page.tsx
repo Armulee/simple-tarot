@@ -203,22 +203,13 @@ export default function ReferralPage() {
                                 </Button>
                             </div>
                             
-                            <div className="flex gap-2">
-                                <Button
-                                    onClick={shareReferral}
-                                    className="flex-1 rounded-full bg-gradient-to-r from-green-400 via-emerald-500 to-green-600 text-white hover:from-green-300 hover:via-emerald-400 hover:to-green-500 transition-all duration-300"
-                                >
-                                    <Share2 className="w-4 h-4 mr-2" />
-                                    Share Link
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    className="rounded-full border-green-500/40 text-green-300 hover:bg-green-500/10 hover:border-green-400/60"
-                                    onClick={copyToClipboard}
-                                >
-                                    <Copy className="w-4 h-4" />
-                                </Button>
-                            </div>
+                            <Button
+                                onClick={shareReferral}
+                                className="w-full rounded-full bg-gradient-to-r from-green-400 via-emerald-500 to-green-600 text-white hover:from-green-300 hover:via-emerald-400 hover:to-green-500 transition-all duration-300"
+                            >
+                                <Share2 className="w-4 h-4 mr-2" />
+                                Share Link
+                            </Button>
                         </CardContent>
                     </Card>
                 </div>
