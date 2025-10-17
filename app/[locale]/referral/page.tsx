@@ -190,14 +190,14 @@ export default function ReferralPage() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex gap-2">
-                                <div className="flex-1 p-3 rounded-lg bg-white/5 border border-white/10 font-mono text-sm text-gray-300 break-all">
+                                <div className="flex-1 p-3 rounded-lg bg-white/5 border border-white/10 font-mono text-sm text-gray-300 overflow-x-auto whitespace-nowrap">
                                     {referralLink || "Generating..."}
                                 </div>
                                 <Button
                                     onClick={copyToClipboard}
                                     variant="outline"
                                     size="sm"
-                                    className="border-green-500/40 text-green-300 hover:bg-green-500/10 hover:border-green-400/60"
+                                    className="border-green-500/40 text-green-300 hover:bg-green-500/10 hover:border-green-400/60 flex-shrink-0"
                                 >
                                     {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                                 </Button>
