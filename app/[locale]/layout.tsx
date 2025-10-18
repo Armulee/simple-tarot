@@ -8,6 +8,7 @@ import { TarotProvider } from "@/contexts/tarot-context"
 import { StarsProvider } from "@/contexts/stars-context"
 import { AuthProvider } from "@/contexts/auth-context"
 import { ProfileProvider } from "@/contexts/profile-context"
+import { ReferralProvider } from "@/contexts/referral-context"
 import { Navbar } from "@/components/navbar"
 import "../globals.css"
 import Footer from "@/components/footer"
@@ -124,17 +125,19 @@ export default async function RootLayout({
                         <ProfileProvider>
                             <StarConsentProvider>
                                 <StarsProvider>
-                                    <TarotProvider>
-                                        <div className='min-h-screen flex flex-col home-gradient -z-10'>
-                                            <Navbar locale={locale} />
-                                            <main className='pt-16 md:min-h-[calc(100dvh-65px)] min-h-[calc(100dvh-65px-4rem)] relative overflow-hidden'>
-                                                <Suspense fallback={null}>
-                                                    {children}
-                                                </Suspense>
-                                            </main>
-                                            <Footer />
-                                        </div>
-                                    </TarotProvider>
+                                    <ReferralProvider>
+                                        <TarotProvider>
+                                            <div className='min-h-screen flex flex-col home-gradient -z-10'>
+                                                <Navbar locale={locale} />
+                                                <main className='pt-16 md:min-h-[calc(100dvh-65px)] min-h-[calc(100dvh-65px-4rem)] relative overflow-hidden'>
+                                                    <Suspense fallback={null}>
+                                                        {children}
+                                                    </Suspense>
+                                                </main>
+                                                <Footer />
+                                            </div>
+                                        </TarotProvider>
+                                    </ReferralProvider>
                                 </StarsProvider>
                             </StarConsentProvider>
                         </ProfileProvider>
