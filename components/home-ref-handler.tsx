@@ -97,7 +97,7 @@ export default function HomeRefHandler() {
                     <div className='flex justify-center'>
                         <button
                             onClick={handleCloseDialog}
-                            className='px-3 py-2 rounded-md border border-white/20 text-white hover:bg-white/10'
+                            className='px-3 py-2 text-xs text-white/70'
                         >
                             Continue without account
                         </button>
