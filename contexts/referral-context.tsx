@@ -19,9 +19,11 @@ export function ReferralProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         if (!loading && user) {
-            // Check if user has a referral code in localStorage
+            // Check if user has a referral code in localStorage and hasn't been processed yet
             const storedReferralCode = localStorage.getItem("referral_code")
-            if (storedReferralCode) {
+            const referralProcessed = localStorage.getItem("referral_processed")
+            
+            if (storedReferralCode && !referralProcessed) {
                 setReferralCode(storedReferralCode)
                 setShowReferralDialog(true)
             }

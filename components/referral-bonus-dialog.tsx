@@ -48,7 +48,8 @@ export default function ReferralBonusDialog({ isOpen, onClose, referralCode }: R
                     addStars(5)
                     setSuccess(true)
                     
-                    // Clear referral code from localStorage
+                    // Mark referral as processed and clear referral code
+                    localStorage.setItem("referral_processed", "true")
                     localStorage.removeItem("referral_code")
                 }
             }
@@ -61,7 +62,8 @@ export default function ReferralBonusDialog({ isOpen, onClose, referralCode }: R
 
     const handleClose = () => {
         if (success) {
-            // Clear referral code from localStorage
+            // Mark referral as processed and clear referral code
+            localStorage.setItem("referral_processed", "true")
             localStorage.removeItem("referral_code")
         }
         onClose()
