@@ -54,7 +54,7 @@ export default function HomeRefHandler() {
 
     return (
         <Dialog open={showDialog} onOpenChange={handleCloseDialog}>
-            <ReferralDialog className='fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 relative overflow-hidden'>
+            <ReferralDialog>
                 <DialogHeader>
                     <DialogTitle className='text-green-300 font-serif text-xl'>
                         Referral Bonus Available!
