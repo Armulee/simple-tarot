@@ -14,7 +14,6 @@ export async function POST(req: Request) {
 
         const result = streamText({
             model: MODEL,
-            maxOutputTokens: 512,
             system: `You are an intuitive, multilingual tarot reader who adapts to the user’s language and culture.
 
 Goal: Give a clear, gentle, and direct tarot interpretation that answers the user’s question. Begin with the answer, not with analysis or disclaimers.  
