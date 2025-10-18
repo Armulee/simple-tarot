@@ -10,8 +10,9 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Star, Users, Gift, X } from "lucide-react"
+import { Star, Gift, Sparkle } from "lucide-react"
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 
 export default function HomeRefHandler() {
     const searchParams = useSearchParams()
@@ -55,70 +56,126 @@ export default function HomeRefHandler() {
 
     return (
         <Dialog open={showDialog} onOpenChange={handleCloseDialog}>
-            <DialogContent className="sm:max-w-md">
+            <ReferralDialog className='fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 relative overflow-hidden'>
                 <DialogHeader>
-                    <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-green-400/30 to-emerald-500/30 border border-green-500/40 text-green-300 mx-auto mb-4">
-                        <Gift className="w-8 h-8" />
-                    </div>
-                    <DialogTitle className="text-center text-2xl font-serif text-white">
+                    <DialogTitle className='text-green-300 font-serif text-xl'>
                         Referral Bonus Available!
                     </DialogTitle>
-                    <DialogDescription className="text-center text-gray-300">
+                    <DialogDescription className='text-white/85'>
                         You were referred by a friend! Sign in or create an account to receive bonus stars.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-6">
-                    <div className="bg-gradient-to-r from-green-400/10 via-emerald-500/10 to-green-600/10 border border-green-500/30 rounded-lg p-4">
-                        <div className="flex items-center gap-3 mb-3">
-                            <Users className="w-5 h-5 text-green-400" />
-                            <h3 className="font-semibold text-white">Referral Rewards</h3>
-                        </div>
-                        <div className="space-y-2 text-sm text-gray-300">
-                            <div className="flex justify-between">
-                                <span>You receive:</span>
-                                <span className="text-green-400 font-semibold">5 stars</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span>Your referrer receives:</span>
-                                <span className="text-green-400 font-semibold">5 stars</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span>Initial account bonus:</span>
-                                <span className="text-yellow-400 font-semibold">12 stars</span>
-                            </div>
-                            <div className="border-t border-green-500/30 pt-2 flex justify-between font-bold">
-                                <span>Total for you:</span>
-                                <span className="text-yellow-400">17 stars</span>
-                            </div>
-                        </div>
+                
+                {/* Reward Display */}
+                <div className='text-center my-6'>
+                    <div className='inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-400/20 to-emerald-500/20 border border-green-500/30 text-green-200 text-sm font-medium mb-4'>
+                        <Star className='w-4 h-4' fill="currentColor" />
+                        <span>You'll receive</span>
                     </div>
-                    
-                    <div className="flex gap-3">
-                        <Button
-                            onClick={handleSignIn}
-                            className="flex-1 rounded-full bg-gradient-to-r from-green-400 via-emerald-500 to-green-600 text-white hover:from-green-300 hover:via-emerald-400 hover:to-green-500 transition-all duration-300"
-                        >
-                            <Star className="w-4 h-4 mr-2" fill="currentColor" />
-                            Sign In
-                        </Button>
-                        <Button
-                            onClick={handleSignUp}
-                            variant="outline"
-                            className="flex-1 rounded-full border-green-500/40 text-green-300 hover:bg-green-500/10 hover:border-green-400/60"
-                        >
-                            Sign Up
-                        </Button>
+                    <div className='text-4xl font-bold text-green-400 flex items-center justify-center gap-2'>
+                        <Star className='w-8 h-8' fill="currentColor" />
+                        5 Stars
                     </div>
-                    
-                    <Button
+                    <p className='text-sm text-white/70 mt-2'>
+                        Plus your initial account bonus
+                    </p>
+                </div>
+
+                <div className='flex gap-3 justify-end'>
+                    <button
                         onClick={handleCloseDialog}
-                        variant="ghost"
-                        className="w-full text-gray-400 hover:text-white hover:bg-white/10"
+                        className='px-3 py-2 rounded-md border border-white/20 text-white hover:bg-white/10'
                     >
                         Continue without account
-                    </Button>
+                    </button>
+                    <button
+                        onClick={handleSignUp}
+                        className='px-3 py-2 rounded-md bg-gradient-to-r from-green-400 to-green-600 text-white border border-green-500/40 hover:from-green-300 hover:to-green-500 shadow-[0_12px_30px_-10px_rgba(34,197,94,0.45)]'
+                    >
+                        Sign Up
+                    </button>
+                    <button
+                        onClick={handleSignIn}
+                        className='px-3 py-2 rounded-md bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.45)]'
+                    >
+                        Sign In
+                    </button>
                 </div>
-            </DialogContent>
+            </ReferralDialog>
         </Dialog>
+    )
+}
+
+export function ReferralDialog({
+    children,
+    className,
+}: {
+    children: React.ReactNode
+    className?: string
+}) {
+    return (
+        <DialogContent
+            className={cn(
+                "max-w-lg w-[92vw] border border-green-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(34,197,94,0.35)]",
+                className
+            )}
+        >
+            {/* Beautiful ping orbs */}
+            <Sparkle
+                className='absolute top-16 left-16 w-3 h-3 rounded-full fill-green-400 opacity-50 animate-ping'
+                style={{ animationDelay: "0.5s" }}
+            />
+            <Sparkle
+                className='absolute top-24 right-20 w-2 h-2 rounded-full fill-green-400 opacity-50 animate-ping'
+                style={{ animationDelay: "1.2s" }}
+            />
+            <Sparkle
+                className='absolute top-40 left-1/3 w-2.5 h-2.5 rounded-full fill-green-400 opacity-50 animate-ping'
+                style={{ animationDelay: "2.8s" }}
+            />
+            <Sparkle
+                className='absolute top-32 right-1/4 w-1.5 h-1.5 rounded-full fill-green-400 opacity-50 animate-ping'
+                style={{ animationDelay: "3.5s" }}
+            />
+            <Sparkle
+                className='absolute bottom-20 left-20 w-3.5 h-3.5 rounded-full fill-green-400 opacity-50 animate-ping'
+                style={{ animationDelay: "1.8s" }}
+            />
+            <Sparkle
+                className='absolute bottom-32 right-16 w-2 h-2 rounded-full fill-green-400 opacity-50 animate-ping'
+                style={{ animationDelay: "4.2s" }}
+            />
+            <Sparkle
+                className='absolute bottom-16 right-1/3 w-2.5 h-2.5 rounded-full fill-green-400 opacity-50 animate-ping'
+                style={{ animationDelay: "2.1s" }}
+            />
+            <Sparkle
+                className='absolute top-1/2 left-12 w-1.5 h-1.5 rounded-full fill-green-400 opacity-50 animate-ping'
+                style={{ animationDelay: "3.8s" }}
+            />
+            <Sparkle
+                className='absolute top-1/3 right-12 w-3 h-3 rounded-full fill-green-400 opacity-50 animate-ping'
+                style={{ animationDelay: "0.9s" }}
+            />
+            <Sparkle
+                className='absolute bottom-1/3 left-1/4 w-2 h-2 rounded-full fill-green-400 opacity-50 animate-ping'
+                style={{ animationDelay: "4.7s" }}
+            />
+
+            {/* Deep-space stars background */}
+            <div className='pointer-events-none absolute inset-0 opacity-40'>
+                <div className='cosmic-stars-layer-3' />
+                <div className='cosmic-stars-layer-4' />
+                <div className='cosmic-stars-layer-5' />
+            </div>
+            {/* Green aura behind dialog */}
+            <div className='pointer-events-none absolute -top-24 -left-24 h-64 w-64 rounded-full bg-gradient-to-br from-green-300/25 via-green-500/15 to-transparent blur-3xl animate-pulse' />
+            <div
+                className='pointer-events-none absolute -bottom-28 -right-28 h-80 w-80 rounded-full bg-gradient-to-tl from-green-400/20 via-green-600/10 to-transparent blur-[100px] animate-pulse'
+                style={{ animationDelay: "0.8s" }}
+            />
+
+            {children}
+        </DialogContent>
     )
 }
