@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
     Dialog,
     DialogContent,
@@ -21,14 +21,24 @@ interface ReferralBonusDialogProps {
 
 export default function ReferralBonusDialog({ isOpen, onClose, referralCode }: ReferralBonusDialogProps) {
     const { user } = useAuth()
-    const { addStars } = useStars()
+    const { addStars, stars } = useStars()
     const [isProcessing, setIsProcessing] = useState(false)
     const [success, setSuccess] = useState(false)
+    const [currentStars, setCurrentStars] = useState(0)
+
+    // Auto-process referral bonus when dialog opens
+    useEffect(() => {
+        if (isOpen && referralCode && user && !success && !isProcessing) {
+            processReferralBonus()
+        }
+    }, [isOpen, referralCode, user, success, isProcessing])
 
     const processReferralBonus = async () => {
         if (!referralCode || !user) return
 
         setIsProcessing(true)
+        setCurrentStars(stars || 0)
+        
         try {
             const response = await fetch("/api/referral/process", {
                 method: "POST",
@@ -81,18 +91,17 @@ export default function ReferralBonusDialog({ isOpen, onClose, referralCode }: R
                             Referral Bonus Granted!
                         </DialogTitle>
                         <DialogDescription className="text-center text-gray-300">
-                            You and your referrer have each received 5 stars! 
-                            Your account has been initialized with 17 stars total.
+                            You and your referrer have each received 5 stars!
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                         <div className="text-center">
                             <div className="text-3xl font-bold text-green-400 flex items-center justify-center gap-2">
                                 <Star className="w-8 h-8" fill="currentColor" />
-                                +5 Stars
+                                {currentStars} + 5
                             </div>
                             <p className="text-sm text-gray-400 mt-2">
-                                Added to your account
+                                Your new star balance
                             </p>
                         </div>
                         <Button
@@ -115,60 +124,16 @@ export default function ReferralBonusDialog({ isOpen, onClose, referralCode }: R
                         <Gift className="w-8 h-8" />
                     </div>
                     <DialogTitle className="text-center text-2xl font-serif text-white">
-                        Referral Bonus Available!
+                        Processing Referral Bonus...
                     </DialogTitle>
                     <DialogDescription className="text-center text-gray-300">
-                        You were referred by a friend! Complete your account creation to receive bonus stars.
+                        Please wait while we process your referral bonus.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-6">
-                    <div className="bg-gradient-to-r from-green-400/10 via-emerald-500/10 to-green-600/10 border border-green-500/30 rounded-lg p-4">
-                        <div className="flex items-center gap-3 mb-3">
-                            <Users className="w-5 h-5 text-green-400" />
-                            <h3 className="font-semibold text-white">Referral Rewards</h3>
-                        </div>
-                        <div className="space-y-2 text-sm text-gray-300">
-                            <div className="flex justify-between">
-                                <span>You receive:</span>
-                                <span className="text-green-400 font-semibold">5 stars</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span>Your referrer receives:</span>
-                                <span className="text-green-400 font-semibold">5 stars</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span>Initial account bonus:</span>
-                                <span className="text-yellow-400 font-semibold">12 stars</span>
-                            </div>
-                            <div className="border-t border-green-500/30 pt-2 flex justify-between font-bold">
-                                <span>Total for you:</span>
-                                <span className="text-yellow-400">17 stars</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div className="flex gap-3">
-                        <Button
-                            onClick={processReferralBonus}
-                            disabled={isProcessing}
-                            className="flex-1 rounded-full bg-gradient-to-r from-green-400 via-emerald-500 to-green-600 text-white hover:from-green-300 hover:via-emerald-400 hover:to-green-500 transition-all duration-300"
-                        >
-                            {isProcessing ? (
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            ) : (
-                                <>
-                                    <Star className="w-4 h-4 mr-2" fill="currentColor" />
-                                    Claim Bonus
-                                </>
-                            )}
-                        </Button>
-                        <Button
-                            onClick={handleClose}
-                            variant="outline"
-                            className="rounded-full border-gray-500/40 text-gray-300 hover:bg-gray-500/10 hover:border-gray-400/60"
-                        >
-                            Skip
-                        </Button>
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-400 mx-auto mb-4"></div>
+                        <p className="text-gray-300">Adding 5 stars to your account...</p>
                     </div>
                 </div>
             </DialogContent>
