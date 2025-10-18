@@ -42,11 +42,6 @@ export default function HomeRefHandler() {
         router.replace(url.pathname + url.search, { scroll: false })
     }
 
-    const handleSignIn = () => {
-        const callbackUrl = encodeURIComponent(window.location.pathname)
-        router.push(`/signin?callbackUrl=${callbackUrl}`)
-    }
-
     const handleSignUp = () => {
         const callbackUrl = encodeURIComponent(window.location.pathname)
         router.push(`/signup?callbackUrl=${callbackUrl}`)
@@ -80,20 +75,12 @@ export default function HomeRefHandler() {
                 </div>
 
                 <div className='space-y-3'>
-                    <div className='flex gap-3'>
-                        <button
-                            onClick={handleSignUp}
-                            className='flex-1 px-3 py-2 rounded-md bg-gradient-to-r from-green-400 to-green-600 text-white border border-green-500/40 hover:from-green-300 hover:to-green-500 shadow-[0_12px_30px_-10px_rgba(34,197,94,0.45)]'
-                        >
-                            Sign Up
-                        </button>
-                        <button
-                            onClick={handleSignIn}
-                            className='flex-1 px-3 py-2 rounded-md bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.45)]'
-                        >
-                            Sign In
-                        </button>
-                    </div>
+                    <button
+                        onClick={handleSignUp}
+                        className='w-full px-3 py-2 rounded-md bg-gradient-to-r from-green-400 to-green-600 text-white border border-green-500/40 hover:from-green-300 hover:to-green-500 shadow-[0_12px_30px_-10px_rgba(34,197,94,0.45)]'
+                    >
+                        Sign Up
+                    </button>
                     <div className='flex justify-center'>
                         <button
                             onClick={handleCloseDialog}
