@@ -9,9 +9,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Star, Gift, Sparkle } from "lucide-react"
-import Link from "next/link"
+import { Star, Sparkle } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export default function HomeRefHandler() {
@@ -70,7 +68,7 @@ export default function HomeRefHandler() {
                 <div className='text-center my-6'>
                     <div className='inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-400/20 to-emerald-500/20 border border-green-500/30 text-green-200 text-sm font-medium mb-4'>
                         <Star className='w-4 h-4' fill="currentColor" />
-                        <span>You'll receive</span>
+                        <span>You&apos;ll receive</span>
                     </div>
                     <div className='text-4xl font-bold text-green-400 flex items-center justify-center gap-2'>
                         <Star className='w-8 h-8' fill="currentColor" />

@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import {
     Star,
     Users,
@@ -11,11 +10,9 @@ import {
     Check,
     Gift,
     Crown,
-    Sparkles,
     Zap,
     Heart,
     ArrowLeft,
-    ExternalLink,
 } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
@@ -30,7 +27,7 @@ export default function ReferralPage() {
     const router = useRouter()
     const [referralLink, setReferralLink] = useState<string>("")
     const [copied, setCopied] = useState(false)
-    const [referralStats, setReferralStats] = useState({
+    const [referralStats] = useState({
         totalReferrals: 0,
         weeklyReferrals: 0,
         totalEarned: 0,
@@ -65,7 +62,7 @@ export default function ReferralPage() {
             setCopied(true)
             toast.success("Referral link copied to clipboard!")
             setTimeout(() => setCopied(false), 2000)
-        } catch (err) {
+        } catch {
             toast.error("Failed to copy link")
         }
     }
@@ -82,7 +79,7 @@ export default function ReferralPage() {
         if (navigator.share) {
             try {
                 await navigator.share(shareData)
-            } catch (err) {
+            } catch {
                 // User cancelled or error occurred
             }
         } else {

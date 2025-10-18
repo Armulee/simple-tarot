@@ -7,7 +7,6 @@ import {
     Sparkles,
     Zap,
     Gift,
-    Heart,
     Crown,
 } from "lucide-react"
 import Link from "next/link"
