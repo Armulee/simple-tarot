@@ -58,7 +58,7 @@ function DynamicInterpretation() {
         paidForInterpretation,
         setPaidForInterpretation,
     } = useTarot()
-    const { completion, error, complete } = useCompletion({
+    const { completion, error, complete, isLoading } = useCompletion({
         // api: "/api/interpret-cards/mockup",
         api: "/api/interpret-cards/question",
         onFinish: (_, completion) => {
@@ -498,7 +498,7 @@ Tone: warm, intuitive, and natural — sound human, not robotic.
                                     animationFillMode: "both",
                                 }}
                             >
-                                {isGenerating ? (
+                                {isLoading ? (
                                     <div className='text-center space-y-4 py-8'>
                                         <div className='flex items-center justify-center space-x-3'>
                                             <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-primary'></div>
