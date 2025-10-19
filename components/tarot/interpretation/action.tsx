@@ -34,7 +34,11 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
+import {
+    Popover,
+    PopoverTrigger,
+    PopoverContent,
+} from "@/components/ui/popover"
 import { useEffect as ReactUseEffect } from "react"
 import { toast } from "sonner"
 
@@ -44,6 +48,7 @@ interface ActionSectionProps {
     interpretation?: string
     readingId?: string
     onInterpretationChange?: (text: string) => void
+    onGeneratingChange?: (loading: boolean) => void
 }
 
 export default function ActionSection({
@@ -52,6 +57,7 @@ export default function ActionSection({
     interpretation: propInterpretation,
     readingId: propReadingId,
     onInterpretationChange,
+    onGeneratingChange,
 }: ActionSectionProps = {}) {
     const {
         question: contextQuestion,
@@ -64,7 +70,7 @@ export default function ActionSection({
     const cards = propCards || selectedCards.map((c) => c.meaning)
     const interpretation = propInterpretation || contextInterpretation
     const readingId = propReadingId
-    
+
     const [copiedLink, setCopiedLink] = useState(false)
     const [copiedText, setCopiedText] = useState(false)
     const { user } = useAuth()
@@ -78,17 +84,28 @@ export default function ActionSection({
     const [showFeedback, setShowFeedback] = useState(false)
     const [rating, setRating] = useState<number>(0)
     const navGuardRef = useRef<HTMLDivElement>(null)
-    const [versions, setVersions] = useState<Array<{ id: number; reading_id: string; content: string; created_at: string }>>([])
+    const [versions, setVersions] = useState<
+        Array<{
+            id: number
+            reading_id: string
+            content: string
+            created_at: string
+        }>
+    >([])
     const loadVersions = useCallback(async () => {
         try {
             if (!readingId) return
-            const res = await fetch(`/api/tarot/versions?readingId=${readingId}`)
+            const res = await fetch(
+                `/api/tarot/versions?readingId=${readingId}`
+            )
             if (!res.ok) return
             const data = await res.json()
             setVersions(Array.isArray(data.versions) ? data.versions : [])
         } catch {}
     }, [readingId])
-    ReactUseEffect(() => { void loadVersions() }, [loadVersions])
+    ReactUseEffect(() => {
+        void loadVersions()
+    }, [loadVersions])
 
     const { complete } = useCompletion({
         api: "/api/interpret-cards/question",
@@ -205,7 +222,9 @@ export default function ActionSection({
             // Spend a star for regeneration
             const ok = await spendStars(1)
             if (ok) {
-                toast.warning("-1 star for regeneration")
+                toast.warning("-1 star for regeneration", {
+                    position: "bottom-center",
+                })
             } else {
                 toast.error("Not enough stars to regenerate")
                 return
@@ -213,7 +232,15 @@ export default function ActionSection({
             setPaidForInterpretation(true)
 
             // Clear current interpretation
-            setInterpretation(null)
+            if (typeof onInterpretationChange === "function") {
+                onInterpretationChange("")
+            } else {
+                setInterpretation(null)
+            }
+
+            // Show generating state in parent if provided
+            if (typeof onGeneratingChange === "function")
+                onGeneratingChange(true)
 
             // Build the prompt (match initial generation logic)
             const cardNames = cards.join(", ")
@@ -237,6 +264,8 @@ Output:
             const newText = await complete(prompt)
             if (!newText) {
                 toast.error("Failed to generate a new interpretation")
+                if (typeof onGeneratingChange === "function")
+                    onGeneratingChange(false)
                 return
             }
 
@@ -246,19 +275,35 @@ Output:
                     await fetch("/api/tarot/update", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ id: readingId, interpretation: newText }),
+                        body: JSON.stringify({
+                            id: readingId,
+                            interpretation: newText,
+                        }),
                     })
                     await fetch("/api/tarot/versions", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ reading_id: readingId, content: newText }),
+                        body: JSON.stringify({
+                            reading_id: readingId,
+                            content: newText,
+                        }),
                     })
                     // Reload versions list
                     await loadVersions()
                 }
             } catch {}
+
+            // Push new interpretation to parent/context
+            if (typeof onInterpretationChange === "function") {
+                onInterpretationChange(newText)
+            } else {
+                setInterpretation(newText)
+            }
         } catch (error) {
             console.error("Error regenerating interpretation:", error)
+        } finally {
+            if (typeof onGeneratingChange === "function")
+                onGeneratingChange(false)
         }
     }, [
         question,
@@ -268,6 +313,7 @@ Output:
         setPaidForInterpretation,
         setInterpretation,
         onInterpretationChange,
+        onGeneratingChange,
         complete,
     ])
 
@@ -278,7 +324,11 @@ Output:
                 <span className='leading-tight text-center'>
                     <span className='block'>Regenerate</span>
                     <span className='block text-[10px] text-yellow-300'>
-                        -1 <Star className='inline w-3 h-3 text-yellow-300' fill='currentColor' />
+                        -1{" "}
+                        <Star
+                            className='inline w-3 h-3 text-yellow-300'
+                            fill='currentColor'
+                        />
                     </span>
                 </span>
             ),
@@ -314,7 +364,7 @@ Output:
             onClick: async () => {
                 const link = await ensureShareLink()
                 if (!link) return
-                
+
                 try {
                     // Try modern clipboard API first
                     if (navigator.clipboard && window.isSecureContext) {
@@ -324,23 +374,23 @@ Output:
                         return
                     }
                 } catch (error) {
-                    console.log('Clipboard API failed, trying fallback:', error)
+                    console.log("Clipboard API failed, trying fallback:", error)
                 }
-                
+
                 // Fallback for Safari and older browsers
                 try {
-                    const textArea = document.createElement('textarea')
+                    const textArea = document.createElement("textarea")
                     textArea.value = link
-                    textArea.style.position = 'fixed'
-                    textArea.style.left = '-999999px'
-                    textArea.style.top = '-999999px'
+                    textArea.style.position = "fixed"
+                    textArea.style.left = "-999999px"
+                    textArea.style.top = "-999999px"
                     document.body.appendChild(textArea)
                     textArea.focus()
                     textArea.select()
-                    
-                    const successful = document.execCommand('copy')
+
+                    const successful = document.execCommand("copy")
                     document.body.removeChild(textArea)
-                    
+
                     if (successful) {
                         setCopiedLink(true)
                         window.setTimeout(() => setCopiedLink(false), 2000)
@@ -349,7 +399,7 @@ Output:
                         alert(`Copy this link: ${link}`)
                     }
                 } catch (fallbackError) {
-                    console.error('Fallback copy failed:', fallbackError)
+                    console.error("Fallback copy failed:", fallbackError)
                     // Last resort: show the link
                     alert(`Copy this link: ${link}`)
                 }
@@ -372,7 +422,7 @@ Output:
             onClick: async () => {
                 const text = interpretation ? String(interpretation) : ""
                 if (!text) return
-                
+
                 try {
                     // Try modern clipboard API first
                     if (navigator.clipboard && window.isSecureContext) {
@@ -382,23 +432,23 @@ Output:
                         return
                     }
                 } catch (error) {
-                    console.log('Clipboard API failed, trying fallback:', error)
+                    console.log("Clipboard API failed, trying fallback:", error)
                 }
-                
+
                 // Fallback for Safari and older browsers
                 try {
-                    const textArea = document.createElement('textarea')
+                    const textArea = document.createElement("textarea")
                     textArea.value = text
-                    textArea.style.position = 'fixed'
-                    textArea.style.left = '-999999px'
-                    textArea.style.top = '-999999px'
+                    textArea.style.position = "fixed"
+                    textArea.style.left = "-999999px"
+                    textArea.style.top = "-999999px"
                     document.body.appendChild(textArea)
                     textArea.focus()
                     textArea.select()
-                    
-                    const successful = document.execCommand('copy')
+
+                    const successful = document.execCommand("copy")
                     document.body.removeChild(textArea)
-                    
+
                     if (successful) {
                         setCopiedText(true)
                         window.setTimeout(() => setCopiedText(false), 2000)
@@ -407,7 +457,7 @@ Output:
                         alert(`Copy this text: ${text}`)
                     }
                 } catch (fallbackError) {
-                    console.error('Fallback copy failed:', fallbackError)
+                    console.error("Fallback copy failed:", fallbackError)
                     // Last resort: show the text
                     alert(`Copy this text: ${text}`)
                 }
@@ -554,10 +604,8 @@ Output:
                         className='py-2 px-6'
                     >
                         {actionOptions.map((action, index) => (
-                            <SwiperSlide
-                                key={action.id}
-                            >
-                                {action.id === 'download' ? (
+                            <SwiperSlide key={action.id}>
+                                {action.id === "download" ? (
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <button
@@ -570,7 +618,9 @@ Output:
                                             >
                                                 <div
                                                     className='relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
-                                                    style={{ background: action.bg }}
+                                                    style={{
+                                                        background: action.bg,
+                                                    }}
                                                 >
                                                     {action.icon}
                                                     <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
@@ -587,34 +637,66 @@ Output:
                                                     className='w-full px-3 py-2 rounded-md bg-primary/20 hover:bg-primary/30 text-sm'
                                                     onClick={async () => {
                                                         try {
-                                                            setIsDownloading(true)
-                                                            const type = 'image'
-                                                            const res = await fetch('/api/share-image', {
-                                                                method: 'POST',
-                                                                headers: { 'Content-Type': 'application/json' },
-                                                                body: JSON.stringify({
-                                                                    question,
-                                                                    cards: cards,
-                                                                    interpretation,
-                                                                    width: 1170,
-                                                                    height: 2532,
-                                                                    branding: 'Asking Fate',
-                                                                    theme: 'cosmic',
-                                                                    type,
-                                                                }),
-                                                            })
-                                                            const blob = await res.blob()
-                                                            const ts = new Date().toISOString().replace(/[:.]/g, '-')
-                                                            const url = URL.createObjectURL(blob)
-                                                            const a = document.createElement('a')
+                                                            setIsDownloading(
+                                                                true
+                                                            )
+                                                            const type = "image"
+                                                            const res =
+                                                                await fetch(
+                                                                    "/api/share-image",
+                                                                    {
+                                                                        method: "POST",
+                                                                        headers:
+                                                                            {
+                                                                                "Content-Type":
+                                                                                    "application/json",
+                                                                            },
+                                                                        body: JSON.stringify(
+                                                                            {
+                                                                                question,
+                                                                                cards: cards,
+                                                                                interpretation,
+                                                                                width: 1170,
+                                                                                height: 2532,
+                                                                                branding:
+                                                                                    "Asking Fate",
+                                                                                theme: "cosmic",
+                                                                                type,
+                                                                            }
+                                                                        ),
+                                                                    }
+                                                                )
+                                                            const blob =
+                                                                await res.blob()
+                                                            const ts =
+                                                                new Date()
+                                                                    .toISOString()
+                                                                    .replace(
+                                                                        /[:.]/g,
+                                                                        "-"
+                                                                    )
+                                                            const url =
+                                                                URL.createObjectURL(
+                                                                    blob
+                                                                )
+                                                            const a =
+                                                                document.createElement(
+                                                                    "a"
+                                                                )
                                                             a.href = url
                                                             a.download = `reading-${ts}.png`
-                                                            document.body.appendChild(a)
+                                                            document.body.appendChild(
+                                                                a
+                                                            )
                                                             a.click()
                                                             a.remove()
-                                                            URL.revokeObjectURL(url)
+                                                            URL.revokeObjectURL(
+                                                                url
+                                                            )
                                                         } finally {
-                                                            setIsDownloading(false)
+                                                            setIsDownloading(
+                                                                false
+                                                            )
                                                         }
                                                     }}
                                                 >
@@ -625,34 +707,66 @@ Output:
                                                     className='w-full px-3 py-2 rounded-md bg-accent/20 hover:bg-accent/30 text-sm'
                                                     onClick={async () => {
                                                         try {
-                                                            setIsDownloading(true)
-                                                            const type = 'video'
-                                                            const res = await fetch('/api/share-image', {
-                                                                method: 'POST',
-                                                                headers: { 'Content-Type': 'application/json' },
-                                                                body: JSON.stringify({
-                                                                    question,
-                                                                    cards: cards,
-                                                                    interpretation,
-                                                                    width: 1170,
-                                                                    height: 2532,
-                                                                    branding: 'Asking Fate',
-                                                                    theme: 'cosmic',
-                                                                    type,
-                                                                }),
-                                                            })
-                                                            const blob = await res.blob()
-                                                            const ts = new Date().toISOString().replace(/[:.]/g, '-')
-                                                            const url = URL.createObjectURL(blob)
-                                                            const a = document.createElement('a')
+                                                            setIsDownloading(
+                                                                true
+                                                            )
+                                                            const type = "video"
+                                                            const res =
+                                                                await fetch(
+                                                                    "/api/share-image",
+                                                                    {
+                                                                        method: "POST",
+                                                                        headers:
+                                                                            {
+                                                                                "Content-Type":
+                                                                                    "application/json",
+                                                                            },
+                                                                        body: JSON.stringify(
+                                                                            {
+                                                                                question,
+                                                                                cards: cards,
+                                                                                interpretation,
+                                                                                width: 1170,
+                                                                                height: 2532,
+                                                                                branding:
+                                                                                    "Asking Fate",
+                                                                                theme: "cosmic",
+                                                                                type,
+                                                                            }
+                                                                        ),
+                                                                    }
+                                                                )
+                                                            const blob =
+                                                                await res.blob()
+                                                            const ts =
+                                                                new Date()
+                                                                    .toISOString()
+                                                                    .replace(
+                                                                        /[:.]/g,
+                                                                        "-"
+                                                                    )
+                                                            const url =
+                                                                URL.createObjectURL(
+                                                                    blob
+                                                                )
+                                                            const a =
+                                                                document.createElement(
+                                                                    "a"
+                                                                )
                                                             a.href = url
                                                             a.download = `reading-${ts}.mp4`
-                                                            document.body.appendChild(a)
+                                                            document.body.appendChild(
+                                                                a
+                                                            )
                                                             a.click()
                                                             a.remove()
-                                                            URL.revokeObjectURL(url)
+                                                            URL.revokeObjectURL(
+                                                                url
+                                                            )
                                                         } finally {
-                                                            setIsDownloading(false)
+                                                            setIsDownloading(
+                                                                false
+                                                            )
                                                         }
                                                     }}
                                                 >
@@ -661,7 +775,7 @@ Output:
                                             </div>
                                         </PopoverContent>
                                     </Popover>
-                                ) : action.id === 'versions' ? (
+                                ) : action.id === "versions" ? (
                                     versions.length > 0 ? (
                                         <Popover>
                                             <PopoverTrigger asChild>
@@ -670,18 +784,25 @@ Output:
                                                     className='group relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg w-full'
                                                     style={{
                                                         animationDelay: `${index * 50}ms`,
-                                                        animationFillMode: 'both',
+                                                        animationFillMode:
+                                                            "both",
                                                     }}
                                                 >
                                                     <div
                                                         className='relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
-                                                        style={{ background: action.bg }}
+                                                        style={{
+                                                            background:
+                                                                action.bg,
+                                                        }}
                                                     >
                                                         {action.icon}
                                                         <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
                                                     </div>
                                                     <span className='text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-300 text-center leading-tight'>
-                                                        {typeof action.label === 'string' ? action.label : 'Versions'}
+                                                        {typeof action.label ===
+                                                        "string"
+                                                            ? action.label
+                                                            : "Versions"}
                                                     </span>
                                                 </button>
                                             </PopoverTrigger>
@@ -693,11 +814,22 @@ Output:
                                                             type='button'
                                                             className='w-full text-left px-2 py-1 rounded hover:bg-white/10 text-sm'
                                                             onClick={() => {
-                                                                if (typeof (onInterpretationChange) === 'function') onInterpretationChange(v.content)
-                                                                else setInterpretation(v.content)
+                                                                if (
+                                                                    typeof onInterpretationChange ===
+                                                                    "function"
+                                                                )
+                                                                    onInterpretationChange(
+                                                                        v.content
+                                                                    )
+                                                                else
+                                                                    setInterpretation(
+                                                                        v.content
+                                                                    )
                                                             }}
                                                         >
-                                                            {new Date(v.created_at).toLocaleString()}
+                                                            {new Date(
+                                                                v.created_at
+                                                            ).toLocaleString()}
                                                         </button>
                                                     ))}
                                                 </div>
@@ -710,12 +842,14 @@ Output:
                                             className='group relative flex flex-col items-center gap-2 p-3 rounded-xl w-full opacity-50 cursor-not-allowed'
                                             style={{
                                                 animationDelay: `${index * 50}ms`,
-                                                animationFillMode: 'both',
+                                                animationFillMode: "both",
                                             }}
                                         >
                                             <div
                                                 className='relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg'
-                                                style={{ background: action.bg }}
+                                                style={{
+                                                    background: action.bg,
+                                                }}
                                             >
                                                 {action.icon}
                                             </div>
@@ -731,7 +865,7 @@ Output:
                                         className='group relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg w-full'
                                         style={{
                                             animationDelay: `${index * 50}ms`,
-                                            animationFillMode: 'both',
+                                            animationFillMode: "both",
                                         }}
                                     >
                                         <div
@@ -769,18 +903,24 @@ Output:
                             onChange={(e) => setReportReason(e.target.value)}
                         >
                             <option value=''>Select a reason</option>
-                            <option value='inappropriate'>Inappropriate content</option>
+                            <option value='inappropriate'>
+                                Inappropriate content
+                            </option>
                             <option value='spam'>Spam or misleading</option>
-                            <option value='harassment'>Harassment or hate</option>
+                            <option value='harassment'>
+                                Harassment or hate
+                            </option>
                             <option value='privacy'>Privacy concern</option>
                             <option value='other'>Other</option>
                         </select>
-                        {reportReason === 'other' && (
+                        {reportReason === "other" && (
                             <textarea
                                 className='w-full bg-background border border-border/40 rounded-md p-2'
                                 placeholder='Please describe...'
                                 value={reportDetails}
-                                onChange={(e) => setReportDetails(e.target.value)}
+                                onChange={(e) =>
+                                    setReportDetails(e.target.value)
+                                }
                             />
                         )}
                     </div>
@@ -792,9 +932,11 @@ Output:
                             onClick={async () => {
                                 if (!reportReason) return
                                 try {
-                                    const res = await fetch('/api/reports', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
+                                    const res = await fetch("/api/reports", {
+                                        method: "POST",
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                        },
                                         body: JSON.stringify({
                                             reading_id: readingId,
                                             reason: reportReason,
@@ -821,12 +963,12 @@ Output:
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <div className='flex items-center justify-center gap-2 py-2'>
-                        {[1,2,3,4,5].map((n) => (
+                        {[1, 2, 3, 4, 5].map((n) => (
                             <button
                                 key={n}
                                 type='button'
                                 onClick={() => setRating(n)}
-                                className={`w-8 h-8 rounded-full ${rating >= n ? 'bg-yellow-400' : 'bg-zinc-700'}`}
+                                className={`w-8 h-8 rounded-full ${rating >= n ? "bg-yellow-400" : "bg-zinc-700"}`}
                                 aria-label={`Rate ${n}`}
                             />
                         ))}
@@ -838,15 +980,19 @@ Output:
                         onChange={(e) => setReportDetails(e.target.value)}
                     />
                     <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setShowFeedback(false)}>
+                        <AlertDialogCancel
+                            onClick={() => setShowFeedback(false)}
+                        >
                             Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={async () => {
                                 try {
-                                    const res = await fetch('/api/feedbacks', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
+                                    const res = await fetch("/api/feedbacks", {
+                                        method: "POST",
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                        },
                                         body: JSON.stringify({
                                             reading_id: readingId,
                                             rating,

@@ -107,7 +107,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         return () => {
             cancelled = true
         }
-    }, [user?.id, refillCap, computeNextRefillAt]) // Only depend on user.id, not the whole user object
+    }, [refillCap, computeNextRefillAt, initialized, user]) // Only depend on user.id, not the whole user object
 
     // Initialize stars after consent is accepted
     type CookieConsentChangedDetail = { choice: "accepted" | "declined" }
@@ -155,43 +155,6 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             }
         }
     }, [user, refillCap, computeNextRefillAt])
-
-    // Periodic refresh to apply server-side refills
-    useEffect(() => {
-        if (!initialized) return
-        if (!hasCookieConsent()) return
-        let mounted = true
-        const checkRefill = async () => {
-            try {
-                if (stars === null) return
-                const now = Date.now()
-                if (nextRefillAt && now >= nextRefillAt) {
-                    // Ask server to apply refill/reset and return new state
-                    const state = await starGetOrCreate(user ?? null)
-                    if (!mounted) return
-                    setStars(state.currentStars)
-                    setNextRefillAt(
-                        computeNextRefillAt(
-                            state.currentStars,
-                            state.lastRefillAt,
-                            refillCap,
-                            Boolean(user)
-                        )
-                    )
-                    return
-                }
-                // For logged-in users, proactively avoid calling server until below cap
-                if (user) {
-                    if (stars >= refillCap) return
-                }
-            } catch {}
-        }
-        const id = window.setInterval(checkRefill, 30 * 1000)
-        return () => {
-            mounted = false
-            window.clearInterval(id)
-        }
-    }, [initialized, user, refillCap, computeNextRefillAt, stars, nextRefillAt])
 
     // Broadcast helper to notify other tabs/components to refresh
     const broadcastStarsUpdate = useCallback(() => {
@@ -250,24 +213,14 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             }
         }
 
-        const id = window.setInterval(() => {
-            if (document.visibilityState === "visible") {
-                void reconcile()
-            }
-        }, 5000)
-
         return () => {
             cancelled = true
-            window.clearInterval(id)
             if (typeof window !== "undefined") {
                 window.removeEventListener(
                     "stars-balance-updated",
                     onCustomUpdate as EventListener
                 )
-                document.removeEventListener(
-                    "visibilitychange",
-                    onVisibility
-                )
+                document.removeEventListener("visibilitychange", onVisibility)
                 if (bc) {
                     bc.close()
                 }
@@ -432,7 +385,14 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             })()
             return true
         },
-        [initialized, user, refillCap, computeNextRefillAt, nextRefillAt, broadcastStarsUpdate]
+        [
+            initialized,
+            user,
+            refillCap,
+            computeNextRefillAt,
+            nextRefillAt,
+            broadcastStarsUpdate,
+        ]
     )
 
     const resetStars = useCallback(

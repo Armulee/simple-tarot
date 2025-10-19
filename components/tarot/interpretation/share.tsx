@@ -271,7 +271,11 @@ export default function ShareSection({
                     const bc = new BroadcastChannel("tarot-earned-stars")
                     const onMessage = () => handleEarnedStarsUpdate()
                     bc.addEventListener("message", onMessage)
-                    ;(window as unknown as { __tarotEarnedBc?: BroadcastChannel }).__tarotEarnedBc = bc
+                    ;(
+                        window as unknown as {
+                            __tarotEarnedBc?: BroadcastChannel
+                        }
+                    ).__tarotEarnedBc = bc
                 }
             } catch {}
         }
@@ -283,7 +287,9 @@ export default function ShareSection({
                     handleEarnedStarsUpdate
                 )
                 try {
-                    const w = window as unknown as { __tarotEarnedBc?: BroadcastChannel }
+                    const w = window as unknown as {
+                        __tarotEarnedBc?: BroadcastChannel
+                    }
                     const bc = w.__tarotEarnedBc
                     if (bc) {
                         bc.close()
@@ -304,20 +310,8 @@ export default function ShareSection({
         }
         document.addEventListener("visibilitychange", onVisibilityChange)
         return () => {
-            document.removeEventListener(
-                "visibilitychange",
-                onVisibilityChange
-            )
+            document.removeEventListener("visibilitychange", onVisibilityChange)
         }
-    }, [readingId, refreshEarnedStars])
-
-    // Lightweight polling to keep header fresh while viewing
-    useEffect(() => {
-        if (!readingId) return
-        const intervalId = window.setInterval(() => {
-            refreshEarnedStars()
-        }, 15000) // 15s polling
-        return () => window.clearInterval(intervalId)
     }, [readingId, refreshEarnedStars])
 
     useEffect(() => {
@@ -604,22 +598,27 @@ export default function ShareSection({
                         ))}
                     </Swiper>
                 </div>
-            {/* Unavailable share dialog */}
-            <AlertDialog open={unavailableOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Sharing unavailable</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            {unavailableLabel} sharing is currently unavailable and still in work.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogAction onClick={() => setUnavailableOpen(false)}>
-                            OK
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+                {/* Unavailable share dialog */}
+                <AlertDialog open={unavailableOpen}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                Sharing unavailable
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {unavailableLabel} sharing is currently
+                                unavailable and still in work.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogAction
+                                onClick={() => setUnavailableOpen(false)}
+                            >
+                                OK
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         </div>
     )

@@ -37,7 +37,7 @@ export async function starGetOrCreate(user: User | null): Promise<StarState> {
     }
 }
 
-// removed starRefresh; provider will handle periodic refresh/refill by calling get-or-create when needed
+// removed starRefresh; no periodic refresh needed
 
 export async function starSpend(
     user: User | null,

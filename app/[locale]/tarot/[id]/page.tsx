@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Sparkles } from "lucide-react"
 import { CardImage } from "@/components/card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
-import TarotReadingClient from "./client"
+import Interpretation from "@/components/tarot/interpretation"
 
 async function getTarotReading(id: string) {
     const { data } = await supabase
@@ -165,8 +165,8 @@ export default async function TarotReadingPage({
                 </div>
             </Card>
 
-            {/* Client component handles interpretation generation and display */}
-            <TarotReadingClient
+            {/* Interpretation component handles generation and display */}
+            <Interpretation
                 readingId={id}
                 question={data.question}
                 cards={data.cards}
