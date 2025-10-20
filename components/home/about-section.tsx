@@ -130,7 +130,7 @@ export default function AboutSection() {
 
     return (
         <div className="w-full h-screen overflow-y-auto bg-gradient-to-b from-gray-900 to-black">
-            <div className="max-w-6xl mx-auto px-8 py-16 space-y-16">
+            <div className="max-w-6xl mx-auto px-8 pt-24 pb-16 space-y-16">
                 {/* Header */}
                 <div className="text-center space-y-6">
                     <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif font-bold text-white">
@@ -249,6 +249,82 @@ export default function AboutSection() {
                     </div>
                 </div>
 
+                {/* Technology Stack */}
+                <div className="space-y-8">
+                    <h2 className="text-3xl font-bold text-white text-center">Technology & Innovation</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6 text-center">
+                            <Zap className="w-12 h-12 text-primary mx-auto mb-4" />
+                            <h3 className="text-xl font-semibold text-white mb-2">AI-Powered</h3>
+                            <p className="text-gray-400">Advanced machine learning algorithms provide personalized and accurate readings</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6 text-center">
+                            <Shield className="w-12 h-12 text-primary mx-auto mb-4" />
+                            <h3 className="text-xl font-semibold text-white mb-2">Secure & Private</h3>
+                            <p className="text-gray-400">End-to-end encryption ensures your personal data and readings remain confidential</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6 text-center">
+                            <Globe className="w-12 h-12 text-primary mx-auto mb-4" />
+                            <h3 className="text-xl font-semibold text-white mb-2">Global Access</h3>
+                            <p className="text-gray-400">Available worldwide with multi-language support and cultural adaptations</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* User Testimonials */}
+                <div className="space-y-8">
+                    <h2 className="text-3xl font-bold text-white text-center">What Our Users Say</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6">
+                            <p className="text-gray-300 italic mb-4">&quot;The AI tarot readings feel incredibly personal and accurate. It&apos;s like having a spiritual guide available 24/7.&quot;</p>
+                            <div className="flex items-center space-x-3">
+                                <div className="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
+                                    <span className="text-white font-semibold">S</span>
+                                </div>
+                                <div>
+                                    <p className="text-white font-semibold">Sarah M.</p>
+                                    <p className="text-gray-400 text-sm">Premium User</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6">
+                            <p className="text-gray-300 italic mb-4">&quot;I love how the platform combines ancient wisdom with modern technology. The readings have helped me gain clarity in difficult times.&quot;</p>
+                            <div className="flex items-center space-x-3">
+                                <div className="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
+                                    <span className="text-white font-semibold">M</span>
+                                </div>
+                                <div>
+                                    <p className="text-white font-semibold">Michael R.</p>
+                                    <p className="text-gray-400 text-sm">Regular User</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Statistics */}
+                <div className="bg-gradient-to-r from-primary/10 to-secondary/10 backdrop-blur-sm border border-primary/20 rounded-2xl p-8">
+                    <h2 className="text-3xl font-bold text-white text-center mb-8">Platform Impact</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+                        <div>
+                            <div className="text-4xl font-bold text-primary mb-2">50K+</div>
+                            <div className="text-gray-300">Active Users</div>
+                        </div>
+                        <div>
+                            <div className="text-4xl font-bold text-primary mb-2">1M+</div>
+                            <div className="text-gray-300">Readings Completed</div>
+                        </div>
+                        <div>
+                            <div className="text-4xl font-bold text-primary mb-2">98%</div>
+                            <div className="text-gray-300">User Satisfaction</div>
+                        </div>
+                        <div>
+                            <div className="text-4xl font-bold text-primary mb-2">24/7</div>
+                            <div className="text-gray-300">Available</div>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Call to Action */}
                 <div className="bg-gradient-to-r from-primary/20 to-secondary/20 backdrop-blur-sm border border-primary/30 rounded-2xl p-8 text-center">
                     <h2 className="text-3xl font-bold text-white mb-4">Ready to Begin Your Journey?</h2>
@@ -263,6 +339,13 @@ export default function AboutSection() {
                             Learn More
                         </button>
                     </div>
+                </div>
+
+                {/* Footer */}
+                <div className="text-center py-8 border-t border-gray-700/30">
+                    <p className="text-gray-400">
+                        © 2024 Asking Fate. All rights reserved. | Privacy Policy | Terms of Service
+                    </p>
                 </div>
             </div>
         </div>

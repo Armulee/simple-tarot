@@ -1,7 +1,6 @@
 "use client"
 
 import { Swiper, SwiperSlide } from "swiper/react"
-import { FreeMode } from "swiper/modules"
 import Tarot from "./tarot"
 import BirthChart from "./birth-chart"
 import Horoscope from "./horoscope"
@@ -11,7 +10,6 @@ import LuckyColors from "./lucky-colors"
 import Palmistry from "./palmistry"
 import AboutSection from "./about-section"
 import "swiper/css"
-import "swiper/css/free-mode"
 
 export default function Home() {
     const features = [
@@ -29,18 +27,10 @@ export default function Home() {
             <Swiper 
                 className='w-full h-screen'
                 direction="vertical"
-                loop={true}
-                modules={[FreeMode]}
-                freeMode={{
-                    enabled: true,
-                    sticky: true
-                }}
+                loop={false}
                 mousewheel={{
                     enabled: true,
                     forceToAxis: true,
-                }}
-                keyboard={{
-                    enabled: true,
                 }}
             >
                 {/* Horizontal Feature Slides */}
