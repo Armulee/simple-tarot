@@ -23,12 +23,17 @@ export default function Home() {
 
     return (
         <div className='w-full h-screen'>
-            <Swiper className='w-full h-screen'>
+            <Swiper 
+                className='w-full h-screen'
+                loop={true}
+            >
                 {features.map((feature) => {
                     const FeatureComponent = feature.component
                     return (
                         <SwiperSlide key={feature.id} className='w-full h-screen'>
-                            <div className='w-full h-full flex flex-col items-center justify-center'>
+                            <div className={`w-full h-full flex flex-col items-center justify-center ${
+                                feature.id !== 'tarot' ? 'px-8' : ''
+                            }`}>
                                 <FeatureComponent />
                             </div>
                         </SwiperSlide>
