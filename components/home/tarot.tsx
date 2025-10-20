@@ -2,9 +2,7 @@
 
 import { TypewriterText } from "../typewriter-text"
 import { Suspense, useState } from "react"
-import { Button } from "../ui/button"
 import Question from "./question"
-import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { ChevronUp } from "lucide-react"
 

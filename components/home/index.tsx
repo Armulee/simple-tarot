@@ -29,7 +29,7 @@ export default function Home() {
         { id: "palmistry", name: "Palmistry", component: Palmistry, available: false },
     ]
 
-    const handleSlideChange = (swiper: any) => {
+    const handleSlideChange = (swiper: { activeIndex: number }) => {
         setCurrentSlide(swiper.activeIndex)
     }
 
