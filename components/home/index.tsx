@@ -29,7 +29,7 @@ export default function Home() {
     useEffect(() => {
         const handleScrollToAbout = () => {
             if (mainSwiperRef.current) {
-                mainSwiperRef.current.slideNext()
+                mainSwiperRef.current.swiper.slideNext()
             }
         }
 
