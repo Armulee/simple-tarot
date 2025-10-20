@@ -2,15 +2,20 @@
 
 import { TypewriterText } from "../typewriter-text"
 import { Suspense, useState } from "react"
-import { Button } from "../ui/button"
 import Question from "./question"
-import Link from "next/link"
 import { useTranslations } from "next-intl"
-import StickyFooter from "./sticky-footer"
+import { ChevronUp } from "lucide-react"
 
 export default function Tarot() {
     const t = useTranslations("Home")
     const [inputValue, setInputValue] = useState("")
+    
+    const scrollToAbout = () => {
+        // This will be handled by the parent swiper
+        const event = new CustomEvent('scrollToAbout')
+        window.dispatchEvent(event)
+    }
+    
     return (
         <>
             {/* Main Heading */}
@@ -42,18 +47,21 @@ export default function Tarot() {
                     </div>
                 </Suspense>
 
-                <Button
-                    asChild
-                    variant='ghost'
-                    size='lg'
-                    className='border-border/30 hover:bg-card/20 backdrop-blur-sm px-8 py-6 text-lg bg-transparent'
-                >
-                    <Link href='/about'>{t("learnMore")}</Link>
-                </Button>
+                <div className="flex flex-col items-center space-y-3">
+                    <div className="text-center">
+                        <p className="text-sm font-medium text-white">Discover more about our platform</p>
+                        <p className="text-xs text-gray-400">Swipe up to learn about our services and roadmap</p>
+                    </div>
+                    <button 
+                        onClick={scrollToAbout}
+                        className="flex items-center space-x-2 bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-lg hover:opacity-90 transition-opacity"
+                    >
+                        <span className="text-sm font-medium">Learn More</span>
+                        <ChevronUp className="w-4 h-4" />
+                    </button>
+                </div>
             </div>
 
-            {/* Sticky Footer */}
-            <StickyFooter />
         </>
     )
 }

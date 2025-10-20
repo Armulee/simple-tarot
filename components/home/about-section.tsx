@@ -128,6 +128,7 @@ export default function AboutSection() {
         }
     ]
 
+
     return (
         <div className="w-full h-screen overflow-y-auto">
             <div className="max-w-6xl mx-auto px-8 pt-24 pb-16 space-y-16">
