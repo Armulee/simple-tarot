@@ -6,6 +6,7 @@ import { Button } from "../ui/button"
 import Question from "./question"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
+import StickyFooter from "./sticky-footer"
 
 export default function Tarot() {
     const t = useTranslations("Home")
@@ -50,6 +51,9 @@ export default function Tarot() {
                     <Link href='/about'>{t("learnMore")}</Link>
                 </Button>
             </div>
+
+            {/* Sticky Footer */}
+            <StickyFooter />
         </>
     )
 }

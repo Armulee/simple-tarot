@@ -1,6 +1,8 @@
 "use client"
 
 import { Swiper, SwiperSlide } from "swiper/react"
+import { useEffect, useRef } from "react"
+import type { SwiperRef } from "swiper/react"
 import Tarot from "./tarot"
 import BirthChart from "./birth-chart"
 import Horoscope from "./horoscope"
@@ -12,6 +14,8 @@ import AboutSection from "./about-section"
 import "swiper/css"
 
 export default function Home() {
+    const mainSwiperRef = useRef<SwiperRef | null>(null)
+
     const features = [
         { id: "tarot", component: Tarot, available: true },
         { id: "birthChart", component: BirthChart, available: false },
@@ -22,9 +26,21 @@ export default function Home() {
         { id: "palmistry", component: Palmistry, available: false },
     ]
 
+    useEffect(() => {
+        const handleScrollToAbout = () => {
+            if (mainSwiperRef.current) {
+                mainSwiperRef.current.slideNext()
+            }
+        }
+
+        window.addEventListener('scrollToAbout', handleScrollToAbout)
+        return () => window.removeEventListener('scrollToAbout', handleScrollToAbout)
+    }, [])
+
     return (
         <div className='w-full h-screen'>
             <Swiper 
+                ref={mainSwiperRef}
                 className='w-full h-screen'
                 direction="vertical"
                 loop={false}
@@ -33,7 +49,7 @@ export default function Home() {
                     forceToAxis: true,
                 }}
             >
-                {/* Horizontal Feature Slides */}
+                {/* Main Content with Horizontal Swiper */}
                 <SwiperSlide className='w-full h-screen'>
                     <Swiper 
                         className='w-full h-screen'
@@ -55,7 +71,7 @@ export default function Home() {
                     </Swiper>
                 </SwiperSlide>
                 
-                {/* Vertical About Section */}
+                {/* About Section */}
                 <SwiperSlide className='w-full h-screen'>
                     <AboutSection />
                 </SwiperSlide>
