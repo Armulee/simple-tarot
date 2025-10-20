@@ -129,7 +129,7 @@ export default function AboutSection() {
     ]
 
     return (
-        <div className="w-full h-screen overflow-y-auto bg-gradient-to-b from-gray-900 to-black">
+        <div className="w-full min-h-screen bg-gradient-to-b from-gray-900 to-black">
             <div className="max-w-6xl mx-auto px-8 pt-24 pb-16 space-y-16">
                 {/* Header */}
                 <div className="text-center space-y-6">

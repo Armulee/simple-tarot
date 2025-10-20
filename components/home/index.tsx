@@ -32,6 +32,8 @@ export default function Home() {
                     enabled: true,
                     forceToAxis: true,
                 }}
+                allowTouchMove={true}
+                autoHeight={true}
             >
                 {/* Horizontal Feature Slides */}
                 <SwiperSlide className='w-full h-screen'>
@@ -56,7 +58,7 @@ export default function Home() {
                 </SwiperSlide>
                 
                 {/* Vertical About Section */}
-                <SwiperSlide className='w-full h-screen'>
+                <SwiperSlide className='w-full h-auto'>
                     <AboutSection />
                 </SwiperSlide>
             </Swiper>
