@@ -17,8 +17,12 @@ import {
     Clock,
     CheckCircle
 } from "lucide-react"
+import { useEffect, useRef } from "react"
 
 export default function AboutSection() {
+    const aboutSectionRef = useRef<HTMLDivElement>(null)
+    const isScrollingUp = useRef(false)
+    const scrollTimeout = useRef<NodeJS.Timeout | null>(null)
     const services = [
         {
             id: "tarot",
@@ -128,8 +132,97 @@ export default function AboutSection() {
         }
     ]
 
+    useEffect(() => {
+        let touchStartY = 0
+        let touchEndY = 0
+
+        const handleScroll = () => {
+            if (!aboutSectionRef.current) return
+
+            const scrollTop = aboutSectionRef.current.scrollTop
+            const isAtTop = scrollTop <= 10 // Small threshold for better UX
+
+            // Clear existing timeout
+            if (scrollTimeout.current) {
+                clearTimeout(scrollTimeout.current)
+            }
+
+            if (isAtTop && isScrollingUp.current) {
+                // User has scrolled to the top while scrolling up
+                // Dispatch event to go back to features slide
+                window.dispatchEvent(new CustomEvent('scrollToFeatures'))
+            }
+
+            // Reset scrolling direction after a short delay
+            scrollTimeout.current = setTimeout(() => {
+                isScrollingUp.current = false
+            }, 150)
+        }
+
+        const handleWheel = (e: WheelEvent) => {
+            if (!aboutSectionRef.current) return
+            
+            // Detect scroll direction
+            isScrollingUp.current = e.deltaY < 0
+            
+            // If scrolling up and at the top, prevent default scroll and trigger slide change
+            if (e.deltaY < 0 && aboutSectionRef.current.scrollTop <= 10) {
+                e.preventDefault()
+                window.dispatchEvent(new CustomEvent('scrollToFeatures'))
+                return
+            }
+        }
+
+        const handleTouchStart = (e: TouchEvent) => {
+            touchStartY = e.touches[0].clientY
+        }
+
+        const handleTouchMove = (e: TouchEvent) => {
+            if (!aboutSectionRef.current) return
+            
+            touchEndY = e.touches[0].clientY
+            const scrollTop = aboutSectionRef.current.scrollTop
+            const isAtTop = scrollTop <= 10
+            
+            // Detect swipe up (negative deltaY)
+            const deltaY = touchStartY - touchEndY
+            
+            if (deltaY > 0) { // Swiping up
+                isScrollingUp.current = true
+                
+                // If at top and swiping up, prevent default and trigger slide change
+                if (isAtTop) {
+                    e.preventDefault()
+                    window.dispatchEvent(new CustomEvent('scrollToFeatures'))
+                }
+            } else {
+                isScrollingUp.current = false
+            }
+        }
+
+        const aboutSection = aboutSectionRef.current
+        if (aboutSection) {
+            aboutSection.addEventListener('scroll', handleScroll, { passive: true })
+            aboutSection.addEventListener('wheel', handleWheel, { passive: false })
+            aboutSection.addEventListener('touchstart', handleTouchStart, { passive: true })
+            aboutSection.addEventListener('touchmove', handleTouchMove, { passive: false })
+        }
+
+        return () => {
+            if (aboutSection) {
+                aboutSection.removeEventListener('scroll', handleScroll)
+                aboutSection.removeEventListener('wheel', handleWheel)
+                aboutSection.removeEventListener('touchstart', handleTouchStart)
+                aboutSection.removeEventListener('touchmove', handleTouchMove)
+            }
+            if (scrollTimeout.current) {
+                clearTimeout(scrollTimeout.current)
+            }
+        }
+    }, [])
+
     return (
-        <div className="w-full h-screen overflow-y-auto">
+        <div ref={aboutSectionRef} className="w-full h-screen overflow-y-auto">
             <div className="max-w-6xl mx-auto px-8 pt-24 pb-16 space-y-16">
                 {/* Header */}
                 <div className="text-center space-y-6">

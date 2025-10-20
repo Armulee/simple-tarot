@@ -33,8 +33,19 @@ export default function Home() {
             }
         }
 
+        const handleScrollToFeatures = () => {
+            if (mainSwiperRef.current) {
+                mainSwiperRef.current.swiper.slidePrev()
+            }
+        }
+
         window.addEventListener('scrollToAbout', handleScrollToAbout)
-        return () => window.removeEventListener('scrollToAbout', handleScrollToAbout)
+        window.addEventListener('scrollToFeatures', handleScrollToFeatures)
+        
+        return () => {
+            window.removeEventListener('scrollToAbout', handleScrollToAbout)
+            window.removeEventListener('scrollToFeatures', handleScrollToFeatures)
+        }
     }, [])
 
     return (
