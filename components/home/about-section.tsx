@@ -18,9 +18,15 @@ import {
     CheckCircle
 } from "lucide-react"
 import { useEffect, useRef } from "react"
+import { Swiper, SwiperSlide } from "swiper/react"
+import { FreeMode, Scrollbar, Mousewheel } from "swiper/modules"
+import type { SwiperRef } from "swiper/react"
+import "swiper/css"
+import "swiper/css/free-mode"
+import "swiper/css/scrollbar"
 
 export default function AboutSection() {
-    const aboutSectionRef = useRef<HTMLDivElement>(null)
+    const aboutSwiperRef = useRef<SwiperRef | null>(null)
     const isScrollingUp = useRef(false)
     const scrollTimeout = useRef<NodeJS.Timeout | null>(null)
     const services = [
@@ -133,40 +139,17 @@ export default function AboutSection() {
     ]
 
     useEffect(() => {
-        let touchStartY = 0
-        let touchEndY = 0
-
-        const handleScroll = () => {
-            if (!aboutSectionRef.current) return
-
-            const scrollTop = aboutSectionRef.current.scrollTop
-            const isAtTop = scrollTop <= 10 // Small threshold for better UX
-
-            // Clear existing timeout
-            if (scrollTimeout.current) {
-                clearTimeout(scrollTimeout.current)
-            }
-
-            if (isAtTop && isScrollingUp.current) {
-                // User has scrolled to the top while scrolling up
-                // Dispatch event to go back to features slide
-                window.dispatchEvent(new CustomEvent('scrollToFeatures'))
-            }
-
-            // Reset scrolling direction after a short delay
-            scrollTimeout.current = setTimeout(() => {
-                isScrollingUp.current = false
-            }, 150)
-        }
-
         const handleWheel = (e: WheelEvent) => {
-            if (!aboutSectionRef.current) return
+            if (!aboutSwiperRef.current) return
+            
+            const swiper = aboutSwiperRef.current.swiper
+            const isAtTop = swiper.translate <= 10 // Small threshold for better UX
             
             // Detect scroll direction
             isScrollingUp.current = e.deltaY < 0
             
             // If scrolling up and at the top, prevent default scroll and trigger slide change
-            if (e.deltaY < 0 && aboutSectionRef.current.scrollTop <= 10) {
+            if (e.deltaY < 0 && isAtTop) {
                 e.preventDefault()
                 window.dispatchEvent(new CustomEvent('scrollToFeatures'))
                 return
@@ -174,273 +157,319 @@ export default function AboutSection() {
         }
 
         const handleTouchStart = (e: TouchEvent) => {
-            touchStartY = e.touches[0].clientY
+            // Store touch start for potential swipe detection
         }
 
         const handleTouchMove = (e: TouchEvent) => {
-            if (!aboutSectionRef.current) return
+            if (!aboutSwiperRef.current) return
             
-            touchEndY = e.touches[0].clientY
-            const scrollTop = aboutSectionRef.current.scrollTop
-            const isAtTop = scrollTop <= 10
+            const swiper = aboutSwiperRef.current.swiper
+            const isAtTop = swiper.translate <= 10
             
-            // Detect swipe up (negative deltaY)
-            const deltaY = touchStartY - touchEndY
-            
-            if (deltaY > 0) { // Swiping up
-                isScrollingUp.current = true
-                
-                // If at top and swiping up, prevent default and trigger slide change
-                if (isAtTop) {
-                    e.preventDefault()
-                    window.dispatchEvent(new CustomEvent('scrollToFeatures'))
-                }
-            } else {
-                isScrollingUp.current = false
+            // If at top and swiping up, prevent default and trigger slide change
+            if (isAtTop && isScrollingUp.current) {
+                e.preventDefault()
+                window.dispatchEvent(new CustomEvent('scrollToFeatures'))
             }
         }
 
-        const aboutSection = aboutSectionRef.current
-        if (aboutSection) {
-            aboutSection.addEventListener('scroll', handleScroll, { passive: true })
-            aboutSection.addEventListener('wheel', handleWheel, { passive: false })
-            aboutSection.addEventListener('touchstart', handleTouchStart, { passive: true })
-            aboutSection.addEventListener('touchmove', handleTouchMove, { passive: false })
+        // Add wheel event listener to the swiper container
+        const swiperContainer = aboutSwiperRef.current?.swiper?.el
+        if (swiperContainer) {
+            swiperContainer.addEventListener('wheel', handleWheel, { passive: false })
+            swiperContainer.addEventListener('touchstart', handleTouchStart, { passive: true })
+            swiperContainer.addEventListener('touchmove', handleTouchMove, { passive: false })
         }
 
         return () => {
-            if (aboutSection) {
-                aboutSection.removeEventListener('scroll', handleScroll)
-                aboutSection.removeEventListener('wheel', handleWheel)
-                aboutSection.removeEventListener('touchstart', handleTouchStart)
-                aboutSection.removeEventListener('touchmove', handleTouchMove)
-            }
-            if (scrollTimeout.current) {
-                clearTimeout(scrollTimeout.current)
+            if (swiperContainer) {
+                swiperContainer.removeEventListener('wheel', handleWheel)
+                swiperContainer.removeEventListener('touchstart', handleTouchStart)
+                swiperContainer.removeEventListener('touchmove', handleTouchMove)
             }
         }
     }, [])
 
     return (
-        <div ref={aboutSectionRef} className="w-full h-screen overflow-y-auto">
-            <div className="max-w-6xl mx-auto px-8 pt-24 pb-16 space-y-16">
-                {/* Header */}
-                <div className="text-center space-y-6">
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif font-bold text-white">
-                        About <span className="text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">Asking Fate</span>
-                    </h1>
-                    <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-                        We&apos;re revolutionizing spiritual guidance by combining ancient mystical wisdom with cutting-edge AI technology, making personalized insights accessible to everyone.
-                    </p>
-                </div>
-
-                {/* Mission Statement */}
-                <div className="bg-gradient-to-r from-primary/10 to-secondary/10 backdrop-blur-sm border border-primary/20 rounded-2xl p-8">
-                    <div className="text-center space-y-4">
-                        <Target className="w-16 h-16 text-primary mx-auto" />
-                        <h2 className="text-3xl font-bold text-white">Our Mission</h2>
-                        <p className="text-lg text-gray-300 max-w-4xl mx-auto">
-                            To democratize access to spiritual guidance by creating an AI-powered platform that provides authentic, personalized mystical insights. We believe everyone deserves access to the wisdom that can help them navigate life&apos;s journey with clarity and purpose.
+        <div className="w-full h-screen">
+            <Swiper
+                ref={aboutSwiperRef}
+                className="w-full h-screen"
+                direction="vertical"
+                freeMode={{
+                    enabled: true,
+                    sticky: true,
+                }}
+                scrollbar={{
+                    el: '.swiper-scrollbar',
+                    draggable: true,
+                }}
+                mousewheel={{
+                    enabled: true,
+                    forceToAxis: true,
+                    sensitivity: 1,
+                }}
+                modules={[FreeMode, Scrollbar, Mousewheel]}
+                onTouchStart={() => {
+                    isScrollingUp.current = false
+                }}
+                onTouchMove={(swiper, e) => {
+                    const touch = e.touches[0]
+                    const startTouch = e.touches[0]
+                    // Detect swipe direction
+                    if (swiper.translate <= 10 && isScrollingUp.current) {
+                        window.dispatchEvent(new CustomEvent('scrollToFeatures'))
+                    }
+                }}
+            >
+                {/* Header Section */}
+                <SwiperSlide className="w-full h-screen flex items-center justify-center">
+                    <div className="max-w-6xl mx-auto px-8 text-center space-y-6">
+                        <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif font-bold text-white">
+                            About <span className="text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">Asking Fate</span>
+                        </h1>
+                        <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+                            We&apos;re revolutionizing spiritual guidance by combining ancient mystical wisdom with cutting-edge AI technology, making personalized insights accessible to everyone.
                         </p>
                     </div>
-                </div>
+                </SwiperSlide>
 
-                {/* Services Grid */}
-                <div className="space-y-8">
-                    <h2 className="text-3xl font-bold text-white text-center">Our Services</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {services.map((service) => {
-                            const IconComponent = service.icon
-                            return (
-                                <div key={service.id} className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 hover:border-primary/30 transition-all duration-300">
-                                    <div className="flex items-center space-x-4 mb-4">
-                                        <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${service.color} flex items-center justify-center`}>
-                                            <IconComponent className="w-6 h-6 text-white" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-lg font-semibold text-white">{service.name}</h3>
-                                            <span className={`text-sm px-2 py-1 rounded-full ${
-                                                service.status === 'Available' 
-                                                    ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
-                                                    : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                                            }`}>
-                                                {service.status}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <p className="text-gray-400 text-sm">{service.description}</p>
-                                </div>
-                            )
-                        })}
+                {/* Mission Statement Section */}
+                <SwiperSlide className="w-full h-screen flex items-center justify-center">
+                    <div className="max-w-6xl mx-auto px-8">
+                        <div className="bg-gradient-to-r from-primary/10 to-secondary/10 backdrop-blur-sm border border-primary/20 rounded-2xl p-8">
+                            <div className="text-center space-y-4">
+                                <Target className="w-16 h-16 text-primary mx-auto" />
+                                <h2 className="text-3xl font-bold text-white">Our Mission</h2>
+                                <p className="text-lg text-gray-300 max-w-4xl mx-auto">
+                                    To democratize access to spiritual guidance by creating an AI-powered platform that provides authentic, personalized mystical insights. We believe everyone deserves access to the wisdom that can help them navigate life&apos;s journey with clarity and purpose.
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </SwiperSlide>
 
-                {/* Roadmap */}
-                <div className="space-y-8">
-                    <h2 className="text-3xl font-bold text-white text-center">Development Roadmap</h2>
-                    <div className="space-y-6">
-                        {roadmap.map((phase) => (
-                            <div key={phase.phase} className="bg-gradient-to-r from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center space-x-4">
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                                            phase.status === 'Completed' 
-                                                ? 'bg-green-500/20 border border-green-500/30' 
-                                                : phase.status === 'In Development'
-                                                ? 'bg-blue-500/20 border border-blue-500/30'
-                                                : 'bg-gray-500/20 border border-gray-500/30'
-                                        }`}>
-                                            {phase.status === 'Completed' ? (
-                                                <CheckCircle className="w-5 h-5 text-green-400" />
-                                            ) : phase.status === 'In Development' ? (
-                                                <Clock className="w-5 h-5 text-blue-400" />
-                                            ) : (
-                                                <Target className="w-5 h-5 text-gray-400" />
-                                            )}
+                {/* Services Section */}
+                <SwiperSlide className="w-full h-screen flex items-center justify-center">
+                    <div className="max-w-6xl mx-auto px-8 space-y-8">
+                        <h2 className="text-3xl font-bold text-white text-center">Our Services</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {services.map((service) => {
+                                const IconComponent = service.icon
+                                return (
+                                    <div key={service.id} className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 hover:border-primary/30 transition-all duration-300">
+                                        <div className="flex items-center space-x-4 mb-4">
+                                            <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${service.color} flex items-center justify-center`}>
+                                                <IconComponent className="w-6 h-6 text-white" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-semibold text-white">{service.name}</h3>
+                                                <span className={`text-sm px-2 py-1 rounded-full ${
+                                                    service.status === 'Available' 
+                                                        ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                                                        : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                                                }`}>
+                                                    {service.status}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className="text-xl font-semibold text-white">{phase.phase}: {phase.title}</h3>
-                                            <span className={`text-sm px-3 py-1 rounded-full ${
+                                        <p className="text-gray-400 text-sm">{service.description}</p>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+                </SwiperSlide>
+
+                {/* Roadmap Section */}
+                <SwiperSlide className="w-full h-screen flex items-center justify-center">
+                    <div className="max-w-6xl mx-auto px-8 space-y-8">
+                        <h2 className="text-3xl font-bold text-white text-center">Development Roadmap</h2>
+                        <div className="space-y-6">
+                            {roadmap.map((phase) => (
+                                <div key={phase.phase} className="bg-gradient-to-r from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="flex items-center space-x-4">
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                                                 phase.status === 'Completed' 
-                                                    ? 'bg-green-500/20 text-green-400' 
+                                                    ? 'bg-green-500/20 border border-green-500/30' 
                                                     : phase.status === 'In Development'
-                                                    ? 'bg-blue-500/20 text-blue-400'
-                                                    : 'bg-gray-500/20 text-gray-400'
+                                                    ? 'bg-blue-500/20 border border-blue-500/30'
+                                                    : 'bg-gray-500/20 border border-gray-500/30'
                                             }`}>
-                                                {phase.status}
-                                            </span>
+                                                {phase.status === 'Completed' ? (
+                                                    <CheckCircle className="w-5 h-5 text-green-400" />
+                                                ) : phase.status === 'In Development' ? (
+                                                    <Clock className="w-5 h-5 text-blue-400" />
+                                                ) : (
+                                                    <Target className="w-5 h-5 text-gray-400" />
+                                                )}
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-semibold text-white">{phase.phase}: {phase.title}</h3>
+                                                <span className={`text-sm px-3 py-1 rounded-full ${
+                                                    phase.status === 'Completed' 
+                                                        ? 'bg-green-500/20 text-green-400' 
+                                                        : phase.status === 'In Development'
+                                                        ? 'bg-blue-500/20 text-blue-400'
+                                                        : 'bg-gray-500/20 text-gray-400'
+                                                }`}>
+                                                    {phase.status}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                        {phase.features.map((feature, featureIndex) => (
+                                            <div key={featureIndex} className="flex items-center space-x-2">
+                                                <Sparkles className="w-4 h-4 text-primary" />
+                                                <span className="text-gray-300 text-sm">{feature}</span>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                    {phase.features.map((feature, featureIndex) => (
-                                        <div key={featureIndex} className="flex items-center space-x-2">
-                                            <Sparkles className="w-4 h-4 text-primary" />
-                                            <span className="text-gray-300 text-sm">{feature}</span>
-                                        </div>
-                                    ))}
+                            ))}
+                        </div>
+                    </div>
+                </SwiperSlide>
+
+                {/* Values Section */}
+                <SwiperSlide className="w-full h-screen flex items-center justify-center">
+                    <div className="max-w-6xl mx-auto px-8 space-y-8">
+                        <h2 className="text-3xl font-bold text-white text-center">Our Values</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {values.map((value, index) => {
+                                const IconComponent = value.icon
+                                return (
+                                    <div key={index} className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6 text-center">
+                                        <IconComponent className="w-12 h-12 text-primary mx-auto mb-4" />
+                                        <h3 className="text-xl font-semibold text-white mb-2">{value.title}</h3>
+                                        <p className="text-gray-400">{value.description}</p>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+                </SwiperSlide>
+
+                {/* Technology Section */}
+                <SwiperSlide className="w-full h-screen flex items-center justify-center">
+                    <div className="max-w-6xl mx-auto px-8 space-y-8">
+                        <h2 className="text-3xl font-bold text-white text-center">Technology & Innovation</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6 text-center">
+                                <Zap className="w-12 h-12 text-primary mx-auto mb-4" />
+                                <h3 className="text-xl font-semibold text-white mb-2">AI-Powered</h3>
+                                <p className="text-gray-400">Advanced machine learning algorithms provide personalized and accurate readings</p>
+                            </div>
+                            <div className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6 text-center">
+                                <Shield className="w-12 h-12 text-primary mx-auto mb-4" />
+                                <h3 className="text-xl font-semibold text-white mb-2">Secure & Private</h3>
+                                <p className="text-gray-400">End-to-end encryption ensures your personal data and readings remain confidential</p>
+                            </div>
+                            <div className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6 text-center">
+                                <Globe className="w-12 h-12 text-primary mx-auto mb-4" />
+                                <h3 className="text-xl font-semibold text-white mb-2">Global Access</h3>
+                                <p className="text-gray-400">Available worldwide with multi-language support and cultural adaptations</p>
+                            </div>
+                        </div>
+                    </div>
+                </SwiperSlide>
+
+                {/* Testimonials Section */}
+                <SwiperSlide className="w-full h-screen flex items-center justify-center">
+                    <div className="max-w-6xl mx-auto px-8 space-y-8">
+                        <h2 className="text-3xl font-bold text-white text-center">What Our Users Say</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6">
+                                <p className="text-gray-300 italic mb-4">&quot;The AI tarot readings feel incredibly personal and accurate. It&apos;s like having a spiritual guide available 24/7.&quot;</p>
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
+                                        <span className="text-white font-semibold">S</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-white font-semibold">Sarah M.</p>
+                                        <p className="text-gray-400 text-sm">Premium User</p>
+                                    </div>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Values */}
-                <div className="space-y-8">
-                    <h2 className="text-3xl font-bold text-white text-center">Our Values</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {values.map((value, index) => {
-                            const IconComponent = value.icon
-                            return (
-                                <div key={index} className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6 text-center">
-                                    <IconComponent className="w-12 h-12 text-primary mx-auto mb-4" />
-                                    <h3 className="text-xl font-semibold text-white mb-2">{value.title}</h3>
-                                    <p className="text-gray-400">{value.description}</p>
+                            <div className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6">
+                                <p className="text-gray-300 italic mb-4">&quot;I love how the platform combines ancient wisdom with modern technology. The readings have helped me gain clarity in difficult times.&quot;</p>
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
+                                        <span className="text-white font-semibold">M</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-white font-semibold">Michael R.</p>
+                                        <p className="text-gray-400 text-sm">Regular User</p>
+                                    </div>
                                 </div>
-                            )
-                        })}
-                    </div>
-                </div>
-
-                {/* Technology Stack */}
-                <div className="space-y-8">
-                    <h2 className="text-3xl font-bold text-white text-center">Technology & Innovation</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6 text-center">
-                            <Zap className="w-12 h-12 text-primary mx-auto mb-4" />
-                            <h3 className="text-xl font-semibold text-white mb-2">AI-Powered</h3>
-                            <p className="text-gray-400">Advanced machine learning algorithms provide personalized and accurate readings</p>
-                        </div>
-                        <div className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6 text-center">
-                            <Shield className="w-12 h-12 text-primary mx-auto mb-4" />
-                            <h3 className="text-xl font-semibold text-white mb-2">Secure & Private</h3>
-                            <p className="text-gray-400">End-to-end encryption ensures your personal data and readings remain confidential</p>
-                        </div>
-                        <div className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6 text-center">
-                            <Globe className="w-12 h-12 text-primary mx-auto mb-4" />
-                            <h3 className="text-xl font-semibold text-white mb-2">Global Access</h3>
-                            <p className="text-gray-400">Available worldwide with multi-language support and cultural adaptations</p>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </SwiperSlide>
 
-                {/* User Testimonials */}
-                <div className="space-y-8">
-                    <h2 className="text-3xl font-bold text-white text-center">What Our Users Say</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6">
-                            <p className="text-gray-300 italic mb-4">&quot;The AI tarot readings feel incredibly personal and accurate. It&apos;s like having a spiritual guide available 24/7.&quot;</p>
-                            <div className="flex items-center space-x-3">
-                                <div className="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
-                                    <span className="text-white font-semibold">S</span>
+                {/* Statistics Section */}
+                <SwiperSlide className="w-full h-screen flex items-center justify-center">
+                    <div className="max-w-6xl mx-auto px-8">
+                        <div className="bg-gradient-to-r from-primary/10 to-secondary/10 backdrop-blur-sm border border-primary/20 rounded-2xl p-8">
+                            <h2 className="text-3xl font-bold text-white text-center mb-8">Platform Impact</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+                                <div>
+                                    <div className="text-4xl font-bold text-primary mb-2">50K+</div>
+                                    <div className="text-gray-300">Active Users</div>
                                 </div>
                                 <div>
-                                    <p className="text-white font-semibold">Sarah M.</p>
-                                    <p className="text-gray-400 text-sm">Premium User</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6">
-                            <p className="text-gray-300 italic mb-4">&quot;I love how the platform combines ancient wisdom with modern technology. The readings have helped me gain clarity in difficult times.&quot;</p>
-                            <div className="flex items-center space-x-3">
-                                <div className="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
-                                    <span className="text-white font-semibold">M</span>
+                                    <div className="text-4xl font-bold text-primary mb-2">1M+</div>
+                                    <div className="text-gray-300">Readings Completed</div>
                                 </div>
                                 <div>
-                                    <p className="text-white font-semibold">Michael R.</p>
-                                    <p className="text-gray-400 text-sm">Regular User</p>
+                                    <div className="text-4xl font-bold text-primary mb-2">98%</div>
+                                    <div className="text-gray-300">User Satisfaction</div>
+                                </div>
+                                <div>
+                                    <div className="text-4xl font-bold text-primary mb-2">24/7</div>
+                                    <div className="text-gray-300">Available</div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </SwiperSlide>
 
-                {/* Statistics */}
-                <div className="bg-gradient-to-r from-primary/10 to-secondary/10 backdrop-blur-sm border border-primary/20 rounded-2xl p-8">
-                    <h2 className="text-3xl font-bold text-white text-center mb-8">Platform Impact</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-                        <div>
-                            <div className="text-4xl font-bold text-primary mb-2">50K+</div>
-                            <div className="text-gray-300">Active Users</div>
-                        </div>
-                        <div>
-                            <div className="text-4xl font-bold text-primary mb-2">1M+</div>
-                            <div className="text-gray-300">Readings Completed</div>
-                        </div>
-                        <div>
-                            <div className="text-4xl font-bold text-primary mb-2">98%</div>
-                            <div className="text-gray-300">User Satisfaction</div>
-                        </div>
-                        <div>
-                            <div className="text-4xl font-bold text-primary mb-2">24/7</div>
-                            <div className="text-gray-300">Available</div>
+                {/* CTA Section */}
+                <SwiperSlide className="w-full h-screen flex items-center justify-center">
+                    <div className="max-w-6xl mx-auto px-8">
+                        <div className="bg-gradient-to-r from-primary/20 to-secondary/20 backdrop-blur-sm border border-primary/30 rounded-2xl p-8 text-center">
+                            <h2 className="text-3xl font-bold text-white mb-4">Ready to Begin Your Journey?</h2>
+                            <p className="text-lg text-gray-300 mb-6">
+                                Join thousands of users who have discovered their path through our AI-powered mystical guidance.
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                <button className="bg-gradient-to-r from-primary to-secondary text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                                    Start Your Reading
+                                </button>
+                                <button className="border border-primary/30 text-primary px-8 py-3 rounded-lg font-semibold hover:bg-primary/10 transition-colors">
+                                    Learn More
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </SwiperSlide>
 
-                {/* Call to Action */}
-                <div className="bg-gradient-to-r from-primary/20 to-secondary/20 backdrop-blur-sm border border-primary/30 rounded-2xl p-8 text-center">
-                    <h2 className="text-3xl font-bold text-white mb-4">Ready to Begin Your Journey?</h2>
-                    <p className="text-lg text-gray-300 mb-6">
-                        Join thousands of users who have discovered their path through our AI-powered mystical guidance.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <button className="bg-gradient-to-r from-primary to-secondary text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
-                            Start Your Reading
-                        </button>
-                        <button className="border border-primary/30 text-primary px-8 py-3 rounded-lg font-semibold hover:bg-primary/10 transition-colors">
-                            Learn More
-                        </button>
+                {/* Footer Section */}
+                <SwiperSlide className="w-full h-screen flex items-center justify-center">
+                    <div className="max-w-6xl mx-auto px-8">
+                        <div className="text-center py-8 border-t border-gray-700/30">
+                            <p className="text-gray-400">
+                                © 2024 Asking Fate. All rights reserved. | Privacy Policy | Terms of Service
+                            </p>
+                        </div>
                     </div>
-                </div>
-
-                {/* Footer */}
-                <div className="text-center py-8 border-t border-gray-700/30">
-                    <p className="text-gray-400">
-                        © 2024 Asking Fate. All rights reserved. | Privacy Policy | Terms of Service
-                    </p>
-                </div>
-            </div>
+                </SwiperSlide>
+            </Swiper>
+            
+            {/* Scrollbar */}
+            <div className="swiper-scrollbar"></div>
         </div>
     )
 }
