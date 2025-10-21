@@ -50,10 +50,7 @@ export default function Home() {
                     enabled: true,
                     forceToAxis: true,
                 }}
-                onSlideChange={(swiper) => {
-                    // Ensure vertical navigation is re-enabled after leaving About
-                    swiper.allowTouchMove = true
-                }}
+                // Do not force allowTouchMove in onSlideChange; About manages it
             >
                 {/* Main Content with Horizontal Swiper */}
                 <SwiperSlide className='w-full h-full'>
@@ -61,6 +58,8 @@ export default function Home() {
                         className='w-full h-full'
                         direction="horizontal"
                         loop={true}
+                        nested
+                        touchStartPreventDefault={false}
                     >
                         {features.map((feature) => {
                             const FeatureComponent = feature.component

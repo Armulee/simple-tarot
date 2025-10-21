@@ -33,17 +33,19 @@ export default function AboutSection({ mainSwiperRef }: AboutSectionProps) {
         const swiper = mainSwiperRef.current?.swiper
         if (!container || !swiper) return
 
-        // Ensure swiper is enabled when entering this slide initially
+        // Keep swiper enabled initially; we'll manage based on interaction
         swiper.allowTouchMove = true
 
         const canScrollUp = () => container.scrollTop > 0
         const canScrollDown = () =>
             container.scrollTop + container.clientHeight < container.scrollHeight - 1
 
+        // Disable Swiper only when the inner content is in the middle
         const updateAllowTouchMove = () => {
             const s = mainSwiperRef.current?.swiper
             if (!s) return
-            s.allowTouchMove = !(canScrollUp() || canScrollDown())
+            const inMiddle = canScrollUp() && canScrollDown()
+            s.allowTouchMove = !inMiddle
         }
 
         const onScroll = () => {
@@ -98,21 +100,13 @@ export default function AboutSection({ mainSwiperRef }: AboutSectionProps) {
             }
         }
 
-        const onMouseEnter = () => updateAllowTouchMove()
-        const onMouseLeave = () => {
-            const s = mainSwiperRef.current?.swiper
-            if (s) s.allowTouchMove = true
-        }
-
-        // When this slide mounts or becomes active, re-evaluate once
-        updateAllowTouchMove()
+        // We intentionally do NOT change allowTouchMove on mount
 
         container.addEventListener("scroll", onScroll, { passive: true })
         container.addEventListener("wheel", onWheel, { passive: true })
         container.addEventListener("touchstart", onTouchStart, { passive: true })
         container.addEventListener("touchmove", onTouchMove, { passive: true })
-        container.addEventListener("mouseenter", onMouseEnter)
-        container.addEventListener("mouseleave", onMouseLeave)
+        // No mouseenter/leave handlers; handled by wheel/touch/scroll instead
 
         return () => {
             const s = mainSwiperRef.current?.swiper
@@ -121,8 +115,7 @@ export default function AboutSection({ mainSwiperRef }: AboutSectionProps) {
             container.removeEventListener("wheel", onWheel as EventListener)
             container.removeEventListener("touchstart", onTouchStart as EventListener)
             container.removeEventListener("touchmove", onTouchMove as EventListener)
-            container.removeEventListener("mouseenter", onMouseEnter as EventListener)
-            container.removeEventListener("mouseleave", onMouseLeave as EventListener)
+            // no mouseenter/leave listeners to remove
         }
     }, [mainSwiperRef])
     const services = [
