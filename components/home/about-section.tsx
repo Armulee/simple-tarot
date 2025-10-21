@@ -17,8 +17,111 @@ import {
     Clock,
     CheckCircle
 } from "lucide-react"
+import { useEffect, useRef } from "react"
+import type { SwiperRef } from "swiper/react"
 
-export default function AboutSection() {
+type AboutSectionProps = {
+    mainSwiperRef: React.RefObject<SwiperRef | null>
+}
+
+export default function AboutSection({ mainSwiperRef }: AboutSectionProps) {
+    const scrollRef = useRef<HTMLDivElement | null>(null)
+    const touchStartYRef = useRef<number>(0)
+
+    useEffect(() => {
+        const container = scrollRef.current
+        const swiper = mainSwiperRef.current?.swiper
+        if (!container || !swiper) return
+
+        // Ensure swiper is enabled when entering this slide initially
+        swiper.allowTouchMove = true
+
+        const canScrollUp = () => container.scrollTop > 0
+        const canScrollDown = () =>
+            container.scrollTop + container.clientHeight < container.scrollHeight - 1
+
+        const updateAllowTouchMove = () => {
+            const s = mainSwiperRef.current?.swiper
+            if (!s) return
+            s.allowTouchMove = !(canScrollUp() || canScrollDown())
+        }
+
+        const onScroll = () => {
+            updateAllowTouchMove()
+        }
+
+        const onWheel = (e: WheelEvent) => {
+            const s = mainSwiperRef.current?.swiper
+            if (!s) return
+            if (e.deltaY > 0) {
+                if (canScrollDown()) {
+                    s.allowTouchMove = false
+                    e.stopPropagation()
+                } else {
+                    s.allowTouchMove = true
+                }
+            } else if (e.deltaY < 0) {
+                if (canScrollUp()) {
+                    s.allowTouchMove = false
+                    e.stopPropagation()
+                } else {
+                    s.allowTouchMove = true
+                }
+            }
+        }
+
+        const onTouchStart = (e: TouchEvent) => {
+            touchStartYRef.current = e.touches[0]?.clientY ?? 0
+        }
+
+        const onTouchMove = (e: TouchEvent) => {
+            const s = mainSwiperRef.current?.swiper
+            if (!s) return
+            const currentY = e.touches[0]?.clientY ?? 0
+            const deltaY = currentY - touchStartYRef.current
+            if (deltaY < 0) {
+                // swipe up -> scroll down
+                if (canScrollDown()) {
+                    s.allowTouchMove = false
+                    e.stopPropagation()
+                } else {
+                    s.allowTouchMove = true
+                }
+            } else if (deltaY > 0) {
+                // swipe down -> scroll up
+                if (canScrollUp()) {
+                    s.allowTouchMove = false
+                    e.stopPropagation()
+                } else {
+                    s.allowTouchMove = true
+                }
+            }
+        }
+
+        const onMouseEnter = () => updateAllowTouchMove()
+        const onMouseLeave = () => {
+            const s = mainSwiperRef.current?.swiper
+            if (s) s.allowTouchMove = true
+        }
+
+        container.addEventListener("scroll", onScroll, { passive: true })
+        container.addEventListener("wheel", onWheel, { passive: true })
+        container.addEventListener("touchstart", onTouchStart, { passive: true })
+        container.addEventListener("touchmove", onTouchMove, { passive: true })
+        container.addEventListener("mouseenter", onMouseEnter)
+        container.addEventListener("mouseleave", onMouseLeave)
+
+        return () => {
+            const s = mainSwiperRef.current?.swiper
+            if (s) s.allowTouchMove = true
+            container.removeEventListener("scroll", onScroll as EventListener)
+            container.removeEventListener("wheel", onWheel as EventListener)
+            container.removeEventListener("touchstart", onTouchStart as EventListener)
+            container.removeEventListener("touchmove", onTouchMove as EventListener)
+            container.removeEventListener("mouseenter", onMouseEnter as EventListener)
+            container.removeEventListener("mouseleave", onMouseLeave as EventListener)
+        }
+    }, [mainSwiperRef])
     const services = [
         {
             id: "tarot",
@@ -129,7 +232,7 @@ export default function AboutSection() {
     ]
 
     return (
-        <div className="w-full h-screen overflow-y-auto">
+        <div ref={scrollRef} className="w-full h-full overflow-y-auto">
             <div className="max-w-6xl mx-auto px-8 pt-24 pb-16 space-y-16">
                 {/* Header */}
                 <div className="text-center space-y-6">

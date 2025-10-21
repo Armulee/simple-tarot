@@ -3,6 +3,7 @@
 import { Swiper, SwiperSlide } from "swiper/react"
 import { useEffect, useRef } from "react"
 import type { SwiperRef } from "swiper/react"
+import { Mousewheel } from "swiper/modules"
 import Tarot from "./tarot"
 import BirthChart from "./birth-chart"
 import Horoscope from "./horoscope"
@@ -38,28 +39,29 @@ export default function Home() {
     }, [])
 
     return (
-        <div className='w-full h-screen'>
-            <Swiper 
+        <div className='w-full h-full'>
+            <Swiper
                 ref={mainSwiperRef}
-                className='w-full h-screen'
+                className='w-full h-full'
                 direction="vertical"
                 loop={false}
+                modules={[Mousewheel]}
                 mousewheel={{
                     enabled: true,
                     forceToAxis: true,
                 }}
             >
                 {/* Main Content with Horizontal Swiper */}
-                <SwiperSlide className='w-full h-screen'>
-                    <Swiper 
-                        className='w-full h-screen'
+                <SwiperSlide className='w-full h-full'>
+                    <Swiper
+                        className='w-full h-full'
                         direction="horizontal"
                         loop={true}
                     >
                         {features.map((feature) => {
                             const FeatureComponent = feature.component
                             return (
-                                <SwiperSlide key={feature.id} className='w-full h-screen'>
+                                <SwiperSlide key={feature.id} className='w-full h-full'>
                                     <div className={`w-full h-full flex flex-col items-center justify-center ${
                                         feature.id !== 'tarot' ? 'px-8' : ''
                                     }`}>
@@ -72,8 +74,8 @@ export default function Home() {
                 </SwiperSlide>
                 
                 {/* About Section */}
-                <SwiperSlide className='w-full h-screen'>
-                    <AboutSection />
+                <SwiperSlide className='w-full h-full'>
+                    <AboutSection mainSwiperRef={mainSwiperRef} />
                 </SwiperSlide>
             </Swiper>
         </div>
