@@ -51,7 +51,7 @@ export default function Tarot() {
                     }}
                 >
                     <span className='flex flex-col items-center leading-tight'>
-                        <span className='font-semibold'>Discover Elements</span>
+                        <span className='font-semibold'>About Asking Fate</span>
                         <span className='text-sm text-white/70'>Learn more</span>
                     </span>
                 </Button>
