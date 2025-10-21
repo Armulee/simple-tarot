@@ -21,7 +21,7 @@ export default function StickyFooter() {
                         onClick={scrollToAbout}
                         className="flex items-center space-x-2 bg-gradient-to-r from-primary to-secondary text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
                     >
-                        <span className="text-sm font-medium">Discover Elements</span>
+                        <span className="text-sm font-medium">Learn More</span>
                         <ChevronUp className="w-4 h-4" />
                     </button>
                 </div>

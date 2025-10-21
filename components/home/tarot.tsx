@@ -48,7 +48,10 @@ export default function Tarot() {
                     size='lg'
                     className='border-border/30 hover:bg-card/20 backdrop-blur-sm px-8 py-6 text-lg bg-transparent'
                 >
-                    <Link href='/about'>{t("learnMore")}</Link>
+                    <Link href='/about' className='flex flex-col items-center leading-tight'>
+                        <span className='font-semibold'>Discover Elements</span>
+                        <span className='text-sm text-white/70'>Learn more</span>
+                    </Link>
                 </Button>
             </div>
 
