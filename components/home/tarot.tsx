@@ -4,9 +4,8 @@ import { TypewriterText } from "../typewriter-text"
 import { Suspense, useState } from "react"
 import { Button } from "../ui/button"
 import Question from "./question"
-import Link from "next/link"
 import { useTranslations } from "next-intl"
-import StickyFooter from "./sticky-footer"
+// Sticky footer removed per request
 
 export default function Tarot() {
     const t = useTranslations("Home")
@@ -43,20 +42,22 @@ export default function Tarot() {
                 </Suspense>
 
                 <Button
-                    asChild
                     variant='ghost'
                     size='lg'
                     className='border-border/30 hover:bg-card/20 backdrop-blur-sm px-8 py-6 text-lg bg-transparent'
+                    onClick={() => {
+                        const event = new CustomEvent('scrollToAbout')
+                        window.dispatchEvent(event)
+                    }}
                 >
-                    <Link href='/about' className='flex flex-col items-center leading-tight'>
+                    <span className='flex flex-col items-center leading-tight'>
                         <span className='font-semibold'>Discover Elements</span>
                         <span className='text-sm text-white/70'>Learn more</span>
-                    </Link>
+                    </span>
                 </Button>
             </div>
 
-            {/* Sticky Footer */}
-            <StickyFooter />
+            {/* Sticky Footer removed */}
         </>
     )
 }
