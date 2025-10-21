@@ -74,6 +74,8 @@ export default function AboutSection({ mainSwiperRef }: AboutSectionProps) {
 
         const onTouchStart = (e: TouchEvent) => {
             touchStartYRef.current = e.touches[0]?.clientY ?? 0
+            // Evaluate at touch start to avoid first-gesture lock
+            updateAllowTouchMove()
         }
 
         const onTouchMove = (e: TouchEvent) => {
@@ -100,7 +102,8 @@ export default function AboutSection({ mainSwiperRef }: AboutSectionProps) {
             }
         }
 
-        // We intentionally do NOT change allowTouchMove on mount
+        // Evaluate once on mount so first interaction has correct state
+        updateAllowTouchMove()
 
         container.addEventListener("scroll", onScroll, { passive: true })
         container.addEventListener("wheel", onWheel, { passive: true })

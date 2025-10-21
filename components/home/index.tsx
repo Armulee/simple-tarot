@@ -39,7 +39,7 @@ export default function Home() {
     }, [])
 
     return (
-        <div className='w-full h-full'>
+        <div className='w-full h-full overflow-hidden'>
             <Swiper
                 ref={mainSwiperRef}
                 className='w-full h-full'

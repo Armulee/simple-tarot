@@ -129,7 +129,7 @@ export default async function RootLayout({
                                         <TarotProvider>
                                             <div className='min-h-screen flex flex-col home-gradient -z-10'>
                                                 <Navbar locale={locale} />
-                                                <main className='pt-16 md:min-h-[calc(100dvh-65px)] min-h-[calc(100dvh-65px-4rem)] relative overflow-hidden'>
+                                                <main className='pt-16 md:min-h-[calc(100dvh-65px)] min-h-[calc(100dvh-65px-4rem)] relative'>
                                                     <Suspense fallback={null}>
                                                         {children}
                                                     </Suspense>
