@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
-import HomeRefHandler from "@/components/home-ref-handler"
 import { Suspense } from "react"
 import { getTranslations } from "next-intl/server"
 import HomeHero from "@/components/home"
+import ReferralHandler from "@/components/referral-handler"
 
 export async function generateMetadata(): Promise<Metadata> {
     const t = await getTranslations("Meta.Home")
@@ -28,11 +28,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function HomePage() {
     return (
-        <div className='overflow-hidden'>
+        <div className='overflow-hidden h-full'>
             <Suspense fallback={null}>
-                <HomeRefHandler />
+                <ReferralHandler />
             </Suspense>
-            <section className='relative z-10 h-[calc(100vh-180px)] flex items-center justify-center text-center'>
+            <section className='relative z-10 h-full flex flex-col items-center justify-center text-center'>
                 <HomeHero />
             </section>
         </div>

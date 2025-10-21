@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 import ReadingType from "@/components/tarot/reading-type"
 import CardSelection from "@/components/tarot/card-selection"
-import Interpretation from "@/components/tarot/interpretation"
 import ReadingGuard from "@/components/tarot/reading-guard"
 import { getTranslations } from "next-intl/server"
 import { getTranslations as getT } from "next-intl/server"
@@ -56,7 +55,6 @@ export default async function ReadingPage() {
         <ReadingGuard>
             <ReadingType readingConfig={readingConfig} />
             <CardSelection readingConfig={readingConfig} />
-            <Interpretation />
         </ReadingGuard>
     )
 }

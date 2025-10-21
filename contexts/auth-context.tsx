@@ -5,6 +5,7 @@ import type { AuthChangeEvent, Session } from "@supabase/supabase-js"
 import { User, AuthError } from "@supabase/supabase-js"
 import { supabase } from "@/lib/supabase"
 import { starSyncUserToDevice } from "@/lib/stars"
+import { ProfileProvider } from "@/contexts/profile-context"
 
 interface AuthContextType {
     user: User | null
@@ -19,7 +20,9 @@ interface AuthContextType {
         email: string,
         password: string
     ) => Promise<{ error: AuthError | null }>
-    signInWithGoogle: (callbackUrl?: string | null) => Promise<{ error: AuthError | null }>
+    signInWithGoogle: (
+        callbackUrl?: string | null
+    ) => Promise<{ error: AuthError | null }>
     signOut: () => Promise<{ error: AuthError | null }>
     resetPassword: (email: string) => Promise<{ error: AuthError | null }>
 }
@@ -52,11 +55,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Listen for auth changes
         const {
             data: { subscription },
-        } = supabase.auth.onAuthStateChange(async (_event: AuthChangeEvent, session: Session | null) => {
-            setSession(session)
-            setUser(session?.user ?? null)
-            setLoading(false)
-        })
+        } = supabase.auth.onAuthStateChange(
+            async (_event: AuthChangeEvent, session: Session | null) => {
+                setSession(session)
+                setUser(session?.user ?? null)
+                setLoading(false)
+            }
+        )
 
         return () => subscription.unsubscribe()
     }, [])
@@ -75,11 +80,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 },
             })
             return { error }
-        } catch (error) {
+        } catch {
             return {
                 error: {
+                    name: "AuthError",
                     message: "Authentication service not available",
-                } as any,
+                } as AuthError,
             }
         }
     }
@@ -91,11 +97,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 password,
             })
             return { error }
-        } catch (error) {
+        } catch {
             return {
                 error: {
+                    name: "AuthError",
                     message: "Authentication service not available",
-                } as any,
+                } as AuthError,
             }
         }
     }
@@ -109,11 +116,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 },
             })
             return { error }
-        } catch (error) {
+        } catch {
             return {
                 error: {
+                    name: "AuthError",
                     message: "Authentication service not available",
-                } as any,
+                } as AuthError,
             }
         }
     }
@@ -128,11 +136,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } catch {}
             const { error } = await supabase.auth.signOut()
             return { error }
-        } catch (error) {
+        } catch {
             return {
                 error: {
+                    name: "AuthError",
                     message: "Authentication service not available",
-                } as any,
+                } as AuthError,
             }
         }
     }
@@ -143,11 +152,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 redirectTo: `${window.location.origin}/auth/reset-password`,
             })
             return { error }
-        } catch (error) {
+        } catch {
             return {
                 error: {
+                    name: "AuthError",
                     message: "Authentication service not available",
-                } as any,
+                } as AuthError,
             }
         }
     }
@@ -163,7 +173,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         resetPassword,
     }
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+    return (
+        <AuthContext.Provider value={value}>
+            <ProfileProvider>{children}</ProfileProvider>
+        </AuthContext.Provider>
+    )
 }
 
 export function useAuth() {

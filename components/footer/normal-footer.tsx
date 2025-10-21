@@ -1,7 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
 
-export default function Footer() {
+export default function NormalFooter() {
     return (
         <footer className='w-full z-10'>
             <div className='max-w-6xl mx-auto px-6 pt-4 pb-12 md:pb-6'>

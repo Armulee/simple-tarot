@@ -11,7 +11,11 @@ import React, {
 } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { starAdd, starGetOrCreate, starSpend, starSet } from "@/lib/stars"
-import { hasCookieConsent } from "@/components/star-consent"
+import {
+    hasCookieConsent,
+    StarConsentProvider,
+} from "@/components/star-consent"
+import { ReferralProvider } from "@/contexts/referral-context"
 
 interface StarsContextType {
     stars: number | null
@@ -439,7 +443,11 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     )
 
     return (
-        <StarsContext.Provider value={value}>{children}</StarsContext.Provider>
+        <StarConsentProvider>
+            <StarsContext.Provider value={value}>
+                <ReferralProvider>{children}</ReferralProvider>
+            </StarsContext.Provider>
+        </StarConsentProvider>
     )
 }
 

@@ -315,6 +315,8 @@ Output:
         onInterpretationChange,
         onGeneratingChange,
         complete,
+        loadVersions,
+        readingId,
     ])
 
     const actionOptions = [

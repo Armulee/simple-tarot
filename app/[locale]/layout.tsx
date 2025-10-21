@@ -7,18 +7,16 @@ import { Suspense } from "react"
 import { TarotProvider } from "@/contexts/tarot-context"
 import { StarsProvider } from "@/contexts/stars-context"
 import { AuthProvider } from "@/contexts/auth-context"
-import { ProfileProvider } from "@/contexts/profile-context"
-import { ReferralProvider } from "@/contexts/referral-context"
 import { Navbar } from "@/components/navbar"
 import "../globals.css"
-import Footer from "@/components/footer"
+import Footer from "@/components/footer/footer"
 import CosmicStars from "@/components/cosmic-stars"
 import { Toaster } from "sonner"
 import { hasLocale } from "next-intl"
 import { routing } from "@/i18n/routing"
 import { notFound } from "next/navigation"
 import { getMessages, getTranslations } from "next-intl/server"
-import { StarConsentProvider } from "@/components/star-consent"
+// StarConsentProvider and ReferralProvider are composed inside StarsProvider
 
 /* Updated fonts to match mystical design brief */
 const playfairDisplay = Playfair_Display({
@@ -108,39 +106,28 @@ export default async function RootLayout({
     if (!hasLocale(routing.locales, locale)) {
         notFound()
     }
+
     return (
         <html lang={locale}>
-            <head>
-                <meta
-                    name='google-adsense-account'
-                    content='ca-pub-9151677091179897'
-                />
-            </head>
             <body
                 className={`font-sans ${sourceSans.variable} ${playfairDisplay.variable}`}
             >
                 <CosmicStars />
                 <NextIntlClientProvider messages={messages} locale={locale}>
                     <AuthProvider>
-                        <ProfileProvider>
-                            <StarConsentProvider>
-                                <StarsProvider>
-                                    <ReferralProvider>
-                                        <TarotProvider>
-                                            <div className='min-h-screen flex flex-col home-gradient -z-10'>
-                                                <Navbar locale={locale} />
-                                                <main className='pt-16 md:min-h-[calc(100dvh-65px)] min-h-[calc(100dvh-65px-4rem)] relative'>
-                                                    <Suspense fallback={null}>
-                                                        {children}
-                                                    </Suspense>
-                                                </main>
-                                                <Footer />
-                                            </div>
-                                        </TarotProvider>
-                                    </ReferralProvider>
-                                </StarsProvider>
-                            </StarConsentProvider>
-                        </ProfileProvider>
+                        <StarsProvider>
+                            <TarotProvider>
+                                <div className='min-h-screen flex flex-col home-gradient -z-10'>
+                                    <Navbar locale={locale} />
+                                    <main className='pt-16 min-h-[100dvh] h-full relative'>
+                                        <Suspense fallback={null}>
+                                            {children}
+                                        </Suspense>
+                                    </main>
+                                    <Footer />
+                                </div>
+                            </TarotProvider>
+                        </StarsProvider>
                     </AuthProvider>
                 </NextIntlClientProvider>
                 <Analytics />

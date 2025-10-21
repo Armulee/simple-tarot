@@ -1,10 +1,10 @@
 "use client"
 
-import { TypewriterText } from "../typewriter-text"
+import { TypewriterText } from "../../typewriter-text"
 import { Suspense, useState } from "react"
-import { Button } from "../ui/button"
-import Question from "./question"
+import Question from "../question"
 import { useTranslations } from "next-intl"
+import { ChevronDown } from "lucide-react"
 // Sticky footer removed per request
 
 export default function Tarot() {
@@ -45,28 +45,20 @@ export default function Tarot() {
                     type='button'
                     className='flex flex-col items-center gap-2 text-white/80 hover:text-white'
                     onClick={() => {
-                        const event = new CustomEvent('scrollToAbout')
+                        const event = new CustomEvent("scrollToAbout")
                         window.dispatchEvent(event)
                     }}
                 >
                     <div className='flex items-center gap-4'>
                         <div className='h-px w-12 bg-white/30' />
-                        <span className='text-xs uppercase tracking-wide'>Learn more</span>
+                        <span className='text-xs uppercase tracking-wide'>
+                            Learn more
+                        </span>
                         <div className='h-px w-12 bg-white/30' />
                     </div>
-                    <svg
-                        xmlns='http://www.w3.org/2000/svg'
-                        viewBox='0 0 24 24'
-                        fill='currentColor'
-                        className='w-5 h-5 animate-bounce'
-                        aria-hidden='true'
-                    >
-                        <path fillRule='evenodd' d='M12 14.5a.75.75 0 0 1-.53-.22l-4.5-4.5a.75.75 0 1 1 1.06-1.06L12 12.19l3.97-3.97a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-.53.22Z' clipRule='evenodd' />
-                    </svg>
+                    <ChevronDown className='w-5 h-5 animate-bounce' />
                 </button>
             </div>
-
-            {/* Sticky Footer removed */}
         </>
     )
 }
