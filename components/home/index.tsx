@@ -50,6 +50,10 @@ export default function Home() {
                     enabled: true,
                     forceToAxis: true,
                 }}
+                onSlideChange={(swiper) => {
+                    // Ensure vertical navigation is re-enabled after leaving About
+                    swiper.allowTouchMove = true
+                }}
             >
                 {/* Main Content with Horizontal Swiper */}
                 <SwiperSlide className='w-full h-full'>

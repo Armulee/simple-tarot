@@ -104,6 +104,9 @@ export default function AboutSection({ mainSwiperRef }: AboutSectionProps) {
             if (s) s.allowTouchMove = true
         }
 
+        // When this slide mounts or becomes active, re-evaluate once
+        updateAllowTouchMove()
+
         container.addEventListener("scroll", onScroll, { passive: true })
         container.addEventListener("wheel", onWheel, { passive: true })
         container.addEventListener("touchstart", onTouchStart, { passive: true })
