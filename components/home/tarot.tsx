@@ -41,20 +41,29 @@ export default function Tarot() {
                     </div>
                 </Suspense>
 
-                <Button
-                    variant='ghost'
-                    size='lg'
-                    className='border-border/30 hover:bg-card/20 backdrop-blur-sm px-8 py-6 text-lg bg-transparent'
+                <button
+                    type='button'
+                    className='flex flex-col items-center gap-2 text-white/80 hover:text-white'
                     onClick={() => {
                         const event = new CustomEvent('scrollToAbout')
                         window.dispatchEvent(event)
                     }}
                 >
-                    <span className='flex flex-col items-center leading-tight'>
-                        <span className='font-semibold'>About Asking Fate</span>
-                        <span className='text-sm text-white/70'>Learn more</span>
-                    </span>
-                </Button>
+                    <div className='flex items-center gap-4'>
+                        <div className='h-px w-12 bg-white/30' />
+                        <span className='text-xs uppercase tracking-wide'>Learn more</span>
+                        <div className='h-px w-12 bg-white/30' />
+                    </div>
+                    <svg
+                        xmlns='http://www.w3.org/2000/svg'
+                        viewBox='0 0 24 24'
+                        fill='currentColor'
+                        className='w-5 h-5 animate-bounce'
+                        aria-hidden='true'
+                    >
+                        <path fillRule='evenodd' d='M12 14.5a.75.75 0 0 1-.53-.22l-4.5-4.5a.75.75 0 1 1 1.06-1.06L12 12.19l3.97-3.97a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-.53.22Z' clipRule='evenodd' />
+                    </svg>
+                </button>
             </div>
 
             {/* Sticky Footer removed */}

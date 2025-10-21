@@ -76,24 +76,7 @@ export default function Home() {
                         })}
                     </Swiper>
 
-                    {/* Learn more chevron indicator */}
-                    <div className='pointer-events-none absolute bottom-6 left-0 right-0 flex justify-center'>
-                        <button
-                            type='button'
-                            className='pointer-events-auto flex flex-col items-center gap-2 text-white/80 hover:text-white'
-                            onClick={() => {
-                                const event = new CustomEvent('scrollToAbout')
-                                window.dispatchEvent(event)
-                            }}
-                        >
-                            <div className='flex items-center gap-4'>
-                                <div className='h-px w-12 bg-white/30' />
-                                <span className='text-xs uppercase tracking-wide'>Learn more</span>
-                                <div className='h-px w-12 bg-white/30' />
-                            </div>
-                            <ChevronDown className='w-5 h-5 animate-bounce' />
-                        </button>
-                    </div>
+                    {/* Learn more chevron indicator moved to Tarot section */}
                 </SwiperSlide>
                 
                 {/* About Section */}
