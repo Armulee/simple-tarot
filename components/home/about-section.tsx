@@ -438,7 +438,7 @@ export default function AboutSection({ mainSwiperRef }: AboutSectionProps) {
                             Start Your Reading
                         </button>
                         <button className="border border-primary/30 text-primary px-8 py-3 rounded-lg font-semibold hover:bg-primary/10 transition-colors">
-                            Learn More
+                            Discover Elements
                         </button>
                     </div>
                 </div>
