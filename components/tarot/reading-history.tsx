@@ -523,25 +523,39 @@ export default function ReadingHistory() {
                         />
                     </div>
 
-                    {/* Date Filter Controls */}
+                    {/* Filter Controls */}
                     <div className="flex flex-wrap gap-3 items-center justify-center max-w-4xl mx-auto px-4">
                         <div className="flex items-center gap-2">
                             <Filter className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm font-medium text-muted-foreground">Filter by date:</span>
+                            <span className="text-sm font-medium text-muted-foreground">Filter:</span>
                         </div>
                         
-                        <Select value={filterType} onValueChange={(value: "all" | "today" | "week" | "month" | "custom") => setFilterType(value)}>
-                            <SelectTrigger className="w-32 bg-card/40 backdrop-blur-sm border-border/30">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All time</SelectItem>
-                                <SelectItem value="today">Today</SelectItem>
-                                <SelectItem value="week">This week</SelectItem>
-                                <SelectItem value="month">This month</SelectItem>
-                                <SelectItem value="custom">Custom range</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <div className="flex gap-3">
+                            <Select value={filterType} onValueChange={(value: "all" | "today" | "week" | "month" | "custom") => setFilterType(value)}>
+                                <SelectTrigger className="w-32 bg-card/40 backdrop-blur-sm border-border/30">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-slate-900 border-slate-700">
+                                    <SelectItem value="all" className="text-white hover:bg-slate-800">All time</SelectItem>
+                                    <SelectItem value="today" className="text-white hover:bg-slate-800">Today</SelectItem>
+                                    <SelectItem value="week" className="text-white hover:bg-slate-800">This week</SelectItem>
+                                    <SelectItem value="month" className="text-white hover:bg-slate-800">This month</SelectItem>
+                                    <SelectItem value="custom" className="text-white hover:bg-slate-800">Custom range</SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            <Select value={readingTypeFilter} onValueChange={(value: "all" | "simple" | "intermediate" | "advanced") => setReadingTypeFilter(value)}>
+                                <SelectTrigger className="w-36 bg-card/40 backdrop-blur-sm border-border/30">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-slate-900 border-slate-700">
+                                    <SelectItem value="all" className="text-white hover:bg-slate-800">All types</SelectItem>
+                                    <SelectItem value="simple" className="text-white hover:bg-slate-800">Simple</SelectItem>
+                                    <SelectItem value="intermediate" className="text-white hover:bg-slate-800">Intermediate</SelectItem>
+                                    <SelectItem value="advanced" className="text-white hover:bg-slate-800">Advanced</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
 
                         <Select value={readingTypeFilter} onValueChange={(value: "all" | "simple" | "intermediate" | "advanced") => setReadingTypeFilter(value)}>
                             <SelectTrigger className="w-36 bg-card/40 backdrop-blur-sm border-border/30">
@@ -584,7 +598,7 @@ export default function ReadingHistory() {
                             </div>
                         )}
 
-                        {(filterType !== "all" || searchQuery) && (
+                        {(filterType !== "all" || readingTypeFilter !== "all" || searchQuery) && (
                             <Button
                                 variant="outline"
                                 size="sm"
