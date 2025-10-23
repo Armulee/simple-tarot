@@ -14,6 +14,10 @@ import { ChevronDown, Star, Sparkles, Search, Calendar, Filter, X } from "lucide
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { FreeMode } from 'swiper/modules'
+import 'swiper/css'
+import 'swiper/css/free-mode'
 
 type ReadingRow = {
     id: string
@@ -129,20 +133,18 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
                 
                 <CardContent className="relative p-4 pt-8 pb-2">
                     <div className="flex items-start gap-4">
-                        {/* Real card images */}
-                        <div className="flex-shrink-0 flex gap-2">
-                            {reading.cards?.slice(0, 2).map((card, index) => {
-                                const cleanName = cleanCardName(card)
-                                const isReversed = card.toLowerCase().includes('reversed')
+                        {/* Single card image */}
+                        <div className="flex-shrink-0">
+                            {reading.cards && reading.cards.length > 0 && (() => {
+                                const firstCard = reading.cards[0]
+                                const cleanName = cleanCardName(firstCard)
+                                const isReversed = firstCard.toLowerCase().includes('reversed')
                                 
                                 return (
-                                    <div 
-                                        key={index}
-                                        className="relative w-12 rounded-lg overflow-hidden border border-border/30 shadow-lg group-hover/card:scale-110 transition-transform duration-300"
-                                    >
+                                    <div className="relative w-12 rounded-lg overflow-hidden border border-border/30 shadow-lg group-hover/card:scale-110 transition-transform duration-300">
                                         <Image
                                             src={`/assets/rider-waite-tarot/${cleanName}.png`}
-                                            alt={card}
+                                            alt={firstCard}
                                             width={48}
                                             height={0}
                                             className={`w-full h-auto object-cover transition-transform duration-300 ${
@@ -151,38 +153,32 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
                                         />
                                     </div>
                                 )
-                            })}
-                            {reading.cards && reading.cards.length > 2 && (
-                                <div className="w-12 h-16 rounded-lg bg-gradient-to-br from-muted/30 to-muted/20 border border-muted/40 flex items-center justify-center group-hover/card:scale-110 transition-transform duration-300 shadow-lg">
-                                    <span className="text-xs font-medium text-muted-foreground">
-                                        +{reading.cards.length - 2}
-                                    </span>
-                                </div>
-                            )}
+                            })()}
                         </div>
                         
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                            {/* Card badges above the question */}
+                            {/* Card badges above the question - Swiper */}
                             {reading.cards && reading.cards.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mb-2">
-                                    {reading.cards.slice(0, 3).map((card, index) => (
-                                        <Badge 
-                                            key={index} 
-                                            variant="secondary" 
-                                            className="text-xs bg-white/90 text-gray-800 border-white/50 hover:bg-white transition-colors shadow-lg backdrop-blur-sm"
-                                        >
-                                            {card}
-                                        </Badge>
-                                    ))}
-                                    {reading.cards.length > 3 && (
-                                        <Badge 
-                                            variant="outline" 
-                                            className="text-xs bg-white/80 text-gray-700 border-white/40 hover:bg-white transition-colors shadow-lg backdrop-blur-sm"
-                                        >
-                                            +{reading.cards.length - 3}
-                                        </Badge>
-                                    )}
+                                <div className="mb-2 w-full">
+                                    <Swiper
+                                        modules={[FreeMode]}
+                                        freeMode={true}
+                                        slidesPerView="auto"
+                                        spaceBetween={4}
+                                        className="w-full"
+                                    >
+                                        {reading.cards.map((card, index) => (
+                                            <SwiperSlide key={index} className="!w-auto">
+                                                <Badge 
+                                                    variant="secondary" 
+                                                    className="text-xs bg-white/90 text-gray-800 border-white/50 hover:bg-white transition-colors shadow-lg backdrop-blur-sm whitespace-nowrap"
+                                                >
+                                                    {card}
+                                                </Badge>
+                                            </SwiperSlide>
+                                        ))}
+                                    </Swiper>
                                 </div>
                             )}
                             
