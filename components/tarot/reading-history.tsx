@@ -183,7 +183,7 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
                             )}
                             
                             <div className="flex items-start justify-between gap-4 mb-2">
-                                <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300">
+                                <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300 line-clamp-1">
                                     {question || "(No question)"}
                                 </h3>
                             </div>
