@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useCallback, useRef } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/hooks/use-auth"
 import { Card, CardContent } from "@/components/ui/card"
@@ -39,6 +40,15 @@ const formatDate = (dateString: string) => {
     })
 }
 
+// Helper function to clean card name for image path
+const cleanCardName = (cardName: string) => {
+    return cardName
+        .toLowerCase()
+        .replace(/\s*\(reversed\)/g, "")
+        .replace(/\s*reversed/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "")
+}
 
 // ReadingCard component - moved outside functional component
 const ReadingCard = ({ reading, question, isMain, hasFollowUps }: { 
@@ -65,7 +75,7 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
                             <Badge 
                                 key={index} 
                                 variant="secondary" 
-                                className="text-xs bg-accent/20 text-accent border-accent/30 hover:bg-accent/30 transition-colors shadow-sm"
+                                className="text-xs bg-white/90 text-gray-800 border-white/50 hover:bg-white transition-colors shadow-lg backdrop-blur-sm"
                             >
                                 {card}
                             </Badge>
@@ -73,7 +83,7 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
                         {reading.cards.length > 3 && (
                             <Badge 
                                 variant="outline" 
-                                className="text-xs bg-accent/10 text-accent border-accent/20 hover:bg-accent/20 transition-colors shadow-sm"
+                                className="text-xs bg-white/80 text-gray-700 border-white/40 hover:bg-white transition-colors shadow-lg backdrop-blur-sm"
                             >
                                 +{reading.cards.length - 3}
                             </Badge>
@@ -83,20 +93,36 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
                 
                 <CardContent className="relative p-4 pt-12">
                     <div className="flex items-start gap-4">
-                        {/* Small card preview images */}
-                        <div className="flex-shrink-0 flex gap-1">
-                            {reading.cards?.slice(0, 2).map((card, index) => (
-                                <div 
-                                    key={index}
-                                    className="w-8 h-12 rounded-md bg-gradient-to-br from-primary/30 to-secondary/30 border border-primary/40 flex items-center justify-center group-hover/card:scale-110 transition-transform duration-300 shadow-sm"
-                                >
-                                    <span className="text-xs font-medium text-primary/80">
-                                        {card.split(' ').map(word => word[0]).join('').toUpperCase()}
-                                    </span>
-                                </div>
-                            ))}
+                        {/* Real card images */}
+                        <div className="flex-shrink-0 flex gap-2">
+                            {reading.cards?.slice(0, 2).map((card, index) => {
+                                const cleanName = cleanCardName(card)
+                                const isReversed = card.toLowerCase().includes('reversed')
+                                
+                                return (
+                                    <div 
+                                        key={index}
+                                        className="relative w-12 h-16 rounded-lg overflow-hidden border border-border/30 shadow-lg group-hover/card:scale-110 transition-transform duration-300"
+                                    >
+                                        <Image
+                                            src={`/assets/rider-waite-tarot/${cleanName}.png`}
+                                            alt={card}
+                                            width={48}
+                                            height={64}
+                                            className={`w-full h-full object-cover transition-transform duration-300 ${
+                                                isReversed ? "rotate-180" : ""
+                                            }`}
+                                        />
+                                        {isReversed && (
+                                            <div className="absolute top-1 right-1">
+                                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )
+                            })}
                             {reading.cards && reading.cards.length > 2 && (
-                                <div className="w-8 h-12 rounded-md bg-gradient-to-br from-muted/30 to-muted/20 border border-muted/40 flex items-center justify-center group-hover/card:scale-110 transition-transform duration-300 shadow-sm">
+                                <div className="w-12 h-16 rounded-lg bg-gradient-to-br from-muted/30 to-muted/20 border border-muted/40 flex items-center justify-center group-hover/card:scale-110 transition-transform duration-300 shadow-lg">
                                     <span className="text-xs font-medium text-muted-foreground">
                                         +{reading.cards.length - 2}
                                     </span>
@@ -144,6 +170,10 @@ export default function ReadingHistory() {
     const [error, setError] = useState<string | null>(null)
     const [searchQuery, setSearchQuery] = useState("")
     const [filteredReadings, setFilteredReadings] = useState<ReadingRow[]>([])
+    const [displayedReadings, setDisplayedReadings] = useState<ReadingRow[]>([])
+    const [hasMore, setHasMore] = useState(true)
+    const [loadingMore, setLoadingMore] = useState(false)
+    const observerRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
         let isMounted = true
@@ -156,7 +186,6 @@ export default function ReadingHistory() {
                 .select("id, question, created_at, interpretation, cards")
                 .eq("owner_user_id", user.id)
                 .order("created_at", { ascending: false })
-                .limit(100)
             if (!isMounted) return
             if (error) {
                 setError(error.message)
@@ -184,6 +213,45 @@ export default function ReadingHistory() {
             setFilteredReadings(filtered)
         }
     }, [readings, searchQuery])
+
+    // Reset displayed readings when filtered readings change
+    useEffect(() => {
+        setDisplayedReadings(filteredReadings.slice(0, 10))
+        setHasMore(filteredReadings.length > 10)
+    }, [filteredReadings])
+
+    // Load more readings function
+    const loadMore = useCallback(() => {
+        if (loadingMore || !hasMore) return
+        
+        setLoadingMore(true)
+        const currentLength = displayedReadings.length
+        const nextBatch = filteredReadings.slice(currentLength, currentLength + 10)
+        
+        setTimeout(() => {
+            setDisplayedReadings(prev => [...prev, ...nextBatch])
+            setHasMore(currentLength + 10 < filteredReadings.length)
+            setLoadingMore(false)
+        }, 500) // Small delay for better UX
+    }, [displayedReadings.length, filteredReadings, loadingMore, hasMore])
+
+    // Intersection Observer for infinite scroll
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && hasMore && !loadingMore) {
+                    loadMore()
+                }
+            },
+            { threshold: 0.1 }
+        )
+
+        if (observerRef.current) {
+            observer.observe(observerRef.current)
+        }
+
+        return () => observer.disconnect()
+    }, [loadMore, hasMore, loadingMore])
 
     const content = useMemo(() => {
         if (!user) {
@@ -234,7 +302,7 @@ export default function ReadingHistory() {
                 </div>
             )
         }
-        if (!filteredReadings.length) {
+        if (!displayedReadings.length) {
             if (searchQuery) {
                 return (
                     <div className='flex flex-col items-center justify-center py-16 text-center'>
@@ -272,7 +340,7 @@ export default function ReadingHistory() {
         }
 
         // Group follow-ups: assume main interpretations are those whose question text is not a follow-up marker; we group exact same question text together
-        const groups = filteredReadings.reduce<Record<string, ReadingRow[]>>((acc, row) => {
+        const groups = displayedReadings.reduce<Record<string, ReadingRow[]>>((acc, row) => {
             const key = getCleanQuestionText(row.question || "")
             if (!acc[key]) acc[key] = []
             acc[key].push(row)
@@ -329,7 +397,7 @@ export default function ReadingHistory() {
                 })}
             </div>
         )
-    }, [user, loading, filteredReadings, error, searchQuery])
+    }, [user, loading, displayedReadings, error, searchQuery])
 
     return (
         <div className='max-w-4xl mx-auto w-full px-4 py-8'>
@@ -361,6 +429,22 @@ export default function ReadingHistory() {
 
             {/* Content */}
             {content}
+            
+            {/* Infinite scroll trigger and loading indicator */}
+            {hasMore && (
+                <div ref={observerRef} className="flex justify-center py-8">
+                    {loadingMore ? (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                            <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                            <span>Loading more readings...</span>
+                        </div>
+                    ) : (
+                        <div className="text-muted-foreground text-sm">
+                            Scroll to load more
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     )
 }
