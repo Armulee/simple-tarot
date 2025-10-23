@@ -4,12 +4,12 @@ import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/hooks/use-auth"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
-import { ChevronDown, Calendar, Clock, Star, Sparkles, Search, Filter } from "lucide-react"
+import { ChevronDown, Clock, Star, Sparkles, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 
 type ReadingRow = {
@@ -18,6 +18,31 @@ type ReadingRow = {
     created_at: string
     interpretation: string | null
     cards: string[] | null
+}
+
+// Helper functions moved outside component to avoid dependency issues
+const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return ""
+    
+    const now = new Date()
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+    
+    if (diffInHours < 1) return "Just now"
+    if (diffInHours < 24) return `${diffInHours}h ago`
+    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`
+    
+    return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric',
+        year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+    })
+}
+
+const getCardPreview = (cards: string[] | null) => {
+    if (!cards || cards.length === 0) return "No cards"
+    if (cards.length <= 3) return cards.join(", ")
+    return `${cards.slice(0, 3).join(", ")} +${cards.length - 3} more`
 }
 
 export default function ReadingHistory() {
@@ -67,32 +92,6 @@ export default function ReadingHistory() {
             setFilteredReadings(filtered)
         }
     }, [readings, searchQuery])
-
-    // Helper function to format dates
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString)
-        if (isNaN(date.getTime())) return ""
-        
-        const now = new Date()
-        const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
-        
-        if (diffInHours < 1) return "Just now"
-        if (diffInHours < 24) return `${diffInHours}h ago`
-        if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`
-        
-        return date.toLocaleDateString('en-US', { 
-            month: 'short', 
-            day: 'numeric',
-            year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
-        })
-    }
-
-    // Helper function to get card preview
-    const getCardPreview = (cards: string[] | null) => {
-        if (!cards || cards.length === 0) return "No cards"
-        if (cards.length <= 3) return cards.join(", ")
-        return `${cards.slice(0, 3).join(", ")} +${cards.length - 3} more`
-    }
 
     const content = useMemo(() => {
         if (!user) {
@@ -240,7 +239,7 @@ export default function ReadingHistory() {
         )
     }, [user, loading, filteredReadings, error, searchQuery])
 
-    // ReadingCard component
+    // ReadingCard component - moved outside useMemo to avoid hoisting issues
     const ReadingCard = ({ reading, question, isMain, hasFollowUps }: { 
         reading: ReadingRow, 
         question: string, 
