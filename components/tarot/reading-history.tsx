@@ -222,6 +222,7 @@ export default function ReadingHistory() {
     const [dateFrom, setDateFrom] = useState("")
     const [dateTo, setDateTo] = useState("")
     const [filterType, setFilterType] = useState<"all" | "today" | "week" | "month" | "custom">("all")
+    const [readingTypeFilter, setReadingTypeFilter] = useState<"all" | "simple" | "intermediate" | "advanced">("all")
     const observerRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -299,8 +300,16 @@ export default function ReadingHistory() {
             })
         }
 
+        // Apply reading type filter
+        if (readingTypeFilter !== "all") {
+            filtered = filtered.filter(reading => {
+                const readingType = getReadingType(reading.cards)
+                return readingType === readingTypeFilter
+            })
+        }
+
         setFilteredReadings(filtered)
-    }, [readings, searchQuery, filterType, dateFrom, dateTo])
+    }, [readings, searchQuery, filterType, dateFrom, dateTo, readingTypeFilter])
 
     // Reset displayed readings when filtered readings change
     useEffect(() => {
@@ -531,6 +540,18 @@ export default function ReadingHistory() {
                                 <SelectItem value="week">This week</SelectItem>
                                 <SelectItem value="month">This month</SelectItem>
                                 <SelectItem value="custom">Custom range</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        <Select value={readingTypeFilter} onValueChange={(value: "all" | "simple" | "intermediate" | "advanced") => setReadingTypeFilter(value)}>
+                            <SelectTrigger className="w-36 bg-card/40 backdrop-blur-sm border-border/30">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All types</SelectItem>
+                                <SelectItem value="simple">Simple</SelectItem>
+                                <SelectItem value="intermediate">Intermediate</SelectItem>
+                                <SelectItem value="advanced">Advanced</SelectItem>
                             </SelectContent>
                         </Select>
 
