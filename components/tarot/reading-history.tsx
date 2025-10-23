@@ -97,6 +97,7 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
                 group/card relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/10
                 ${isMain ? 'bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm border-border/30' : 'bg-card/60 backdrop-blur-sm border-border/20'}
                 ${hasFollowUps ? 'cursor-pointer' : ''}
+                bg-gradient-to-br from-slate-900/50 to-slate-800/30 z-10
             `}>
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
                 
@@ -137,14 +138,14 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
                                 return (
                                     <div 
                                         key={index}
-                                        className="relative w-12 h-16 rounded-lg overflow-hidden border border-border/30 shadow-lg group-hover/card:scale-110 transition-transform duration-300"
+                                        className="relative w-12 rounded-lg overflow-hidden border border-border/30 shadow-lg group-hover/card:scale-110 transition-transform duration-300"
                                     >
                                         <Image
                                             src={`/assets/rider-waite-tarot/${cleanName}.png`}
                                             alt={card}
                                             width={48}
-                                            height={64}
-                                            className={`w-full h-full object-cover transition-transform duration-300 ${
+                                            height={0}
+                                            className={`w-full h-auto object-cover transition-transform duration-300 ${
                                                 isReversed ? "rotate-180" : ""
                                             }`}
                                         />
