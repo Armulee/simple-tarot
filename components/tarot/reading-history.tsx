@@ -95,9 +95,9 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
         <Link href={`/tarot/${reading.id}`} className="block">
             <Card className={`
                 group/card relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/10
-                ${isMain ? 'bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm border-border/30' : 'bg-card/60 backdrop-blur-sm border-border/20'}
+                ${isMain ? 'bg-gradient-to-br from-card/60 to-card/30 backdrop-blur-sm border-border/30' : 'bg-card/40 backdrop-blur-sm border-border/20'}
                 ${hasFollowUps ? 'cursor-pointer' : ''}
-                bg-gradient-to-br from-slate-900/50 to-slate-800/30 z-10
+                bg-gradient-to-br from-slate-900/30 to-slate-800/20 z-10
             `}>
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
                 
@@ -127,7 +127,7 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
                     </Badge>
                 </div>
                 
-                <CardContent className="relative p-4 pt-12 pb-2">
+                <CardContent className="relative p-4 pt-8 pb-2">
                     <div className="flex items-start gap-4">
                         {/* Real card images */}
                         <div className="flex-shrink-0 flex gap-2">
