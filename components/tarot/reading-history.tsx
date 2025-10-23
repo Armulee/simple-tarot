@@ -10,8 +10,10 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
-import { ChevronDown, Clock, Star, Sparkles, Search } from "lucide-react"
+import { ChevronDown, Clock, Star, Sparkles, Search, Calendar, Filter, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 type ReadingRow = {
     id: string
@@ -49,6 +51,13 @@ const cleanCardName = (cardName: string) => {
         .replace(/\s+/g, "-")
         .replace(/[^a-z0-9-]/g, "")
 }
+
+// Helper function to get today's date in YYYY-MM-DD format
+const getTodayString = () => {
+    const today = new Date()
+    return today.toISOString().split('T')[0]
+}
+
 
 // ReadingCard component - moved outside functional component
 const ReadingCard = ({ reading, question, isMain, hasFollowUps }: { 
@@ -173,6 +182,9 @@ export default function ReadingHistory() {
     const [displayedReadings, setDisplayedReadings] = useState<ReadingRow[]>([])
     const [hasMore, setHasMore] = useState(true)
     const [loadingMore, setLoadingMore] = useState(false)
+    const [dateFrom, setDateFrom] = useState("")
+    const [dateTo, setDateTo] = useState("")
+    const [filterType, setFilterType] = useState<"all" | "today" | "week" | "month" | "custom">("all")
     const observerRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -201,18 +213,57 @@ export default function ReadingHistory() {
         }
     }, [user])
 
-    // Filter readings based on search query
+    // Filter readings based on search query and date filters
     useEffect(() => {
-        if (!searchQuery.trim()) {
-            setFilteredReadings(readings)
-        } else {
-            const filtered = readings.filter(reading => 
+        let filtered = readings
+
+        // Apply search filter
+        if (searchQuery.trim()) {
+            filtered = filtered.filter(reading => 
                 reading.question?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 reading.cards?.some(card => card.toLowerCase().includes(searchQuery.toLowerCase()))
             )
-            setFilteredReadings(filtered)
         }
-    }, [readings, searchQuery])
+
+        // Apply date filters
+        if (filterType !== "all") {
+            const now = new Date()
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+            
+            filtered = filtered.filter(reading => {
+                const readingDate = new Date(reading.created_at)
+                const readingDateOnly = new Date(readingDate.getFullYear(), readingDate.getMonth(), readingDate.getDate())
+                
+                switch (filterType) {
+                    case "today":
+                        return readingDateOnly.getTime() === today.getTime()
+                    case "week":
+                        const weekAgo = new Date(today)
+                        weekAgo.setDate(weekAgo.getDate() - 7)
+                        return readingDateOnly >= weekAgo
+                    case "month":
+                        const monthAgo = new Date(today)
+                        monthAgo.setMonth(monthAgo.getMonth() - 1)
+                        return readingDateOnly >= monthAgo
+                    case "custom":
+                        if (dateFrom) {
+                            const fromDate = new Date(dateFrom)
+                            if (readingDateOnly < fromDate) return false
+                        }
+                        if (dateTo) {
+                            const toDate = new Date(dateTo)
+                            toDate.setHours(23, 59, 59, 999) // End of day
+                            if (readingDateOnly > toDate) return false
+                        }
+                        return true
+                    default:
+                        return true
+                }
+            })
+        }
+
+        setFilteredReadings(filtered)
+    }, [readings, searchQuery, filterType, dateFrom, dateTo])
 
     // Reset displayed readings when filtered readings change
     useEffect(() => {
@@ -411,9 +462,10 @@ export default function ReadingHistory() {
                 </p>
             </div>
 
-            {/* Search Bar */}
+            {/* Search and Filter Bar */}
             {user && !loading && readings.length > 0 && (
-                <div className="mb-8">
+                <div className="mb-8 space-y-4">
+                    {/* Search Bar */}
                     <div className="relative max-w-md mx-auto">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                         <Input
@@ -423,6 +475,73 @@ export default function ReadingHistory() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="pl-10 bg-card/40 backdrop-blur-sm border-border/30 focus:border-primary/50 focus:ring-primary/20"
                         />
+                    </div>
+
+                    {/* Date Filter Controls */}
+                    <div className="flex flex-wrap gap-3 items-center justify-center max-w-4xl mx-auto px-4">
+                        <div className="flex items-center gap-2">
+                            <Filter className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm font-medium text-muted-foreground">Filter by date:</span>
+                        </div>
+                        
+                        <Select value={filterType} onValueChange={(value: "all" | "today" | "week" | "month" | "custom") => setFilterType(value)}>
+                            <SelectTrigger className="w-32 bg-card/40 backdrop-blur-sm border-border/30">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All time</SelectItem>
+                                <SelectItem value="today">Today</SelectItem>
+                                <SelectItem value="week">This week</SelectItem>
+                                <SelectItem value="month">This month</SelectItem>
+                                <SelectItem value="custom">Custom range</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        {filterType === "custom" && (
+                            <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1">
+                                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                                    <Input
+                                        type="date"
+                                        value={dateFrom}
+                                        onChange={(e) => setDateFrom(e.target.value)}
+                                        placeholder="From"
+                                        className="w-36 bg-card/40 backdrop-blur-sm border-border/30"
+                                        max={getTodayString()}
+                                    />
+                                </div>
+                                <span className="text-muted-foreground">to</span>
+                                <div className="flex items-center gap-1">
+                                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                                    <Input
+                                        type="date"
+                                        value={dateTo}
+                                        onChange={(e) => setDateTo(e.target.value)}
+                                        placeholder="To"
+                                        className="w-36 bg-card/40 backdrop-blur-sm border-border/30"
+                                        max={getTodayString()}
+                                        min={dateFrom}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {(filterType !== "all" || searchQuery) && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                    setSearchQuery("")
+                                    setFilterType("all")
+                                    setDateFrom("")
+                                    setDateTo("")
+                                }}
+                                className="bg-card/40 backdrop-blur-sm border-border/30 hover:bg-card/60"
+                            >
+                                <X className="w-4 h-4 mr-1" />
+                                Clear filters
+                            </Button>
+                        )}
                     </div>
                 </div>
             )}
