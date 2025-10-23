@@ -739,3 +739,35 @@
 .animate-expand-vertical {
   animation: expand-vertical 1s ease-out;
 }
+
+/* Reading History Enhancements */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Enhanced card hover effects */
+.group\/card:hover .group-hover\/card\:scale-110 {
+  transform: scale(1.1);
+}
+
+.group\/card:hover .group-hover\/card\:text-primary {
+  color: var(--primary);
+}
+
+/* Smooth gradient animations */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}

@@ -109,7 +109,7 @@ export function UserProfileDropdown({
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleYourReadingClick}>
                             <BookOpen className='w-4 h-4 mr-2' />
-                            Your Reading
+                            {t("yourReading")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleProfileClick}>
                             <User className='w-4 h-4 mr-2' />

@@ -656,6 +656,7 @@
 
   "UserProfile": {
     "notifications": "Notifications",
+    "yourReading": "Your Reading",
     "profile": "Profile",
     "account": "Account",
     "theme": "Theme",
@@ -844,6 +845,39 @@
     "done": "Done",
     "back": "Back",
     "signInToSubscribe": "Sign in to subscribe"
+  },
+
+  "ReadingHistory": {
+    "title": "Your Reading History",
+    "subtitle": "Explore your past tarot readings and insights",
+    "searchPlaceholder": "Search readings or cards...",
+    "filters": {
+      "allTime": "All time",
+      "today": "Today",
+      "thisWeek": "This week",
+      "thisMonth": "This month",
+      "customRange": "Custom range",
+      "allTypes": "All types",
+      "simple": "Simple",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "clearFilters": "Clear filters",
+    "noReadings": "No readings found",
+    "noReadingsDesc": "You haven't created any tarot readings yet. Start your mystical journey with your first reading!",
+    "startReading": "Start Reading",
+    "loading": "Loading your readings...",
+    "error": "Failed to load readings",
+    "errorDesc": "There was an error loading your reading history. Please try again.",
+    "retry": "Try Again",
+    "loadMore": "Scroll to load more",
+    "loadingMore": "Loading more readings...",
+    "noQuestion": "(No question)",
+    "readingTypes": {
+      "simple": "Simple",
+      "intermediate": "Intermediate", 
+      "advanced": "Advanced"
+    }
   }
 }
 
