@@ -131,7 +131,7 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
                     </Badge>
                 </div>
                 
-                <CardContent className="relative p-4 pt-8 pb-2">
+                <CardContent className="relative px-4 pt-8 pb-2">
                     <div className="flex items-start gap-4">
                         {/* Single card image */}
                         <div className="flex-shrink-0">
