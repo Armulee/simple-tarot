@@ -223,7 +223,6 @@ export default function ReadingHistory() {
     const [dateTo, setDateTo] = useState("")
     const [filterType, setFilterType] = useState<"all" | "today" | "week" | "month" | "custom">("all")
     const [readingTypeFilter, setReadingTypeFilter] = useState<"all" | "simple" | "intermediate" | "advanced">("all")
-    const [cardFilter, setCardFilter] = useState("")
     const observerRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -309,17 +308,8 @@ export default function ReadingHistory() {
             })
         }
 
-        // Apply card filter
-        if (cardFilter.trim()) {
-            filtered = filtered.filter(reading => 
-                reading.cards?.some(card => 
-                    card.toLowerCase().includes(cardFilter.toLowerCase())
-                )
-            )
-        }
-
         setFilteredReadings(filtered)
-    }, [readings, searchQuery, filterType, dateFrom, dateTo, readingTypeFilter, cardFilter])
+    }, [readings, searchQuery, filterType, dateFrom, dateTo, readingTypeFilter])
 
     // Reset displayed readings when filtered readings change
     useEffect(() => {
@@ -540,40 +530,30 @@ export default function ReadingHistory() {
                             <span className="text-sm font-medium text-muted-foreground">Filter:</span>
                         </div>
                         
-                        <div className="flex gap-3">
-                            <Select value={filterType} onValueChange={(value: "all" | "today" | "week" | "month" | "custom") => setFilterType(value)}>
-                                <SelectTrigger className="w-32 bg-card/40 backdrop-blur-sm border-border/30">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="bg-slate-900 border-slate-700">
-                                    <SelectItem value="all" className="text-white hover:bg-slate-800">All time</SelectItem>
-                                    <SelectItem value="today" className="text-white hover:bg-slate-800">Today</SelectItem>
-                                    <SelectItem value="week" className="text-white hover:bg-slate-800">This week</SelectItem>
-                                    <SelectItem value="month" className="text-white hover:bg-slate-800">This month</SelectItem>
-                                    <SelectItem value="custom" className="text-white hover:bg-slate-800">Custom range</SelectItem>
-                                </SelectContent>
-                            </Select>
+                        <Select value={filterType} onValueChange={(value: "all" | "today" | "week" | "month" | "custom") => setFilterType(value)}>
+                            <SelectTrigger className="w-32 bg-card/40 backdrop-blur-sm border-border/30">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-slate-900 border-slate-700">
+                                <SelectItem value="all" className="text-white hover:bg-slate-800">All time</SelectItem>
+                                <SelectItem value="today" className="text-white hover:bg-slate-800">Today</SelectItem>
+                                <SelectItem value="week" className="text-white hover:bg-slate-800">This week</SelectItem>
+                                <SelectItem value="month" className="text-white hover:bg-slate-800">This month</SelectItem>
+                                <SelectItem value="custom" className="text-white hover:bg-slate-800">Custom range</SelectItem>
+                            </SelectContent>
+                        </Select>
 
-                            <Select value={readingTypeFilter} onValueChange={(value: "all" | "simple" | "intermediate" | "advanced") => setReadingTypeFilter(value)}>
-                                <SelectTrigger className="w-36 bg-card/40 backdrop-blur-sm border-border/30">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="bg-slate-900 border-slate-700">
-                                    <SelectItem value="all" className="text-white hover:bg-slate-800">All types</SelectItem>
-                                    <SelectItem value="simple" className="text-white hover:bg-slate-800">Simple</SelectItem>
-                                    <SelectItem value="intermediate" className="text-white hover:bg-slate-800">Intermediate</SelectItem>
-                                    <SelectItem value="advanced" className="text-white hover:bg-slate-800">Advanced</SelectItem>
-                                </SelectContent>
-                            </Select>
-
-                            <Input
-                                type="text"
-                                placeholder="Filter by card..."
-                                value={cardFilter}
-                                onChange={(e) => setCardFilter(e.target.value)}
-                                className="w-40 bg-card/40 backdrop-blur-sm border-border/30 focus:border-primary/50 focus:ring-primary/20 placeholder:text-muted-foreground/50"
-                            />
-                        </div>
+                        <Select value={readingTypeFilter} onValueChange={(value: "all" | "simple" | "intermediate" | "advanced") => setReadingTypeFilter(value)}>
+                            <SelectTrigger className="w-36 bg-card/40 backdrop-blur-sm border-border/30">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-slate-900 border-slate-700">
+                                <SelectItem value="all" className="text-white hover:bg-slate-800">All types</SelectItem>
+                                <SelectItem value="simple" className="text-white hover:bg-slate-800">Simple</SelectItem>
+                                <SelectItem value="intermediate" className="text-white hover:bg-slate-800">Intermediate</SelectItem>
+                                <SelectItem value="advanced" className="text-white hover:bg-slate-800">Advanced</SelectItem>
+                            </SelectContent>
+                        </Select>
 
                         <Select value={readingTypeFilter} onValueChange={(value: "all" | "simple" | "intermediate" | "advanced") => setReadingTypeFilter(value)}>
                             <SelectTrigger className="w-36 bg-card/40 backdrop-blur-sm border-border/30">
@@ -616,7 +596,7 @@ export default function ReadingHistory() {
                             </div>
                         )}
 
-                        {(filterType !== "all" || readingTypeFilter !== "all" || searchQuery || cardFilter) && (
+                        {(filterType !== "all" || readingTypeFilter !== "all" || searchQuery) && (
                             <Button
                                 variant="outline"
                                 size="sm"
@@ -626,7 +606,6 @@ export default function ReadingHistory() {
                                     setDateFrom("")
                                     setDateTo("")
                                     setReadingTypeFilter("all")
-                                    setCardFilter("")
                                 }}
                                 className="bg-card/40 backdrop-blur-sm border-border/30 hover:bg-card/60"
                             >
