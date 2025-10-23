@@ -93,6 +93,80 @@ export default function ReadingHistory() {
         }
     }, [readings, searchQuery])
 
+    // ReadingCard component - moved before useMemo to avoid hoisting issues
+    const ReadingCard = ({ reading, question, isMain, hasFollowUps }: { 
+        reading: ReadingRow, 
+        question: string, 
+        isMain: boolean, 
+        hasFollowUps: boolean 
+    }) => {
+        const cardPreview = getCardPreview(reading.cards)
+        const formattedDate = formatDate(reading.created_at)
+        
+        return (
+            <Link href={`/tarot/${reading.id}`} className="block">
+                <Card className={`
+                    group/card relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/10
+                    ${isMain ? 'bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm border-border/30' : 'bg-card/60 backdrop-blur-sm border-border/20'}
+                    ${hasFollowUps ? 'cursor-pointer' : ''}
+                `}>
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
+                    <CardContent className="relative p-6">
+                        <div className="flex items-start gap-4">
+                            {/* Card Preview */}
+                            <div className="flex-shrink-0">
+                                <div className="w-16 h-20 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 border border-primary/30 flex items-center justify-center group-hover/card:scale-110 transition-transform duration-300">
+                                    <Star className="w-8 h-8 text-primary/80" />
+                                </div>
+                            </div>
+                            
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-4 mb-3">
+                                    <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300">
+                                        {question || "(No question)"}
+                                    </h3>
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
+                                        <Clock className="w-4 h-4" />
+                                        <span>{formattedDate}</span>
+                                    </div>
+                                </div>
+                                
+                                <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                                    {cardPreview}
+                                </p>
+                                
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    {reading.cards?.slice(0, 3).map((card, index) => (
+                                        <Badge 
+                                            key={index} 
+                                            variant="secondary" 
+                                            className="text-xs bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors"
+                                        >
+                                            {card}
+                                        </Badge>
+                                    ))}
+                                    {reading.cards && reading.cards.length > 3 && (
+                                        <Badge variant="outline" className="text-xs">
+                                            +{reading.cards.length - 3} more
+                                        </Badge>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            {/* Arrow for accordion */}
+                            {hasFollowUps && (
+                                <div className="flex-shrink-0 self-center">
+                                    <ChevronDown className="w-5 h-5 text-muted-foreground group-hover/card:text-primary transition-colors duration-300" />
+                                </div>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            </Link>
+        )
+    }
+
     const content = useMemo(() => {
         if (!user) {
             return (
@@ -238,80 +312,6 @@ export default function ReadingHistory() {
             </div>
         )
     }, [user, loading, filteredReadings, error, searchQuery])
-
-    // ReadingCard component - moved outside useMemo to avoid hoisting issues
-    const ReadingCard = ({ reading, question, isMain, hasFollowUps }: { 
-        reading: ReadingRow, 
-        question: string, 
-        isMain: boolean, 
-        hasFollowUps: boolean 
-    }) => {
-        const cardPreview = getCardPreview(reading.cards)
-        const formattedDate = formatDate(reading.created_at)
-        
-        return (
-            <Link href={`/tarot/${reading.id}`} className="block">
-                <Card className={`
-                    group/card relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/10
-                    ${isMain ? 'bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm border-border/30' : 'bg-card/60 backdrop-blur-sm border-border/20'}
-                    ${hasFollowUps ? 'cursor-pointer' : ''}
-                `}>
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
-                    <CardContent className="relative p-6">
-                        <div className="flex items-start gap-4">
-                            {/* Card Preview */}
-                            <div className="flex-shrink-0">
-                                <div className="w-16 h-20 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 border border-primary/30 flex items-center justify-center group-hover/card:scale-110 transition-transform duration-300">
-                                    <Star className="w-8 h-8 text-primary/80" />
-                                </div>
-                            </div>
-                            
-                            {/* Content */}
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between gap-4 mb-3">
-                                    <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300">
-                                        {question || "(No question)"}
-                                    </h3>
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
-                                        <Clock className="w-4 h-4" />
-                                        <span>{formattedDate}</span>
-                                    </div>
-                                </div>
-                                
-                                <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                                    {cardPreview}
-                                </p>
-                                
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    {reading.cards?.slice(0, 3).map((card, index) => (
-                                        <Badge 
-                                            key={index} 
-                                            variant="secondary" 
-                                            className="text-xs bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors"
-                                        >
-                                            {card}
-                                        </Badge>
-                                    ))}
-                                    {reading.cards && reading.cards.length > 3 && (
-                                        <Badge variant="outline" className="text-xs">
-                                            +{reading.cards.length - 3} more
-                                        </Badge>
-                                    )}
-                                </div>
-                            </div>
-                            
-                            {/* Arrow for accordion */}
-                            {hasFollowUps && (
-                                <div className="flex-shrink-0 self-center">
-                                    <ChevronDown className="w-5 h-5 text-muted-foreground group-hover/card:text-primary transition-colors duration-300" />
-                                </div>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
-            </Link>
-        )
-    }
 
     return (
         <div className='max-w-4xl mx-auto w-full px-4 py-8'>
