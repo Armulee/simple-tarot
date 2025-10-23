@@ -126,7 +126,7 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
                     </Badge>
                 </div>
                 
-                <CardContent className="relative p-4 pt-12">
+                <CardContent className="relative p-4 pt-12 pb-2">
                     <div className="flex items-start gap-4">
                         {/* Real card images */}
                         <div className="flex-shrink-0 flex gap-2">
@@ -167,15 +167,9 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
                         
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-4 mb-2">
-                                <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300">
-                                    {question || "(No question)"}
-                                </h3>
-                            </div>
-                            
-                            {/* Card badges under the question */}
+                            {/* Card badges above the question */}
                             {reading.cards && reading.cards.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mb-3">
+                                <div className="flex flex-wrap gap-1 mb-2">
                                     {reading.cards.slice(0, 3).map((card, index) => (
                                         <Badge 
                                             key={index} 
@@ -196,9 +190,15 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
                                 </div>
                             )}
                             
+                            <div className="flex items-start justify-between gap-4 mb-2">
+                                <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300">
+                                    {question || "(No question)"}
+                                </h3>
+                            </div>
+                            
                             {/* Interpretation preview */}
                             {reading.interpretation && (
-                                <p className="text-muted-foreground/80 text-sm mb-3 line-clamp-2 leading-relaxed">
+                                <p className="text-muted-foreground/80 text-sm mb-2 line-clamp-2 leading-relaxed">
                                     {reading.interpretation}
                                 </p>
                             )}
