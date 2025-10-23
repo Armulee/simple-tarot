@@ -149,11 +149,6 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
                                                 isReversed ? "rotate-180" : ""
                                             }`}
                                         />
-                                        {isReversed && (
-                                            <div className="absolute top-1 right-1">
-                                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                            </div>
-                                        )}
                                     </div>
                                 )
                             })}
