@@ -18,6 +18,7 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import { FreeMode } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/free-mode'
+import { useTranslations } from 'next-intl'
 
 type ReadingRow = {
     id: string
@@ -85,11 +86,12 @@ const getTodayString = () => {
 
 
 // ReadingCard component - moved outside functional component
-const ReadingCard = ({ reading, question, isMain, hasFollowUps }: { 
-    reading: ReadingRow, 
-    question: string, 
-    isMain: boolean, 
-    hasFollowUps: boolean 
+const ReadingCard = ({ reading, question, isMain, hasFollowUps, t }: {
+    reading: ReadingRow,
+    question: string,
+    isMain: boolean,
+    hasFollowUps: boolean,
+    t: (key: string) => string
 }) => {
     const { date, time } = formatDateForDisplay(reading.created_at)
     const readingType = getReadingType(reading.cards)
@@ -184,7 +186,7 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
                             
                             <div className="flex items-start justify-between gap-4 mb-2">
                                 <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300 line-clamp-1">
-                                    {question || "(No question)"}
+                                    {question || t('noQuestion')}
                                 </h3>
                             </div>
                             
@@ -211,6 +213,7 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
 
 export default function ReadingHistory() {
     const { user } = useAuth()
+    const t = useTranslations('ReadingHistory')
     const [loading, setLoading] = useState(true)
     const [readings, setReadings] = useState<ReadingRow[]>([])
     const [error, setError] = useState<string | null>(null)
@@ -406,9 +409,9 @@ export default function ReadingHistory() {
                         <div className='w-24 h-24 rounded-full bg-muted/20 flex items-center justify-center mb-6'>
                             <Search className='w-12 h-12 text-muted-foreground' />
                         </div>
-                        <h3 className='text-xl font-serif font-semibold mb-2'>No readings found</h3>
+                        <h3 className='text-xl font-serif font-semibold mb-2'>{t('noReadings')}</h3>
                         <p className='text-muted-foreground max-w-md'>
-                            Try adjusting your search terms or browse all your readings.
+                            {t('noReadingsDesc')}
                         </p>
                     </div>
                 )
@@ -420,17 +423,17 @@ export default function ReadingHistory() {
                         <Sparkles className='w-16 h-16 text-primary relative z-10' />
                     </div>
                     <h3 className='text-2xl font-serif font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent'>
-                        Begin Your Journey
+                        {t('noReadings')}
                     </h3>
                     <p className='text-muted-foreground max-w-md mb-8'>
-                        Your tarot reading history will appear here. Start your first reading to unlock cosmic insights and guidance.
+                        {t('noReadingsDesc')}
                     </p>
                     <Link 
                         href="/tarot" 
                         className='inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-xl font-medium hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-105'
                     >
                         <Star className='w-5 h-5' />
-                        Start Reading
+                        {t('startReading')}
                     </Link>
                 </div>
             )
@@ -464,6 +467,7 @@ export default function ReadingHistory() {
                                                 question={question}
                                                 isMain={true}
                                                 hasFollowUps={true}
+                                                t={t}
                                             />
                                         </AccordionTrigger>
                                         <AccordionContent className="pt-4">
@@ -475,6 +479,7 @@ export default function ReadingHistory() {
                                                         question="Follow-up"
                                                         isMain={false}
                                                         hasFollowUps={false}
+                                                        t={t}
                                                     />
                                                 ))}
                                             </div>
@@ -487,6 +492,7 @@ export default function ReadingHistory() {
                                     question={question}
                                     isMain={true}
                                     hasFollowUps={false}
+                                    t={t}
                                 />
                             )}
                         </div>
@@ -494,17 +500,17 @@ export default function ReadingHistory() {
                 })}
             </div>
         )
-    }, [user, loading, displayedReadings, error, searchQuery])
+    }, [user, loading, displayedReadings, error, searchQuery, t])
 
     return (
         <div className='max-w-4xl mx-auto w-full px-4 py-8'>
             {/* Header */}
             <div className="text-center mb-12">
                 <h1 className='text-4xl font-serif font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent'>
-                    Your Reading History
+                    {t('title')}
                 </h1>
                 <p className='text-muted-foreground text-lg max-w-2xl mx-auto'>
-                    Explore your spiritual journey through the cosmic wisdom of tarot
+                    {t('subtitle')}
                 </p>
             </div>
 
@@ -516,7 +522,7 @@ export default function ReadingHistory() {
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                         <Input
                             type="text"
-                            placeholder="Search readings or cards..."
+                            placeholder={t('searchPlaceholder')}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="pl-10 bg-card/40 backdrop-blur-sm border-border/30 focus:border-primary/50 focus:ring-primary/20 placeholder:text-muted-foreground/50"
@@ -530,11 +536,11 @@ export default function ReadingHistory() {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="bg-slate-900 border-slate-700">
-                                <SelectItem value="all" className="text-white hover:bg-slate-800">All time</SelectItem>
-                                <SelectItem value="today" className="text-white hover:bg-slate-800">Today</SelectItem>
-                                <SelectItem value="week" className="text-white hover:bg-slate-800">This week</SelectItem>
-                                <SelectItem value="month" className="text-white hover:bg-slate-800">This month</SelectItem>
-                                <SelectItem value="custom" className="text-white hover:bg-slate-800">Custom range</SelectItem>
+                                <SelectItem value="all" className="text-white hover:bg-slate-800">{t('filters.allTime')}</SelectItem>
+                                <SelectItem value="today" className="text-white hover:bg-slate-800">{t('filters.today')}</SelectItem>
+                                <SelectItem value="week" className="text-white hover:bg-slate-800">{t('filters.thisWeek')}</SelectItem>
+                                <SelectItem value="month" className="text-white hover:bg-slate-800">{t('filters.thisMonth')}</SelectItem>
+                                <SelectItem value="custom" className="text-white hover:bg-slate-800">{t('filters.customRange')}</SelectItem>
                             </SelectContent>
                         </Select>
 
@@ -543,10 +549,10 @@ export default function ReadingHistory() {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="bg-slate-900 border-slate-700">
-                                <SelectItem value="all" className="text-white hover:bg-slate-800">All types</SelectItem>
-                                <SelectItem value="simple" className="text-white hover:bg-slate-800">Simple</SelectItem>
-                                <SelectItem value="intermediate" className="text-white hover:bg-slate-800">Intermediate</SelectItem>
-                                <SelectItem value="advanced" className="text-white hover:bg-slate-800">Advanced</SelectItem>
+                                <SelectItem value="all" className="text-white hover:bg-slate-800">{t('filters.allTypes')}</SelectItem>
+                                <SelectItem value="simple" className="text-white hover:bg-slate-800">{t('filters.simple')}</SelectItem>
+                                <SelectItem value="intermediate" className="text-white hover:bg-slate-800">{t('filters.intermediate')}</SelectItem>
+                                <SelectItem value="advanced" className="text-white hover:bg-slate-800">{t('filters.advanced')}</SelectItem>
                             </SelectContent>
                         </Select>
 
@@ -593,7 +599,7 @@ export default function ReadingHistory() {
                                 className="bg-card/40 backdrop-blur-sm border-border/30 hover:bg-card/60"
                             >
                                 <X className="w-4 h-4 mr-1" />
-                                Clear filters
+                                {t('clearFilters')}
                             </Button>
                         )}
                     </div>
@@ -609,11 +615,11 @@ export default function ReadingHistory() {
                     {loadingMore ? (
                         <div className="flex items-center gap-2 text-muted-foreground">
                             <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-                            <span>Loading more readings...</span>
+                            <span>{t('loadingMore')}</span>
                         </div>
                     ) : (
                         <div className="text-muted-foreground text-sm">
-                            Scroll to load more
+                            {t('loadMore')}
                         </div>
                     )}
                 </div>
