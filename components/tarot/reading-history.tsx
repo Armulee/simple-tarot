@@ -555,18 +555,6 @@ export default function ReadingHistory() {
                             </SelectContent>
                         </Select>
 
-                        <Select value={readingTypeFilter} onValueChange={(value: "all" | "simple" | "intermediate" | "advanced") => setReadingTypeFilter(value)}>
-                            <SelectTrigger className="w-36 bg-card/40 backdrop-blur-sm border-border/30">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All types</SelectItem>
-                                <SelectItem value="simple">Simple</SelectItem>
-                                <SelectItem value="intermediate">Intermediate</SelectItem>
-                                <SelectItem value="advanced">Advanced</SelectItem>
-                            </SelectContent>
-                        </Select>
-
                         {filterType === "custom" && (
                             <div className="flex items-center gap-2">
                                 <div className="flex items-center gap-1">
