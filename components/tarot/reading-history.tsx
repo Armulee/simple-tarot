@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
-import { ChevronDown, Clock, Star, Sparkles, Search, Calendar, Filter, X } from "lucide-react"
+import { ChevronDown, Star, Sparkles, Search, Calendar, Filter, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -23,24 +23,9 @@ type ReadingRow = {
     cards: string[] | null
 }
 
+type ReadingType = "simple" | "intermediate" | "advanced"
+
 // Helper functions moved outside component to avoid dependency issues
-const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    if (isNaN(date.getTime())) return ""
-    
-    const now = new Date()
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
-    
-    if (diffInHours < 1) return "Just now"
-    if (diffInHours < 24) return `${diffInHours}h ago`
-    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`
-    
-    return date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric',
-        year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
-    })
-}
 
 // Helper function to clean card name for image path
 const cleanCardName = (cardName: string) => {
@@ -50,6 +35,42 @@ const cleanCardName = (cardName: string) => {
         .replace(/\s*reversed/g, "")
         .replace(/\s+/g, "-")
         .replace(/[^a-z0-9-]/g, "")
+}
+
+// Helper function to determine reading type from number of cards
+const getReadingType = (cards: string[] | null): ReadingType => {
+    if (!cards) return "simple"
+    const cardCount = cards.length
+    if (cardCount === 1) return "simple"
+    if (cardCount === 2) return "intermediate"
+    return "advanced"
+}
+
+// Helper function to get reading type display info
+const getReadingTypeInfo = (readingType: ReadingType) => {
+    const typeInfo = {
+        simple: { label: "Simple", color: "from-green-400/20 to-emerald-500/20", textColor: "text-green-200", borderColor: "border-green-400/40" },
+        intermediate: { label: "Intermediate", color: "from-blue-400/20 to-cyan-500/20", textColor: "text-blue-200", borderColor: "border-blue-400/40" },
+        advanced: { label: "Advanced", color: "from-purple-400/20 to-pink-500/20", textColor: "text-purple-200", borderColor: "border-purple-400/40" }
+    }
+    return typeInfo[readingType]
+}
+
+// Helper function to format date like billing page
+const formatDateForDisplay = (dateString: string) => {
+    const date = new Date(dateString)
+    return {
+        date: date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+        }),
+        time: date.toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        }),
+    }
 }
 
 // Helper function to get today's date in YYYY-MM-DD format
@@ -66,7 +87,9 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
     isMain: boolean, 
     hasFollowUps: boolean 
 }) => {
-    const formattedDate = formatDate(reading.created_at)
+    const { date, time } = formatDateForDisplay(reading.created_at)
+    const readingType = getReadingType(reading.cards)
+    const typeInfo = getReadingTypeInfo(readingType)
     
     return (
         <Link href={`/tarot/${reading.id}`} className="block">
@@ -77,28 +100,31 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
             `}>
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
                 
-                {/* Card badges positioned absolutely at top left */}
-                {reading.cards && reading.cards.length > 0 && (
-                    <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-1 max-w-[calc(100%-6rem)]">
-                        {reading.cards.slice(0, 3).map((card, index) => (
-                            <Badge 
-                                key={index} 
-                                variant="secondary" 
-                                className="text-xs bg-white/90 text-gray-800 border-white/50 hover:bg-white transition-colors shadow-lg backdrop-blur-sm"
-                            >
-                                {card}
-                            </Badge>
-                        ))}
-                        {reading.cards.length > 3 && (
-                            <Badge 
-                                variant="outline" 
-                                className="text-xs bg-white/80 text-gray-700 border-white/40 hover:bg-white transition-colors shadow-lg backdrop-blur-sm"
-                            >
-                                +{reading.cards.length - 3}
-                            </Badge>
-                        )}
-                    </div>
-                )}
+                {/* Date and Time badges positioned at top left (billing page style) */}
+                <div className="absolute top-3 left-3 flex space-x-2">
+                    <Badge
+                        variant="outline"
+                        className={`bg-gradient-to-r from-yellow-400/20 to-orange-500/20 text-yellow-200 border-yellow-400/40 text-xs font-medium shadow-lg shadow-yellow-400/20 backdrop-blur-sm hover:from-yellow-400/30 hover:to-orange-500/30 transition-all duration-300`}
+                    >
+                        {date}
+                    </Badge>
+                    <Badge
+                        variant="outline"
+                        className={`bg-gradient-to-r from-purple-400/20 to-pink-500/20 text-purple-200 border-purple-400/40 text-xs font-medium shadow-lg shadow-purple-400/20 backdrop-blur-sm hover:from-purple-400/30 hover:to-pink-500/30 transition-all duration-300`}
+                    >
+                        {time}
+                    </Badge>
+                </div>
+
+                {/* Reading Type badge positioned at top right */}
+                <div className="absolute top-3 right-3">
+                    <Badge
+                        variant="outline"
+                        className={`bg-gradient-to-r ${typeInfo.color} ${typeInfo.textColor} ${typeInfo.borderColor} text-xs font-medium shadow-lg backdrop-blur-sm hover:opacity-80 transition-all duration-300`}
+                    >
+                        {typeInfo.label}
+                    </Badge>
+                </div>
                 
                 <CardContent className="relative p-4 pt-12">
                     <div className="flex items-start gap-4">
@@ -145,11 +171,30 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
                                 <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300">
                                     {question || "(No question)"}
                                 </h3>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
-                                    <Clock className="w-4 h-4" />
-                                    <span>{formattedDate}</span>
-                                </div>
                             </div>
+                            
+                            {/* Card badges under the question */}
+                            {reading.cards && reading.cards.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mb-3">
+                                    {reading.cards.slice(0, 3).map((card, index) => (
+                                        <Badge 
+                                            key={index} 
+                                            variant="secondary" 
+                                            className="text-xs bg-white/90 text-gray-800 border-white/50 hover:bg-white transition-colors shadow-lg backdrop-blur-sm"
+                                        >
+                                            {card}
+                                        </Badge>
+                                    ))}
+                                    {reading.cards.length > 3 && (
+                                        <Badge 
+                                            variant="outline" 
+                                            className="text-xs bg-white/80 text-gray-700 border-white/40 hover:bg-white transition-colors shadow-lg backdrop-blur-sm"
+                                        >
+                                            +{reading.cards.length - 3}
+                                        </Badge>
+                                    )}
+                                </div>
+                            )}
                             
                             {/* Interpretation preview */}
                             {reading.interpretation && (
