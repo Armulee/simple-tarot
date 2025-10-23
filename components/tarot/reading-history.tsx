@@ -188,12 +188,12 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
                                 </h3>
                             </div>
                             
-                            {/* Interpretation preview */}
-                            {reading.interpretation && (
-                                <p className="text-muted-foreground/80 text-sm mb-2 line-clamp-2 leading-relaxed">
-                                    {reading.interpretation}
-                                </p>
-                            )}
+                                        {/* Interpretation preview */}
+                                        {reading.interpretation && (
+                                            <p className="text-muted-foreground/80 text-sm line-clamp-2 leading-relaxed">
+                                                {reading.interpretation}
+                                            </p>
+                                        )}
                         </div>
                         
                         {/* Arrow for accordion */}
