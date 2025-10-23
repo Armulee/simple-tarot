@@ -118,8 +118,8 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps }: {
                             
                             {/* Interpretation preview */}
                             {reading.interpretation && (
-                                <p className="text-muted-foreground text-sm line-clamp-2">
-                                    {reading.interpretation.slice(0, 120)}...
+                                <p className="text-muted-foreground/80 text-sm mb-3 line-clamp-2 leading-relaxed">
+                                    {reading.interpretation}
                                 </p>
                             )}
                         </div>
