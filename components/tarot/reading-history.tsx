@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
-import { ChevronDown, Star, Sparkles, Search, Calendar, Filter, X } from "lucide-react"
+import { ChevronDown, Star, Sparkles, Search, Calendar, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -524,14 +524,9 @@ export default function ReadingHistory() {
                     </div>
 
                     {/* Filter Controls */}
-                    <div className="flex flex-wrap gap-3 items-center justify-center max-w-4xl mx-auto px-4">
-                        <div className="flex items-center gap-2">
-                            <Filter className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm font-medium text-muted-foreground">Filter:</span>
-                        </div>
-                        
+                    <div className="flex gap-3 items-center justify-center max-w-4xl mx-auto px-4">
                         <Select value={filterType} onValueChange={(value: "all" | "today" | "week" | "month" | "custom") => setFilterType(value)}>
-                            <SelectTrigger className="w-32 bg-card/40 backdrop-blur-sm border-border/30">
+                            <SelectTrigger className="flex-1 bg-card/40 backdrop-blur-sm border-border/30">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="bg-slate-900 border-slate-700">
@@ -544,7 +539,7 @@ export default function ReadingHistory() {
                         </Select>
 
                         <Select value={readingTypeFilter} onValueChange={(value: "all" | "simple" | "intermediate" | "advanced") => setReadingTypeFilter(value)}>
-                            <SelectTrigger className="w-36 bg-card/40 backdrop-blur-sm border-border/30">
+                            <SelectTrigger className="flex-1 bg-card/40 backdrop-blur-sm border-border/30">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="bg-slate-900 border-slate-700">
