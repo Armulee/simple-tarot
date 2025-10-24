@@ -1,5 +1,7 @@
 "use client"
 
+import Link from "next/link"
+
 export default function DiscoverHeader() {
     return (
         <div className='text-center space-y-6'>
@@ -15,19 +17,19 @@ export default function DiscoverHeader() {
                 personalized insights accessible to everyone.
             </p>
             <div className='flex items-center justify-center gap-4 pt-2'>
-                <a
+                <Link
                     href='/about'
                     className='text-sm text-primary hover:underline underline-offset-4'
                 >
                     Learn more on the About page
-                </a>
+                </Link>
                 <span className='text-gray-600'>•</span>
-                <a
+                <Link
                     href='/contact?subject=demo'
                     className='text-sm text-primary hover:underline underline-offset-4'
                 >
                     Request a demo
-                </a>
+                </Link>
             </div>
         </div>
     )
