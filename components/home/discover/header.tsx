@@ -25,7 +25,7 @@ export default function DiscoverHeader() {
                 </Link>
                 <span className='text-gray-600'>•</span>
                 <Link
-                    href='/contact?subject=demo'
+                    href='/demo'
                     className='text-sm text-primary hover:underline underline-offset-4'
                 >
                     Request a demo
