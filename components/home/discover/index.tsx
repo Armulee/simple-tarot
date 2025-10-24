@@ -6,7 +6,6 @@ import NormalFooter from "../../footer/normal-footer"
 import DiscoverHeader from "./header"
 import ServicesSection from "./services"
 import RoadmapSection from "./roadmap"
-import ValuesSection from "./values"
 import TechnologySection from "./technology"
 import TestimonialsSection from "./testimonials"
 import StatisticsSection from "./statistics"
@@ -191,7 +190,6 @@ export default function DiscoverMore({ mainSwiperRef }: DiscoverMore) {
                 <DiscoverHeader />
                 <ServicesSection />
                 <RoadmapSection />
-                <ValuesSection />
                 <TechnologySection />
                 <TestimonialsSection />
                 <StatisticsSection />

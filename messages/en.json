@@ -297,53 +297,39 @@
 
   "About": {
     "hero": {
-      "title1": "Where Ancient Wisdom",
-      "title2": "Meets Modern AI",
-      "subtitle": "Discover how we blend centuries-old tarot traditions with cutting-edge artificial intelligence to provide you with personalized cosmic guidance."
+      "title1": "A calmer way",
+      "title2": "to ask and reflect",
+      "subtitle": "We just launched. Asking Fate offers practical, personal guidance you can use today—built with real feedback from early users."
     },
     "features": {
       "ai": {
-        "title": "AI-Powered Insights",
-        "desc": "Advanced AI interprets your cards with personalized, meaningful guidance"
+        "title": "Clear, AI‑assisted insights",
+        "desc": "Thoughtful interpretations tailored to your question"
       },
       "cosmic": {
-        "title": "Cosmic Experience",
-        "desc": "Immerse yourself in a beautiful galaxy-themed interface with smooth animations"
+        "title": "Focused experience",
+        "desc": "A quiet space to read, reflect, and save what matters"
       },
       "personal": {
-        "title": "Personal Journey",
-        "desc": "Each reading is tailored to your unique questions and spiritual path"
+        "title": "Personal by design",
+        "desc": "Built for everyday decisions and gentle reflection"
       }
     },
     "story": {
-      "title": "Our Spiritual Journey",
-      "p1": "Asking Fate was born from a deep reverence for the mystical arts and a vision to make ancient wisdom accessible to everyone. We believe that the universe speaks to us through symbols, and tarot cards have been humanity's way of interpreting these cosmic messages for centuries.",
-      "p2": "Our journey began with a simple question: How can we honor the sacred tradition of tarot while making it more accessible and insightful for modern seekers?"
+      "title": "Why we’re building this",
+      "p1": "Asking Fate started with a simple idea: create a calm, reliable way to pause and think more clearly. No noise—just a short reading and a prompt to reflect.",
+      "p2": "We’re keeping it small and practical, improving week by week with early users. If it helps you make one better decision, it worked."
     },
     "aiSection": {
-      "title": "Advanced AI Technology",
-      "p1": "Our AI system has been trained on thousands of traditional tarot interpretations, symbolic meanings, and archetypal patterns. It doesn't just provide generic readings—it analyzes your specific question, considers the unique combination of cards drawn, and generates personalized insights.",
-      "p2": "The AI understands the nuanced relationships between cards, their positions, and the context of your inquiry to deliver guidance that feels both authentic and deeply personal."
-    },
-    "values": {
-      "respectfulTradition": {
-        "title": "Respectful Tradition",
-        "description": "We honor the sacred origins of tarot while making it accessible to modern seekers on their spiritual journey."
-      },
-      "personalizedGuidance": {
-        "title": "Personalized Guidance",
-        "description": "Every reading is unique to you, your question, and your current life circumstances for meaningful insights."
-      },
-      "inclusiveCommunity": {
-        "title": "Inclusive Community",
-        "description": "We welcome seekers from all backgrounds and beliefs, creating a safe space for spiritual exploration."
-      }
+      "title": "How it works",
+      "p1": "You ask a question. We draw a card and generate a concise interpretation—grounded in traditional meanings and tuned for clarity.",
+      "p2": "It’s guidance to consider, not a verdict. You stay in control of your decisions."
     },
     "cta": {
-      "title": "Ready to Begin Your Journey?",
-      "desc": "Join thousands of seekers who have discovered deeper insights about their path through our AI-powered tarot readings.",
-      "primary": "Start Your First Reading",
-      "secondary": "Start Reading"
+      "title": "Ready to begin?",
+      "desc": "We’ve just launched—join early users exploring calm, practical guidance.",
+      "primary": "Start your first reading",
+      "secondary": "Learn more"
     }
   },
 

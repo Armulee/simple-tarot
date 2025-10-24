@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
-import { Brain, Heart, Sparkles, Users, Zap, Shield } from "lucide-react"
+import { Brain, Heart, Zap } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { getTranslations } from "next-intl/server"
 
@@ -184,64 +184,15 @@ export default function AboutPage() {
                         </div>
                     </Card>
 
-                    {/* Values Section */}
-                    <div className='grid md:grid-cols-3 gap-6'>
-                        {[
-                            {
-                                icon: Shield,
-                                title: t("values.respectfulTradition.title"),
-                                description: t(
-                                    "values.respectfulTradition.description"
-                                ),
-                            },
-                            {
-                                icon: Sparkles,
-                                title: t("values.personalizedGuidance.title"),
-                                description: t(
-                                    "values.personalizedGuidance.description"
-                                ),
-                            },
-                            {
-                                icon: Users,
-                                title: t("values.inclusiveCommunity.title"),
-                                description: t(
-                                    "values.inclusiveCommunity.description"
-                                ),
-                            },
-                        ].map((value) => {
-                            const IconComponent = value.icon
-                            return (
-                                <Card
-                                    key={value.title}
-                                    className='p-6 bg-card/10 backdrop-blur-sm border-border/20 text-center'
-                                >
-                                    <div className='space-y-4'>
-                                        <div className='w-12 h-12 mx-auto rounded-full bg-primary/20 flex items-center justify-center'>
-                                            <IconComponent className='w-6 h-6 text-primary' />
-                                        </div>
-                                        <h3 className='font-serif font-semibold text-lg'>
-                                            {value.title}
-                                        </h3>
-                                        <p className='text-muted-foreground text-sm leading-relaxed'>
-                                            {value.description}
-                                        </p>
-                                    </div>
-                                </Card>
-                            )
-                        })}
-                    </div>
-
                     {/* CTA Section */}
                     <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20 text-center'>
                         <div className='space-y-6'>
                             <div className='space-y-3'>
                                 <h2 className='font-serif font-bold text-2xl'>
-                                    Ready to Begin Your Journey?
+                                    {t("cta.title")}
                                 </h2>
                                 <p className='text-muted-foreground max-w-2xl mx-auto'>
-                                    Join thousands of seekers who have
-                                    discovered deeper insights about their path
-                                    through our AI-powered tarot readings.
+                                    {t("cta.desc")}
                                 </p>
                             </div>
                             <div className='flex flex-col sm:flex-row gap-4 justify-center'>
@@ -250,9 +201,7 @@ export default function AboutPage() {
                                     size='lg'
                                     className='bg-primary hover:bg-primary/90 text-primary-foreground px-8 card-glow'
                                 >
-                                    <Link href='/tarot'>
-                                        Start Your First Reading
-                                    </Link>
+                                    <Link href='/tarot'>{t("cta.primary")}</Link>
                                 </Button>
                                 <Button
                                     asChild
@@ -260,7 +209,7 @@ export default function AboutPage() {
                                     size='lg'
                                     className='border-border/30 hover:bg-card/20 bg-transparent px-8'
                                 >
-                                    <Link href='/tarot'>Start Reading</Link>
+                                    <Link href='/about'>{t("cta.secondary")}</Link>
                                 </Button>
                             </div>
                         </div>

@@ -5,49 +5,46 @@ import { CheckCircle, Clock, Target, Sparkles } from "lucide-react"
 export default function RoadmapSection() {
     const roadmap = [
         {
-            phase: "Phase 1",
-            title: "Core Platform",
-            status: "Completed",
-            features: [
-                "AI Tarot Reading",
-                "User Authentication",
-                "Payment System",
-                "Mobile Responsive Design",
-            ],
-        },
-        {
-            phase: "Phase 2",
-            title: "Astrological Services",
-            status: "In Development",
-            features: [
-                "Birth Chart Analysis",
-                "Daily Horoscope",
-                "Compatibility Reports",
-            ],
-        },
-        {
-            phase: "Phase 3",
-            title: "Name & Number Analysis",
+            phase: "Q4 2025",
+            title: "Team & Workspaces",
             status: "Planned",
-            features: ["Namelogy", "Numerology", "Lucky Numbers & Colors"],
+            eta: "Nov 2025",
+            features: ["Shared workspaces", "Simple roles"],
         },
         {
-            phase: "Phase 4",
-            title: "Advanced Features",
+            phase: "Q4 2025",
+            title: "Saved Readings & Journal",
             status: "Planned",
-            features: [
-                "Palmistry",
-                "Dream Interpretation",
-                "Crystal Guidance",
-                "Community Features",
-            ],
+            eta: "Dec 2025",
+            features: ["Save readings", "Add notes", "Export"],
+        },
+        {
+            phase: "Q1 2026",
+            title: "Multi‑language (EN/TH)",
+            status: "Planned",
+            eta: "Jan 2026",
+            features: ["English", "ไทย (beta)"]
+        },
+        {
+            phase: "Q1 2026",
+            title: "Mobile Web Enhancements",
+            status: "Planned",
+            eta: "Feb 2026",
+            features: ["Faster loads", "Offline-friendly"],
+        },
+        {
+            phase: "Q1 2026",
+            title: "Public API (limited beta)",
+            status: "Planned",
+            eta: "Mar 2026",
+            features: ["Readings API", "Webhooks (beta)"]
         },
     ]
 
     return (
         <div className='space-y-8'>
             <h2 className='text-3xl font-bold text-white text-center'>
-                Development Roadmap
+                Roadmap (expected dates)
             </h2>
             <div className='space-y-6'>
                 {roadmap.map((phase) => (
@@ -90,6 +87,11 @@ export default function RoadmapSection() {
                                     >
                                         {phase.status}
                                     </span>
+                                    {"eta" in phase && phase.eta && (
+                                        <span className='ml-3 text-sm text-gray-400'>
+                                            ETA: {phase.eta}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         </div>

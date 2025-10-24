@@ -14,6 +14,21 @@ export default function DiscoverHeader() {
                 ancient mystical wisdom with cutting-edge AI technology, making
                 personalized insights accessible to everyone.
             </p>
+            <div className='flex items-center justify-center gap-4 pt-2'>
+                <a
+                    href='/about'
+                    className='text-sm text-primary hover:underline underline-offset-4'
+                >
+                    Learn more on the About page
+                </a>
+                <span className='text-gray-600'>•</span>
+                <a
+                    href='/contact?subject=demo'
+                    className='text-sm text-primary hover:underline underline-offset-4'
+                >
+                    Request a demo
+                </a>
+            </div>
         </div>
     )
 }
