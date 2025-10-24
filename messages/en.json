@@ -190,6 +190,14 @@
     "learnMore": "Learn More"
   },
 
+  "HomeDiscover": {
+    "whatIs": "What is",
+    "brand": "Asking Fate?",
+    "tagline": "We’re combining time‑tested symbolism with modern AI to offer calm, useful guidance you can use today.",
+    "learnMore": "Learn more on the About page",
+    "requestDemo": "Request a demo"
+  },
+
   "QuestionInput": {
     "label": "Your question",
     "placeholder": "Type your question..."
@@ -297,53 +305,75 @@
 
   "About": {
     "hero": {
-      "title1": "Where Ancient Wisdom",
-      "title2": "Meets Modern AI",
-      "subtitle": "Discover how we blend centuries-old tarot traditions with cutting-edge artificial intelligence to provide you with personalized cosmic guidance."
+      "title1": "A calmer way",
+      "title2": "to ask and reflect",
+      "subtitle": "We just launched. Asking Fate offers practical, personal guidance you can use today—built with real feedback from early users."
     },
     "features": {
       "ai": {
-        "title": "AI-Powered Insights",
-        "desc": "Advanced AI interprets your cards with personalized, meaningful guidance"
+        "title": "Clear, AI‑assisted insights",
+        "desc": "Thoughtful interpretations tailored to your question"
       },
       "cosmic": {
-        "title": "Cosmic Experience",
-        "desc": "Immerse yourself in a beautiful galaxy-themed interface with smooth animations"
+        "title": "Focused experience",
+        "desc": "A quiet space to read, reflect, and save what matters"
       },
       "personal": {
-        "title": "Personal Journey",
-        "desc": "Each reading is tailored to your unique questions and spiritual path"
+        "title": "Personal by design",
+        "desc": "Built for everyday decisions and gentle reflection"
       }
     },
     "story": {
-      "title": "Our Spiritual Journey",
-      "p1": "Asking Fate was born from a deep reverence for the mystical arts and a vision to make ancient wisdom accessible to everyone. We believe that the universe speaks to us through symbols, and tarot cards have been humanity's way of interpreting these cosmic messages for centuries.",
-      "p2": "Our journey began with a simple question: How can we honor the sacred tradition of tarot while making it more accessible and insightful for modern seekers?"
+      "title": "Why we’re building this",
+      "p1": "Asking Fate started with a simple idea: create a calm, reliable way to pause and think more clearly. No noise—just a short reading and a prompt to reflect.",
+      "p2": "We’re keeping it small and practical, improving week by week with early users. If it helps you make one better decision, it worked."
     },
     "aiSection": {
-      "title": "Advanced AI Technology",
-      "p1": "Our AI system has been trained on thousands of traditional tarot interpretations, symbolic meanings, and archetypal patterns. It doesn't just provide generic readings—it analyzes your specific question, considers the unique combination of cards drawn, and generates personalized insights.",
-      "p2": "The AI understands the nuanced relationships between cards, their positions, and the context of your inquiry to deliver guidance that feels both authentic and deeply personal."
+      "title": "How it works",
+      "p1": "You ask a question. We draw a card and generate a concise interpretation—grounded in traditional meanings and tuned for clarity.",
+      "p2": "It’s guidance to consider, not a verdict. You stay in control of your decisions."
     },
-    "values": {
-      "respectfulTradition": {
-        "title": "Respectful Tradition",
-        "description": "We honor the sacred origins of tarot while making it accessible to modern seekers on their spiritual journey."
+    "mission": {
+      "title": "Our mission",
+      "p": "Help people pause, reflect, and make everyday decisions with more intention. Keep it clear, calm, and actually useful."
+    },
+    "vision": {
+      "title": "Our vision",
+      "p": "A trusted companion for thoughtful decisions — simple enough for anyone, thoughtful enough for teams, and respectful of privacy."
+    },
+    "valuesSection": {
+      "title": "Our values",
+      "privacyFirst": {
+        "title": "Privacy first",
+        "desc": "Your questions and readings remain private. No selling data, ever."
       },
-      "personalizedGuidance": {
-        "title": "Personalized Guidance",
-        "description": "Every reading is unique to you, your question, and your current life circumstances for meaningful insights."
+      "clarity": {
+        "title": "Clarity over hype",
+        "desc": "Short, plain-language interpretations you can act on today."
       },
-      "inclusiveCommunity": {
-        "title": "Inclusive Community",
-        "description": "We welcome seekers from all backgrounds and beliefs, creating a safe space for spiritual exploration."
+      "inclusive": {
+        "title": "Inclusive by default",
+        "desc": "Useful for beginners and practitioners; welcoming across backgrounds and beliefs."
       }
     },
+    "quickStatsSection": {
+      "title": "Quick stats",
+      "users": "Early users",
+      "cards": "Cards drawn",
+      "updates": "Updates shipped",
+      "availability": "Available"
+    },
+    "pressSection": {
+      "title": "Press, partnerships, or questions",
+      "desc": "We’re early and open to thoughtful collaborations. Reach out for a short walkthrough or materials.",
+      "primary": "Request a demo",
+      "secondary": "Contact us"
+    },
     "cta": {
-      "title": "Ready to Begin Your Journey?",
-      "desc": "Join thousands of seekers who have discovered deeper insights about their path through our AI-powered tarot readings.",
-      "primary": "Start Your First Reading",
-      "secondary": "Start Reading"
+      "title": "Ready to begin?",
+      "desc": "We’ve just launched—join early users exploring calm, practical guidance.",
+      "primary": "Start your first reading",
+      "secondary": "Learn more"
     }
   },
 
@@ -370,6 +400,40 @@
       "q1Desc": "Our AI provides insights based on traditional tarot symbolism, but readings are for guidance and entertainment.",
       "q2Title": "Is the service free to use?",
       "q2Desc": "Our service is completely free to use. No subscriptions or payments required."
+    }
+  },
+
+  "Demo": {
+    "hero": {
+      "title": "Request a demo",
+      "subtitle": "See a short walkthrough and try a simple interactive preview."
+    },
+    "links": {
+      "about": "Learn about the product",
+      "tryReading": "Try a reading now"
+    },
+    "preview": {
+      "title": "Interactive preview",
+      "subtitle": "Ask a simple question, see an example card and hint",
+      "shuffle": "Shuffle",
+      "questionLabel": "Your question",
+      "questionPlaceholder": "Type a short question...",
+      "cardLabel": "Card"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "teamSize": "Team size (optional)",
+      "teamSizePlaceholder": "Just me, 2-10, 10+",
+      "goals": "What would you like to see?",
+      "goalsPlaceholder": "Examples: saved readings, team sharing, API",
+      "notes": "Notes (optional)",
+      "notesPlaceholder": "Any specific questions or context?",
+      "submit": "Request a demo",
+      "submitting": "Scheduling...",
+      "footer": "We’ll reach out by email within 1–2 business days."
     }
   },
 
@@ -612,6 +676,10 @@
       "ogDescription": "Read the terms of service for Asking Fate's AI-powered tarot reading platform and understand your rights and responsibilities.",
       "twitterTitle": "Terms of Service - AI Tarot Reading Terms & Conditions",
       "twitterDescription": "Read the terms of service for Asking Fate's AI-powered tarot reading platform and understand your rights and responsibilities."
+    },
+    "Demo": {
+      "title": "Request a Demo | Asking Fate",
+      "description": "See Asking Fate in action. Request a short live walkthrough and try an interactive preview."
     }
   }
   ,
