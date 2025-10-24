@@ -190,6 +190,14 @@
     "learnMore": "Learn More"
   },
 
+  "HomeDiscover": {
+    "whatIs": "What is",
+    "brand": "Asking Fate?",
+    "tagline": "We’re combining time‑tested symbolism with modern AI to offer calm, useful guidance you can use today.",
+    "learnMore": "Learn more on the About page",
+    "requestDemo": "Request a demo"
+  },
+
   "QuestionInput": {
     "label": "Your question",
     "placeholder": "Type your question..."
@@ -392,6 +400,40 @@
       "q1Desc": "Our AI provides insights based on traditional tarot symbolism, but readings are for guidance and entertainment.",
       "q2Title": "Is the service free to use?",
       "q2Desc": "Our service is completely free to use. No subscriptions or payments required."
+    }
+  },
+
+  "Demo": {
+    "hero": {
+      "title": "Request a demo",
+      "subtitle": "See a short walkthrough and try a simple interactive preview."
+    },
+    "links": {
+      "about": "Learn about the product",
+      "tryReading": "Try a reading now"
+    },
+    "preview": {
+      "title": "Interactive preview",
+      "subtitle": "Ask a simple question, see an example card and hint",
+      "shuffle": "Shuffle",
+      "questionLabel": "Your question",
+      "questionPlaceholder": "Type a short question...",
+      "cardLabel": "Card"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "teamSize": "Team size (optional)",
+      "teamSizePlaceholder": "Just me, 2-10, 10+",
+      "goals": "What would you like to see?",
+      "goalsPlaceholder": "Examples: saved readings, team sharing, API",
+      "notes": "Notes (optional)",
+      "notesPlaceholder": "Any specific questions or context?",
+      "submit": "Request a demo",
+      "submitting": "Scheduling...",
+      "footer": "We’ll reach out by email within 1–2 business days."
     }
   },
 
@@ -634,6 +676,10 @@
       "ogDescription": "Read the terms of service for Asking Fate's AI-powered tarot reading platform and understand your rights and responsibilities.",
       "twitterTitle": "Terms of Service - AI Tarot Reading Terms & Conditions",
       "twitterDescription": "Read the terms of service for Asking Fate's AI-powered tarot reading platform and understand your rights and responsibilities."
+    },
+    "Demo": {
+      "title": "Request a Demo | Asking Fate",
+      "description": "See Asking Fate in action. Request a short live walkthrough and try an interactive preview."
     }
   }
   ,

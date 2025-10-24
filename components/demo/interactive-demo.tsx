@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Sparkles, PlayCircle, Send, Wand2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 export default function InteractiveDemo() {
+  const t = useTranslations("Demo")
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -59,24 +61,22 @@ export default function InteractiveDemo() {
               <Sparkles className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-serif font-semibold">Interactive preview</h3>
-              <p className="text-xs text-muted-foreground">
-                Ask a simple question, see an example card and hint
-              </p>
+              <h3 className="font-serif font-semibold">{t("preview.title")}</h3>
+              <p className="text-xs text-muted-foreground">{t("preview.subtitle")}</p>
             </div>
           </div>
           <Button variant="outline" size="sm" onClick={randomPreview}>
-            <PlayCircle className="w-4 h-4 mr-2" /> Shuffle
+            <PlayCircle className="w-4 h-4 mr-2" /> {t("preview.shuffle")}
           </Button>
         </div>
 
         <div className="space-y-3">
-          <Label htmlFor="preview-question">Your question</Label>
+          <Label htmlFor="preview-question">{t("preview.questionLabel")}</Label>
           <Input
             id="preview-question"
             value={previewQuestion}
             onChange={(e) => setPreviewQuestion(e.target.value)}
-            placeholder="Type a short question..."
+            placeholder={t("preview.questionPlaceholder")}
             className="floating-input bg-input/20 backdrop-blur-sm border-border/30"
           />
         </div>
@@ -86,7 +86,7 @@ export default function InteractiveDemo() {
             {previewCard.emoji}
           </div>
           <div className="space-y-1">
-            <div className="text-sm text-muted-foreground">Card</div>
+            <div className="text-sm text-muted-foreground">{t("preview.cardLabel")}</div>
             <div className="text-lg font-semibold">{previewCard.name}</div>
             <div className="text-sm text-muted-foreground">{previewCard.hint}</div>
           </div>
@@ -98,24 +98,24 @@ export default function InteractiveDemo() {
         <form onSubmit={submit} className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{t("form.name")}</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => updateField("name", e.target.value)}
-                placeholder="Your name"
+                placeholder={t("form.namePlaceholder")}
                 className="floating-input bg-input/20 backdrop-blur-sm border-border/30"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("form.email")}</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => updateField("email", e.target.value)}
-                placeholder="you@example.com"
+                placeholder={t("form.emailPlaceholder")}
                 className="floating-input bg-input/20 backdrop-blur-sm border-border/30"
                 required
               />
@@ -124,34 +124,34 @@ export default function InteractiveDemo() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="teamSize">Team size (optional)</Label>
+              <Label htmlFor="teamSize">{t("form.teamSize")}</Label>
               <Input
                 id="teamSize"
                 value={formData.teamSize}
                 onChange={(e) => updateField("teamSize", e.target.value)}
-                placeholder="Just me, 2-10, 10+"
+                placeholder={t("form.teamSizePlaceholder")}
                 className="floating-input bg-input/20 backdrop-blur-sm border-border/30"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="goals">What would you like to see?</Label>
+              <Label htmlFor="goals">{t("form.goals")}</Label>
               <Input
                 id="goals"
                 value={formData.goals}
                 onChange={(e) => updateField("goals", e.target.value)}
-                placeholder="Examples: saved readings, team sharing, API"
+                placeholder={t("form.goalsPlaceholder")}
                 className="floating-input bg-input/20 backdrop-blur-sm border-border/30"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes (optional)</Label>
+            <Label htmlFor="notes">{t("form.notes")}</Label>
             <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => updateField("notes", e.target.value)}
-              placeholder="Any specific questions or context?"
+              placeholder={t("form.notesPlaceholder")}
               className="min-h-24 floating-input bg-input/20 backdrop-blur-sm border-border/30"
             />
           </div>
@@ -160,19 +160,17 @@ export default function InteractiveDemo() {
             {submitting ? (
               <>
                 <Wand2 className="w-4 h-4 mr-2 animate-spin-slow" />
-                Scheduling...
+                {t("form.submitting")}
               </>
             ) : (
               <>
                 <Send className="w-4 h-4 mr-2" />
-                Request a demo
+                {t("form.submit")}
               </>
             )}
           </Button>
         </form>
-        <p className="text-xs text-muted-foreground mt-3">
-          We’ll reach out by email within 1–2 business days.
-        </p>
+        <p className="text-xs text-muted-foreground mt-3">{t("form.footer")}</p>
       </Card>
     </div>
   )
