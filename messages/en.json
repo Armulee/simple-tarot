@@ -325,6 +325,42 @@
       "p1": "You ask a question. We draw a card and generate a concise interpretation—grounded in traditional meanings and tuned for clarity.",
       "p2": "It’s guidance to consider, not a verdict. You stay in control of your decisions."
     },
+    "mission": {
+      "title": "Our mission",
+      "p": "Help people pause, reflect, and make everyday decisions with more intention. Keep it clear, calm, and actually useful."
+    },
+    "vision": {
+      "title": "Our vision",
+      "p": "A trusted companion for thoughtful decisions — simple enough for anyone, thoughtful enough for teams, and respectful of privacy."
+    },
+    "valuesSection": {
+      "title": "Our values",
+      "privacyFirst": {
+        "title": "Privacy first",
+        "desc": "Your questions and readings remain private. No selling data, ever."
+      },
+      "clarity": {
+        "title": "Clarity over hype",
+        "desc": "Short, plain-language interpretations you can act on today."
+      },
+      "inclusive": {
+        "title": "Inclusive by default",
+        "desc": "Useful for beginners and practitioners; welcoming across backgrounds and beliefs."
+      }
+    },
+    "quickStatsSection": {
+      "title": "Quick stats",
+      "users": "Early users",
+      "cards": "Cards drawn",
+      "updates": "Updates shipped",
+      "availability": "Available"
+    },
+    "pressSection": {
+      "title": "Press, partnerships, or questions",
+      "desc": "We’re early and open to thoughtful collaborations. Reach out for a short walkthrough or materials.",
+      "primary": "Request a demo",
+      "secondary": "Contact us"
+    },
     "cta": {
       "title": "Ready to begin?",
       "desc": "We’ve just launched—join early users exploring calm, practical guidance.",

@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
-import { Brain, Heart, Zap } from "lucide-react"
+import { Brain, Heart, Zap, Target, Eye, Shield, Globe } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { getTranslations } from "next-intl/server"
 
@@ -180,6 +180,132 @@ export default function AboutPage() {
                                 <p className='text-muted-foreground leading-relaxed'>
                                     {t("aiSection.p2")}
                                 </p>
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* Mission & Vision */}
+                    <div className='grid md:grid-cols-2 gap-6'>
+                        <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20'>
+                            <div className='space-y-4'>
+                                <div className='w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center'>
+                                    <Target className='w-7 h-7 text-primary' />
+                                </div>
+                                <h3 className='font-serif font-bold text-xl'>
+                                    {t("mission.title")}
+                                </h3>
+                                <p className='text-muted-foreground leading-relaxed'>
+                                    {t("mission.p")}
+                                </p>
+                            </div>
+                        </Card>
+                        <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20'>
+                            <div className='space-y-4'>
+                                <div className='w-14 h-14 rounded-full bg-secondary/20 flex items-center justify-center'>
+                                    <Eye className='w-7 h-7 text-secondary' />
+                                </div>
+                                <h3 className='font-serif font-bold text-xl'>
+                                    {t("vision.title")}
+                                </h3>
+                                <p className='text-muted-foreground leading-relaxed'>
+                                    {t("vision.p")}
+                                </p>
+                            </div>
+                        </Card>
+                    </div>
+
+                    {/* Values */}
+                    <div className='space-y-4'>
+                        <h3 className='font-serif font-bold text-2xl text-center'>
+                            {t("valuesSection.title")}
+                        </h3>
+                        <div className='grid md:grid-cols-3 gap-6'>
+                            {[{
+                                icon: Shield,
+                                title: t("valuesSection.privacyFirst.title"),
+                                desc: t("valuesSection.privacyFirst.desc"),
+                            }, {
+                                icon: Heart,
+                                title: t("valuesSection.clarity.title"),
+                                desc: t("valuesSection.clarity.desc"),
+                            }, {
+                                icon: Globe,
+                                title: t("valuesSection.inclusive.title"),
+                                desc: t("valuesSection.inclusive.desc"),
+                            }].map((item, idx) => {
+                                const Icon = item.icon
+                                return (
+                                    <Card key={idx} className='p-6 bg-card/10 backdrop-blur-sm border-border/20 text-center'>
+                                        <div className='space-y-4'>
+                                            <div className='w-12 h-12 mx-auto rounded-full bg-primary/20 flex items-center justify-center'>
+                                                <Icon className='w-6 h-6 text-primary' />
+                                            </div>
+                                            <div className='font-serif font-semibold text-lg'>
+                                                {item.title}
+                                            </div>
+                                            <p className='text-muted-foreground text-sm'>
+                                                {item.desc}
+                                            </p>
+                                        </div>
+                                    </Card>
+                                )
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Quick stats */}
+                    <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20'>
+                        <div className='space-y-6'>
+                            <h3 className='font-serif font-bold text-2xl text-center'>
+                                {t("quickStatsSection.title")}
+                            </h3>
+                            <div className='grid grid-cols-2 md:grid-cols-4 gap-6 text-center'>
+                                <div>
+                                    <div className='text-3xl font-bold text-primary'>~500</div>
+                                    <div className='text-muted-foreground text-sm'>
+                                        {t("quickStatsSection.users")}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className='text-3xl font-bold text-primary'>Thousands</div>
+                                    <div className='text-muted-foreground text-sm'>
+                                        {t("quickStatsSection.cards")}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className='text-3xl font-bold text-primary'>Weekly</div>
+                                    <div className='text-muted-foreground text-sm'>
+                                        {t("quickStatsSection.updates")}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className='text-3xl font-bold text-primary'>24/7</div>
+                                    <div className='text-muted-foreground text-sm'>
+                                        {t("quickStatsSection.availability")}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* Press & Contact */}
+                    <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20'>
+                        <div className='md:flex items-center justify-between gap-6'>
+                            <div className='space-y-2 max-w-2xl'>
+                                <h3 className='font-serif font-bold text-xl'>
+                                    {t("pressSection.title")}
+                                </h3>
+                                <p className='text-muted-foreground'>
+                                    {t("pressSection.desc")}
+                                </p>
+                            </div>
+                            <div className='flex flex-col sm:flex-row gap-3 mt-6 md:mt-0'>
+                                <Button asChild className='px-6'>
+                                    <Link href='/demo'>{t("pressSection.primary")}</Link>
+                                </Button>
+                                <Button asChild variant='outline' className='px-6'>
+                                    <Link href='/contact'>{t("pressSection.secondary")}</Link>
+                                </Button>
                             </div>
                         </div>
                     </Card>
