@@ -21,7 +21,7 @@ export default async function ArticlesIndexPage() {
       title: "Create Content About Us",
       description: "Write, post, or film about Asking Fate and earn stars.",
       icon: BookOpen,
-      badge: "Guide",
+      badge: "Earn stars",
     },
     {
       href: "/articles/share-reading",
@@ -61,16 +61,9 @@ export default async function ArticlesIndexPage() {
   ] as const
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-pulse floating-bg"></div>
-        <div className="absolute top-1/3 right-1/4 w-24 h-24 bg-secondary/10 rounded-full blur-3xl animate-pulse delay-1000 floating-bg"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-20 h-20 bg-primary/5 rounded-full blur-3xl animate-pulse delay-2000 floating-bg"></div>
-      </div>
-
+    <div className="relative min-h-screen">
       {/* Header */}
-      <header className="relative bg-gradient-to-b from-primary/20 via-primary/10 to-transparent border-b border-border/30 backdrop-blur-sm">
+      <header className="relative">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 sm:pt-16 pb-16 sm:pb-20 text-center">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6 animate-fadeInUp">
@@ -117,8 +110,6 @@ export default async function ArticlesIndexPage() {
                       className={`text-xs font-medium px-2 py-1 badge-glow ${
                         badge === "Earn stars" 
                           ? "bg-yellow-500/20 text-yellow-700 border-yellow-500/30" 
-                          : badge === "Guide"
-                          ? "bg-blue-500/20 text-blue-700 border-blue-500/30"
                           : badge === "Basics"
                           ? "bg-green-500/20 text-green-700 border-green-500/30"
                           : "bg-purple-500/20 text-purple-700 border-purple-500/30"
