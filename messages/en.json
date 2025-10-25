@@ -815,6 +815,36 @@
       "title": "Articles & Guides | Asking Fate",
       "description": "Documentation-style guides: how to play, share readings, refer friends, create content, help & FAQ."
     }
+  },
+  "Articles": {
+    "title": "Articles & Guides",
+    "subtitle": "Helpful, documentation-style guides about Asking Fate.",
+    "items": {
+      "createContent": {
+        "title": "Create Content About Us",
+        "description": "Write, post, or film about Asking Fate and earn stars."
+      },
+      "shareReading": {
+        "title": "Share a Reading",
+        "description": "Share your reading link and earn up to 3 stars/day."
+      },
+      "referFriend": {
+        "title": "Refer a Friend",
+        "description": "Invite friends. You both earn stars when they join."
+      },
+      "howToPlay": {
+        "title": "How to Play",
+        "description": "Ask a question, pick cards, and reflect—step-by-step."
+      },
+      "helpSupport": {
+        "title": "Help & Support",
+        "description": "Get help, contact support, and troubleshooting tips."
+      },
+      "faq": {
+        "title": "FAQ",
+        "description": "Answers to common questions about readings and stars."
+      }
+    }
   }
   ,
   "Auth": {
@@ -1202,4 +1232,5 @@
       }
     }
   }
+}
 }
