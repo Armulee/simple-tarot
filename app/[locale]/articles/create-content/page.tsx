@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 import { Link } from "@/i18n/navigation"
 import { ArticleLayout, type ArticleSection } from "@/components/articles/article-layout"
+import { ARTICLES } from "@/components/articles/data"
 import { PenTool, FileText, Image, Video, Star, Clock, CheckCircle, ExternalLink } from "lucide-react"
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -85,6 +86,7 @@ export default async function CreateContentArticlePage() {
       backLabel={t("title")}
       onThisPageLabel="On this page"
       sections={sections}
+      related={[ARTICLES[1], ARTICLES[2]]}
     />
   )
 }

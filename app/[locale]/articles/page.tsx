@@ -4,6 +4,8 @@ import { Link } from "@/i18n/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { BookOpen, Share2, Users, HelpCircle, Gamepad2, MessageCircleQuestion, Sparkles, ArrowRight, Star } from "lucide-react"
+import { SearchArticles } from "@/components/articles/search-articles"
+import { ARTICLES } from "@/components/articles/data"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Meta.Articles")
@@ -84,6 +86,15 @@ export default async function ArticlesIndexPage() {
           <p className="text-gray-300 text-base sm:text-lg max-w-3xl mx-auto leading-relaxed mt-6">
             Helpful, documentation-style guides about Asking Fate.
           </p>
+
+          {/* Search under header description */}
+          <div className="mt-6 max-w-2xl mx-auto">
+            <SearchArticles
+              articles={ARTICLES}
+              placeholder="Search articles..."
+              autoFocus={false}
+            />
+          </div>
         </div>
       </header>
 

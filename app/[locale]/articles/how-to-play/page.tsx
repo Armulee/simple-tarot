@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 import { ArticleLayout, type ArticleSection } from "@/components/articles/article-layout"
+import { ARTICLES } from "@/components/articles/data"
 import { Play, Target, Heart, Eye, Share2, Lightbulb, CheckCircle, ArrowRight } from "lucide-react"
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -35,6 +36,7 @@ export default async function HowToPlayArticlePage() {
       backLabel={t("title")}
       onThisPageLabel="On this page"
       sections={sections}
+      related={[ARTICLES[5], ARTICLES[4]]}
     />
   )
 }

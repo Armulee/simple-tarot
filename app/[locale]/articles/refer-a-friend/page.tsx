@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 import { Link } from "@/i18n/navigation"
 import { ArticleLayout, type ArticleSection } from "@/components/articles/article-layout"
+import { ARTICLES } from "@/components/articles/data"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Articles")
@@ -56,6 +57,7 @@ export default async function ReferFriendArticlePage() {
       backLabel={t("title")}
       onThisPageLabel="On this page"
       sections={sections}
+      related={[ARTICLES[1], ARTICLES[0]]}
     />
   )
 }

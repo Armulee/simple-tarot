@@ -2,6 +2,8 @@ import type { ReactNode } from "react"
 import { Link } from "@/i18n/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { SearchArticles } from "@/components/articles/search-articles"
+import { ARTICLES } from "@/components/articles/data"
 import { ArrowLeft, BookOpen, Sparkles } from "lucide-react"
 
 export type ArticleSection = {
@@ -18,6 +20,7 @@ export function ArticleLayout({
   backLabel = "Back",
   onThisPageLabel = "On this page",
   sections,
+  related,
 }: {
   title: string
   subtitle?: string
@@ -26,6 +29,7 @@ export function ArticleLayout({
   backLabel?: string
   onThisPageLabel?: string
   sections: ArticleSection[]
+  related?: { href: string; title: string; description: string }[]
 }) {
   return (
     <div className="relative min-h-screen">
@@ -46,6 +50,10 @@ export function ArticleLayout({
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-200" />
               {backLabel}
             </Link>
+          </div>
+          {/* Search just below back button */}
+          <div className="max-w-xl">
+            <SearchArticles articles={ARTICLES} placeholder="Search articles..." />
           </div>
           
           <div className="space-y-4">
@@ -142,6 +150,24 @@ export function ArticleLayout({
               </section>
             ))}
           </article>
+
+          {related && related.length > 0 && (
+            <div className="mt-10">
+              <h3 className="font-serif text-xl font-semibold mb-4">Suggested articles</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {related.slice(0, 2).map((a) => (
+                  <Link key={a.href} href={a.href} className="block group">
+                    <Card className="hover:border-primary/60 transition">
+                      <CardContent className="p-4">
+                        <div className="font-medium group-hover:text-primary">{a.title}</div>
+                        <div className="text-sm text-muted-foreground line-clamp-2">{a.description}</div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </main>
 
         {/* Desktop TOC */}
