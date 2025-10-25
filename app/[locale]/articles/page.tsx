@@ -1,9 +1,13 @@
+"use client"
+
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 import { Link } from "@/i18n/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { BookOpen, Share2, Users, HelpCircle, Gamepad2, MessageCircleQuestion, Sparkles, ArrowRight, Star } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { BookOpen, Share2, Users, HelpCircle, Gamepad2, MessageCircleQuestion, Sparkles, ArrowRight, Star, Search } from "lucide-react"
+import { useState, useMemo } from "react"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Meta.Articles")
@@ -13,52 +17,60 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export default async function ArticlesIndexPage() {
-  const t = await getTranslations("Articles")
+export default function ArticlesIndexPage() {
+  const [searchQuery, setSearchQuery] = useState("")
   const items = [
     {
       href: "/articles/create-content",
-      title: t("items.createContent.title"),
-      description: t("items.createContent.description"),
+      title: "Create Content About Us",
+      description: "Write, post, or film about Asking Fate and earn stars.",
       icon: BookOpen,
       badge: "Guide",
     },
     {
       href: "/articles/share-reading",
-      title: t("items.shareReading.title"),
-      description: t("items.shareReading.description"),
+      title: "Share a Reading",
+      description: "Share your reading link and earn up to 3 stars/day.",
       icon: Share2,
       badge: "Earn stars",
     },
     {
       href: "/articles/refer-a-friend",
-      title: t("items.referFriend.title"),
-      description: t("items.referFriend.description"),
+      title: "Refer a Friend",
+      description: "Invite friends. You both earn stars when they join.",
       icon: Users,
       badge: "Earn stars",
     },
     {
       href: "/articles/how-to-play",
-      title: t("items.howToPlay.title"),
-      description: t("items.howToPlay.description"),
+      title: "How to Play",
+      description: "Ask a question, pick cards, and reflect—step-by-step.",
       icon: Gamepad2,
       badge: "Basics",
     },
     {
       href: "/articles/help-support",
-      title: t("items.helpSupport.title"),
-      description: t("items.helpSupport.description"),
+      title: "Help & Support",
+      description: "Get help with your account, readings, or technical issues.",
       icon: HelpCircle,
       badge: "Support",
     },
     {
       href: "/articles/faq",
-      title: t("items.faq.title"),
-      description: t("items.faq.description"),
+      title: "Frequently Asked Questions",
+      description: "Find answers to common questions about our services.",
       icon: MessageCircleQuestion,
       badge: "FAQ",
     },
   ] as const
+
+  const filteredItems = useMemo(() => {
+    if (!searchQuery.trim()) return items
+    return items.filter(item => 
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  }, [searchQuery])
 
   return (
     <div className="relative overflow-hidden min-h-screen">
@@ -77,19 +89,39 @@ export default async function ArticlesIndexPage() {
               <Sparkles className="w-4 h-4" />
               Knowledge Hub
             </div>
-            <h1 className="font-serif font-bold text-4xl sm:text-5xl md:text-6xl gradient-text">
-              {t("title")}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-white leading-tight">
+              <span className="relative inline-block">
+                <span className="text-transparent bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text animate-gradient-x">
+                  Articles & Guides
+                </span>
+                {/* Animated underline */}
+                <div className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-primary to-secondary rounded-full animate-pulse"></div>
+              </span>
             </h1>
-            <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
-              {t("subtitle")}
+            <p className="text-gray-300 text-base sm:text-lg max-w-3xl mx-auto leading-relaxed">
+              Helpful, documentation-style guides about Asking Fate.
             </p>
+          </div>
+
+          {/* Search Bar */}
+          <div className="max-w-md mx-auto mb-8">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                type="text"
+                placeholder="Search articles..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-card/30 backdrop-blur-sm border-border/50 focus:border-primary/60"
+              />
+            </div>
           </div>
 
           {/* Articles Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {items.map(({ href, title, description, icon: Icon, badge }, index) => (
+            {filteredItems.map(({ href, title, description, icon: Icon, badge }, index) => (
               <Link key={href} href={href} className="block group article-card">
-                <Card className="h-full relative overflow-hidden bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl border-border/50 hover:border-primary/60 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 group-hover:scale-[1.02] group-hover:-translate-y-1">
+                <Card className="h-full relative overflow-hidden bg-transparent border-border/30 hover:border-primary/60 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 group-hover:scale-[1.02] group-hover:-translate-y-1">
                   {/* Gradient overlay */}
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   

@@ -19,7 +19,7 @@ export default async function FAQArticlePage() {
   const sections: ArticleSection[] = [
     {
       id: "general",
-      title: "General",
+      title: "General Questions",
       content: (
         <div className="space-y-3">
           <p>
@@ -36,7 +36,7 @@ export default async function FAQArticlePage() {
     },
     {
       id: "stars",
-      title: "Stars",
+      title: "Stars & Rewards",
       content: (
         <div className="space-y-3">
           <p>
@@ -53,7 +53,7 @@ export default async function FAQArticlePage() {
     },
     {
       id: "readings",
-      title: "Readings",
+      title: "Readings & Usage",
       content: (
         <div className="space-y-3">
           <p>

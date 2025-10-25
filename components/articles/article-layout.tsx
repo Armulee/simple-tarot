@@ -36,7 +36,7 @@ export function ArticleLayout({
         <div className="absolute bottom-20 left-10 w-80 h-80 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
-      <header className="relative bg-gradient-to-b from-primary/20 via-primary/10 to-transparent border-b border-border/30 backdrop-blur-sm">
+      <header className="relative">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12 pb-12 sm:pb-16">
           <div className="mb-6">
             <Link 
@@ -59,8 +59,14 @@ export function ArticleLayout({
               </div>
             </div>
             
-            <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight gradient-text">
-              {title}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-white leading-tight">
+              <span className="relative inline-block">
+                <span className="text-transparent bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text animate-gradient-x">
+                  {title}
+                </span>
+                {/* Animated underline */}
+                <div className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-primary to-secondary rounded-full animate-pulse"></div>
+              </span>
             </h1>
             
             {subtitle ? (
@@ -81,10 +87,10 @@ export function ArticleLayout({
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
         {/* Mobile TOC */}
         <div className="lg:hidden">
-          <Card className="bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl border-border/50">
-            <Accordion>
-              <AccordionItem>
-                <AccordionTrigger className="text-sm font-medium hover:no-underline">
+          <Card className="bg-transparent border-none">
+            <Accordion type="single" collapsible defaultValue="toc">
+              <AccordionItem value="toc" className="border-none">
+                <AccordionTrigger className="text-sm font-medium hover:no-underline border-none">
                   <div className="flex items-center gap-2">
                     <BookOpen className="w-4 h-4 text-primary" />
                     {onThisPageLabel}
@@ -123,15 +129,12 @@ export function ArticleLayout({
                     </div>
                   </div>
                   
-                  <h2 className="font-serif text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 gradient-text">
+                  <h2 className="font-serif text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 text-foreground">
                     {s.title}
                   </h2>
                   
                   <div className="relative">
-                    {/* Content background */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-purple-500/5 rounded-2xl -z-10"></div>
-                    
-                    <div className="not-prose text-foreground/95 leading-relaxed text-sm sm:text-base space-y-4 p-4 sm:p-6 rounded-xl bg-card/30 backdrop-blur-sm border border-border/30 content-card">
+                    <div className="not-prose text-foreground/95 leading-relaxed text-sm sm:text-base space-y-4 p-4 sm:p-6 content-card">
                       {s.content}
                     </div>
                   </div>
@@ -143,7 +146,7 @@ export function ArticleLayout({
 
         {/* Desktop TOC */}
         <aside className="hidden lg:block lg:col-span-4">
-          <Card className="sticky top-32 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl border-border/50">
+          <Card className="sticky top-32 bg-transparent border-none">
             <CardHeader className="pb-4">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-primary" />
