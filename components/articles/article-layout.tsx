@@ -61,7 +61,7 @@ export function ArticleLayout({
             
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-white leading-tight">
               <span className="relative inline-block">
-                <span className="text-transparent bg-gradient-to-r from-accent via-accent/80 to-accent bg-clip-text animate-gradient-x">
+                <span className="text-white">
                   {title}
                 </span>
                 {/* Animated underline */}
@@ -84,7 +84,7 @@ export function ArticleLayout({
       </header>
 
       {/* Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
         {/* Mobile TOC */}
         <div className="lg:hidden">
           <Card className="bg-transparent border-none">
