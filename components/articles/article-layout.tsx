@@ -88,8 +88,8 @@ export function ArticleLayout({
         {/* Mobile TOC */}
         <div className="lg:hidden">
           <Card className="bg-transparent border-none">
-            <Accordion type="single" collapsible defaultValue="toc">
-              <AccordionItem value="toc" className="border-none">
+            <Accordion defaultValue="toc">
+              <AccordionItem defaultOpen className="border-none">
                 <AccordionTrigger className="text-sm font-medium hover:no-underline border-none">
                   <div className="flex items-center gap-2">
                     <BookOpen className="w-4 h-4 text-primary" />
