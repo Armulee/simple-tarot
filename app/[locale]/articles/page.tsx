@@ -100,7 +100,7 @@ export default async function ArticlesIndexPage() {
                 {/* Animated border */}
                 <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
                 
-                <CardHeader className="relative z-10 pb-3">
+                <CardHeader className="relative z-10 mb-2">
                   <div className="flex items-center justify-between mb-3">
                     <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors duration-300 icon-bounce">
                       <Icon className="w-5 h-5" />
