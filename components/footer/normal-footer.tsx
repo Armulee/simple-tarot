@@ -30,6 +30,12 @@ export default function NormalFooter() {
                                 Contact & Support
                             </Link>
                             <Link
+                                href='/articles'
+                                className='w-fit hover:text-foreground transition-colors'
+                            >
+                                Articles & Guides
+                            </Link>
+                            <Link
                                 href='/privacy-policy'
                                 className='w-fit hover:text-foreground transition-colors'
                             >

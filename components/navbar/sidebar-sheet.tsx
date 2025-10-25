@@ -15,6 +15,7 @@ import {
     ShieldCheck,
     FileText,
     MessageSquare,
+    BookOpen,
 } from "lucide-react"
 import { useState } from "react"
 import {
@@ -170,6 +171,20 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                 >
                                     <DollarSign className='w-4 h-4' />
                                     <span>{t("pricing")}</span>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link
+                                    href={"/articles"}
+                                    className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                                        pathname.startsWith("/articles")
+                                            ? "bg-accent text-white"
+                                            : "text-cosmic-light hover:text-white hover:bg-white/10"
+                                    }`}
+                                    onClick={() => onOpenChange(false)}
+                                >
+                                    <BookOpen className='w-4 h-4' />
+                                    <span>{t("articles")}</span>
                                 </Link>
                             </li>
 

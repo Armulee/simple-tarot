@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 import { Link } from "@/i18n/navigation"
 import { ArticleLayout, type ArticleSection } from "@/components/articles/article-layout"
+import { PenTool, FileText, Image, Video, Star, Clock, CheckCircle, ExternalLink } from "lucide-react"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Articles")

@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 import { Link } from "@/i18n/navigation"
 import { ArticleLayout, type ArticleSection } from "@/components/articles/article-layout"
+import { HelpCircle, Shield, Star, BookOpen, MessageCircle, CheckCircle } from "lucide-react"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Articles")
@@ -16,7 +17,7 @@ export default async function FAQArticlePage() {
   const sections: ArticleSection[] = [
     {
       id: "general",
-      title: "General",
+      title: "General Questions",
       content: (
         <div className="space-y-3">
           <p>
@@ -33,7 +34,7 @@ export default async function FAQArticlePage() {
     },
     {
       id: "stars",
-      title: "Stars",
+      title: "Stars & Rewards",
       content: (
         <div className="space-y-3">
           <p>
@@ -50,7 +51,7 @@ export default async function FAQArticlePage() {
     },
     {
       id: "readings",
-      title: "Readings",
+      title: "Readings & Usage",
       content: (
         <div className="space-y-3">
           <p>
