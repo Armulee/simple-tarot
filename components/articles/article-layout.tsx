@@ -31,17 +31,17 @@ export function ArticleLayout({
     <div className="relative min-h-screen">
       {/* Animated background */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-br from-primary/10 via-purple-500/5 to-transparent"></div>
+        <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-br from-accent/10 via-purple-500/5 to-transparent"></div>
         <div className="absolute top-20 right-10 w-64 h-64 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-20 left-10 w-80 h-80 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
       <header className="relative">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12 pb-12 sm:pb-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12 pb-6 sm:pb-8">
           <div className="mb-6">
             <Link 
               href={backHref} 
-              className="inline-flex items-center gap-2 text-primary hover:text-primary/80 text-sm font-medium group transition-colors duration-200"
+              className="inline-flex items-center gap-2 text-accent hover:text-accent/80 text-sm font-medium group transition-colors duration-200"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-200" />
               {backLabel}
@@ -50,10 +50,10 @@ export function ArticleLayout({
           
           <div className="space-y-4">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-purple-500/20 text-primary">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-accent/20 to-purple-500/20 text-accent">
                 <BookOpen className="w-6 h-6" />
               </div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 text-primary text-xs font-medium">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-accent/10 to-purple-500/10 border border-accent/20 text-accent text-xs font-medium">
                 <Sparkles className="w-3 h-3" />
                 Guide
               </div>
@@ -61,16 +61,16 @@ export function ArticleLayout({
             
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-white leading-tight">
               <span className="relative inline-block">
-                <span className="text-transparent bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text animate-gradient-x">
+                <span className="text-transparent bg-gradient-to-r from-accent via-accent/80 to-accent bg-clip-text animate-gradient-x">
                   {title}
                 </span>
                 {/* Animated underline */}
-                <div className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-primary to-secondary rounded-full animate-pulse"></div>
+                <div className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-accent to-accent/80 rounded-full animate-pulse"></div>
               </span>
             </h1>
             
             {subtitle ? (
-              <p className="text-muted-foreground text-base sm:text-lg max-w-4xl leading-relaxed">{subtitle}</p>
+              <p className="text-muted-foreground text-base sm:text-lg max-w-4xl leading-relaxed mt-2">{subtitle}</p>
             ) : null}
             
             {updated ? (
@@ -92,7 +92,7 @@ export function ArticleLayout({
               <AccordionItem defaultOpen className="border-none">
                 <AccordionTrigger className="text-sm font-medium hover:no-underline border-none">
                   <div className="flex items-center gap-2">
-                    <BookOpen className="w-4 h-4 text-primary" />
+                    <BookOpen className="w-4 h-4 text-accent" />
                     {onThisPageLabel}
                   </div>
                 </AccordionTrigger>
@@ -104,7 +104,7 @@ export function ArticleLayout({
                         href={`#${s.id}`}
                         className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 group"
                       >
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-r from-primary/20 to-purple-500/20 flex items-center justify-center text-xs font-medium text-primary group-hover:from-primary/30 group-hover:to-purple-500/30 transition-all duration-200">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-r from-accent/20 to-purple-500/20 flex items-center justify-center text-xs font-medium text-accent group-hover:from-accent/30 group-hover:to-purple-500/30 transition-all duration-200">
                           {index + 1}
                         </div>
                         {s.title}
@@ -124,7 +124,7 @@ export function ArticleLayout({
                 <div className="relative">
                   {/* Section number */}
                   <div className="absolute -left-12 top-0 hidden lg:block">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary/20 to-purple-500/20 flex items-center justify-center text-sm font-bold text-primary">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-accent/20 to-purple-500/20 flex items-center justify-center text-sm font-bold text-accent">
                       {index + 1}
                     </div>
                   </div>
@@ -149,7 +149,7 @@ export function ArticleLayout({
           <Card className="sticky top-32 bg-transparent border-none">
             <CardHeader className="pb-4">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-primary" />
+                <BookOpen className="w-4 h-4 text-accent" />
                 {onThisPageLabel}
               </CardTitle>
             </CardHeader>
@@ -159,9 +159,9 @@ export function ArticleLayout({
                   <a
                     key={s.id}
                     href={`#${s.id}`}
-                    className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 group p-2 rounded-lg hover:bg-primary/5 toc-item"
+                    className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 group p-2 rounded-lg hover:bg-accent/5 toc-item"
                   >
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-primary/20 to-purple-500/20 flex items-center justify-center text-xs font-medium text-primary group-hover:from-primary/30 group-hover:to-purple-500/30 transition-all duration-200">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-accent/20 to-purple-500/20 flex items-center justify-center text-xs font-medium text-accent group-hover:from-accent/30 group-hover:to-purple-500/30 transition-all duration-200">
                       {index + 1}
                     </div>
                     <span className="group-hover:font-medium transition-all duration-200">{s.title}</span>
