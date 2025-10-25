@@ -2,6 +2,9 @@ import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 import { Link } from "@/i18n/navigation"
 import { ArticleLayout, type ArticleSection } from "@/components/articles/article-layout"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { HelpCircle, Shield, Star, BookOpen, MessageCircle, CheckCircle } from "lucide-react"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Articles")
