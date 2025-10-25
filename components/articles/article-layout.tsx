@@ -3,7 +3,6 @@ import { Link } from "@/i18n/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { ArrowLeft, BookOpen, Sparkles } from "lucide-react"
-import "../app/[locale]/articles/articles.css"
 
 export type ArticleSection = {
   id: string

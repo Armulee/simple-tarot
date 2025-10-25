@@ -4,7 +4,6 @@ import { Link } from "@/i18n/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { BookOpen, Share2, Users, HelpCircle, Gamepad2, MessageCircleQuestion, Sparkles, ArrowRight, Star } from "lucide-react"
-import "./articles.css"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Meta.Articles")
