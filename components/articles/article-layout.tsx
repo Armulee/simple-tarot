@@ -49,8 +49,8 @@ export function ArticleLayout({
       <div className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Mobile TOC */}
         <div className="lg:hidden">
-          <Accordion type="single" collapsible>
-            <AccordionItem value="toc">
+          <Accordion>
+            <AccordionItem>
               <AccordionTrigger className="text-sm">{onThisPageLabel}</AccordionTrigger>
               <AccordionContent>
                 <nav className="space-y-2">
