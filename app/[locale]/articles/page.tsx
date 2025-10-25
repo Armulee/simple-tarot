@@ -109,7 +109,7 @@ export default async function ArticlesIndexPage() {
                       variant="secondary" 
                       className={`text-xs font-medium px-2 py-1 badge-glow ${
                         badge === "Earn stars" 
-                          ? "bg-yellow-500/20 text-yellow-700 border-yellow-500/30" 
+                          ? "bg-yellow-400/20 text-yellow-600 border-yellow-400/30" 
                           : badge === "Basics"
                           ? "bg-green-500/20 text-green-700 border-green-500/30"
                           : "bg-purple-500/20 text-purple-700 border-purple-500/30"
@@ -134,7 +134,7 @@ export default async function ArticlesIndexPage() {
                       <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform duration-300" />
                     </span>
                     {badge === "Earn stars" && (
-                      <div className="flex items-center gap-1 text-xs text-yellow-600 font-medium">
+                      <div className="flex items-center gap-1 text-xs text-yellow-500 font-medium">
                         <Star className="w-3 h-3" />
                         +Stars
                       </div>
