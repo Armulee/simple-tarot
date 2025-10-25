@@ -810,6 +810,10 @@
     "Demo": {
       "title": "Request a Demo | Asking Fate",
       "description": "See Asking Fate in action. Request a short live walkthrough and try an interactive preview."
+    },
+    "Articles": {
+      "title": "Articles & Guides | Asking Fate",
+      "description": "Documentation-style guides: how to play, share readings, refer friends, create content, help & FAQ."
     }
   }
   ,
@@ -1198,15 +1202,7 @@
       }
     }
   }
-  ,
-  "Meta": {
-@@
-    ,
-    "Articles": {
-      "title": "Articles & Guides | Asking Fate",
-      "description": "Documentation-style guides: how to play, share readings, refer friends, create content, help & FAQ."
-    }
-  }
+  
 }
 
 
