@@ -88,7 +88,7 @@ export default async function ArticlesIndexPage() {
       </header>
 
       {/* Main Content */}
-      <main className="relative max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+      <main className="relative max-w-6xl mx-auto px-4 sm:px-6 pt-4 pb-8">
         {/* Articles Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {items.map(({ href, title, description, icon: Icon, badge }) => (
