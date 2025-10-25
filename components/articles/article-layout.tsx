@@ -50,10 +50,10 @@ export function ArticleLayout({
           
           <div className="space-y-4">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-accent/20 to-purple-500/20 text-accent">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-purple-500/20 text-primary">
                 <BookOpen className="w-6 h-6" />
               </div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-accent/10 to-purple-500/10 border border-accent/20 text-accent text-xs font-medium">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 text-primary text-xs font-medium">
                 <Sparkles className="w-3 h-3" />
                 Guide
               </div>
@@ -92,7 +92,7 @@ export function ArticleLayout({
               <AccordionItem defaultOpen className="border-none">
                 <AccordionTrigger className="text-sm font-medium hover:no-underline border-none">
                   <div className="flex items-center gap-2">
-                    <BookOpen className="w-4 h-4 text-accent" />
+                    <BookOpen className="w-4 h-4 text-primary" />
                     {onThisPageLabel}
                   </div>
                 </AccordionTrigger>
@@ -104,7 +104,7 @@ export function ArticleLayout({
                         href={`#${s.id}`}
                         className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 group"
                       >
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-r from-accent/20 to-purple-500/20 flex items-center justify-center text-xs font-medium text-accent group-hover:from-accent/30 group-hover:to-purple-500/30 transition-all duration-200">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-r from-primary/20 to-purple-500/20 flex items-center justify-center text-xs font-medium text-primary group-hover:from-primary/30 group-hover:to-purple-500/30 transition-all duration-200">
                           {index + 1}
                         </div>
                         {s.title}
@@ -124,7 +124,7 @@ export function ArticleLayout({
                 <div className="relative">
                   {/* Section number */}
                   <div className="absolute -left-12 top-0 hidden lg:block">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-accent/20 to-purple-500/20 flex items-center justify-center text-sm font-bold text-accent">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary/20 to-purple-500/20 flex items-center justify-center text-sm font-bold text-primary">
                       {index + 1}
                     </div>
                   </div>
@@ -149,7 +149,7 @@ export function ArticleLayout({
           <Card className="sticky top-32 bg-transparent border-none">
             <CardHeader className="pb-4">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-accent" />
+                <BookOpen className="w-4 h-4 text-primary" />
                 {onThisPageLabel}
               </CardTitle>
             </CardHeader>
@@ -159,9 +159,9 @@ export function ArticleLayout({
                   <a
                     key={s.id}
                     href={`#${s.id}`}
-                    className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 group p-2 rounded-lg hover:bg-accent/5 toc-item"
+                    className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 group p-2 rounded-lg hover:bg-primary/5 toc-item"
                   >
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-accent/20 to-purple-500/20 flex items-center justify-center text-xs font-medium text-accent group-hover:from-accent/30 group-hover:to-purple-500/30 transition-all duration-200">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-primary/20 to-purple-500/20 flex items-center justify-center text-xs font-medium text-primary group-hover:from-primary/30 group-hover:to-purple-500/30 transition-all duration-200">
                       {index + 1}
                     </div>
                     <span className="group-hover:font-medium transition-all duration-200">{s.title}</span>
