@@ -59,7 +59,7 @@ export function ArticleLayout({
               </div>
             </div>
             
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-white leading-tight">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-white leading-tight">
               <span className="relative inline-block">
                 <span className="text-white">
                   {title}
