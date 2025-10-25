@@ -3,12 +3,13 @@
 import { Card } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { Shield, Mail, Chrome, Link, Unlink, Loader2 } from "lucide-react"
+import { Shield, Mail, Link, Unlink, Loader2 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 import { useState } from "react"
 import { useTranslations } from "next-intl"
+import { FaGoogle } from "react-icons/fa6"
 
 export function LoginMethods() {
     const { user } = useAuth()
@@ -132,7 +133,7 @@ export function LoginMethods() {
     const getProviderIcon = (provider: string) => {
         switch (provider) {
             case "google":
-                return <Chrome className='w-5 h-5 text-red-500' />
+                return <FaGoogle className='w-5 h-5 text-blue-500' />
             case "email":
             default:
                 return <Mail className='w-5 h-5 text-blue-500' />
@@ -152,7 +153,7 @@ export function LoginMethods() {
     const getProviderColor = (provider: string) => {
         switch (provider) {
             case "google":
-                return "bg-red-50 border-red-200 text-red-700"
+                return "bg-blue-50 border-blue-200 text-blue-700"
             case "email":
             default:
                 return "bg-blue-50 border-blue-200 text-blue-700"
@@ -186,17 +187,17 @@ export function LoginMethods() {
                                     )}
                                 </div>
                                 <div className='flex-1 min-w-0'>
-                                    <h3 className='font-semibold text-lg truncate'>
+                                    <h3 className='font-semibold text-lg'>
                                         {getProviderName(
                                             getCurrentProvider() || "email"
                                         )}
                                     </h3>
-                                    <p className='text-sm opacity-80 truncate'>
+                                    <p className='text-sm opacity-80'>
                                         {user?.email || "No email found"}
                                     </p>
                                 </div>
                                 <div className='flex items-center space-x-2 flex-shrink-0'>
-                                    <div className='w-3 h-3 rounded-full bg-green-500 animate-pulse'></div>
+                                    <div className='w-3 h-3 rounded-full bg-blue-500 animate-pulse'></div>
                                     <span className='text-sm font-medium'>
                                         Active
                                     </span>
@@ -207,141 +208,138 @@ export function LoginMethods() {
                 </div>
 
                 <div className='space-y-4'>
-                    <div>
-                        <Label className='text-white font-medium'>
-                            {t("availableMethods")}
-                        </Label>
-                        <div className='grid gap-3 mt-3'>
-                            {/* Email & Password */}
-                            <div
-                                className={`flex items-center space-x-3 p-4 rounded-xl border ${isProviderLinked("email") ? "border-green-400 bg-green-500/10" : "border-border/50 bg-background/30"} transition-all duration-200`}
-                            >
-                                <div className='p-2 rounded-lg bg-blue-500/20 flex-shrink-0'>
-                                    <Mail className='w-5 h-5 text-blue-400' />
-                                </div>
-                                <div className='flex-1 min-w-0'>
-                                    <h3 className='font-medium text-white truncate'>
-                                        {t("emailPassword")}
-                                    </h3>
-                                    <p className='text-sm text-gray-300 truncate'>
-                                        {t("emailPasswordDescription")}
-                                    </p>
-                                </div>
-                                <div className='flex items-center space-x-2 flex-shrink-0'>
-                                    {isProviderLinked("email") ? (
-                                        <>
-                                            <div className='flex items-center space-x-2 text-green-400'>
-                                                <div className='w-2 h-2 rounded-full bg-green-400'></div>
-                                                <span className='text-xs font-medium'>
-                                                    Linked
-                                                </span>
-                                            </div>
-                                            {canUnlinkProvider("email") && (
-                                                <Button
-                                                    variant='outline'
-                                                    size='sm'
-                                                    onClick={() =>
-                                                        handleUnlinkProvider(
-                                                            "email"
-                                                        )
-                                                    }
-                                                    disabled={isLinking}
-                                                    className='text-red-400 hover:text-red-300 hover:bg-red-500/20 border-red-400/50'
-                                                >
-                                                    {linkingProvider ===
-                                                    "email" ? (
-                                                        <Loader2 className='w-4 h-4 animate-spin' />
-                                                    ) : (
-                                                        <Unlink className='w-4 h-4' />
-                                                    )}
-                                                </Button>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <Button
-                                            variant='outline'
-                                            size='sm'
-                                            onClick={() =>
-                                                handleLinkProvider("email")
-                                            }
-                                            disabled={isLinking}
-                                            className='text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 border-blue-400/50'
-                                        >
-                                            {linkingProvider === "email" ? (
-                                                <Loader2 className='w-4 h-4 animate-spin' />
-                                            ) : (
-                                                <Link className='w-4 h-4' />
-                                            )}
-                                            Link
-                                        </Button>
-                                    )}
-                                </div>
+                    <Label className='text-white font-medium'>
+                        {t("availableMethods")}
+                    </Label>
+                    <div className='grid grid-cols-1 gap-3 mt-3'>
+                        {/* Email & Password */}
+                        <div
+                            className={`w-full flex items-center space-x-3 p-4 rounded-xl border ${isProviderLinked("email") ? "border-green-400 bg-green-500/10" : "border-border/50 bg-background/30"} transition-all duration-200`}
+                        >
+                            <div className='p-2 rounded-lg bg-blue-500/20 flex-shrink-0'>
+                                <Mail className='w-5 h-5 text-blue-400' />
                             </div>
+                            <div className='flex-1 min-w-0'>
+                                <h3 className='font-medium text-white'>
+                                    {t("emailPassword")}
+                                </h3>
+                                <p className='text-sm text-gray-300'>
+                                    {t("emailPasswordDescription")}
+                                </p>
+                            </div>
+                            <div className='flex items-center space-x-2 flex-shrink-0'>
+                                {isProviderLinked("email") ? (
+                                    <>
+                                        <div className='flex items-center space-x-2 text-green-400'>
+                                            <div className='w-2 h-2 rounded-full bg-green-400'></div>
+                                            <span className='text-xs font-medium'>
+                                                Linked
+                                            </span>
+                                        </div>
+                                        {canUnlinkProvider("email") && (
+                                            <Button
+                                                variant='outline'
+                                                size='sm'
+                                                onClick={() =>
+                                                    handleUnlinkProvider(
+                                                        "email"
+                                                    )
+                                                }
+                                                disabled={isLinking}
+                                                className='text-red-400 hover:text-red-300 hover:bg-red-500/20 border-red-400/50'
+                                            >
+                                                {linkingProvider === "email" ? (
+                                                    <Loader2 className='w-4 h-4 animate-spin' />
+                                                ) : (
+                                                    <Unlink className='w-4 h-4' />
+                                                )}
+                                            </Button>
+                                        )}
+                                    </>
+                                ) : (
+                                    <Button
+                                        variant='outline'
+                                        size='sm'
+                                        onClick={() =>
+                                            handleLinkProvider("email")
+                                        }
+                                        disabled={isLinking}
+                                        className='text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 border-blue-400/50'
+                                    >
+                                        {linkingProvider === "email" ? (
+                                            <Loader2 className='w-4 h-4 animate-spin' />
+                                        ) : (
+                                            <Link className='w-4 h-4' />
+                                        )}
+                                        Link
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
 
-                            {/* Google */}
-                            <div
-                                className={`flex items-center space-x-3 p-4 rounded-xl border ${isProviderLinked("google") ? "border-green-400 bg-green-500/10" : "border-border/50 bg-background/30"} transition-all duration-200`}
-                            >
-                                <div className='p-2 rounded-lg bg-red-500/20 flex-shrink-0'>
-                                    <Chrome className='w-5 h-5 text-red-400' />
-                                </div>
-                                <div className='flex-1 min-w-0'>
-                                    <h3 className='font-medium text-white truncate'>
-                                        {t("google")}
-                                    </h3>
-                                    <p className='text-sm text-gray-300 truncate'>
-                                        {t("googleSignInDescription")}
-                                    </p>
-                                </div>
-                                <div className='flex items-center space-x-2 flex-shrink-0'>
-                                    {isProviderLinked("google") ? (
-                                        <>
-                                            <div className='flex items-center space-x-2 text-green-400'>
-                                                <div className='w-2 h-2 rounded-full bg-green-400'></div>
-                                                <span className='text-xs font-medium'>
-                                                    Linked
-                                                </span>
-                                            </div>
-                                            {canUnlinkProvider("google") && (
-                                                <Button
-                                                    variant='outline'
-                                                    size='sm'
-                                                    onClick={() =>
-                                                        handleUnlinkProvider(
-                                                            "google"
-                                                        )
-                                                    }
-                                                    disabled={isLinking}
-                                                    className='text-red-400 hover:text-red-300 hover:bg-red-500/20 border-red-400/50'
-                                                >
-                                                    {linkingProvider ===
-                                                    "google" ? (
-                                                        <Loader2 className='w-4 h-4 animate-spin' />
-                                                    ) : (
-                                                        <Unlink className='w-4 h-4' />
-                                                    )}
-                                                </Button>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <Button
-                                            variant='outline'
-                                            size='sm'
-                                            onClick={() =>
-                                                handleLinkProvider("google")
-                                            }
-                                            disabled={isLinking}
-                                            className='text-red-400 hover:text-red-300 hover:bg-red-500/20 border-red-400/50'
-                                        >
-                                            {linkingProvider === "google" ? (
-                                                <Loader2 className='w-4 h-4 animate-spin' />
-                                            ) : (
-                                                <Link className='w-4 h-4' />
-                                            )}
-                                            Link
-                                        </Button>
-                                    )}
-                                </div>
+                        {/* Google */}
+                        <div
+                            className={`flex items-center space-x-3 p-4 rounded-xl border ${isProviderLinked("google") ? "border-green-400 bg-green-500/10" : "border-border/50 bg-background/30"} transition-all duration-200`}
+                        >
+                            <div className='p-2 rounded-lg bg-blue-500/20 flex-shrink-0'>
+                                <FaGoogle className='w-5 h-5 text-white' />
+                            </div>
+                            <div className='flex-1 min-w-0'>
+                                <h3 className='font-medium text-white'>
+                                    {t("google")}
+                                </h3>
+                                <p className='text-sm text-gray-300'>
+                                    {t("googleSignInDescription")}
+                                </p>
+                            </div>
+                            <div className='flex items-center space-x-2 flex-shrink-0'>
+                                {isProviderLinked("google") ? (
+                                    <>
+                                        <div className='flex items-center space-x-2 text-green-400'>
+                                            <div className='w-2 h-2 rounded-full bg-green-400'></div>
+                                            <span className='text-xs font-medium'>
+                                                Linked
+                                            </span>
+                                        </div>
+                                        {canUnlinkProvider("google") && (
+                                            <Button
+                                                variant='outline'
+                                                size='sm'
+                                                onClick={() =>
+                                                    handleUnlinkProvider(
+                                                        "google"
+                                                    )
+                                                }
+                                                disabled={isLinking}
+                                                className='text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 border-blue-400/50'
+                                            >
+                                                {linkingProvider ===
+                                                "google" ? (
+                                                    <Loader2 className='w-4 h-4 animate-spin' />
+                                                ) : (
+                                                    <Unlink className='w-4 h-4' />
+                                                )}
+                                            </Button>
+                                        )}
+                                    </>
+                                ) : (
+                                    <Button
+                                        variant='outline'
+                                        size='sm'
+                                        onClick={() =>
+                                            handleLinkProvider("google")
+                                        }
+                                        disabled={isLinking}
+                                        className='text-blue-400 hover:text-red-300 hover:bg-red-500/20 border-red-400/50'
+                                    >
+                                        {linkingProvider === "google" ? (
+                                            <Loader2 className='w-4 h-4 animate-spin' />
+                                        ) : (
+                                            <Link className='w-4 h-4' />
+                                        )}
+                                        Link
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -349,11 +347,7 @@ export function LoginMethods() {
 
                 <div className='p-4 rounded-lg bg-background/30 border border-border/50'>
                     <p className='text-xs text-gray-400'>
-                        <strong>Note:</strong> You can link multiple
-                        authentication methods to your account. You must keep at
-                        least one method active. Use the Password Settings
-                        section below to manage your email and password
-                        credentials.
+                        <strong>{t("noteLabel")}</strong> {t("note")}
                     </p>
                 </div>
             </div>

@@ -11,11 +11,13 @@ import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
 import { usePathname } from "next/navigation"
 import { Button } from "../ui/button"
+import { useTranslations } from "next-intl"
 
 export default function SignInAccordion() {
     const { user } = useAuth()
     const pathname = usePathname()
     const { refillCap, firstLoginBonusGranted } = useStars()
+    const t = useTranslations("SignInAccordion")
     return (
         <AccordionItem className='rounded-xl border border-border/20 bg-card/10 px-2'>
             <AccordionTrigger className='px-2'>
@@ -33,7 +35,7 @@ export default function SignInAccordion() {
                             <Gift className='w-4 h-4' />
                         )}
                     </span>
-                    <span className='text-white'>Sign in</span>
+                    <span className='text-white'>{t("title")}</span>
                     <span className='ml-2 text-xs px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 border border-yellow-500/30 text-yellow-300 flex items-center gap-1'>
                         <Star className='w-3.5 h-3.5' fill='currentColor' />
                         12
@@ -42,17 +44,16 @@ export default function SignInAccordion() {
             </AccordionTrigger>
             <AccordionContent>
                 <div className='space-y-3 p-4 rounded-lg bg-card/20 border border-border/20'>
-                    <p>
-                        New accounts start with 12 stars. Auto-refills 1 star
-                        every 2 hours (cap {refillCap}).
-                    </p>
+                    <p>{t("description", { cap: refillCap })}</p>
                     {!(user && firstLoginBonusGranted) && (
                         <Link
                             href={`/signin?callbackUrl=${encodeURIComponent(
                                 pathname || "/stars"
                             )}`}
                         >
-                            <Button className='rounded-full'>Sign in</Button>
+                            <Button className='rounded-full'>
+                                {t("button")}
+                            </Button>
                         </Link>
                     )}
                 </div>

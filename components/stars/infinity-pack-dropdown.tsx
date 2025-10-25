@@ -3,6 +3,7 @@
 import { Checkout } from "../checkout"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { ChevronDown } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface InfinityPackDropdownProps {
     packId: string
@@ -11,6 +12,7 @@ interface InfinityPackDropdownProps {
 export default function InfinityPackDropdown({
     packId,
 }: InfinityPackDropdownProps) {
+    const t = useTranslations("InfinityPackDropdown")
     return (
         <Popover>
             <PopoverTrigger asChild>
@@ -27,7 +29,7 @@ export default function InfinityPackDropdown({
                     }}
                     className='absolute top-2 right-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 transition-colors duration-200 cursor-pointer'
                     role='button'
-                    aria-label='Choose infinity term'
+                    aria-label={t("aria")}
                     tabIndex={0}
                 >
                     <ChevronDown className='w-3 h-3 text-yellow-300' />
@@ -40,9 +42,11 @@ export default function InfinityPackDropdown({
                     infinityTerm='month'
                     customTrigger={
                         <button className='w-full text-left text-sm px-3 py-2 rounded-lg hover:bg-white/10 transition-colors duration-200'>
-                            <div className='font-medium'>Monthly Pass</div>
+                            <div className='font-medium'>
+                                {t("monthlyPass")}
+                            </div>
                             <div className='text-xs text-gray-400'>
-                                $9.99/month
+                                {t("monthlyPrice")}
                             </div>
                         </button>
                     }

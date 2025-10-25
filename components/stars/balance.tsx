@@ -6,10 +6,12 @@ import { useStars } from "@/contexts/stars-context"
 import { useEffect, useMemo, useState } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import StarCard from "../star-card"
+import { useTranslations } from "next-intl"
 
 export default function StarsBalance() {
     const { stars, nextRefillAt, refillCap } = useStars()
     const { user } = useAuth()
+    const t = useTranslations()
 
     const [now, setNow] = useState<number>(Date.now())
     useEffect(() => {
@@ -61,7 +63,7 @@ export default function StarsBalance() {
                     </div>
                     <div className='text-left'>
                         <p className='text-xs text-gray-400 mb-1'>
-                            Stars available
+                            {t("StarsBalance.available")}
                         </p>
                         <p className='text-5xl md:text-6xl font-bold text-white tracking-tight bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 bg-clip-text text-transparent'>
                             {stars}
@@ -74,7 +76,7 @@ export default function StarsBalance() {
                     <div className='flex items-center justify-center gap-3 text-sm text-gray-300'>
                         <div className='flex items-center gap-2'>
                             <Clock className='w-5 h-5 text-yellow-400' />
-                            <span>Next refill</span>
+                            <span>{t("StarsBalance.nextRefill")}</span>
                         </div>
                         <div className='px-3 py-1 rounded-full bg-gradient-to-r from-yellow-400/20 to-amber-500/20 border border-yellow-500/30'>
                             <span className='text-white font-bold font-mono'>
@@ -103,18 +105,13 @@ export default function StarsBalance() {
                     <div className='p-4 rounded-xl bg-gradient-to-r from-white/5 to-white/10 border border-white/10 backdrop-blur-sm'>
                         <p className='text-sm text-gray-300 leading-relaxed'>
                             {user ? (
-                                <>
-                                    Auto-refills by 1 star every 2 hours (up to{" "}
-                                    {refillCap} stars).
-                                </>
+                                t("StarsBalance.autoRefill", { cap: refillCap })
                             ) : (
                                 <>
                                     <span className='text-gray-400'>
-                                        Anonymous User:
+                                        {t("StarsBalance.anonymousPrefix")}
                                     </span>{" "}
-                                    Refills to 5 stars at midnight (UTC+7).
-                                    Countdown shows time until next cosmic
-                                    alignment.
+                                    {t("StarsBalance.anonymousRefill")}
                                 </>
                             )}
                         </p>

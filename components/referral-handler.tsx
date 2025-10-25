@@ -12,7 +12,7 @@ import {
 import { Star, Sparkle } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export default function HomeRefHandler() {
+export default function ReferralHandler() {
     const searchParams = useSearchParams()
     const router = useRouter()
     const [showDialog, setShowDialog] = useState(false)

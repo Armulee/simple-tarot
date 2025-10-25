@@ -42,7 +42,7 @@ export default function Home() {
     }, [])
 
     return (
-        <div className='w-full h-[100dvh] overflow-hidden relative'>
+        <div className='w-full h-[calc(100dvh-64px)] overflow-hidden relative'>
             <Swiper
                 ref={mainSwiperRef}
                 className='w-full h-full'
@@ -68,7 +68,7 @@ export default function Home() {
                 {/* Main Content with Horizontal Swiper */}
                 <SwiperSlide className='w-full h-full relative'>
                     <Swiper
-                        className='w-full h-[calc(100%-160px)] md:h-[calc(100%-70px)]'
+                        className='w-full h-[calc(100%-100px)] md:h-[calc(100%-70px)]'
                         direction='horizontal'
                         loop={true}
                         nested

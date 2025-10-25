@@ -21,8 +21,10 @@ import OneTapTopUp from "@/components/stars/one-tap-top-up"
 import SignInAccordion from "@/components/stars/sign-in-accordion"
 import { Checkout } from "@/components/checkout"
 import SubscribeDropdown from "@/components/stars/subscribe-dropdown"
+import { useTranslations } from "next-intl"
 
 export default function StarsPage() {
+    const t = useTranslations("StarsPage")
     return (
         <div className='relative min-h-screen'>
             {/* Hero Section */}
@@ -39,7 +41,7 @@ export default function StarsPage() {
                     <div className='text-center space-y-6 mb-6'>
                         <div className='inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-yellow-400/20 to-amber-500/20 border border-yellow-500/30 text-yellow-200 text-sm font-medium'>
                             <Sparkles className='w-4 h-4 animate-pulse' />
-                            <span>Stars System</span>
+                            <span>{t("hero.badge")}</span>
                         </div>
                     </div>
 
@@ -52,11 +54,10 @@ export default function StarsPage() {
                     <div className='mb-12'>
                         <div className='text-center mb-6'>
                             <h2 className='text-2xl font-serif font-semibold text-white mb-2'>
-                                Quick stars Top-up
+                                {t("subscribe.title")}
                             </h2>
                             <p className='text-gray-400'>
-                                Need stars instantly? Choose your cosmic energy
-                                pack
+                                {t("subscribe.subtitle")}
                             </p>
                         </div>
                         {/* Feature highlights */}
@@ -66,15 +67,21 @@ export default function StarsPage() {
                                     className='w-4 h-4 text-yellow-400'
                                     fill='currentColor'
                                 />
-                                <span>Unlimited readings</span>
+                                <span>
+                                    {t("subscribe.features.unlimitedReadings")}
+                                </span>
                             </div>
                             <div className='flex items-center gap-2'>
                                 <Zap className='w-4 h-4 text-yellow-400' />
-                                <span>Premium features</span>
+                                <span>
+                                    {t("subscribe.features.premiumFeatures")}
+                                </span>
                             </div>
                             <div className='flex items-center gap-2'>
                                 <Crown className='w-4 h-4 text-yellow-400' />
-                                <span>Priority support</span>
+                                <span>
+                                    {t("subscribe.features.prioritySupport")}
+                                </span>
                             </div>
                         </div>
 
@@ -94,7 +101,7 @@ export default function StarsPage() {
                                         {/* Content */}
                                         <div className='relative z-10 flex items-center gap-3'>
                                             <Crown className='w-6 h-6 text-black group-hover:scale-110 transition-transform duration-300' />
-                                            <span>Subscribe (Unlimited)</span>
+                                            <span>{t("subscribe.button")}</span>
                                             <SubscribeDropdown />
                                         </div>
 
@@ -119,13 +126,12 @@ export default function StarsPage() {
                         <div className='inline-flex items-center gap-2 mb-4'>
                             <Zap className='w-6 h-6 text-yellow-400' />
                             <h2 className='text-3xl font-serif font-bold text-white'>
-                                Ways to Earn Stars
+                                {t("earn.title")}
                             </h2>
                             <Zap className='w-6 h-6 text-yellow-400' />
                         </div>
                         <p className='text-gray-300 max-w-2xl mx-auto'>
-                            Explore multiple paths to accumulate cosmic energy
-                            and unlock deeper mystical experiences
+                            {t("earn.subtitle")}
                         </p>
                     </div>
 
@@ -149,10 +155,10 @@ export default function StarsPage() {
                                     </div>
                                     <div className='flex-1 text-left'>
                                         <h3 className='text-lg font-semibold text-white group-hover:text-yellow-100 transition-colors'>
-                                            Purchase Stars
+                                            {t("earn.purchase.title")}
                                         </h3>
                                         <p className='text-sm text-gray-300'>
-                                            Instant top‑up
+                                            {t("earn.purchase.subtitle")}
                                         </p>
                                     </div>
                                     <span className='text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-yellow-400/30 to-amber-500/30 border border-yellow-500/40 text-yellow-200 flex items-center gap-1.5 font-medium'>
@@ -160,7 +166,7 @@ export default function StarsPage() {
                                             className='w-3.5 h-3.5'
                                             fill='currentColor'
                                         />
-                                        Instant
+                                        {t("earn.purchase.instant")}
                                     </span>
                                 </div>
                             </AccordionTrigger>
@@ -171,7 +177,7 @@ export default function StarsPage() {
 
                                     <div className='relative z-10'>
                                         <p className='text-gray-300 leading-relaxed mb-4'>
-                                            Need stars right now? Choose a plan and get stars added to your balance immediately after checkout. View pricing to compare options.
+                                            {t("earn.purchase.body")}
                                         </p>
                                         <div className='flex flex-col gap-3'>
                                             <Link href='/pricing'>
@@ -179,7 +185,9 @@ export default function StarsPage() {
                                                     variant='outline'
                                                     className='w-full rounded-full border-yellow-500/40 text-yellow-300 hover:bg-yellow-500/10 hover:border-yellow-400/60 py-3 transition-all duration-300'
                                                 >
-                                                    View Pricing
+                                                    {t(
+                                                        "earn.purchase.viewPricing"
+                                                    )}
                                                 </Button>
                                             </Link>
                                         </div>
@@ -205,10 +213,10 @@ export default function StarsPage() {
                                     </div>
                                     <div className='flex-1 text-left'>
                                         <h3 className='text-lg font-semibold text-white group-hover:text-purple-100 transition-colors'>
-                                            Create Content About Us
+                                            {t("earn.content.title")}
                                         </h3>
                                         <p className='text-sm text-gray-300'>
-                                            Create content. Earn stars.
+                                            {t("earn.content.subtitle")}
                                         </p>
                                     </div>
                                     <span className='text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-400/30 to-pink-500/30 border border-purple-500/40 text-purple-200 flex items-center gap-1.5 font-medium'>
@@ -227,7 +235,7 @@ export default function StarsPage() {
 
                                     <div className='relative z-10'>
                                         <p className='text-gray-300 leading-relaxed mb-4'>
-                                            Create content about Asking Fate—text, images, or video—and earn stars based on format. Submit a public link; we review within 24–48 hours.
+                                            {t("earn.content.body")}
                                         </p>
 
                                         <div className='grid gap-3 mb-4'>
@@ -239,12 +247,14 @@ export default function StarsPage() {
                                                 </div>
                                                 <div>
                                                     <p className='text-white font-medium'>
-                                                        Text article or blog
-                                                        post
+                                                        {t(
+                                                            "earn.content.items.textTitle"
+                                                        )}
                                                     </p>
                                                     <p className='text-gray-400 text-sm'>
-                                                        Share your insights in
-                                                        writing
+                                                        {t(
+                                                            "earn.content.items.textSubtitle"
+                                                        )}
                                                     </p>
                                                 </div>
                                             </div>
@@ -256,12 +266,14 @@ export default function StarsPage() {
                                                 </div>
                                                 <div>
                                                     <p className='text-white font-medium'>
-                                                        Image post (social
-                                                        media)
+                                                        {t(
+                                                            "earn.content.items.imageTitle"
+                                                        )}
                                                     </p>
                                                     <p className='text-gray-400 text-sm'>
-                                                        Visual content with
-                                                        captions
+                                                        {t(
+                                                            "earn.content.items.imageSubtitle"
+                                                        )}
                                                     </p>
                                                 </div>
                                             </div>
@@ -273,39 +285,44 @@ export default function StarsPage() {
                                                 </div>
                                                 <div>
                                                     <p className='text-white font-medium'>
-                                                        Video content
+                                                        {t(
+                                                            "earn.content.items.videoTitle"
+                                                        )}
                                                     </p>
                                                     <p className='text-gray-400 text-sm'>
-                                                        YouTube, TikTok, or
-                                                        Reels
+                                                        {t(
+                                                            "earn.content.items.videoSubtitle"
+                                                        )}
                                                     </p>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <p className='text-xs text-gray-400 mb-4 p-3 rounded-lg bg-white/5 border border-white/10'>
-                                            💡 Share the public link to your
-                                            content. We&apos;ll review and
-                                            approve manually within 24-48 hours.
+                                            {t("earn.content.note")}
                                         </p>
 
                                         <div className='flex flex-col gap-3'>
-                                        <Link href='/articles/create-content-about-us'>
-                                            <Button
-                                                variant='outline'
-                                                className='w-full rounded-full border-purple-500/40 text-purple-300 hover:bg-purple-500/10 hover:border-purple-400/60 py-3 transition-all duration-300'
-                                            >
-                                                Learn More
-                                            </Button>
-                                        </Link>
-                                        <Link href='/stars/submit-content'>
-                                            <Button
-                                                variant='outline'
-                                                className='w-full rounded-full border-purple-500/40 text-purple-300 hover:bg-purple-500/10 hover:border-purple-400/60 py-3 transition-all duration-300'
-                                            >
-                                                Submit Content
-                                            </Button>
-                                        </Link>
+                                            <Link href='/articles/create-content-about-us'>
+                                                <Button
+                                                    variant='outline'
+                                                    className='w-full rounded-full border-purple-500/40 text-purple-300 hover:bg-purple-500/10 hover:border-purple-400/60 py-3 transition-all duration-300'
+                                                >
+                                                    {t(
+                                                        "earn.content.learnMore"
+                                                    )}
+                                                </Button>
+                                            </Link>
+                                            <Link href='/stars/submit-content'>
+                                                <Button
+                                                    variant='outline'
+                                                    className='w-full rounded-full border-purple-500/40 text-purple-300 hover:bg-purple-500/10 hover:border-purple-400/60 py-3 transition-all duration-300'
+                                                >
+                                                    {t(
+                                                        "earn.content.submitContent"
+                                                    )}
+                                                </Button>
+                                            </Link>
                                         </div>
                                     </div>
                                 </div>
@@ -329,10 +346,10 @@ export default function StarsPage() {
                                     </div>
                                     <div className='flex-1 text-left'>
                                         <h3 className='text-lg font-semibold text-white group-hover:text-blue-100 transition-colors'>
-                                            Share a Reading
+                                            {t("earn.share.title")}
                                         </h3>
                                         <p className='text-sm text-gray-300'>
-                                            Share a link. Earn up to 3/day.
+                                            {t("earn.share.subtitle")}
                                         </p>
                                     </div>
                                     <span className='text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-400/30 to-cyan-500/30 border border-blue-500/40 text-blue-200 flex items-center gap-1.5 font-medium'>
@@ -351,7 +368,7 @@ export default function StarsPage() {
 
                                     <div className='relative z-10'>
                                         <p className='text-gray-300 leading-relaxed mb-4'>
-                                            Earn +1 star for each unique visitor who opens your shared reading—capped at 3 stars per day. Awards apply automatically.
+                                            {t("earn.share.body")}
                                         </p>
 
                                         <Link href='/articles/share-rewards'>
@@ -359,7 +376,7 @@ export default function StarsPage() {
                                                 variant='outline'
                                                 className='w-full rounded-full border-blue-500/40 text-blue-300 hover:bg-blue-500/10 hover:border-blue-400/60 py-3 transition-all duration-300'
                                             >
-                                                Learn More
+                                                {t("earn.share.learnMore")}
                                             </Button>
                                         </Link>
                                     </div>
@@ -384,10 +401,10 @@ export default function StarsPage() {
                                     </div>
                                     <div className='flex-1 text-left'>
                                         <h3 className='text-lg font-semibold text-white group-hover:text-green-100 transition-colors'>
-                                            Refer a Friend
+                                            {t("earn.refer.title")}
                                         </h3>
                                         <p className='text-sm text-gray-300'>
-                                            Invite friends. Earn together.
+                                            {t("earn.refer.subtitle")}
                                         </p>
                                     </div>
                                     <span className='text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-green-400/30 to-emerald-500/30 border border-green-500/40 text-green-200 flex items-center gap-1.5 font-medium'>
@@ -406,26 +423,28 @@ export default function StarsPage() {
 
                                     <div className='relative z-10'>
                                         <p className='text-gray-300 leading-relaxed mb-4'>
-                                            Share your referral link. You and your friend each earn 5 stars (up to 10 friends per week). If 10 friends register within a week, you receive a 10‑star bonus. Stars are granted when invited friends complete registration.
+                                            {t("earn.refer.body")}
                                         </p>
 
                                         <div className='flex flex-col gap-3'>
-                                        <Link href='/articles/referral-program'>
-                                            <Button
-                                                variant='outline'
-                                                className='w-full rounded-full border-green-500/40 text-green-300 hover:bg-green-500/10 hover:border-green-400/60 py-3 transition-all duration-300'
-                                            >
-                                                Learn More
-                                            </Button>
-                                        </Link>
-                                        <Link href='/referral'>
-                                            <Button
-                                                variant='outline'
-                                                className='w-full rounded-full border-green-500/40 text-green-300 hover:bg-green-500/10 hover:border-green-400/60 py-3 transition-all duration-300'
-                                            >
-                                                View Referral Link
-                                            </Button>
-                                        </Link>
+                                            <Link href='/articles/referral-program'>
+                                                <Button
+                                                    variant='outline'
+                                                    className='w-full rounded-full border-green-500/40 text-green-300 hover:bg-green-500/10 hover:border-green-400/60 py-3 transition-all duration-300'
+                                                >
+                                                    {t("earn.refer.learnMore")}
+                                                </Button>
+                                            </Link>
+                                            <Link href='/referral'>
+                                                <Button
+                                                    variant='outline'
+                                                    className='w-full rounded-full border-green-500/40 text-green-300 hover:bg-green-500/10 hover:border-green-400/60 py-3 transition-all duration-300'
+                                                >
+                                                    {t(
+                                                        "earn.refer.viewReferral"
+                                                    )}
+                                                </Button>
+                                            </Link>
                                         </div>
                                     </div>
                                 </div>

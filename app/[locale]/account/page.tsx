@@ -10,6 +10,7 @@ import {
     AccountDeletion,
     useLoginMethod,
 } from "@/components/account"
+import { Shield } from "lucide-react"
 
 export default function AccountPage() {
     const locale = useLocale()
@@ -24,19 +25,7 @@ export default function AccountPage() {
                 <div className='text-center space-y-6 mb-12'>
                     <div className='flex items-center justify-center space-x-3 mb-4'>
                         <div className='p-3 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 backdrop-blur-sm border border-primary/30'>
-                            <svg
-                                className='w-8 h-8 text-primary'
-                                fill='none'
-                                stroke='currentColor'
-                                viewBox='0 0 24 24'
-                            >
-                                <path
-                                    strokeLinecap='round'
-                                    strokeLinejoin='round'
-                                    strokeWidth={2}
-                                    d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
-                                />
-                            </svg>
+                            <Shield className='w-8 h-8 text-accent' />
                         </div>
                         <h1 className='text-3xl sm:text-4xl font-bold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'>
                             {t("title")}

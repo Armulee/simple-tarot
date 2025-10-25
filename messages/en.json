@@ -144,7 +144,9 @@
       "emailPasswordDescription": "Please use the Password Settings section below to set up your email and password.",
       "googleSignIn": "Sign in with Google",
       "googleSignInDescription": "Link your Google account for easy sign-in",
-      "googleUnlinkDescription": "Unlink your Google account"
+      "googleUnlinkDescription": "Unlink your Google account",
+      "noteLabel": "Note:",
+      "note": "You can link multiple authentication methods to your account. You must keep at least one method active. Use the Password Settings section below to manage your email and password credentials."
     },
     "passwordSettings": {
       "title": "Password",
@@ -178,7 +180,8 @@
       "accountDeleted": "Account deleted successfully!",
       "deletionFailed": "Failed to delete account",
       "confirmationRequired": "Please type 'DELETE' to confirm",
-      "confirmationMismatch": "Confirmation text does not match"
+      "confirmationMismatch": "Confirmation text does not match",
+      "cancel": "Cancel"
     }
   },
 
@@ -195,7 +198,160 @@
     "brand": "Asking Fate?",
     "tagline": "We’re combining time‑tested symbolism with modern AI to offer calm, useful guidance you can use today.",
     "learnMore": "Learn more on the About page",
-    "requestDemo": "Request a demo"
+    "requestDemo": "Request a demo",
+    "Services": {
+      "title": "Our Services",
+      "subtitle": "Mystical Services",
+      "description": "Discover the ancient arts of divination and self-discovery",
+      "status": {
+        "available": "Available",
+        "comingSoon": "Coming Soon"
+      },
+      "items": {
+        "tarot": {
+          "name": "AI Tarot Reading",
+          "description": "Get personalized tarot card readings powered by advanced AI technology"
+        },
+        "birthChart": {
+          "name": "Birth Chart Analysis",
+          "description": "Discover your cosmic blueprint through detailed astrological birth chart analysis"
+        },
+        "horoscope": {
+          "name": "Daily Horoscope",
+          "description": "Receive personalized daily insights based on your zodiac sign and planetary movements"
+        },
+        "namelogy": {
+          "name": "Namelogy",
+          "description": "Uncover the hidden meanings and vibrations behind names through ancient letter analysis"
+        },
+        "numerology": {
+          "name": "Numerology",
+          "description": "Decode the mystical significance of numbers in your life through numerological wisdom"
+        },
+        "luckyColors": {
+          "name": "Lucky Colors",
+          "description": "Discover your personal color palette for luck, success, and positive energy"
+        },
+        "palmistry": {
+          "name": "Palmistry",
+          "description": "Read the lines of destiny written in your palms through ancient palm reading wisdom"
+        }
+      }
+    },
+    "Roadmap": {
+      "title": "Roadmap (expected dates)",
+      "label": "Development Roadmap",
+      "description": "Our journey to bring you the most comprehensive mystical experience",
+      "progress": "Progress",
+      "status": {
+        "completed": "Completed",
+        "inDevelopment": "In Development",
+        "planned": "Planned"
+      },
+      "phases": {
+        "q4_2025": "Q4 2025",
+        "q1_2026": "Q1 2026"
+      },
+      "teamWorkspaces": {
+        "title": "Team & Workspaces",
+        "eta": "Nov 2025",
+        "features": ["Shared workspaces", "Simple roles"]
+      },
+      "savedReadings": {
+        "title": "Saved Readings & Journal",
+        "eta": "Dec 2025",
+        "features": ["Save readings", "Add notes", "Export"]
+      },
+      "multilanguage": {
+        "title": "Multi‑language (EN/TH)",
+        "eta": "Jan 2026",
+        "features": ["English", "ไทย (beta)"]
+      },
+      "mobileEnhancements": {
+        "title": "Mobile Web Enhancements",
+        "eta": "Feb 2026",
+        "features": ["Faster loads", "Offline-friendly"]
+      },
+      "publicApi": {
+        "title": "Public API (limited beta)",
+        "eta": "Mar 2026",
+        "features": ["Readings API", "Webhooks (beta)"]
+      },
+      "eta": "ETA"
+    },
+    "Technology": {
+      "title": "Technology & Innovation",
+      "label": "Cutting-Edge Technology",
+      "description": "Powered by the latest technology to deliver accurate and meaningful insights",
+      "aiPowered": {
+        "title": "AI-Powered",
+        "desc": "Advanced machine learning algorithms provide personalized and accurate readings",
+        "features": ["Advanced AI", "Machine Learning", "Natural Language Processing"]
+      },
+      "securePrivate": {
+        "title": "Secure & Private",
+        "desc": "End-to-end encryption ensures your personal data and readings remain confidential",
+        "features": ["End-to-End Encryption", "Privacy First", "Secure Storage"]
+      },
+      "globalAccess": {
+        "title": "Global Access",
+        "desc": "Available worldwide with multi-language support and cultural adaptations",
+        "features": ["Worldwide Access", "Multi-Language", "Cloud Infrastructure"]
+      },
+      "stack": {
+        "title": "Built with Modern Stack",
+        "desc": "Leveraging cutting-edge technologies for optimal performance",
+        "items": ["Supabase", "Security", "Real-time", "AI/ML"]
+      }
+    },
+    "Testimonials": {
+      "title": "What Our Users Say",
+      "label": "User Testimonials",
+      "description": "Hear what our users have to say about their mystical journey",
+      "autoPlay": {
+        "autoPlaying": "Auto-playing",
+        "clickToAutoPlay": "Click to auto-play"
+      },
+      "items": [
+        {
+          "quote": "I use it most mornings to set an intention. It helps me start the day a bit more grounded.",
+          "author": "Yui",
+          "role": "Early user",
+          "initial": "Y"
+        },
+        {
+          "quote": "The reflections feel balanced—useful without being pushy. It's become a quiet ritual that helps me think more clearly.",
+          "author": "Daniel",
+          "role": "Early user",
+          "initial": "D"
+        }
+      ]
+    },
+    "Statistics": {
+      "title": "Quick stats",
+      "label": "Our Impact",
+      "description": "Numbers that reflect our commitment to mystical excellence",
+      "growing": "Growing every day",
+      "items": [
+        { "number": "~500", "label": "Early users" },
+        { "number": "Thousands", "label": "Cards drawn" },
+        { "number": "Weekly", "label": "Updates shipped" },
+        { "number": "24/7", "label": "Available" }
+      ]
+    },
+    "CTA": {
+      "title": "Ready to Begin Your Journey?",
+      "label": "Ready to Begin?",
+      "subheading": "Your Journey Awaits",
+      "desc": "Join thousands of users who have discovered their path through our AI-powered mystical guidance.",
+      "primary": "Start Your Reading",
+      "secondary": "Learn More",
+      "features": {
+        "instantAccess": "Instant Access",
+        "premiumQuality": "Premium Quality",
+        "mysticalExperience": "Mystical Experience"
+      }
+    }
   },
 
   "QuestionInput": {
@@ -374,32 +530,6 @@
       "desc": "We’ve just launched—join early users exploring calm, practical guidance.",
       "primary": "Start your first reading",
       "secondary": "Learn more"
-    }
-  },
-
-  "Contact": {
-    "title": "Get in Touch",
-    "intro": "Have questions about your cosmic journey? We're here to help guide you through the stars.",
-    "email": {
-      "title": "Email Support",
-      "desc": "Send us an email and we'll respond within 24 hours during business days.",
-      "label": "support@cosmictarot.com"
-    },
-    "chat": {
-      "title": "Live Chat",
-      "desc": "Chat with our support team in real-time for immediate assistance.",
-      "availability": "Available 9 AM - 6 PM EST"
-    },
-    "response": {
-      "title": "Response Time",
-      "desc": "We typically respond to all inquiries within 24 hours. Premium subscribers receive priority support."
-    },
-    "faq": {
-      "title": "Frequently Asked Questions",
-      "q1Title": "How accurate are the AI readings?",
-      "q1Desc": "Our AI provides insights based on traditional tarot symbolism, but readings are for guidance and entertainment.",
-      "q2Title": "Is the service free to use?",
-      "q2Desc": "Our service is completely free to use. No subscriptions or payments required."
     }
   },
 
@@ -945,6 +1075,97 @@
       "simple": "Simple",
       "intermediate": "Intermediate", 
       "advanced": "Advanced"
+    }
+  }
+  ,
+  "StarsBalance": {
+    "available": "Stars available",
+    "nextRefill": "Next refill",
+    "anonymousPrefix": "Anonymous User:",
+    "anonymousRefill": "Refills to 5 stars at midnight (UTC+7). Countdown shows time until next cosmic alignment.",
+    "autoRefill": "Auto-refills by 1 star every 2 hours (up to {cap} stars)."
+  },
+  "SignInAccordion": {
+    "title": "Sign in",
+    "description": "New accounts start with 12 stars. Auto-refills 1 star every 2 hours (cap {cap}).",
+    "button": "Sign in"
+  },
+  "OneTapTopUp": {
+    "packs": {
+      "starter": "Starter",
+      "explorer": "Explorer",
+      "seeker": "Seeker",
+      "mystic": "Mystic",
+      "master": "Master",
+      "unlimited": "Unlimited",
+      "infinity": "Infinity"
+    }
+  },
+  "SubscribeDropdown": {
+    "aria": "Choose subscription term",
+    "monthly": "Monthly",
+    "monthlyPrice": "$9.99/month",
+    "annual": "Annual",
+    "annualPrice": "$99.99/year"
+  },
+  "InfinityPackDropdown": {
+    "aria": "Choose infinity term",
+    "monthlyPass": "Monthly Pass",
+    "monthlyPrice": "$9.99/month"
+  },
+  "StarsPage": {
+    "hero": {
+      "badge": "Stars System"
+    },
+    "subscribe": {
+      "title": "Quick stars Top-up",
+      "subtitle": "Need stars instantly? Choose your cosmic energy pack",
+      "features": {
+        "unlimitedReadings": "Unlimited readings",
+        "premiumFeatures": "Premium features",
+        "prioritySupport": "Priority support"
+      },
+      "button": "Subscribe (Unlimited)"
+    },
+    "earn": {
+      "title": "Ways to Earn Stars",
+      "subtitle": "Explore multiple paths to accumulate cosmic energy and unlock deeper mystical experiences",
+      "purchase": {
+        "title": "Purchase Stars",
+        "subtitle": "Instant top‑up",
+        "body": "Need stars right now? Choose a plan and get stars added to your balance immediately after checkout. View pricing to compare options.",
+        "viewPricing": "View Pricing",
+        "instant": "Instant"
+      },
+      "content": {
+        "title": "Create Content About Us",
+        "subtitle": "Create content. Earn stars.",
+        "body": "Create content about Asking Fate—text, images, or video—and earn stars based on format. Submit a public link; we review within 24–48 hours.",
+        "items": {
+          "textTitle": "Text article or blog post",
+          "textSubtitle": "Share your insights in writing",
+          "imageTitle": "Image post (social media)",
+          "imageSubtitle": "Visual content with captions",
+          "videoTitle": "Video content",
+          "videoSubtitle": "YouTube, TikTok, or Reels"
+        },
+        "note": "💡 Share the public link to your content. We'll review and approve manually within 24-48 hours.",
+        "learnMore": "Learn More",
+        "submitContent": "Submit Content"
+      },
+      "share": {
+        "title": "Share a Reading",
+        "subtitle": "Share a link. Earn up to 3/day.",
+        "body": "Earn +1 star for each unique visitor who opens your shared reading—capped at 3 stars per day. Awards apply automatically.",
+        "learnMore": "Learn More"
+      },
+      "refer": {
+        "title": "Refer a Friend",
+        "subtitle": "Invite friends. Earn together.",
+        "body": "Share your referral link. You and your friend each earn 5 stars (up to 10 friends per week). If 10 friends register within a week, you receive a 10‑star bonus. Stars are granted when invited friends complete registration.",
+        "learnMore": "Learn More",
+        "viewReferral": "View Referral Link"
+      }
     }
   }
 }

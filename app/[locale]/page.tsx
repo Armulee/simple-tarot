@@ -28,13 +28,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function HomePage() {
     return (
-        <div className='overflow-hidden h-full'>
+        <>
             <Suspense fallback={null}>
                 <ReferralHandler />
             </Suspense>
-            <section className='relative z-10 h-full flex flex-col items-center justify-center text-center'>
+            <section className='relative z-10 overflow-hidden h-[calc(100vh-64px)] flex flex-col items-center justify-center text-center'>
                 <HomeHero />
             </section>
-        </div>
+        </>
     )
 }

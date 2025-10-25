@@ -3,17 +3,34 @@
 import { Checkout } from "../checkout"
 import { Star, Zap, Infinity } from "lucide-react"
 import InfinityPackDropdown from "./infinity-pack-dropdown"
+import { useTranslations } from "next-intl"
 
-const packs = [
-    { id: "pack-1", stars: 60, label: "Starter", color: "yellow" },
-    { id: "pack-2", stars: 130, label: "Explorer", color: "yellow" },
-    { id: "pack-3", stars: 200, label: "Seeker", color: "yellow" },
-    { id: "pack-5", stars: 350, label: "Mystic", color: "yellow" },
-    { id: "pack-7", stars: 500, label: "Master", color: "yellow" },
+type LabelKey =
+    | "starter"
+    | "explorer"
+    | "seeker"
+    | "mystic"
+    | "master"
+    | "unlimited"
+
+type Pack = {
+    id: string
+    stars: number | "infinity"
+    labelKey: LabelKey
+    color: string
+    isInfinity?: boolean
+}
+
+const packs: Pack[] = [
+    { id: "pack-1", stars: 60, labelKey: "starter", color: "yellow" },
+    { id: "pack-2", stars: 130, labelKey: "explorer", color: "yellow" },
+    { id: "pack-3", stars: 200, labelKey: "seeker", color: "yellow" },
+    { id: "pack-5", stars: 350, labelKey: "mystic", color: "yellow" },
+    { id: "pack-7", stars: 500, labelKey: "master", color: "yellow" },
     {
         id: "pack-infinity",
-        stars: "Infinity",
-        label: "Unlimited",
+        stars: "infinity",
+        labelKey: "unlimited",
         color: "yellow",
         isInfinity: true,
     },
@@ -69,6 +86,7 @@ const getColorClasses = (color: string) => {
 }
 
 export default function OneTapTopUp() {
+    const t = useTranslations("OneTapTopUp.packs")
     return (
         <div className='w-full max-w-5xl mx-auto'>
             {/* Star Packs Grid */}
@@ -132,10 +150,12 @@ export default function OneTapTopUp() {
                                                 <p
                                                     className={`text-2xl font-bold ${colors.text} drop-shadow-sm`}
                                                 >
-                                                    {p.stars}
+                                                    {p.isInfinity
+                                                        ? t("infinity")
+                                                        : p.stars}
                                                 </p>
                                                 <p className='text-xs text-amber-200/80 font-medium'>
-                                                    {p.label}
+                                                    {t(p.labelKey)}
                                                 </p>
                                             </div>
                                         </div>

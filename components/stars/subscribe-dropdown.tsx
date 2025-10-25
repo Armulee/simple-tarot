@@ -3,8 +3,10 @@
 import { Checkout } from "../checkout"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { ChevronDown } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 export default function SubscribeDropdown() {
+    const t = useTranslations("SubscribeDropdown")
     return (
         <Popover>
             <PopoverTrigger asChild>
@@ -21,7 +23,7 @@ export default function SubscribeDropdown() {
                     }}
                     className='inline-flex items-center justify-center w-7 h-7 rounded-full bg-black/10 hover:bg-black/20 transition-colors duration-200 cursor-pointer'
                     role='button'
-                    aria-label='Choose subscription term'
+                    aria-label={t("aria")}
                     tabIndex={0}
                 >
                     <ChevronDown className='w-4 h-4 text-black' />
@@ -33,9 +35,9 @@ export default function SubscribeDropdown() {
                     plan='monthly'
                     customTrigger={
                         <button className='w-full text-left text-sm px-3 py-2 rounded-lg hover:bg-white/10 transition-colors duration-200'>
-                            <div className='font-medium'>Monthly</div>
+                            <div className='font-medium'>{t("monthly")}</div>
                             <div className='text-xs text-gray-400'>
-                                $9.99/month
+                                {t("monthlyPrice")}
                             </div>
                         </button>
                     }
@@ -45,9 +47,9 @@ export default function SubscribeDropdown() {
                     plan='annual'
                     customTrigger={
                         <button className='w-full text-left text-sm px-3 py-2 rounded-lg hover:bg-white/10 transition-colors duration-200'>
-                            <div className='font-medium'>Annual</div>
+                            <div className='font-medium'>{t("annual")}</div>
                             <div className='text-xs text-gray-400'>
-                                $99.99/year
+                                {t("annualPrice")}
                             </div>
                         </button>
                     }
