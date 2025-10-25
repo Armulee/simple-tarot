@@ -61,55 +61,48 @@ export default async function ArticlesIndexPage() {
   ] as const
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-pulse floating-bg"></div>
-        <div className="absolute top-1/3 right-1/4 w-24 h-24 bg-secondary/10 rounded-full blur-3xl animate-pulse delay-1000 floating-bg"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-20 h-20 bg-primary/5 rounded-full blur-3xl animate-pulse delay-2000 floating-bg"></div>
-      </div>
-
+    <div className="relative min-h-screen">
       {/* Header */}
-      <header className="relative bg-gradient-to-b from-primary/20 via-primary/10 to-transparent border-b border-border/30 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 sm:pt-16 pb-16 sm:pb-20 text-center">
+      <header className="relative">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12 pb-8 sm:pb-12 text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6 animate-fadeInUp">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 text-accent text-sm font-medium mb-4">
             <Sparkles className="w-4 h-4" />
             Knowledge Hub
           </div>
 
           {/* Title */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-white leading-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-foreground leading-tight">
             <span className="relative inline-block">
-              <span className="text-transparent bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text animate-gradient-x">
+              <span className="text-transparent bg-gradient-to-r from-accent via-accent/80 to-accent bg-clip-text animate-gradient-x">
                 Articles & Guides
               </span>
               {/* Animated underline */}
-              <div className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-primary to-secondary rounded-full animate-pulse"></div>
+              <div className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-accent to-accent/80 rounded-full animate-pulse"></div>
             </span>
           </h1>
-          <p className="text-gray-300 text-base sm:text-lg max-w-3xl mx-auto leading-relaxed mt-6">
+          <p className="text-muted-foreground text-base sm:text-lg max-w-3xl mx-auto leading-relaxed mt-3">
             Helpful, documentation-style guides about Asking Fate.
           </p>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="relative max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+      <main className="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Articles Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {items.map(({ href, title, description, icon: Icon, badge }) => (
             <Link key={href} href={href} className="block group article-card">
-              <Card className="h-full relative overflow-hidden bg-transparent border-border/30 hover:border-primary/60 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 group-hover:scale-[1.02] group-hover:-translate-y-1">
+              <Card className="h-full relative overflow-hidden bg-transparent border-border/30 hover:border-accent/60 hover:shadow-2xl hover:shadow-accent/10 transition-all duration-500 group-hover:scale-[1.02] group-hover:-translate-y-1">
                 {/* Gradient overlay on hover */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 
                 {/* Animated border */}
-                <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
+                <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-accent/20 via-accent/20 to-accent/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
                 
                 <CardHeader className="relative z-10 pb-3">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors duration-300 icon-bounce">
+                    <div className="p-2 rounded-lg bg-accent/10 text-accent group-hover:bg-accent/20 transition-colors duration-300 icon-bounce">
                       <Icon className="w-5 h-5" />
                     </div>
                     <Badge 
@@ -127,7 +120,7 @@ export default async function ArticlesIndexPage() {
                       {badge}
                     </Badge>
                   </div>
-                  <CardTitle className="text-lg sm:text-xl font-semibold text-foreground group-hover:text-primary transition-colors duration-300 line-clamp-2">
+                  <CardTitle className="text-lg sm:text-xl font-semibold text-foreground group-hover:text-accent transition-colors duration-300 line-clamp-2">
                     {title}
                   </CardTitle>
                 </CardHeader>
@@ -138,7 +131,7 @@ export default async function ArticlesIndexPage() {
                   </CardDescription>
                   
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-primary group-hover:text-primary/80 transition-colors duration-300 flex items-center gap-1">
+                    <span className="text-sm font-medium text-accent group-hover:text-accent/80 transition-colors duration-300 flex items-center gap-1">
                       Read more
                       <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform duration-300" />
                     </span>
@@ -156,10 +149,10 @@ export default async function ArticlesIndexPage() {
         </div>
 
         {/* Call to Action */}
-        <div className="text-center mt-16 animate-fadeInUp">
+        <div className="text-center mt-12">
           <p className="text-muted-foreground text-sm sm:text-base">
             Can&apos;t find what you&apos;re looking for?{" "}
-            <Link href="/contact" className="text-primary hover:underline font-medium">
+            <Link href="/contact" className="text-accent hover:underline font-medium">
               Contact support
             </Link>
           </p>
