@@ -1,10 +1,8 @@
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 import { Link } from "@/i18n/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { BookOpen, Share2, Users, HelpCircle, Gamepad2, MessageCircleQuestion, Sparkles, ArrowRight, Star } from "lucide-react"
-import { ArticlesIndex } from "@/components/articles/articles-index"
+import { ArticlesIndex, type ArticleCardItem } from "@/components/articles/articles-index"
+import { Sparkles } from "lucide-react"
 import { SearchArticles } from "@/components/articles/search-articles"
 import { ARTICLES } from "@/components/articles/data"
 
@@ -18,47 +16,47 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ArticlesIndexPage() {
 
-  const items = [
+  const items: ArticleCardItem[] = [
     {
       href: "/articles/create-content",
       title: "Create Content About Us",
       description: "Write, post, or film about Asking Fate and earn stars.",
-      icon: BookOpen,
+      icon: (await import("lucide-react")).BookOpen,
       badge: "Earn stars",
     },
     {
       href: "/articles/share-reading",
       title: "Share a Reading",
       description: "Share your reading link and earn up to 3 stars/day.",
-      icon: Share2,
+      icon: (await import("lucide-react")).Share2,
       badge: "Earn stars",
     },
     {
       href: "/articles/refer-a-friend",
       title: "Refer a Friend",
       description: "Invite friends. You both earn stars when they join.",
-      icon: Users,
+      icon: (await import("lucide-react")).Users,
       badge: "Earn stars",
     },
     {
       href: "/articles/how-to-play",
       title: "How to Play",
       description: "Ask a question, pick cards, and reflect—step-by-step.",
-      icon: Gamepad2,
+      icon: (await import("lucide-react")).Gamepad2,
       badge: "Basics",
     },
     {
       href: "/articles/help-support",
       title: "Help & Support",
       description: "Get help with your account, readings, or technical issues.",
-      icon: HelpCircle,
+      icon: (await import("lucide-react")).HelpCircle,
       badge: "Support",
     },
     {
       href: "/articles/faq",
       title: "Frequently Asked Questions",
       description: "Find answers to common questions about our services.",
-      icon: MessageCircleQuestion,
+      icon: (await import("lucide-react")).MessageCircleQuestion,
       badge: "FAQ",
     },
   ] as const
@@ -101,7 +99,7 @@ export default async function ArticlesIndexPage() {
 
       {/* Main Content */}
       <main className="relative max-w-6xl mx-auto px-4 sm:px-6 pt-4 pb-8">
-        <ArticlesIndex items={items as any} />
+        <ArticlesIndex items={items} />
         <div className="text-center mt-16 animate-fadeInUp">
           <p className="text-muted-foreground text-sm sm:text-base">
             Can&apos;t find what you&apos;re looking for?{" "}

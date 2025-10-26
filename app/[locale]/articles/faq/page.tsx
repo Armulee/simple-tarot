@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server"
 import { Link } from "@/i18n/navigation"
 import { ArticleLayout, type ArticleSection } from "@/components/articles/article-layout"
 import { ARTICLES } from "@/components/articles/data"
-import { HelpCircle, Shield, Star, BookOpen, MessageCircle, CheckCircle } from "lucide-react"
+// import { HelpCircle, Shield, Star, BookOpen, MessageCircle, CheckCircle } from "lucide-react"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Articles")
