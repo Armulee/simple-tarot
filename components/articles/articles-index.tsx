@@ -5,14 +5,14 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Link } from "@/i18n/navigation"
-import { ArrowRight, Star, X } from "lucide-react"
+import { ArrowRight, Star, X, BookOpen, Share2, Users, HelpCircle, Gamepad2, MessageCircleQuestion } from "lucide-react"
 
 export type ArticleCardItem = {
   href: string
   title: string
   description: string
   badge: string
-  icon: React.ComponentType<{ className?: string }>
+  iconId: "book" | "share" | "users" | "gamepad" | "help" | "faq"
   tags?: string[]
 }
 
@@ -67,7 +67,16 @@ export function ArticlesIndex({ items }: { items: ArticleCardItem[] }) {
         <div className="text-center text-muted-foreground py-12">No related articles found</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {filtered.map(({ href, title, description, icon: Icon, badge }) => (
+          {filtered.map(({ href, title, description, iconId, badge }) => {
+            const Icon = (
+              iconId === "book" ? BookOpen :
+              iconId === "share" ? Share2 :
+              iconId === "users" ? Users :
+              iconId === "gamepad" ? Gamepad2 :
+              iconId === "help" ? HelpCircle :
+              MessageCircleQuestion
+            )
+            return (
             <Link key={href} href={href} className="block group article-card">
               <Card className="h-full relative overflow-hidden bg-transparent border-border/30 hover:border-primary/60 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 group-hover:scale-[1.02] group-hover:-translate-y-1">
                 {/* Gradient overlay on hover */}
@@ -116,7 +125,7 @@ export function ArticlesIndex({ items }: { items: ArticleCardItem[] }) {
                 </CardContent>
               </Card>
             </Link>
-          ))}
+          )})}
         </div>
       )}
     </div>
