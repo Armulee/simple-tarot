@@ -47,7 +47,7 @@ export function Navbar({ locale }: { locale: string }) {
                         <Button
                             variant='ghost'
                             size='icon'
-                            className='md:hidden text-white hover:bg-white/10'
+                            className='lg:hidden text-white hover:bg-white/10'
                             onClick={() => setOpen(true)}
                             aria-label='Open menu'
                         >
@@ -78,7 +78,7 @@ export function Navbar({ locale }: { locale: string }) {
                         <div className='flex items-center mr-4'>
                             <Link
                                 href='/'
-                                className={`hidden md:block px-3 py-1.5 rounded-md transition-colors mr-4 ${
+                                className={`hidden lg:block px-3 py-1.5 rounded-md transition-colors mr-4 ${
                                     pathname === "/"
                                         ? "bg-accent text-white"
                                         : "text-cosmic-light hover:text-white hover:bg-white/5"
@@ -88,7 +88,7 @@ export function Navbar({ locale }: { locale: string }) {
                             </Link>
                             <Link
                                 href='/about'
-                                className={`hidden md:block px-3 py-1.5 rounded-md transition-colors mr-4 ${
+                                className={`hidden lg:block px-3 py-1.5 rounded-md transition-colors mr-4 ${
                                     pathname === "/about"
                                         ? "bg-accent text-white"
                                         : "text-cosmic-light hover:text-white hover:bg-white/5"
@@ -98,7 +98,7 @@ export function Navbar({ locale }: { locale: string }) {
                             </Link>
                             <Link
                                 href='/pricing'
-                                className={`hidden md:block px-3 py-1.5 rounded-md transition-colors mr-4 ${
+                                className={`hidden lg:block px-3 py-1.5 rounded-md transition-colors mr-4 ${
                                     pathname === "/pricing"
                                         ? "bg-accent text-white"
                                         : "text-cosmic-light hover:text-white hover:bg-white/5"
@@ -147,7 +147,7 @@ export function Navbar({ locale }: { locale: string }) {
                         </DropdownMenu>
 
                         {/* Star balance pill - desktop */}
-                        <div className='hidden md:flex items-center'>
+                        <div className='hidden lg:flex items-center'>
                             <Link href='/stars'>
                                 <Button
                                     variant='ghost'
@@ -180,7 +180,7 @@ export function Navbar({ locale }: { locale: string }) {
                         </div>
 
                         {/* Mobile: Star balance next to sign-in/profile */}
-                        <div className='md:hidden flex items-center'>
+                        <div className='lg:hidden flex items-center'>
                             <Link href='/stars' className='mr-1'>
                                 <Button
                                     variant='ghost'
@@ -213,7 +213,7 @@ export function Navbar({ locale }: { locale: string }) {
                         </div>
 
                         {/* Desktop: User Profile / Sign In button */}
-                        <div className='hidden md:block'>
+                        <div className='hidden lg:block'>
                             {!loading && user ? (
                                 <UserProfile variant='desktop' />
                             ) : (
@@ -234,7 +234,7 @@ export function Navbar({ locale }: { locale: string }) {
                         </div>
 
                         {/* Mobile: User profile when logged-in, else sign-in icon */}
-                        <div className='md:hidden'>
+                        <div className='lg:hidden'>
                             {!loading && user ? (
                                 <UserProfile variant='mobile' />
                             ) : (

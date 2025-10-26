@@ -14,6 +14,7 @@
     "home": "Home",
     "about": "About",
     "pricing": "Pricing",
+    "articles": "Articles & Guides",
     "contactSupport": "Contact & Support"
   },
 
@@ -69,7 +70,7 @@
     "phone": "Phone",
     "authentication": "Authentication",
     "password": "Password",
-    "accountDeletion": "Account Deletion",
+    "accountDeletionLabel": "Account Deletion",
     "emailSettings": {
       "title": "Email",
       "currentEmail": "Current Email",
@@ -810,6 +811,50 @@
     "Demo": {
       "title": "Request a Demo | Asking Fate",
       "description": "See Asking Fate in action. Request a short live walkthrough and try an interactive preview."
+    },
+    "Articles": {
+      "title": "Articles & Guides | Asking Fate",
+      "description": "Documentation-style guides: how to play, share readings, refer friends, create content, help & FAQ."
+    }
+  },
+  "Articles": {
+    "title": "Articles & Guides",
+    "subtitle": "Helpful, documentation-style guides about Asking Fate.",
+    "knowledgeHub": "Knowledge Hub",
+    "searchPlaceholder": "Search articles...",
+    "cantFind": "Can't find what you're looking for?",
+    "contactSupport": "Contact support",
+    "badges": {
+      "earn": "Earn stars",
+      "basics": "Basics",
+      "support": "Support",
+      "faq": "FAQ"
+    },
+    "items": {
+      "createContent": {
+        "title": "Create Content About Us",
+        "description": "Write, post, or film about Asking Fate and earn stars."
+      },
+      "shareReading": {
+        "title": "Share a Reading",
+        "description": "Share your reading link and earn up to 3 stars/day."
+      },
+      "referFriend": {
+        "title": "Refer a Friend",
+        "description": "Invite friends. You both earn stars when they join."
+      },
+      "howToPlay": {
+        "title": "How to Play",
+        "description": "Ask a question, pick cards, and reflect—step-by-step."
+      },
+      "helpSupport": {
+        "title": "Help & Support",
+        "description": "Get help, contact support, and troubleshooting tips."
+      },
+      "faq": {
+        "title": "FAQ",
+        "description": "Answers to common questions about readings and stars."
+      }
     }
   }
   ,
@@ -1169,5 +1214,3 @@
     }
   }
 }
-
-

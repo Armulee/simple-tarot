@@ -74,12 +74,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             { changeFrequency: "weekly", priority: 0.8 },
             "?type=advanced"
         ),
-        // Potential future pages
-        await withAlternates("/help", {
+        // Articles hub and documentation pages
+        await withAlternates("/articles", {
+            changeFrequency: "weekly",
+            priority: 0.7,
+        }),
+        await withAlternates("/articles/create-content", {
             changeFrequency: "monthly",
             priority: 0.6,
         }),
-        await withAlternates("/faq", {
+        await withAlternates("/articles/share-reading", {
+            changeFrequency: "monthly",
+            priority: 0.6,
+        }),
+        await withAlternates("/articles/refer-a-friend", {
+            changeFrequency: "monthly",
+            priority: 0.6,
+        }),
+        await withAlternates("/articles/how-to-play", {
+            changeFrequency: "monthly",
+            priority: 0.6,
+        }),
+        await withAlternates("/articles/help-support", {
+            changeFrequency: "monthly",
+            priority: 0.6,
+        }),
+        await withAlternates("/articles/faq", {
             changeFrequency: "monthly",
             priority: 0.6,
         }),
