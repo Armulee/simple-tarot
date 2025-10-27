@@ -2,7 +2,25 @@ import type { Metadata } from "next"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getCardBySlug, TAROT_CARDS } from "@/lib/tarot/cards"
-import { getCardMeaning } from "@/lib/tarot/meanings"
+import MEANINGS from "@/lib/tarot/meanings.json"
+type SectionMeaning = { keywords?: string[]; text: string; yesNo?: string; zodiac?: string }
+type CardMeaning = {
+    slug: string
+    upright: {
+        overview: SectionMeaning
+        relationships: SectionMeaning
+        work: SectionMeaning
+        finance: SectionMeaning
+        health: SectionMeaning
+    }
+    reversed: {
+        overview: SectionMeaning
+        relationships: SectionMeaning
+        work: SectionMeaning
+        finance: SectionMeaning
+        health: SectionMeaning
+    }
+}
 import { routing } from "@/i18n/routing"
 import {
     ArticleLayout,
@@ -88,7 +106,7 @@ export default async function TarotCardArticlePage({
         </div>
     )
 
-    const meaning = getCardMeaning(card.slug)
+    const meaning = (MEANINGS as Record<string, CardMeaning>)[card.slug]
     if (!meaning?.upright?.overview?.text || !meaning?.reversed?.overview?.text) {
         return notFound()
     }
@@ -152,7 +170,132 @@ export default async function TarotCardArticlePage({
             </div>
         ),
     }
-    const sections: ArticleSection[] = [uprightOverview, reversedOverview]
+    const sections: ArticleSection[] = [uprightOverview]
+
+    if (
+        meaning.upright.relationships?.text &&
+        meaning.reversed.relationships?.text
+    ) {
+        sections.push({
+            id: "upright-relationships",
+            title: "Relationships (Upright)",
+            content: (
+                <div className='space-y-3'>
+                    {meaning.upright.relationships.keywords?.length
+                        ? makeKeywords(meaning.upright.relationships.keywords)
+                        : null}
+                    <p>{meaning.upright.relationships.text}</p>
+                </div>
+            ),
+        })
+    }
+
+    if (meaning.upright.work?.text && meaning.reversed.work?.text) {
+        sections.push({
+            id: "upright-work",
+            title: "Work & Career (Upright)",
+            content: (
+                <div className='space-y-3'>
+                    {meaning.upright.work.keywords?.length
+                        ? makeKeywords(meaning.upright.work.keywords)
+                        : null}
+                    <p>{meaning.upright.work.text}</p>
+                </div>
+            ),
+        })
+    }
+
+    if (meaning.upright.finance?.text && meaning.reversed.finance?.text) {
+        sections.push({
+            id: "upright-finance",
+            title: "Finance (Upright)",
+            content: (
+                <div className='space-y-3'>
+                    {meaning.upright.finance.keywords?.length
+                        ? makeKeywords(meaning.upright.finance.keywords)
+                        : null}
+                    <p>{meaning.upright.finance.text}</p>
+                </div>
+            ),
+        })
+    }
+
+    if (meaning.upright.health?.text && meaning.reversed.health?.text) {
+        sections.push({
+            id: "upright-health",
+            title: "Health (Upright)",
+            content: (
+                <div className='space-y-3'>
+                    {meaning.upright.health.keywords?.length
+                        ? makeKeywords(meaning.upright.health.keywords)
+                        : null}
+                    <p>{meaning.upright.health.text}</p>
+                </div>
+            ),
+        })
+    }
+
+    sections.push(reversedOverview)
+
+    if (meaning.reversed.relationships?.text) {
+        sections.push({
+            id: "reversed-relationships",
+            title: "Relationships (Reversed)",
+            content: (
+                <div className='space-y-3'>
+                    {meaning.reversed.relationships.keywords?.length
+                        ? makeKeywords(meaning.reversed.relationships.keywords)
+                        : null}
+                    <p>{meaning.reversed.relationships.text}</p>
+                </div>
+            ),
+        })
+    }
+
+    if (meaning.reversed.work?.text) {
+        sections.push({
+            id: "reversed-work",
+            title: "Work & Career (Reversed)",
+            content: (
+                <div className='space-y-3'>
+                    {meaning.reversed.work.keywords?.length
+                        ? makeKeywords(meaning.reversed.work.keywords)
+                        : null}
+                    <p>{meaning.reversed.work.text}</p>
+                </div>
+            ),
+        })
+    }
+
+    if (meaning.reversed.finance?.text) {
+        sections.push({
+            id: "reversed-finance",
+            title: "Finance (Reversed)",
+            content: (
+                <div className='space-y-3'>
+                    {meaning.reversed.finance.keywords?.length
+                        ? makeKeywords(meaning.reversed.finance.keywords)
+                        : null}
+                    <p>{meaning.reversed.finance.text}</p>
+                </div>
+            ),
+        })
+    }
+
+    if (meaning.reversed.health?.text) {
+        sections.push({
+            id: "reversed-health",
+            title: "Health (Reversed)",
+            content: (
+                <div className='space-y-3'>
+                    {meaning.reversed.health.keywords?.length
+                        ? makeKeywords(meaning.reversed.health.keywords)
+                        : null}
+                    <p>{meaning.reversed.health.text}</p>
+                </div>
+            ),
+        })
+    }
 
     return (
         <ArticleLayout
