@@ -126,6 +126,432 @@ function minorHeadline(rank, suit){
   return map[rank] || `Clarity and development in ${domain}.`;
 }
 
+// Card-specific guidance to ensure unique, card-related meanings
+const MAJOR_GUIDES = {
+  'the-fool': {
+    upright: {
+      relationships: ['curiosity in connection', 'playful openness', 'low-pressure beginnings'],
+      work: ['prototype and learn', 'start with safe experiments', 'momentum over perfection'],
+      finance: ['small automatic habits', 'avoid impulsive risks', 'build a buffer'],
+      health: ['gentle routines', 'watch for careless mishaps', 'consistency brings confidence']
+    },
+    reversed: {
+      relationships: ['mixed signals', 'boundary clarity', 'pace the connection'],
+      work: ['scope creep risk', 'checklists before leaps', 'reduce rework'],
+      finance: ['pause impulse spending', 'rebuild stability', 'decide from clear numbers'],
+      health: ['slow down', 'restore basic safety', 'gradual progression']
+    }
+  },
+  'the-magician': {
+    upright: {
+      relationships: ['transparent intent', 'attentive listening', 'alignment through action'],
+      work: ['show, don’t tell', 'leverage tools expertly', 'iterate with evidence'],
+      finance: ['negotiate and optimize', 'remove hidden fees', 'systems create value'],
+      health: ['track one metric', 'precision beats intensity', 'steady consistency']
+    },
+    reversed: {
+      relationships: ['charm without follow-through', 'repair through honesty', 'trust rebuilt in steps'],
+      work: ['over-promising risk', 'ethics over speed', 'tighten focus'],
+      finance: ['find leaks', 'read terms carefully', 'control recurring costs'],
+      health: ['avoid quick fixes', 'pace and recover', 'seek guidance if needed']
+    }
+  },
+  'the-high-priestess': {
+    upright: {
+      relationships: ['listen beneath words', 'patient timing', 'respect quiet truth'],
+      work: ['research in silence', 'private preparation', 'move when signs align'],
+      finance: ['hold information wisely', 'subtle opportunities', 'avoid disclosure haste'],
+      health: ['restorative rest', 'intuition-led pacing', 'nervous system care']
+    },
+    reversed: {
+      relationships: ['noise over intuition', 'overexposure', 'rebuild inner trust'],
+      work: ['rumor-driven choices', 'insufficient data', 'slow decisions'],
+      finance: ['privacy breaches', 'unclear agreements', 'simplify accounts'],
+      health: ['overstimulated senses', 'reduce inputs', 'sleep before decisions']
+    }
+  },
+  'the-empress': {
+    upright: {
+      relationships: ['nurture bonds', 'create a warm home', 'affirm love through care'],
+      work: ['supportive leadership', 'growth-friendly environment', 'sustainable pace'],
+      finance: ['invest in comfort', 'resources that nourish', 'long-term wellbeing'],
+      health: ['pleasure and balance', 'body kindness', 'regular nourishment']
+    },
+    reversed: {
+      relationships: ['overgiving', 'ask for reciprocity', 'self-care first'],
+      work: ['emotional burnout', 're-scope responsibilities', 'delegate'],
+      finance: ['spending to self-soothe', 'budget with compassion', 'needs vs wants clarity'],
+      health: ['neglect from busyness', 'rebuild simple meals', 'gentle movement']
+    }
+  },
+  'the-emperor': {
+    upright: {
+      relationships: ['predictability builds trust', 'clear roles', 'protective presence'],
+      work: ['structure enables scale', 'document decisions', 'own the outcome'],
+      finance: ['tight controls', 'emergency fund first', 'risk policies'],
+      health: ['discipline as care', 'routine schedule', 'measured training']
+    },
+    reversed: {
+      relationships: ['rigidity softens', 'collaborative decisions', 'space for feelings'],
+      work: ['micromanage risk', 'delegate authority', 'update stale rules'],
+      finance: ['overcontrol anxiety', 'trust systems', 'avoid hoarding'],
+      health: ['overtraining', 'listen to limits', 'flex days']
+    }
+  },
+  'the-hierophant': {
+    upright: {
+      relationships: ['shared traditions', 'mentorship in love', 'values alignment'],
+      work: ['learn from standards', 'apprenticeship path', 'institutional support'],
+      finance: ['proven strategies', 'trusted advisors', 'compliance matters'],
+      health: ['evidence-based care', 'consistent regimen', 'rituals that heal']
+    },
+    reversed: {
+      relationships: ['question rigid roles', 'authenticity over image', 'rewrite rules'],
+      work: ['innovate respectfully', 'challenge dogma', 'customize process'],
+      finance: ['fees for tradition', 'compare providers', 'avoid status buys'],
+      health: ['stale routine', 'personalize protocol', 'drop what harms']
+    }
+  },
+  'the-lovers': {
+    upright: {
+      relationships: ['mutual choice', 'tender honesty', 'values in action'],
+      work: ['partner wisely', 'align mission', 'shared ownership'],
+      finance: ['spend by values', 'joint planning', 'transparent agreements'],
+      health: ['care with consent', 'body-heart coherence', 'loving discipline']
+    },
+    reversed: {
+      relationships: ['indecision', 'tempting detours', 'repair through truth'],
+      work: ['misaligned deals', 'conflicting incentives', 'say no kindly'],
+      finance: ['value drift', 'impulse allure', 'recenter priorities'],
+      health: ['self-sabotage', 'return to self-love', 'gentle recommitment']
+    }
+  },
+  'the-chariot': {
+    upright: {
+      relationships: ['direction together', 'set a pace', 'resolve tension'],
+      work: ['disciplined drive', 'one clear target', 'remove drag'],
+      finance: ['save toward goal', 'strategic milestones', 'cut detours'],
+      health: ['structured program', 'tracked progress', 'balanced intensity']
+    },
+    reversed: {
+      relationships: ['conflicting wills', 'slow to synchronize', 'name shared aim'],
+      work: ['scattered effort', 'recenter plan', 'limit multitasking'],
+      finance: ['leaks from distraction', 'budget lanes', 'halt impulse moves'],
+      health: ['overpush/underrecover', 'reset cadence', 'prevent injury']
+    }
+  },
+  'strength': {
+    upright: {
+      relationships: ['soft boundaries', 'calm assurance', 'gentle loyalty'],
+      work: ['lead by steadiness', 'de-escalate calmly', 'model courage'],
+      finance: ['patient growth', 'resist panic', 'long horizon'],
+      health: ['nervous system ease', 'slow strength', 'compassionate goals']
+    },
+    reversed: {
+      relationships: ['reactivity', 'rebuild safety', 'own triggers'],
+      work: ['frayed patience', 'reset expectations', 'support systems'],
+      finance: ['fear-based choices', 'pause rash sales', 'sober numbers'],
+      health: ['overwhelm', 'soothing routines', 'rest first']
+    }
+  },
+  'the-hermit': {
+    upright: {
+      relationships: ['honoring space', 'depth over noise', 'wise counsel'],
+      work: ['research window', 'solo focus time', 'publish when ready'],
+      finance: ['quiet audits', 'private goals', 'low-noise investing'],
+      health: ['restful solitude', 'reflective practices', 'mindful walks']
+    },
+    reversed: {
+      relationships: ['isolation risk', 'invite contact', 'share softly'],
+      work: ['withdrawing too long', 'pair for review', 'timebox solitude'],
+      finance: ['hoarding info', 'ask for advice', 'avoid secrecy stress'],
+      health: ['stagnant rest', 'gentle socializing', 'light movement']
+    }
+  },
+  'wheel-of-fortune': {
+    upright: {
+      relationships: ['season shift', 'say yes to timing', 'adapt together'],
+      work: ['ride momentum', 'prepare to scale', 'watch cycles'],
+      finance: ['opportunities arise', 'manage variance', 'avoid hubris'],
+      health: ['ebb and flow', 'pivot when needed', 'sustainable habits']
+    },
+    reversed: {
+      relationships: ['resisting change', 'stuck loop', 'compassionate patience'],
+      work: ['market headwinds', 'trim sails', 'learn from pattern'],
+      finance: ['avoid chasing luck', 'tighten buffer', 'insure wisely'],
+      health: ['plateau', 'adjust inputs', 'trust slower arc']
+    }
+  },
+  'justice': {
+    upright: {
+      relationships: ['fair dealing', 'clear agreements', 'repair with amends'],
+      work: ['evidence-based decisions', 'document tradeoffs', 'ethics first'],
+      finance: ['accurate ledgers', 'transparent terms', 'legal alignment'],
+      health: ['balance routines', 'cause/effect awareness', 'measured choices']
+    },
+    reversed: {
+      relationships: ['bias spotted', 'correct imbalance', 'truth telling'],
+      work: ['unclear criteria', 'reduce favoritism', 'audit processes'],
+      finance: ['fees and fines', 'dispute carefully', 'read small print'],
+      health: ['over/undercorrection', 'restore equilibrium', 'steady tracking']
+    }
+  },
+  'the-hanged-man': {
+    upright: {
+      relationships: ['pause before reaction', 'see their angle', 'patient grace'],
+      work: ['strategic waiting', 'reframe problem', 'value perspective'],
+      finance: ['hold still', 'avoid forced trades', 'observe first'],
+      health: ['rest day wisdom', 'mobility focus', 'gentle inversions']
+    },
+    reversed: {
+      relationships: ['avoidance loop', 'set a date', 'choose kindly'],
+      work: ['stalling', 'decide after review', 'ship something small'],
+      finance: ['procrastination cost', 'act on facts', 'end limbo'],
+      health: ['stuck routine', 'small switch', 'support compliance']
+    }
+  },
+  'death': {
+    upright: {
+      relationships: ['honor endings', 'ritual for closure', 'clear space'],
+      work: ['sunset projects', 'archive cleanly', 'onboard the new'],
+      finance: ['end draining expenses', 'sell unused assets', 'reallocate'],
+      health: ['change habits', 'release harmful patterns', 'begin anew']
+    },
+    reversed: {
+      relationships: ['clinging pain', 'gentle goodbye', 'permission to move'],
+      work: ['fear of change', 'retire legacy', 'train successors'],
+      finance: ['sunk cost trap', 'cut losses', 'fresh plan'],
+      health: ['prolonging the old', 'transition supports', 'new baseline']
+    }
+  },
+  'temperance': {
+    upright: {
+      relationships: ['blend differences', 'temper reactivity', 'find middle'],
+      work: ['integrate teams', 'smooth processes', 'harmonize tools'],
+      finance: ['diversify carefully', 'rebalance', 'moderate risk'],
+      health: ['balanced practice', 'gradual increases', 'recovery windows']
+    },
+    reversed: {
+      relationships: ['overcorrection', 'one change at a time', 'reset center'],
+      work: ['swingy priorities', 'stabilize cadence', 'reduce extremes'],
+      finance: ['overexposure', 'trim volatility', 'safety first'],
+      health: ['excess or neglect', 'restore baseline', 'hydration and sleep']
+    }
+  },
+  'the-devil': {
+    upright: {
+      relationships: ['name the hook', 'consent and choice', 're-negotiate'],
+      work: ['burnout contracts', 'healthy boundaries', 'ethical trades'],
+      finance: ['unmask debts', 'break predatory ties', 'cash clarity'],
+      health: ['compulsion awareness', 'environment design', 'substitution wins']
+    },
+    reversed: {
+      relationships: ['detox from drama', 'reclaim autonomy', 'support networks'],
+      work: ['exit toxic patterns', 'values-first decisions', 'redefine success'],
+      finance: ['debt recovery plan', 'close harmful accounts', 'freedom fund'],
+      health: ['addiction support', 'micro-habits', 'identity shift']
+    }
+  },
+  'the-tower': {
+    upright: {
+      relationships: ['truth breaks illusion', 'stabilize essentials', 'lean on honesty'],
+      work: ['contingency mode', 'communicate clearly', 'rebuild on facts'],
+      finance: ['emergency triage', 'prioritize shelter', 'prevent repeat'],
+      health: ['acute care focus', 'remove hazards', 'gentle recovery']
+    },
+    reversed: {
+      relationships: ['aftershocks', 'repair foundations', 'forgiveness work'],
+      work: ['postmortem', 'resilience upgrades', 'fail-safes'],
+      finance: ['slow crumble', 'address root causes', 'insurance check'],
+      health: ['close call lesson', 'safety protocols', 'gradual return']
+    }
+  },
+  'the-star': {
+    upright: {
+      relationships: ['tender hope', 'gentle reconnection', 'quiet generosity'],
+      work: ['vision refresh', 'show small wins', 'mentor others'],
+      finance: ['healing plan', 'slow restoration', 'faith plus math'],
+      health: ['soothing routines', 'hydration and rest', 'compassionate rehab']
+    },
+    reversed: {
+      relationships: ['discouragement', 'name the hurt', 'tiny hopeful act'],
+      work: ['fatigue', 'simplify roadmap', 'recover morale'],
+      finance: ['confidence dip', 'protect basics', 'stepwise rebuild'],
+      health: ['burnout signs', 'scale back', 'gentle guidance']
+    }
+  },
+  'the-moon': {
+    upright: {
+      relationships: ['move slowly', 'check stories', 'trust feelings not fear'],
+      work: ['unclear signals', 'test assumptions', 'night thinking to day plans'],
+      finance: ['avoid speculation', 'verify info', 'sleep on decisions'],
+      health: ['dreams and cycles', 'soft lighting', 'calming inputs']
+    },
+    reversed: {
+      relationships: ['fog lifting', 'speak truths', 'ground in facts'],
+      work: ['expose ambiguity', 'clear comms', 'simple tasks'],
+      finance: ['false shine fades', 'real numbers', 'steady path'],
+      health: ['anxiety calming', 'breath and support', 'light movement']
+    }
+  },
+  'the-sun': {
+    upright: {
+      relationships: ['joy shared', 'playful dates', 'celebrate together'],
+      work: ['public wins', 'showcase results', 'raise standards kindly'],
+      finance: ['healthy surplus', 'invest in vitality', 'gratitude budget'],
+      health: ['sunlit movement', 'outdoors time', 'simple pleasures']
+    },
+    reversed: {
+      relationships: ['overexposure', 'ego softening', 'find sincere joy'],
+      work: ['hype vs substance', 'return to craft', 'protect energy'],
+      finance: ['status spending', 'reconnect to meaning', 'moderate outflow'],
+      health: ['burnout glow', 'rest and shade', 'play without pressure']
+    }
+  },
+  'judgement': {
+    upright: {
+      relationships: ['forgive honestly', 'renew vows', 'answer the call'],
+      work: ['clarify purpose', 'ship boldly', 'own history and move'],
+      finance: ['clean the ledger', 'align money to mission', 'decisive pivot'],
+      health: ['release guilt', 'purposeful habits', 'support network']
+    },
+    reversed: {
+      relationships: ['self-judgment', 'repair before decide', 'compassion first'],
+      work: ['fear of visibility', 'practice launches', 'iterate publicly'],
+      finance: ['avoidance of truth', 'face balances', 'simple next step'],
+      health: ['perfection freeze', 'gentle start', 'community helps']
+    }
+  },
+  'the-world': {
+    upright: {
+      relationships: ['shared completion', 'travel or merge homes', 'gratitude ritual'],
+      work: ['finish and publish', 'hand-off cleanly', 'reflect learnings'],
+      finance: ['close goals', 'reinvest wisely', 'celebrate prudently'],
+      health: ['cycle complete', 'maintenance plan', 'holistic balance']
+    },
+    reversed: {
+      relationships: ['loose ends', 'define closure', 'honor the ending'],
+      work: ['unfinished scope', 'tie-off tasks', 'QA the result'],
+      finance: ['near but not done', 'final payments', 'document outcomes'],
+      health: ['almost there', 'seal habits', 'light accountability']
+    }
+  }
+};
+
+const RANK_GUIDES = {
+  'Ace': {
+    relationships: ['new spark', 'openness to meet', 'curious exchange'],
+    work: ['fresh brief', 'pilot project', 'beginner’s mind'],
+    finance: ['seed capital', 'start saving', 'simple structure'],
+    health: ['baseline habits', 'introduce one change', 'gentle ramp']
+  },
+  'Two': {
+    relationships: ['choices together', 'balance needs', 'set rhythm'],
+    work: ['dual priorities', 'compare paths', 'commit soon'],
+    finance: ['juggle costs', 'prioritize core', 'steady transfers'],
+    health: ['balance rest/move', 'two key habits', 'consistency']
+  },
+  'Three': {
+    relationships: ['team energy', 'early growth', 'shared support'],
+    work: ['collaboration', 'early traction', 'plan the next stage'],
+    finance: ['multiple streams', 'grow carefully', 'review plan'],
+    health: ['group support', 'measurable gains', 'keep form clean']
+  },
+  'Four': {
+    relationships: ['stability', 'home focus', 'rituals'],
+    work: ['platform building', 'documentation', 'reliability'],
+    finance: ['savings base', 'controls', 'emergency fund'],
+    health: ['regular schedule', 'sleep hygiene', 'simple nutrition']
+  },
+  'Five': {
+    relationships: ['conflict or strain', 'practice repair', 'name needs'],
+    work: ['challenges surface', 'learn from friction', 'adjust tactics'],
+    finance: ['lean period', 'reduce exposure', 'seek assistance'],
+    health: ['stress signals', 'scale down', 'gentle support']
+  },
+  'Six': {
+    relationships: ['support and receive', 'acts of service', 'kindness wins'],
+    work: ['help flows', 'mentorship', 'steady progress'],
+    finance: ['fair exchange', 'donate wisely', 'balance inflow/outflow'],
+    health: ['rehab success', 'paced increase', 'community care']
+  },
+  'Seven': {
+    relationships: ['assessment moment', 'choose strategy', 'hold boundaries'],
+    work: ['review outcomes', 'optimize path', 'persevere'],
+    finance: ['portfolio check', 'trim waste', 'patient stance'],
+    health: ['plateau review', 'tweak inputs', 'stick with plan']
+  },
+  'Eight': {
+    relationships: ['focused effort', 'meaningful work', 'clean exits'],
+    work: ['skill building', 'productive flow', 'deliberate practice'],
+    finance: ['earn through craft', 'automate gains', 'steady investment'],
+    health: ['consistent training', 'form first', 'safe progression']
+  },
+  'Nine': {
+    relationships: ['near completion', 'protect energy', 'healthy boundaries'],
+    work: ['final push', 'prevent burnout', 'tighten scope'],
+    finance: ['solid position', 'guard against leaks', 'gratitude'],
+    health: ['listen to fatigue', 'recovery priority', 'prevent overuse']
+  },
+  'Ten': {
+    relationships: ['family systems', 'legacy themes', 'long-term comfort'],
+    work: ['handoff and scale', 'institutionalize wins', 'document legacy'],
+    finance: ['long horizon', 'wealth stewardship', 'shared benefits'],
+    health: ['lifestyle consolidation', 'sustaining routines', 'longevity moves']
+  },
+  'Page': {
+    relationships: ['messages of care', 'learning love', 'curious dates'],
+    work: ['intern energy', 'ask questions', 'ship small'],
+    finance: ['entry-level steps', 'read and learn', 'budget practice'],
+    health: ['learn technique', 'light practice', 'body awareness']
+  },
+  'Knight': {
+    relationships: ['bold gestures', 'clear pursuit', 'mind the pace'],
+    work: ['action-forward', 'move fast with checks', 'channel drive'],
+    finance: ['opportunistic but smart', 'avoid overtrade', 'park gains'],
+    health: ['intensity with recovery', 'avoid recklessness', 'coach helps']
+  },
+  'Queen': {
+    relationships: ['warm stewardship', 'emotional intelligence', 'nurtured bonds'],
+    work: ['protect team', 'mentor', 'set healthy culture'],
+    finance: ['comfort and prudence', 'resource wisdom', 'supportive spending'],
+    health: ['care rituals', 'soothing environments', 'attuned pacing']
+  },
+  'King': {
+    relationships: ['clear direction', 'responsible love', 'safety'],
+    work: ['set strategy', 'decide and own', 'model integrity'],
+    finance: ['govern finances', 'long-term planning', 'responsible risk'],
+    health: ['lead by example', 'structured plan', 'medical partnership']
+  }
+};
+
+const SUIT_GUIDES = {
+  wands: {
+    relationships: ['ignite passion carefully', 'honest excitement', 'adventures together'],
+    work: ['entrepreneurial spark', 'present boldly', 'ship prototypes'],
+    finance: ['fund experiments', 'avoid gambles', 'invest in energy'],
+    health: ['dynamic movement', 'warm-ups matter', 'playful activity']
+  },
+  cups: {
+    relationships: ['tend feelings', 'practice empathy', 'gentle vulnerability'],
+    work: ['people-first culture', 'service excellence', 'creative harmony'],
+    finance: ['values-driven spending', 'support loved ones wisely', 'charitable flow'],
+    health: ['hydration and rest', 'emotional regulation', 'mind-body practices']
+  },
+  swords: {
+    relationships: ['speak truth kindly', 'resolve conflicts', 'mental clarity'],
+    work: ['strategic focus', 'sharp writing', 'data clarity'],
+    finance: ['read contracts', 'negotiate terms', 'cut waste'],
+    health: ['breathwork', 'sleep for cognition', 'reduce stress inputs']
+  },
+  pentacles: {
+    relationships: ['acts of service', 'build home', 'shared routines'],
+    work: ['craft and reliability', 'ops excellence', 'practical milestones'],
+    finance: ['budgeting and saving', 'assets and maintenance', 'steady returns'],
+    health: ['strength and mobility', 'nutrition basics', 'walks and nature']
+  }
+};
+
 function overviewText({cardName, slug, arcana, suit, rank, orientation}){
   const headline = arcana === 'major'
     ? majorHeadlines[slug]
@@ -187,17 +613,21 @@ function longSectionText({cardName, slug, arcana, suit, rank, orientation, secti
   const cardRef = `${cardName}${orientation === 'reversed' ? ' reversed' : ''}`;
 
   const parts = [];
-  parts.push(`${cardRef} in ${niceSection} favors clear language and useful steps. The meaning is practical: focus on what matters in this area and do the next thing that actually helps. The symbolism points to ${domain}, and ${suitContext} explains the style of energy available now.`);
+  const majorGuide = arcana === 'major' ? (MAJOR_GUIDES[slug]?.[orientation]?.[section] || []) : [];
+  const rankGuide = arcana === 'minor' ? (RANK_GUIDES[rank]?.[section] || []) : [];
+  const suitGuide = arcana === 'minor' ? (SUIT_GUIDES[suit]?.[section] || []) : [];
+  const guideLine = [...majorGuide, ...rankGuide, ...suitGuide].slice(0,3).join(', ');
+  parts.push(`${cardRef} in ${niceSection} favors clear language and useful steps. Focus on what matters here and do the next thing that actually helps. Signature themes: ${guideLine || domain}. The symbolism points to ${domain}, and ${suitContext} explains the style of energy available now.`);
   parts.push(`Start by naming what is true today. Keep what supports you and set aside one distraction. If the situation is tense, slow it down and simplify the plan. ${cardRef} encourages a ${tone} approach: specific, steady, and kind. Progress comes from small changes you can feel this week, not from pressure or theatrics.`);
   parts.push(`Check your assumptions in calm daylight, ask direct questions, and respond to the answers. Let outcomes—not hopes—guide the next action. If you feel overwhelmed, reduce the scope and invite support that lowers friction.`);
   if(section === 'relationships'){
-    parts.push(`Practice direct, respectful communication. Name feelings without blame. Make one request, agree on a check‑in, and observe how both people show up. Warmth and boundaries can coexist. If you feel anxious, slow the conversation and return to shared reality.`);
+    parts.push(`Communicate directly and kindly. Name feelings without blame. Make one request and agree on a check‑in. ${guideLine ? `Attend to ${guideLine}. ` : ''}Warmth and boundaries can coexist; move at a pace that respects safety and trust.`);
   } else if(section === 'work'){
-    parts.push(`Clarify scope and success. Break the goal into steps you can finish this week. Share drafts early, gather feedback, and refine. Protect deep‑work time and ship in reasonable increments. Let outcomes, not opinions, lead decisions.`);
+    parts.push(`Clarify scope and success. Break the goal into steps you can finish this week. Share drafts early and refine from feedback. ${guideLine ? `Lean into ${guideLine}. ` : ''}Protect deep‑work time and let outcomes—not opinions—lead decisions.`);
   } else if(section === 'finance'){
-    parts.push(`List fixed costs, priorities, and optional spending. Automate what should be automatic. Pause what no longer serves your values. Read terms carefully and negotiate with kindness. Stability grows from boring, repeatable habits performed consistently.`);
+    parts.push(`List fixed costs, priorities, and optional spending. Automate what should be automatic. ${guideLine ? `Focus on ${guideLine}. ` : ''}Read terms carefully and negotiate with kindness. Stability grows from boring, repeatable habits performed consistently.`);
   } else if(section === 'health'){
-    parts.push(`Choose routines that are gentle and sustainable. Sleep, hydration, movement, and nutrition form a simple base. If pain or fatigue appears, reduce intensity, seek appropriate care, and let recovery be part of the plan. Your body learns safety through consistency.`);
+    parts.push(`Choose routines that are gentle and sustainable. Sleep, hydration, movement, and nutrition form a simple base. ${guideLine ? `Emphasize ${guideLine}. ` : ''}If pain or fatigue appears, reduce intensity, seek appropriate care, and let recovery be part of the plan.`);
   }
   parts.push(`If ${cardRef} feels challenging, treat it as a teacher, not a verdict. Adjust the plan, reduce pressure, and keep compassion close. Progress is allowed to be simple. Celebrate small wins and continue. When in doubt, return to basics and move one honest step at a time.`);
 
