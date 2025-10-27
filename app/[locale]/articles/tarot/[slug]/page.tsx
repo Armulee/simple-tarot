@@ -3,7 +3,13 @@ import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getCardBySlug, TAROT_CARDS } from "@/lib/tarot/cards"
 import MEANINGS from "@/lib/tarot/meanings.json"
-type SectionMeaning = { keywords?: string[]; text: string; yesNo?: string; zodiac?: string }
+type SectionMeaning = {
+    keywords?: string[]
+    text: string
+    yesNo?: string
+    zodiac?: string
+    element?: string
+}
 type CardMeaning = {
     slug: string
     upright: {
@@ -133,6 +139,12 @@ export default async function TarotCardArticlePage({
                             {meaning.upright.overview.zodiac}
                         </span>
                     )}
+                    {meaning.upright.overview.element && (
+                        <span>
+                            <span className='font-medium'>Element:</span>{" "}
+                            {meaning.upright.overview.element}
+                        </span>
+                    )}
                 </div>
                 <p>
                     {meaning.upright.overview.text}
@@ -161,6 +173,12 @@ export default async function TarotCardArticlePage({
                         <span>
                             <span className='font-medium'>Zodiac:</span>{" "}
                             {meaning.reversed.overview.zodiac}
+                        </span>
+                    )}
+                    {meaning.reversed.overview.element && (
+                        <span>
+                            <span className='font-medium'>Element:</span>{" "}
+                            {meaning.reversed.overview.element}
                         </span>
                     )}
                 </div>

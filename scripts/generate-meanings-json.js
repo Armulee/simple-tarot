@@ -34,6 +34,15 @@ function suitLabel(s){
   }
 }
 
+function suitElementName(s){
+  switch(s){
+    case 'wands': return 'Fire';
+    case 'cups': return 'Water';
+    case 'swords': return 'Air';
+    case 'pentacles': return 'Earth';
+  }
+}
+
 function suitNoun(s){
   switch(s){
     case 'wands': return 'initiative';
@@ -124,17 +133,15 @@ function overviewText({cardName, slug, arcana, suit, rank, orientation}){
   const orientationTone = orientation === 'upright' ? 'direct, encouraging' : 'candid, corrective';
   const suitContext = suit ? `${titleCase(suit)} (${suitLabel(suit)})` : 'Major Arcana archetype';
   const domain = suit ? suitNoun(suit) : 'your core theme';
-  const name = `${cardName}${orientation === 'reversed' ? ' (reversed)' : ''}`;
-
   const parts = [];
-  // Lead with the headline as the direct meaning
-  parts.push(`${name} means this: ${headline} This is the plain reading without mystique. It points to what is actually happening and what will help next.`);
+  // Lead directly with the headline in natural language
+  parts.push(`${headline} This is the plain reading without mystique. It points to what is actually happening and what will help next.`);
   // Upright vs reversed emphasis
   if (orientation === 'upright'){
-    parts.push(`In upright position, the card’s strengths are available. ${cardName} encourages a ${orientationTone} step that aligns with your values. Focus on what is real and movable. Make one change you can measure this week and let results guide you. ${suitContext} frames where this energy lives; in practice, that means working directly with ${domain} and letting small, steady actions accumulate.`);
+    parts.push(`In upright position, the card’s strengths are available. It encourages a ${orientationTone} step that aligns with your values. Focus on what is real and movable. Make one change you can measure this week and let results guide you. ${suitContext} frames where this energy lives; in practice, that means working directly with ${domain} and letting small, steady actions accumulate.`);
     parts.push(`Keep language simple, plans modest, and accountability gentle but consistent. If doubt appears, return to facts: what you tried, what happened, and what you learned. Celebrate progress out loud. Invite help where it will meaningfully reduce friction. This is not about perfection—it is about traction.`);
   } else {
-    parts.push(`In reversed position, the card shows a block or excess of its theme. ${cardName} calls for honest course‑correction. Name the pattern, remove one source of friction, and return to basics you trust. ${suitContext} reminds you where the snag sits; practically, it means examining ${domain} with compassionate clarity and tidying what is within reach.`);
+    parts.push(`In reversed position, the card shows a block or excess of its theme. It calls for honest course‑correction. Name the pattern, remove one source of friction, and return to basics you trust. ${suitContext} reminds you where the snag sits; practically, it means examining ${domain} with compassionate clarity and tidying what is within reach.`);
     parts.push(`Avoid dramatic swings. Choose a small, safe adjustment and review it in a few days. If you feel overwhelmed, cut the plan in half and ask for grounded support. Reversals are not punishments; they are invitations to tidy the system so your energy can flow again.`);
   }
 
@@ -208,7 +215,8 @@ function buildCardEntry(card){
         keywords: [],
         text: overviewText({cardName:name, slug, arcana, suit, rank, orientation:'upright'}),
         yesNo: arcana === 'major' ? majorMeta(slug).yesNo : (suit === 'wands' || suit === 'pentacles' ? 'Yes' : (suit === 'cups' ? 'Maybe' : 'No')),
-        zodiac: arcana === 'major' ? majorMeta(slug).zodiac : suitLabel(suit)
+        zodiac: arcana === 'major' ? majorMeta(slug).zodiac : suitLabel(suit),
+        element: arcana === 'major' ? undefined : suitElementName(suit)
       },
     },
     reversed: {
@@ -216,7 +224,8 @@ function buildCardEntry(card){
         keywords: [],
         text: overviewText({cardName:name, slug, arcana, suit, rank, orientation:'reversed'}),
         yesNo: arcana === 'major' ? (majorMeta(slug).yesNo === 'Yes' ? 'Not yet' : majorMeta(slug).yesNo) : (suit === 'wands' || suit === 'pentacles' ? 'Not yet' : (suit === 'cups' ? 'No' : 'No')),
-        zodiac: arcana === 'major' ? majorMeta(slug).zodiac : suitLabel(suit)
+        zodiac: arcana === 'major' ? majorMeta(slug).zodiac : suitLabel(suit),
+        element: arcana === 'major' ? undefined : suitElementName(suit)
       },
     },
   };
