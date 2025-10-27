@@ -1,0 +1,704 @@
+{
+  "the-fool": {
+    "slug": "the-fool",
+    "upright": {
+      "overview": {
+        "keywords": ["beginnings", "trust", "openness"],
+        "text": "A clean slate. The Fool invites a courageous first step, informed by curiosity and common sense. Keep it small, observable, and playful so momentum can form.",
+        "yesNo": "Yes",
+        "zodiac": "Aquarius (Uranus)"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["hesitation", "naivety", "stalling"],
+        "text": "Either rushing without basics or freezing from overthinking. Shrink the scope to one safe action, check essentials, and move with care.",
+        "yesNo": "Not yet",
+        "zodiac": "Aquarius (Uranus)"
+      }
+    }
+  },
+  "the-magician": {
+    "slug": "the-magician",
+    "upright": {
+      "overview": {
+        "keywords": ["focus", "skill", "manifestation"],
+        "text": "Clear intent turned into results. Choose one outcome, use your tools precisely, and deliver in short cycles to build undeniable proof.",
+        "yesNo": "Yes",
+        "zodiac": "Mercury (Gemini/Virgo)"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["scattered", "doubt", "misuse"],
+        "text": "Mixed signals dilute impact. Narrow priorities, stop multitasking, and align words with actions before the next move.",
+        "yesNo": "Maybe",
+        "zodiac": "Mercury (Gemini/Virgo)"
+      }
+    }
+  },
+  "the-high-priestess": {
+    "slug": "the-high-priestess",
+    "upright": {
+      "overview": {
+        "keywords": ["intuition", "silence", "inner-knowing"],
+        "text": "Answers surface in quiet. Trust subtle signals and let timing ripen; what is hidden will clarify without force.",
+        "yesNo": "Maybe",
+        "zodiac": "Cancer (Moon)"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["noise", "disconnection", "self-doubt"],
+        "text": "Intuition is being overridden by noise. Reduce inputs, rest, and reconnect with your inner reference before deciding.",
+        "yesNo": "No",
+        "zodiac": "Cancer (Moon)"
+      }
+    }
+  },
+  "the-empress": {
+    "slug": "the-empress",
+    "upright": {
+      "overview": {
+        "keywords": ["abundance", "care", "growth"],
+        "text": "Nurture produces results. Choose comfort and consistency; what you feed with attention will flourish.",
+        "yesNo": "Yes",
+        "zodiac": "Venus (Taurus/Libra)"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["overgiving", "neglect", "block"],
+        "text": "Care without boundaries depletes. Rebalance input and rest, and root actions in self-respect.",
+        "yesNo": "Maybe",
+        "zodiac": "Venus (Taurus/Libra)"
+      }
+    }
+  },
+  "the-emperor": {
+    "slug": "the-emperor",
+    "upright": {
+      "overview": {
+        "keywords": ["structure", "authority", "stability"],
+        "text": "Order enables progress. Define roles, timelines, and constraints; consistency protects the outcome.",
+        "yesNo": "Yes",
+        "zodiac": "Aries (Mars)"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["rigidity", "control", "stagnation"],
+        "text": "Overcontrol suffocates initiative. Loosen rules, delegate clearly, and focus on essentials.",
+        "yesNo": "No",
+        "zodiac": "Aries (Mars)"
+      }
+    }
+  },
+  "the-hierophant": {
+    "slug": "the-hierophant",
+    "upright": {
+      "overview": {
+        "keywords": ["tradition", "teaching", "alignment"],
+        "text": "Learn within a stable framework. Mentorship, ritual, and proven methods provide dependable results now.",
+        "yesNo": "Maybe",
+        "zodiac": "Taurus (Venus)"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["nonconformity", "questioning", "stuck-dogma"],
+        "text": "Rules may be outdated. Keep the meaningful core, release the rest, and let practice evolve.",
+        "yesNo": "No",
+        "zodiac": "Taurus (Venus)"
+      }
+    }
+  },
+  "the-lovers": {
+    "slug": "the-lovers",
+    "upright": {
+      "overview": {
+        "keywords": ["choice", "union", "values"],
+        "text": "Alignment between heart and action. Choose the path that matches your values—connection deepens there.",
+        "yesNo": "Yes",
+        "zodiac": "Gemini (Mercury)"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["misalignment", "temptation", "indecision"],
+        "text": "At a crossroads, split motives blur outcomes. Reaffirm values, then decide—the path clarifies.",
+        "yesNo": "Maybe",
+        "zodiac": "Gemini (Mercury)"
+      }
+    }
+  },
+  "the-chariot": {
+    "slug": "the-chariot",
+    "upright": {
+      "overview": {
+        "keywords": ["willpower", "direction", "victory"],
+        "text": "Disciplined momentum. Set a single target, harness emotions, and drive—with course checks en route.",
+        "yesNo": "Yes",
+        "zodiac": "Cancer (Moon)"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["drift", "scattered", "force"],
+        "text": "Progress stalls from split focus. Recenter, pick one lane, and remove competing pulls.",
+        "yesNo": "Not yet",
+        "zodiac": "Cancer (Moon)"
+      }
+    }
+  },
+  "strength": {
+    "slug": "strength",
+    "upright": {
+      "overview": {
+        "keywords": ["courage", "gentleness", "inner-power"],
+        "text": "Calm confidence tames challenge. Steady presence—and soft boundaries—achieve more than force.",
+        "yesNo": "Yes",
+        "zodiac": "Leo (Sun)"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["doubt", "overwhelm", "reactivity"],
+        "text": "Energy leaks through self-criticism or pushiness. Slow down, regulate, and act from grounded strength.",
+        "yesNo": "Maybe",
+        "zodiac": "Leo (Sun)"
+      }
+    }
+  },
+  "the-hermit": {
+    "slug": "the-hermit",
+    "upright": {
+      "overview": {
+        "keywords": ["solitude", "truth", "guidance"],
+        "text": "Step back to see clearly. Reflection, learning, and quiet practice reveal the next right step.",
+        "yesNo": "Maybe",
+        "zodiac": "Virgo (Mercury)"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["isolation", "avoidance", "disconnection"],
+        "text": "Withdrawal has become stuckness. Re-engage slowly—share one insight and accept support.",
+        "yesNo": "No",
+        "zodiac": "Virgo (Mercury)"
+      }
+    }
+  },
+  "wheel-of-fortune": {
+    "slug": "wheel-of-fortune",
+    "upright": {
+      "overview": {
+        "keywords": ["cycles", "turning-point", "luck"],
+        "text": "A shift in season. Adapt quickly, say yes to aligned openings, and respect what is outside control.",
+        "yesNo": "Yes",
+        "zodiac": "Jupiter"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["resistance", "delay", "pattern"],
+        "text": "Trying to fight the tide prolongs it. Practice patience and correct the one pattern in your control.",
+        "yesNo": "Maybe",
+        "zodiac": "Jupiter"
+      }
+    }
+  },
+  "justice": {
+    "slug": "justice",
+    "upright": {
+      "overview": {
+        "keywords": ["fairness", "truth", "accountability"],
+        "text": "Balance by facts. Make a clean ledger—own your part, ask for clarity, and choose the honest route.",
+        "yesNo": "Maybe",
+        "zodiac": "Libra (Venus)"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["bias", "avoidance", "imbalance"],
+        "text": "Half-truths distort outcomes. Reveal missing data, correct the scales, then proceed.",
+        "yesNo": "No",
+        "zodiac": "Libra (Venus)"
+      }
+    }
+  },
+  "the-hanged-man": {
+    "slug": "the-hanged-man",
+    "upright": {
+      "overview": {
+        "keywords": ["pause", "surrender", "new-perspective"],
+        "text": "Stop to see differently. Yielding briefly unlocks an unconventional but truer path forward.",
+        "yesNo": "Not yet",
+        "zodiac": "Neptune"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["stall", "martyrdom", "resistance"],
+        "text": "Endless waiting without insight. Set a review date, choose, and accept imperfect motion.",
+        "yesNo": "No",
+        "zodiac": "Neptune"
+      }
+    }
+  },
+  "death": {
+    "slug": "death",
+    "upright": {
+      "overview": {
+        "keywords": ["ending", "release", "rebirth"],
+        "text": "A chapter completes. Letting go cleans the field so the next growth can take root.",
+        "yesNo": "No",
+        "zodiac": "Scorpio (Pluto/Mars)"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["clinging", "stagnation", "fear"],
+        "text": "Avoided endings slow renewal. Close what is complete with care and step into the new.",
+        "yesNo": "Not yet",
+        "zodiac": "Scorpio (Pluto/Mars)"
+      }
+    }
+  },
+  "temperance": {
+    "slug": "temperance",
+    "upright": {
+      "overview": {
+        "keywords": ["balance", "moderation", "integration"],
+        "text": "Blend, do not swing. Small, steady adjustments harmonize extremes and build durable progress.",
+        "yesNo": "Yes",
+        "zodiac": "Sagittarius (Jupiter)"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["excess", "imbalance", "impatience"],
+        "text": "Overcorrection creates new problems. Return to center and make one gentle change.",
+        "yesNo": "Maybe",
+        "zodiac": "Sagittarius (Jupiter)"
+      }
+    }
+  },
+  "the-devil": {
+    "slug": "the-devil",
+    "upright": {
+      "overview": {
+        "keywords": ["bondage", "temptation", "shadow"],
+        "text": "Name the hook. Awareness of compulsions or bargains lets you renegotiate from self-respect.",
+        "yesNo": "No",
+        "zodiac": "Capricorn (Saturn)"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["release", "detox", "choice"],
+        "text": "Chains loosen. Replace all-or-nothing with small wins and design your environment for freedom.",
+        "yesNo": "Yes",
+        "zodiac": "Capricorn (Saturn)"
+      }
+    }
+  },
+  "the-tower": {
+    "slug": "the-tower",
+    "upright": {
+      "overview": {
+        "keywords": ["shock", "revelation", "breakdown"],
+        "text": "A false structure collapses. Stabilize essentials, tell the truth, and rebuild on what is real.",
+        "yesNo": "No",
+        "zodiac": "Mars"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["averted-crisis", "denial", "aftershocks"],
+        "text": "A close call or slow crumble. Address root causes now to prevent repeat collapse.",
+        "yesNo": "Not yet",
+        "zodiac": "Mars"
+      }
+    }
+  },
+  "the-star": {
+    "slug": "the-star",
+    "upright": {
+      "overview": {
+        "keywords": ["hope", "healing", "guidance"],
+        "text": "A gentle renewal. Trust the long arc, refill your well, and follow the quiet light ahead.",
+        "yesNo": "Yes",
+        "zodiac": "Aquarius (Uranus/Saturn)"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["discouragement", "doubt", "fatigue"],
+        "text": "The signal dims under strain. Rest, reconnect to purpose, and take one small hopeful step.",
+        "yesNo": "Maybe",
+        "zodiac": "Aquarius (Uranus/Saturn)"
+      }
+    }
+  },
+  "the-moon": {
+    "slug": "the-moon",
+    "upright": {
+      "overview": {
+        "keywords": ["mystery", "dreams", "fear"],
+        "text": "Not all is clear. Move slowly, test assumptions, and let intuition—not anxiety—set the pace.",
+        "yesNo": "Maybe",
+        "zodiac": "Pisces (Moon/Neptune)"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["revelation", "clarity", "release-fear"],
+        "text": "Fog lifts as facts and feelings align. Name the fear, then choose the grounded path.",
+        "yesNo": "Yes",
+        "zodiac": "Pisces (Moon/Neptune)"
+      }
+    }
+  },
+  "the-sun": {
+    "slug": "the-sun",
+    "upright": {
+      "overview": {
+        "keywords": ["joy", "vitality", "success"],
+        "text": "Warmth and clarity. Celebrate progress publicly and keep moving while the wind is with you.",
+        "yesNo": "Yes",
+        "zodiac": "Sun (Leo)"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["overexposure", "ego", "diminished-joy"],
+        "text": "Happiness muted by burnout or comparison. Rest, simplify, and reconnect to genuine delight.",
+        "yesNo": "Maybe",
+        "zodiac": "Sun (Leo)"
+      }
+    }
+  },
+  "judgement": {
+    "slug": "judgement",
+    "upright": {
+      "overview": {
+        "keywords": ["awakening", "reckoning", "calling"],
+        "text": "A clear call to action. Integrate lessons, forgive honestly, and step into your next chapter.",
+        "yesNo": "Yes",
+        "zodiac": "Pluto"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["self-judgment", "delay", "avoidance"],
+        "text": "Stuck between past and future. Release perfection, make amends, and move forward.",
+        "yesNo": "Not yet",
+        "zodiac": "Pluto"
+      }
+    }
+  },
+  "the-world": {
+    "slug": "the-world",
+    "upright": {
+      "overview": {
+        "keywords": ["completion", "wholeness", "arrival"],
+        "text": "The cycle completes. Share the result, rest, and envision the next horizon with gratitude.",
+        "yesNo": "Yes",
+        "zodiac": "Saturn"
+      }
+    },
+    "reversed": {
+      "overview": {
+        "keywords": ["unfinished", "closure", "delay"],
+        "text": "Loose ends remain. Close details carefully and honor the ending before beginning anew.",
+        "yesNo": "Maybe",
+        "zodiac": "Saturn"
+      }
+    }
+  },
+
+  "ace-of-wands": {
+    "slug": "ace-of-wands",
+    "upright": {"overview": {"keywords": ["spark", "initiative", "drive"], "text": "Ignition. Follow the live idea with a concrete first step—momentum thrives on action.", "yesNo": "Yes", "zodiac": "Fire (Wands)"}},
+    "reversed": {"overview": {"keywords": ["false-start", "delay", "frustration"], "text": "The spark needs fuel or space. Remove friction, rest briefly, and relight with intention.", "yesNo": "Not yet", "zodiac": "Fire (Wands)"}}
+  },
+  "two-of-wands": {
+    "slug": "two-of-wands",
+    "upright": {"overview": {"keywords": ["planning", "scope", "vision"], "text": "Choose the path. Clarify the plan, confirm resources, and commit to the route.", "yesNo": "Yes", "zodiac": "Fire (Wands)"}},
+    "reversed": {"overview": {"keywords": ["indecision", "comfort-zone", "stall"], "text": "Staying safe stalls growth. Reduce options to two and decide by values.", "yesNo": "Not yet", "zodiac": "Fire (Wands)"}}
+  },
+  "three-of-wands": {
+    "slug": "three-of-wands",
+    "upright": {"overview": {"keywords": ["expansion", "foresight", "timing"], "text": "Ships are en route. Prepare to receive, scale thoughtfully, and extend your reach.", "yesNo": "Yes", "zodiac": "Fire (Wands)"}},
+    "reversed": {"overview": {"keywords": ["delays", "missed-ships", "impatience"], "text": "The timeline slips. Adjust expectations, strengthen logistics, and wait for the right window.", "yesNo": "Maybe", "zodiac": "Fire (Wands)"}}
+  },
+  "four-of-wands": {
+    "slug": "four-of-wands",
+    "upright": {"overview": {"keywords": ["celebration", "home", "milestone"], "text": "Stability worth celebrating. Mark progress with community and anchor new rituals.", "yesNo": "Yes", "zodiac": "Fire (Wands)"}},
+    "reversed": {"overview": {"keywords": ["disunity", "postponed", "unsettled"], "text": "A gathering or completion is delayed. Tend foundations and reconvene when ready.", "yesNo": "Maybe", "zodiac": "Fire (Wands)"}}
+  },
+  "five-of-wands": {
+    "slug": "five-of-wands",
+    "upright": {"overview": {"keywords": ["competition", "friction", "practice"], "text": "Constructive conflict can refine ideas. Set rules of engagement and keep it sport, not war.", "yesNo": "No", "zodiac": "Fire (Wands)"}},
+    "reversed": {"overview": {"keywords": ["avoidance", "resolution", "exhaustion"], "text": "Petty battles drain energy. Align on the real goal and end the noise.", "yesNo": "Yes", "zodiac": "Fire (Wands)"}}
+  },
+  "six-of-wands": {
+    "slug": "six-of-wands",
+    "upright": {"overview": {"keywords": ["recognition", "win", "confidence"], "text": "Public progress. Share results, accept support, and keep standards high in victory.", "yesNo": "Yes", "zodiac": "Fire (Wands)"}},
+    "reversed": {"overview": {"keywords": ["ego", "setback", "doubt"], "text": "Applause fades or feels fragile. Return to fundamentals and earn the next step.", "yesNo": "Maybe", "zodiac": "Fire (Wands)"}}
+  },
+  "seven-of-wands": {
+    "slug": "seven-of-wands",
+    "upright": {"overview": {"keywords": ["defense", "boundaries", "resolve"], "text": "Hold your ground. Say no where needed and back your stance with evidence.", "yesNo": "Yes", "zodiac": "Fire (Wands)"}},
+    "reversed": {"overview": {"keywords": ["overwhelm", "withdrawal", "pressure"], "text": "Too many fronts at once. Prioritize the hill worth defending and let the rest go.", "yesNo": "Not yet", "zodiac": "Fire (Wands)"}}
+  },
+  "eight-of-wands": {
+    "slug": "eight-of-wands",
+    "upright": {"overview": {"keywords": ["speed", "news", "movement"], "text": "Fast developments. Say yes to aligned momentum and communicate crisply as plans accelerate.", "yesNo": "Yes", "zodiac": "Fire (Wands)"}},
+    "reversed": {"overview": {"keywords": ["delays", "mixed-messages", "snags"], "text": "Crossed wires slow motion. Clarify channels and clear bottlenecks before pushing harder.", "yesNo": "Maybe", "zodiac": "Fire (Wands)"}}
+  },
+  "nine-of-wands": {
+    "slug": "nine-of-wands",
+    "upright": {"overview": {"keywords": ["resilience", "stamina", "guarded"], "text": "Near the finish. Protect energy, tighten boundaries, and take the last steps deliberately.", "yesNo": "Yes", "zodiac": "Fire (Wands)"}},
+    "reversed": {"overview": {"keywords": ["fatigue", "paranoia", "drop-guard"], "text": "Exhaustion distorts threat. Rest, reassess, and reinforce only what truly matters.", "yesNo": "Not yet", "zodiac": "Fire (Wands)"}}
+  },
+  "ten-of-wands": {
+    "slug": "ten-of-wands",
+    "upright": {"overview": {"keywords": ["burden", "responsibility", "overload"], "text": "Carrying too much. Redistribute load, cut non-essentials, and finish cleanly.", "yesNo": "No", "zodiac": "Fire (Wands)"}},
+    "reversed": {"overview": {"keywords": ["release", "delegation", "lighten"], "text": "Putting burdens down. Ask for help and simplify the plan to regain strength.", "yesNo": "Yes", "zodiac": "Fire (Wands)"}}
+  },
+  "page-of-wands": {
+    "slug": "page-of-wands",
+    "upright": {"overview": {"keywords": ["messenger", "curiosity", "adventure"], "text": "Fresh enthusiasm. Explore, experiment, and learn by doing—keep it playful.", "yesNo": "Yes", "zodiac": "Fire (Wands)"}},
+    "reversed": {"overview": {"keywords": ["impulse", "immaturity", "fizzle"], "text": "Hype without follow-through. Set a simple commitment and practice consistency.", "yesNo": "Not yet", "zodiac": "Fire (Wands)"}}
+  },
+  "knight-of-wands": {
+    "slug": "knight-of-wands",
+    "upright": {"overview": {"keywords": ["pursuit", "bold", "adrenaline"], "text": "Go-time with passion. Move swiftly but honor constraints and people in your wake.", "yesNo": "Yes", "zodiac": "Fire (Wands)"}},
+    "reversed": {"overview": {"keywords": ["reckless", "inconsistent", "starts-and-stops"], "text": "Heat without direction burns out. Re-anchor to a clear aim before charging.", "yesNo": "No", "zodiac": "Fire (Wands)"}}
+  },
+  "queen-of-wands": {
+    "slug": "queen-of-wands",
+    "upright": {"overview": {"keywords": ["magnetism", "confidence", "warmth"], "text": "Lead with heart and presence. Your authenticity attracts allies and opportunities.", "yesNo": "Yes", "zodiac": "Fire (Wands)"}},
+    "reversed": {"overview": {"keywords": ["jealousy", "self-doubt", "insecurity"], "text": "Comparison dims your fire. Reclaim self-trust and create from your center.", "yesNo": "Maybe", "zodiac": "Fire (Wands)"}}
+  },
+  "king-of-wands": {
+    "slug": "king-of-wands",
+    "upright": {"overview": {"keywords": ["vision", "leadership", "influence"], "text": "Set direction and inspire action. Decide boldly and steward the mission.", "yesNo": "Yes", "zodiac": "Fire (Wands)"}},
+    "reversed": {"overview": {"keywords": ["domineering", "impulsive", "short-fuse"], "text": "Authority without empathy backfires. Listen, include, and play the long game.", "yesNo": "No", "zodiac": "Fire (Wands)"}}
+  },
+
+  "ace-of-cups": {
+    "slug": "ace-of-cups",
+    "upright": {"overview": {"keywords": ["new-feeling", "openness", "compassion"], "text": "A heart opens. Welcome sincere connection and express what is true with care.", "yesNo": "Maybe", "zodiac": "Water (Cups)"}},
+    "reversed": {"overview": {"keywords": ["blocked-emotion", "self-care", "reserve"], "text": "Emotions need tending. Create safe space to feel before you try to fix.", "yesNo": "No", "zodiac": "Water (Cups)"}}
+  },
+  "two-of-cups": {
+    "slug": "two-of-cups",
+    "upright": {"overview": {"keywords": ["union", "mutuality", "attraction"], "text": "A balanced bond. Meet halfway, name needs, and build trust in small acts.", "yesNo": "Yes", "zodiac": "Water (Cups)"}},
+    "reversed": {"overview": {"keywords": ["imbalance", "misunderstanding", "distance"], "text": "Connection asks repair. Clarify boundaries and practice sincere listening.", "yesNo": "Maybe", "zodiac": "Water (Cups)"}}
+  },
+  "three-of-cups": {
+    "slug": "three-of-cups",
+    "upright": {"overview": {"keywords": ["friendship", "joy", "support"], "text": "Community nourishes. Celebrate together and let allies amplify your gifts.", "yesNo": "Yes", "zodiac": "Water (Cups)"}},
+    "reversed": {"overview": {"keywords": ["overindulgence", "gossip", "exclusion"], "text": "Too many voices or too much of a good thing. Re-center and choose healthier company.", "yesNo": "No", "zodiac": "Water (Cups)"}}
+  },
+  "four-of-cups": {
+    "slug": "four-of-cups",
+    "upright": {"overview": {"keywords": ["apathy", "contemplation", "missed-offer"], "text": "Emotional flatness hides opportunity. Rest, then look again with fresh eyes.", "yesNo": "Maybe", "zodiac": "Water (Cups)"}},
+    "reversed": {"overview": {"keywords": ["re-engage", "new-interest", "acceptance"], "text": "Energy returns. Say yes to what genuinely stirs the heart.", "yesNo": "Yes", "zodiac": "Water (Cups)"}}
+  },
+  "five-of-cups": {
+    "slug": "five-of-cups",
+    "upright": {"overview": {"keywords": ["grief", "loss", "disappointment"], "text": "Honor what was lost. When ready, notice what still supports you and begin again.", "yesNo": "No", "zodiac": "Water (Cups)"}},
+    "reversed": {"overview": {"keywords": ["acceptance", "healing", "turning"], "text": "Mourning gives way to meaning. Gather the remaining cups and rebuild.", "yesNo": "Yes", "zodiac": "Water (Cups)"}}
+  },
+  "six-of-cups": {
+    "slug": "six-of-cups",
+    "upright": {"overview": {"keywords": ["nostalgia", "kindness", "innocence"], "text": "Sweet familiarity. Let simple joys and genuine care restore connection.", "yesNo": "Yes", "zodiac": "Water (Cups)"}},
+    "reversed": {"overview": {"keywords": ["stuck-past", "rose-glasses", "immaturity"], "text": "Don’t live backward. Keep the lesson, release the loop, and choose present joy.", "yesNo": "Maybe", "zodiac": "Water (Cups)"}}
+  },
+  "seven-of-cups": {
+    "slug": "seven-of-cups",
+    "upright": {"overview": {"keywords": ["options", "fantasy", "discernment"], "text": "So many paths. Test reality, choose one experiment, and commit lightly.", "yesNo": "Maybe", "zodiac": "Water (Cups)"}},
+    "reversed": {"overview": {"keywords": ["clarity", "decision", "focus"], "text": "Illusions fall away. Pick the practical cup and pour energy there.", "yesNo": "Yes", "zodiac": "Water (Cups)"}}
+  },
+  "eight-of-cups": {
+    "slug": "eight-of-cups",
+    "upright": {"overview": {"keywords": ["departure", "search", "purpose"], "text": "Walk away from what no longer feeds you. The trail ahead holds meaning.", "yesNo": "Yes", "zodiac": "Water (Cups)"}},
+    "reversed": {"overview": {"keywords": ["avoidance", "return", "fear-of-change"], "text": "Half-leaving hurts. Close the loop fully or recommit with honesty.", "yesNo": "Not yet", "zodiac": "Water (Cups)"}}
+  },
+  "nine-of-cups": {
+    "slug": "nine-of-cups",
+    "upright": {"overview": {"keywords": ["satisfaction", "wish", "gratitude"], "text": "Contentment earned. Enjoy the moment and share from overflow.", "yesNo": "Yes", "zodiac": "Water (Cups)"}},
+    "reversed": {"overview": {"keywords": ["hedonism", "hollow-win", "excess"], "text": "Pleasure without meaning fades fast. Reconnect to values and deepen the why.", "yesNo": "Maybe", "zodiac": "Water (Cups)"}}
+  },
+  "ten-of-cups": {
+    "slug": "ten-of-cups",
+    "upright": {"overview": {"keywords": ["harmony", "family", "joy"], "text": "Shared fulfillment. Tend the bonds that make life rich and dependable.", "yesNo": "Yes", "zodiac": "Water (Cups)"}},
+    "reversed": {"overview": {"keywords": ["discord", "strain", "expectations"], "text": "Idealized pictures cause friction. Honor real needs and rebuild simple connection.", "yesNo": "No", "zodiac": "Water (Cups)"}}
+  },
+  "page-of-cups": {
+    "slug": "page-of-cups",
+    "upright": {"overview": {"keywords": ["message", "sensitivity", "imagination"], "text": "A tender offer. Be receptive, speak softly, and explore with curiosity.", "yesNo": "Maybe", "zodiac": "Water (Cups)"}},
+    "reversed": {"overview": {"keywords": ["immaturity", "moodiness", "insecurity"], "text": "Feelings spill or shut down. Ground, name emotions, and communicate gently.", "yesNo": "No", "zodiac": "Water (Cups)"}}
+  },
+  "knight-of-cups": {
+    "slug": "knight-of-cups",
+    "upright": {"overview": {"keywords": ["romance", "idealism", "offer"], "text": "A heartfelt approach. Lead with sincerity and let actions validate words.", "yesNo": "Yes", "zodiac": "Water (Cups)"}},
+    "reversed": {"overview": {"keywords": ["flattery", "inconsistency", "escapism"], "text": "Charm without follow-through. Slow down and prove care through steady presence.", "yesNo": "Maybe", "zodiac": "Water (Cups)"}}
+  },
+  "queen-of-cups": {
+    "slug": "queen-of-cups",
+    "upright": {"overview": {"keywords": ["empathy", "calm", "depth"], "text": "Compassion with boundaries. Hold space wisely and act from emotional intelligence.", "yesNo": "Yes", "zodiac": "Water (Cups)"}},
+    "reversed": {"overview": {"keywords": ["overwhelm", "codependence", "suppression"], "text": "Absorbing too much. Center yourself and let others carry their share.", "yesNo": "Not yet", "zodiac": "Water (Cups)"}}
+  },
+  "king-of-cups": {
+    "slug": "king-of-cups",
+    "upright": {"overview": {"keywords": ["emotional-mastery", "steadiness", "wisdom"], "text": "Lead with composed heart. Your stability soothes storms and guides fair choices.", "yesNo": "Yes", "zodiac": "Water (Cups)"}},
+    "reversed": {"overview": {"keywords": ["manipulation", "withdrawal", "volatility"], "text": "Numbing or control masks fear. Regulate, be honest, and reconnect to care.", "yesNo": "Maybe", "zodiac": "Water (Cups)"}}
+  },
+
+  "ace-of-swords": {
+    "slug": "ace-of-swords",
+    "upright": {"overview": {"keywords": ["clarity", "truth", "decision"], "text": "A sharp insight. State the truth, cut noise, and commit to a clean course.", "yesNo": "No", "zodiac": "Air (Swords)"}},
+    "reversed": {"overview": {"keywords": ["confusion", "misinfo", "self-doubt"], "text": "Facts tangled. Pause debates, verify sources, and speak after sorting.", "yesNo": "No", "zodiac": "Air (Swords)"}}
+  },
+  "two-of-swords": {
+    "slug": "two-of-swords",
+    "upright": {"overview": {"keywords": ["stalemate", "balance", "choice"], "text": "A careful truce with yourself. Weigh with honesty, then open the blindfold and decide.", "yesNo": "No", "zodiac": "Air (Swords)"}},
+    "reversed": {"overview": {"keywords": ["indecision", "information", "overthinking"], "text": "Avoidance extends tension. Gather the missing data and choose a direction.", "yesNo": "Maybe", "zodiac": "Air (Swords)"}}
+  },
+  "three-of-swords": {
+    "slug": "three-of-swords",
+    "upright": {"overview": {"keywords": ["heartbreak", "truth", "release"], "text": "Pain clarifies reality. Grieve, learn, and free yourself from the story that hurts.", "yesNo": "No", "zodiac": "Air (Swords)"}},
+    "reversed": {"overview": {"keywords": ["healing", "forgiveness", "repair"], "text": "Stitches hold. Let gentleness and honest dialogue close the wound.", "yesNo": "Yes", "zodiac": "Air (Swords)"}}
+  },
+  "four-of-swords": {
+    "slug": "four-of-swords",
+    "upright": {"overview": {"keywords": ["rest", "recovery", "stillness"], "text": "Deliberate rest restores clarity. Step back and let your system reset.", "yesNo": "Maybe", "zodiac": "Air (Swords)"}},
+    "reversed": {"overview": {"keywords": ["burnout", "restless", "overwork"], "text": "Ignoring rest taxes everything. Call a timeout and heal before the next push.", "yesNo": "No", "zodiac": "Air (Swords)"}}
+  },
+  "five-of-swords": {
+    "slug": "five-of-swords",
+    "upright": {"overview": {"keywords": ["conflict", "win-at-all-costs", "isolation"], "text": "Pyrrhic victories leave you alone. Value relationship and truth over being right.", "yesNo": "No", "zodiac": "Air (Swords)"}},
+    "reversed": {"overview": {"keywords": ["repair", "truce", "lesson"], "text": "Lay down weapons. Apologize where needed and rebuild with respect.", "yesNo": "Yes", "zodiac": "Air (Swords)"}}
+  },
+  "six-of-swords": {
+    "slug": "six-of-swords",
+    "upright": {"overview": {"keywords": ["transition", "support", "calmer-waters"], "text": "Moving on with help. Let the ferry carry you toward steadier shores.", "yesNo": "Yes", "zodiac": "Air (Swords)"}},
+    "reversed": {"overview": {"keywords": ["stuck", "unfinished", "resistance"], "text": "Lingering in choppy water. Accept assistance and complete your crossing.", "yesNo": "Not yet", "zodiac": "Air (Swords)"}}
+  },
+  "seven-of-swords": {
+    "slug": "seven-of-swords",
+    "upright": {"overview": {"keywords": ["strategy", "tact", "secrecy"], "text": "A delicate maneuver. Act smart, keep counsel tight, and move cleanly.", "yesNo": "Maybe", "zodiac": "Air (Swords)"}},
+    "reversed": {"overview": {"keywords": ["exposure", "confession", "course-correct"], "text": "What was hidden comes to light. Tell the truth and reset the plan ethically.", "yesNo": "Yes", "zodiac": "Air (Swords)"}}
+  },
+  "eight-of-swords": {
+    "slug": "eight-of-swords",
+    "upright": {"overview": {"keywords": ["trapped", "fear", "beliefs"], "text": "A mental cage. Name the story, loosen the binds, and take one free step.", "yesNo": "No", "zodiac": "Air (Swords)"}},
+    "reversed": {"overview": {"keywords": ["release", "choice", "perspective"], "text": "Space opens as you challenge assumptions. Walk toward the gap in the fence.", "yesNo": "Yes", "zodiac": "Air (Swords)"}}
+  },
+  "nine-of-swords": {
+    "slug": "nine-of-swords",
+    "upright": {"overview": {"keywords": ["anxiety", "rumination", "night"], "text": "Fear grows in the dark. Share the worry, breathe, and touch what is real now.", "yesNo": "No", "zodiac": "Air (Swords)"}},
+    "reversed": {"overview": {"keywords": ["relief", "perspective", "care"], "text": "The spiral loosens. Get daylight, seek support, and address one root cause.", "yesNo": "Maybe", "zodiac": "Air (Swords)"}}
+  },
+  "ten-of-swords": {
+    "slug": "ten-of-swords",
+    "upright": {"overview": {"keywords": ["finale", "collapse", "rock-bottom"], "text": "Enough. End the painful cycle and stand up to face sunrise.", "yesNo": "No", "zodiac": "Air (Swords)"}},
+    "reversed": {"overview": {"keywords": ["recovery", "dawn", "release"], "text": "The worst has passed. Let healing complete and begin with gentleness.", "yesNo": "Yes", "zodiac": "Air (Swords)"}}
+  },
+  "page-of-swords": {
+    "slug": "page-of-swords",
+    "upright": {"overview": {"keywords": ["curiosity", "ideas", "vigilance"], "text": "Ask good questions. Research, observe patterns, and speak with care.", "yesNo": "No", "zodiac": "Air (Swords)"}},
+    "reversed": {"overview": {"keywords": ["gossip", "jumping-to-conclusions", "nervousness"], "text": "Information without context misleads. Slow down and verify.", "yesNo": "Maybe", "zodiac": "Air (Swords)"}}
+  },
+  "knight-of-swords": {
+    "slug": "knight-of-swords",
+    "upright": {"overview": {"keywords": ["charge", "debate", "decisive"], "text": "Swift action with sharp logic. Aim well and mind collateral in the rush.", "yesNo": "No", "zodiac": "Air (Swords)"}},
+    "reversed": {"overview": {"keywords": ["impulsive", "argument", "misfire"], "text": "Speed without strategy causes messes. Reframe, then move.", "yesNo": "No", "zodiac": "Air (Swords)"}}
+  },
+  "queen-of-swords": {
+    "slug": "queen-of-swords",
+    "upright": {"overview": {"keywords": ["discernment", "boundaries", "truth"], "text": "Clear-eyed and fair. Say what is true and cut kindly where needed.", "yesNo": "Maybe", "zodiac": "Air (Swords)"}},
+    "reversed": {"overview": {"keywords": ["coldness", "bitterness", "rigidity"], "text": "Defensiveness narrows vision. Let compassion inform your clarity.", "yesNo": "No", "zodiac": "Air (Swords)"}}
+  },
+  "king-of-swords": {
+    "slug": "king-of-swords",
+    "upright": {"overview": {"keywords": ["strategy", "ethics", "authority"], "text": "Lead with reason and integrity. Decide from principle and long-term impact.", "yesNo": "No", "zodiac": "Air (Swords)"}},
+    "reversed": {"overview": {"keywords": ["tyranny", "bias", "rationalization"], "text": "Intellect weaponized erodes trust. Re-anchor to ethics and transparency.", "yesNo": "No", "zodiac": "Air (Swords)"}}
+  },
+
+  "ace-of-pentacles": {
+    "slug": "ace-of-pentacles",
+    "upright": {"overview": {"keywords": ["seed", "opportunity", "stability"], "text": "A tangible opening. Plant it with consistency and practical care.", "yesNo": "Yes", "zodiac": "Earth (Pentacles)"}},
+    "reversed": {"overview": {"keywords": ["missed-chance", "short-term", "hesitation"], "text": "The soil needs prep. Handle basics and reattempt with structure.", "yesNo": "Not yet", "zodiac": "Earth (Pentacles)"}}
+  },
+  "two-of-pentacles": {
+    "slug": "two-of-pentacles",
+    "upright": {"overview": {"keywords": ["juggle", "adapt", "balance"], "text": "Flexibility keeps things moving. Prioritize daily and adjust with humor.", "yesNo": "Yes", "zodiac": "Earth (Pentacles)"}},
+    "reversed": {"overview": {"keywords": ["overwhelm", "drop", "imbalance"], "text": "Too many balls in the air. Simplify to two and set rhythms.", "yesNo": "Maybe", "zodiac": "Earth (Pentacles)"}}
+  },
+  "three-of-pentacles": {
+    "slug": "three-of-pentacles",
+    "upright": {"overview": {"keywords": ["teamwork", "craft", "plan"], "text": "Shared skill builds real results. Align roles and respect each contribution.", "yesNo": "Yes", "zodiac": "Earth (Pentacles)"}},
+    "reversed": {"overview": {"keywords": ["misalignment", "silos", "sloppy"], "text": "Coordination is missing. Clarify standards and collaborate openly.", "yesNo": "No", "zodiac": "Earth (Pentacles)"}}
+  },
+  "four-of-pentacles": {
+    "slug": "four-of-pentacles",
+    "upright": {"overview": {"keywords": ["security", "control", "savings"], "text": "Hold steady and protect the base. Save, organize, and reduce exposure.", "yesNo": "Yes", "zodiac": "Earth (Pentacles)"}},
+    "reversed": {"overview": {"keywords": ["stingy", "stuck", "fear"], "text": "Gripping tight blocks flow. Loosen slightly and invest where it matters.", "yesNo": "Maybe", "zodiac": "Earth (Pentacles)"}}
+  },
+  "five-of-pentacles": {
+    "slug": "five-of-pentacles",
+    "upright": {"overview": {"keywords": ["hardship", "scarcity", "outcast"], "text": "A lean stretch. Seek shelter, accept help, and plan a path back.", "yesNo": "No", "zodiac": "Earth (Pentacles)"}},
+    "reversed": {"overview": {"keywords": ["support", "recovery", "access"], "text": "The door is open. Ask, receive, and rebuild stability step by step.", "yesNo": "Yes", "zodiac": "Earth (Pentacles)"}}
+  },
+  "six-of-pentacles": {
+    "slug": "six-of-pentacles",
+    "upright": {"overview": {"keywords": ["generosity", "reciprocity", "flow"], "text": "Give and receive in balance. Share surplus and track fairness.", "yesNo": "Yes", "zodiac": "Earth (Pentacles)"}},
+    "reversed": {"overview": {"keywords": ["strings", "imbalance", "dependency"], "text": "Uneven scales. Name terms, rebalance, and ensure dignity for all.", "yesNo": "Maybe", "zodiac": "Earth (Pentacles)"}}
+  },
+  "seven-of-pentacles": {
+    "slug": "seven-of-pentacles",
+    "upright": {"overview": {"keywords": ["assessment", "patience", "long-term"], "text": "Tend the garden. Adjust inputs and trust slow compounding.", "yesNo": "Yes", "zodiac": "Earth (Pentacles)"}},
+    "reversed": {"overview": {"keywords": ["impatience", "shortcuts", "waste"], "text": "Digging up seeds stops growth. Commit to a realistic horizon.", "yesNo": "Not yet", "zodiac": "Earth (Pentacles)"}}
+  },
+  "eight-of-pentacles": {
+    "slug": "eight-of-pentacles",
+    "upright": {"overview": {"keywords": ["practice", "mastery", "craft"], "text": "Skill through repetition. Focus on quality and learn from each iteration.", "yesNo": "Yes", "zodiac": "Earth (Pentacles)"}},
+    "reversed": {"overview": {"keywords": ["monotony", "corner-cutting", "stagnant"], "text": "Effort without growth. Refresh standards or learn a new technique.", "yesNo": "Maybe", "zodiac": "Earth (Pentacles)"}}
+  },
+  "nine-of-pentacles": {
+    "slug": "nine-of-pentacles",
+    "upright": {"overview": {"keywords": ["independence", "comfort", "self-worth"], "text": "Enjoy the fruits of discipline. Own your achievements and keep tending what sustains them.", "yesNo": "Yes", "zodiac": "Earth (Pentacles)"}},
+    "reversed": {"overview": {"keywords": ["overwork", "self-worth-questions", "isolation"], "text": "Success feels lonely or costly. Invite support and recalibrate your pace.", "yesNo": "Maybe", "zodiac": "Earth (Pentacles)"}}
+  },
+  "ten-of-pentacles": {
+    "slug": "ten-of-pentacles",
+    "upright": {"overview": {"keywords": ["legacy", "wealth", "foundation"], "text": "Long-term security. Build systems that outlast you and include those you love.", "yesNo": "Yes", "zodiac": "Earth (Pentacles)"}},
+    "reversed": {"overview": {"keywords": ["instability", "family-strain", "short-termism"], "text": "Cracks in the structure. Repair agreements and plan beyond the immediate.", "yesNo": "No", "zodiac": "Earth (Pentacles)"}}
+  },
+  "page-of-pentacles": {
+    "slug": "page-of-pentacles",
+    "upright": {"overview": {"keywords": ["student", "offer", "practical"], "text": "Learn by building. A grounded opportunity wants steady attention.", "yesNo": "Yes", "zodiac": "Earth (Pentacles)"}},
+    "reversed": {"overview": {"keywords": ["procrastination", "shortcuts", "distraction"], "text": "Avoidance wastes a real chance. Set a schedule and follow through.", "yesNo": "Not yet", "zodiac": "Earth (Pentacles)"}}
+  },
+  "knight-of-pentacles": {
+    "slug": "knight-of-pentacles",
+    "upright": {"overview": {"keywords": ["diligence", "routine", "reliability"], "text": "Slow, sure progress. Consistency wins where flash fails.", "yesNo": "Yes", "zodiac": "Earth (Pentacles)"}},
+    "reversed": {"overview": {"keywords": ["stubborn", "stuck", "boredom"], "text": "Ruts form. Refresh methods without abandoning discipline.", "yesNo": "Maybe", "zodiac": "Earth (Pentacles)"}}
+  },
+  "queen-of-pentacles": {
+    "slug": "queen-of-pentacles",
+    "upright": {"overview": {"keywords": ["nurture", "resourceful", "comfort"], "text": "Practical care sustains growth. Tend home, body, and budget with warmth.", "yesNo": "Yes", "zodiac": "Earth (Pentacles)"}},
+    "reversed": {"overview": {"keywords": ["overgiving", "neglect-self", "imbalance"], "text": "Caretaking needs reciprocity. Feed your roots and simplify duties.", "yesNo": "Maybe", "zodiac": "Earth (Pentacles)"}}
+  },
+  "king-of-pentacles": {
+    "slug": "king-of-pentacles",
+    "upright": {"overview": {"keywords": ["stewardship", "prosperity", "trust"], "text": "Build and protect value. Lead with calm competence and long-term vision.", "yesNo": "Yes", "zodiac": "Earth (Pentacles)"}},
+    "reversed": {"overview": {"keywords": ["greed", "fear", "rigidity"], "text": "Security obsessions limit life. Share wisely and invest in what matters.", "yesNo": "No", "zodiac": "Earth (Pentacles)"}}
+  }
+}

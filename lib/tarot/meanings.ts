@@ -23,253 +23,16 @@ export type CardMeaning = {
     }
 }
 
-const MEANINGS: Record<string, CardMeaning> = {
-    "the-fool": {
-        slug: "the-fool",
-        upright: {
-            overview: {
-                keywords: [
-                    "beginnings",
-                    "trust",
-                    "spontaneity",
-                    "innocence",
-                    "curiosity",
-                    "openness",
-                    "risk",
-                    "play",
-                ],
-                text: "A fresh start. The Fool points to first steps, learning by doing, and keeping risk at a sensible level. If you are choosing between action and more planning, act with a small, safe step and review the result. Keep goals simple and practical so momentum can build.",
-                yesNo: "Yes",
-                zodiac: "Aquarius (Uranus)",
-            },
-            relationships: {
-                keywords: [
-                    "openness",
-                    "play",
-                    "adventure",
-                    "vulnerability",
-                    "fresh start",
-                    "lightheartedness",
-                ],
-                text: "Upright in love, The Fool brings excitement, new experiences, and a relaxed pace. In a relationship, it shows a period of fun, trying new things together, and light travel (weekend trip, short getaway). It is positive for bonding but not a guarantee of immediate commitment. If you are single, expect a spontaneous connection or a casual romance that feels fresh and energizing. If you are asking specifically about commitment, this card suggests ‘not yet’—enjoy the connection and let clarity develop before defining the label.",
-            },
-            work: {
-                keywords: [
-                    "experiment",
-                    "initiation",
-                    "learning",
-                    "prototype",
-                    "momentum",
-                    "iteration",
-                ],
-                text: "At work, this card favors a new role, project, or business. Start with a basic version (pilot, MVP) and learn from feedback. It is a good time to apply for internships, junior roles, or roles that require travel. If you asked about long‑term stability, it may be early; focus on building skills and producing small, visible results first.",
-            },
-            finance: {
-                keywords: [
-                    "start small",
-                    "discipline",
-                    "foundation",
-                    "habits",
-                    "buffer",
-                    "simplicity",
-                ],
-                text: "Financially, begin with basics: make a small automatic transfer, track essential costs, and build a starter emergency fund. Avoid big impulsive buys and high‑risk investments. Modest, repeatable actions create stability faster than one‑off windfalls.",
-            },
-            health: {
-                keywords: [
-                    "routine",
-                    "movement",
-                    "fresh air",
-                    "joy",
-                    "gentleness",
-                    "consistency",
-                ],
-                text: "Health improves with simple routines: a daily walk, stretching, regular meals, and basic sleep hygiene. This card also cautions against careless mishaps—watch your footing, warm up, and use proper equipment. Keep changes light and sustainable.",
-            },
-        },
-        reversed: {
-            overview: {
-                keywords: [
-                    "hesitation",
-                    "risk",
-                    "naivety",
-                    "stalling",
-                    "overthinking",
-                    "course correction",
-                ],
-                text: "Two risks: either rushing in without basics or delaying so long that nothing starts. Reduce the scope to one safe step, confirm essentials, and proceed carefully. Avoid dramatic gestures; choose a small action that gives real information.",
-                yesNo: "Not yet",
-                zodiac: "Aquarius (Uranus)",
-            },
-            relationships: {
-                keywords: [
-                    "boundaries",
-                    "expectations",
-                    "clarity",
-                    "slowness",
-                    "safety",
-                    "self‑respect",
-                ],
-                text: "In love, this can show mixed signals, on‑and‑off dynamics, or someone not ready to define the relationship. If partnered, watch for avoidant behavior or risky choices that ignore consequences. Talk about expectations and pace; agree on one concrete next step and review how it feels in a week.",
-            },
-            work: {
-                keywords: [
-                    "scope",
-                    "basics",
-                    "safety",
-                    "assumptions",
-                    "validation",
-                    "focus",
-                ],
-                text: "Disorganization, skipped checklists, or frequent restarts may be slowing progress. Revisit the brief, confirm requirements, and deliver a narrower outcome first. If you plan to change jobs, prepare basics (portfolio, references) before leaping.",
-            },
-            finance: {
-                keywords: [
-                    "impulse",
-                    "buffer",
-                    "awareness",
-                    "stability",
-                    "review",
-                    "control",
-                ],
-                text: "Avoid impulse spending and too‑good‑to‑be‑true offers. Rebuild your buffer, list fixed costs, and pause non‑essentials for now. Make decisions from clear numbers, not pressure.",
-            },
-            health: {
-                keywords: [
-                    "rest",
-                    "grounding",
-                    "consistency",
-                    "nervous system",
-                    "recovery",
-                    "moderation",
-                ],
-                text: "Routine may be irregular or safety steps ignored. Return to basics: sleep schedule, hydration, gentle activity, and safe technique. If starting a new plan, choose low impact and increase gradually.",
-            },
-        },
-    },
-    "the-magician": {
-        slug: "the-magician",
-        upright: {
-            overview: {
-                keywords: [
-                    "focus",
-                    "skill",
-                    "manifestation",
-                    "will",
-                    "resourcefulness",
-                    "precision",
-                    "initiative",
-                ],
-                text: "Clear execution. You have the tools and the timing to turn a plan into results. Choose one outcome, remove distractions, and work in short, measurable cycles. Show the result, get feedback, and improve.",
-                yesNo: "Yes",
-                zodiac: "Mercury (Gemini/Virgo)",
-            },
-            relationships: {
-                keywords: [
-                    "communication",
-                    "initiative",
-                    "attention",
-                    "attunement",
-                    "clarity",
-                    "intentionality",
-                ],
-                text: "In relationships, strong communication creates progress. Be direct about intentions, listen for the other person’s needs, and agree on practical next steps. This is positive for defining labels, resolving confusion, or planning together. Avoid persuasion tactics—choose transparency and consistency.",
-            },
-            work: {
-                keywords: [
-                    "craft",
-                    "leverage",
-                    "execution",
-                    "systems",
-                    "evidence",
-                    "ownership",
-                ],
-                text: "Excellent for pitching, presenting, selling, and negotiating. Use your tools well, prepare a focused demo, and show clear value. Automate repeatable parts so you can spend time on the work that moves the metric.",
-            },
-            finance: {
-                keywords: [
-                    "strategy",
-                    "systems",
-                    "value",
-                    "efficiency",
-                    "planning",
-                    "review",
-                ],
-                text: "You can improve finances through planning and skill. Negotiate rates, compare providers, and automate key payments. Read terms carefully; a little preparation can save money quickly.",
-            },
-            health: {
-                keywords: [
-                    "intent",
-                    "precision",
-                    "habit",
-                    "awareness",
-                    "feedback",
-                    "consistency",
-                ],
-                text: "Track one meaningful measure (sleep, steps, or stress) and make small adjustments based on the data. Coaching, physiotherapy, or a structured plan can be especially effective now.",
-            },
-        },
-        reversed: {
-            overview: {
-                keywords: [
-                    "scattered",
-                    "doubt",
-                    "misuse",
-                    "misalignment",
-                    "distraction",
-                    "overextension",
-                ],
-                text: "Mixed signals or unclear goals reduce impact. Narrow your focus to one deliverable, slow multitasking, and complete tasks fully before starting new ones.",
-                yesNo: "Maybe",
-                zodiac: "Mercury (Gemini/Virgo)",
-            },
-            relationships: {
-                keywords: [
-                    "authenticity",
-                    "listening",
-                    "trust",
-                    "transparency",
-                    "repair",
-                    "respect",
-                ],
-                text: "Be careful of charm without follow‑through. Avoid trying to ‘convince’ someone; aim for honest, specific conversation. If there has been confusion, restate intentions and align words with actions.",
-            },
-            work: {
-                keywords: [
-                    "overreach",
-                    "priorities",
-                    "ethics",
-                    "constraints",
-                    "boundaries",
-                    "focus",
-                ],
-                text: "Watch for over‑promising or cutting corners. Revise the plan, confirm resources, and protect your reputation with accurate estimates. Quality and clarity matter more than speed right now.",
-            },
-            finance: {
-                keywords: [
-                    "leaks",
-                    "review",
-                    "control",
-                    "overspend",
-                    "efficiency",
-                    "stability",
-                ],
-                text: "Check for hidden fees, odd renewals, or unclear terms. Do not sign contracts you have not read. A short review can stop small leaks and prevent larger issues.",
-            },
-            health: {
-                keywords: [
-                    "overexertion",
-                    "signals",
-                    "moderation",
-                    "pacing",
-                    "recovery",
-                    "consistency",
-                ],
-                text: "Avoid quick fixes and miracle claims. If you feel drained, reduce intensity, pace activities, and schedule recovery. Professional guidance can help if symptoms persist.",
-            },
-        },
-    },
+// JSON override types: only overview fields may be provided per orientation
+type OverviewOverride = Partial<SectionMeaning>
+type CardMeaningOverviewOverrides = {
+    slug?: string
+    upright?: { overview?: OverviewOverride }
+    reversed?: { overview?: OverviewOverride }
 }
+
+// Central meanings map; populated at module load by combining JSON overrides with structured defaults
+const MEANINGS: Record<string, CardMeaning> = {}
 
 export function getCardMeaning(slug: string): CardMeaning | undefined {
     return MEANINGS[slug]
@@ -277,6 +40,7 @@ export function getCardMeaning(slug: string): CardMeaning | undefined {
 
 // Rule-based generator for all cards to ensure full coverage with clear, direct wording
 import type { TarotCard as CardMeta } from "@/lib/tarot/cards"
+import OVERRIDES from "@/lib/tarot/meanings.json"
 
 const MAJOR_YES_NO_ZODIAC: Record<string, { yesNo: string; zodiac: string }> = {
     "the-fool": { yesNo: "Yes", zodiac: "Aquarius (Uranus)" },
@@ -511,7 +275,36 @@ export function buildMeaning(card: CardMeta): CardMeaning {
 // Ensure all 78 cards have meanings available at runtime
 import { getAllCards } from "@/lib/tarot/cards"
 for (const c of getAllCards()) {
-    if (!MEANINGS[c.slug]) {
-        MEANINGS[c.slug] = buildMeaning(c)
+    const base = buildMeaning(c)
+    const override = (OVERRIDES as unknown as Record<
+        string,
+        CardMeaningOverviewOverrides
+    >)[
+        c.slug
+    ]
+    if (override?.upright?.overview) {
+        base.upright.overview = {
+            keywords:
+                override.upright.overview.keywords ?? base.upright.overview.keywords,
+            text: override.upright.overview.text ?? base.upright.overview.text,
+            yesNo: override.upright.overview.yesNo ?? base.upright.overview.yesNo,
+            zodiac:
+                override.upright.overview.zodiac ?? base.upright.overview.zodiac,
+        }
     }
+    if (override?.reversed?.overview) {
+        base.reversed.overview = {
+            keywords:
+                override.reversed.overview.keywords ??
+                base.reversed.overview.keywords,
+            text:
+                override.reversed.overview.text ?? base.reversed.overview.text,
+            yesNo:
+                override.reversed.overview.yesNo ?? base.reversed.overview.yesNo,
+            zodiac:
+                override.reversed.overview.zodiac ??
+                base.reversed.overview.zodiac,
+        }
+    }
+    MEANINGS[c.slug] = base
 }

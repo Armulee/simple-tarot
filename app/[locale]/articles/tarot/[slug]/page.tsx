@@ -89,6 +89,9 @@ export default async function TarotCardArticlePage({
     )
 
     const meaning = getCardMeaning(card.slug)
+    if (!meaning?.upright?.overview?.text || !meaning?.reversed?.overview?.text) {
+        return notFound()
+    }
 
     const uprightOverview: ArticleSection = {
         id: "upright-overview",
@@ -96,17 +99,17 @@ export default async function TarotCardArticlePage({
         content: (
             <div className='space-y-3'>
                 {uprightImage}
-                {makeKeywords(
-                    meaning?.upright.overview.keywords || card.uprightKeywords
-                )}
+                {meaning.upright.overview.keywords?.length
+                    ? makeKeywords(meaning.upright.overview.keywords)
+                    : null}
                 <div className='text-xs text-muted-foreground flex flex-wrap gap-3'>
-                    {meaning?.upright.overview.yesNo && (
+                    {meaning.upright.overview.yesNo && (
                         <span>
                             <span className='font-medium'>Yes/No:</span>{" "}
                             {meaning.upright.overview.yesNo}
                         </span>
                     )}
-                    {meaning?.upright.overview.zodiac && (
+                    {meaning.upright.overview.zodiac && (
                         <span>
                             <span className='font-medium'>Zodiac:</span>{" "}
                             {meaning.upright.overview.zodiac}
@@ -114,8 +117,7 @@ export default async function TarotCardArticlePage({
                     )}
                 </div>
                 <p>
-                    {meaning?.upright.overview.text ||
-                        `${card.name} upright supports steady, intentional action.`}
+                    {meaning.upright.overview.text}
                 </p>
             </div>
         ),
@@ -127,17 +129,17 @@ export default async function TarotCardArticlePage({
         content: (
             <div className='space-y-3'>
                 {reversedImage}
-                {makeKeywords(
-                    meaning?.reversed.overview.keywords || card.reversedKeywords
-                )}
+                {meaning.reversed.overview.keywords?.length
+                    ? makeKeywords(meaning.reversed.overview.keywords)
+                    : null}
                 <div className='text-xs text-muted-foreground flex flex-wrap gap-3'>
-                    {meaning?.reversed.overview.yesNo && (
+                    {meaning.reversed.overview.yesNo && (
                         <span>
                             <span className='font-medium'>Yes/No:</span>{" "}
                             {meaning.reversed.overview.yesNo}
                         </span>
                     )}
-                    {meaning?.reversed.overview.zodiac && (
+                    {meaning.reversed.overview.zodiac && (
                         <span>
                             <span className='font-medium'>Zodiac:</span>{" "}
                             {meaning.reversed.overview.zodiac}
@@ -145,185 +147,12 @@ export default async function TarotCardArticlePage({
                     )}
                 </div>
                 <p>
-                    {meaning?.reversed.overview.text ||
-                        `${card.name} reversed asks for recalibration and lighter travel.`}
+                    {meaning.reversed.overview.text}
                 </p>
             </div>
         ),
     }
-
-    const uprightRelationships: ArticleSection = {
-        id: "upright-relationships",
-        title: "Relationships (Upright)",
-        content: (
-            <div className='space-y-3'>
-                {makeKeywords(
-                    meaning?.upright.relationships.keywords || [
-                        "communication",
-                        "trust",
-                        "presence",
-                    ]
-                )}
-                <p>
-                    {meaning?.upright.relationships.text ||
-                        `Practical kindness and honest dialogue strengthen bonds.`}
-                </p>
-            </div>
-        ),
-    }
-
-    const reversedRelationships: ArticleSection = {
-        id: "reversed-relationships",
-        title: "Relationships (Reversed)",
-        content: (
-            <div className='space-y-3'>
-                {makeKeywords(
-                    meaning?.reversed.relationships.keywords || [
-                        "boundaries",
-                        "repair",
-                        "honesty",
-                    ]
-                )}
-                <p>
-                    {meaning?.reversed.relationships.text ||
-                        `Name one truth, reset a boundary, and take a small step.`}
-                </p>
-            </div>
-        ),
-    }
-
-    const uprightWork: ArticleSection = {
-        id: "upright-work",
-        title: "Work & Career (Upright)",
-        content: (
-            <div className='space-y-3'>
-                {makeKeywords(
-                    meaning?.upright.work.keywords || [
-                        "focus",
-                        "leverage",
-                        "iteration",
-                    ]
-                )}
-                <p>
-                    {meaning?.upright.work.text ||
-                        `Reduce scope, ship sooner, and let feedback guide iteration.`}
-                </p>
-            </div>
-        ),
-    }
-
-    const reversedWork: ArticleSection = {
-        id: "reversed-work",
-        title: "Work & Career (Reversed)",
-        content: (
-            <div className='space-y-3'>
-                {makeKeywords(
-                    meaning?.reversed.work.keywords || [
-                        "scope",
-                        "friction",
-                        "alignment",
-                    ]
-                )}
-                <p>
-                    {meaning?.reversed.work.text ||
-                        `Clarify scope, sequence work, and realign to the core objective.`}
-                </p>
-            </div>
-        ),
-    }
-
-    const uprightFinance: ArticleSection = {
-        id: "upright-finance",
-        title: "Finance (Upright)",
-        content: (
-            <div className='space-y-3'>
-                {makeKeywords(
-                    meaning?.upright.finance.keywords || [
-                        "values",
-                        "consistency",
-                        "runway",
-                    ]
-                )}
-                <p>
-                    {meaning?.upright.finance.text ||
-                        `Align spending with values and automate steady contributions.`}
-                </p>
-            </div>
-        ),
-    }
-
-    const reversedFinance: ArticleSection = {
-        id: "reversed-finance",
-        title: "Finance (Reversed)",
-        content: (
-            <div className='space-y-3'>
-                {makeKeywords(
-                    meaning?.reversed.finance.keywords || [
-                        "stability",
-                        "risk",
-                        "clarity",
-                    ]
-                )}
-                <p>
-                    {meaning?.reversed.finance.text ||
-                        `Stabilize, pause non‑essentials, and decide from clear numbers.`}
-                </p>
-            </div>
-        ),
-    }
-
-    const uprightHealth: ArticleSection = {
-        id: "upright-health",
-        title: "Health (Upright)",
-        content: (
-            <div className='space-y-3'>
-                {makeKeywords(
-                    meaning?.upright.health.keywords || [
-                        "routine",
-                        "rest",
-                        "awareness",
-                    ]
-                )}
-                <p>
-                    {meaning?.upright.health.text ||
-                        `Prioritize steady, gentle routines and compassionate awareness.`}
-                </p>
-            </div>
-        ),
-    }
-
-    const reversedHealth: ArticleSection = {
-        id: "reversed-health",
-        title: "Health (Reversed)",
-        content: (
-            <div className='space-y-3'>
-                {makeKeywords(
-                    meaning?.reversed.health.keywords || [
-                        "overload",
-                        "recovery",
-                        "support",
-                    ]
-                )}
-                <p>
-                    {meaning?.reversed.health.text ||
-                        `Scale back, choose recovery, and seek appropriate support.`}
-                </p>
-            </div>
-        ),
-    }
-
-    const sections: ArticleSection[] = [
-        uprightOverview,
-        uprightRelationships,
-        uprightWork,
-        uprightFinance,
-        uprightHealth,
-        reversedOverview,
-        reversedRelationships,
-        reversedWork,
-        reversedFinance,
-        reversedHealth,
-    ]
+    const sections: ArticleSection[] = [uprightOverview, reversedOverview]
 
     return (
         <ArticleLayout
