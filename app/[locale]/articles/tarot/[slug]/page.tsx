@@ -319,6 +319,7 @@ export default async function TarotCardArticlePage({
         <ArticleLayout
             title={card.name}
             subtitle={`Upright and reversed meanings with practical guidance.`}
+            tocIds={["upright-overview", "reversed-overview"]}
             backHref='/articles/tarot'
             backLabel='Tarot'
             onThisPageLabel='On this page'
