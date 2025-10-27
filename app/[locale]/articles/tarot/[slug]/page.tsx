@@ -3,19 +3,25 @@ import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getCardBySlug, TAROT_CARDS } from "@/lib/tarot/cards"
 import { getCardMeaning } from "@/lib/tarot/meanings"
+import { routing } from "@/i18n/routing"
 import {
     ArticleLayout,
     type ArticleSection,
 } from "@/components/articles/article-layout"
 
+export const dynamicParams = false
+
 export async function generateStaticParams() {
-    return TAROT_CARDS.map((c) => ({ slug: c.slug }))
+    // Generate all tarot article paths for each supported locale
+    return routing.locales.flatMap((locale) =>
+        TAROT_CARDS.map((c) => ({ locale, slug: c.slug }))
+    )
 }
 
 export async function generateMetadata({
     params,
 }: {
-    params: Promise<{ slug: string }>
+    params: Promise<{ locale: string; slug: string }>
 }): Promise<Metadata> {
     const { slug } = await params
     const card = getCardBySlug(slug)
@@ -35,7 +41,7 @@ export async function generateMetadata({
 export default async function TarotCardArticlePage({
     params,
 }: {
-    params: Promise<{ slug: string }>
+    params: Promise<{ locale: string; slug: string }>
 }) {
     const { slug } = await params
     const card = getCardBySlug(slug)
