@@ -1,0 +1,99 @@
+{
+  "slug": "the-magician",
+  "upright": {
+    "overview": {
+      "keywords": [],
+      "text": "Focused intent, skillful action, and ideas made real. Upright, The Magician points toward steady advancement that fits real life. Major Arcana archetype gives the tone and terrain. Expect to work with transparent intent, attentive listening, and alignment through action; use what already responds and let momentum build. Read this card as permission to move in a way that feels honest and well‑paced—visible results over grand gestures.",
+      "yesNo": "Yes",
+      "zodiac": "Mercury (Gemini/Virgo)"
+    },
+    "relationships": {
+      "keywords": [
+        "honesty",
+        "understanding",
+        "boundaries",
+        "care",
+        "growth"
+      ],
+      "text": "Connection feels alive and honest. Let transparent intent, attentive listening, and alignment through action guide how you show up; small, sincere acts matter here. Speak plainly, listen for the quiet truth, and move at a pace that keeps trust intact."
+    },
+    "work": {
+      "keywords": [
+        "focus",
+        "delivery",
+        "process",
+        "learning",
+        "impact"
+      ],
+      "text": "Progress favors craft, clear scope, and a result you can point to. Build around show, don’t tell, leverage tools expertly, and iterate with evidence; finish one meaningful piece and let it prove the direction. Share early, revise well, and protect time where real work happens."
+    },
+    "finance": {
+      "keywords": [
+        "planning",
+        "stability",
+        "clarity",
+        "habits",
+        "value"
+      ],
+      "text": "Make numbers you can live with and choices you respect. Aim resources toward negotiate and optimize, remove hidden fees, and systems create value; trim what does not serve your life. Automate the good, read terms in daylight, and let steadiness quietly win."
+    },
+    "health": {
+      "keywords": [
+        "routine",
+        "recovery",
+        "awareness",
+        "balance",
+        "consistency"
+      ],
+      "text": "Prefer routines your body trusts. Shape your week around track one metric, precision beats intensity, and steady consistency; keep changes gentle and repeatable. Recovery is part of progress; consistency outperforms intensity."
+    }
+  },
+  "reversed": {
+    "overview": {
+      "keywords": [],
+      "text": "Focused intent, skillful action, and ideas made real. Reversed, The Magician makes the friction visible so you can remedy it. Major Arcana archetype frames where to look first. You may notice charm without follow-through, repair through honesty, and trust rebuilt in steps; naming it clearly is half the remedy. The correction is measured and specific: simplify, realign, and restore trust in the basics before scaling up again.",
+      "yesNo": "Not yet",
+      "zodiac": "Mercury (Gemini/Virgo)"
+    },
+    "relationships": {
+      "keywords": [
+        "honesty",
+        "understanding",
+        "boundaries",
+        "care",
+        "growth"
+      ],
+      "text": "Tension and mixed signals steal warmth—name what’s real. Name charm without follow-through, repair through honesty, and trust rebuilt in steps without blame; set one boundary and one invitation, then observe. Slow the pace, remove pressure, and let sincerity reset the tone."
+    },
+    "work": {
+      "keywords": [
+        "focus",
+        "delivery",
+        "process",
+        "learning",
+        "impact"
+      ],
+      "text": "Drag shows up as too much scope and not enough finish. Cut to over-promising risk, ethics over speed, and tighten focus; deliver a small slice that restores flow. Reduce handoffs, limit multitasking, and make quality visible."
+    },
+    "finance": {
+      "keywords": [
+        "planning",
+        "stability",
+        "clarity",
+        "habits",
+        "value"
+      ],
+      "text": "Leaks appear when decisions rush through fog. Tighten around find leaks, read terms carefully, and control recurring costs; pause non‑essentials until the plan is clear. Choose clarity over speed and rebuild stability step by step."
+    },
+    "health": {
+      "keywords": [
+        "routine",
+        "recovery",
+        "awareness",
+        "balance",
+        "consistency"
+      ],
+      "text": "Overreach or neglect hide in routine—bring them into the light. Ease into avoid quick fixes, pace and recover, and seek guidance if needed; lower intensity, improve form, and rest on purpose. Start where you are; a kinder plan will carry you further."
+    }
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "slug": "two-of-cups",
+  "upright": {
+    "overview": {
+      "keywords": [],
+      "text": "A choice and careful balance within emotion. Two of Cups upright emphasizes genuine progress over noise. Cups (Water (Cups)) gives the tone and terrain. Expect to work with choices together, balance needs, and set rhythm; use what already responds and let momentum build. Read this card as permission to move in a way that feels honest and well‑paced—visible results over grand gestures.",
+      "yesNo": "Maybe",
+      "zodiac": "Water (Cups)",
+      "element": "Water"
+    },
+    "relationships": {
+      "keywords": [
+        "honesty",
+        "understanding",
+        "boundaries",
+        "care",
+        "growth"
+      ],
+      "text": "Connection feels alive and honest. Let choices together, balance needs, and set rhythm guide how you show up; small, sincere acts matter here. Speak plainly, listen for the quiet truth, and move at a pace that keeps trust intact."
+    },
+    "work": {
+      "keywords": [
+        "focus",
+        "delivery",
+        "process",
+        "learning",
+        "impact"
+      ],
+      "text": "Progress favors craft, clear scope, and a result you can point to. Build around dual priorities, compare paths, and commit soon; finish one meaningful piece and let it prove the direction. Share early, revise well, and protect time where real work happens."
+    },
+    "finance": {
+      "keywords": [
+        "planning",
+        "stability",
+        "clarity",
+        "habits",
+        "value"
+      ],
+      "text": "Make numbers you can live with and choices you respect. Aim resources toward juggle costs, prioritize core, and steady transfers; trim what does not serve your life. Automate the good, read terms in daylight, and let steadiness quietly win."
+    },
+    "health": {
+      "keywords": [
+        "routine",
+        "recovery",
+        "awareness",
+        "balance",
+        "consistency"
+      ],
+      "text": "Prefer routines your body trusts. Shape your week around balance rest/move, two key habits, and consistency; keep changes gentle and repeatable. Recovery is part of progress; consistency outperforms intensity."
+    }
+  },
+  "reversed": {
+    "overview": {
+      "keywords": [],
+      "text": "A choice and careful balance within emotion. Two of Cups reversed highlights where the current pulls against you. Cups (Water (Cups)) frames where to look first. You may notice choices together, balance needs, and set rhythm; naming it clearly is half the remedy. The correction is measured and specific: simplify, realign, and restore trust in the basics before scaling up again.",
+      "yesNo": "No",
+      "zodiac": "Water (Cups)",
+      "element": "Water"
+    },
+    "relationships": {
+      "keywords": [
+        "honesty",
+        "understanding",
+        "boundaries",
+        "care",
+        "growth"
+      ],
+      "text": "Tension and mixed signals steal warmth—name what’s real. Name choices together, balance needs, and set rhythm without blame; set one boundary and one invitation, then observe. Slow the pace, remove pressure, and let sincerity reset the tone."
+    },
+    "work": {
+      "keywords": [
+        "focus",
+        "delivery",
+        "process",
+        "learning",
+        "impact"
+      ],
+      "text": "Drag shows up as too much scope and not enough finish. Cut to dual priorities, compare paths, and commit soon; deliver a small slice that restores flow. Reduce handoffs, limit multitasking, and make quality visible."
+    },
+    "finance": {
+      "keywords": [
+        "planning",
+        "stability",
+        "clarity",
+        "habits",
+        "value"
+      ],
+      "text": "Leaks appear when decisions rush through fog. Tighten around juggle costs, prioritize core, and steady transfers; pause non‑essentials until the plan is clear. Choose clarity over speed and rebuild stability step by step."
+    },
+    "health": {
+      "keywords": [
+        "routine",
+        "recovery",
+        "awareness",
+        "balance",
+        "consistency"
+      ],
+      "text": "Overreach or neglect hide in routine—bring them into the light. Ease into balance rest/move, two key habits, and consistency; lower intensity, improve form, and rest on purpose. Start where you are; a kinder plan will carry you further."
+    }
+  }
+}

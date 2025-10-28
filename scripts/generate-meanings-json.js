@@ -9,7 +9,7 @@ to produce readable, practical guidance.
 const fs = require('fs');
 const path = require('path');
 
-const OUTPUT = path.join(__dirname, '..', 'lib', 'tarot', 'meanings.json');
+const OUTPUT_DIR = path.join(__dirname, '..', 'lib', 'tarot', 'meanings');
 
 const majorNames = [
   'The Fool','The Magician','The High Priestess','The Empress','The Emperor','The Hierophant','The Lovers','The Chariot','Strength','The Hermit','Wheel of Fortune','Justice','The Hanged Man','Death','Temperance','The Devil','The Tower','The Star','The Moon','The Sun','Judgement','The World'
@@ -738,10 +738,14 @@ function buildAll(){
 // We now replace the entire meanings file deterministically every run
 
 function main(){
-  let existing = {};
   const generated = buildAll();
-  fs.writeFileSync(OUTPUT, JSON.stringify(generated, null, 2));
-  console.log('Wrote meanings to', OUTPUT);
+  if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+  // Write one file per card
+  for (const [slug, data] of Object.entries(generated)) {
+    const file = path.join(OUTPUT_DIR, `${slug}.json`);
+    fs.writeFileSync(file, JSON.stringify(data, null, 2));
+  }
+  console.log('Wrote meanings to', OUTPUT_DIR);
 }
 
 main();

@@ -2,7 +2,6 @@ import type { Metadata } from "next"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getCardBySlug, TAROT_CARDS } from "@/lib/tarot/cards"
-import MEANINGS from "@/lib/tarot/meanings.json"
 type SectionMeaning = {
     keywords?: string[]
     text: string
@@ -112,7 +111,9 @@ export default async function TarotCardArticlePage({
         </div>
     )
 
-    const meaning = (MEANINGS as Record<string, CardMeaning>)[card.slug]
+    // Dynamic import per-card JSON to keep bundle small
+    const meaningModule = await import(`@/lib/tarot/meanings/${card.slug}.json`)
+    const meaning = meaningModule.default as CardMeaning
     if (!meaning?.upright?.overview?.text || !meaning?.reversed?.overview?.text) {
         return notFound()
     }

@@ -1,0 +1,101 @@
+{
+  "slug": "five-of-wands",
+  "upright": {
+    "overview": {
+      "keywords": [],
+      "text": "Disruption and challenge—pressure testing initiative. In upright position, Five of Wands reads as clear forward motion. Wands (Fire (Wands)) gives the tone and terrain. Expect to work with conflict or strain, practice repair, and name needs; use what already responds and let momentum build. Read this card as permission to move in a way that feels honest and well‑paced—visible results over grand gestures.",
+      "yesNo": "Yes",
+      "zodiac": "Fire (Wands)",
+      "element": "Fire"
+    },
+    "relationships": {
+      "keywords": [
+        "honesty",
+        "understanding",
+        "boundaries",
+        "care",
+        "growth"
+      ],
+      "text": "Connection feels alive and honest. Let conflict or strain, practice repair, and name needs guide how you show up; small, sincere acts matter here. Speak plainly, listen for the quiet truth, and move at a pace that keeps trust intact."
+    },
+    "work": {
+      "keywords": [
+        "focus",
+        "delivery",
+        "process",
+        "learning",
+        "impact"
+      ],
+      "text": "Progress favors craft, clear scope, and a result you can point to. Build around challenges surface, learn from friction, and adjust tactics; finish one meaningful piece and let it prove the direction. Share early, revise well, and protect time where real work happens."
+    },
+    "finance": {
+      "keywords": [
+        "planning",
+        "stability",
+        "clarity",
+        "habits",
+        "value"
+      ],
+      "text": "Make numbers you can live with and choices you respect. Aim resources toward lean period, reduce exposure, and seek assistance; trim what does not serve your life. Automate the good, read terms in daylight, and let steadiness quietly win."
+    },
+    "health": {
+      "keywords": [
+        "routine",
+        "recovery",
+        "awareness",
+        "balance",
+        "consistency"
+      ],
+      "text": "Prefer routines your body trusts. Shape your week around stress signals, scale down, and gentle support; keep changes gentle and repeatable. Recovery is part of progress; consistency outperforms intensity."
+    }
+  },
+  "reversed": {
+    "overview": {
+      "keywords": [],
+      "text": "Disruption and challenge—pressure testing initiative. In reverse, Five of Wands exposes the snag that needs attention. Wands (Fire (Wands)) frames where to look first. You may notice conflict or strain, practice repair, and name needs; naming it clearly is half the remedy. The correction is measured and specific: simplify, realign, and restore trust in the basics before scaling up again.",
+      "yesNo": "Not yet",
+      "zodiac": "Fire (Wands)",
+      "element": "Fire"
+    },
+    "relationships": {
+      "keywords": [
+        "honesty",
+        "understanding",
+        "boundaries",
+        "care",
+        "growth"
+      ],
+      "text": "Tension and mixed signals steal warmth—name what’s real. Name conflict or strain, practice repair, and name needs without blame; set one boundary and one invitation, then observe. Slow the pace, remove pressure, and let sincerity reset the tone."
+    },
+    "work": {
+      "keywords": [
+        "focus",
+        "delivery",
+        "process",
+        "learning",
+        "impact"
+      ],
+      "text": "Drag shows up as too much scope and not enough finish. Cut to challenges surface, learn from friction, and adjust tactics; deliver a small slice that restores flow. Reduce handoffs, limit multitasking, and make quality visible."
+    },
+    "finance": {
+      "keywords": [
+        "planning",
+        "stability",
+        "clarity",
+        "habits",
+        "value"
+      ],
+      "text": "Leaks appear when decisions rush through fog. Tighten around lean period, reduce exposure, and seek assistance; pause non‑essentials until the plan is clear. Choose clarity over speed and rebuild stability step by step."
+    },
+    "health": {
+      "keywords": [
+        "routine",
+        "recovery",
+        "awareness",
+        "balance",
+        "consistency"
+      ],
+      "text": "Overreach or neglect hide in routine—bring them into the light. Ease into stress signals, scale down, and gentle support; lower intensity, improve form, and rest on purpose. Start where you are; a kinder plan will carry you further."
+    }
+  }
+}
