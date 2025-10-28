@@ -3,6 +3,8 @@ import { supabase } from "@/lib/supabase"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { ArrowRight } from "lucide-react"
 import { Sparkles } from "lucide-react"
 import { CardImage } from "@/components/card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
@@ -162,12 +164,12 @@ export default async function TarotReadingPage({
                                     className='hover:scale-105 transition-transform duration-200'
                                 />
                                 {/* Deep meaning link */}
-                                <Link
-                                    href={`/articles/tarot/${card.slug}`}
-                                    className='text-xs sm:text-sm text-accent hover:underline mt-1'
-                                >
-                                    Read full meaning
-                                </Link>
+                                <Button asChild size='sm' className='mt-2 shadow-md'>
+                                    <Link href={`/articles/tarot/${card.slug}`}>
+                                        View details
+                                        <ArrowRight className='ml-1' />
+                                    </Link>
+                                </Button>
                             </div>
                         ))}
                     </div>
