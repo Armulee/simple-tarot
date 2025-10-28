@@ -627,18 +627,9 @@ function joinThemes(themes){
   return `${themes[0]}, ${themes[1]}, and ${themes[2]}`;
 }
 
-function ensureWordCount(text, minWords=200){
-  const words = text.split(/\s+/).filter(Boolean);
-  if(words.length >= minWords) return text;
-  const filler = 'Choose one step you can keep this week; review gently and continue.';
-  while(words.length < minWords){
-    const add = filler.split(' ');
-    for(const w of add){
-      words.push(w);
-      if(words.length >= minWords) break;
-    }
-  }
-  return paragraph(words);
+function ensureWordCount(text, _minWords=200){
+  // Do not pad with generic filler; return as-is to avoid templated phrases
+  return text;
 }
 
 function longSectionText({cardName, slug, arcana, suit, rank, orientation, section}){
