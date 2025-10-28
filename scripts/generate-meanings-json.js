@@ -554,17 +554,49 @@ const SUIT_GUIDES = {
 
 function overviewText({cardName, slug, arcana, suit, rank, orientation}){
   const headline = arcana === 'major' ? majorHeadlines[slug] : minorHeadline(rank, suit);
-  const suitContext = suit ? `${titleCase(suit)} (${suitLabel(suit)})` : 'Major Arcana archetype';
+  const suitCtx = suit ? `${titleCase(suit)} (${suitLabel(suit)})` : 'Major Arcana archetype';
+  // Build unique themes to weave into copy
+  const majorGuideUp = arcana === 'major' ? (MAJOR_GUIDES[slug]?.upright || {}) : {};
+  const majorGuideRev = arcana === 'major' ? (MAJOR_GUIDES[slug]?.reversed || {}) : {};
+  const rankGuide = arcana === 'minor' && rank ? (RANK_GUIDES[rank] || {}) : {};
+  const suitGuide = arcana === 'minor' && suit ? (SUIT_GUIDES[suit] || {}) : {};
+  const pickThemes = (obj) => Object.values(obj).flat().slice(0, 4);
+  const themesUpr = pickThemes(arcana === 'major' ? majorGuideUp : rankGuide);
+  const themesUpr2 = pickThemes(arcana === 'major' ? {} : suitGuide);
+  const themesRev = pickThemes(arcana === 'major' ? majorGuideRev : rankGuide);
+  const themesRev2 = pickThemes(arcana === 'major' ? {} : suitGuide);
+
+  // Deterministic variation
+  function hash(s) { let h = 0; for (let i=0;i<s.length;i++){h=(h<<5)-h+s.charCodeAt(i); h|=0;} return Math.abs(h); }
+  const variantsUp = [
+    `In upright position, ${cardName} reads as clear forward motion.`,
+    `${cardName} upright emphasizes genuine progress over noise.`,
+    `Upright, ${cardName} points toward steady advancement that fits real life.`
+  ];
+  const variantsRev = [
+    `In reverse, ${cardName} exposes the snag that needs attention.`,
+    `${cardName} reversed highlights where the current pulls against you.`,
+    `Reversed, ${cardName} makes the friction visible so you can remedy it.`
+  ];
+  const upLead = variantsUp[hash(slug) % variantsUp.length];
+  const revLead = variantsRev[hash(slug) % variantsRev.length];
+
+  const upThemeLine = joinThemes([...themesUpr, ...themesUpr2].slice(0,3));
+  const revThemeLine = joinThemes([...themesRev, ...themesRev2].slice(0,3));
+
   const parts = [];
-  // Natural opening that reads like human copy
+  // Tagline
   parts.push(headline);
   if (orientation === 'upright') {
-    parts.push(`Momentum you can trust. Let reality—not worry—set your pace. ${suitContext} hints at where to apply attention; choose one clear action and let steady practice do the rest.`);
+    parts.push(`${upLead} ${suitCtx} gives the tone and terrain.`);
+    if (upThemeLine) parts.push(`Expect to work with ${upThemeLine}; use what already responds and let momentum build.`);
+    parts.push(`Read this card as permission to move in a way that feels honest and well‑paced—visible results over grand gestures.`);
   } else {
-    parts.push(`When blocked, notice where energy snags. Name what is off, remove one source of friction, and return to the simplest version that works. ${suitContext} shows the terrain; tidy it with patience.`);
+    parts.push(`${revLead} ${suitCtx} frames where to look first.`);
+    if (revThemeLine) parts.push(`You may notice ${revThemeLine}; naming it clearly is half the remedy.`);
+    parts.push(`The correction is measured and specific: simplify, realign, and restore trust in the basics before scaling up again.`);
   }
-  parts.push(`Keep changes human‑sized and observable. Review gently, adjust honestly, and continue.`);
-  return ensureWordCount(paragraph(parts), 200);
+  return paragraph(parts);
 }
 
 function baseKeywords(section, card){
