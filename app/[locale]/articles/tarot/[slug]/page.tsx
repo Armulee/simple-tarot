@@ -147,9 +147,10 @@ export default async function TarotCardArticlePage({
                         </span>
                     )}
                 </div>
-                <p>
-                    {meaning.upright.overview.text}
-                </p>
+                <blockquote className='italic opacity-90'>
+                    “{meaning.upright.overview.text.split('. ')[0].replace(/^"|"$/g, '')}”
+                </blockquote>
+                <p>{meaning.upright.overview.text}</p>
             </div>
         ),
     }
@@ -183,9 +184,10 @@ export default async function TarotCardArticlePage({
                         </span>
                     )}
                 </div>
-                <p>
-                    {meaning.reversed.overview.text}
-                </p>
+                <blockquote className='italic opacity-90'>
+                    “{meaning.reversed.overview.text.split('. ')[0].replace(/^"|"$/g, '')}”
+                </blockquote>
+                <p>{meaning.reversed.overview.text}</p>
             </div>
         ),
     }

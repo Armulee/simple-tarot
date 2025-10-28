@@ -105,6 +105,32 @@ const majorHeadlines = {
   'the-world': 'Completion, wholeness, and arriving with gratitude.'
 };
 
+// Reversed headlines for majors
+const majorHeadlinesReversed = {
+  'the-fool': 'Hesitation at the edge—or reckless steps without grounding.',
+  'the-magician': 'Scattered power, mixed signals, and misused influence.',
+  'the-high-priestess': 'Noise over intuition and privacy stretched too thin.',
+  'the-empress': 'Overgiving, depletion, and care that forgets the self.',
+  'the-emperor': 'Rigid control, cold order, and walls without warmth.',
+  'the-hierophant': 'Stale rules and tradition that no longer fits.',
+  'the-lovers': 'Misalignment, temptation, and choices that split values.',
+  'the-chariot': 'Drift, wheel‑spin, and willpower without direction.',
+  'strength': 'Self‑doubt, reactivity, and force where gentleness belongs.',
+  'the-hermit': 'Isolation without insight; wisdom kept from use.',
+  'wheel-of-fortune': 'Out of season; timing resists or loops repeat.',
+  'justice': 'Bias, evasion, and ledgers that do not add up.',
+  'the-hanged-man': 'Stall without insight; sacrifice that does not teach.',
+  'death': 'Clinging to what has ended; renewal delayed.',
+  'temperance': 'Excess, overcorrection, and rhythms out of tune.',
+  'the-devil': 'Hooks named at last—begin loosening the chains.',
+  'the-tower': 'Aftershocks and denial; rebuild on truth, not façade.',
+  'the-star': 'Dim light, low faith—rest until the signal returns.',
+  'the-moon': 'Fog lifts; fear separates from fact, truth emerges.',
+  'the-sun': 'Overexposure or ego—joy muted until balance returns.',
+  'judgement': 'Hesitation at the call; forgiveness still unfinished.',
+  'the-world': 'Loose ends and almost‑done work seeking closure.'
+};
+
 function minorHeadline(rank, suit){
   const domain = suitNoun(suit);
   const map = {
@@ -124,6 +150,27 @@ function minorHeadline(rank, suit){
     'King': `Direction and authority guiding ${domain}.`
   };
   return map[rank] || `Clarity and development in ${domain}.`;
+}
+
+function minorReversedHeadline(rank, suit){
+  const domain = suitNoun(suit);
+  const map = {
+    'Ace': `A blocked beginning in ${domain}: hesitation and delay.`,
+    'Two': `An imbalanced choice within ${domain}.`,
+    'Three': `Stalled growth in ${domain}.`,
+    'Four': `Stagnation unsettling ${domain}.`,
+    'Five': `Discord and challenge overtaking ${domain}.`,
+    'Six': `Interrupted support and slowed progress in ${domain}.`,
+    'Seven': `Impatience and doubt undermining ${domain}.`,
+    'Eight': `Monotony and burnout draining ${domain}.`,
+    'Nine': `Strain near the result within ${domain}.`,
+    'Ten': `Overload at completion burdens ${domain}.`,
+    'Page': `Mixed messages and inexperience around ${domain}.`,
+    'Knight': `Reckless pursuit and drift in ${domain}.`,
+    'Queen': `Smothering or coldness distorting ${domain}.`,
+    'King': `Rigidity or misuse of authority guiding ${domain}.`
+  };
+  return map[rank] || `Friction and delay within ${domain}.`;
 }
 
 // Element for Major Arcana (Golden Dawn/astrological associations)
@@ -787,7 +834,9 @@ const SUIT_GUIDES = {
 };
 
 function overviewText({cardName, slug, arcana, suit, rank, orientation}){
-  const headline = arcana === 'major' ? majorHeadlines[slug] : minorHeadline(rank, suit);
+  const headline = arcana === 'major'
+    ? (orientation === 'upright' ? majorHeadlines[slug] : majorHeadlinesReversed[slug])
+    : (orientation === 'upright' ? minorHeadline(rank, suit) : minorReversedHeadline(rank, suit));
   const suitCtx = suit ? `${titleCase(suit)} (${suitLabel(suit)})` : 'Major Arcana archetype';
   // Build unique themes to weave into copy
   const majorGuideUp = arcana === 'major' ? (MAJOR_GUIDES[slug]?.upright || {}) : {};
