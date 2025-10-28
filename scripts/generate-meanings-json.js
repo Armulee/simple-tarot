@@ -126,6 +126,204 @@ function minorHeadline(rank, suit){
   return map[rank] || `Clarity and development in ${domain}.`;
 }
 
+// Element for Major Arcana (Golden Dawn/astrological associations)
+const MAJOR_ELEMENT = {
+  'the-fool': 'Air',
+  'the-magician': 'Air',
+  'the-high-priestess': 'Water',
+  'the-empress': 'Earth',
+  'the-emperor': 'Fire',
+  'the-hierophant': 'Earth',
+  'the-lovers': 'Air',
+  'the-chariot': 'Water',
+  'strength': 'Fire',
+  'the-hermit': 'Earth',
+  'wheel-of-fortune': 'Fire',
+  'justice': 'Air',
+  'the-hanged-man': 'Water',
+  'death': 'Water',
+  'temperance': 'Fire',
+  'the-devil': 'Earth',
+  'the-tower': 'Fire',
+  'the-star': 'Air',
+  'the-moon': 'Water',
+  'the-sun': 'Fire',
+  'judgement': 'Fire',
+  'the-world': 'Earth',
+};
+
+// Accurate overview keyword sets
+const MAJOR_KEYWORDS = {
+  'the-fool': {
+    upright: ['beginnings','innocence','leap of faith','openness','spontaneity','adventure','curiosity','freedom','trust','potential','playfulness','new path'],
+    reversed: ['recklessness','hesitation','naivety','carelessness','fear of change','impulsivity','false start','risk without plan','stalling','missteps']
+  },
+  'the-magician': {
+    upright: ['manifestation','willpower','skill','focus','resourcefulness','communication','initiative','precision','tools','intention','clarity','agency'],
+    reversed: ['manipulation','scattered energy','trickery','misuse of power','doubt','deception','overreach','distraction','untapped potential','misalignment']
+  },
+  'the-high-priestess': {
+    upright: ['intuition','mystery','silence','inner wisdom','sacred knowledge','subconscious','patience','secrets','depth','receptivity'],
+    reversed: ['secrets exposed','blocked intuition','hidden motives','confusion','withholding','overexposure','self-doubt','noise','misreading signs']
+  },
+  'the-empress': {
+    upright: ['abundance','nurture','fertility','beauty','comfort','care','growth','sensuality','creativity','home'],
+    reversed: ['overgiving','dependence','neglect self','smothering','creative block','scarcity','insecurity','stagnation']
+  },
+  'the-emperor': {
+    upright: ['structure','authority','stability','leadership','order','discipline','protection','boundaries','strategy'],
+    reversed: ['rigidity','control issues','tyranny','domineering','inflexibility','coldness','abuse of power','stubbornness']
+  },
+  'the-hierophant': {
+    upright: ['tradition','belief','mentorship','institution','ritual','values','teaching','conformity','wisdom'],
+    reversed: ['rebellion','nonconformity','question dogma','break with tradition','personal path','stagnant rules']
+  },
+  'the-lovers': {
+    upright: ['union','choice','alignment','partnership','attraction','harmony','values','commitment','connection'],
+    reversed: ['misalignment','temptation','indecision','disharmony','separation','conflict of values','infidelity risk']
+  },
+  'the-chariot': {
+    upright: ['willpower','victory','direction','control','determination','discipline','momentum','drive'],
+    reversed: ['lack of control','drift','aggression','scattered focus','stalling','misdirected energy']
+  },
+  'strength': {
+    upright: ['courage','inner strength','compassion','self-control','patience','gentleness','resilience','confidence'],
+    reversed: ['self-doubt','weakness','impatience','anger','fear','insecurity','forcefulness']
+  },
+  'the-hermit': {
+    upright: ['introspection','solitude','wisdom','guidance','truth-seeking','inner light','reflection'],
+    reversed: ['isolation','withdrawal','loneliness','paralysis','refusal to look','disconnection']
+  },
+  'wheel-of-fortune': {
+    upright: ['cycles','fate','turning point','luck','timing','change','destiny','movement'],
+    reversed: ['resistance','bad timing','setback','external forces','stuck cycle','unprepared']
+  },
+  'justice': {
+    upright: ['fairness','truth','law','balance','accountability','ethics','cause and effect','clarity'],
+    reversed: ['bias','injustice','dishonesty','avoidance','unfairness','legal trouble','imbalanced']
+  },
+  'the-hanged-man': {
+    upright: ['surrender','new perspective','pause','acceptance','patience','sacrifice','insight'],
+    reversed: ['stalling','martyrdom','indecision','delay','resistance','wasted time']
+  },
+  'death': {
+    upright: ['ending','transformation','release','rebirth','closure','transition','renewal'],
+    reversed: ['resistance to change','stagnation','fear of ending','clinging','prolonged transition']
+  },
+  'temperance': {
+    upright: ['moderation','balance','healing','integration','patience','alchemy','harmony'],
+    reversed: ['excess','imbalance','overcorrection','discord','impulsiveness']
+  },
+  'the-devil': {
+    upright: ['bondage','attachment','shadow','temptation','addiction','materialism','control'],
+    reversed: ['liberation','detox','awareness','breaking chains','recovery','choice']
+  },
+  'the-tower': {
+    upright: ['upheaval','revelation','collapse','truth','shock','breakdown','awakening'],
+    reversed: ['averted disaster','aftershocks','denial','suppressed change','slow crumble']
+  },
+  'the-star': {
+    upright: ['hope','healing','guidance','renewal','calm','faith','inspiration'],
+    reversed: ['discouragement','doubt','pessimism','drain','loss of faith']
+  },
+  'the-moon': {
+    upright: ['intuition','mystery','dreams','subconscious','fear','illusions','uncertainty'],
+    reversed: ['clarity emerging','release fear','truth revealed','misunderstanding clears']
+  },
+  'the-sun': {
+    upright: ['joy','success','vitality','clarity','warmth','celebration','confidence'],
+    reversed: ['diminished joy','ego','overexposure','temporary cloud','fatigue']
+  },
+  'judgement': {
+    upright: ['awakening','calling','absolution','reckoning','rebirth','purpose','evaluation'],
+    reversed: ['self-judgment','hesitation','fear of change','stagnation','doubt']
+  },
+  'the-world': {
+    upright: ['completion','wholeness','achievement','integration','arrival','success','travel'],
+    reversed: ['incomplete','delayed closure','loose ends','unfinished business']
+  },
+};
+
+// Upright/Reversed suit keywords
+const SUIT_KEYWORDS = {
+  wands: {
+    upright: ['energy','passion','initiative','action','creativity','ambition','courage','enterprise','drive','inspiration'],
+    reversed: ['burnout','frustration','delays','impulsiveness','scattered','setbacks','recklessness','impatience']
+  },
+  cups: {
+    upright: ['emotion','love','intuition','relationship','compassion','healing','empathy','connection','receptivity','sensitivity'],
+    reversed: ['emotional block','codependence','withdrawal','insecurity','avoidance','oversensitivity','moodiness','disconnection']
+  },
+  swords: {
+    upright: ['logic','clarity','truth','communication','strategy','decision','justice','analysis','boundaries','intellect'],
+    reversed: ['confusion','anxiety','deceit','miscommunication','cruelty','overthinking','dishonesty','arguments']
+  },
+  pentacles: {
+    upright: ['resources','work','stability','security','material','practicality','health','patience','persistence','craftsmanship'],
+    reversed: ['instability','debt','scarcity','waste','stagnation','overwork','greed','laziness','imbalance']
+  }
+};
+
+// Upright/Reversed rank keywords
+const RANK_KEYWORDS = {
+  Ace: {
+    upright: ['new beginning','seed','potential','opportunity'],
+    reversed: ['false start','delay','blocked potential','hesitation']
+  },
+  Two: {
+    upright: ['duality','choice','balance','planning','partnership'],
+    reversed: ['indecision','imbalance','stalemate','overwhelm']
+  },
+  Three: {
+    upright: ['growth','collaboration','expansion','teamwork'],
+    reversed: ['misalignment','delays','poor coordination','setback']
+  },
+  Four: {
+    upright: ['stability','foundation','consolidation','rest'],
+    reversed: ['stagnation','rigidity','restlessness','boredom']
+  },
+  Five: {
+    upright: ['conflict','challenge','change','loss'],
+    reversed: ['resolution','recovery','compromise','relief']
+  },
+  Six: {
+    upright: ['harmony','charity','support','progress'],
+    reversed: ['strings attached','dependence','imbalance','setbacks']
+  },
+  Seven: {
+    upright: ['assessment','perseverance','strategy','patience'],
+    reversed: ['impatience','shortcuts','avoidance','doubt']
+  },
+  Eight: {
+    upright: ['work','discipline','movement','skill'],
+    reversed: ['monotony','burnout','aimlessness','stall']
+  },
+  Nine: {
+    upright: ['fruition','resilience','satisfaction','protection'],
+    reversed: ['strain','anxiety','overcaution','excess']
+  },
+  Ten: {
+    upright: ['completion','legacy','culmination','responsibility'],
+    reversed: ['burden','collapse','unfinished','overload']
+  },
+  Page: {
+    upright: ['message','curiosity','learning','news'],
+    reversed: ['immaturity','delay','inexperience','gossip']
+  },
+  Knight: {
+    upright: ['pursuit','change','action','movement'],
+    reversed: ['recklessness','inconsistency','drift','haste']
+  },
+  Queen: {
+    upright: ['maturity','care','intuition','competence'],
+    reversed: ['insecurity','smothering','coldness','moodiness']
+  },
+  King: {
+    upright: ['authority','leadership','mastery','direction'],
+    reversed: ['tyranny','rigidity','misuse of power','aloofness']
+  }
+};
+
 // -------------------- Keyword helpers --------------------
 const STOPWORDS = new Set([
   'the','and','or','a','an','of','to','in','on','for','with','that','this','made','real','over','into','as','by','at','from','is','are','be','was','were','it','its','you','your'
@@ -153,36 +351,13 @@ function uniqueKeywords(...lists){
 
 function buildOverviewKeywords(card, orientation){
   const { slug, arcana, suit, rank } = card;
-  let base = [];
-  let context = [];
   if(arcana === 'major'){
-    base = tokenize(majorHeadlines[slug]);
-    const meta = majorMeta(slug);
-    context = uniqueKeywords(
-      tokenize(meta.zodiac),
-      tokenize(meta.yesNo)
-    );
-    const guide = (MAJOR_GUIDES[slug] && MAJOR_GUIDES[slug][orientation]) || {};
-    const guideTokens = tokenize(Object.values(guide).flat().join(' '));
-    return uniqueKeywords(base, guideTokens, context).slice(0, 14);
+    return (MAJOR_KEYWORDS[slug] && MAJOR_KEYWORDS[slug][orientation]) || [];
   }
-  // minors
-  const element = suitElementName(suit);
-  const label = suitLabel(suit);
-  const headline = minorHeadline(rank, suit);
-  const domain = suitNoun(suit);
-  base = uniqueKeywords(
-    tokenize(rank),
-    tokenize(suit),
-    tokenize(element),
-    tokenize(label),
-    tokenize(domain),
-    tokenize(headline)
-  );
-  const rankGuide = (RANK_GUIDES[rank] || {});
-  const suitGuide = (SUIT_GUIDES[suit] || {});
-  const guideTokens = tokenize(Object.values(rankGuide).flat().join(' ') + ' ' + Object.values(suitGuide).flat().join(' '));
-  return uniqueKeywords(base, guideTokens).slice(0, 14);
+  // minors: combine suit+rank oriented keywords
+  const suitKw = (SUIT_KEYWORDS[suit] && SUIT_KEYWORDS[suit][orientation]) || [];
+  const rankKw = (RANK_KEYWORDS[rank] && RANK_KEYWORDS[rank][orientation]) || [];
+  return uniqueKeywords(suitKw, rankKw).slice(0, 14);
 }
 
 // Card-specific guidance to ensure unique, card-related meanings
@@ -752,7 +927,7 @@ function buildCardEntry(card){
         text: overviewText({cardName:name, slug, arcana, suit, rank, orientation:'upright'}),
         yesNo: arcana === 'major' ? majorMeta(slug).yesNo : (suit === 'wands' || suit === 'pentacles' ? 'Yes' : (suit === 'cups' ? 'Maybe' : 'No')),
         zodiac: arcana === 'major' ? majorMeta(slug).zodiac : suitLabel(suit),
-        element: arcana === 'major' ? undefined : suitElementName(suit)
+        element: arcana === 'major' ? (MAJOR_ELEMENT[slug] || undefined) : suitElementName(suit)
       },
     },
     reversed: {
@@ -761,7 +936,7 @@ function buildCardEntry(card){
         text: overviewText({cardName:name, slug, arcana, suit, rank, orientation:'reversed'}),
         yesNo: arcana === 'major' ? (majorMeta(slug).yesNo === 'Yes' ? 'Not yet' : majorMeta(slug).yesNo) : (suit === 'wands' || suit === 'pentacles' ? 'Not yet' : (suit === 'cups' ? 'No' : 'No')),
         zodiac: arcana === 'major' ? majorMeta(slug).zodiac : suitLabel(suit),
-        element: arcana === 'major' ? undefined : suitElementName(suit)
+        element: arcana === 'major' ? (MAJOR_ELEMENT[slug] || undefined) : suitElementName(suit)
       },
     },
   };

@@ -4,23 +4,18 @@
     "overview": {
       "keywords": [
         "willpower",
-        "direction",
-        "disciplined",
-        "momentum",
         "victory",
-        "together",
-        "set",
-        "pace",
-        "resolve",
-        "tension",
-        "drive",
-        "one",
-        "clear",
-        "target"
+        "direction",
+        "control",
+        "determination",
+        "discipline",
+        "momentum",
+        "drive"
       ],
       "text": "Willpower, direction, disciplined momentum, and victory. Upright, The Chariot points toward steady advancement that fits real life. Major Arcana archetype gives the tone and terrain. Expect to work with direction together, set a pace, and resolve tension; use what already responds and let momentum build. Read this card as permission to move in a way that feels honest and well‑paced—visible results over grand gestures.",
       "yesNo": "Yes",
-      "zodiac": "Cancer (Moon)"
+      "zodiac": "Cancer (Moon)",
+      "element": "Water"
     },
     "relationships": {
       "keywords": [
@@ -66,24 +61,17 @@
   "reversed": {
     "overview": {
       "keywords": [
-        "willpower",
-        "direction",
-        "disciplined",
-        "momentum",
-        "victory",
-        "conflicting",
-        "wills",
-        "slow",
-        "synchronize",
-        "name",
-        "shared",
-        "aim",
-        "scattered",
-        "effort"
+        "lack of control",
+        "drift",
+        "aggression",
+        "scattered focus",
+        "stalling",
+        "misdirected energy"
       ],
       "text": "Willpower, direction, disciplined momentum, and victory. Reversed, The Chariot makes the friction visible so you can remedy it. Major Arcana archetype frames where to look first. You may notice conflicting wills, slow to synchronize, and name shared aim; naming it clearly is half the remedy. The correction is measured and specific: simplify, realign, and restore trust in the basics before scaling up again.",
       "yesNo": "Not yet",
-      "zodiac": "Cancer (Moon)"
+      "zodiac": "Cancer (Moon)",
+      "element": "Water"
     },
     "relationships": {
       "keywords": [
