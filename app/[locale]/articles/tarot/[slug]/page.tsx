@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { getTranslations } from "next-intl/server"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getCardBySlug, TAROT_CARDS } from "@/lib/tarot/cards"
@@ -66,7 +67,8 @@ export default async function TarotCardArticlePage({
 }: {
     params: Promise<{ locale: string; slug: string }>
 }) {
-    const { slug } = await params
+    const { slug, locale } = await params
+    const t = await getTranslations("TarotArticle")
     const card = getCardBySlug(slug)
     if (!card) return notFound()
 
@@ -111,16 +113,24 @@ export default async function TarotCardArticlePage({
         </div>
     )
 
-    // Dynamic import per-card JSON to keep bundle small
-    const meaningModule = await import(`@/lib/tarot/meanings/${card.slug}.json`)
-    const meaning = meaningModule.default as CardMeaning
+    // Dynamic import per-card JSON, prefer locale file then fallback
+    let meaning: CardMeaning | undefined
+    try {
+        const mod = await import(
+            `@/lib/tarot/meanings/${locale}/${card.slug}.json`
+        )
+        meaning = mod.default as CardMeaning
+    } catch {
+        const mod = await import(`@/lib/tarot/meanings/${card.slug}.json`)
+        meaning = mod.default as CardMeaning
+    }
     if (!meaning?.upright?.overview?.text || !meaning?.reversed?.overview?.text) {
         return notFound()
     }
 
     const uprightOverview: ArticleSection = {
         id: "upright-overview",
-        title: "Overview (Upright)",
+        title: t("overviewUpright"),
         content: (
             <div className='space-y-3'>
                 {uprightImage}
@@ -130,19 +140,19 @@ export default async function TarotCardArticlePage({
                 <div className='text-xs text-muted-foreground flex flex-wrap gap-3'>
                     {meaning.upright.overview.yesNo && (
                         <span>
-                            <span className='font-medium'>Yes/No:</span>{" "}
+                            <span className='font-medium'>{t("yesNo")}:</span>{" "}
                             {meaning.upright.overview.yesNo}
                         </span>
                     )}
                     {meaning.upright.overview.zodiac && (
                         <span>
-                            <span className='font-medium'>Zodiac:</span>{" "}
+                            <span className='font-medium'>{t("zodiac")}:</span>{" "}
                             {meaning.upright.overview.zodiac}
                         </span>
                     )}
                     {meaning.upright.overview.element && (
                         <span>
-                            <span className='font-medium'>Element:</span>{" "}
+                            <span className='font-medium'>{t("element")}:</span>{" "}
                             {meaning.upright.overview.element}
                         </span>
                     )}
@@ -157,7 +167,7 @@ export default async function TarotCardArticlePage({
 
     const reversedOverview: ArticleSection = {
         id: "reversed-overview",
-        title: "Overview (Reversed)",
+        title: t("overviewReversed"),
         content: (
             <div className='space-y-3'>
                 {reversedImage}
@@ -167,19 +177,19 @@ export default async function TarotCardArticlePage({
                 <div className='text-xs text-muted-foreground flex flex-wrap gap-3'>
                     {meaning.reversed.overview.yesNo && (
                         <span>
-                            <span className='font-medium'>Yes/No:</span>{" "}
+                            <span className='font-medium'>{t("yesNo")}:</span>{" "}
                             {meaning.reversed.overview.yesNo}
                         </span>
                     )}
                     {meaning.reversed.overview.zodiac && (
                         <span>
-                            <span className='font-medium'>Zodiac:</span>{" "}
+                            <span className='font-medium'>{t("zodiac")}:</span>{" "}
                             {meaning.reversed.overview.zodiac}
                         </span>
                     )}
                     {meaning.reversed.overview.element && (
                         <span>
-                            <span className='font-medium'>Element:</span>{" "}
+                            <span className='font-medium'>{t("element")}:</span>{" "}
                             {meaning.reversed.overview.element}
                         </span>
                     )}
@@ -199,7 +209,7 @@ export default async function TarotCardArticlePage({
     ) {
         sections.push({
             id: "upright-relationships",
-            title: "Relationships (Upright)",
+            title: `${t("relationships")} (${t("upright")})`,
             content: (
                 <div className='space-y-3'>
                     {meaning.upright.relationships.keywords?.length
@@ -214,7 +224,7 @@ export default async function TarotCardArticlePage({
     if (meaning.upright.work?.text && meaning.reversed.work?.text) {
         sections.push({
             id: "upright-work",
-            title: "Work & Career (Upright)",
+            title: `${t("work")} (${t("upright")})`,
             content: (
                 <div className='space-y-3'>
                     {meaning.upright.work.keywords?.length
@@ -229,7 +239,7 @@ export default async function TarotCardArticlePage({
     if (meaning.upright.finance?.text && meaning.reversed.finance?.text) {
         sections.push({
             id: "upright-finance",
-            title: "Finance (Upright)",
+            title: `${t("finance")} (${t("upright")})`,
             content: (
                 <div className='space-y-3'>
                     {meaning.upright.finance.keywords?.length
@@ -244,7 +254,7 @@ export default async function TarotCardArticlePage({
     if (meaning.upright.health?.text && meaning.reversed.health?.text) {
         sections.push({
             id: "upright-health",
-            title: "Health (Upright)",
+            title: `${t("health")} (${t("upright")})`,
             content: (
                 <div className='space-y-3'>
                     {meaning.upright.health.keywords?.length
@@ -261,7 +271,7 @@ export default async function TarotCardArticlePage({
     if (meaning.reversed.relationships?.text) {
         sections.push({
             id: "reversed-relationships",
-            title: "Relationships (Reversed)",
+            title: `${t("relationships")} (${t("reversed")})`,
             content: (
                 <div className='space-y-3'>
                     {meaning.reversed.relationships.keywords?.length
@@ -276,7 +286,7 @@ export default async function TarotCardArticlePage({
     if (meaning.reversed.work?.text) {
         sections.push({
             id: "reversed-work",
-            title: "Work & Career (Reversed)",
+            title: `${t("work")} (${t("reversed")})`,
             content: (
                 <div className='space-y-3'>
                     {meaning.reversed.work.keywords?.length
@@ -291,7 +301,7 @@ export default async function TarotCardArticlePage({
     if (meaning.reversed.finance?.text) {
         sections.push({
             id: "reversed-finance",
-            title: "Finance (Reversed)",
+            title: `${t("finance")} (${t("reversed")})`,
             content: (
                 <div className='space-y-3'>
                     {meaning.reversed.finance.keywords?.length
@@ -306,7 +316,7 @@ export default async function TarotCardArticlePage({
     if (meaning.reversed.health?.text) {
         sections.push({
             id: "reversed-health",
-            title: "Health (Reversed)",
+            title: `${t("health")} (${t("reversed")})`,
             content: (
                 <div className='space-y-3'>
                     {meaning.reversed.health.keywords?.length

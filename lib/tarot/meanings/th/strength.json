@@ -1,0 +1,162 @@
+{
+  "slug": "strength",
+  "upright": {
+    "overview": {
+      "keywords": [
+        "courage",
+        "inner strength",
+        "compassion",
+        "self-control",
+        "patience",
+        "gentleness",
+        "resilience",
+        "confidence"
+      ],
+      "text": "Gentle power, courage, and emotional self-regulation. Strength upright emphasizes genuine progress over noise. Major Arcana archetype gives the tone and terrain. Expect to work with soft boundaries, calm assurance, and gentle loyalty; use what already responds and let momentum build. Read this card as permission to move in a way that feels honest and well‑paced—visible results over grand gestures.",
+      "yesNo": "Yes",
+      "zodiac": "Leo (Sun)",
+      "element": "Fire"
+    },
+    "relationships": {
+      "keywords": [
+        "soft boundaries",
+        "calm assurance",
+        "gentle loyalty",
+        "courage",
+        "inner strength",
+        "compassion",
+        "self-control",
+        "patience",
+        "gentleness",
+        "resilience",
+        "confidence"
+      ],
+      "text": "Connection feels alive and honest. Let soft boundaries, calm assurance, and gentle loyalty guide how you show up; small, sincere acts matter here. Speak plainly, listen for the quiet truth, and move at a pace that keeps trust intact."
+    },
+    "work": {
+      "keywords": [
+        "lead by steadiness",
+        "de-escalate calmly",
+        "model courage",
+        "courage",
+        "inner strength",
+        "compassion",
+        "self-control",
+        "patience",
+        "gentleness",
+        "resilience",
+        "confidence"
+      ],
+      "text": "Progress favors craft, clear scope, and a result you can point to. Build around lead by steadiness, de-escalate calmly, and model courage; finish one meaningful piece and let it prove the direction. Share early, revise well, and protect time where real work happens."
+    },
+    "finance": {
+      "keywords": [
+        "patient growth",
+        "resist panic",
+        "long horizon",
+        "courage",
+        "inner strength",
+        "compassion",
+        "self-control",
+        "patience",
+        "gentleness",
+        "resilience",
+        "confidence"
+      ],
+      "text": "Make numbers you can live with and choices you respect. Aim resources toward patient growth, resist panic, and long horizon; trim what does not serve your life. Automate the good, read terms in daylight, and let steadiness quietly win."
+    },
+    "health": {
+      "keywords": [
+        "nervous system ease",
+        "slow strength",
+        "compassionate goals",
+        "courage",
+        "inner strength",
+        "compassion",
+        "self-control",
+        "patience",
+        "gentleness",
+        "resilience",
+        "confidence"
+      ],
+      "text": "Prefer routines your body trusts. Shape your week around nervous system ease, slow strength, and compassionate goals; keep changes gentle and repeatable. Recovery is part of progress; consistency outperforms intensity."
+    }
+  },
+  "reversed": {
+    "overview": {
+      "keywords": [
+        "self-doubt",
+        "weakness",
+        "impatience",
+        "anger",
+        "fear",
+        "insecurity",
+        "forcefulness"
+      ],
+      "text": "Self‑doubt, reactivity, and force where gentleness belongs. Strength reversed highlights where the current pulls against you. Major Arcana archetype frames where to look first. You may notice reactivity, rebuild safety, and own triggers; naming it clearly is half the remedy. The correction is measured and specific: simplify, realign, and restore trust in the basics before scaling up again.",
+      "yesNo": "Not yet",
+      "zodiac": "Leo (Sun)",
+      "element": "Fire"
+    },
+    "relationships": {
+      "keywords": [
+        "reactivity",
+        "rebuild safety",
+        "own triggers",
+        "self-doubt",
+        "weakness",
+        "impatience",
+        "anger",
+        "fear",
+        "insecurity",
+        "forcefulness"
+      ],
+      "text": "Tension and mixed signals steal warmth—name what’s real. Name reactivity, rebuild safety, and own triggers without blame; set one boundary and one invitation, then observe. Slow the pace, remove pressure, and let sincerity reset the tone."
+    },
+    "work": {
+      "keywords": [
+        "frayed patience",
+        "reset expectations",
+        "support systems",
+        "self-doubt",
+        "weakness",
+        "impatience",
+        "anger",
+        "fear",
+        "insecurity",
+        "forcefulness"
+      ],
+      "text": "Drag shows up as too much scope and not enough finish. Cut to frayed patience, reset expectations, and support systems; deliver a small slice that restores flow. Reduce handoffs, limit multitasking, and make quality visible."
+    },
+    "finance": {
+      "keywords": [
+        "fear-based choices",
+        "pause rash sales",
+        "sober numbers",
+        "self-doubt",
+        "weakness",
+        "impatience",
+        "anger",
+        "fear",
+        "insecurity",
+        "forcefulness"
+      ],
+      "text": "Leaks appear when decisions rush through fog. Tighten around fear-based choices, pause rash sales, and sober numbers; pause non‑essentials until the plan is clear. Choose clarity over speed and rebuild stability step by step."
+    },
+    "health": {
+      "keywords": [
+        "overwhelm",
+        "soothing routines",
+        "rest first",
+        "self-doubt",
+        "weakness",
+        "impatience",
+        "anger",
+        "fear",
+        "insecurity",
+        "forcefulness"
+      ],
+      "text": "Overreach or neglect hide in routine—bring them into the light. Ease into overwhelm, soothing routines, and rest first; lower intensity, improve form, and rest on purpose. Start where you are; a kinder plan will carry you further."
+    }
+  }
+}

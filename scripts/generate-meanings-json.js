@@ -1041,12 +1041,17 @@ function buildAll(){
 function main(){
   const generated = buildAll();
   if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-  // Write one file per card
+  // Write one file per card at root and per-locale folders (en, th)
+  const locales = ['en','th'];
   for (const [slug, data] of Object.entries(generated)) {
-    const file = path.join(OUTPUT_DIR, `${slug}.json`);
-    fs.writeFileSync(file, JSON.stringify(data, null, 2));
+    fs.writeFileSync(path.join(OUTPUT_DIR, `${slug}.json`), JSON.stringify(data, null, 2));
+    for (const loc of locales) {
+      const dir = path.join(OUTPUT_DIR, loc);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(path.join(dir, `${slug}.json`), JSON.stringify(data, null, 2));
+    }
   }
-  console.log('Wrote meanings to', OUTPUT_DIR);
+  console.log('Wrote meanings to', OUTPUT_DIR, 'and locale subfolders en, th');
 }
 
 main();

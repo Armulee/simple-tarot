@@ -1,0 +1,186 @@
+{
+  "slug": "page-of-pentacles",
+  "upright": {
+    "overview": {
+      "keywords": [
+        "resources",
+        "work",
+        "stability",
+        "security",
+        "material",
+        "practicality",
+        "health",
+        "patience",
+        "persistence",
+        "craftsmanship",
+        "message",
+        "curiosity",
+        "learning",
+        "news"
+      ],
+      "text": "A message and a beginner’s openness in resources. In upright position, Page of Pentacles reads as clear forward motion. Pentacles (Earth (Pentacles)) gives the tone and terrain. Expect to work with messages of care, learning love, and curious dates; use what already responds and let momentum build. Read this card as permission to move in a way that feels honest and well‑paced—visible results over grand gestures.",
+      "yesNo": "Yes",
+      "zodiac": "Earth (Pentacles)",
+      "element": "Earth"
+    },
+    "relationships": {
+      "keywords": [
+        "acts of service",
+        "build home",
+        "shared routines",
+        "messages of care",
+        "learning love",
+        "curious dates",
+        "resources",
+        "work",
+        "stability",
+        "security",
+        "material",
+        "practicality"
+      ],
+      "text": "Connection feels alive and honest. Let messages of care, learning love, and curious dates guide how you show up; small, sincere acts matter here. Speak plainly, listen for the quiet truth, and move at a pace that keeps trust intact."
+    },
+    "work": {
+      "keywords": [
+        "craft and reliability",
+        "ops excellence",
+        "practical milestones",
+        "intern energy",
+        "ask questions",
+        "ship small",
+        "resources",
+        "work",
+        "stability",
+        "security",
+        "material",
+        "practicality"
+      ],
+      "text": "Progress favors craft, clear scope, and a result you can point to. Build around intern energy, ask questions, and ship small; finish one meaningful piece and let it prove the direction. Share early, revise well, and protect time where real work happens."
+    },
+    "finance": {
+      "keywords": [
+        "budgeting and saving",
+        "assets and maintenance",
+        "steady returns",
+        "entry-level steps",
+        "read and learn",
+        "budget practice",
+        "resources",
+        "work",
+        "stability",
+        "security",
+        "material",
+        "practicality"
+      ],
+      "text": "Make numbers you can live with and choices you respect. Aim resources toward entry-level steps, read and learn, and budget practice; trim what does not serve your life. Automate the good, read terms in daylight, and let steadiness quietly win."
+    },
+    "health": {
+      "keywords": [
+        "strength and mobility",
+        "nutrition basics",
+        "walks and nature",
+        "learn technique",
+        "light practice",
+        "body awareness",
+        "resources",
+        "work",
+        "stability",
+        "security",
+        "material",
+        "practicality"
+      ],
+      "text": "Prefer routines your body trusts. Shape your week around learn technique, light practice, and body awareness; keep changes gentle and repeatable. Recovery is part of progress; consistency outperforms intensity."
+    }
+  },
+  "reversed": {
+    "overview": {
+      "keywords": [
+        "instability",
+        "debt",
+        "scarcity",
+        "waste",
+        "stagnation",
+        "overwork",
+        "greed",
+        "laziness",
+        "imbalance",
+        "immaturity",
+        "delay",
+        "inexperience",
+        "gossip"
+      ],
+      "text": "Mixed messages and inexperience around resources. In reverse, Page of Pentacles exposes the snag that needs attention. Pentacles (Earth (Pentacles)) frames where to look first. You may notice messages of care, learning love, and curious dates; naming it clearly is half the remedy. The correction is measured and specific: simplify, realign, and restore trust in the basics before scaling up again.",
+      "yesNo": "Not yet",
+      "zodiac": "Earth (Pentacles)",
+      "element": "Earth"
+    },
+    "relationships": {
+      "keywords": [
+        "acts of service",
+        "build home",
+        "shared routines",
+        "messages of care",
+        "learning love",
+        "curious dates",
+        "instability",
+        "debt",
+        "scarcity",
+        "waste",
+        "stagnation",
+        "overwork"
+      ],
+      "text": "Tension and mixed signals steal warmth—name what’s real. Name messages of care, learning love, and curious dates without blame; set one boundary and one invitation, then observe. Slow the pace, remove pressure, and let sincerity reset the tone."
+    },
+    "work": {
+      "keywords": [
+        "craft and reliability",
+        "ops excellence",
+        "practical milestones",
+        "intern energy",
+        "ask questions",
+        "ship small",
+        "instability",
+        "debt",
+        "scarcity",
+        "waste",
+        "stagnation",
+        "overwork"
+      ],
+      "text": "Drag shows up as too much scope and not enough finish. Cut to intern energy, ask questions, and ship small; deliver a small slice that restores flow. Reduce handoffs, limit multitasking, and make quality visible."
+    },
+    "finance": {
+      "keywords": [
+        "budgeting and saving",
+        "assets and maintenance",
+        "steady returns",
+        "entry-level steps",
+        "read and learn",
+        "budget practice",
+        "instability",
+        "debt",
+        "scarcity",
+        "waste",
+        "stagnation",
+        "overwork"
+      ],
+      "text": "Leaks appear when decisions rush through fog. Tighten around entry-level steps, read and learn, and budget practice; pause non‑essentials until the plan is clear. Choose clarity over speed and rebuild stability step by step."
+    },
+    "health": {
+      "keywords": [
+        "strength and mobility",
+        "nutrition basics",
+        "walks and nature",
+        "learn technique",
+        "light practice",
+        "body awareness",
+        "instability",
+        "debt",
+        "scarcity",
+        "waste",
+        "stagnation",
+        "overwork"
+      ],
+      "text": "Overreach or neglect hide in routine—bring them into the light. Ease into learn technique, light practice, and body awareness; lower intensity, improve form, and rest on purpose. Start where you are; a kinder plan will carry you further."
+    }
+  }
+}

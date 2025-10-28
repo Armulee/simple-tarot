@@ -18,9 +18,8 @@ export default async function ArticlesPage() {
     const items: ArticleCardItem[] = [
         {
             href: "/articles/tarot",
-            title: "Tarot Card Meanings",
-            description:
-                "Explore upright and reversed meanings for all 78 cards (Major & Minor Arcana).",
+            title: t("items.tarot.title"),
+            description: t("items.tarot.description"),
             iconId: "book",
             badge: t("badges.basics"),
         },
