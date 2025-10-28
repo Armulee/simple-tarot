@@ -126,6 +126,65 @@ function minorHeadline(rank, suit){
   return map[rank] || `Clarity and development in ${domain}.`;
 }
 
+// -------------------- Keyword helpers --------------------
+const STOPWORDS = new Set([
+  'the','and','or','a','an','of','to','in','on','for','with','that','this','made','real','over','into','as','by','at','from','is','are','be','was','were','it','its','you','your'
+]);
+
+function tokenize(input){
+  if(!input) return [];
+  return String(input)
+    .toLowerCase()
+    .replace(/[^a-z0-9\-\s]/g,' ')
+    .split(/\s+/)
+    .filter(t => t && t.length > 2 && !STOPWORDS.has(t));
+}
+
+function uniqueKeywords(...lists){
+  const out = [];
+  const seen = new Set();
+  for(const list of lists){
+    for(const t of list){
+      if(!seen.has(t)) { seen.add(t); out.push(t); }
+    }
+  }
+  return out;
+}
+
+function buildOverviewKeywords(card, orientation){
+  const { slug, arcana, suit, rank } = card;
+  let base = [];
+  let context = [];
+  if(arcana === 'major'){
+    base = tokenize(majorHeadlines[slug]);
+    const meta = majorMeta(slug);
+    context = uniqueKeywords(
+      tokenize(meta.zodiac),
+      tokenize(meta.yesNo)
+    );
+    const guide = (MAJOR_GUIDES[slug] && MAJOR_GUIDES[slug][orientation]) || {};
+    const guideTokens = tokenize(Object.values(guide).flat().join(' '));
+    return uniqueKeywords(base, guideTokens, context).slice(0, 14);
+  }
+  // minors
+  const element = suitElementName(suit);
+  const label = suitLabel(suit);
+  const headline = minorHeadline(rank, suit);
+  const domain = suitNoun(suit);
+  base = uniqueKeywords(
+    tokenize(rank),
+    tokenize(suit),
+    tokenize(element),
+    tokenize(label),
+    tokenize(domain),
+    tokenize(headline)
+  );
+  const rankGuide = (RANK_GUIDES[rank] || {});
+  const suitGuide = (SUIT_GUIDES[suit] || {});
+  const guideTokens = tokenize(Object.values(rankGuide).flat().join(' ') + ' ' + Object.values(suitGuide).flat().join(' '));
+  return uniqueKeywords(base, guideTokens).slice(0, 14);
+}
+
 // Card-specific guidance to ensure unique, card-related meanings
 const MAJOR_GUIDES = {
   'the-fool': {
@@ -689,7 +748,7 @@ function buildCardEntry(card){
     slug,
     upright: {
       overview: {
-        keywords: [],
+        keywords: buildOverviewKeywords(card, 'upright'),
         text: overviewText({cardName:name, slug, arcana, suit, rank, orientation:'upright'}),
         yesNo: arcana === 'major' ? majorMeta(slug).yesNo : (suit === 'wands' || suit === 'pentacles' ? 'Yes' : (suit === 'cups' ? 'Maybe' : 'No')),
         zodiac: arcana === 'major' ? majorMeta(slug).zodiac : suitLabel(suit),
@@ -698,7 +757,7 @@ function buildCardEntry(card){
     },
     reversed: {
       overview: {
-        keywords: [],
+        keywords: buildOverviewKeywords(card, 'reversed'),
         text: overviewText({cardName:name, slug, arcana, suit, rank, orientation:'reversed'}),
         yesNo: arcana === 'major' ? (majorMeta(slug).yesNo === 'Yes' ? 'Not yet' : majorMeta(slug).yesNo) : (suit === 'wands' || suit === 'pentacles' ? 'Not yet' : (suit === 'cups' ? 'No' : 'No')),
         zodiac: arcana === 'major' ? majorMeta(slug).zodiac : suitLabel(suit),
