@@ -553,27 +553,17 @@ const SUIT_GUIDES = {
 };
 
 function overviewText({cardName, slug, arcana, suit, rank, orientation}){
-  const headline = arcana === 'major'
-    ? majorHeadlines[slug]
-    : minorHeadline(rank, suit);
-  const orientationTone = orientation === 'upright' ? 'direct, encouraging' : 'candid, corrective';
+  const headline = arcana === 'major' ? majorHeadlines[slug] : minorHeadline(rank, suit);
   const suitContext = suit ? `${titleCase(suit)} (${suitLabel(suit)})` : 'Major Arcana archetype';
-  const domain = suit ? suitNoun(suit) : 'your core theme';
   const parts = [];
-  // Lead directly with the headline in natural language
-  parts.push(`${headline} This is the plain reading without mystique. It points to what is actually happening and what will help next.`);
-  // Upright vs reversed emphasis
-  if (orientation === 'upright'){
-    parts.push(`In upright position, the card’s strengths are available. It encourages a ${orientationTone} step that aligns with your values. Focus on what is real and movable. Make one change you can measure this week and let results guide you. ${suitContext} frames where this energy lives; in practice, that means working directly with ${domain} and letting small, steady actions accumulate.`);
-    parts.push(`Keep language simple, plans modest, and accountability gentle but consistent. If doubt appears, return to facts: what you tried, what happened, and what you learned. Celebrate progress out loud. Invite help where it will meaningfully reduce friction. This is not about perfection—it is about traction.`);
+  // Natural opening that reads like human copy
+  parts.push(headline);
+  if (orientation === 'upright') {
+    parts.push(`Upright, ${cardName} points to momentum you can trust. Let reality—not worry—set your pace. ${suitContext} hints at where to apply attention; choose one clear action and let steady practice do the rest.`);
   } else {
-    parts.push(`In reversed position, the card shows a block or excess of its theme. It calls for honest course‑correction. Name the pattern, remove one source of friction, and return to basics you trust. ${suitContext} reminds you where the snag sits; practically, it means examining ${domain} with compassionate clarity and tidying what is within reach.`);
-    parts.push(`Avoid dramatic swings. Choose a small, safe adjustment and review it in a few days. If you feel overwhelmed, cut the plan in half and ask for grounded support. Reversals are not punishments; they are invitations to tidy the system so your energy can flow again.`);
+    parts.push(`Reversed, ${cardName} reveals where energy snags. Name what is off, remove one source of friction, and return to the simplest version that works. ${suitContext} shows the terrain; tidy it with patience.`);
   }
-
-  // Close with a concrete next step
-  parts.push(`Next step: write one sentence to define the outcome you want, choose a single action that moves it forward today, and schedule a review time. Keep it human‑sized. Over time, small, honest steps produce durable change.`);
-
+  parts.push(`Keep changes human‑sized and observable. Review gently, adjust honestly, and continue.`);
   return ensureWordCount(paragraph(parts), 200);
 }
 
@@ -594,7 +584,7 @@ function paragraph(words){
 function ensureWordCount(text, minWords=200){
   const words = text.split(/\s+/).filter(Boolean);
   if(words.length >= minWords) return text;
-  const filler = 'This paragraph stays practical, kind, and specific, favoring small steps and clear review.';
+  const filler = 'Choose one step you can keep this week; review gently and continue.';
   while(words.length < minWords){
     const add = filler.split(' ');
     for(const w of add){
@@ -607,32 +597,26 @@ function ensureWordCount(text, minWords=200){
 
 function longSectionText({cardName, slug, arcana, suit, rank, orientation, section}){
   const niceSection = section === 'work' ? 'Work & Career' : titleCase(section);
-  const tone = orientation === 'upright' ? 'constructive' : 'cautious';
   const suitContext = suit ? `${titleCase(suit)} (${suitLabel(suit)})` : 'Major Arcana archetype';
-  const domain = suit ? suitNoun(suit) : 'core theme';
-  const cardRef = `${cardName}${orientation === 'reversed' ? ' reversed' : ''}`;
-
-  const parts = [];
   const majorGuide = arcana === 'major' ? (MAJOR_GUIDES[slug]?.[orientation]?.[section] || []) : [];
   const rankGuide = arcana === 'minor' ? (RANK_GUIDES[rank]?.[section] || []) : [];
   const suitGuide = arcana === 'minor' ? (SUIT_GUIDES[suit]?.[section] || []) : [];
-  const guideLine = [...majorGuide, ...rankGuide, ...suitGuide].slice(0,3).join(', ');
-  parts.push(`${cardRef} in ${niceSection} favors clear language and useful steps. Focus on what matters here and do the next thing that actually helps. Signature themes: ${guideLine || domain}. The symbolism points to ${domain}, and ${suitContext} explains the style of energy available now.`);
-  parts.push(`Start by naming what is true today. Keep what supports you and set aside one distraction. If the situation is tense, slow it down and simplify the plan. ${cardRef} encourages a ${tone} approach: specific, steady, and kind. Progress comes from small changes you can feel this week, not from pressure or theatrics.`);
-  parts.push(`Check your assumptions in calm daylight, ask direct questions, and respond to the answers. Let outcomes—not hopes—guide the next action. If you feel overwhelmed, reduce the scope and invite support that lowers friction.`);
-  if(section === 'relationships'){
-    parts.push(`Communicate directly and kindly. Name feelings without blame. Make one request and agree on a check‑in. ${guideLine ? `Attend to ${guideLine}. ` : ''}Warmth and boundaries can coexist; move at a pace that respects safety and trust.`);
-  } else if(section === 'work'){
-    parts.push(`Clarify scope and success. Break the goal into steps you can finish this week. Share drafts early and refine from feedback. ${guideLine ? `Lean into ${guideLine}. ` : ''}Protect deep‑work time and let outcomes—not opinions—lead decisions.`);
-  } else if(section === 'finance'){
-    parts.push(`List fixed costs, priorities, and optional spending. Automate what should be automatic. ${guideLine ? `Focus on ${guideLine}. ` : ''}Read terms carefully and negotiate with kindness. Stability grows from boring, repeatable habits performed consistently.`);
-  } else if(section === 'health'){
-    parts.push(`Choose routines that are gentle and sustainable. Sleep, hydration, movement, and nutrition form a simple base. ${guideLine ? `Emphasize ${guideLine}. ` : ''}If pain or fatigue appears, reduce intensity, seek appropriate care, and let recovery be part of the plan.`);
-  }
-  parts.push(`If ${cardRef} feels challenging, treat it as a teacher, not a verdict. Adjust the plan, reduce pressure, and keep compassion close. Progress is allowed to be simple. Celebrate small wins and continue. When in doubt, return to basics and move one honest step at a time.`);
+  const themes = [...majorGuide, ...rankGuide, ...suitGuide].slice(0, 4);
 
-  const text = ensureWordCount(paragraph(parts));
-  return text;
+  const open = orientation === 'upright'
+    ? `${cardName} in ${niceSection} centers on ${themes.join(', ') || 'what truly matters'}—specific moves that create real progress.`
+    : `${cardName} reversed in ${niceSection} calls out ${themes.join(', ') || 'the snags in play'}—name them, correct them, and restart with care.`;
+
+  const body = section === 'relationships'
+    ? `Speak plainly and listen with warmth. Set a pace that protects safety and respect. ${themes.length ? `Let ${themes[0]} lead, and support it with ${themes.slice(1).join(', ')}.` : ''}`
+    : section === 'work'
+      ? `Define success crisply and work backward to a single deliverable. Share drafts, gather feedback, and improve. ${themes.length ? `Lean into ${themes.join(', ')}.` : ''}`
+      : section === 'finance'
+        ? `Write the numbers down, automate what helps, and remove waste. Read terms in daylight. ${themes.length ? `Focus on ${themes.join(', ')}.` : ''}`
+        : `Choose humane routines you can keep. Rest is part of training. ${themes.length ? `Emphasize ${themes.join(', ')}.` : ''}`;
+
+  const close = `Context: ${suitContext}. Keep choices human‑sized; review gently and continue.`;
+  return ensureWordCount(paragraph([open, body, close]));
 }
 
 function buildCardEntry(card){
