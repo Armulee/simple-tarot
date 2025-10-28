@@ -100,11 +100,11 @@ export default async function TarotCardArticlePage({
     )
 
     const makeKeywords = (words: string[]) => (
-        <div className='flex flex-wrap gap-2 mb-3'>
+        <div className='flex flex-wrap gap-2 mb-4'>
             {words.map((w) => (
                 <span
                     key={w}
-                    className='px-2 py-0.5 rounded-full text-xs border border-border/40 bg-background/40'
+                    className='px-2.5 py-1 rounded-full text-[13px] sm:text-sm border border-border/40 bg-background/50 shadow-sm'
                 >
                     {w}
                 </span>

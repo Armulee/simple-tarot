@@ -1253,4 +1253,7 @@
   .section-fade-in {
     animation-delay: 0s !important;
   }
+  /* Increase article text size on mobile for readability */
+  .content-card { font-size: 1.05rem; line-height: 1.8; }
+  .content-card p { margin-bottom: 1rem; }
 }

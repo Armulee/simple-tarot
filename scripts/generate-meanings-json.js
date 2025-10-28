@@ -559,9 +559,9 @@ function overviewText({cardName, slug, arcana, suit, rank, orientation}){
   // Natural opening that reads like human copy
   parts.push(headline);
   if (orientation === 'upright') {
-    parts.push(`Upright, ${cardName} points to momentum you can trust. Let reality—not worry—set your pace. ${suitContext} hints at where to apply attention; choose one clear action and let steady practice do the rest.`);
+    parts.push(`Momentum you can trust. Let reality—not worry—set your pace. ${suitContext} hints at where to apply attention; choose one clear action and let steady practice do the rest.`);
   } else {
-    parts.push(`Reversed, ${cardName} reveals where energy snags. Name what is off, remove one source of friction, and return to the simplest version that works. ${suitContext} shows the terrain; tidy it with patience.`);
+    parts.push(`When blocked, notice where energy snags. Name what is off, remove one source of friction, and return to the simplest version that works. ${suitContext} shows the terrain; tidy it with patience.`);
   }
   parts.push(`Keep changes human‑sized and observable. Review gently, adjust honestly, and continue.`);
   return ensureWordCount(paragraph(parts), 200);
@@ -620,37 +620,37 @@ function longSectionText({cardName, slug, arcana, suit, rank, orientation, secti
   let sentences = [];
   if(orientation === 'upright'){
     if(section === 'relationships'){
-      sentences.push(`${cardName} in ${niceSection} invites connection that feels alive and honest.`);
+      sentences.push(`Connection feels alive and honest.`);
       if(themeLine) sentences.push(`Let ${themeLine} guide how you show up; small, sincere acts matter here.`);
       sentences.push(`Speak plainly, listen for the quiet truth, and move at a pace that keeps trust intact.`);
     } else if(section === 'work'){
-      sentences.push(`${cardName} in ${niceSection} favors craft, clear scope, and a result you can point to.`);
+      sentences.push(`Progress favors craft, clear scope, and a result you can point to.`);
       if(themeLine) sentences.push(`Build around ${themeLine}; finish one meaningful piece and let it prove the direction.`);
       sentences.push(`Share early, revise well, and protect time where real work happens.`);
     } else if(section === 'finance'){
-      sentences.push(`${cardName} in ${niceSection} asks for numbers you can live with and choices you respect.`);
+      sentences.push(`Make numbers you can live with and choices you respect.`);
       if(themeLine) sentences.push(`Aim resources toward ${themeLine}; trim what does not serve your life.`);
       sentences.push(`Automate the good, read terms in daylight, and let steadiness quietly win.`);
     } else {
-      sentences.push(`${cardName} in ${niceSection} prefers routines that your body trusts.`);
+      sentences.push(`Prefer routines your body trusts.`);
       if(themeLine) sentences.push(`Shape your week around ${themeLine}; keep changes gentle and repeatable.`);
       sentences.push(`Recovery is part of progress; consistency outperforms intensity.`);
     }
   } else {
     if(section === 'relationships'){
-      sentences.push(`${cardName} reversed in ${niceSection} shows where tension and mixed signals steal warmth.`);
+      sentences.push(`Tension and mixed signals steal warmth—name what’s real.`);
       if(themeLine) sentences.push(`Name ${themeLine} without blame; set one boundary and one invitation, then observe.`);
       sentences.push(`Slow the pace, remove pressure, and let sincerity reset the tone.`);
     } else if(section === 'work'){
-      sentences.push(`${cardName} reversed in ${niceSection} points to drag—too much scope, not enough finish.`);
+      sentences.push(`Drag shows up as too much scope and not enough finish.`);
       if(themeLine) sentences.push(`Cut to ${themeLine}; deliver a small slice that restores flow.`);
       sentences.push(`Reduce handoffs, limit multitasking, and make quality visible.`);
     } else if(section === 'finance'){
-      sentences.push(`${cardName} reversed in ${niceSection} flags leaks and decisions made in hurry or fog.`);
+      sentences.push(`Leaks appear when decisions rush through fog.`);
       if(themeLine) sentences.push(`Tighten around ${themeLine}; pause non‑essentials until the plan is clear.`);
       sentences.push(`Choose clarity over speed and rebuild stability step by step.`);
     } else {
-      sentences.push(`${cardName} reversed in ${niceSection} notices overreach or neglect hiding in your routine.`);
+      sentences.push(`Overreach or neglect hide in routine—bring them into the light.`);
       if(themeLine) sentences.push(`Ease into ${themeLine}; lower intensity, improve form, and rest on purpose.`);
       sentences.push(`Start where you are; a kinder plan will carry you further.`);
     }
