@@ -20,41 +20,69 @@
     },
     "relationships": {
       "keywords": [
-        "honesty",
-        "understanding",
+        "predictability builds trust",
+        "clear roles",
+        "protective presence",
+        "structure",
+        "authority",
+        "stability",
+        "leadership",
+        "order",
+        "discipline",
+        "protection",
         "boundaries",
-        "care",
-        "growth"
+        "strategy"
       ],
       "text": "Connection feels alive and honest. Let predictability builds trust, clear roles, and protective presence guide how you show up; small, sincere acts matter here. Speak plainly, listen for the quiet truth, and move at a pace that keeps trust intact."
     },
     "work": {
       "keywords": [
-        "focus",
-        "delivery",
-        "process",
-        "learning",
-        "impact"
+        "structure enables scale",
+        "document decisions",
+        "own the outcome",
+        "structure",
+        "authority",
+        "stability",
+        "leadership",
+        "order",
+        "discipline",
+        "protection",
+        "boundaries",
+        "strategy"
       ],
       "text": "Progress favors craft, clear scope, and a result you can point to. Build around structure enables scale, document decisions, and own the outcome; finish one meaningful piece and let it prove the direction. Share early, revise well, and protect time where real work happens."
     },
     "finance": {
       "keywords": [
-        "planning",
+        "tight controls",
+        "emergency fund first",
+        "risk policies",
+        "structure",
+        "authority",
         "stability",
-        "clarity",
-        "habits",
-        "value"
+        "leadership",
+        "order",
+        "discipline",
+        "protection",
+        "boundaries",
+        "strategy"
       ],
       "text": "Make numbers you can live with and choices you respect. Aim resources toward tight controls, emergency fund first, and risk policies; trim what does not serve your life. Automate the good, read terms in daylight, and let steadiness quietly win."
     },
     "health": {
       "keywords": [
-        "routine",
-        "recovery",
-        "awareness",
-        "balance",
-        "consistency"
+        "discipline as care",
+        "routine schedule",
+        "measured training",
+        "structure",
+        "authority",
+        "stability",
+        "leadership",
+        "order",
+        "discipline",
+        "protection",
+        "boundaries",
+        "strategy"
       ],
       "text": "Prefer routines your body trusts. Shape your week around discipline as care, routine schedule, and measured training; keep changes gentle and repeatable. Recovery is part of progress; consistency outperforms intensity."
     }
@@ -78,41 +106,65 @@
     },
     "relationships": {
       "keywords": [
-        "honesty",
-        "understanding",
-        "boundaries",
-        "care",
-        "growth"
+        "rigidity softens",
+        "collaborative decisions",
+        "space for feelings",
+        "rigidity",
+        "control issues",
+        "tyranny",
+        "domineering",
+        "inflexibility",
+        "coldness",
+        "abuse of power",
+        "stubbornness"
       ],
       "text": "Tension and mixed signals steal warmth—name what’s real. Name rigidity softens, collaborative decisions, and space for feelings without blame; set one boundary and one invitation, then observe. Slow the pace, remove pressure, and let sincerity reset the tone."
     },
     "work": {
       "keywords": [
-        "focus",
-        "delivery",
-        "process",
-        "learning",
-        "impact"
+        "micromanage risk",
+        "delegate authority",
+        "update stale rules",
+        "rigidity",
+        "control issues",
+        "tyranny",
+        "domineering",
+        "inflexibility",
+        "coldness",
+        "abuse of power",
+        "stubbornness"
       ],
       "text": "Drag shows up as too much scope and not enough finish. Cut to micromanage risk, delegate authority, and update stale rules; deliver a small slice that restores flow. Reduce handoffs, limit multitasking, and make quality visible."
     },
     "finance": {
       "keywords": [
-        "planning",
-        "stability",
-        "clarity",
-        "habits",
-        "value"
+        "overcontrol anxiety",
+        "trust systems",
+        "avoid hoarding",
+        "rigidity",
+        "control issues",
+        "tyranny",
+        "domineering",
+        "inflexibility",
+        "coldness",
+        "abuse of power",
+        "stubbornness"
       ],
       "text": "Leaks appear when decisions rush through fog. Tighten around overcontrol anxiety, trust systems, and avoid hoarding; pause non‑essentials until the plan is clear. Choose clarity over speed and rebuild stability step by step."
     },
     "health": {
       "keywords": [
-        "routine",
-        "recovery",
-        "awareness",
-        "balance",
-        "consistency"
+        "overtraining",
+        "listen to limits",
+        "flex days",
+        "rigidity",
+        "control issues",
+        "tyranny",
+        "domineering",
+        "inflexibility",
+        "coldness",
+        "abuse of power",
+        "stubbornness"
       ],
       "text": "Overreach or neglect hide in routine—bring them into the light. Ease into overtraining, listen to limits, and flex days; lower intensity, improve form, and rest on purpose. Start where you are; a kinder plan will carry you further."
     }

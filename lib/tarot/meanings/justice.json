@@ -19,41 +19,65 @@
     },
     "relationships": {
       "keywords": [
-        "honesty",
-        "understanding",
-        "boundaries",
-        "care",
-        "growth"
+        "fair dealing",
+        "clear agreements",
+        "repair with amends",
+        "fairness",
+        "truth",
+        "law",
+        "balance",
+        "accountability",
+        "ethics",
+        "cause and effect",
+        "clarity"
       ],
       "text": "Connection feels alive and honest. Let fair dealing, clear agreements, and repair with amends guide how you show up; small, sincere acts matter here. Speak plainly, listen for the quiet truth, and move at a pace that keeps trust intact."
     },
     "work": {
       "keywords": [
-        "focus",
-        "delivery",
-        "process",
-        "learning",
-        "impact"
+        "evidence-based decisions",
+        "document tradeoffs",
+        "ethics first",
+        "fairness",
+        "truth",
+        "law",
+        "balance",
+        "accountability",
+        "ethics",
+        "cause and effect",
+        "clarity"
       ],
       "text": "Progress favors craft, clear scope, and a result you can point to. Build around evidence-based decisions, document tradeoffs, and ethics first; finish one meaningful piece and let it prove the direction. Share early, revise well, and protect time where real work happens."
     },
     "finance": {
       "keywords": [
-        "planning",
-        "stability",
-        "clarity",
-        "habits",
-        "value"
+        "accurate ledgers",
+        "transparent terms",
+        "legal alignment",
+        "fairness",
+        "truth",
+        "law",
+        "balance",
+        "accountability",
+        "ethics",
+        "cause and effect",
+        "clarity"
       ],
       "text": "Make numbers you can live with and choices you respect. Aim resources toward accurate ledgers, transparent terms, and legal alignment; trim what does not serve your life. Automate the good, read terms in daylight, and let steadiness quietly win."
     },
     "health": {
       "keywords": [
-        "routine",
-        "recovery",
-        "awareness",
+        "balance routines",
+        "cause/effect awareness",
+        "measured choices",
+        "fairness",
+        "truth",
+        "law",
         "balance",
-        "consistency"
+        "accountability",
+        "ethics",
+        "cause and effect",
+        "clarity"
       ],
       "text": "Prefer routines your body trusts. Shape your week around balance routines, cause/effect awareness, and measured choices; keep changes gentle and repeatable. Recovery is part of progress; consistency outperforms intensity."
     }
@@ -76,41 +100,61 @@
     },
     "relationships": {
       "keywords": [
-        "honesty",
-        "understanding",
-        "boundaries",
-        "care",
-        "growth"
+        "bias spotted",
+        "correct imbalance",
+        "truth telling",
+        "bias",
+        "injustice",
+        "dishonesty",
+        "avoidance",
+        "unfairness",
+        "legal trouble",
+        "imbalanced"
       ],
       "text": "Tension and mixed signals steal warmth—name what’s real. Name bias spotted, correct imbalance, and truth telling without blame; set one boundary and one invitation, then observe. Slow the pace, remove pressure, and let sincerity reset the tone."
     },
     "work": {
       "keywords": [
-        "focus",
-        "delivery",
-        "process",
-        "learning",
-        "impact"
+        "unclear criteria",
+        "reduce favoritism",
+        "audit processes",
+        "bias",
+        "injustice",
+        "dishonesty",
+        "avoidance",
+        "unfairness",
+        "legal trouble",
+        "imbalanced"
       ],
       "text": "Drag shows up as too much scope and not enough finish. Cut to unclear criteria, reduce favoritism, and audit processes; deliver a small slice that restores flow. Reduce handoffs, limit multitasking, and make quality visible."
     },
     "finance": {
       "keywords": [
-        "planning",
-        "stability",
-        "clarity",
-        "habits",
-        "value"
+        "fees and fines",
+        "dispute carefully",
+        "read small print",
+        "bias",
+        "injustice",
+        "dishonesty",
+        "avoidance",
+        "unfairness",
+        "legal trouble",
+        "imbalanced"
       ],
       "text": "Leaks appear when decisions rush through fog. Tighten around fees and fines, dispute carefully, and read small print; pause non‑essentials until the plan is clear. Choose clarity over speed and rebuild stability step by step."
     },
     "health": {
       "keywords": [
-        "routine",
-        "recovery",
-        "awareness",
-        "balance",
-        "consistency"
+        "over/undercorrection",
+        "restore equilibrium",
+        "steady tracking",
+        "bias",
+        "injustice",
+        "dishonesty",
+        "avoidance",
+        "unfairness",
+        "legal trouble",
+        "imbalanced"
       ],
       "text": "Overreach or neglect hide in routine—bring them into the light. Ease into over/undercorrection, restore equilibrium, and steady tracking; lower intensity, improve form, and rest on purpose. Start where you are; a kinder plan will carry you further."
     }

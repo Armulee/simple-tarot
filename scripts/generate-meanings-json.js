@@ -407,6 +407,24 @@ function buildOverviewKeywords(card, orientation){
   return uniqueKeywords(suitKw, rankKw).slice(0, 14);
 }
 
+function buildSectionKeywords(card, orientation, section){
+  const { slug, arcana, suit, rank } = card;
+  let phrases = [];
+  if (arcana === 'major') {
+    const guide = (MAJOR_GUIDES[slug] && MAJOR_GUIDES[slug][orientation]) || {};
+    phrases = (guide[section] || []).slice();
+    // enrich with overview keywords for cohesion
+    const extra = (MAJOR_KEYWORDS[slug] && MAJOR_KEYWORDS[slug][orientation]) || [];
+    return uniqueKeywords(phrases, extra).slice(0, 12);
+  }
+  // minors
+  const suitPhrases = (SUIT_GUIDES[suit] && SUIT_GUIDES[suit][section]) || [];
+  const rankPhrases = (RANK_GUIDES[rank] && RANK_GUIDES[rank][section]) || [];
+  const suitKw = (SUIT_KEYWORDS[suit] && SUIT_KEYWORDS[suit][orientation]) || [];
+  const rankKw = (RANK_KEYWORDS[rank] && RANK_KEYWORDS[rank][orientation]) || [];
+  return uniqueKeywords(suitPhrases, rankPhrases, suitKw, rankKw, [suit, suitElementName(suit), rank]).slice(0, 12);
+}
+
 // Card-specific guidance to ensure unique, card-related meanings
 const MAJOR_GUIDES = {
   'the-fool': {
@@ -992,8 +1010,8 @@ function buildCardEntry(card){
   for(const section of sections){
     const uprText = longSectionText({cardName:name, slug, arcana, suit, rank, orientation:'upright', section});
     const revText = longSectionText({cardName:name, slug, arcana, suit, rank, orientation:'reversed', section});
-    entry.upright[section] = { keywords: baseKeywords(section, card), text: uprText };
-    entry.reversed[section] = { keywords: baseKeywords(section, card), text: revText };
+    entry.upright[section] = { keywords: buildSectionKeywords(card, 'upright', section), text: uprText };
+    entry.reversed[section] = { keywords: buildSectionKeywords(card, 'reversed', section), text: revText };
   }
   return entry;
 }

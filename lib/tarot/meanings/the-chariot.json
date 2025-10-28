@@ -19,41 +19,65 @@
     },
     "relationships": {
       "keywords": [
-        "honesty",
-        "understanding",
-        "boundaries",
-        "care",
-        "growth"
+        "direction together",
+        "set a pace",
+        "resolve tension",
+        "willpower",
+        "victory",
+        "direction",
+        "control",
+        "determination",
+        "discipline",
+        "momentum",
+        "drive"
       ],
       "text": "Connection feels alive and honest. Let direction together, set a pace, and resolve tension guide how you show up; small, sincere acts matter here. Speak plainly, listen for the quiet truth, and move at a pace that keeps trust intact."
     },
     "work": {
       "keywords": [
-        "focus",
-        "delivery",
-        "process",
-        "learning",
-        "impact"
+        "disciplined drive",
+        "one clear target",
+        "remove drag",
+        "willpower",
+        "victory",
+        "direction",
+        "control",
+        "determination",
+        "discipline",
+        "momentum",
+        "drive"
       ],
       "text": "Progress favors craft, clear scope, and a result you can point to. Build around disciplined drive, one clear target, and remove drag; finish one meaningful piece and let it prove the direction. Share early, revise well, and protect time where real work happens."
     },
     "finance": {
       "keywords": [
-        "planning",
-        "stability",
-        "clarity",
-        "habits",
-        "value"
+        "save toward goal",
+        "strategic milestones",
+        "cut detours",
+        "willpower",
+        "victory",
+        "direction",
+        "control",
+        "determination",
+        "discipline",
+        "momentum",
+        "drive"
       ],
       "text": "Make numbers you can live with and choices you respect. Aim resources toward save toward goal, strategic milestones, and cut detours; trim what does not serve your life. Automate the good, read terms in daylight, and let steadiness quietly win."
     },
     "health": {
       "keywords": [
-        "routine",
-        "recovery",
-        "awareness",
-        "balance",
-        "consistency"
+        "structured program",
+        "tracked progress",
+        "balanced intensity",
+        "willpower",
+        "victory",
+        "direction",
+        "control",
+        "determination",
+        "discipline",
+        "momentum",
+        "drive"
       ],
       "text": "Prefer routines your body trusts. Shape your week around structured program, tracked progress, and balanced intensity; keep changes gentle and repeatable. Recovery is part of progress; consistency outperforms intensity."
     }
@@ -75,41 +99,57 @@
     },
     "relationships": {
       "keywords": [
-        "honesty",
-        "understanding",
-        "boundaries",
-        "care",
-        "growth"
+        "conflicting wills",
+        "slow to synchronize",
+        "name shared aim",
+        "lack of control",
+        "drift",
+        "aggression",
+        "scattered focus",
+        "stalling",
+        "misdirected energy"
       ],
       "text": "Tension and mixed signals steal warmth—name what’s real. Name conflicting wills, slow to synchronize, and name shared aim without blame; set one boundary and one invitation, then observe. Slow the pace, remove pressure, and let sincerity reset the tone."
     },
     "work": {
       "keywords": [
-        "focus",
-        "delivery",
-        "process",
-        "learning",
-        "impact"
+        "scattered effort",
+        "recenter plan",
+        "limit multitasking",
+        "lack of control",
+        "drift",
+        "aggression",
+        "scattered focus",
+        "stalling",
+        "misdirected energy"
       ],
       "text": "Drag shows up as too much scope and not enough finish. Cut to scattered effort, recenter plan, and limit multitasking; deliver a small slice that restores flow. Reduce handoffs, limit multitasking, and make quality visible."
     },
     "finance": {
       "keywords": [
-        "planning",
-        "stability",
-        "clarity",
-        "habits",
-        "value"
+        "leaks from distraction",
+        "budget lanes",
+        "halt impulse moves",
+        "lack of control",
+        "drift",
+        "aggression",
+        "scattered focus",
+        "stalling",
+        "misdirected energy"
       ],
       "text": "Leaks appear when decisions rush through fog. Tighten around leaks from distraction, budget lanes, and halt impulse moves; pause non‑essentials until the plan is clear. Choose clarity over speed and rebuild stability step by step."
     },
     "health": {
       "keywords": [
-        "routine",
-        "recovery",
-        "awareness",
-        "balance",
-        "consistency"
+        "overpush/underrecover",
+        "reset cadence",
+        "prevent injury",
+        "lack of control",
+        "drift",
+        "aggression",
+        "scattered focus",
+        "stalling",
+        "misdirected energy"
       ],
       "text": "Overreach or neglect hide in routine—bring them into the light. Ease into overpush/underrecover, reset cadence, and prevent injury; lower intensity, improve form, and rest on purpose. Start where you are; a kinder plan will carry you further."
     }

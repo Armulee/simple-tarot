@@ -18,41 +18,61 @@
     },
     "relationships": {
       "keywords": [
-        "honesty",
-        "understanding",
-        "boundaries",
-        "care",
-        "growth"
+        "tender hope",
+        "gentle reconnection",
+        "quiet generosity",
+        "hope",
+        "healing",
+        "guidance",
+        "renewal",
+        "calm",
+        "faith",
+        "inspiration"
       ],
       "text": "Connection feels alive and honest. Let tender hope, gentle reconnection, and quiet generosity guide how you show up; small, sincere acts matter here. Speak plainly, listen for the quiet truth, and move at a pace that keeps trust intact."
     },
     "work": {
       "keywords": [
-        "focus",
-        "delivery",
-        "process",
-        "learning",
-        "impact"
+        "vision refresh",
+        "show small wins",
+        "mentor others",
+        "hope",
+        "healing",
+        "guidance",
+        "renewal",
+        "calm",
+        "faith",
+        "inspiration"
       ],
       "text": "Progress favors craft, clear scope, and a result you can point to. Build around vision refresh, show small wins, and mentor others; finish one meaningful piece and let it prove the direction. Share early, revise well, and protect time where real work happens."
     },
     "finance": {
       "keywords": [
-        "planning",
-        "stability",
-        "clarity",
-        "habits",
-        "value"
+        "healing plan",
+        "slow restoration",
+        "faith plus math",
+        "hope",
+        "healing",
+        "guidance",
+        "renewal",
+        "calm",
+        "faith",
+        "inspiration"
       ],
       "text": "Make numbers you can live with and choices you respect. Aim resources toward healing plan, slow restoration, and faith plus math; trim what does not serve your life. Automate the good, read terms in daylight, and let steadiness quietly win."
     },
     "health": {
       "keywords": [
-        "routine",
-        "recovery",
-        "awareness",
-        "balance",
-        "consistency"
+        "soothing routines",
+        "hydration and rest",
+        "compassionate rehab",
+        "hope",
+        "healing",
+        "guidance",
+        "renewal",
+        "calm",
+        "faith",
+        "inspiration"
       ],
       "text": "Prefer routines your body trusts. Shape your week around soothing routines, hydration and rest, and compassionate rehab; keep changes gentle and repeatable. Recovery is part of progress; consistency outperforms intensity."
     }
@@ -73,41 +93,52 @@
     },
     "relationships": {
       "keywords": [
-        "honesty",
-        "understanding",
-        "boundaries",
-        "care",
-        "growth"
+        "discouragement",
+        "name the hurt",
+        "tiny hopeful act",
+        "doubt",
+        "pessimism",
+        "drain",
+        "loss of faith"
       ],
       "text": "Tension and mixed signals steal warmth—name what’s real. Name discouragement, name the hurt, and tiny hopeful act without blame; set one boundary and one invitation, then observe. Slow the pace, remove pressure, and let sincerity reset the tone."
     },
     "work": {
       "keywords": [
-        "focus",
-        "delivery",
-        "process",
-        "learning",
-        "impact"
+        "fatigue",
+        "simplify roadmap",
+        "recover morale",
+        "discouragement",
+        "doubt",
+        "pessimism",
+        "drain",
+        "loss of faith"
       ],
       "text": "Drag shows up as too much scope and not enough finish. Cut to fatigue, simplify roadmap, and recover morale; deliver a small slice that restores flow. Reduce handoffs, limit multitasking, and make quality visible."
     },
     "finance": {
       "keywords": [
-        "planning",
-        "stability",
-        "clarity",
-        "habits",
-        "value"
+        "confidence dip",
+        "protect basics",
+        "stepwise rebuild",
+        "discouragement",
+        "doubt",
+        "pessimism",
+        "drain",
+        "loss of faith"
       ],
       "text": "Leaks appear when decisions rush through fog. Tighten around confidence dip, protect basics, and stepwise rebuild; pause non‑essentials until the plan is clear. Choose clarity over speed and rebuild stability step by step."
     },
     "health": {
       "keywords": [
-        "routine",
-        "recovery",
-        "awareness",
-        "balance",
-        "consistency"
+        "burnout signs",
+        "scale back",
+        "gentle guidance",
+        "discouragement",
+        "doubt",
+        "pessimism",
+        "drain",
+        "loss of faith"
       ],
       "text": "Overreach or neglect hide in routine—bring them into the light. Ease into burnout signs, scale back, and gentle guidance; lower intensity, improve form, and rest on purpose. Start where you are; a kinder plan will carry you further."
     }

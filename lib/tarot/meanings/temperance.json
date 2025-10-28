@@ -18,41 +18,61 @@
     },
     "relationships": {
       "keywords": [
-        "honesty",
-        "understanding",
-        "boundaries",
-        "care",
-        "growth"
+        "blend differences",
+        "temper reactivity",
+        "find middle",
+        "moderation",
+        "balance",
+        "healing",
+        "integration",
+        "patience",
+        "alchemy",
+        "harmony"
       ],
       "text": "Connection feels alive and honest. Let blend differences, temper reactivity, and find middle guide how you show up; small, sincere acts matter here. Speak plainly, listen for the quiet truth, and move at a pace that keeps trust intact."
     },
     "work": {
       "keywords": [
-        "focus",
-        "delivery",
-        "process",
-        "learning",
-        "impact"
+        "integrate teams",
+        "smooth processes",
+        "harmonize tools",
+        "moderation",
+        "balance",
+        "healing",
+        "integration",
+        "patience",
+        "alchemy",
+        "harmony"
       ],
       "text": "Progress favors craft, clear scope, and a result you can point to. Build around integrate teams, smooth processes, and harmonize tools; finish one meaningful piece and let it prove the direction. Share early, revise well, and protect time where real work happens."
     },
     "finance": {
       "keywords": [
-        "planning",
-        "stability",
-        "clarity",
-        "habits",
-        "value"
+        "diversify carefully",
+        "rebalance",
+        "moderate risk",
+        "moderation",
+        "balance",
+        "healing",
+        "integration",
+        "patience",
+        "alchemy",
+        "harmony"
       ],
       "text": "Make numbers you can live with and choices you respect. Aim resources toward diversify carefully, rebalance, and moderate risk; trim what does not serve your life. Automate the good, read terms in daylight, and let steadiness quietly win."
     },
     "health": {
       "keywords": [
-        "routine",
-        "recovery",
-        "awareness",
+        "balanced practice",
+        "gradual increases",
+        "recovery windows",
+        "moderation",
         "balance",
-        "consistency"
+        "healing",
+        "integration",
+        "patience",
+        "alchemy",
+        "harmony"
       ],
       "text": "Prefer routines your body trusts. Shape your week around balanced practice, gradual increases, and recovery windows; keep changes gentle and repeatable. Recovery is part of progress; consistency outperforms intensity."
     }
@@ -73,41 +93,52 @@
     },
     "relationships": {
       "keywords": [
-        "honesty",
-        "understanding",
-        "boundaries",
-        "care",
-        "growth"
+        "overcorrection",
+        "one change at a time",
+        "reset center",
+        "excess",
+        "imbalance",
+        "discord",
+        "impulsiveness"
       ],
       "text": "Tension and mixed signals steal warmth—name what’s real. Name overcorrection, one change at a time, and reset center without blame; set one boundary and one invitation, then observe. Slow the pace, remove pressure, and let sincerity reset the tone."
     },
     "work": {
       "keywords": [
-        "focus",
-        "delivery",
-        "process",
-        "learning",
-        "impact"
+        "swingy priorities",
+        "stabilize cadence",
+        "reduce extremes",
+        "excess",
+        "imbalance",
+        "overcorrection",
+        "discord",
+        "impulsiveness"
       ],
       "text": "Drag shows up as too much scope and not enough finish. Cut to swingy priorities, stabilize cadence, and reduce extremes; deliver a small slice that restores flow. Reduce handoffs, limit multitasking, and make quality visible."
     },
     "finance": {
       "keywords": [
-        "planning",
-        "stability",
-        "clarity",
-        "habits",
-        "value"
+        "overexposure",
+        "trim volatility",
+        "safety first",
+        "excess",
+        "imbalance",
+        "overcorrection",
+        "discord",
+        "impulsiveness"
       ],
       "text": "Leaks appear when decisions rush through fog. Tighten around overexposure, trim volatility, and safety first; pause non‑essentials until the plan is clear. Choose clarity over speed and rebuild stability step by step."
     },
     "health": {
       "keywords": [
-        "routine",
-        "recovery",
-        "awareness",
-        "balance",
-        "consistency"
+        "excess or neglect",
+        "restore baseline",
+        "hydration and sleep",
+        "excess",
+        "imbalance",
+        "overcorrection",
+        "discord",
+        "impulsiveness"
       ],
       "text": "Overreach or neglect hide in routine—bring them into the light. Ease into excess or neglect, restore baseline, and hydration and sleep; lower intensity, improve form, and rest on purpose. Start where you are; a kinder plan will carry you further."
     }
