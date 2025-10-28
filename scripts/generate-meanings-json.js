@@ -581,6 +581,20 @@ function paragraph(words){
   return words.join(' ').replace(/\s+/g,' ').trim();
 }
 
+function limitWords(text, maxWords=110){
+  const words = text.split(/\s+/).filter(Boolean);
+  if(words.length <= maxWords) return text;
+  const cut = words.slice(0, maxWords).join(' ');
+  return cut.replace(/[.,;:!?]*$/, '.')
+}
+
+function joinThemes(themes){
+  if(!themes || themes.length === 0) return '';
+  if(themes.length === 1) return themes[0];
+  if(themes.length === 2) return `${themes[0]} and ${themes[1]}`;
+  return `${themes[0]}, ${themes[1]}, and ${themes[2]}`;
+}
+
 function ensureWordCount(text, minWords=200){
   const words = text.split(/\s+/).filter(Boolean);
   if(words.length >= minWords) return text;
@@ -597,26 +611,52 @@ function ensureWordCount(text, minWords=200){
 
 function longSectionText({cardName, slug, arcana, suit, rank, orientation, section}){
   const niceSection = section === 'work' ? 'Work & Career' : titleCase(section);
-  const suitContext = suit ? `${titleCase(suit)} (${suitLabel(suit)})` : 'Major Arcana archetype';
   const majorGuide = arcana === 'major' ? (MAJOR_GUIDES[slug]?.[orientation]?.[section] || []) : [];
   const rankGuide = arcana === 'minor' ? (RANK_GUIDES[rank]?.[section] || []) : [];
   const suitGuide = arcana === 'minor' ? (SUIT_GUIDES[suit]?.[section] || []) : [];
-  const themes = [...majorGuide, ...rankGuide, ...suitGuide].slice(0, 4);
+  const themes = [...majorGuide, ...rankGuide, ...suitGuide].slice(0, 3);
+  const themeLine = joinThemes(themes);
 
-  const open = orientation === 'upright'
-    ? `${cardName} in ${niceSection} centers on ${themes.join(', ') || 'what truly matters'}—specific moves that create real progress.`
-    : `${cardName} reversed in ${niceSection} calls out ${themes.join(', ') || 'the snags in play'}—name them, correct them, and restart with care.`;
-
-  const body = section === 'relationships'
-    ? `Speak plainly and listen with warmth. Set a pace that protects safety and respect. ${themes.length ? `Let ${themes[0]} lead, and support it with ${themes.slice(1).join(', ')}.` : ''}`
-    : section === 'work'
-      ? `Define success crisply and work backward to a single deliverable. Share drafts, gather feedback, and improve. ${themes.length ? `Lean into ${themes.join(', ')}.` : ''}`
-      : section === 'finance'
-        ? `Write the numbers down, automate what helps, and remove waste. Read terms in daylight. ${themes.length ? `Focus on ${themes.join(', ')}.` : ''}`
-        : `Choose humane routines you can keep. Rest is part of training. ${themes.length ? `Emphasize ${themes.join(', ')}.` : ''}`;
-
-  const close = `Context: ${suitContext}. Keep choices human‑sized; review gently and continue.`;
-  return ensureWordCount(paragraph([open, body, close]));
+  let sentences = [];
+  if(orientation === 'upright'){
+    if(section === 'relationships'){
+      sentences.push(`${cardName} in ${niceSection} invites connection that feels alive and honest.`);
+      if(themeLine) sentences.push(`Let ${themeLine} guide how you show up; small, sincere acts matter here.`);
+      sentences.push(`Speak plainly, listen for the quiet truth, and move at a pace that keeps trust intact.`);
+    } else if(section === 'work'){
+      sentences.push(`${cardName} in ${niceSection} favors craft, clear scope, and a result you can point to.`);
+      if(themeLine) sentences.push(`Build around ${themeLine}; finish one meaningful piece and let it prove the direction.`);
+      sentences.push(`Share early, revise well, and protect time where real work happens.`);
+    } else if(section === 'finance'){
+      sentences.push(`${cardName} in ${niceSection} asks for numbers you can live with and choices you respect.`);
+      if(themeLine) sentences.push(`Aim resources toward ${themeLine}; trim what does not serve your life.`);
+      sentences.push(`Automate the good, read terms in daylight, and let steadiness quietly win.`);
+    } else {
+      sentences.push(`${cardName} in ${niceSection} prefers routines that your body trusts.`);
+      if(themeLine) sentences.push(`Shape your week around ${themeLine}; keep changes gentle and repeatable.`);
+      sentences.push(`Recovery is part of progress; consistency outperforms intensity.`);
+    }
+  } else {
+    if(section === 'relationships'){
+      sentences.push(`${cardName} reversed in ${niceSection} shows where tension and mixed signals steal warmth.`);
+      if(themeLine) sentences.push(`Name ${themeLine} without blame; set one boundary and one invitation, then observe.`);
+      sentences.push(`Slow the pace, remove pressure, and let sincerity reset the tone.`);
+    } else if(section === 'work'){
+      sentences.push(`${cardName} reversed in ${niceSection} points to drag—too much scope, not enough finish.`);
+      if(themeLine) sentences.push(`Cut to ${themeLine}; deliver a small slice that restores flow.`);
+      sentences.push(`Reduce handoffs, limit multitasking, and make quality visible.`);
+    } else if(section === 'finance'){
+      sentences.push(`${cardName} reversed in ${niceSection} flags leaks and decisions made in hurry or fog.`);
+      if(themeLine) sentences.push(`Tighten around ${themeLine}; pause non‑essentials until the plan is clear.`);
+      sentences.push(`Choose clarity over speed and rebuild stability step by step.`);
+    } else {
+      sentences.push(`${cardName} reversed in ${niceSection} notices overreach or neglect hiding in your routine.`);
+      if(themeLine) sentences.push(`Ease into ${themeLine}; lower intensity, improve form, and rest on purpose.`);
+      sentences.push(`Start where you are; a kinder plan will carry you further.`);
+    }
+  }
+  const text = sentences.join(' ');
+  return limitWords(ensureWordCount(text, 80), 120);
 }
 
 function buildCardEntry(card){
