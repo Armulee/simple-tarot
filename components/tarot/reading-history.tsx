@@ -219,7 +219,7 @@ export default function ReadingHistory() {
     const [error, setError] = useState<string | null>(null)
     const [searchQuery, setSearchQuery] = useState("")
     const [filteredReadings, setFilteredReadings] = useState<ReadingRow[]>([])
-    const [displayedReadings, setDisplayedReadings] = useState<ReadingRow[]>([])
+    const [displayedGroupCount, setDisplayedGroupCount] = useState(10)
     const [hasMore, setHasMore] = useState(true)
     const [loadingMore, setLoadingMore] = useState(false)
     const [dateFrom, setDateFrom] = useState("")
@@ -314,26 +314,20 @@ export default function ReadingHistory() {
         setFilteredReadings(filtered)
     }, [readings, searchQuery, filterType, dateFrom, dateTo, readingTypeFilter])
 
-    // Reset displayed readings when filtered readings change
+    // Reset pagination when filtered readings change
     useEffect(() => {
-        setDisplayedReadings(filteredReadings.slice(0, 10))
-        setHasMore(filteredReadings.length > 10)
+        setDisplayedGroupCount(10)
     }, [filteredReadings])
 
-    // Load more readings function
+    // Load more groups function
     const loadMore = useCallback(() => {
         if (loadingMore || !hasMore) return
-        
         setLoadingMore(true)
-        const currentLength = displayedReadings.length
-        const nextBatch = filteredReadings.slice(currentLength, currentLength + 10)
-        
         setTimeout(() => {
-            setDisplayedReadings(prev => [...prev, ...nextBatch])
-            setHasMore(currentLength + 10 < filteredReadings.length)
+            setDisplayedGroupCount((prev) => prev + 10)
             setLoadingMore(false)
-        }, 500) // Small delay for better UX
-    }, [displayedReadings.length, filteredReadings, loadingMore, hasMore])
+        }, 500)
+    }, [loadingMore, hasMore])
 
     // Intersection Observer for infinite scroll
     useEffect(() => {
@@ -352,6 +346,59 @@ export default function ReadingHistory() {
 
         return () => observer.disconnect()
     }, [loadMore, hasMore, loadingMore])
+
+    // Compute total group count for pagination state
+    const totalGroupCount = useMemo(() => {
+        if (!filteredReadings.length) return 0
+        const tokenize = (text: string) =>
+            (text || "")
+                .toLowerCase()
+                .replace(/[^a-z0-9\sก-๙]/gi, " ")
+                .split(/\s+/)
+                .filter((w) => w.length >= 3)
+        const jaccard = (a: string, b: string) => {
+            const ta = new Set(tokenize(getCleanQuestionText(a)))
+            const tb = new Set(tokenize(getCleanQuestionText(b)))
+            if (ta.size === 0 && tb.size === 0) return 1
+            const inter = new Set([...ta].filter((x) => tb.has(x)))
+            const union = new Set([...ta, ...tb])
+            return inter.size / union.size
+        }
+        const sortedAll = [...filteredReadings].sort((a, b) =>
+            a.created_at.localeCompare(b.created_at)
+        )
+        const groups: Array<{ main: ReadingRow; latestAt: string }> = []
+        const TIME_WINDOW_MS = 1000 * 60 * 60 * 4
+        for (const r of sortedAll) {
+            const idx = groups.findIndex((g) => {
+                const sim = jaccard(g.main.question || "", r.question || "")
+                const timeDelta = Math.abs(
+                    new Date(r.created_at).getTime() -
+                        new Date(g.latestAt).getTime()
+                )
+                return (
+                    getCleanQuestionText(g.main.question || "") ===
+                        getCleanQuestionText(r.question || "") ||
+                    sim >= 0.65 ||
+                    (sim >= 0.4 && timeDelta <= TIME_WINDOW_MS)
+                )
+            })
+            if (idx >= 0) {
+                const g = groups[idx]
+                if (new Date(r.created_at) > new Date(g.latestAt)) {
+                    g.latestAt = r.created_at
+                }
+            } else {
+                groups.push({ main: r, latestAt: r.created_at })
+            }
+        }
+        return groups.length
+    }, [filteredReadings])
+
+    // Keep hasMore in sync with group count
+    useEffect(() => {
+        setHasMore(displayedGroupCount < totalGroupCount)
+    }, [displayedGroupCount, totalGroupCount])
 
     const content = useMemo(() => {
         if (!user) {
@@ -402,7 +449,7 @@ export default function ReadingHistory() {
                 </div>
             )
         }
-        if (!displayedReadings.length) {
+        if (!filteredReadings.length) {
             if (searchQuery) {
                 return (
                     <div className='flex flex-col items-center justify-center py-16 text-center'>
@@ -439,15 +486,86 @@ export default function ReadingHistory() {
             )
         }
 
-        // Group follow-ups: assume main interpretations are those whose question text is not a follow-up marker; we group exact same question text together
-        const groups = displayedReadings.reduce<Record<string, ReadingRow[]>>((acc, row) => {
-            const key = getCleanQuestionText(row.question || "")
-            if (!acc[key]) acc[key] = []
-            acc[key].push(row)
-            return acc
-        }, {})
+        // Build grouped threads across all filtered readings
+        const tokenize = (text: string) =>
+            (text || "")
+                .toLowerCase()
+                .replace(/[^a-z0-9\sก-๙]/gi, " ")
+                .split(/\s+/)
+                .filter((w) => w.length >= 3)
 
-        const entries = Object.entries(groups)
+        const jaccard = (a: string, b: string) => {
+            const ta = new Set(tokenize(getCleanQuestionText(a)))
+            const tb = new Set(tokenize(getCleanQuestionText(b)))
+            if (ta.size === 0 && tb.size === 0) return 1
+            const inter = new Set([...ta].filter((x) => tb.has(x)))
+            const union = new Set([...ta, ...tb])
+            return inter.size / union.size
+        }
+
+        type Group = {
+            key: string
+            items: ReadingRow[]
+            main: ReadingRow
+            latestAt: string
+            question: string
+        }
+
+        const sortedAll = [...filteredReadings].sort((a, b) =>
+            a.created_at.localeCompare(b.created_at)
+        )
+
+        const groups: Group[] = []
+        const TIME_WINDOW_MS = 1000 * 60 * 60 * 4 // 4 hours
+
+        for (const r of sortedAll) {
+            const candIdx = groups.findIndex((g) => {
+                const sim = jaccard(g.main.question || "", r.question || "")
+                const timeDelta = Math.abs(
+                    new Date(r.created_at).getTime() -
+                        new Date(g.latestAt).getTime()
+                )
+                return (
+                    getCleanQuestionText(g.main.question || "") ===
+                        getCleanQuestionText(r.question || "") ||
+                    sim >= 0.65 ||
+                    (sim >= 0.4 && timeDelta <= TIME_WINDOW_MS)
+                )
+            })
+
+            if (candIdx >= 0) {
+                const g = groups[candIdx]
+                g.items.push(r)
+                if (new Date(r.created_at) > new Date(g.latestAt)) {
+                    g.latestAt = r.created_at
+                }
+            } else {
+                groups.push({
+                    key: r.id,
+                    items: [r],
+                    main: r,
+                    latestAt: r.created_at,
+                    question: getCleanQuestionText(r.question || ""),
+                })
+            }
+        }
+
+        // Normalize each group: main is earliest by time, follow-ups are the rest
+        groups.forEach((g) => {
+            g.items.sort((a, b) => a.created_at.localeCompare(b.created_at))
+            g.main = g.items[0]
+            g.question = getCleanQuestionText(g.main.question || "")
+            g.latestAt = g.items[g.items.length - 1].created_at
+        })
+
+        // Sort groups by most recent activity desc
+        const groupList = groups.sort((a, b) =>
+            b.latestAt.localeCompare(a.latestAt)
+        )
+
+        const entries = groupList
+            .slice(0, displayedGroupCount)
+            .map((g) => [g.question, g.items] as const)
         return (
             <div className='space-y-6'>
                 {entries.map(([question, items]) => {
@@ -500,7 +618,7 @@ export default function ReadingHistory() {
                 })}
             </div>
         )
-    }, [user, loading, displayedReadings, error, searchQuery, t])
+    }, [user, loading, filteredReadings, displayedGroupCount, error, searchQuery, t])
 
     return (
         <div className='max-w-4xl mx-auto w-full px-4 py-8'>
