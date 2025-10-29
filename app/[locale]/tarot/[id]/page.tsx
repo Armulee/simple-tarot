@@ -164,10 +164,17 @@ export default async function TarotReadingPage({
                                     className='hover:scale-105 transition-transform duration-200'
                                 />
                                 {/* Deep meaning link */}
-                                <Button asChild size='sm' className='mt-2 shadow-md'>
-                                    <Link href={`/articles/tarot/${card.slug}`}>
-                                        View details
-                                        <ArrowRight className='ml-1' />
+                                <Button
+                                    asChild
+                                    size='sm'
+                                    variant='ghost'
+                                    className='mt-2 shadow-md text-xs underline underline-offset-2 text-yellow-500 opacity-60 hover:opacity-100 hover:bg-transparent ease duration-300'
+                                >
+                                    <Link
+                                        href={`/articles/tarot/${card.slug}${card.isReversed ? "#reversed-overview" : ""}`}
+                                    >
+                                        View full details
+                                        <ArrowRight className='ml-0.5' />
                                     </Link>
                                 </Button>
                             </div>

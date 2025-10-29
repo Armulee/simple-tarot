@@ -100,6 +100,11 @@ export default async function TarotCardArticlePage({
         </div>
     )
 
+    const getTextAfterFirstSentence = (text: string): string => {
+        const match = text.match(/^(.*?\.)\s*([\s\S]*)$/)
+        return match ? match[2] : ""
+    }
+
     const makeKeywords = (words: string[]) => (
         <div className='flex flex-wrap gap-2 mb-4'>
             {words.map((w) => (
@@ -124,7 +129,10 @@ export default async function TarotCardArticlePage({
         const mod = await import(`@/lib/tarot/meanings/${card.slug}.json`)
         meaning = mod.default as CardMeaning
     }
-    if (!meaning?.upright?.overview?.text || !meaning?.reversed?.overview?.text) {
+    if (
+        !meaning?.upright?.overview?.text ||
+        !meaning?.reversed?.overview?.text
+    ) {
         return notFound()
     }
 
@@ -158,9 +166,19 @@ export default async function TarotCardArticlePage({
                     )}
                 </div>
                 <blockquote className='italic opacity-90'>
-                    “{meaning.upright.overview.text.split('. ')[0].replace(/^"|"$/g, '')}”
+                    “
+                    {meaning.upright.overview.text
+                        .split(". ")[0]
+                        .replace(/^"|"$/g, "")}
+                    ”
                 </blockquote>
-                <p>{meaning.upright.overview.text}</p>
+                {getTextAfterFirstSentence(meaning.upright.overview.text) && (
+                    <p>
+                        {getTextAfterFirstSentence(
+                            meaning.upright.overview.text
+                        )}
+                    </p>
+                )}
             </div>
         ),
     }
@@ -195,9 +213,19 @@ export default async function TarotCardArticlePage({
                     )}
                 </div>
                 <blockquote className='italic opacity-90'>
-                    “{meaning.reversed.overview.text.split('. ')[0].replace(/^"|"$/g, '')}”
+                    “
+                    {meaning.reversed.overview.text
+                        .split(". ")[0]
+                        .replace(/^"|"$/g, "")}
+                    ”
                 </blockquote>
-                <p>{meaning.reversed.overview.text}</p>
+                {getTextAfterFirstSentence(meaning.reversed.overview.text) && (
+                    <p>
+                        {getTextAfterFirstSentence(
+                            meaning.reversed.overview.text
+                        )}
+                    </p>
+                )}
             </div>
         ),
     }

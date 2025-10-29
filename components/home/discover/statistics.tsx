@@ -1,7 +1,7 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { TrendingUp, Users, Star, Zap } from "lucide-react"
 
 export default function StatisticsSection() {
@@ -18,31 +18,7 @@ export default function StatisticsSection() {
         return parseInt(num) || 0
     })
 
-    useEffect(() => {
-        setIsVisible(true)
-    }, [])
-
-    useEffect(() => {
-        if (!isVisible) return
-
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    // Start animation when section comes into view
-                    animateNumbers()
-                }
-            },
-            { threshold: 0.3 }
-        )
-
-        if (sectionRef.current) {
-            observer.observe(sectionRef.current)
-        }
-
-        return () => observer.disconnect()
-    }, [isVisible])
-
-    const animateNumbers = () => {
+    const animateNumbers = useCallback(() => {
         const duration = 2000 // 2 seconds
         const steps = 60
         const stepDuration = duration / steps
@@ -69,7 +45,31 @@ export default function StatisticsSection() {
                 }
             }, stepDuration)
         })
-    }
+    }, [numericValues])
+
+    useEffect(() => {
+        setIsVisible(true)
+    }, [])
+
+    useEffect(() => {
+        if (!isVisible) return
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    // Start animation when section comes into view
+                    animateNumbers()
+                }
+            },
+            { threshold: 0.3 }
+        )
+
+        if (sectionRef.current) {
+            observer.observe(sectionRef.current)
+        }
+
+        return () => observer.disconnect()
+    }, [isVisible, animateNumbers])
 
     const icons = [TrendingUp, Users, Star, Zap]
     const colors = [

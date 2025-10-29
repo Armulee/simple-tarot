@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import { getTranslations } from "next-intl/server"
 import {
     ArticleLayout,
     type ArticleSection,
@@ -9,7 +8,6 @@ import Image from "next/image"
 import { getMajor, getMinorBySuit } from "@/lib/tarot/cards"
 
 export async function generateMetadata(): Promise<Metadata> {
-    const t = await getTranslations("Articles")
     const title = "Tarot Guide: What it is, History, Major & Minor Arcana"
     const desc =
         "Learn tarot fundamentals with a concise guide: history, Major Arcana meanings, Minor Arcana by suits, and links to all 78 cards."

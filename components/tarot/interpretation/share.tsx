@@ -206,7 +206,6 @@ export default function ShareSection({
     const interpretation = propInterpretation || contextInterpretation
     const readingId = propReadingId
 
-    const [, setCopied] = useState(false)
     const { user } = useAuth()
     const navGuardRef = useRef<HTMLDivElement>(null)
     const [earnedStars, setEarnedStars] = useState(0)
