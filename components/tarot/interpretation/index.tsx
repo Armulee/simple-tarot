@@ -1,7 +1,7 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { Sparkles, Stars } from "lucide-react"
+import { Sparkles } from "lucide-react"
 import { useEffect, useState, useCallback } from "react"
 import { useCompletion } from "@ai-sdk/react"
 import QuestionInput from "../../question-input"
@@ -330,15 +330,7 @@ Output:
                             >
                                 {t("sectionSubtitle")}
                             </p>
-                            {isOwner && !error && (
-                                <div className='flex items-center justify-center gap-2 text-xs text-yellow-300 mt-2'>
-                                    <Stars className='w-3.5 h-3.5' />
-                                    <span>
-                                        Consuming 1 star to reveal this
-                                        interpretation.
-                                    </span>
-                                </div>
-                            )}
+                            {/* Removed star consumption note */}
                         </div>
                     </div>
                     <div
