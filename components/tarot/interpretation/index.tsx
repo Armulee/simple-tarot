@@ -21,6 +21,7 @@ import ShareSection from "./share"
 import ActionSection from "./action"
 //
 import BrandLoader from "@/components/brand-loader"
+import { Badge } from "@/components/ui/badge"
 import HardStarConsent from "@/components/hard-star-consent"
 
 type ReadingProps = {
@@ -41,6 +42,7 @@ export default function Interpretation({
     ownerUserId,
 }: ReadingProps) {
     const t = useTranslations("ReadingPage.interpretation")
+    const tPage = useTranslations("ReadingPage")
     const { user } = useAuth()
     const { isFollowUp } = useTarot()
     const [interpretation, setInterpretation] = useState<string | null>(
@@ -309,7 +311,7 @@ Output:
                         >
                             <Sparkles className='w-5 h-5 text-primary' />
                         </div>
-                        <div>
+                        <div className='flex items-center gap-2 flex-wrap'>
                             <h2
                                 className='font-serif font-semibold text-xl animate-fade-up'
                                 style={{
@@ -320,6 +322,19 @@ Output:
                             >
                                 {t("sectionTitle")}
                             </h2>
+                            {isFollowUp && (
+                                <Badge
+                                    variant='secondary'
+                                    className='bg-primary/20 text-white border-white/30 animate-fade-up'
+                                    style={{
+                                        animationDelay: "0ms",
+                                        animationDuration: "300ms",
+                                        animationFillMode: "both",
+                                    }}
+                                >
+                                    {tPage("followUp.badge")}
+                                </Badge>
+                            )}
                             <p
                                 className='text-sm text-muted-foreground animate-fade-up'
                                 style={{
