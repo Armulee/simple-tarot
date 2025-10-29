@@ -1,0 +1,184 @@
+{
+  "slug": "seven-of-wands",
+  "upright": {
+    "overview": {
+      "keywords": [
+        "energy",
+        "passion",
+        "initiative",
+        "action",
+        "creativity",
+        "ambition",
+        "courage",
+        "enterprise",
+        "drive",
+        "inspiration",
+        "assessment",
+        "perseverance",
+        "strategy",
+        "patience"
+      ],
+      "text": "Assessment, perseverance, and courage in initiative. Upright, Seven of Wands points toward steady advancement that fits real life. Wands (Fire (Wands)) gives the tone and terrain. Expect to work with assessment moment, choose strategy, and hold boundaries; use what already responds and let momentum build. Read this card as permission to move in a way that feels honest and well‑paced—visible results over grand gestures.",
+      "yesNo": "Yes",
+      "zodiac": "Fire (Wands)",
+      "element": "Fire"
+    },
+    "relationships": {
+      "keywords": [
+        "ignite passion carefully",
+        "honest excitement",
+        "adventures together",
+        "assessment moment",
+        "choose strategy",
+        "hold boundaries",
+        "energy",
+        "passion",
+        "initiative",
+        "action",
+        "creativity",
+        "ambition"
+      ],
+      "text": "Connection feels alive and honest. Let assessment moment, choose strategy, and hold boundaries guide how you show up; small, sincere acts matter here. Speak plainly, listen for the quiet truth, and move at a pace that keeps trust intact."
+    },
+    "work": {
+      "keywords": [
+        "entrepreneurial spark",
+        "present boldly",
+        "ship prototypes",
+        "review outcomes",
+        "optimize path",
+        "persevere",
+        "energy",
+        "passion",
+        "initiative",
+        "action",
+        "creativity",
+        "ambition"
+      ],
+      "text": "Progress favors craft, clear scope, and a result you can point to. Build around review outcomes, optimize path, and persevere; finish one meaningful piece and let it prove the direction. Share early, revise well, and protect time where real work happens."
+    },
+    "finance": {
+      "keywords": [
+        "fund experiments",
+        "avoid gambles",
+        "invest in energy",
+        "portfolio check",
+        "trim waste",
+        "patient stance",
+        "energy",
+        "passion",
+        "initiative",
+        "action",
+        "creativity",
+        "ambition"
+      ],
+      "text": "Make numbers you can live with and choices you respect. Aim resources toward portfolio check, trim waste, and patient stance; trim what does not serve your life. Automate the good, read terms in daylight, and let steadiness quietly win."
+    },
+    "health": {
+      "keywords": [
+        "dynamic movement",
+        "warm-ups matter",
+        "playful activity",
+        "plateau review",
+        "tweak inputs",
+        "stick with plan",
+        "energy",
+        "passion",
+        "initiative",
+        "action",
+        "creativity",
+        "ambition"
+      ],
+      "text": "Prefer routines your body trusts. Shape your week around plateau review, tweak inputs, and stick with plan; keep changes gentle and repeatable. Recovery is part of progress; consistency outperforms intensity."
+    }
+  },
+  "reversed": {
+    "overview": {
+      "keywords": [
+        "burnout",
+        "frustration",
+        "delays",
+        "impulsiveness",
+        "scattered",
+        "setbacks",
+        "recklessness",
+        "impatience",
+        "shortcuts",
+        "avoidance",
+        "doubt"
+      ],
+      "text": "Impatience and doubt undermining initiative. Reversed, Seven of Wands makes the friction visible so you can remedy it. Wands (Fire (Wands)) frames where to look first. You may notice assessment moment, choose strategy, and hold boundaries; naming it clearly is half the remedy. The correction is measured and specific: simplify, realign, and restore trust in the basics before scaling up again.",
+      "yesNo": "Not yet",
+      "zodiac": "Fire (Wands)",
+      "element": "Fire"
+    },
+    "relationships": {
+      "keywords": [
+        "ignite passion carefully",
+        "honest excitement",
+        "adventures together",
+        "assessment moment",
+        "choose strategy",
+        "hold boundaries",
+        "burnout",
+        "frustration",
+        "delays",
+        "impulsiveness",
+        "scattered",
+        "setbacks"
+      ],
+      "text": "Tension and mixed signals steal warmth—name what’s real. Name assessment moment, choose strategy, and hold boundaries without blame; set one boundary and one invitation, then observe. Slow the pace, remove pressure, and let sincerity reset the tone."
+    },
+    "work": {
+      "keywords": [
+        "entrepreneurial spark",
+        "present boldly",
+        "ship prototypes",
+        "review outcomes",
+        "optimize path",
+        "persevere",
+        "burnout",
+        "frustration",
+        "delays",
+        "impulsiveness",
+        "scattered",
+        "setbacks"
+      ],
+      "text": "Drag shows up as too much scope and not enough finish. Cut to review outcomes, optimize path, and persevere; deliver a small slice that restores flow. Reduce handoffs, limit multitasking, and make quality visible."
+    },
+    "finance": {
+      "keywords": [
+        "fund experiments",
+        "avoid gambles",
+        "invest in energy",
+        "portfolio check",
+        "trim waste",
+        "patient stance",
+        "burnout",
+        "frustration",
+        "delays",
+        "impulsiveness",
+        "scattered",
+        "setbacks"
+      ],
+      "text": "Leaks appear when decisions rush through fog. Tighten around portfolio check, trim waste, and patient stance; pause non‑essentials until the plan is clear. Choose clarity over speed and rebuild stability step by step."
+    },
+    "health": {
+      "keywords": [
+        "dynamic movement",
+        "warm-ups matter",
+        "playful activity",
+        "plateau review",
+        "tweak inputs",
+        "stick with plan",
+        "burnout",
+        "frustration",
+        "delays",
+        "impulsiveness",
+        "scattered",
+        "setbacks"
+      ],
+      "text": "Overreach or neglect hide in routine—bring them into the light. Ease into plateau review, tweak inputs, and stick with plan; lower intensity, improve form, and rest on purpose. Start where you are; a kinder plan will carry you further."
+    }
+  }
+}

@@ -1,0 +1,185 @@
+{
+  "slug": "six-of-swords",
+  "upright": {
+    "overview": {
+      "keywords": [
+        "logic",
+        "clarity",
+        "truth",
+        "communication",
+        "strategy",
+        "decision",
+        "justice",
+        "analysis",
+        "boundaries",
+        "intellect",
+        "harmony",
+        "charity",
+        "support",
+        "progress"
+      ],
+      "text": "Progress, support, and movement forward in thought. Six of Swords upright emphasizes genuine progress over noise. Swords (Air (Swords)) gives the tone and terrain. Expect to work with support and receive, acts of service, and kindness wins; use what already responds and let momentum build. Read this card as permission to move in a way that feels honest and well‑paced—visible results over grand gestures.",
+      "yesNo": "No",
+      "zodiac": "Air (Swords)",
+      "element": "Air"
+    },
+    "relationships": {
+      "keywords": [
+        "speak truth kindly",
+        "resolve conflicts",
+        "mental clarity",
+        "support and receive",
+        "acts of service",
+        "kindness wins",
+        "logic",
+        "clarity",
+        "truth",
+        "communication",
+        "strategy",
+        "decision"
+      ],
+      "text": "Connection feels alive and honest. Let support and receive, acts of service, and kindness wins guide how you show up; small, sincere acts matter here. Speak plainly, listen for the quiet truth, and move at a pace that keeps trust intact."
+    },
+    "work": {
+      "keywords": [
+        "strategic focus",
+        "sharp writing",
+        "data clarity",
+        "help flows",
+        "mentorship",
+        "steady progress",
+        "logic",
+        "clarity",
+        "truth",
+        "communication",
+        "strategy",
+        "decision"
+      ],
+      "text": "Progress favors craft, clear scope, and a result you can point to. Build around help flows, mentorship, and steady progress; finish one meaningful piece and let it prove the direction. Share early, revise well, and protect time where real work happens."
+    },
+    "finance": {
+      "keywords": [
+        "read contracts",
+        "negotiate terms",
+        "cut waste",
+        "fair exchange",
+        "donate wisely",
+        "balance inflow/outflow",
+        "logic",
+        "clarity",
+        "truth",
+        "communication",
+        "strategy",
+        "decision"
+      ],
+      "text": "Make numbers you can live with and choices you respect. Aim resources toward fair exchange, donate wisely, and balance inflow/outflow; trim what does not serve your life. Automate the good, read terms in daylight, and let steadiness quietly win."
+    },
+    "health": {
+      "keywords": [
+        "breathwork",
+        "sleep for cognition",
+        "reduce stress inputs",
+        "rehab success",
+        "paced increase",
+        "community care",
+        "logic",
+        "clarity",
+        "truth",
+        "communication",
+        "strategy",
+        "decision"
+      ],
+      "text": "Prefer routines your body trusts. Shape your week around rehab success, paced increase, and community care; keep changes gentle and repeatable. Recovery is part of progress; consistency outperforms intensity."
+    }
+  },
+  "reversed": {
+    "overview": {
+      "keywords": [
+        "confusion",
+        "anxiety",
+        "deceit",
+        "miscommunication",
+        "cruelty",
+        "overthinking",
+        "dishonesty",
+        "arguments",
+        "strings attached",
+        "dependence",
+        "imbalance",
+        "setbacks"
+      ],
+      "text": "Interrupted support and slowed progress in thought. Six of Swords reversed highlights where the current pulls against you. Swords (Air (Swords)) frames where to look first. You may notice support and receive, acts of service, and kindness wins; naming it clearly is half the remedy. The correction is measured and specific: simplify, realign, and restore trust in the basics before scaling up again.",
+      "yesNo": "No",
+      "zodiac": "Air (Swords)",
+      "element": "Air"
+    },
+    "relationships": {
+      "keywords": [
+        "speak truth kindly",
+        "resolve conflicts",
+        "mental clarity",
+        "support and receive",
+        "acts of service",
+        "kindness wins",
+        "confusion",
+        "anxiety",
+        "deceit",
+        "miscommunication",
+        "cruelty",
+        "overthinking"
+      ],
+      "text": "Tension and mixed signals steal warmth—name what’s real. Name support and receive, acts of service, and kindness wins without blame; set one boundary and one invitation, then observe. Slow the pace, remove pressure, and let sincerity reset the tone."
+    },
+    "work": {
+      "keywords": [
+        "strategic focus",
+        "sharp writing",
+        "data clarity",
+        "help flows",
+        "mentorship",
+        "steady progress",
+        "confusion",
+        "anxiety",
+        "deceit",
+        "miscommunication",
+        "cruelty",
+        "overthinking"
+      ],
+      "text": "Drag shows up as too much scope and not enough finish. Cut to help flows, mentorship, and steady progress; deliver a small slice that restores flow. Reduce handoffs, limit multitasking, and make quality visible."
+    },
+    "finance": {
+      "keywords": [
+        "read contracts",
+        "negotiate terms",
+        "cut waste",
+        "fair exchange",
+        "donate wisely",
+        "balance inflow/outflow",
+        "confusion",
+        "anxiety",
+        "deceit",
+        "miscommunication",
+        "cruelty",
+        "overthinking"
+      ],
+      "text": "Leaks appear when decisions rush through fog. Tighten around fair exchange, donate wisely, and balance inflow/outflow; pause non‑essentials until the plan is clear. Choose clarity over speed and rebuild stability step by step."
+    },
+    "health": {
+      "keywords": [
+        "breathwork",
+        "sleep for cognition",
+        "reduce stress inputs",
+        "rehab success",
+        "paced increase",
+        "community care",
+        "confusion",
+        "anxiety",
+        "deceit",
+        "miscommunication",
+        "cruelty",
+        "overthinking"
+      ],
+      "text": "Overreach or neglect hide in routine—bring them into the light. Ease into rehab success, paced increase, and community care; lower intensity, improve form, and rest on purpose. Start where you are; a kinder plan will carry you further."
+    }
+  }
+}

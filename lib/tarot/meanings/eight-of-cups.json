@@ -1,0 +1,185 @@
+{
+  "slug": "eight-of-cups",
+  "upright": {
+    "overview": {
+      "keywords": [
+        "emotion",
+        "love",
+        "intuition",
+        "relationship",
+        "compassion",
+        "healing",
+        "empathy",
+        "connection",
+        "receptivity",
+        "sensitivity",
+        "work",
+        "discipline",
+        "movement",
+        "skill"
+      ],
+      "text": "Focused effort and meaningful movement in emotion. In upright position, Eight of Cups reads as clear forward motion. Cups (Water (Cups)) gives the tone and terrain. Expect to work with focused effort, meaningful work, and clean exits; use what already responds and let momentum build. Read this card as permission to move in a way that feels honest and well‑paced—visible results over grand gestures.",
+      "yesNo": "Maybe",
+      "zodiac": "Water (Cups)",
+      "element": "Water"
+    },
+    "relationships": {
+      "keywords": [
+        "tend feelings",
+        "practice empathy",
+        "gentle vulnerability",
+        "focused effort",
+        "meaningful work",
+        "clean exits",
+        "emotion",
+        "love",
+        "intuition",
+        "relationship",
+        "compassion",
+        "healing"
+      ],
+      "text": "Connection feels alive and honest. Let focused effort, meaningful work, and clean exits guide how you show up; small, sincere acts matter here. Speak plainly, listen for the quiet truth, and move at a pace that keeps trust intact."
+    },
+    "work": {
+      "keywords": [
+        "people-first culture",
+        "service excellence",
+        "creative harmony",
+        "skill building",
+        "productive flow",
+        "deliberate practice",
+        "emotion",
+        "love",
+        "intuition",
+        "relationship",
+        "compassion",
+        "healing"
+      ],
+      "text": "Progress favors craft, clear scope, and a result you can point to. Build around skill building, productive flow, and deliberate practice; finish one meaningful piece and let it prove the direction. Share early, revise well, and protect time where real work happens."
+    },
+    "finance": {
+      "keywords": [
+        "values-driven spending",
+        "support loved ones wisely",
+        "charitable flow",
+        "earn through craft",
+        "automate gains",
+        "steady investment",
+        "emotion",
+        "love",
+        "intuition",
+        "relationship",
+        "compassion",
+        "healing"
+      ],
+      "text": "Make numbers you can live with and choices you respect. Aim resources toward earn through craft, automate gains, and steady investment; trim what does not serve your life. Automate the good, read terms in daylight, and let steadiness quietly win."
+    },
+    "health": {
+      "keywords": [
+        "hydration and rest",
+        "emotional regulation",
+        "mind-body practices",
+        "consistent training",
+        "form first",
+        "safe progression",
+        "emotion",
+        "love",
+        "intuition",
+        "relationship",
+        "compassion",
+        "healing"
+      ],
+      "text": "Prefer routines your body trusts. Shape your week around consistent training, form first, and safe progression; keep changes gentle and repeatable. Recovery is part of progress; consistency outperforms intensity."
+    }
+  },
+  "reversed": {
+    "overview": {
+      "keywords": [
+        "emotional block",
+        "codependence",
+        "withdrawal",
+        "insecurity",
+        "avoidance",
+        "oversensitivity",
+        "moodiness",
+        "disconnection",
+        "monotony",
+        "burnout",
+        "aimlessness",
+        "stall"
+      ],
+      "text": "Monotony and burnout draining emotion. In reverse, Eight of Cups exposes the snag that needs attention. Cups (Water (Cups)) frames where to look first. You may notice focused effort, meaningful work, and clean exits; naming it clearly is half the remedy. The correction is measured and specific: simplify, realign, and restore trust in the basics before scaling up again.",
+      "yesNo": "No",
+      "zodiac": "Water (Cups)",
+      "element": "Water"
+    },
+    "relationships": {
+      "keywords": [
+        "tend feelings",
+        "practice empathy",
+        "gentle vulnerability",
+        "focused effort",
+        "meaningful work",
+        "clean exits",
+        "emotional block",
+        "codependence",
+        "withdrawal",
+        "insecurity",
+        "avoidance",
+        "oversensitivity"
+      ],
+      "text": "Tension and mixed signals steal warmth—name what’s real. Name focused effort, meaningful work, and clean exits without blame; set one boundary and one invitation, then observe. Slow the pace, remove pressure, and let sincerity reset the tone."
+    },
+    "work": {
+      "keywords": [
+        "people-first culture",
+        "service excellence",
+        "creative harmony",
+        "skill building",
+        "productive flow",
+        "deliberate practice",
+        "emotional block",
+        "codependence",
+        "withdrawal",
+        "insecurity",
+        "avoidance",
+        "oversensitivity"
+      ],
+      "text": "Drag shows up as too much scope and not enough finish. Cut to skill building, productive flow, and deliberate practice; deliver a small slice that restores flow. Reduce handoffs, limit multitasking, and make quality visible."
+    },
+    "finance": {
+      "keywords": [
+        "values-driven spending",
+        "support loved ones wisely",
+        "charitable flow",
+        "earn through craft",
+        "automate gains",
+        "steady investment",
+        "emotional block",
+        "codependence",
+        "withdrawal",
+        "insecurity",
+        "avoidance",
+        "oversensitivity"
+      ],
+      "text": "Leaks appear when decisions rush through fog. Tighten around earn through craft, automate gains, and steady investment; pause non‑essentials until the plan is clear. Choose clarity over speed and rebuild stability step by step."
+    },
+    "health": {
+      "keywords": [
+        "hydration and rest",
+        "emotional regulation",
+        "mind-body practices",
+        "consistent training",
+        "form first",
+        "safe progression",
+        "emotional block",
+        "codependence",
+        "withdrawal",
+        "insecurity",
+        "avoidance",
+        "oversensitivity"
+      ],
+      "text": "Overreach or neglect hide in routine—bring them into the light. Ease into consistent training, form first, and safe progression; lower intensity, improve form, and rest on purpose. Start where you are; a kinder plan will carry you further."
+    }
+  }
+}

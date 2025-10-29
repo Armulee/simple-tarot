@@ -1,8 +1,32 @@
 import type { Metadata } from "next"
+import { getTranslations } from "next-intl/server"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getCardBySlug, TAROT_CARDS } from "@/lib/tarot/cards"
-import { getCardMeaning } from "@/lib/tarot/meanings"
+type SectionMeaning = {
+    keywords?: string[]
+    text: string
+    yesNo?: string
+    zodiac?: string
+    element?: string
+}
+type CardMeaning = {
+    slug: string
+    upright: {
+        overview: SectionMeaning
+        relationships: SectionMeaning
+        work: SectionMeaning
+        finance: SectionMeaning
+        health: SectionMeaning
+    }
+    reversed: {
+        overview: SectionMeaning
+        relationships: SectionMeaning
+        work: SectionMeaning
+        finance: SectionMeaning
+        health: SectionMeaning
+    }
+}
 import { routing } from "@/i18n/routing"
 import {
     ArticleLayout,
@@ -43,7 +67,8 @@ export default async function TarotCardArticlePage({
 }: {
     params: Promise<{ locale: string; slug: string }>
 }) {
-    const { slug } = await params
+    const { slug, locale } = await params
+    const t = await getTranslations("TarotArticle")
     const card = getCardBySlug(slug)
     if (!card) return notFound()
 
@@ -75,12 +100,17 @@ export default async function TarotCardArticlePage({
         </div>
     )
 
+    const getTextAfterFirstSentence = (text: string): string => {
+        const match = text.match(/^(.*?\.)\s*([\s\S]*)$/)
+        return match ? match[2] : ""
+    }
+
     const makeKeywords = (words: string[]) => (
-        <div className='flex flex-wrap gap-2 mb-3'>
+        <div className='flex flex-wrap gap-2 mb-4'>
             {words.map((w) => (
                 <span
                     key={w}
-                    className='px-2 py-0.5 rounded-full text-xs border border-border/40 bg-background/40'
+                    className='px-2.5 py-1 rounded-full text-[13px] sm:text-sm border border-border/40 bg-background/50 shadow-sm'
                 >
                     {w}
                 </span>
@@ -88,247 +118,249 @@ export default async function TarotCardArticlePage({
         </div>
     )
 
-    const meaning = getCardMeaning(card.slug)
+    // Dynamic import per-card JSON, prefer locale file then fallback
+    let meaning: CardMeaning | undefined
+    try {
+        const mod = await import(
+            `@/lib/tarot/meanings/${locale}/${card.slug}.json`
+        )
+        meaning = mod.default as CardMeaning
+    } catch {
+        const mod = await import(`@/lib/tarot/meanings/${card.slug}.json`)
+        meaning = mod.default as CardMeaning
+    }
+    if (
+        !meaning?.upright?.overview?.text ||
+        !meaning?.reversed?.overview?.text
+    ) {
+        return notFound()
+    }
 
     const uprightOverview: ArticleSection = {
         id: "upright-overview",
-        title: "Overview (Upright)",
+        title: t("overviewUpright"),
         content: (
             <div className='space-y-3'>
                 {uprightImage}
-                {makeKeywords(
-                    meaning?.upright.overview.keywords || card.uprightKeywords
-                )}
+                {meaning.upright.overview.keywords?.length
+                    ? makeKeywords(meaning.upright.overview.keywords)
+                    : null}
                 <div className='text-xs text-muted-foreground flex flex-wrap gap-3'>
-                    {meaning?.upright.overview.yesNo && (
+                    {meaning.upright.overview.yesNo && (
                         <span>
-                            <span className='font-medium'>Yes/No:</span>{" "}
+                            <span className='font-medium'>{t("yesNo")}:</span>{" "}
                             {meaning.upright.overview.yesNo}
                         </span>
                     )}
-                    {meaning?.upright.overview.zodiac && (
+                    {meaning.upright.overview.zodiac && (
                         <span>
-                            <span className='font-medium'>Zodiac:</span>{" "}
+                            <span className='font-medium'>{t("zodiac")}:</span>{" "}
                             {meaning.upright.overview.zodiac}
                         </span>
                     )}
+                    {meaning.upright.overview.element && (
+                        <span>
+                            <span className='font-medium'>{t("element")}:</span>{" "}
+                            {meaning.upright.overview.element}
+                        </span>
+                    )}
                 </div>
-                <p>
-                    {meaning?.upright.overview.text ||
-                        `${card.name} upright supports steady, intentional action.`}
-                </p>
+                <blockquote className='italic opacity-90'>
+                    “
+                    {meaning.upright.overview.text
+                        .split(". ")[0]
+                        .replace(/^"|"$/g, "")}
+                    ”
+                </blockquote>
+                {getTextAfterFirstSentence(meaning.upright.overview.text) && (
+                    <p>
+                        {getTextAfterFirstSentence(
+                            meaning.upright.overview.text
+                        )}
+                    </p>
+                )}
             </div>
         ),
     }
 
     const reversedOverview: ArticleSection = {
         id: "reversed-overview",
-        title: "Overview (Reversed)",
+        title: t("overviewReversed"),
         content: (
             <div className='space-y-3'>
                 {reversedImage}
-                {makeKeywords(
-                    meaning?.reversed.overview.keywords || card.reversedKeywords
-                )}
+                {meaning.reversed.overview.keywords?.length
+                    ? makeKeywords(meaning.reversed.overview.keywords)
+                    : null}
                 <div className='text-xs text-muted-foreground flex flex-wrap gap-3'>
-                    {meaning?.reversed.overview.yesNo && (
+                    {meaning.reversed.overview.yesNo && (
                         <span>
-                            <span className='font-medium'>Yes/No:</span>{" "}
+                            <span className='font-medium'>{t("yesNo")}:</span>{" "}
                             {meaning.reversed.overview.yesNo}
                         </span>
                     )}
-                    {meaning?.reversed.overview.zodiac && (
+                    {meaning.reversed.overview.zodiac && (
                         <span>
-                            <span className='font-medium'>Zodiac:</span>{" "}
+                            <span className='font-medium'>{t("zodiac")}:</span>{" "}
                             {meaning.reversed.overview.zodiac}
                         </span>
                     )}
+                    {meaning.reversed.overview.element && (
+                        <span>
+                            <span className='font-medium'>{t("element")}:</span>{" "}
+                            {meaning.reversed.overview.element}
+                        </span>
+                    )}
                 </div>
-                <p>
-                    {meaning?.reversed.overview.text ||
-                        `${card.name} reversed asks for recalibration and lighter travel.`}
-                </p>
-            </div>
-        ),
-    }
-
-    const uprightRelationships: ArticleSection = {
-        id: "upright-relationships",
-        title: "Relationships (Upright)",
-        content: (
-            <div className='space-y-3'>
-                {makeKeywords(
-                    meaning?.upright.relationships.keywords || [
-                        "communication",
-                        "trust",
-                        "presence",
-                    ]
+                <blockquote className='italic opacity-90'>
+                    “
+                    {meaning.reversed.overview.text
+                        .split(". ")[0]
+                        .replace(/^"|"$/g, "")}
+                    ”
+                </blockquote>
+                {getTextAfterFirstSentence(meaning.reversed.overview.text) && (
+                    <p>
+                        {getTextAfterFirstSentence(
+                            meaning.reversed.overview.text
+                        )}
+                    </p>
                 )}
-                <p>
-                    {meaning?.upright.relationships.text ||
-                        `Practical kindness and honest dialogue strengthen bonds.`}
-                </p>
             </div>
         ),
     }
+    const sections: ArticleSection[] = [uprightOverview]
 
-    const reversedRelationships: ArticleSection = {
-        id: "reversed-relationships",
-        title: "Relationships (Reversed)",
-        content: (
-            <div className='space-y-3'>
-                {makeKeywords(
-                    meaning?.reversed.relationships.keywords || [
-                        "boundaries",
-                        "repair",
-                        "honesty",
-                    ]
-                )}
-                <p>
-                    {meaning?.reversed.relationships.text ||
-                        `Name one truth, reset a boundary, and take a small step.`}
-                </p>
-            </div>
-        ),
+    if (
+        meaning.upright.relationships?.text &&
+        meaning.reversed.relationships?.text
+    ) {
+        sections.push({
+            id: "upright-relationships",
+            title: `${t("relationships")} (${t("upright")})`,
+            content: (
+                <div className='space-y-3'>
+                    {meaning.upright.relationships.keywords?.length
+                        ? makeKeywords(meaning.upright.relationships.keywords)
+                        : null}
+                    <p>{meaning.upright.relationships.text}</p>
+                </div>
+            ),
+        })
     }
 
-    const uprightWork: ArticleSection = {
-        id: "upright-work",
-        title: "Work & Career (Upright)",
-        content: (
-            <div className='space-y-3'>
-                {makeKeywords(
-                    meaning?.upright.work.keywords || [
-                        "focus",
-                        "leverage",
-                        "iteration",
-                    ]
-                )}
-                <p>
-                    {meaning?.upright.work.text ||
-                        `Reduce scope, ship sooner, and let feedback guide iteration.`}
-                </p>
-            </div>
-        ),
+    if (meaning.upright.work?.text && meaning.reversed.work?.text) {
+        sections.push({
+            id: "upright-work",
+            title: `${t("work")} (${t("upright")})`,
+            content: (
+                <div className='space-y-3'>
+                    {meaning.upright.work.keywords?.length
+                        ? makeKeywords(meaning.upright.work.keywords)
+                        : null}
+                    <p>{meaning.upright.work.text}</p>
+                </div>
+            ),
+        })
     }
 
-    const reversedWork: ArticleSection = {
-        id: "reversed-work",
-        title: "Work & Career (Reversed)",
-        content: (
-            <div className='space-y-3'>
-                {makeKeywords(
-                    meaning?.reversed.work.keywords || [
-                        "scope",
-                        "friction",
-                        "alignment",
-                    ]
-                )}
-                <p>
-                    {meaning?.reversed.work.text ||
-                        `Clarify scope, sequence work, and realign to the core objective.`}
-                </p>
-            </div>
-        ),
+    if (meaning.upright.finance?.text && meaning.reversed.finance?.text) {
+        sections.push({
+            id: "upright-finance",
+            title: `${t("finance")} (${t("upright")})`,
+            content: (
+                <div className='space-y-3'>
+                    {meaning.upright.finance.keywords?.length
+                        ? makeKeywords(meaning.upright.finance.keywords)
+                        : null}
+                    <p>{meaning.upright.finance.text}</p>
+                </div>
+            ),
+        })
     }
 
-    const uprightFinance: ArticleSection = {
-        id: "upright-finance",
-        title: "Finance (Upright)",
-        content: (
-            <div className='space-y-3'>
-                {makeKeywords(
-                    meaning?.upright.finance.keywords || [
-                        "values",
-                        "consistency",
-                        "runway",
-                    ]
-                )}
-                <p>
-                    {meaning?.upright.finance.text ||
-                        `Align spending with values and automate steady contributions.`}
-                </p>
-            </div>
-        ),
+    if (meaning.upright.health?.text && meaning.reversed.health?.text) {
+        sections.push({
+            id: "upright-health",
+            title: `${t("health")} (${t("upright")})`,
+            content: (
+                <div className='space-y-3'>
+                    {meaning.upright.health.keywords?.length
+                        ? makeKeywords(meaning.upright.health.keywords)
+                        : null}
+                    <p>{meaning.upright.health.text}</p>
+                </div>
+            ),
+        })
     }
 
-    const reversedFinance: ArticleSection = {
-        id: "reversed-finance",
-        title: "Finance (Reversed)",
-        content: (
-            <div className='space-y-3'>
-                {makeKeywords(
-                    meaning?.reversed.finance.keywords || [
-                        "stability",
-                        "risk",
-                        "clarity",
-                    ]
-                )}
-                <p>
-                    {meaning?.reversed.finance.text ||
-                        `Stabilize, pause non‑essentials, and decide from clear numbers.`}
-                </p>
-            </div>
-        ),
+    sections.push(reversedOverview)
+
+    if (meaning.reversed.relationships?.text) {
+        sections.push({
+            id: "reversed-relationships",
+            title: `${t("relationships")} (${t("reversed")})`,
+            content: (
+                <div className='space-y-3'>
+                    {meaning.reversed.relationships.keywords?.length
+                        ? makeKeywords(meaning.reversed.relationships.keywords)
+                        : null}
+                    <p>{meaning.reversed.relationships.text}</p>
+                </div>
+            ),
+        })
     }
 
-    const uprightHealth: ArticleSection = {
-        id: "upright-health",
-        title: "Health (Upright)",
-        content: (
-            <div className='space-y-3'>
-                {makeKeywords(
-                    meaning?.upright.health.keywords || [
-                        "routine",
-                        "rest",
-                        "awareness",
-                    ]
-                )}
-                <p>
-                    {meaning?.upright.health.text ||
-                        `Prioritize steady, gentle routines and compassionate awareness.`}
-                </p>
-            </div>
-        ),
+    if (meaning.reversed.work?.text) {
+        sections.push({
+            id: "reversed-work",
+            title: `${t("work")} (${t("reversed")})`,
+            content: (
+                <div className='space-y-3'>
+                    {meaning.reversed.work.keywords?.length
+                        ? makeKeywords(meaning.reversed.work.keywords)
+                        : null}
+                    <p>{meaning.reversed.work.text}</p>
+                </div>
+            ),
+        })
     }
 
-    const reversedHealth: ArticleSection = {
-        id: "reversed-health",
-        title: "Health (Reversed)",
-        content: (
-            <div className='space-y-3'>
-                {makeKeywords(
-                    meaning?.reversed.health.keywords || [
-                        "overload",
-                        "recovery",
-                        "support",
-                    ]
-                )}
-                <p>
-                    {meaning?.reversed.health.text ||
-                        `Scale back, choose recovery, and seek appropriate support.`}
-                </p>
-            </div>
-        ),
+    if (meaning.reversed.finance?.text) {
+        sections.push({
+            id: "reversed-finance",
+            title: `${t("finance")} (${t("reversed")})`,
+            content: (
+                <div className='space-y-3'>
+                    {meaning.reversed.finance.keywords?.length
+                        ? makeKeywords(meaning.reversed.finance.keywords)
+                        : null}
+                    <p>{meaning.reversed.finance.text}</p>
+                </div>
+            ),
+        })
     }
 
-    const sections: ArticleSection[] = [
-        uprightOverview,
-        uprightRelationships,
-        uprightWork,
-        uprightFinance,
-        uprightHealth,
-        reversedOverview,
-        reversedRelationships,
-        reversedWork,
-        reversedFinance,
-        reversedHealth,
-    ]
+    if (meaning.reversed.health?.text) {
+        sections.push({
+            id: "reversed-health",
+            title: `${t("health")} (${t("reversed")})`,
+            content: (
+                <div className='space-y-3'>
+                    {meaning.reversed.health.keywords?.length
+                        ? makeKeywords(meaning.reversed.health.keywords)
+                        : null}
+                    <p>{meaning.reversed.health.text}</p>
+                </div>
+            ),
+        })
+    }
 
     return (
         <ArticleLayout
             title={card.name}
             subtitle={`Upright and reversed meanings with practical guidance.`}
+            tocIds={["upright-overview", "reversed-overview"]}
             backHref='/articles/tarot'
             backLabel='Tarot'
             onThisPageLabel='On this page'

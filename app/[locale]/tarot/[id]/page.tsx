@@ -2,6 +2,9 @@ import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { ArrowRight } from "lucide-react"
 import { Sparkles } from "lucide-react"
 import { CardImage } from "@/components/card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
@@ -50,6 +53,7 @@ export default async function TarotReadingPage({
                   image: `assets/rider-waite-tarot/${cleanCardName}.png`,
                   meaning: cardName,
                   isReversed: isReversed,
+                  slug: cleanCardName,
               }
           })
         : []
@@ -159,6 +163,20 @@ export default async function TarotReadingPage({
                                     showLabel={false}
                                     className='hover:scale-105 transition-transform duration-200'
                                 />
+                                {/* Deep meaning link */}
+                                <Button
+                                    asChild
+                                    size='sm'
+                                    variant='ghost'
+                                    className='mt-2 shadow-md text-xs underline underline-offset-2 text-yellow-500 opacity-60 hover:opacity-100 hover:bg-transparent ease duration-300'
+                                >
+                                    <Link
+                                        href={`/articles/tarot/${card.slug}${card.isReversed ? "#reversed-overview" : ""}`}
+                                    >
+                                        View full details
+                                        <ArrowRight className='ml-0.5' />
+                                    </Link>
+                                </Button>
                             </div>
                         ))}
                     </div>

@@ -831,6 +831,10 @@
       "faq": "FAQ"
     },
     "items": {
+      "tarot": {
+        "title": "Tarot Card Meanings",
+        "description": "Explore upright and reversed meanings for all 78 cards (Major & Minor Arcana)."
+      },
       "createContent": {
         "title": "Create Content About Us",
         "description": "Write, post, or film about Asking Fate and earn stars."
@@ -856,8 +860,20 @@
         "description": "Answers to common questions about readings and stars."
       }
     }
-  }
-  ,
+  },
+  "TarotArticle": {
+    "overviewUpright": "Overview (Upright)",
+    "overviewReversed": "Overview (Reversed)",
+    "relationships": "Relationships",
+    "work": "Work & Career",
+    "finance": "Finance",
+    "health": "Health",
+    "upright": "Upright",
+    "reversed": "Reversed",
+    "yesNo": "Yes/No",
+    "zodiac": "Zodiac",
+    "element": "Element"
+  },
   "Auth": {
     "SignIn": {
       "title": "Welcome Back",

@@ -7,7 +7,7 @@ import { ArrowRight, Sparkles, Star, Zap } from "lucide-react"
 export default function CallToActionSection() {
     const t = useTranslations("HomeDiscover.CTA")
     const [isVisible, setIsVisible] = useState(false)
-    const [hoveredButton, setHoveredButton] = useState<string | null>(null)
+    const [, setHoveredButton] = useState<string | null>(null)
 
     useEffect(() => {
         setIsVisible(true)

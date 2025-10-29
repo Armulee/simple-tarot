@@ -53,7 +53,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent
                 side='left'
-                className='md:hidden bg-card/95 backdrop-blur-md border-border/30 w-72 max-w-[85vw] flex flex-col h-full p-0 overflow-visible'
+                className='lg:hidden bg-card/95 backdrop-blur-md border-border/30 w-72 max-w-[85vw] flex flex-col h-full p-0 overflow-visible'
             >
                 {/* Fixed Header Section */}
                 <div className='flex-shrink-0 px-4 py-4 border-b border-white/10 overflow-visible'>

@@ -25,6 +25,7 @@ export function ArticleLayout({
     backHref = "/articles",
     backLabel = "Back",
     onThisPageLabel = "On this page",
+    tocIds,
     sections,
     related,
 }: {
@@ -34,9 +35,13 @@ export function ArticleLayout({
     backHref?: string
     backLabel?: string
     onThisPageLabel?: string
+    tocIds?: string[]
     sections: ArticleSection[]
     related?: { href: string; title: string; description: string }[]
 }) {
+    const tocSections = tocIds && tocIds.length > 0
+        ? sections.filter((s) => tocIds.includes(s.id))
+        : sections
     return (
         <div className='relative min-h-screen'>
             {/* Animated background */}
@@ -113,7 +118,7 @@ export function ArticleLayout({
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <nav className='space-y-3 pt-2'>
-                                        {sections.map((s, index) => (
+                                        {tocSections.map((s, index) => (
                                             <a
                                                 key={s.id}
                                                 href={`#${s.id}`}
@@ -230,7 +235,7 @@ export function ArticleLayout({
                         </CardHeader>
                         <CardContent>
                             <nav className='space-y-3 pb-4'>
-                                {sections.map((s, index) => (
+                                {tocSections.map((s, index) => (
                                     <a
                                         key={s.id}
                                         href={`#${s.id}`}
