@@ -9,6 +9,7 @@ import { Sparkles } from "lucide-react"
 import { CardImage } from "@/components/card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import Interpretation from "@/components/tarot/interpretation"
+import FollowUpBadge from "@/components/tarot/follow-up-badge"
 
 async function getTarotReading(id: string) {
     const { data } = await supabase
@@ -121,6 +122,7 @@ export default async function TarotReadingPage({
                     <div className='flex items-center justify-center space-x-2 relative'>
                         <Sparkles className='w-6 h-6 text-primary' />
                         <h1 className='font-serif font-bold text-2xl relative'>
+                            <FollowUpBadge />
                             &ldquo;
                             {getCleanQuestionText(data.question || "")}
                             &rdquo;
