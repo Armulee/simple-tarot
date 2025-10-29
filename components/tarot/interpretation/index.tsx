@@ -313,28 +313,23 @@ Output:
                         </div>
                         <div className='flex items-center gap-2 flex-wrap'>
                             <h2
-                                className='font-serif font-semibold text-xl animate-fade-up'
+                                className='font-serif font-semibold text-xl animate-fade-up relative'
                                 style={{
                                     animationDelay: "0ms",
                                     animationDuration: "300ms",
                                     animationFillMode: "both",
                                 }}
                             >
+                                {isFollowUp && (
+                                    <Badge
+                                        variant='secondary'
+                                        className='absolute -top-6 -left-8 -rotate-12 bg-primary/20 text-white border-white/30'
+                                    >
+                                        {tPage("followUp.badge")}
+                                    </Badge>
+                                )}
                                 {t("sectionTitle")}
                             </h2>
-                            {isFollowUp && (
-                                <Badge
-                                    variant='secondary'
-                                    className='bg-primary/20 text-white border-white/30 animate-fade-up'
-                                    style={{
-                                        animationDelay: "0ms",
-                                        animationDuration: "300ms",
-                                        animationFillMode: "both",
-                                    }}
-                                >
-                                    {tPage("followUp.badge")}
-                                </Badge>
-                            )}
                             <p
                                 className='text-sm text-muted-foreground animate-fade-up'
                                 style={{
