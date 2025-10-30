@@ -87,19 +87,30 @@ const getTodayString = () => {
 
 
 // ReadingCard component - moved outside functional component
-const ReadingCard = ({ reading, question, isMain, hasFollowUps, t }: {
+const ReadingCard = ({ reading, question, isMain, hasFollowUps, t, clickableHref, followUpLabel }: {
     reading: ReadingRow,
     question: string,
     isMain: boolean,
     hasFollowUps: boolean,
-    t: (key: string) => string
+    t: (key: string) => string,
+    clickableHref?: string | null,
+    followUpLabel?: string
 }) => {
     const { date, time } = formatDateForDisplay(reading.created_at)
     const readingType = getReadingType(reading.cards)
     const typeInfo = getReadingTypeInfo(readingType)
     
+    const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
+        clickableHref ? (
+            <Link href={clickableHref} className="block">
+                {children}
+            </Link>
+        ) : (
+            <div className="block">{children}</div>
+        )
+
     return (
-        <Link href={`/tarot/${reading.id}`} className="block">
+        <Wrapper>
             <Card className={`
                 group/card relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/10
                 ${isMain ? 'bg-gradient-to-br from-card/60 to-card/30 backdrop-blur-sm border-border/30' : 'bg-card/40 backdrop-blur-sm border-border/20'}
@@ -186,9 +197,19 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps, t }: {
                             )}
                             
                             <div className="flex items-start justify-between gap-4 mb-2">
-                                <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300 line-clamp-1">
-                                    {question || t('noQuestion')}
-                                </h3>
+                                <div className="flex items-center gap-2 min-w-0">
+                                    {!isMain && (
+                                        <Badge
+                                            variant="secondary"
+                                            className="shrink-0 bg-primary/20 text-white border-white/30"
+                                        >
+                                            {followUpLabel || 'Follow up'}
+                                        </Badge>
+                                    )}
+                                    <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300 line-clamp-1">
+                                        {question || t('noQuestion')}
+                                    </h3>
+                                </div>
                             </div>
                             
                                         {/* Interpretation preview */}
@@ -199,22 +220,18 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps, t }: {
                                         )}
                         </div>
                         
-                        {/* Arrow for accordion */}
-                        {hasFollowUps && (
-                            <div className="flex-shrink-0 self-center">
-                                <ChevronDown className="w-5 h-5 text-muted-foreground group-hover/card:text-primary transition-colors duration-300" />
-                            </div>
-                        )}
+                        {/* No manual chevron; rely on AccordionTrigger visuals */}
                     </div>
                 </CardContent>
             </Card>
-        </Link>
+        </Wrapper>
     )
 }
 
 export default function ReadingHistory() {
     const { user } = useAuth()
     const t = useTranslations('ReadingHistory')
+    const tPage = useTranslations('ReadingPage')
     const [loading, setLoading] = useState(true)
     const [readings, setReadings] = useState<ReadingRow[]>([])
     const [error, setError] = useState<string | null>(null)
@@ -587,6 +604,8 @@ export default function ReadingHistory() {
                                                 isMain={true}
                                                 hasFollowUps={true}
                                                 t={t}
+                                                clickableHref={null}
+                                                followUpLabel={tPage('followUp.badge')}
                                             />
                                         </AccordionTrigger>
                                         <AccordionContent className="pt-4">
@@ -599,6 +618,8 @@ export default function ReadingHistory() {
                                                         isMain={false}
                                                         hasFollowUps={false}
                                                         t={t}
+                                                        clickableHref={`/tarot/${fu.id}`}
+                                                        followUpLabel={tPage('followUp.badge')}
                                                     />
                                                 ))}
                                             </div>
@@ -612,6 +633,8 @@ export default function ReadingHistory() {
                                     isMain={true}
                                     hasFollowUps={false}
                                     t={t}
+                                    clickableHref={`/tarot/${main.id}`}
+                                    followUpLabel={tPage('followUp.badge')}
                                 />
                             )}
                         </div>
