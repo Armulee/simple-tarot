@@ -17,6 +17,7 @@ export default function QuestionInput({
     value,
     onChange,
     followUp = false,
+    followUpParentId,
 }: {
     id?: string
     label?: string
@@ -25,6 +26,7 @@ export default function QuestionInput({
     value?: string
     onChange?: (value: string) => void
     followUp?: boolean
+    followUpParentId?: string
 }) {
     const t = useTranslations("QuestionInput")
     // removed unused pathname
@@ -90,6 +92,7 @@ export default function QuestionInput({
                 question: lastQuestion,
                 selectedCards: lastCards,
                 interpretation: lastInterpretation,
+                parentReadingId: followUpParentId || null,
                 timestamp: Date.now(),
             }
             localStorage.setItem(
@@ -118,6 +121,7 @@ export default function QuestionInput({
                 interpretation: null,
                 isFollowUp: true,
                 followUpQuestion: fuQuestion,
+                parentReadingId: followUpParentId || null,
             })
             localStorage.setItem("reading-state-v1", payload)
         } catch {

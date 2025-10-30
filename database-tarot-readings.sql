@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS tarot_readings (
     question TEXT NOT NULL,
     cards TEXT[] NOT NULL,
     interpretation TEXT, -- null until first visit
+    parent_id TEXT NULL, -- when set, this reading is a follow-up to the main reading
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -17,6 +18,7 @@ CREATE INDEX IF NOT EXISTS idx_tarot_readings_did ON tarot_readings(did);
 CREATE INDEX IF NOT EXISTS idx_tarot_readings_owner_user_id ON tarot_readings(owner_user_id);
 CREATE INDEX IF NOT EXISTS idx_tarot_readings_created_at ON tarot_readings(created_at);
 CREATE INDEX IF NOT EXISTS idx_tarot_readings_interpretation ON tarot_readings(interpretation) WHERE interpretation IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tarot_readings_parent_id ON tarot_readings(parent_id);
 
 -- Add RLS policies (adjust as needed for your security requirements)
 ALTER TABLE tarot_readings ENABLE ROW LEVEL SECURITY;
@@ -43,3 +45,4 @@ CREATE POLICY "Public read access for shared readings" ON tarot_readings
 COMMENT ON TABLE tarot_readings IS 'Stores tarot reading data with interpretation generated on first visit';
 COMMENT ON COLUMN tarot_readings.did IS 'Device ID of the creator for anonymous user tracking';
 COMMENT ON COLUMN tarot_readings.interpretation IS 'AI-generated interpretation, null until first visit';
+COMMENT ON COLUMN tarot_readings.parent_id IS 'References the main reading id when this is a follow-up';

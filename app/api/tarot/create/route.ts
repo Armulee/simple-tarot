@@ -25,6 +25,10 @@ export async function POST(req: NextRequest) {
             typeof body?.user_id === "string" && body.user_id
                 ? body.user_id
                 : null
+        const parentReadingId: string | null =
+            typeof body?.parent_reading_id === "string" && body.parent_reading_id
+                ? body.parent_reading_id
+                : null
 
         if (!question || cards.length === 0) {
             return NextResponse.json(
@@ -62,6 +66,7 @@ export async function POST(req: NextRequest) {
             interpretation: null, // Will be filled when first accessed
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
+            parent_id: parentReadingId,
         })
 
         if (error) {

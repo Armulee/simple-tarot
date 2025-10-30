@@ -406,6 +406,7 @@ Output:
                             id='follow-up-question'
                             label={t("followUp.label")}
                             placeholder={t("followUp.placeholder")}
+                            followUpParentId={readingId}
                         />
                     </div>
                 </div>

@@ -135,6 +135,22 @@ export default function CardSelection({
             const cardNames = cards.map((card) =>
                 card.isReversed ? `${card.name} (Reversed)` : card.name
             )
+            // Read parent reading id for follow-ups
+            let parentReadingId: string | null = null
+            try {
+                const raw = localStorage.getItem("reading-state-v1")
+                if (raw) {
+                    const data = JSON.parse(raw) as { parentReadingId?: string | null }
+                    if (data.parentReadingId) parentReadingId = data.parentReadingId
+                }
+                if (!parentReadingId) {
+                    const rawBackup = localStorage.getItem("reading-state-v1-backup")
+                    if (rawBackup) {
+                        const backup = JSON.parse(rawBackup) as { parentReadingId?: string | null }
+                        if (backup.parentReadingId) parentReadingId = backup.parentReadingId
+                    }
+                }
+            } catch {}
 
             // Deduct star before creating the reading
             const starSuccess = spendStars(1)
@@ -150,6 +166,7 @@ export default function CardSelection({
                 body: JSON.stringify({
                     question: currentQuestion,
                     cards: cardNames,
+                    parent_reading_id: isFollowUp ? parentReadingId : null,
                     user_id: user?.id || null,
                 }),
             })

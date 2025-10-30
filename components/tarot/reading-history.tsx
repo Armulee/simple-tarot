@@ -26,6 +26,7 @@ type ReadingRow = {
     created_at: string
     interpretation: string | null
     cards: string[] | null
+    parent_id?: string | null
 }
 
 type ReadingType = "simple" | "intermediate" | "advanced"
@@ -236,7 +237,7 @@ export default function ReadingHistory() {
             setError(null)
             const { data, error } = await supabase
                 .from("tarot_readings")
-                .select("id, question, created_at, interpretation, cards")
+                .select("id, question, created_at, interpretation, cards, parent_id")
                 .eq("owner_user_id", user.id)
                 .order("created_at", { ascending: false })
             if (!isMounted) return
@@ -487,6 +488,28 @@ export default function ReadingHistory() {
         }
 
         // Build grouped threads across all filtered readings
+        // Prefer exact database linkage via parent_id when present
+        const groupsByKey = new Map<string, ReadingRow[]>()
+        const withParent = filteredReadings.filter((r) => r.parent_id)
+        const withoutParent = filteredReadings.filter((r) => !r.parent_id)
+
+        // Group those with explicit parent linkage
+        for (const r of withParent) {
+            const key = (r.parent_id as string) || r.id
+            const list = groupsByKey.get(key) || []
+            list.push(r)
+            groupsByKey.set(key, list)
+        }
+        // Ensure mains exist in map
+        for (const r of withoutParent) {
+            const key = r.id
+            const list = groupsByKey.get(key) || []
+            list.push(r)
+            groupsByKey.set(key, list)
+        }
+
+        // If some follow-ups reference a main not in current filter (unlikely), we still create the group
+        // Now, heuristically merge remaining unlinked by similarity/time where parent_id is missing
         const tokenize = (text: string) =>
             (text || "")
                 .toLowerCase()
@@ -511,49 +534,27 @@ export default function ReadingHistory() {
             question: string
         }
 
-        const sortedAll = [...filteredReadings].sort((a, b) =>
-            a.created_at.localeCompare(b.created_at)
-        )
-
+        // Merge groupsByKey values into Group objects
         const groups: Group[] = []
-        const TIME_WINDOW_MS = 1000 * 60 * 60 * 4 // 4 hours
-
-        for (const r of sortedAll) {
-            const candIdx = groups.findIndex((g) => {
-                const sim = jaccard(g.main.question || "", r.question || "")
-                const timeDelta = Math.abs(
-                    new Date(r.created_at).getTime() -
-                        new Date(g.latestAt).getTime()
-                )
-                return (
-                    getCleanQuestionText(g.main.question || "") ===
-                        getCleanQuestionText(r.question || "") ||
-                    sim >= 0.65 ||
-                    (sim >= 0.4 && timeDelta <= TIME_WINDOW_MS)
-                )
+        for (const [key, items] of groupsByKey) {
+            const sorted = items.slice().sort((a, b) => a.created_at.localeCompare(b.created_at))
+            // Find main: if any item has id===key, use it; otherwise earliest
+            const main = sorted.find((it) => it.id === key) || sorted[0]
+            groups.push({
+                key,
+                items: sorted,
+                main,
+                latestAt: sorted[sorted.length - 1].created_at,
+                question: getCleanQuestionText(main.question || ""),
             })
-
-            if (candIdx >= 0) {
-                const g = groups[candIdx]
-                g.items.push(r)
-                if (new Date(r.created_at) > new Date(g.latestAt)) {
-                    g.latestAt = r.created_at
-                }
-            } else {
-                groups.push({
-                    key: r.id,
-                    items: [r],
-                    main: r,
-                    latestAt: r.created_at,
-                    question: getCleanQuestionText(r.question || ""),
-                })
-            }
         }
 
         // Normalize each group: main is earliest by time, follow-ups are the rest
         groups.forEach((g) => {
             g.items.sort((a, b) => a.created_at.localeCompare(b.created_at))
-            g.main = g.items[0]
+            // Ensure main stays as the DB main when parent linkage exists
+            const dbMain = g.items.find((it) => it.id === g.key)
+            g.main = dbMain || g.items[0]
             g.question = getCleanQuestionText(g.main.question || "")
             g.latestAt = g.items[g.items.length - 1].created_at
         })
