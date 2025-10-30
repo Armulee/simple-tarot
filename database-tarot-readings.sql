@@ -1,5 +1,5 @@
--- Create tarot_readings table for the new flow
--- Run this in your Supabase SQL editor
+-- Tarot readings schema (idempotent)
+-- Safe to run multiple times
 
 CREATE TABLE IF NOT EXISTS tarot_readings (
     id TEXT PRIMARY KEY,
@@ -13,6 +13,10 @@ CREATE TABLE IF NOT EXISTS tarot_readings (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Ensure new columns exist even if table was created previously
+ALTER TABLE tarot_readings
+    ADD COLUMN IF NOT EXISTS parent_id TEXT NULL;
+
 -- Add indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_tarot_readings_did ON tarot_readings(did);
 CREATE INDEX IF NOT EXISTS idx_tarot_readings_owner_user_id ON tarot_readings(owner_user_id);
@@ -24,22 +28,52 @@ CREATE INDEX IF NOT EXISTS idx_tarot_readings_parent_id ON tarot_readings(parent
 ALTER TABLE tarot_readings ENABLE ROW LEVEL SECURITY;
 
 -- Policy to allow users to read their own readings
-CREATE POLICY "Users can read their own readings" ON tarot_readings
-    FOR SELECT USING (
-        did = current_setting('request.jwt.claims', true)::json->>'device_id' OR
-        owner_user_id = current_setting('request.jwt.claims', true)::json->>'sub'
-    );
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies
+        WHERE schemaname = current_schema()
+          AND tablename = 'tarot_readings'
+          AND policyname = 'Users can read their own readings'
+    ) THEN
+        CREATE POLICY "Users can read their own readings" ON tarot_readings
+            FOR SELECT USING (
+                did = current_setting('request.jwt.claims', true)::json->>'device_id' OR
+                owner_user_id = current_setting('request.jwt.claims', true)::json->>'sub'
+            );
+    END IF;
+END $$;
 
 -- Policy to allow users to update their own readings (for adding interpretation)
-CREATE POLICY "Users can update their own readings" ON tarot_readings
-    FOR UPDATE USING (
-        did = current_setting('request.jwt.claims', true)::json->>'device_id' OR
-        owner_user_id = current_setting('request.jwt.claims', true)::json->>'sub'
-    );
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies
+        WHERE schemaname = current_schema()
+          AND tablename = 'tarot_readings'
+          AND policyname = 'Users can update their own readings'
+    ) THEN
+        CREATE POLICY "Users can update their own readings" ON tarot_readings
+            FOR UPDATE USING (
+                did = current_setting('request.jwt.claims', true)::json->>'device_id' OR
+                owner_user_id = current_setting('request.jwt.claims', true)::json->>'sub'
+            );
+    END IF;
+END $$;
 
 -- Policy to allow public read access (for shared links)
-CREATE POLICY "Public read access for shared readings" ON tarot_readings
-    FOR SELECT USING (true);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies
+        WHERE schemaname = current_schema()
+          AND tablename = 'tarot_readings'
+          AND policyname = 'Public read access for shared readings'
+    ) THEN
+        CREATE POLICY "Public read access for shared readings" ON tarot_readings
+            FOR SELECT USING (true);
+    END IF;
+END $$;
 
 -- Add comment for documentation
 COMMENT ON TABLE tarot_readings IS 'Stores tarot reading data with interpretation generated on first visit';
