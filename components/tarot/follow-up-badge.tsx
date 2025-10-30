@@ -4,11 +4,12 @@ import { Badge } from "@/components/ui/badge"
 import { useTranslations } from "next-intl"
 import { useTarot } from "@/contexts/tarot-context"
 
-export default function FollowUpBadge() {
+export default function FollowUpBadge({ show }: { show?: boolean }) {
     const { isFollowUp } = useTarot()
     const t = useTranslations("ReadingPage")
 
-    if (!isFollowUp) return null
+    const shouldShow = typeof show === "boolean" ? show : isFollowUp
+    if (!shouldShow) return null
 
     return (
         <Badge

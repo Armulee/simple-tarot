@@ -87,14 +87,13 @@ const getTodayString = () => {
 
 
 // ReadingCard component - moved outside functional component
-const ReadingCard = ({ reading, question, isMain, hasFollowUps, t, clickableHref, followUpLabel }: {
+const ReadingCard = ({ reading, question, isMain, hasFollowUps, t, clickableHref }: {
     reading: ReadingRow,
     question: string,
     isMain: boolean,
     hasFollowUps: boolean,
     t: (key: string) => string,
-    clickableHref?: string | null,
-    followUpLabel?: string
+    clickableHref?: string | null
 }) => {
     const { date, time } = formatDateForDisplay(reading.created_at)
     const readingType = getReadingType(reading.cards)
@@ -198,18 +197,16 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps, t, clickableHref
                             
                             <div className="flex items-start justify-between gap-4 mb-2">
                                 <div className="flex items-center gap-2 min-w-0">
-                                    {!isMain && (
-                                        <Badge
-                                            variant="secondary"
-                                            className="shrink-0 bg-primary/20 text-white border-white/30"
-                                        >
-                                            {followUpLabel || 'Follow up'}
-                                        </Badge>
-                                    )}
                                     <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300 line-clamp-1">
                                         {question || t('noQuestion')}
                                     </h3>
                                 </div>
+                                {/* Chevron control inside the trigger row for groups */}
+                                {hasFollowUps && !clickableHref && (
+                                    <div className="flex-shrink-0 self-center">
+                                        <ChevronDown className="w-5 h-5 text-muted-foreground group-hover/card:text-primary transition-colors duration-300" />
+                                    </div>
+                                )}
                             </div>
                             
                                         {/* Interpretation preview */}
@@ -220,7 +217,7 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps, t, clickableHref
                                         )}
                         </div>
                         
-                        {/* No manual chevron; rely on AccordionTrigger visuals */}
+                        {/* Relying on in-row chevron above; built-in indicator disabled on trigger */}
                     </div>
                 </CardContent>
             </Card>
@@ -231,7 +228,6 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps, t, clickableHref
 export default function ReadingHistory() {
     const { user } = useAuth()
     const t = useTranslations('ReadingHistory')
-    const tPage = useTranslations('ReadingPage')
     const [loading, setLoading] = useState(true)
     const [readings, setReadings] = useState<ReadingRow[]>([])
     const [error, setError] = useState<string | null>(null)
@@ -597,7 +593,7 @@ export default function ReadingHistory() {
                             {hasFollowUps ? (
                                 <Accordion className="w-full">
                                     <AccordionItem className="border-none">
-                                        <AccordionTrigger className="hover:no-underline p-0">
+                                        <AccordionTrigger className="hover:no-underline p-0" showIndicator={false}>
                                             <ReadingCard 
                                                 reading={main} 
                                                 question={question}
@@ -605,7 +601,6 @@ export default function ReadingHistory() {
                                                 hasFollowUps={true}
                                                 t={t}
                                                 clickableHref={null}
-                                                followUpLabel={tPage('followUp.badge')}
                                             />
                                         </AccordionTrigger>
                                         <AccordionContent className="pt-4">
@@ -619,7 +614,6 @@ export default function ReadingHistory() {
                                                         hasFollowUps={false}
                                                         t={t}
                                                         clickableHref={`/tarot/${fu.id}`}
-                                                        followUpLabel={tPage('followUp.badge')}
                                                     />
                                                 ))}
                                             </div>
@@ -634,7 +628,6 @@ export default function ReadingHistory() {
                                     hasFollowUps={false}
                                     t={t}
                                     clickableHref={`/tarot/${main.id}`}
-                                    followUpLabel={tPage('followUp.badge')}
                                 />
                             )}
                         </div>
