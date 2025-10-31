@@ -42,8 +42,9 @@ export function AccordionItem({
 export function AccordionTrigger({
   className,
   children,
+  showIndicator = true,
   ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { showIndicator?: boolean }) {
   const ctx = useContext(ItemContext)
   const isOpen = !!ctx?.open
   const toggle = () => ctx?.setOpen(!isOpen)
@@ -60,7 +61,16 @@ export function AccordionTrigger({
         {...props}
       >
         {children}
-        <span className={cn("ml-2 h-4 w-4 text-muted-foreground transition-transform", isOpen ? "rotate-180" : "rotate-0")}>▾</span>
+        {showIndicator ? (
+          <span
+            className={cn(
+              "ml-2 h-4 w-4 text-muted-foreground transition-transform",
+              isOpen ? "rotate-180" : "rotate-0"
+            )}
+          >
+            ▾
+          </span>
+        ) : null}
       </button>
     </div>
   )

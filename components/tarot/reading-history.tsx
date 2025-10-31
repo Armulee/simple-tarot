@@ -26,6 +26,7 @@ type ReadingRow = {
     created_at: string
     interpretation: string | null
     cards: string[] | null
+    parent_id?: string | null
 }
 
 type ReadingType = "simple" | "intermediate" | "advanced"
@@ -86,19 +87,29 @@ const getTodayString = () => {
 
 
 // ReadingCard component - moved outside functional component
-const ReadingCard = ({ reading, question, isMain, hasFollowUps, t }: {
+const ReadingCard = ({ reading, question, isMain, hasFollowUps, t, clickableHref }: {
     reading: ReadingRow,
     question: string,
     isMain: boolean,
     hasFollowUps: boolean,
-    t: (key: string) => string
+    t: (key: string) => string,
+    clickableHref?: string | null
 }) => {
     const { date, time } = formatDateForDisplay(reading.created_at)
     const readingType = getReadingType(reading.cards)
     const typeInfo = getReadingTypeInfo(readingType)
     
+    const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
+        clickableHref ? (
+            <Link href={clickableHref} className="block">
+                {children}
+            </Link>
+        ) : (
+            <div className="block">{children}</div>
+        )
+
     return (
-        <Link href={`/tarot/${reading.id}`} className="block">
+        <Wrapper>
             <Card className={`
                 group/card relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/10
                 ${isMain ? 'bg-gradient-to-br from-card/60 to-card/30 backdrop-blur-sm border-border/30' : 'bg-card/40 backdrop-blur-sm border-border/20'}
@@ -185,9 +196,17 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps, t }: {
                             )}
                             
                             <div className="flex items-start justify-between gap-4 mb-2">
-                                <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300 line-clamp-1">
-                                    {question || t('noQuestion')}
-                                </h3>
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300 line-clamp-1">
+                                        {question || t('noQuestion')}
+                                    </h3>
+                                </div>
+                                {/* Chevron control inside the trigger row for groups */}
+                                {hasFollowUps && !clickableHref && (
+                                    <div className="flex-shrink-0 self-center">
+                                        <ChevronDown className="w-5 h-5 text-muted-foreground group-hover/card:text-primary transition-colors duration-300" />
+                                    </div>
+                                )}
                             </div>
                             
                                         {/* Interpretation preview */}
@@ -198,16 +217,11 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps, t }: {
                                         )}
                         </div>
                         
-                        {/* Arrow for accordion */}
-                        {hasFollowUps && (
-                            <div className="flex-shrink-0 self-center">
-                                <ChevronDown className="w-5 h-5 text-muted-foreground group-hover/card:text-primary transition-colors duration-300" />
-                            </div>
-                        )}
+                        {/* Relying on in-row chevron above; built-in indicator disabled on trigger */}
                     </div>
                 </CardContent>
             </Card>
-        </Link>
+        </Wrapper>
     )
 }
 
@@ -219,7 +233,7 @@ export default function ReadingHistory() {
     const [error, setError] = useState<string | null>(null)
     const [searchQuery, setSearchQuery] = useState("")
     const [filteredReadings, setFilteredReadings] = useState<ReadingRow[]>([])
-    const [displayedReadings, setDisplayedReadings] = useState<ReadingRow[]>([])
+    const [displayedGroupCount, setDisplayedGroupCount] = useState(10)
     const [hasMore, setHasMore] = useState(true)
     const [loadingMore, setLoadingMore] = useState(false)
     const [dateFrom, setDateFrom] = useState("")
@@ -236,7 +250,7 @@ export default function ReadingHistory() {
             setError(null)
             const { data, error } = await supabase
                 .from("tarot_readings")
-                .select("id, question, created_at, interpretation, cards")
+                .select("id, question, created_at, interpretation, cards, parent_id")
                 .eq("owner_user_id", user.id)
                 .order("created_at", { ascending: false })
             if (!isMounted) return
@@ -314,26 +328,20 @@ export default function ReadingHistory() {
         setFilteredReadings(filtered)
     }, [readings, searchQuery, filterType, dateFrom, dateTo, readingTypeFilter])
 
-    // Reset displayed readings when filtered readings change
+    // Reset pagination when filtered readings change
     useEffect(() => {
-        setDisplayedReadings(filteredReadings.slice(0, 10))
-        setHasMore(filteredReadings.length > 10)
+        setDisplayedGroupCount(10)
     }, [filteredReadings])
 
-    // Load more readings function
+    // Load more groups function
     const loadMore = useCallback(() => {
         if (loadingMore || !hasMore) return
-        
         setLoadingMore(true)
-        const currentLength = displayedReadings.length
-        const nextBatch = filteredReadings.slice(currentLength, currentLength + 10)
-        
         setTimeout(() => {
-            setDisplayedReadings(prev => [...prev, ...nextBatch])
-            setHasMore(currentLength + 10 < filteredReadings.length)
+            setDisplayedGroupCount((prev) => prev + 10)
             setLoadingMore(false)
-        }, 500) // Small delay for better UX
-    }, [displayedReadings.length, filteredReadings, loadingMore, hasMore])
+        }, 500)
+    }, [loadingMore, hasMore])
 
     // Intersection Observer for infinite scroll
     useEffect(() => {
@@ -352,6 +360,59 @@ export default function ReadingHistory() {
 
         return () => observer.disconnect()
     }, [loadMore, hasMore, loadingMore])
+
+    // Compute total group count for pagination state
+    const totalGroupCount = useMemo(() => {
+        if (!filteredReadings.length) return 0
+        const tokenize = (text: string) =>
+            (text || "")
+                .toLowerCase()
+                .replace(/[^a-z0-9\sก-๙]/gi, " ")
+                .split(/\s+/)
+                .filter((w) => w.length >= 3)
+        const jaccard = (a: string, b: string) => {
+            const ta = new Set(tokenize(getCleanQuestionText(a)))
+            const tb = new Set(tokenize(getCleanQuestionText(b)))
+            if (ta.size === 0 && tb.size === 0) return 1
+            const inter = new Set([...ta].filter((x) => tb.has(x)))
+            const union = new Set([...ta, ...tb])
+            return inter.size / union.size
+        }
+        const sortedAll = [...filteredReadings].sort((a, b) =>
+            a.created_at.localeCompare(b.created_at)
+        )
+        const groups: Array<{ main: ReadingRow; latestAt: string }> = []
+        const TIME_WINDOW_MS = 1000 * 60 * 60 * 4
+        for (const r of sortedAll) {
+            const idx = groups.findIndex((g) => {
+                const sim = jaccard(g.main.question || "", r.question || "")
+                const timeDelta = Math.abs(
+                    new Date(r.created_at).getTime() -
+                        new Date(g.latestAt).getTime()
+                )
+                return (
+                    getCleanQuestionText(g.main.question || "") ===
+                        getCleanQuestionText(r.question || "") ||
+                    sim >= 0.65 ||
+                    (sim >= 0.4 && timeDelta <= TIME_WINDOW_MS)
+                )
+            })
+            if (idx >= 0) {
+                const g = groups[idx]
+                if (new Date(r.created_at) > new Date(g.latestAt)) {
+                    g.latestAt = r.created_at
+                }
+            } else {
+                groups.push({ main: r, latestAt: r.created_at })
+            }
+        }
+        return groups.length
+    }, [filteredReadings])
+
+    // Keep hasMore in sync with group count
+    useEffect(() => {
+        setHasMore(displayedGroupCount < totalGroupCount)
+    }, [displayedGroupCount, totalGroupCount])
 
     const content = useMemo(() => {
         if (!user) {
@@ -402,7 +463,7 @@ export default function ReadingHistory() {
                 </div>
             )
         }
-        if (!displayedReadings.length) {
+        if (!filteredReadings.length) {
             if (searchQuery) {
                 return (
                     <div className='flex flex-col items-center justify-center py-16 text-center'>
@@ -439,15 +500,86 @@ export default function ReadingHistory() {
             )
         }
 
-        // Group follow-ups: assume main interpretations are those whose question text is not a follow-up marker; we group exact same question text together
-        const groups = displayedReadings.reduce<Record<string, ReadingRow[]>>((acc, row) => {
-            const key = getCleanQuestionText(row.question || "")
-            if (!acc[key]) acc[key] = []
-            acc[key].push(row)
-            return acc
-        }, {})
+        // Build grouped threads across all filtered readings
+        // Prefer exact database linkage via parent_id when present
+        const groupsByKey = new Map<string, ReadingRow[]>()
+        const withParent = filteredReadings.filter((r) => r.parent_id)
+        const withoutParent = filteredReadings.filter((r) => !r.parent_id)
 
-        const entries = Object.entries(groups)
+        // Group those with explicit parent linkage
+        for (const r of withParent) {
+            const key = (r.parent_id as string) || r.id
+            const list = groupsByKey.get(key) || []
+            list.push(r)
+            groupsByKey.set(key, list)
+        }
+        // Ensure mains exist in map
+        for (const r of withoutParent) {
+            const key = r.id
+            const list = groupsByKey.get(key) || []
+            list.push(r)
+            groupsByKey.set(key, list)
+        }
+
+        // If some follow-ups reference a main not in current filter (unlikely), we still create the group
+        // Now, heuristically merge remaining unlinked by similarity/time where parent_id is missing
+        const tokenize = (text: string) =>
+            (text || "")
+                .toLowerCase()
+                .replace(/[^a-z0-9\sก-๙]/gi, " ")
+                .split(/\s+/)
+                .filter((w) => w.length >= 3)
+
+        const jaccard = (a: string, b: string) => {
+            const ta = new Set(tokenize(getCleanQuestionText(a)))
+            const tb = new Set(tokenize(getCleanQuestionText(b)))
+            if (ta.size === 0 && tb.size === 0) return 1
+            const inter = new Set([...ta].filter((x) => tb.has(x)))
+            const union = new Set([...ta, ...tb])
+            return inter.size / union.size
+        }
+
+        type Group = {
+            key: string
+            items: ReadingRow[]
+            main: ReadingRow
+            latestAt: string
+            question: string
+        }
+
+        // Merge groupsByKey values into Group objects
+        const groups: Group[] = []
+        for (const [key, items] of groupsByKey) {
+            const sorted = items.slice().sort((a, b) => a.created_at.localeCompare(b.created_at))
+            // Find main: if any item has id===key, use it; otherwise earliest
+            const main = sorted.find((it) => it.id === key) || sorted[0]
+            groups.push({
+                key,
+                items: sorted,
+                main,
+                latestAt: sorted[sorted.length - 1].created_at,
+                question: getCleanQuestionText(main.question || ""),
+            })
+        }
+
+        // Normalize each group: main is earliest by time, follow-ups are the rest
+        groups.forEach((g) => {
+            g.items.sort((a, b) => a.created_at.localeCompare(b.created_at))
+            // Ensure main stays as the DB main when parent linkage exists
+            const dbMain = g.items.find((it) => it.id === g.key)
+            g.main = dbMain || g.items[0]
+            g.question = getCleanQuestionText(g.main.question || "")
+            g.latestAt = g.items[g.items.length - 1].created_at
+        })
+
+        // Sort groups by most recent activity desc
+        const groupList = groups.sort((a, b) =>
+            b.latestAt.localeCompare(a.latestAt)
+        )
+
+        const entries = groupList
+            .slice(0, displayedGroupCount)
+            .map((g) => [g.question, g.items] as const)
         return (
             <div className='space-y-6'>
                 {entries.map(([question, items]) => {
@@ -461,13 +593,14 @@ export default function ReadingHistory() {
                             {hasFollowUps ? (
                                 <Accordion className="w-full">
                                     <AccordionItem className="border-none">
-                                        <AccordionTrigger className="hover:no-underline p-0">
+                                        <AccordionTrigger className="hover:no-underline p-0" showIndicator={false}>
                                             <ReadingCard 
                                                 reading={main} 
                                                 question={question}
                                                 isMain={true}
                                                 hasFollowUps={true}
                                                 t={t}
+                                                clickableHref={null}
                                             />
                                         </AccordionTrigger>
                                         <AccordionContent className="pt-4">
@@ -480,6 +613,7 @@ export default function ReadingHistory() {
                                                         isMain={false}
                                                         hasFollowUps={false}
                                                         t={t}
+                                                        clickableHref={`/tarot/${fu.id}`}
                                                     />
                                                 ))}
                                             </div>
@@ -493,6 +627,7 @@ export default function ReadingHistory() {
                                     isMain={true}
                                     hasFollowUps={false}
                                     t={t}
+                                    clickableHref={`/tarot/${main.id}`}
                                 />
                             )}
                         </div>
@@ -500,7 +635,7 @@ export default function ReadingHistory() {
                 })}
             </div>
         )
-    }, [user, loading, displayedReadings, error, searchQuery, t])
+    }, [user, loading, filteredReadings, displayedGroupCount, error, searchQuery, t])
 
     return (
         <div className='max-w-4xl mx-auto w-full px-4 py-8'>

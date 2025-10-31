@@ -1,12 +1,13 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { Sparkles, Stars } from "lucide-react"
+import { Sparkles } from "lucide-react"
 import { useEffect, useState, useCallback } from "react"
 import { useCompletion } from "@ai-sdk/react"
 import QuestionInput from "../../question-input"
 import { useTranslations } from "next-intl"
 import { useAuth } from "@/hooks/use-auth"
+import { useTarot } from "@/contexts/tarot-context"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -41,6 +42,7 @@ export default function Interpretation({
 }: ReadingProps) {
     const t = useTranslations("ReadingPage.interpretation")
     const { user } = useAuth()
+    const { isFollowUp } = useTarot()
     const [interpretation, setInterpretation] = useState<string | null>(
         initialInterpretation ?? null
     )
@@ -172,7 +174,54 @@ export default function Interpretation({
             setIsGenerating(true)
             setError(null)
             const cardNames = (cards ?? []).join(", ")
-            const prompt = `Question: "${question ?? ""}"
+
+            // Try to include context from the previous reading when this is a follow-up
+            let previousQuestion: string | null = null
+            let previousInterpretation: string | null = null
+            try {
+                if (typeof window !== "undefined") {
+                    const rawBackup = localStorage.getItem(
+                        "reading-state-v1-backup"
+                    )
+                    if (rawBackup) {
+                        const backup = JSON.parse(rawBackup) as {
+                            question?: string
+                            interpretation?: string
+                        }
+                        previousQuestion = (backup?.question || "").trim() || null
+                        previousInterpretation =
+                            (backup?.interpretation || "").trim() || null
+                    }
+                }
+            } catch {}
+
+            const hasFollowUpContext =
+                isFollowUp &&
+                !!previousQuestion &&
+                !!previousInterpretation &&
+                previousQuestion !== (question ?? "")
+
+            const prompt = hasFollowUpContext
+                ? `Main question: "${previousQuestion}"
+
+Previous interpretation:
+${previousInterpretation}
+
+Follow-up question: "${question ?? ""}"
+
+Cards: ${cardNames}
+
+Goal: Provide a concise follow-up interpretation that directly answers the follow-up while staying consistent with the previous interpretation.
+
+Guidance:
+- Build on the earlier reading; reference it briefly (do not repeat it).
+- If the follow-up shifts focus, explain the link in a short phrase, then answer directly.
+- Do not fetch or cite external sources. Use only the provided card names (and reversed markers) as context.
+
+Output:
+- One short paragraph, <= 100 words.
+- Clear, grounded. Mention cards only if essential.`
+                : `Question: "${question ?? ""}"
 
 Cards: ${cardNames}
 
@@ -281,15 +330,7 @@ Output:
                             >
                                 {t("sectionSubtitle")}
                             </p>
-                            {isOwner && !error && (
-                                <div className='flex items-center justify-center gap-2 text-xs text-yellow-300 mt-2'>
-                                    <Stars className='w-3.5 h-3.5' />
-                                    <span>
-                                        Consuming 1 star to reveal this
-                                        interpretation.
-                                    </span>
-                                </div>
-                            )}
+                            {/* Removed star consumption note */}
                         </div>
                     </div>
                     <div
@@ -365,6 +406,7 @@ Output:
                             id='follow-up-question'
                             label={t("followUp.label")}
                             placeholder={t("followUp.placeholder")}
+                            followUpParentId={readingId}
                         />
                     </div>
                 </div>
