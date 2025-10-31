@@ -686,7 +686,7 @@ export default function ReadingHistory() {
                                             <ReadingCard
                                                 key={fu.id}
                                                 reading={fu}
-                                                question="Follow-up"
+                                                question={fu.question ? getCleanQuestionText(fu.question) : ""}
                                                 isMain={false}
                                                 hasFollowUps={false}
                                                 t={t}
