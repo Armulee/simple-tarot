@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState, useCallback, useRef } from "react"
+import { useEffect, useMemo, useState, useCallback, useRef, type ReactNode, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { supabase } from "@/lib/supabase"
@@ -9,7 +9,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { getCleanQuestionText } from "@/lib/question-utils"
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
 import { ChevronDown, Star, Sparkles, Search, Calendar, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -19,6 +18,8 @@ import { FreeMode } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/free-mode'
 import { useTranslations } from 'next-intl'
+import { useRouter } from "next/navigation"
+import { cn } from "@/lib/utils"
 
 type ReadingRow = {
     id: string
@@ -87,48 +88,99 @@ const getTodayString = () => {
 
 
 // ReadingCard component - moved outside functional component
-const ReadingCard = ({ reading, question, isMain, hasFollowUps, t, clickableHref }: {
-    reading: ReadingRow,
-    question: string,
-    isMain: boolean,
-    hasFollowUps: boolean,
-    t: (key: string) => string,
+const ReadingCard = ({
+    reading,
+    question,
+    isMain,
+    hasFollowUps,
+    t,
+    clickableHref,
+    onCardClick,
+    onToggleFollowUps,
+    isFollowUpsOpen = false,
+}: {
+    reading: ReadingRow
+    question: string
+    isMain: boolean
+    hasFollowUps: boolean
+    t: (key: string) => string
     clickableHref?: string | null
+    onCardClick?: () => void
+    onToggleFollowUps?: () => void
+    isFollowUpsOpen?: boolean
 }) => {
     const { date, time } = formatDateForDisplay(reading.created_at)
     const readingType = getReadingType(reading.cards)
     const typeInfo = getReadingTypeInfo(readingType)
-    
-    const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
-        clickableHref ? (
-            <Link href={clickableHref} className="block">
-                {children}
-            </Link>
-        ) : (
-            <div className="block">{children}</div>
-        )
+    const showChevronControl = hasFollowUps && typeof onToggleFollowUps === "function"
+
+    const handleKeyboardActivate = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault()
+            onCardClick?.()
+        }
+    }
+
+    const Wrapper = ({ children }: { children: ReactNode }) => {
+        if (clickableHref && !onCardClick) {
+            return (
+                <Link
+                    href={clickableHref}
+                    className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-xl"
+                >
+                    {children}
+                </Link>
+            )
+        }
+
+        if (onCardClick) {
+            return (
+                <div
+                    role="link"
+                    tabIndex={0}
+                    onClick={() => onCardClick()}
+                    onKeyDown={handleKeyboardActivate}
+                    className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-xl"
+                >
+                    {children}
+                </div>
+            )
+        }
+
+        return <div className="block">{children}</div>
+    }
+
+    const handleToggleClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
+        event.preventDefault()
+        event.stopPropagation()
+        onToggleFollowUps?.()
+    }
 
     return (
         <Wrapper>
-            <Card className={`
-                group/card relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/10
-                ${isMain ? 'bg-gradient-to-br from-card/60 to-card/30 backdrop-blur-sm border-border/30' : 'bg-card/40 backdrop-blur-sm border-border/20'}
-                ${hasFollowUps ? 'cursor-pointer' : ''}
-                bg-gradient-to-br from-slate-900/30 to-slate-800/20 z-10
-            `}>
+            <Card
+                className={cn(
+                    "group/card relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/10 bg-gradient-to-br from-slate-900/30 to-slate-800/20 z-10",
+                    isMain
+                        ? "bg-gradient-to-br from-card/60 to-card/30 backdrop-blur-sm border-border/30"
+                        : "bg-card/40 backdrop-blur-sm border-border/20",
+                    (hasFollowUps || clickableHref || onCardClick) && "cursor-pointer",
+                    isFollowUpsOpen && "border-primary/40 shadow-primary/10"
+                )}
+            >
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
-                
+
                 {/* Date and Time badges positioned at top left (billing page style) */}
                 <div className="absolute top-3 left-3 flex space-x-2">
                     <Badge
                         variant="outline"
-                        className={`bg-gradient-to-r from-yellow-400/20 to-orange-500/20 text-yellow-200 border-yellow-400/40 text-xs font-medium shadow-lg shadow-yellow-400/20 backdrop-blur-sm hover:from-yellow-400/30 hover:to-orange-500/30 transition-all duration-300`}
+                        className={"bg-gradient-to-r from-yellow-400/20 to-orange-500/20 text-yellow-200 border-yellow-400/40 text-xs font-medium shadow-lg shadow-yellow-400/20 backdrop-blur-sm hover:from-yellow-400/30 hover:to-orange-500/30 transition-all duration-300"}
                     >
                         {date}
                     </Badge>
                     <Badge
                         variant="outline"
-                        className={`bg-gradient-to-r from-purple-400/20 to-pink-500/20 text-purple-200 border-purple-400/40 text-xs font-medium shadow-lg shadow-purple-400/20 backdrop-blur-sm hover:from-purple-400/30 hover:to-pink-500/30 transition-all duration-300`}
+                        className={"bg-gradient-to-r from-purple-400/20 to-pink-500/20 text-purple-200 border-purple-400/40 text-xs font-medium shadow-lg shadow-purple-400/20 backdrop-blur-sm hover:from-purple-400/30 hover:to-pink-500/30 transition-all duration-300"}
                     >
                         {time}
                     </Badge>
@@ -143,7 +195,7 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps, t, clickableHref
                         {typeInfo.label}
                     </Badge>
                 </div>
-                
+
                 <CardContent className="relative px-4 pt-8 pb-2">
                     <div className="flex items-start gap-4">
                         {/* Single card image */}
@@ -151,8 +203,8 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps, t, clickableHref
                             {reading.cards && reading.cards.length > 0 && (() => {
                                 const firstCard = reading.cards[0]
                                 const cleanName = cleanCardName(firstCard)
-                                const isReversed = firstCard.toLowerCase().includes('reversed')
-                                
+                                const isReversed = firstCard.toLowerCase().includes("reversed")
+
                                 return (
                                     <div className="relative w-12 rounded-lg overflow-hidden border border-border/30 shadow-lg group-hover/card:scale-110 transition-transform duration-300">
                                         <Image
@@ -160,31 +212,26 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps, t, clickableHref
                                             alt={firstCard}
                                             width={48}
                                             height={0}
-                                            className={`w-full h-auto object-cover transition-transform duration-300 ${
-                                                isReversed ? "rotate-180" : ""
-                                            }`}
+                                            className={cn(
+                                                "w-full h-auto object-cover transition-transform duration-300",
+                                                isReversed && "rotate-180"
+                                            )}
                                         />
                                     </div>
                                 )
                             })()}
                         </div>
-                        
+
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                             {/* Card badges above the question - Swiper */}
                             {reading.cards && reading.cards.length > 0 && (
                                 <div className="mb-2 w-full">
-                                    <Swiper
-                                        modules={[FreeMode]}
-                                        freeMode={true}
-                                        slidesPerView="auto"
-                                        spaceBetween={4}
-                                        className="w-full"
-                                    >
+                                    <Swiper modules={[FreeMode]} freeMode={true} slidesPerView="auto" spaceBetween={4} className="w-full">
                                         {reading.cards.map((card, index) => (
                                             <SwiperSlide key={index} className="!w-auto">
-                                                <Badge 
-                                                    variant="secondary" 
+                                                <Badge
+                                                    variant="secondary"
                                                     className="text-xs bg-white/90 text-gray-800 border-white/50 hover:bg-white transition-colors shadow-lg backdrop-blur-sm whitespace-nowrap"
                                                 >
                                                     {card}
@@ -194,30 +241,37 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps, t, clickableHref
                                     </Swiper>
                                 </div>
                             )}
-                            
+
                             <div className="flex items-start justify-between gap-4 mb-2">
                                 <div className="flex items-center gap-2 min-w-0">
                                     <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300 line-clamp-1">
-                                        {question || t('noQuestion')}
+                                        {question || t("noQuestion")}
                                     </h3>
                                 </div>
-                                {/* Chevron control inside the trigger row for groups */}
-                                {hasFollowUps && !clickableHref && (
-                                    <div className="flex-shrink-0 self-center">
-                                        <ChevronDown className="w-5 h-5 text-muted-foreground group-hover/card:text-primary transition-colors duration-300" />
-                                    </div>
+                                {showChevronControl && (
+                                    <button
+                                        type="button"
+                                        onClick={handleToggleClick}
+                                        aria-label="Toggle follow-up interpretations"
+                                        aria-expanded={isFollowUpsOpen}
+                                        className="flex-shrink-0 self-center rounded-full p-1 text-muted-foreground transition-colors duration-300 hover:bg-white/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                                    >
+                                        <ChevronDown
+                                            className={cn(
+                                                "w-5 h-5 transition-transform duration-300",
+                                                isFollowUpsOpen && "rotate-180 text-primary"
+                                            )}
+                                        />
+                                    </button>
                                 )}
                             </div>
-                            
-                                        {/* Interpretation preview */}
-                                        {reading.interpretation && (
-                                            <p className="text-muted-foreground/80 text-sm line-clamp-2 leading-relaxed">
-                                                {reading.interpretation}
-                                            </p>
-                                        )}
+
+                            {reading.interpretation && (
+                                <p className="text-muted-foreground/80 text-sm line-clamp-2 leading-relaxed">
+                                    {reading.interpretation}
+                                </p>
+                            )}
                         </div>
-                        
-                        {/* Relying on in-row chevron above; built-in indicator disabled on trigger */}
                     </div>
                 </CardContent>
             </Card>
@@ -228,6 +282,7 @@ const ReadingCard = ({ reading, question, isMain, hasFollowUps, t, clickableHref
 export default function ReadingHistory() {
     const { user } = useAuth()
     const t = useTranslations('ReadingHistory')
+    const router = useRouter()
     const [loading, setLoading] = useState(true)
     const [readings, setReadings] = useState<ReadingRow[]>([])
     const [error, setError] = useState<string | null>(null)
@@ -241,6 +296,18 @@ export default function ReadingHistory() {
     const [filterType, setFilterType] = useState<"all" | "today" | "week" | "month" | "custom">("all")
     const [readingTypeFilter, setReadingTypeFilter] = useState<"all" | "simple" | "intermediate" | "advanced">("all")
     const observerRef = useRef<HTMLDivElement>(null)
+    const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
+
+    const toggleGroup = useCallback((groupKey: string) => {
+        setExpandedGroups((prev) => ({
+            ...prev,
+            [groupKey]: !prev[groupKey],
+        }))
+    }, [])
+
+    const navigateToReading = useCallback((id: string) => {
+        router.push(`/tarot/${id}`)
+    }, [router])
 
     useEffect(() => {
         let isMounted = true
@@ -331,6 +398,10 @@ export default function ReadingHistory() {
     // Reset pagination when filtered readings change
     useEffect(() => {
         setDisplayedGroupCount(10)
+    }, [filteredReadings])
+
+    useEffect(() => {
+        setExpandedGroups({})
     }, [filteredReadings])
 
     // Load more groups function
@@ -579,63 +650,58 @@ export default function ReadingHistory() {
 
         const entries = groupList
             .slice(0, displayedGroupCount)
-            .map((g) => [g.question, g.items] as const)
+            .map((g) => ({
+                key: g.key,
+                question: g.question,
+                items: g.items,
+            }))
+
         return (
             <div className='space-y-6'>
-                {entries.map(([question, items]) => {
+                {entries.map(({ key: groupKey, question, items }) => {
                     const sorted = items.slice().sort((a, b) => a.created_at.localeCompare(b.created_at))
                     const main = sorted[0]
                     const followUps = sorted.slice(1)
                     const hasFollowUps = followUps.length > 0
+                    const isExpanded = !!expandedGroups[groupKey]
 
                     return (
-                        <div key={question} className='group'>
-                            {hasFollowUps ? (
-                                <Accordion className="w-full">
-                                    <AccordionItem className="border-none">
-                                        <AccordionTrigger className="hover:no-underline p-0" showIndicator={false}>
-                                            <ReadingCard 
-                                                reading={main} 
-                                                question={question}
-                                                isMain={true}
-                                                hasFollowUps={true}
+                        <div key={groupKey} className='group space-y-4'>
+                            <ReadingCard
+                                reading={main}
+                                question={question}
+                                isMain={true}
+                                hasFollowUps={hasFollowUps}
+                                t={t}
+                                clickableHref={hasFollowUps ? null : `/tarot/${main.id}`}
+                                onCardClick={hasFollowUps ? () => navigateToReading(main.id) : undefined}
+                                onToggleFollowUps={hasFollowUps ? () => toggleGroup(groupKey) : undefined}
+                                isFollowUpsOpen={hasFollowUps ? isExpanded : false}
+                            />
+
+                            {hasFollowUps && isExpanded && (
+                                <div className="pt-4">
+                                    <div className='space-y-3 pl-4 border-l-2 border-primary/20'>
+                                        {followUps.map((fu) => (
+                                            <ReadingCard
+                                                key={fu.id}
+                                                reading={fu}
+                                                question="Follow-up"
+                                                isMain={false}
+                                                hasFollowUps={false}
                                                 t={t}
-                                                clickableHref={null}
+                                                clickableHref={`/tarot/${fu.id}`}
                                             />
-                                        </AccordionTrigger>
-                                        <AccordionContent className="pt-4">
-                                            <div className='space-y-3 pl-4 border-l-2 border-primary/20'>
-                                                {followUps.map((fu) => (
-                                                    <ReadingCard 
-                                                        key={fu.id} 
-                                                        reading={fu} 
-                                                        question="Follow-up"
-                                                        isMain={false}
-                                                        hasFollowUps={false}
-                                                        t={t}
-                                                        clickableHref={`/tarot/${fu.id}`}
-                                                    />
-                                                ))}
-                                            </div>
-                                        </AccordionContent>
-                                    </AccordionItem>
-                                </Accordion>
-                            ) : (
-                                <ReadingCard 
-                                    reading={main} 
-                                    question={question}
-                                    isMain={true}
-                                    hasFollowUps={false}
-                                    t={t}
-                                    clickableHref={`/tarot/${main.id}`}
-                                />
+                                        ))}
+                                    </div>
+                                </div>
                             )}
                         </div>
                     )
                 })}
             </div>
         )
-    }, [user, loading, filteredReadings, displayedGroupCount, error, searchQuery, t])
+    }, [user, loading, filteredReadings, displayedGroupCount, error, searchQuery, t, expandedGroups, navigateToReading, toggleGroup])
 
     return (
         <div className='max-w-4xl mx-auto w-full px-4 py-8'>
