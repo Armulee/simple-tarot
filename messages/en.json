@@ -378,10 +378,9 @@
         "description": "Numbers that reflect our commitment to mystical excellence",
         "growing": "Realtime data",
         "items": [
-          { "key": "profiles", "label": "Early users" },
-          { "key": "interpretations", "label": "AI interpretations" },
-          { "key": "followUps", "label": "Follow-up journeys" },
-          { "key": "revisions", "label": "Interpretation revisions" }
+          { "key": "totalUsers", "label": "Total players" },
+          { "key": "profiles", "label": "Registered users" },
+          { "key": "interpretations", "label": "AI interpretations" }
         ]
       },
     "CTA": {

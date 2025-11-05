@@ -8,13 +8,7 @@ import {
     useCallback,
     useMemo,
 } from "react"
-import {
-    TrendingUp,
-    Users,
-    Sparkles,
-    GitBranch,
-    RefreshCw,
-} from "lucide-react"
+import { TrendingUp, Users, Sparkles } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 
 type StatConfig = {
@@ -25,17 +19,15 @@ type StatConfig = {
 type StatsResponse = Record<string, number>
 
 const iconByKey: Record<string, typeof TrendingUp> = {
-    profiles: Users,
+    totalUsers: Users,
+    profiles: TrendingUp,
     interpretations: Sparkles,
-    followUps: GitBranch,
-    revisions: RefreshCw,
 }
 
 const colorByKey: Record<string, string> = {
-    profiles: "from-blue-500 to-cyan-500",
+    totalUsers: "from-blue-500 to-cyan-500",
+    profiles: "from-emerald-500 to-teal-500",
     interpretations: "from-purple-500 to-pink-500",
-    followUps: "from-emerald-500 to-teal-500",
-    revisions: "from-amber-500 to-orange-500",
 }
 
 export default function StatisticsSection() {
@@ -126,7 +118,7 @@ export default function StatisticsSection() {
             )
             .on(
                 "postgres_changes",
-                { event: "*", schema: "public", table: "tarot_versions" },
+                { event: "*", schema: "public", table: "stars" },
                 scheduleRefresh
             )
             .subscribe()

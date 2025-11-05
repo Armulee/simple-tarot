@@ -7,18 +7,24 @@ export async function GET() {
     if (!supabaseAdmin) {
         return NextResponse.json(
             {
+                totalUsers: 0,
                 profiles: 0,
                 interpretations: 0,
-                followUps: 0,
-                revisions: 0,
             },
             { status: 200 }
         )
     }
 
     try {
-        const [profiles, interpretations, followUps, revisions] =
+        const [totalUsers, profiles, interpretations] =
             await Promise.all([
+                (async () => {
+                    const { count, error } = await supabaseAdmin
+                        .from("stars")
+                        .select("*", { count: "exact", head: true })
+                    if (error) throw error
+                    return count ?? 0
+                })(),
                 (async () => {
                     const { count, error } = await supabaseAdmin
                         .from("profiles")
@@ -34,25 +40,10 @@ export async function GET() {
                     if (error) throw error
                     return count ?? 0
                 })(),
-                (async () => {
-                    const { count, error } = await supabaseAdmin
-                        .from("tarot_readings")
-                        .select("*", { count: "exact", head: true })
-                        .not("parent_id", "is", null)
-                    if (error) throw error
-                    return count ?? 0
-                })(),
-                (async () => {
-                    const { count, error } = await supabaseAdmin
-                        .from("tarot_versions")
-                        .select("*", { count: "exact", head: true })
-                    if (error) throw error
-                    return count ?? 0
-                })(),
             ])
 
         return NextResponse.json(
-            { profiles, interpretations, followUps, revisions },
+            { totalUsers, profiles, interpretations },
             { status: 200 }
         )
     } catch (error) {

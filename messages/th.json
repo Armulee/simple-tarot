@@ -337,10 +337,9 @@
         "description": "ตัวเลขที่สะท้อนความมุ่งมั่นของเราต่อความเป็นเลิศด้านลี้ลับ",
         "growing": "ข้อมูลเรียลไทม์",
         "items": [
-          {"key": "profiles", "label": "ผู้ใช้ช่วงแรก"},
-          {"key": "interpretations", "label": "คำทำนาย AI"},
-          {"key": "followUps", "label": "การอ่านต่อเนื่อง"},
-          {"key": "revisions", "label": "ฉบับปรับแต่งการตีความ"}
+          {"key": "totalUsers", "label": "ผู้เล่นทั้งหมด"},
+          {"key": "profiles", "label": "ผู้ใช้ที่ลงทะเบียน"},
+          {"key": "interpretations", "label": "คำทำนาย AI"}
         ]
       },
     "CTA": {
