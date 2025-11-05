@@ -376,7 +376,7 @@
         "title": "Quick stats",
         "label": "Our Impact",
         "description": "Numbers that reflect our commitment to mystical excellence",
-        "growing": "Updated live from Supabase",
+        "growing": "Realtime data",
         "items": [
           { "key": "profiles", "label": "Early users" },
           { "key": "interpretations", "label": "AI interpretations" },
