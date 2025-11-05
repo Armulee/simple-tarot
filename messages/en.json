@@ -265,7 +265,7 @@
           ]
         },
         "horoscope": {
-          "title": "Daily Horoscope 2.0",
+          "title": "Horoscope",
           "eta": "December 12, 2025",
           "features": [
             "Transit forecasts from your birth data and target dates",

@@ -129,6 +129,11 @@ export default function RoadmapSection() {
                         const isInDevelopment =
                             phase.status === t("status.inDevelopment")
                         const isPlanned = phase.status === t("status.planned")
+                        const statusStyle = isCompleted
+                            ? "bg-green-500/20 text-green-200 border border-green-400/40"
+                            : isInDevelopment
+                              ? "bg-blue-500/20 text-blue-200 border border-blue-400/40"
+                              : "bg-amber-500/20 text-amber-200 border border-amber-400/40"
 
                         return (
                             <div
@@ -178,6 +183,14 @@ export default function RoadmapSection() {
                                     ${hoveredItem === index ? `shadow-2xl ${phase.glowColor}` : "shadow-lg"}
                                 `}
                                 >
+                                  <div className='absolute top-6 right-6'>
+                                      <span
+                                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase ${statusStyle}`}
+                                      >
+                                          {phase.status}
+                                      </span>
+                                  </div>
+
                                     {/* Animated background gradient */}
                                     <div
                                         className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${phase.color} opacity-0 hover:opacity-5 transition-opacity duration-500`}
@@ -186,40 +199,18 @@ export default function RoadmapSection() {
                                     {/* Header */}
                                     <div className='relative flex items-start justify-between mb-6'>
                                         <div className='flex-1'>
-                                            <div className='flex items-center gap-3 mb-2'>
-                                                <span className='text-sm font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full border border-accent/20'>
-                                                    {phase.phase}
-                                                </span>
-                                                <ArrowRight className='w-4 h-4 text-gray-500' />
-                                                <span className='text-lg font-bold text-white'>
-                                                    {phase.title}
-                                                </span>
-                                            </div>
+                                          <div className='flex items-center gap-3 mb-2'>
+                                              <span className='text-lg font-bold text-white'>
+                                                  {phase.title}
+                                              </span>
+                                          </div>
 
-                                            {/* Status and ETA */}
-                                            <div className='flex items-center gap-4'>
-                                                <span
-                                                    className={`
-                                                    px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-300
-                                                    ${
-                                                        isCompleted
-                                                            ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                                                            : isInDevelopment
-                                                              ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                                                              : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                                                    }
-                                                `}
-                                                >
-                                                    {phase.status}
-                                                </span>
-
-                                                {phase.eta && (
-                                                    <span className='text-sm text-gray-400 flex items-center gap-1'>
-                                                        <Calendar className='w-4 h-4' />
-                                                        {t("eta")}: {phase.eta}
-                                                    </span>
-                                                )}
-                                            </div>
+                                          {phase.eta && (
+                                              <div className='flex items-center gap-2 text-sm text-gray-400'>
+                                                  <Calendar className='w-4 h-4' />
+                                                  {t("eta")}: {phase.eta}
+                                              </div>
+                                          )}
                                         </div>
                                     </div>
 
