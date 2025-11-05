@@ -240,7 +240,7 @@
       }
     },
       "Roadmap": {
-        "title": "Roadmap (expected dates)",
+        "title": "Roadmap",
         "label": "Development Roadmap",
         "description": "Our journey to bring you the most comprehensive mystical experience",
         "progress": "Progress",
@@ -259,7 +259,7 @@
           "title": "Birth Chart Launch",
           "eta": "December 12, 2025",
           "features": [
-            "Precise natal chart from your birth date and time",
+            "Snapshot stats from your personal birth chart",
             "Planet positions and aspect angles mapped to strengths",
             "Ask follow-up questions about traits and life stats"
           ]

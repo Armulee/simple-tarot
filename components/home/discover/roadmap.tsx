@@ -1,13 +1,6 @@
 "use client"
 
-import {
-    CheckCircle,
-    Clock,
-    Target,
-    Sparkles,
-    Calendar,
-    ArrowRight,
-} from "lucide-react"
+import { Calendar } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useState, useEffect } from "react"
 
@@ -193,29 +186,19 @@ export default function RoadmapSection() {
                                 <div className='absolute left-6 top-8 w-4 h-4 bg-gradient-to-r from-gray-800 to-gray-900 rounded-full border-2 border-gray-600 z-10'></div>
 
                                 {/* Timeline dot with status */}
-                                <div
-                                    className={`
-                                    absolute left-6 top-6 w-6 h-6 rounded-full border-2 z-20 transition-all duration-300 flex items-center justify-center
-                                    ${
-                                        isCompleted
-                                            ? "bg-green-500 border-green-400 shadow-lg shadow-green-500/30"
-                                            : isInDevelopment
-                                              ? "bg-blue-500 border-blue-400 shadow-lg shadow-blue-500/30 animate-pulse"
-                                              : "bg-gray-500 border-gray-400"
-                                    }
-                                    ${hoveredItem === index ? "scale-125" : ""}
-                                `}
-                                >
-                                    {isCompleted && (
-                                        <CheckCircle className='w-3.5 h-3.5 text-white' />
-                                    )}
-                                    {isInDevelopment && (
-                                        <Clock className='w-3.5 h-3.5 text-white' />
-                                    )}
-                                    {isPlanned && (
-                                        <Target className='w-3.5 h-3.5 text-white' />
-                                    )}
-                                </div>
+                                  <div
+                                      className={`
+                                      absolute left-6 top-6 w-6 h-6 rounded-full border-2 z-20 transition-all duration-300
+                                      ${
+                                          isCompleted
+                                              ? "bg-green-500 border-green-400 shadow-lg shadow-green-500/30"
+                                              : isInDevelopment
+                                                ? "bg-blue-500 border-blue-400 shadow-lg shadow-blue-500/30 animate-pulse"
+                                                : "bg-gray-500 border-gray-400"
+                                      }
+                                      ${hoveredItem === index ? "scale-125" : ""}
+                                  `}
+                                  ></div>
 
                                 {/* Content card */}
                                 <div
@@ -226,7 +209,7 @@ export default function RoadmapSection() {
                                     ${hoveredItem === index ? `shadow-2xl ${phase.glowColor}` : "shadow-lg"}
                                 `}
                                 >
-                                  <div className='absolute left-6 top-1/2 -translate-y-1/2'>
+                                  <div className='absolute left-6 -top-3'>
                                       <span
                                           className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase ${statusStyle}`}
                                       >
@@ -258,29 +241,16 @@ export default function RoadmapSection() {
                                     </div>
 
                                     {/* Features grid */}
-                                    <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-                                        {phase.features.map(
-                                            (feature, featureIndex) => (
-                                                <div
-                                                    key={featureIndex}
-                                                    className='flex items-start space-x-3 group'
-                                                >
-                                                    <div
-                                                        className={`
-                                                    w-6 h-6 rounded-full bg-gradient-to-r ${phase.color} 
-                                                    flex items-center justify-center flex-shrink-0 mt-0.5
-                                                    group-hover:scale-110 transition-transform duration-300
-                                                `}
-                                                    >
-                                                        <Sparkles className='w-3 h-3 text-white' />
-                                                    </div>
-                                                    <span className='text-gray-300 text-sm leading-relaxed group-hover:text-white transition-colors duration-300'>
-                                                        {feature}
-                                                    </span>
-                                                </div>
-                                            )
-                                        )}
-                                    </div>
+                                      <div className='space-y-3'>
+                                          {phase.features.map((feature, featureIndex) => (
+                                              <div
+                                                  key={featureIndex}
+                                                  className='bg-gray-800/40 border border-gray-700/40 rounded-xl p-4 text-left text-sm text-gray-300 leading-relaxed hover:border-primary/40 transition-colors duration-300'
+                                              >
+                                                  {feature}
+                                              </div>
+                                          ))}
+                                      </div>
 
                                       {/* Progress indicator */}
                                       <div className='mt-6'>
