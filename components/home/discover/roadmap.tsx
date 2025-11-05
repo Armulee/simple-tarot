@@ -15,9 +15,14 @@ export default function RoadmapSection() {
     const t = useTranslations("HomeDiscover.Roadmap")
     const [isVisible, setIsVisible] = useState(false)
     const [hoveredItem, setHoveredItem] = useState<number | null>(null)
+    const [currentDate, setCurrentDate] = useState(() => new Date())
 
     useEffect(() => {
         setIsVisible(true)
+        const interval = setInterval(() => {
+            setCurrentDate(new Date())
+        }, 1000 * 60 * 60)
+        return () => clearInterval(interval)
     }, [])
 
     const roadmap = [
@@ -29,6 +34,8 @@ export default function RoadmapSection() {
             features: t.raw("birthChart.features") as string[],
             color: "from-indigo-500 to-sky-500",
             glowColor: "shadow-indigo-500/20",
+            startDate: "2025-07-01",
+            targetDate: "2025-12-12",
         },
         {
             phase: t("phases.dec_2025"),
@@ -38,6 +45,8 @@ export default function RoadmapSection() {
             features: t.raw("horoscope.features") as string[],
             color: "from-fuchsia-500 to-rose-500",
             glowColor: "shadow-fuchsia-500/20",
+            startDate: "2025-07-01",
+            targetDate: "2025-12-12",
         },
         {
             phase: t("phases.jan_2026"),
@@ -47,6 +56,8 @@ export default function RoadmapSection() {
             features: t.raw("namelogy.features") as string[],
             color: "from-amber-500 to-orange-500",
             glowColor: "shadow-amber-500/20",
+            startDate: "2025-09-15",
+            targetDate: "2026-01-15",
         },
         {
             phase: t("phases.jan_2026"),
@@ -56,6 +67,8 @@ export default function RoadmapSection() {
             features: t.raw("numerology.features") as string[],
             color: "from-emerald-500 to-teal-500",
             glowColor: "shadow-emerald-500/20",
+            startDate: "2025-09-15",
+            targetDate: "2026-01-15",
         },
         {
             phase: t("phases.jan_2026"),
@@ -65,6 +78,8 @@ export default function RoadmapSection() {
             features: t.raw("luckyColors.features") as string[],
             color: "from-cyan-500 to-blue-500",
             glowColor: "shadow-cyan-500/20",
+            startDate: "2025-10-01",
+            targetDate: "2026-01-20",
         },
         {
             phase: t("phases.q1_2026"),
@@ -74,6 +89,8 @@ export default function RoadmapSection() {
             features: t.raw("mobileApp.features") as string[],
             color: "from-purple-500 to-indigo-500",
             glowColor: "shadow-purple-500/20",
+            startDate: "2025-11-01",
+            targetDate: "2026-03-31",
         },
         {
             phase: t("phases.q1_2026"),
@@ -83,6 +100,8 @@ export default function RoadmapSection() {
             features: t.raw("fatedRelations.features") as string[],
             color: "from-pink-500 to-red-500",
             glowColor: "shadow-pink-500/20",
+            startDate: "2025-11-15",
+            targetDate: "2026-03-31",
         },
         {
             phase: t("phases.mar_2026"),
@@ -92,6 +111,8 @@ export default function RoadmapSection() {
             features: t.raw("palmistry.features") as string[],
             color: "from-slate-500 to-violet-500",
             glowColor: "shadow-violet-500/20",
+            startDate: "2026-01-01",
+            targetDate: "2026-03-31",
         },
     ]
 
@@ -134,6 +155,28 @@ export default function RoadmapSection() {
                             : isInDevelopment
                               ? "bg-blue-500/20 text-blue-200 border border-blue-400/40"
                               : "bg-amber-500/20 text-amber-200 border border-amber-400/40"
+                        const start = new Date(phase.startDate ?? "")
+                        const target = new Date(phase.targetDate ?? "")
+                        let progressValue = 0
+                        if (isCompleted) {
+                            progressValue = 100
+                        } else if (
+                            !Number.isNaN(start.valueOf()) &&
+                            !Number.isNaN(target.valueOf()) &&
+                            start < target
+                        ) {
+                            if (currentDate <= start) {
+                                progressValue = 0
+                            } else if (currentDate >= target) {
+                                progressValue = 100
+                            } else {
+                                progressValue = Math.round(
+                                    ((currentDate.getTime() - start.getTime()) /
+                                        (target.getTime() - start.getTime())) * 100
+                                )
+                            }
+                        }
+                        progressValue = Math.max(0, Math.min(100, progressValue))
 
                         return (
                             <div
@@ -239,27 +282,19 @@ export default function RoadmapSection() {
                                         )}
                                     </div>
 
-                                    {/* Progress indicator */}
-                                    <div className='mt-6'>
-                                        <div className='flex items-center justify-between text-sm text-gray-400 mb-2'>
-                                            <span>{t("progress")}</span>
-                                            <span>
-                                                {isCompleted
-                                                    ? "100%"
-                                                    : isInDevelopment
-                                                      ? "50%"
-                                                      : "0%"}
-                                            </span>
-                                        </div>
-                                        <div className='w-full bg-gray-700/50 rounded-full h-2 overflow-hidden'>
-                                            <div
-                                                className={`
-                                                h-full bg-gradient-to-r ${phase.color} rounded-full transition-all duration-1000
-                                                ${isCompleted ? "w-full" : isInDevelopment ? "w-1/2" : "w-0"}
-                                            `}
-                                            ></div>
-                                        </div>
-                                    </div>
+                                      {/* Progress indicator */}
+                                      <div className='mt-6'>
+                                          <div className='flex items-center justify-between text-sm text-gray-400 mb-2'>
+                                              <span>{t("progress")}</span>
+                                              <span>{progressValue}%</span>
+                                          </div>
+                                          <div className='w-full bg-gray-700/50 rounded-full h-2 overflow-hidden'>
+                                              <div
+                                                  className={`h-full bg-gradient-to-r ${phase.color} rounded-full transition-all duration-1000`}
+                                                  style={{ width: `${progressValue}%` }}
+                                              ></div>
+                                          </div>
+                                      </div>
 
                                     {/* Hover effect overlay */}
                                     <div className='absolute inset-0 rounded-2xl bg-gradient-to-br from-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none'></div>
