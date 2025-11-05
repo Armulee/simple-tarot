@@ -226,7 +226,7 @@ export default function RoadmapSection() {
                                     ${hoveredItem === index ? `shadow-2xl ${phase.glowColor}` : "shadow-lg"}
                                 `}
                                 >
-                                  <div className='absolute top-6 right-6'>
+                                  <div className='absolute left-6 top-1/2 -translate-y-1/2'>
                                       <span
                                           className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase ${statusStyle}`}
                                       >
