@@ -42,8 +42,12 @@ export default function Interpretation({
 }: ReadingProps) {
     const t = useTranslations("ReadingPage.interpretation")
     const { user } = useAuth()
-    const { isFollowUp } = useTarot()
-    const [interpretation, setInterpretation] = useState<string | null>(
+    const {
+        isFollowUp,
+        setInterpretation: setContextInterpretation,
+        setQuestion: setContextQuestion,
+    } = useTarot()
+    const [interpretation, setInterpretationState] = useState<string | null>(
         initialInterpretation ?? null
     )
     const [isGenerating, setIsGenerating] = useState(false)
@@ -59,7 +63,7 @@ export default function Interpretation({
     const { completion, complete } = useCompletion({
         api: "/api/interpret-cards/question",
         onFinish: async (_, completion) => {
-            setInterpretation(completion)
+            setInterpretationState(completion)
             setIsGenerating(false)
             try {
                 const saveKey =
@@ -92,6 +96,25 @@ export default function Interpretation({
             } catch {}
         },
     })
+
+    useEffect(() => {
+        if (typeof question === "string") {
+            setContextQuestion(question)
+        }
+    }, [question, setContextQuestion])
+
+    useEffect(() => {
+        const normalizedCurrent =
+            typeof interpretation === "string" && interpretation.trim().length > 0
+                ? interpretation
+                : null
+        const normalizedInitial =
+            typeof initialInterpretation === "string" &&
+            initialInterpretation.trim().length > 0
+                ? initialInterpretation
+                : null
+        setContextInterpretation(normalizedCurrent ?? normalizedInitial ?? null)
+    }, [interpretation, initialInterpretation, setContextInterpretation])
 
     useEffect(() => {
         const checkOwnership = async () => {
@@ -388,7 +411,7 @@ Output:
                         interpretation={interpretation}
                         readingId={readingId!}
                         onInterpretationChange={(text) =>
-                            setInterpretation(text)
+                            setInterpretationState(text)
                         }
                         onGeneratingChange={(loading) =>
                             setIsGenerating(loading)
