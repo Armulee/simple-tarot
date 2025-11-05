@@ -329,66 +329,61 @@
         },
         "eta": "ETA"
       },
-    "Technology": {
-      "title": "Technology & Innovation",
-      "label": "Cutting-Edge Technology",
-      "description": "Powered by the latest technology to deliver accurate and meaningful insights",
-      "aiPowered": {
-        "title": "AI-Powered",
-        "desc": "Advanced machine learning algorithms provide personalized and accurate readings",
-        "features": ["Advanced AI", "Machine Learning", "Natural Language Processing"]
-      },
-      "securePrivate": {
-        "title": "Secure & Private",
-        "desc": "End-to-end encryption ensures your personal data and readings remain confidential",
-        "features": ["End-to-End Encryption", "Privacy First", "Secure Storage"]
-      },
-      "globalAccess": {
-        "title": "Global Access",
-        "desc": "Available worldwide with multi-language support and cultural adaptations",
-        "features": ["Worldwide Access", "Multi-Language", "Cloud Infrastructure"]
-      },
-      "stack": {
-        "title": "Built with Modern Stack",
-        "desc": "Leveraging cutting-edge technologies for optimal performance",
-        "items": ["Supabase", "Security", "Real-time", "AI/ML"]
-      }
-    },
-    "Testimonials": {
-      "title": "What Our Users Say",
-      "label": "User Testimonials",
-      "description": "Hear what our users have to say about their mystical journey",
-      "autoPlay": {
-        "autoPlaying": "Auto-playing",
-        "clickToAutoPlay": "Click to auto-play"
-      },
-      "items": [
-        {
-          "quote": "I use it most mornings to set an intention. It helps me start the day a bit more grounded.",
-          "author": "Yui",
-          "role": "Early user",
-          "initial": "Y"
+      "Technology": {
+        "title": "Technology & Innovation",
+        "label": "Cutting-Edge Technology",
+        "description": "Powered by the latest technology to deliver accurate and meaningful insights",
+        "aiPowered": {
+          "title": "AI-Powered",
+          "desc": "Advanced machine learning algorithms provide personalized and accurate readings",
+          "features": ["Advanced AI", "Machine Learning", "Natural Language Processing"]
         },
-        {
-          "quote": "The reflections feel balanced—useful without being pushy. It's become a quiet ritual that helps me think more clearly.",
-          "author": "Daniel",
-          "role": "Early user",
-          "initial": "D"
+        "securePrivate": {
+          "title": "Secure & Private",
+          "desc": "End-to-end encryption ensures your personal data and readings remain confidential",
+          "features": ["End-to-End Encryption", "Privacy First", "Secure Storage"]
+        },
+        "globalAccess": {
+          "title": "Global Access",
+          "desc": "Available worldwide with multi-language support and cultural adaptations",
+          "features": ["Worldwide Access", "Multi-Language", "Cloud Infrastructure"]
         }
-      ]
-    },
-    "Statistics": {
-      "title": "Quick stats",
-      "label": "Our Impact",
-      "description": "Numbers that reflect our commitment to mystical excellence",
-      "growing": "Growing every day",
-      "items": [
-        { "number": "~500", "label": "Early users" },
-        { "number": "Thousands", "label": "Cards drawn" },
-        { "number": "Weekly", "label": "Updates shipped" },
-        { "number": "24/7", "label": "Available" }
-      ]
-    },
+      },
+      "Testimonials": {
+        "title": "What Our Users Say",
+        "label": "User Testimonials",
+        "description": "Hear what our users have to say about their mystical journey",
+        "autoPlay": {
+          "autoPlaying": "Auto-playing",
+          "clickToAutoPlay": "Click to auto-play"
+        },
+        "items": [
+          {
+            "quote": "I use it most mornings to set an intention. It helps me start the day a bit more grounded.",
+            "author": "Yui",
+            "role": "Early user",
+            "initial": "Y"
+          },
+          {
+            "quote": "The reflections feel balanced—useful without being pushy. It's become a quiet ritual that helps me think more clearly.",
+            "author": "Daniel",
+            "role": "Early user",
+            "initial": "D"
+          }
+        ]
+      },
+      "Statistics": {
+        "title": "Quick stats",
+        "label": "Our Impact",
+        "description": "Numbers that reflect our commitment to mystical excellence",
+        "growing": "Updated live from Supabase",
+        "items": [
+          { "key": "profiles", "label": "Early users" },
+          { "key": "interpretations", "label": "AI interpretations" },
+          { "key": "followUps", "label": "Follow-up journeys" },
+          { "key": "revisions", "label": "Interpretation revisions" }
+        ]
+      },
     "CTA": {
       "title": "Ready to Begin Your Journey?",
       "label": "Ready to Begin?",

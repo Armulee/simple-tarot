@@ -1,6 +1,6 @@
 "use client"
 
-import { Zap, Shield, Globe, Cpu, Database, Lock, Wifi } from "lucide-react"
+import { Zap, Shield, Globe, Cpu } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useState, useEffect } from "react"
 
@@ -166,66 +166,6 @@ export default function TechnologySection() {
                 })}
             </div>
 
-            {/* Additional tech stack showcase */}
-            <div
-                className={`mt-16 transition-all duration-1000 delay-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
-            >
-                <div className='bg-gradient-to-r from-gray-800/30 to-gray-900/30 backdrop-blur-xl border border-gray-700/30 rounded-2xl p-8'>
-                    <div className='text-center mb-8'>
-                        <h3 className='text-2xl font-bold text-white mb-2'>
-                            {t("stack.title")}
-                        </h3>
-                        <p className='text-gray-400'>{t("stack.desc")}</p>
-                    </div>
-
-                    <div className='grid grid-cols-2 md:grid-cols-4 gap-6'>
-                        {[
-                            {
-                                icon: Database,
-                                name: "Supabase",
-                                color: "from-green-400 to-emerald-500",
-                            },
-                            {
-                                icon: Lock,
-                                name: "Security",
-                                color: "from-blue-400 to-cyan-500",
-                            },
-                            {
-                                icon: Wifi,
-                                name: "Real-time",
-                                color: "from-purple-400 to-pink-500",
-                            },
-                            {
-                                icon: Cpu,
-                                name: "AI/ML",
-                                color: "from-orange-400 to-red-500",
-                            },
-                        ].map((item, index) => {
-                            const IconComponent = item.icon
-                            return (
-                                <div key={index} className='text-center group'>
-                                    <div
-                                        className={`
-                                        w-16 h-16 mx-auto mb-3 rounded-xl bg-gradient-to-r ${item.color} 
-                                        flex items-center justify-center shadow-lg group-hover:scale-110 
-                                        transition-all duration-300
-                                    `}
-                                    >
-                                        <IconComponent className='w-8 h-8 text-white' />
-                                    </div>
-                                    <span className='text-sm text-gray-400 group-hover:text-white transition-colors duration-300'>
-                                        {
-                                            (t.raw("stack.items") as string[])[
-                                                index
-                                            ]
-                                        }
-                                    </span>
-                                </div>
-                            )
-                        })}
-                    </div>
-                </div>
-            </div>
         </div>
     )
 }
