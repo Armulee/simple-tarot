@@ -239,47 +239,96 @@
         }
       }
     },
-    "Roadmap": {
-      "title": "Roadmap (expected dates)",
-      "label": "Development Roadmap",
-      "description": "Our journey to bring you the most comprehensive mystical experience",
-      "progress": "Progress",
-      "status": {
-        "completed": "Completed",
-        "inDevelopment": "In Development",
-        "planned": "Planned"
+      "Roadmap": {
+        "title": "Roadmap (expected dates)",
+        "label": "Development Roadmap",
+        "description": "Our journey to bring you the most comprehensive mystical experience",
+        "progress": "Progress",
+        "status": {
+          "completed": "Completed",
+          "inDevelopment": "In Development",
+          "planned": "Planned"
+        },
+        "phases": {
+          "dec_2025": "December 12, 2025",
+          "jan_2026": "January 2026",
+          "q1_2026": "Q1 2026",
+          "mar_2026": "March 2026"
+        },
+        "birthChart": {
+          "title": "Birth Chart Launch",
+          "eta": "December 12, 2025",
+          "features": [
+            "Interactive natal wheel with house and aspect overlays",
+            "Personalized planet-by-planet guidance",
+            "Shareable PDF summary for every chart"
+          ]
+        },
+        "horoscope": {
+          "title": "Daily Horoscope 2.0",
+          "eta": "December 12, 2025",
+          "features": [
+            "Hyper-personal predictions tied to your birth chart",
+            "Push-ready highlights for love, work, and wellbeing",
+            "Lunar calendar with retrograde alerts"
+          ]
+        },
+        "namelogy": {
+          "title": "Namelogy Insights",
+          "eta": "January 2026",
+          "features": [
+            "Name vibration scoring and life themes",
+            "Compare multiple spellings side by side",
+            "Cultural nicknames and auspicious aliases"
+          ]
+        },
+        "numerology": {
+          "title": "Numerology Decoder",
+          "eta": "January 2026",
+          "features": [
+            "Life path, destiny, and soul number breakdown",
+            "Personal year timeline with monthly highlights",
+            "Compatibility matrix for partners and teams"
+          ]
+        },
+        "luckyColors": {
+          "title": "Lucky Colors Concierge",
+          "eta": "January 2026",
+          "features": [
+            "Daily palette matched to planetary rulers",
+            "Wardrobe and workspace recommendations",
+            "Seasonal color rituals you can try at home"
+          ]
+        },
+        "mobileApp": {
+          "title": "Mobile Application",
+          "eta": "Q1 2026",
+          "features": [
+            "Native iOS and Android launch experience",
+            "Offline vault for saved readings and notes",
+            "Widgets with daily cards and astrology snippets"
+          ]
+        },
+        "fatedRelations": {
+          "title": "Fated Relations",
+          "eta": "Q1 2026",
+          "features": [
+            "Synastry overlays built from both birth charts",
+            "Relationship pulse check with AI guidance",
+            "Shared journal to capture breakthroughs"
+          ]
+        },
+        "palmistry": {
+          "title": "Palmistry Scanner",
+          "eta": "March 2026",
+          "features": [
+            "Photo-based palm line analysis with AI coaching",
+            "Line change tracker across multiple uploads",
+            "Action prompts to anchor your new insights"
+          ]
+        },
+        "eta": "ETA"
       },
-      "phases": {
-        "q4_2025": "Q4 2025",
-        "q1_2026": "Q1 2026"
-      },
-      "teamWorkspaces": {
-        "title": "Team & Workspaces",
-        "eta": "Nov 2025",
-        "features": ["Shared workspaces", "Simple roles"]
-      },
-      "savedReadings": {
-        "title": "Saved Readings & Journal",
-        "eta": "Dec 2025",
-        "features": ["Save readings", "Add notes", "Export"]
-      },
-      "multilanguage": {
-        "title": "Multi‑language (EN/TH)",
-        "eta": "Jan 2026",
-        "features": ["English", "ไทย (beta)"]
-      },
-      "mobileEnhancements": {
-        "title": "Mobile Web Enhancements",
-        "eta": "Feb 2026",
-        "features": ["Faster loads", "Offline-friendly"]
-      },
-      "publicApi": {
-        "title": "Public API (limited beta)",
-        "eta": "Mar 2026",
-        "features": ["Readings API", "Webhooks (beta)"]
-      },
-      "eta": "ETA"
-    },
     "Technology": {
       "title": "Technology & Innovation",
       "label": "Cutting-Edge Technology",
