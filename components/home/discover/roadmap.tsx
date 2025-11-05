@@ -147,7 +147,7 @@ export default function RoadmapSection() {
                                 {/* Timeline dot with status */}
                                 <div
                                     className={`
-                                    absolute left-6 top-6 w-6 h-6 rounded-full border-2 z-20 transition-all duration-300
+                                    absolute left-6 top-6 w-6 h-6 rounded-full border-2 z-20 transition-all duration-300 flex items-center justify-center
                                     ${
                                         isCompleted
                                             ? "bg-green-500 border-green-400 shadow-lg shadow-green-500/30"
@@ -159,13 +159,13 @@ export default function RoadmapSection() {
                                 `}
                                 >
                                     {isCompleted && (
-                                        <CheckCircle className='w-4 h-4 text-white absolute -top-0.5 -left-0.5' />
+                                        <CheckCircle className='w-3.5 h-3.5 text-white' />
                                     )}
                                     {isInDevelopment && (
-                                        <Clock className='w-4 h-4 text-white absolute -top-0.5 -left-0.5' />
+                                        <Clock className='w-3.5 h-3.5 text-white' />
                                     )}
                                     {isPlanned && (
-                                        <Target className='w-4 h-4 text-white absolute -top-0.5 -left-0.5' />
+                                        <Target className='w-3.5 h-3.5 text-white' />
                                     )}
                                 </div>
 
