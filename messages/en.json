@@ -259,36 +259,36 @@
           "title": "Birth Chart Launch",
           "eta": "December 12, 2025",
           "features": [
-            "Interactive natal wheel with house and aspect overlays",
-            "Personalized planet-by-planet guidance",
-            "Shareable PDF summary for every chart"
+            "Precise natal chart from your birth date and time",
+            "Planet positions and aspect angles mapped to strengths",
+            "Ask follow-up questions about traits and life stats"
           ]
         },
         "horoscope": {
           "title": "Daily Horoscope 2.0",
           "eta": "December 12, 2025",
           "features": [
-            "Hyper-personal predictions tied to your birth chart",
-            "Push-ready highlights for love, work, and wellbeing",
-            "Lunar calendar with retrograde alerts"
+            "Transit forecasts from your birth data and target dates",
+            "Possible energies and events explained for each transit",
+            "Chat with AI for deeper transit guidance"
           ]
         },
         "namelogy": {
           "title": "Namelogy Insights",
           "eta": "January 2026",
           "features": [
-            "Name vibration scoring and life themes",
-            "Compare multiple spellings side by side",
-            "Cultural nicknames and auspicious aliases"
+            "Transform desired names (optional birth date) into numerology",
+            "Reveal spiritual alignment, strengths, and cautions",
+            "Ask AI how the name may shape your path"
           ]
         },
         "numerology": {
           "title": "Numerology Decoder",
           "eta": "January 2026",
           "features": [
-            "Life path, destiny, and soul number breakdown",
-            "Personal year timeline with monthly highlights",
-            "Compatibility matrix for partners and teams"
+            "Decode phone numbers or key digits into spiritual meanings",
+            "Highlight supportive and challenging number patterns",
+            "Ask AI about outcomes tied to each number"
           ]
         },
         "luckyColors": {
@@ -313,18 +313,18 @@
           "title": "Fated Relations",
           "eta": "Q1 2026",
           "features": [
-            "Synastry overlays built from both birth charts",
-            "Relationship pulse check with AI guidance",
-            "Shared journal to capture breakthroughs"
+            "Compare two birth dates and times for soulful compatibility",
+            "Unpack relationship dynamics and shared potentials",
+            "Ask AI for deeper guidance on the connection"
           ]
         },
         "palmistry": {
           "title": "Palmistry Scanner",
           "eta": "March 2026",
           "features": [
-            "Photo-based palm line analysis with AI coaching",
-            "Line change tracker across multiple uploads",
-            "Action prompts to anchor your new insights"
+            "Live webcam palm scanning for instant readings",
+            "Interpret lines on luck, life, and destiny",
+            "Ask targeted questions about what your palm reveals"
           ]
         },
         "eta": "ETA"
