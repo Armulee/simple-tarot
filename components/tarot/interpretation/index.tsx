@@ -53,7 +53,6 @@ export default function Interpretation({
     const [isGenerating, setIsGenerating] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
-    const [isOwner, setIsOwner] = useState(false)
     const [isAuthLoading, setIsAuthLoading] = useState(true)
     const [showDIDConsent, setShowDIDConsent] = useState(false)
     const [, setHasDID] = useState<boolean | null>(null)
@@ -129,12 +128,7 @@ export default function Interpretation({
                     return
                 }
                 setHasDID(true)
-                const isOwnerByDid = did && ownerDid && did === ownerDid
-                const isOwnerByUserId =
-                    user?.id && ownerUserId && user.id === ownerUserId
-                setIsOwner(!!(isOwnerByDid || isOwnerByUserId))
             } catch {
-                setIsOwner(false)
                 setHasDID(false)
                 setShowDIDConsent(true)
             } finally {
@@ -172,9 +166,6 @@ export default function Interpretation({
     const handleDIDConsentAccept = () => {
         setShowDIDConsent(false)
         setHasDID(true)
-        const isOwnerByUserId =
-            user?.id && ownerUserId && user.id === ownerUserId
-        setIsOwner(!!isOwnerByUserId)
         try {
             if (interpretation && !hasAwardedStars) void awardStarsToOwner()
         } catch {}
@@ -279,6 +270,7 @@ Output:
         question,
         complete,
         readingId,
+        isFollowUp,
     ])
 
     useEffect(() => {

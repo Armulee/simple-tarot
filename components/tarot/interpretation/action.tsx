@@ -365,6 +365,7 @@ Output:
         complete,
         loadVersions,
         readingId,
+        isFollowUp,
     ])
 
     const actionOptions = [

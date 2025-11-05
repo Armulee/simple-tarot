@@ -530,15 +530,6 @@ export default function ReadingHistory() {
                 .split(/\s+/)
                 .filter((w) => w.length >= 3)
 
-        const jaccard = (a: string, b: string) => {
-            const ta = new Set(tokenize(getCleanQuestionText(a)))
-            const tb = new Set(tokenize(getCleanQuestionText(b)))
-            if (ta.size === 0 && tb.size === 0) return 1
-            const inter = new Set([...ta].filter((x) => tb.has(x)))
-            const union = new Set([...ta, ...tb])
-            return inter.size / union.size
-        }
-
         type Group = {
             key: string
             items: ReadingRow[]
