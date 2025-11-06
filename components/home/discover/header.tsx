@@ -50,25 +50,23 @@ export default function DiscoverHeader() {
             <div
                 className={`transition-all duration-1000 delay-500 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
             >
-                <div className='flex flex-col sm:flex-row items-center justify-center gap-6 pt-4'>
+                    <div className='flex flex-col sm:flex-row items-center justify-center gap-6 pt-4'>
                       <Link
                           href='/about'
-                          className='group relative px-6 py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-sky-500 via-indigo-500 to-blue-600 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300'
+                            className='group relative px-6 py-3 rounded-lg font-semibold text-slate-900 bg-white shadow-lg hover:shadow-xl hover:bg-slate-100 transition-all duration-300 border border-white/60'
                       >
-                          <span className='relative z-10 flex items-center gap-2'>{t("learnMore")}</span>
-                          <div className='absolute inset-0 rounded-lg bg-white/10 opacity-0 group-hover:opacity-30 transition-opacity duration-300'></div>
+                            <span className='relative z-10 flex items-center gap-2'>{t("learnMore")}</span>
                       </Link>
 
                     <div className='hidden sm:block w-px h-6 bg-gradient-to-b from-transparent via-gray-600 to-transparent'></div>
 
                       <Link
                           href='/demo'
-                          className='group relative px-6 py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-amber-500 via-rose-500 to-pink-500 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300'
+                            className='group relative px-6 py-3 rounded-lg font-semibold text-white bg-indigo-600 shadow-lg hover:shadow-xl hover:bg-indigo-500 transition-all duration-300 border border-indigo-500/80'
                       >
                           <span className='relative z-10 flex items-center gap-2'>
                               {t("requestDemo")}
                           </span>
-                          <div className='absolute inset-0 rounded-lg bg-white/10 opacity-0 group-hover:opacity-30 transition-opacity duration-300'></div>
                       </Link>
                 </div>
             </div>

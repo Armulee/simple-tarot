@@ -1,6 +1,28 @@
 "use client"
 
-import { Calendar } from "lucide-react"
+import {
+    Calendar,
+    BarChart3,
+    Compass,
+    MessageCircle,
+    Orbit,
+    Sparkles,
+    Type,
+    ShieldCheck,
+    Hash,
+    AlertTriangle,
+    Brain,
+    Palette,
+    Shirt,
+    Smartphone,
+    Cloud,
+    LayoutDashboard,
+    Heart,
+    NotebookPen,
+    Hand,
+    LineChart,
+    Lightbulb,
+} from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useState, useEffect } from "react"
 
@@ -29,6 +51,7 @@ export default function RoadmapSection() {
             glowColor: "shadow-indigo-500/20",
             startDate: "2025-07-01",
             targetDate: "2025-12-12",
+            featureIcons: [BarChart3, Compass, MessageCircle],
         },
         {
             phase: t("phases.dec_2025"),
@@ -40,6 +63,7 @@ export default function RoadmapSection() {
             glowColor: "shadow-fuchsia-500/20",
             startDate: "2025-07-01",
             targetDate: "2025-12-12",
+            featureIcons: [Orbit, Sparkles, MessageCircle],
         },
         {
             phase: t("phases.jan_2026"),
@@ -51,6 +75,7 @@ export default function RoadmapSection() {
             glowColor: "shadow-amber-500/20",
             startDate: "2025-09-15",
             targetDate: "2026-01-15",
+            featureIcons: [Type, ShieldCheck, Sparkles],
         },
         {
             phase: t("phases.jan_2026"),
@@ -62,6 +87,7 @@ export default function RoadmapSection() {
             glowColor: "shadow-emerald-500/20",
             startDate: "2025-09-15",
             targetDate: "2026-01-15",
+            featureIcons: [Hash, AlertTriangle, Brain],
         },
         {
             phase: t("phases.jan_2026"),
@@ -73,6 +99,7 @@ export default function RoadmapSection() {
             glowColor: "shadow-cyan-500/20",
             startDate: "2025-10-01",
             targetDate: "2026-01-20",
+            featureIcons: [Palette, Shirt, Sparkles],
         },
         {
             phase: t("phases.q1_2026"),
@@ -84,6 +111,7 @@ export default function RoadmapSection() {
             glowColor: "shadow-purple-500/20",
             startDate: "2025-11-01",
             targetDate: "2026-03-31",
+            featureIcons: [Smartphone, Cloud, LayoutDashboard],
         },
         {
             phase: t("phases.q1_2026"),
@@ -95,6 +123,7 @@ export default function RoadmapSection() {
             glowColor: "shadow-pink-500/20",
             startDate: "2025-11-15",
             targetDate: "2026-03-31",
+            featureIcons: [Heart, Sparkles, NotebookPen],
         },
         {
             phase: t("phases.mar_2026"),
@@ -106,6 +135,7 @@ export default function RoadmapSection() {
             glowColor: "shadow-violet-500/20",
             startDate: "2026-01-01",
             targetDate: "2026-03-31",
+            featureIcons: [Hand, LineChart, Lightbulb],
         },
     ]
 
@@ -188,7 +218,7 @@ export default function RoadmapSection() {
                                 {/* Timeline dot with status */}
                                   <div
                                       className={`
-                                      absolute left-6 top-6 w-6 h-6 rounded-full border-2 z-20 transition-all duration-300
+                                      absolute left-6 top-8 -translate-y-1/2 w-6 h-6 rounded-full border-2 z-20 transition-all duration-300
                                       ${
                                           isCompleted
                                               ? "bg-green-500 border-green-400 shadow-lg shadow-green-500/30"
@@ -242,14 +272,19 @@ export default function RoadmapSection() {
 
                                     {/* Features grid */}
                                       <div className='space-y-3'>
-                                          {phase.features.map((feature, featureIndex) => (
-                                              <div
-                                                  key={featureIndex}
-                                                  className='bg-gray-800/40 border border-gray-700/40 rounded-xl p-4 text-left text-sm text-gray-300 leading-relaxed hover:border-primary/40 transition-colors duration-300'
-                                              >
-                                                  {feature}
-                                              </div>
-                                          ))}
+                                          {phase.features.map((feature, featureIndex) => {
+                                              const FeatureIcon =
+                                                  phase.featureIcons?.[featureIndex] ?? Sparkles
+                                              return (
+                                                  <div
+                                                      key={featureIndex}
+                                                      className='flex items-start gap-3 bg-gray-800/40 border border-gray-700/40 rounded-xl p-4 text-left text-sm text-gray-300 leading-relaxed hover:border-primary/40 transition-colors duration-300'
+                                                  >
+                                                      <FeatureIcon className='w-4 h-4 text-primary mt-0.5' />
+                                                      <span>{feature}</span>
+                                                  </div>
+                                              )
+                                          })}
                                       </div>
 
                                       {/* Progress indicator */}
