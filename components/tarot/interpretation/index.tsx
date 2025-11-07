@@ -42,14 +42,17 @@ export default function Interpretation({
 }: ReadingProps) {
     const t = useTranslations("ReadingPage.interpretation")
     const { user } = useAuth()
-    const { isFollowUp } = useTarot()
-    const [interpretation, setInterpretation] = useState<string | null>(
+    const {
+        isFollowUp,
+        setInterpretation: setContextInterpretation,
+        setQuestion: setContextQuestion,
+    } = useTarot()
+    const [interpretation, setInterpretationState] = useState<string | null>(
         initialInterpretation ?? null
     )
     const [isGenerating, setIsGenerating] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
-    const [isOwner, setIsOwner] = useState(false)
     const [isAuthLoading, setIsAuthLoading] = useState(true)
     const [showDIDConsent, setShowDIDConsent] = useState(false)
     const [, setHasDID] = useState<boolean | null>(null)
@@ -59,7 +62,7 @@ export default function Interpretation({
     const { completion, complete } = useCompletion({
         api: "/api/interpret-cards/question",
         onFinish: async (_, completion) => {
-            setInterpretation(completion)
+            setInterpretationState(completion)
             setIsGenerating(false)
             try {
                 const saveKey =
@@ -94,6 +97,25 @@ export default function Interpretation({
     })
 
     useEffect(() => {
+        if (typeof question === "string") {
+            setContextQuestion(question)
+        }
+    }, [question, setContextQuestion])
+
+    useEffect(() => {
+        const normalizedCurrent =
+            typeof interpretation === "string" && interpretation.trim().length > 0
+                ? interpretation
+                : null
+        const normalizedInitial =
+            typeof initialInterpretation === "string" &&
+            initialInterpretation.trim().length > 0
+                ? initialInterpretation
+                : null
+        setContextInterpretation(normalizedCurrent ?? normalizedInitial ?? null)
+    }, [interpretation, initialInterpretation, setContextInterpretation])
+
+    useEffect(() => {
         const checkOwnership = async () => {
             try {
                 const resp = await fetch("/api/did")
@@ -106,12 +128,7 @@ export default function Interpretation({
                     return
                 }
                 setHasDID(true)
-                const isOwnerByDid = did && ownerDid && did === ownerDid
-                const isOwnerByUserId =
-                    user?.id && ownerUserId && user.id === ownerUserId
-                setIsOwner(!!(isOwnerByDid || isOwnerByUserId))
             } catch {
-                setIsOwner(false)
                 setHasDID(false)
                 setShowDIDConsent(true)
             } finally {
@@ -149,9 +166,6 @@ export default function Interpretation({
     const handleDIDConsentAccept = () => {
         setShowDIDConsent(false)
         setHasDID(true)
-        const isOwnerByUserId =
-            user?.id && ownerUserId && user.id === ownerUserId
-        setIsOwner(!!isOwnerByUserId)
         try {
             if (interpretation && !hasAwardedStars) void awardStarsToOwner()
         } catch {}
@@ -256,6 +270,7 @@ Output:
         question,
         complete,
         readingId,
+        isFollowUp,
     ])
 
     useEffect(() => {
@@ -388,7 +403,7 @@ Output:
                         interpretation={interpretation}
                         readingId={readingId!}
                         onInterpretationChange={(text) =>
-                            setInterpretation(text)
+                            setInterpretationState(text)
                         }
                         onGeneratingChange={(loading) =>
                             setIsGenerating(loading)

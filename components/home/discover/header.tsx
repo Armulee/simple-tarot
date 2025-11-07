@@ -50,26 +50,24 @@ export default function DiscoverHeader() {
             <div
                 className={`transition-all duration-1000 delay-500 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
             >
-                <div className='flex flex-col sm:flex-row items-center justify-center gap-6 pt-4'>
-                    <Link
-                        href='/about'
-                        className='group relative px-6 py-3 text-accent hover:text-white transition-all duration-300 border border-accent/30 hover:border-accent rounded-lg hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 backdrop-blur-sm'
-                    >
-                        <span className='relative z-10'>{t("learnMore")}</span>
-                        <div className='absolute inset-0 bg-gradient-to-r from-primary to-secondary opacity-0 group-hover:opacity-10 rounded-lg transition-opacity duration-300'></div>
-                    </Link>
+                    <div className='flex flex-col sm:flex-row items-center justify-center gap-6 pt-4'>
+                      <Link
+                          href='/about'
+                            className='group relative px-6 py-3 rounded-lg font-semibold text-slate-900 bg-white shadow-lg hover:shadow-xl hover:bg-slate-100 transition-all duration-300 border border-white/60'
+                      >
+                            <span className='relative z-10 flex items-center gap-2'>{t("learnMore")}</span>
+                      </Link>
 
                     <div className='hidden sm:block w-px h-6 bg-gradient-to-b from-transparent via-gray-600 to-transparent'></div>
 
-                    <Link
-                        href='/demo'
-                        className='group relative px-6 py-3 text-accent hover:text-white transition-all duration-300 border border-accent/30 hover:border-accent rounded-lg hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 backdrop-blur-sm'
-                    >
-                        <span className='relative z-10'>
-                            {t("requestDemo")}
-                        </span>
-                        <div className='absolute inset-0 bg-gradient-to-r from-primary to-secondary opacity-0 group-hover:opacity-10 rounded-lg transition-opacity duration-300'></div>
-                    </Link>
+                      <Link
+                          href='/demo'
+                            className='group relative px-6 py-3 rounded-lg font-semibold text-white bg-indigo-600 shadow-lg hover:shadow-xl hover:bg-indigo-500 transition-all duration-300 border border-indigo-500/80'
+                      >
+                          <span className='relative z-10 flex items-center gap-2'>
+                              {t("requestDemo")}
+                          </span>
+                      </Link>
                 </div>
             </div>
 

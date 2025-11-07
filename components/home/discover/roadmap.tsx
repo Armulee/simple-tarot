@@ -1,12 +1,27 @@
 "use client"
 
 import {
-    CheckCircle,
-    Clock,
-    Target,
-    Sparkles,
     Calendar,
-    ArrowRight,
+    BarChart3,
+    Compass,
+    MessageCircle,
+    Orbit,
+    Sparkles,
+    Type,
+    ShieldCheck,
+    Hash,
+    AlertTriangle,
+    Brain,
+    Palette,
+    Shirt,
+    Smartphone,
+    Cloud,
+    LayoutDashboard,
+    Heart,
+    NotebookPen,
+    Hand,
+    LineChart,
+    Lightbulb,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useState, useEffect } from "react"
@@ -15,56 +30,112 @@ export default function RoadmapSection() {
     const t = useTranslations("HomeDiscover.Roadmap")
     const [isVisible, setIsVisible] = useState(false)
     const [hoveredItem, setHoveredItem] = useState<number | null>(null)
+    const [currentDate, setCurrentDate] = useState(() => new Date())
 
     useEffect(() => {
         setIsVisible(true)
+        const interval = setInterval(() => {
+            setCurrentDate(new Date())
+        }, 1000 * 60 * 60)
+        return () => clearInterval(interval)
     }, [])
 
     const roadmap = [
         {
-            phase: t("phases.q4_2025"),
-            title: t("teamWorkspaces.title"),
-            status: t("status.planned"),
-            eta: t("teamWorkspaces.eta"),
-            features: t.raw("teamWorkspaces.features") as string[],
-            color: "from-blue-500 to-cyan-500",
-            glowColor: "shadow-blue-500/20",
+            phase: t("phases.dec_2025"),
+            title: t("birthChart.title"),
+            status: t("status.inDevelopment"),
+            eta: t("birthChart.eta"),
+            features: t.raw("birthChart.features") as string[],
+            color: "from-indigo-500 to-sky-500",
+            glowColor: "shadow-indigo-500/20",
+            startDate: "2025-07-01",
+            targetDate: "2025-12-12",
+            featureIcons: [BarChart3, Compass, MessageCircle],
         },
         {
-            phase: t("phases.q4_2025"),
-            title: t("savedReadings.title"),
-            status: t("status.planned"),
-            eta: t("savedReadings.eta"),
-            features: t.raw("savedReadings.features") as string[],
-            color: "from-purple-500 to-pink-500",
-            glowColor: "shadow-purple-500/20",
+            phase: t("phases.dec_2025"),
+            title: t("horoscope.title"),
+            status: t("status.inDevelopment"),
+            eta: t("horoscope.eta"),
+            features: t.raw("horoscope.features") as string[],
+            color: "from-fuchsia-500 to-rose-500",
+            glowColor: "shadow-fuchsia-500/20",
+            startDate: "2025-07-01",
+            targetDate: "2025-12-12",
+            featureIcons: [Orbit, Sparkles, MessageCircle],
         },
         {
-            phase: t("phases.q1_2026"),
-            title: t("multilanguage.title"),
+            phase: t("phases.jan_2026"),
+            title: t("namelogy.title"),
             status: t("status.planned"),
-            eta: t("multilanguage.eta"),
-            features: t.raw("multilanguage.features") as string[],
+            eta: t("namelogy.eta"),
+            features: t.raw("namelogy.features") as string[],
+            color: "from-amber-500 to-orange-500",
+            glowColor: "shadow-amber-500/20",
+            startDate: "2025-09-15",
+            targetDate: "2026-01-15",
+            featureIcons: [Type, ShieldCheck, Sparkles],
+        },
+        {
+            phase: t("phases.jan_2026"),
+            title: t("numerology.title"),
+            status: t("status.planned"),
+            eta: t("numerology.eta"),
+            features: t.raw("numerology.features") as string[],
             color: "from-emerald-500 to-teal-500",
             glowColor: "shadow-emerald-500/20",
+            startDate: "2025-09-15",
+            targetDate: "2026-01-15",
+            featureIcons: [Hash, AlertTriangle, Brain],
+        },
+        {
+            phase: t("phases.jan_2026"),
+            title: t("luckyColors.title"),
+            status: t("status.planned"),
+            eta: t("luckyColors.eta"),
+            features: t.raw("luckyColors.features") as string[],
+            color: "from-cyan-500 to-blue-500",
+            glowColor: "shadow-cyan-500/20",
+            startDate: "2025-10-01",
+            targetDate: "2026-01-20",
+            featureIcons: [Palette, Shirt, Sparkles],
         },
         {
             phase: t("phases.q1_2026"),
-            title: t("mobileEnhancements.title"),
+            title: t("mobileApp.title"),
             status: t("status.planned"),
-            eta: t("mobileEnhancements.eta"),
-            features: t.raw("mobileEnhancements.features") as string[],
-            color: "from-orange-500 to-red-500",
-            glowColor: "shadow-orange-500/20",
+            eta: t("mobileApp.eta"),
+            features: t.raw("mobileApp.features") as string[],
+            color: "from-purple-500 to-indigo-500",
+            glowColor: "shadow-purple-500/20",
+            startDate: "2025-11-01",
+            targetDate: "2026-03-31",
+            featureIcons: [Smartphone, Cloud, LayoutDashboard],
         },
         {
             phase: t("phases.q1_2026"),
-            title: t("publicApi.title"),
+            title: t("fatedRelations.title"),
             status: t("status.planned"),
-            eta: t("publicApi.eta"),
-            features: t.raw("publicApi.features") as string[],
-            color: "from-violet-500 to-purple-500",
+            eta: t("fatedRelations.eta"),
+            features: t.raw("fatedRelations.features") as string[],
+            color: "from-pink-500 to-red-500",
+            glowColor: "shadow-pink-500/20",
+            startDate: "2025-11-15",
+            targetDate: "2026-03-31",
+            featureIcons: [Heart, Sparkles, NotebookPen],
+        },
+        {
+            phase: t("phases.mar_2026"),
+            title: t("palmistry.title"),
+            status: t("status.planned"),
+            eta: t("palmistry.eta"),
+            features: t.raw("palmistry.features") as string[],
+            color: "from-slate-500 to-violet-500",
             glowColor: "shadow-violet-500/20",
+            startDate: "2026-01-01",
+            targetDate: "2026-03-31",
+            featureIcons: [Hand, LineChart, Lightbulb],
         },
     ]
 
@@ -102,6 +173,33 @@ export default function RoadmapSection() {
                         const isInDevelopment =
                             phase.status === t("status.inDevelopment")
                         const isPlanned = phase.status === t("status.planned")
+                        const statusStyle = isCompleted
+                            ? "bg-green-500/20 text-green-200 border border-green-400/40"
+                            : isInDevelopment
+                              ? "bg-blue-500/20 text-blue-200 border border-blue-400/40"
+                              : "bg-amber-500/20 text-amber-200 border border-amber-400/40"
+                        const start = new Date(phase.startDate ?? "")
+                        const target = new Date(phase.targetDate ?? "")
+                        let progressValue = 0
+                        if (isCompleted) {
+                            progressValue = 100
+                        } else if (
+                            !Number.isNaN(start.valueOf()) &&
+                            !Number.isNaN(target.valueOf()) &&
+                            start < target
+                        ) {
+                            if (currentDate <= start) {
+                                progressValue = 0
+                            } else if (currentDate >= target) {
+                                progressValue = 100
+                            } else {
+                                progressValue = Math.round(
+                                    ((currentDate.getTime() - start.getTime()) /
+                                        (target.getTime() - start.getTime())) * 100
+                                )
+                            }
+                        }
+                        progressValue = Math.max(0, Math.min(100, progressValue))
 
                         return (
                             <div
@@ -118,29 +216,19 @@ export default function RoadmapSection() {
                                 <div className='absolute left-6 top-8 w-4 h-4 bg-gradient-to-r from-gray-800 to-gray-900 rounded-full border-2 border-gray-600 z-10'></div>
 
                                 {/* Timeline dot with status */}
-                                <div
-                                    className={`
-                                    absolute left-6 top-6 w-6 h-6 rounded-full border-2 z-20 transition-all duration-300
-                                    ${
-                                        isCompleted
-                                            ? "bg-green-500 border-green-400 shadow-lg shadow-green-500/30"
-                                            : isInDevelopment
-                                              ? "bg-blue-500 border-blue-400 shadow-lg shadow-blue-500/30 animate-pulse"
-                                              : "bg-gray-500 border-gray-400"
-                                    }
-                                    ${hoveredItem === index ? "scale-125" : ""}
-                                `}
-                                >
-                                    {isCompleted && (
-                                        <CheckCircle className='w-4 h-4 text-white absolute -top-0.5 -left-0.5' />
-                                    )}
-                                    {isInDevelopment && (
-                                        <Clock className='w-4 h-4 text-white absolute -top-0.5 -left-0.5' />
-                                    )}
-                                    {isPlanned && (
-                                        <Target className='w-4 h-4 text-white absolute -top-0.5 -left-0.5' />
-                                    )}
-                                </div>
+                                  <div
+                                      className={`
+                                      absolute left-6 top-8 -translate-y-1/2 w-6 h-6 rounded-full border-2 z-20 transition-all duration-300
+                                      ${
+                                          isCompleted
+                                              ? "bg-green-500 border-green-400 shadow-lg shadow-green-500/30"
+                                              : isInDevelopment
+                                                ? "bg-blue-500 border-blue-400 shadow-lg shadow-blue-500/30 animate-pulse"
+                                                : "bg-gray-500 border-gray-400"
+                                      }
+                                      ${hoveredItem === index ? "scale-125" : ""}
+                                  `}
+                                  ></div>
 
                                 {/* Content card */}
                                 <div
@@ -151,6 +239,14 @@ export default function RoadmapSection() {
                                     ${hoveredItem === index ? `shadow-2xl ${phase.glowColor}` : "shadow-lg"}
                                 `}
                                 >
+                                  <div className='absolute left-6 -top-3'>
+                                      <span
+                                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase ${statusStyle}`}
+                                      >
+                                          {phase.status}
+                                      </span>
+                                  </div>
+
                                     {/* Animated background gradient */}
                                     <div
                                         className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${phase.color} opacity-0 hover:opacity-5 transition-opacity duration-500`}
@@ -159,89 +255,51 @@ export default function RoadmapSection() {
                                     {/* Header */}
                                     <div className='relative flex items-start justify-between mb-6'>
                                         <div className='flex-1'>
-                                            <div className='flex items-center gap-3 mb-2'>
-                                                <span className='text-sm font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full border border-accent/20'>
-                                                    {phase.phase}
-                                                </span>
-                                                <ArrowRight className='w-4 h-4 text-gray-500' />
-                                                <span className='text-lg font-bold text-white'>
-                                                    {phase.title}
-                                                </span>
-                                            </div>
+                                          <div className='flex items-center gap-3 mb-2'>
+                                              <span className='text-lg font-bold text-white'>
+                                                  {phase.title}
+                                              </span>
+                                          </div>
 
-                                            {/* Status and ETA */}
-                                            <div className='flex items-center gap-4'>
-                                                <span
-                                                    className={`
-                                                    px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-300
-                                                    ${
-                                                        isCompleted
-                                                            ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                                                            : isInDevelopment
-                                                              ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                                                              : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                                                    }
-                                                `}
-                                                >
-                                                    {phase.status}
-                                                </span>
-
-                                                {phase.eta && (
-                                                    <span className='text-sm text-gray-400 flex items-center gap-1'>
-                                                        <Calendar className='w-4 h-4' />
-                                                        {t("eta")}: {phase.eta}
-                                                    </span>
-                                                )}
-                                            </div>
+                                          {phase.eta && (
+                                              <div className='flex items-center gap-2 text-sm text-gray-400'>
+                                                  <Calendar className='w-4 h-4' />
+                                                  {t("eta")}: {phase.eta}
+                                              </div>
+                                          )}
                                         </div>
                                     </div>
 
                                     {/* Features grid */}
-                                    <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-                                        {phase.features.map(
-                                            (feature, featureIndex) => (
-                                                <div
-                                                    key={featureIndex}
-                                                    className='flex items-start space-x-3 group'
-                                                >
-                                                    <div
-                                                        className={`
-                                                    w-6 h-6 rounded-full bg-gradient-to-r ${phase.color} 
-                                                    flex items-center justify-center flex-shrink-0 mt-0.5
-                                                    group-hover:scale-110 transition-transform duration-300
-                                                `}
-                                                    >
-                                                        <Sparkles className='w-3 h-3 text-white' />
-                                                    </div>
-                                                    <span className='text-gray-300 text-sm leading-relaxed group-hover:text-white transition-colors duration-300'>
-                                                        {feature}
-                                                    </span>
-                                                </div>
-                                            )
-                                        )}
-                                    </div>
+                                      <div className='space-y-3'>
+                                          {phase.features.map((feature, featureIndex) => {
+                                              const FeatureIcon =
+                                                  phase.featureIcons?.[featureIndex] ?? Sparkles
+                                              return (
+                                                  <div
+                                                      key={featureIndex}
+                                                      className='flex items-start gap-3 bg-gray-800/40 border border-gray-700/40 rounded-xl p-4 text-left text-sm text-gray-300 leading-relaxed hover:border-primary/40 transition-colors duration-300'
+                                                  >
+                                                      <FeatureIcon className='w-4 h-4 text-primary mt-0.5' />
+                                                      <span>{feature}</span>
+                                                  </div>
+                                              )
+                                          })}
+                                      </div>
 
-                                    {/* Progress indicator */}
-                                    <div className='mt-6'>
-                                        <div className='flex items-center justify-between text-sm text-gray-400 mb-2'>
-                                            <span>{t("progress")}</span>
-                                            <span>
-                                                {isCompleted
-                                                    ? "100%"
-                                                    : isInDevelopment
-                                                      ? "50%"
-                                                      : "0%"}
-                                            </span>
-                                        </div>
-                                        <div className='w-full bg-gray-700/50 rounded-full h-2 overflow-hidden'>
-                                            <div
-                                                className={`
-                                                h-full bg-gradient-to-r ${phase.color} rounded-full transition-all duration-1000
-                                                ${isCompleted ? "w-full" : isInDevelopment ? "w-1/2" : "w-0"}
-                                            `}
-                                            ></div>
-                                        </div>
-                                    </div>
+                                      {/* Progress indicator */}
+                                      <div className='mt-6'>
+                                          <div className='flex items-center justify-between text-sm text-gray-400 mb-2'>
+                                              <span>{t("progress")}</span>
+                                              <span>{progressValue}%</span>
+                                          </div>
+                                          <div className='w-full bg-gray-700/50 rounded-full h-2 overflow-hidden'>
+                                              <div
+                                                  className={`h-full bg-gradient-to-r ${phase.color} rounded-full transition-all duration-1000`}
+                                                  style={{ width: `${progressValue}%` }}
+                                              ></div>
+                                          </div>
+                                      </div>
 
                                     {/* Hover effect overlay */}
                                     <div className='absolute inset-0 rounded-2xl bg-gradient-to-br from-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none'></div>
