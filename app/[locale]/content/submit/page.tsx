@@ -6,12 +6,18 @@ import {
     Sparkles,
     ShieldCheck,
     Link as LinkIcon,
-    RefreshCcw,
     Copy,
     ShieldAlert,
     Clock,
     AlertCircle,
     ExternalLink,
+    Trophy,
+    Palette,
+    Globe,
+    Camera,
+    PenLine,
+    Lightbulb,
+    CheckCircle2,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -133,11 +139,63 @@ const formatter = new Intl.DateTimeFormat(undefined, {
     minute: "2-digit",
 })
 
-function createVerificationCode(userId: string) {
-    const userPart = userId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8).toUpperCase()
-    const randomPart = Math.random().toString(36).slice(2, 10).toUpperCase()
-    return `AF-OWN-${userPart}-${randomPart}`
-}
+const highlightCards = [
+    {
+        title: "Earn 15–50 Stars",
+        description: "Turn authentic promos into premium star rewards every month.",
+        icon: Trophy,
+        accent: "from-yellow-400/30 via-amber-500/25 to-yellow-600/30 border-yellow-500/40 text-yellow-200",
+    },
+    {
+        title: "Create In Any Medium",
+        description: "Share reels, blogs, podcasts, livestreams, or something totally new.",
+        icon: Palette,
+        accent: "from-pink-500/30 via-purple-500/25 to-indigo-500/30 border-purple-500/40 text-purple-200",
+    },
+    {
+        title: "Reach A Global Audience",
+        description: "Link to public content from any social platform or personal site.",
+        icon: Globe,
+        accent: "from-blue-500/30 via-cyan-500/25 to-sky-500/30 border-cyan-500/40 text-sky-200",
+    },
+]
+
+const proofShortcuts = [
+    {
+        title: "Add the code visibly",
+        description: "Place it in your caption, blog post, or video description before submitting.",
+        icon: CheckCircle2,
+    },
+    {
+        title: "Meta tags for websites",
+        description: 'Add `<meta name="asking-fate-verification" content="…" />` inside the head tag.',
+        icon: PenLine,
+    },
+    {
+        title: "Manual fallback",
+        description: "If a platform blocks crawlers, share a public screenshot or drive link.",
+        icon: Camera,
+    },
+]
+
+const inspirationPrompts = [
+    {
+        title: "Behind-the-scenes rituals",
+        body: "Record how you prepare for readings, shuffle cards, or set the mystical mood.",
+    },
+    {
+        title: "Success stories",
+        body: "Tell the story of someone whose Asking Fate reading sparked a breakthrough.",
+    },
+    {
+        title: "Platform walkthroughs",
+        body: "Create a screen guide showing your favorite Asking Fate features in action.",
+    },
+    {
+        title: "Cosmic collaborations",
+        body: "Host a livestream with fellow mystics and share the rewatch link here.",
+    },
+]
 
 export default function SubmitContentPage() {
     const { user, session, loading: authLoading } = useAuth()
@@ -435,6 +493,31 @@ export default function SubmitContentPage() {
                         Submit social posts, videos, or articles that feature Asking Fate.
                         We verify that you control the content before rewarding your effort.
                     </p>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto pt-2">
+                        {highlightCards.map((card) => {
+                            const Icon = card.icon
+                            return (
+                                <div
+                                    key={card.title}
+                                    className={`relative overflow-hidden rounded-2xl border ${card.accent} bg-gradient-to-br p-[1px]`}
+                                >
+                                    <div className="rounded-2xl bg-[#050512]/80 p-5 h-full flex flex-col gap-3 backdrop-blur">
+                                        <div className="flex items-center gap-3">
+                                            <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 border border-white/20">
+                                                <Icon className="w-5 h-5 text-white" />
+                                            </span>
+                                            <p className="text-left text-base font-semibold text-white">
+                                                {card.title}
+                                            </p>
+                                        </div>
+                                        <p className="text-sm text-white/70 text-left leading-relaxed">
+                                            {card.description}
+                                        </p>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
                 </header>
 
                 <section className="grid gap-6 lg:grid-cols-[3fr,2fr]">
