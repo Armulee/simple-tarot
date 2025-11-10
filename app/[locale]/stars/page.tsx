@@ -313,7 +313,7 @@ export default function StarsPage() {
                                                     )}
                                                 </Button>
                                             </Link>
-                                            <Link href='/stars/submit-content'>
+                                            <Link href='/content/submit'>
                                                 <Button
                                                     variant='outline'
                                                     className='w-full rounded-full border-purple-500/40 text-purple-300 hover:bg-purple-500/10 hover:border-purple-400/60 py-3 transition-all duration-300'
