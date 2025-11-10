@@ -633,16 +633,15 @@ export default function SubmitContentPage() {
                                             <SelectValue placeholder="Select your verification method" />
                                         </SelectTrigger>
                                         <SelectContent className="bg-background/95 border-border/40 text-white">
-                                            {verificationMethodOptions.map((option) => (
-                                                <SelectItem key={option.value} value={option.value}>
-                                                    <div className="flex flex-col gap-1">
-                                                        <span>{option.label}</span>
-                                                        <span className="text-[11px] text-muted-foreground">
-                                                            {option.helper}
-                                                        </span>
-                                                    </div>
-                                                </SelectItem>
-                                            ))}
+                                              {verificationMethodOptions.map((option) => (
+                                                  <SelectItem
+                                                      key={option.value}
+                                                      value={option.value}
+                                                      className="text-left"
+                                                  >
+                                                      {option.label}
+                                                  </SelectItem>
+                                              ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
