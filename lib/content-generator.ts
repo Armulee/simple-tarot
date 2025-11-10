@@ -14,23 +14,31 @@ export const AI_MEDIA_OPTIONS = [
 export type MediaPlatform = (typeof AI_MEDIA_OPTIONS)[number]["value"]
 
 export const AI_LANGUAGE_OPTIONS = [
-    { value: "en", label: "English" },
-    { value: "th", label: "Thai" },
-    { value: "es", label: "Spanish" },
-    { value: "fr", label: "French" },
-    { value: "de", label: "German" },
-    { value: "pt", label: "Portuguese" },
-    { value: "id", label: "Indonesian" },
-    { value: "ja", label: "Japanese" },
-    { value: "ko", label: "Korean" },
-    { value: "zh", label: "Chinese (Simplified)" },
-    { value: "hi", label: "Hindi" },
-    { value: "it", label: "Italian" },
-    { value: "ar", label: "Arabic" },
-    { value: "other", label: "Other / Specify in notes" },
+    { value: "en", label: "English", flag: "🇺🇸" },
+    { value: "th", label: "ไทย (Thai)", flag: "🇹🇭" },
+    { value: "es", label: "Español (Spanish)", flag: "🇪🇸" },
+    { value: "fr", label: "Français (French)", flag: "🇫🇷" },
+    { value: "de", label: "Deutsch (German)", flag: "🇩🇪" },
+    { value: "pt", label: "Português (Portuguese)", flag: "🇵🇹" },
+    { value: "id", label: "Bahasa Indonesia", flag: "🇮🇩" },
+    { value: "ja", label: "日本語 (Japanese)", flag: "🇯🇵" },
+    { value: "ko", label: "한국어 (Korean)", flag: "🇰🇷" },
+    { value: "zh", label: "简体中文 (Chinese Simplified)", flag: "🇨🇳" },
+    { value: "hi", label: "हिन्दी (Hindi)", flag: "🇮🇳" },
+    { value: "it", label: "Italiano (Italian)", flag: "🇮🇹" },
+    { value: "ar", label: "العربية (Arabic)", flag: "🇸🇦" },
+    { value: "ru", label: "Русский (Russian)", flag: "🇷🇺" },
+    { value: "vi", label: "Tiếng Việt (Vietnamese)", flag: "🇻🇳" },
+    { value: "ms", label: "Bahasa Melayu (Malay)", flag: "🇲🇾" },
+    { value: "fil", label: "Filipino", flag: "🇵🇭" },
+    { value: "tr", label: "Türkçe (Turkish)", flag: "🇹🇷" },
+    { value: "fa", label: "فارسی (Farsi)", flag: "🇮🇷" },
+    { value: "bn", label: "বাংলা (Bengali)", flag: "🇧🇩" },
+    { value: "other", label: "Other / Specify in notes", flag: "🌐" },
 ] as const
 
-export type LanguageCode = (typeof AI_LANGUAGE_OPTIONS)[number]["value"]
+export type LanguageOption = (typeof AI_LANGUAGE_OPTIONS)[number]
+export type LanguageCode = LanguageOption["value"]
 
 export const CONTENT_TYPE_CATALOG = {
     shortText: {

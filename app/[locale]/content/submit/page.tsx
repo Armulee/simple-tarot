@@ -19,7 +19,16 @@ import {
     Lightbulb,
     CheckCircle2,
     RefreshCcw,
+    Instagram,
+    Twitter,
+    Facebook,
+    Music2,
+    Youtube,
+    FileText,
+    Linkedin,
+    Globe2,
 } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -44,10 +53,10 @@ import {
     AI_STAR_COST_CAP,
     CONTENT_TYPE_CATALOG,
     CONTENT_TYPE_OPTIONS_BY_MEDIA,
-    PLATFORM_PROMPT_HINTS,
     type ContentTypeKey,
     type MediaPlatform,
     type LanguageCode,
+    type LanguageOption,
 } from "@/lib/content-generator"
 
 type SubmissionStatus = "pending" | "verified" | "failed" | "manual_review"
@@ -276,12 +285,59 @@ export default function SubmitContentPage() {
         )
     }, [availableContentTypeOptions, selectedContentType])
 
-    const selectedLanguageLabel = useMemo(() => {
-        return (
-            AI_LANGUAGE_OPTIONS.find((option) => option.value === selectedLanguage)
-                ?.label ?? "Selected language"
-        )
+    const selectedLanguageOption = useMemo<LanguageOption | undefined>(() => {
+        return AI_LANGUAGE_OPTIONS.find((option) => option.value === selectedLanguage)
     }, [selectedLanguage])
+
+    const selectedLanguageLabel =
+        selectedLanguageOption?.label ?? "Selected language"
+    const selectedLanguageFlag = selectedLanguageOption?.flag ?? "🌐"
+
+    const mediaVisuals: Record<
+        MediaPlatform,
+        { icon: LucideIcon; bg: string; label: string }
+    > = {
+        instagram: {
+            icon: Instagram,
+            bg: "from-[#F58529]/80 via-[#D62976]/80 to-[#4F5BD5]/80",
+            label: "Instagram",
+        },
+        x: {
+            icon: Twitter,
+            bg: "from-neutral-900 via-neutral-800 to-neutral-700",
+            label: "X (Twitter)",
+        },
+        facebook: {
+            icon: Facebook,
+            bg: "from-[#1877F2]/80 via-[#0E5DC6]/80 to-[#0A3F8C]/80",
+            label: "Facebook",
+        },
+        tiktok: {
+            icon: Music2,
+            bg: "from-[#FF0050]/80 via-[#00F5FF]/80 to-[#000000]/90",
+            label: "TikTok",
+        },
+        youtube: {
+            icon: Youtube,
+            bg: "from-[#FF0000]/80 via-[#CC0000]/80 to-[#990000]/80",
+            label: "YouTube",
+        },
+        blog: {
+            icon: FileText,
+            bg: "from-[#F97316]/70 via-[#FB923C]/70 to-[#FDBA74]/70",
+            label: "Blog / Website",
+        },
+        linkedin: {
+            icon: Linkedin,
+            bg: "from-[#0A66C2]/80 via-[#004182]/80 to-[#082C5C]/80",
+            label: "LinkedIn",
+        },
+        other: {
+            icon: Globe2,
+            bg: "from-[#9333EA]/80 via-[#6366F1]/80 to-[#10B981]/80",
+            label: "Other Platform",
+        },
+    }
 
     const starCost = useMemo(
         () => (activeContentType ? Math.min(activeContentType.cost, AI_STAR_COST_CAP) : 1),
@@ -290,8 +346,6 @@ export default function SubmitContentPage() {
 
     const notEnoughStars =
         typeof stars === "number" && starCost > stars
-    const platformHint = PLATFORM_PROMPT_HINTS[selectedMediaPlatform]
-    
     useEffect(() => {
         setAiError(null)
         setAiCopied(false)
@@ -706,8 +760,7 @@ export default function SubmitContentPage() {
                           <div className="relative overflow-hidden rounded-3xl border border-purple-500/40 bg-gradient-to-br from-purple-500/20 via-indigo-500/10 to-transparent p-6 sm:p-8 text-left backdrop-blur-xl shadow-2xl animate-fade-in-scale" style={{ animationDelay: '0.15s' }}>
                               <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500 rounded-3xl pointer-events-none" />
                               <div className="relative z-10 space-y-6">
-                                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                                      <div className="space-y-3">
+                                    <div className="space-y-3">
                                           <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-purple-200/80">
                                               <Sparkles className="w-4 h-4 animate-pulse-glow" />
                                               AI Promo Studio
@@ -715,128 +768,137 @@ export default function SubmitContentPage() {
                                           <h2 className="text-2xl sm:text-3xl font-semibold text-white">
                                               Generate a ready-to-post idea in Asking Fate’s voice
                                           </h2>
-                                          <p className="text-sm text-white/70 leading-relaxed max-w-xl">
-                                              Pick a platform and format, then let our AI craft mystical copy that sparks curiosity about Asking Fate. We’ll tailor tone, length, and CTA automatically.
-                                          </p>
-                                      </div>
-                                      <div className="self-start md:self-auto rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-left text-sm text-white/80 shadow-lg shadow-purple-500/20">
-                                          <p className="font-semibold text-white text-base">
-                                              {stars ?? "–"} stars
-                                          </p>
-                                          <p className="text-xs text-white/70">Available balance</p>
-                                      </div>
+                                            {aiContent ? (
+                                                <div className="text-sm text-white/80 leading-relaxed max-w-xl whitespace-pre-wrap">
+                                                    {aiContent}
+                                                </div>
+                                            ) : (
+                                                <p className="text-sm text-white/70 leading-relaxed max-w-xl">
+                                                    Pick a platform and format, then let our AI craft mystical copy that sparks curiosity about Asking Fate. We’ll tailor tone, length, and CTA automatically.
+                                                </p>
+                                            )}
                                   </div>
 
-                                  <div className="space-y-5">
-                                      <div className="flex flex-col xl:flex-row gap-4">
-                                          <div className="flex-1 space-y-2">
-                                              <Label className="text-sm font-semibold text-white flex items-center gap-2">
-                                                  Media platform
-                                              </Label>
-                                              <Select
-                                                  value={selectedMediaPlatform}
-                                                  onValueChange={(value) =>
-                                                      setSelectedMediaPlatform(value as MediaPlatform)
-                                                  }
-                                              >
-                                                  <SelectTrigger className="bg-black/40 border border-white/15 text-white hover:border-purple-400/40 focus:border-purple-400/60 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300">
-                                                      <SelectValue placeholder="Choose a platform" />
-                                                  </SelectTrigger>
-                                                  <SelectContent className="bg-background/95 backdrop-blur-xl border border-white/15 text-white">
-                                                      {AI_MEDIA_OPTIONS.map((option) => (
-                                                          <SelectItem
-                                                              key={option.value}
-                                                              value={option.value}
-                                                              className="text-left hover:bg-purple-500/20 focus:bg-purple-500/20 transition-colors duration-200"
-                                                          >
-                                                              {option.label}
-                                                          </SelectItem>
-                                                      ))}
-                                                  </SelectContent>
-                                              </Select>
-                                          </div>
-                                          <div className="flex-1 space-y-2">
-                                              <Label className="text-sm font-semibold text-white flex items-center gap-2">
-                                                  Content type
-                                              </Label>
-                                              <Select
-                                                  value={selectedContentType}
-                                                  onValueChange={(value) =>
-                                                      setSelectedContentType(value as ContentTypeKey)
-                                                  }
-                                              >
-                                                  <SelectTrigger className="bg-black/40 border border-white/15 text-white hover:border-purple-400/40 focus:border-purple-400/60 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300">
-                                                      <SelectValue placeholder="Choose content type" />
-                                                  </SelectTrigger>
-                                                  <SelectContent className="bg-background/95 backdrop-blur-xl border border-white/15 text-white">
-                                                      {availableContentTypeOptions.map((option) => (
-                                                          <SelectItem
-                                                              key={option.value}
-                                                              value={option.value}
-                                                              className="text-left hover:bg-purple-500/20 focus:bg-purple-500/20 transition-colors duration-200"
-                                                          >
-                                                              {option.label} • {option.cost}★
-                                                          </SelectItem>
-                                                      ))}
-                                                  </SelectContent>
-                                              </Select>
-                                              {activeContentType && (
-                                                  <p className="text-xs text-white/70 leading-relaxed">
-                                                      {activeContentType.guidance}
-                                                  </p>
-                                              )}
-                                          </div>
-                                          <div className="flex-1 space-y-2">
-                                              <Label className="text-sm font-semibold text-white flex items-center gap-2">
-                                                  Language
-                                              </Label>
-                                              <Select
-                                                  value={selectedLanguage}
-                                                  onValueChange={(value) =>
-                                                      setSelectedLanguage(value as LanguageCode)
-                                                  }
-                                              >
-                                                  <SelectTrigger className="bg-black/40 border border-white/15 text-white hover:border-purple-400/40 focus:border-purple-400/60 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300">
-                                                      <SelectValue placeholder="Choose a language" />
-                                                  </SelectTrigger>
-                                                  <SelectContent className="bg-background/95 backdrop-blur-xl border border-white/15 text-white">
-                                                      {AI_LANGUAGE_OPTIONS.map((option) => (
-                                                          <SelectItem
-                                                              key={option.value}
-                                                              value={option.value}
-                                                              className="text-left hover:bg-purple-500/20 focus:bg-purple-500/20 transition-colors duration-200"
-                                                          >
-                                                              {option.label}
-                                                          </SelectItem>
-                                                      ))}
-                                                  </SelectContent>
-                                              </Select>
-                                              <p className="text-xs text-white/70 leading-relaxed">
-                                                  The AI will write naturally in the language you choose.
-                                                  Specify any extra tone or translation needs in your notes.
-                                              </p>
-                                          </div>
-                                      </div>
+                                    <div className="space-y-6">
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-semibold text-white">
+                                                Media platform
+                                            </Label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {AI_MEDIA_OPTIONS.map((option) => {
+                                                    const mediaKey = option.value as MediaPlatform
+                                                    const visual = mediaVisuals[mediaKey]
+                                                    const IconComponent = visual.icon
+                                                    const isSelected = mediaKey === selectedMediaPlatform
+                                                    return (
+                                                        <button
+                                                            key={option.value}
+                                                            type="button"
+                                                            onClick={() => setSelectedMediaPlatform(mediaKey)}
+                                                            className={cn(
+                                                                "group relative flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-medium text-white transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-purple-400/40",
+                                                                isSelected
+                                                                    ? "border-white/80 shadow-lg shadow-purple-500/30"
+                                                                    : "border-white/20 shadow-sm hover:border-white/40 hover:shadow-purple-500/20"
+                                                            )}
+                                                        >
+                                                            <span
+                                                                className={cn(
+                                                                    "flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br text-white shadow-inner shadow-black/20 transition-transform duration-300 group-hover:rotate-3 group-hover:scale-110",
+                                                                    visual.bg
+                                                                )}
+                                                            >
+                                                                <IconComponent className="w-4 h-4" />
+                                                            </span>
+                                                            <span className="whitespace-nowrap">
+                                                                {visual.label}
+                                                            </span>
+                                                        </button>
+                                                    )
+                                                })}
+                                            </div>
+                                        </div>
 
-                                      <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/70 leading-relaxed space-y-1.5">
-                                          <p>{platformHint}</p>
-                                          <p className="text-white/60">
-                                              Language focus: {selectedLanguageLabel}. Add any slang, tone,
-                                              or translation cues in your notes so the AI can mirror your voice.
-                                          </p>
-                                      </div>
+                                        <div className="flex flex-col lg:flex-row gap-4">
+                                            <div className="flex-1 space-y-2">
+                                                <Label className="text-sm font-semibold text-white">
+                                                    Content type
+                                                </Label>
+                                                <Select
+                                                    value={selectedContentType}
+                                                    onValueChange={(value) =>
+                                                        setSelectedContentType(value as ContentTypeKey)
+                                                    }
+                                                >
+                                                    <SelectTrigger className="bg-black/40 border border-white/15 text-white hover:border-purple-400/40 focus:border-purple-400/60 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300">
+                                                        <SelectValue placeholder="Choose content type" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="bg-background/95 backdrop-blur-xl border border-white/15 text-white">
+                                                        {availableContentTypeOptions.map((option) => (
+                                                            <SelectItem
+                                                                key={option.value}
+                                                                value={option.value}
+                                                                className="text-left hover:bg-purple-500/20 focus:bg-purple-500/20 transition-colors duration-200"
+                                                            >
+                                                                {option.label}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {activeContentType && (
+                                                    <p className="text-xs text-white/70 leading-relaxed">
+                                                        {activeContentType.guidance}
+                                                    </p>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 space-y-2">
+                                                <Label className="text-sm font-semibold text-white">
+                                                    Language
+                                                </Label>
+                                                <Select
+                                                    value={selectedLanguage}
+                                                    onValueChange={(value) =>
+                                                        setSelectedLanguage(value as LanguageCode)
+                                                    }
+                                                >
+                                                    <SelectTrigger className="bg-black/40 border border-white/15 text-white hover:border-purple-400/40 focus:border-purple-400/60 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300">
+                                                        <span className="flex items-center gap-2">
+                                                            <span className="text-lg leading-none">
+                                                                {selectedLanguageFlag}
+                                                            </span>
+                                                            <SelectValue placeholder="Choose a language" />
+                                                        </span>
+                                                    </SelectTrigger>
+                                                    <SelectContent className="bg-background/95 backdrop-blur-xl border border-white/15 text-white max-h-72">
+                                                        {AI_LANGUAGE_OPTIONS.map((option) => (
+                                                            <SelectItem
+                                                                key={option.value}
+                                                                value={option.value}
+                                                                className="flex items-center gap-2 text-left hover:bg-purple-500/20 focus:bg-purple-500/20 transition-colors duration-200"
+                                                            >
+                                                                <span className="text-lg leading-none">
+                                                                    {option.flag}
+                                                                </span>
+                                                                <span>{option.label}</span>
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <p className="text-xs text-white/70 leading-relaxed">
+                                                    The AI will write naturally in the selected language.
+                                                    Add slang, tone, or translation cues in your notes for extra flavor.
+                                                </p>
+                                            </div>
+                                        </div>
 
                                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                                          <div className="text-sm text-white/80">
-                                              Costs{" "}
-                                              <span className="font-semibold text-white">
-                                                  {starCost}
-                                              </span>{" "}
-                                              {starCost === 1 ? "star" : "stars"} • You have{" "}
-                                              <span className="font-semibold text-white">
-                                                  {stars ?? "–"}
-                                              </span>
-                                          </div>
+                                            <div className="text-sm text-white/80">
+                                                Each generation uses{" "}
+                                                <span className="font-semibold text-white">
+                                                    {starCost}
+                                                </span>{" "}
+                                                {starCost === 1 ? "star" : "stars"}.
+                                            </div>
                                           <Button
                                               type="button"
                                               onClick={handleGenerateAi}
@@ -855,7 +917,8 @@ export default function SubmitContentPage() {
                                               ) : (
                                                   <>
                                                       <Sparkles className="w-4 h-4" />
-                                                      Generate with AI
+                                                        Generate with AI (-{starCost}{" "}
+                                                        {starCost === 1 ? "star" : "stars"})
                                                   </>
                                               )}
                                           </Button>
@@ -876,7 +939,10 @@ export default function SubmitContentPage() {
                                           <div className="rounded-2xl border border-white/15 bg-black/40 p-5 space-y-3 shadow-inner shadow-purple-500/20">
                                               <div className="flex items-center justify-between gap-3">
                                                   <div>
-                                                      <p className="text-xs font-semibold uppercase tracking-[0.35em] text-purple-200/70">
+                                                        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-purple-200/70 flex items-center gap-2">
+                                                            <span className="text-base leading-none">
+                                                                {selectedLanguageFlag}
+                                                            </span>
                                                             AI blueprint • {selectedLanguageLabel}
                                                       </p>
                                                       <h3 className="text-sm text-white/90">
