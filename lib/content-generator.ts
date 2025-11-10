@@ -13,6 +13,25 @@ export const AI_MEDIA_OPTIONS = [
 
 export type MediaPlatform = (typeof AI_MEDIA_OPTIONS)[number]["value"]
 
+export const AI_LANGUAGE_OPTIONS = [
+    { value: "en", label: "English" },
+    { value: "th", label: "Thai" },
+    { value: "es", label: "Spanish" },
+    { value: "fr", label: "French" },
+    { value: "de", label: "German" },
+    { value: "pt", label: "Portuguese" },
+    { value: "id", label: "Indonesian" },
+    { value: "ja", label: "Japanese" },
+    { value: "ko", label: "Korean" },
+    { value: "zh", label: "Chinese (Simplified)" },
+    { value: "hi", label: "Hindi" },
+    { value: "it", label: "Italian" },
+    { value: "ar", label: "Arabic" },
+    { value: "other", label: "Other / Specify in notes" },
+] as const
+
+export type LanguageCode = (typeof AI_LANGUAGE_OPTIONS)[number]["value"]
+
 export const CONTENT_TYPE_CATALOG = {
     shortText: {
         label: "Short Text",

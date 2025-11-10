@@ -40,12 +40,14 @@ import { useStars } from "@/contexts/stars-context"
 import { cn } from "@/lib/utils"
 import {
     AI_MEDIA_OPTIONS,
+    AI_LANGUAGE_OPTIONS,
     AI_STAR_COST_CAP,
     CONTENT_TYPE_CATALOG,
     CONTENT_TYPE_OPTIONS_BY_MEDIA,
     PLATFORM_PROMPT_HINTS,
     type ContentTypeKey,
     type MediaPlatform,
+    type LanguageCode,
 } from "@/lib/content-generator"
 
 type SubmissionStatus = "pending" | "verified" | "failed" | "manual_review"
@@ -229,8 +231,11 @@ export default function SubmitContentPage() {
 
     const { stars, spendStars } = useStars()
     const defaultMediaPlatform = (AI_MEDIA_OPTIONS[0]?.value ?? "instagram") as MediaPlatform
+    const defaultLanguage = (AI_LANGUAGE_OPTIONS[0]?.value ?? "en") as LanguageCode
     const [selectedMediaPlatform, setSelectedMediaPlatform] =
         useState<MediaPlatform>(defaultMediaPlatform)
+    const [selectedLanguage, setSelectedLanguage] =
+        useState<LanguageCode>(defaultLanguage)
     const initialContentKey =
         (CONTENT_TYPE_OPTIONS_BY_MEDIA[defaultMediaPlatform] ??
             CONTENT_TYPE_OPTIONS_BY_MEDIA.other)[0]
@@ -270,6 +275,13 @@ export default function SubmitContentPage() {
             ) ?? availableContentTypeOptions[0]
         )
     }, [availableContentTypeOptions, selectedContentType])
+
+    const selectedLanguageLabel = useMemo(() => {
+        return (
+            AI_LANGUAGE_OPTIONS.find((option) => option.value === selectedLanguage)
+                ?.label ?? "Selected language"
+        )
+    }, [selectedLanguage])
 
     const starCost = useMemo(
         () => (activeContentType ? Math.min(activeContentType.cost, AI_STAR_COST_CAP) : 1),
@@ -403,6 +415,7 @@ export default function SubmitContentPage() {
                 body: JSON.stringify({
                     mediaPlatform: selectedMediaPlatform,
                     contentType: selectedContentType,
+                    language: selectedLanguage,
                     context: {
                         title: formState.title,
                         notes: formState.notes,
@@ -445,6 +458,7 @@ export default function SubmitContentPage() {
         formState.title,
         selectedContentType,
         selectedMediaPlatform,
+        selectedLanguage,
         spendStars,
         starCost,
         stars,
@@ -714,7 +728,7 @@ export default function SubmitContentPage() {
                                   </div>
 
                                   <div className="space-y-5">
-                                      <div className="flex flex-col lg:flex-row gap-4">
+                                      <div className="flex flex-col xl:flex-row gap-4">
                                           <div className="flex-1 space-y-2">
                                               <Label className="text-sm font-semibold text-white flex items-center gap-2">
                                                   Media platform
@@ -772,10 +786,44 @@ export default function SubmitContentPage() {
                                                   </p>
                                               )}
                                           </div>
+                                          <div className="flex-1 space-y-2">
+                                              <Label className="text-sm font-semibold text-white flex items-center gap-2">
+                                                  Language
+                                              </Label>
+                                              <Select
+                                                  value={selectedLanguage}
+                                                  onValueChange={(value) =>
+                                                      setSelectedLanguage(value as LanguageCode)
+                                                  }
+                                              >
+                                                  <SelectTrigger className="bg-black/40 border border-white/15 text-white hover:border-purple-400/40 focus:border-purple-400/60 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300">
+                                                      <SelectValue placeholder="Choose a language" />
+                                                  </SelectTrigger>
+                                                  <SelectContent className="bg-background/95 backdrop-blur-xl border border-white/15 text-white">
+                                                      {AI_LANGUAGE_OPTIONS.map((option) => (
+                                                          <SelectItem
+                                                              key={option.value}
+                                                              value={option.value}
+                                                              className="text-left hover:bg-purple-500/20 focus:bg-purple-500/20 transition-colors duration-200"
+                                                          >
+                                                              {option.label}
+                                                          </SelectItem>
+                                                      ))}
+                                                  </SelectContent>
+                                              </Select>
+                                              <p className="text-xs text-white/70 leading-relaxed">
+                                                  The AI will write naturally in the language you choose.
+                                                  Specify any extra tone or translation needs in your notes.
+                                              </p>
+                                          </div>
                                       </div>
 
-                                      <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/70 leading-relaxed">
-                                          {platformHint}
+                                      <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/70 leading-relaxed space-y-1.5">
+                                          <p>{platformHint}</p>
+                                          <p className="text-white/60">
+                                              Language focus: {selectedLanguageLabel}. Add any slang, tone,
+                                              or translation cues in your notes so the AI can mirror your voice.
+                                          </p>
                                       </div>
 
                                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -829,7 +877,7 @@ export default function SubmitContentPage() {
                                               <div className="flex items-center justify-between gap-3">
                                                   <div>
                                                       <p className="text-xs font-semibold uppercase tracking-[0.35em] text-purple-200/70">
-                                                          AI blueprint
+                                                            AI blueprint • {selectedLanguageLabel}
                                                       </p>
                                                       <h3 className="text-sm text-white/90">
                                                           {AI_MEDIA_OPTIONS.find(

@@ -2,11 +2,13 @@ import { NextResponse } from "next/server"
 import { generateText } from "ai"
 import {
     AI_MEDIA_OPTIONS,
+    AI_LANGUAGE_OPTIONS,
     CONTENT_TYPE_CATALOG,
     CONTENT_TYPE_OPTIONS_BY_MEDIA,
     PLATFORM_PROMPT_HINTS,
     type ContentTypeKey,
     type MediaPlatform,
+    type LanguageCode,
 } from "@/lib/content-generator"
 
 const MODEL = "openai/gpt-4.1-mini"
@@ -27,6 +29,10 @@ function isValidMediaPlatform(value: string): value is MediaPlatform {
     return AI_MEDIA_OPTIONS.some((option) => option.value === value)
 }
 
+function isValidLanguage(value: string): value is LanguageCode {
+    return AI_LANGUAGE_OPTIONS.some((option) => option.value === value)
+}
+
 function isContentAllowedForMedia(
     media: MediaPlatform,
     contentType: string
@@ -40,6 +46,7 @@ export async function POST(request: Request) {
         const body = await request.json()
         const rawMedia = body?.mediaPlatform
         const rawContentType = body?.contentType
+        const rawLanguage = body?.language
         const context = body?.context ?? {}
 
         if (typeof rawMedia !== "string" || !isValidMediaPlatform(rawMedia)) {
@@ -59,14 +66,29 @@ export async function POST(request: Request) {
             )
         }
 
+        if (typeof rawLanguage !== "string" || !isValidLanguage(rawLanguage)) {
+            return NextResponse.json(
+                { error: "Invalid language selection." },
+                { status: 400 }
+            )
+        }
+
         const mediaPlatform = rawMedia as MediaPlatform
         const contentType = rawContentType as ContentTypeKey
+        const language = rawLanguage as LanguageCode
         const mediaMeta =
             AI_MEDIA_OPTIONS.find((option) => option.value === mediaPlatform) ??
             AI_MEDIA_OPTIONS[0]
         const contentMeta = CONTENT_TYPE_CATALOG[contentType]
         const outputDirective = OUTPUT_DIRECTIVES[contentType]
         const platformHint = PLATFORM_PROMPT_HINTS[mediaPlatform]
+        const languageMeta =
+            AI_LANGUAGE_OPTIONS.find((option) => option.value === language) ??
+            AI_LANGUAGE_OPTIONS[0]
+        const languageInstruction =
+            language === "other"
+                ? "If the creator notes specify a language, write entirely in that language. If not, default to natural English."
+                : `Write entirely in ${languageMeta.label}.`
 
         const creatorNotes: string[] = []
         if (typeof context?.title === "string" && context.title.trim().length > 0) {
@@ -87,6 +109,8 @@ Voice: Warm, inviting, and cosmically curious. You celebrate personal transforma
 Rules:
 - Mention “Asking Fate” by name and invite the audience to try it.
 - Encourage sharing or sign-ups when it feels natural.
+- ${languageInstruction}
+- Sound like a real human creator. Vary sentence length, add subtle personality, and avoid repetitive phrasing, stiff transitions, or obvious AI giveaways.
 - Respect the platform’s best practices (length, hashtags, tone).
 - Never fabricate discounts or financial claims.
 - Emphasize the benefit of earning stars and unlocking deeper readings when appropriate.`
