@@ -522,8 +522,8 @@ export default function SubmitContentPage() {
                     </div>
                 </header>
 
-                <section className="grid gap-6 lg:grid-cols-[3fr,2fr]">
-                    <Card className="bg-background/60 border border-border/40 backdrop-blur-xl shadow-lg">
+                <section className="flex flex-col lg:flex-row gap-6">
+                    <Card className="bg-background/60 border border-border/40 backdrop-blur-xl shadow-lg flex-1">
                         <CardHeader className="space-y-1">
                             <CardTitle className="flex items-center gap-2 text-xl text-white">
                                 <LinkIcon className="w-5 h-5 text-accent" />
@@ -564,8 +564,8 @@ export default function SubmitContentPage() {
                             </div>
 
                             <form className="space-y-5" onSubmit={handleSubmit}>
-                                <div className="grid sm:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
+                                <div className="flex flex-col md:flex-row md:gap-4">
+                                    <div className="space-y-2 flex-1">
                                         <Label htmlFor="title" className="text-white">
                                             Content Title (optional)
                                         </Label>
@@ -579,7 +579,7 @@ export default function SubmitContentPage() {
                                             className="bg-background/50 border-border/40 text-white placeholder:text-muted-foreground"
                                         />
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 flex-1">
                                         <Label htmlFor="platform" className="text-white">
                                             Platform
                                         </Label>
@@ -713,7 +713,7 @@ export default function SubmitContentPage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-background/50 border border-border/40 backdrop-blur-xl shadow-lg">
+                    <Card className="bg-background/50 border border-border/40 backdrop-blur-xl shadow-lg flex-1">
                         <CardHeader className="space-y-1">
                             <CardTitle className="flex items-center gap-2 text-xl text-white">
                                 <Sparkles className="w-5 h-5 text-accent" />
@@ -806,36 +806,36 @@ export default function SubmitContentPage() {
                     </Card>
                 </section>
 
-                  <section className="relative px-4">
-                      <Card className="bg-background/50 border border-border/40 backdrop-blur-xl shadow-lg">
-                          <CardHeader className="space-y-1">
-                              <CardTitle className="flex items-center gap-2 text-xl text-white">
-                                  <Lightbulb className="w-5 h-5 text-yellow-300" />
-                                  Content sparks that resonate
-                              </CardTitle>
-                              <CardDescription className="text-muted-foreground">
-                                  Need inspiration? Try one of these community-tested ideas.
-                              </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                              <div className="grid gap-4 md:grid-cols-2">
-                                  {inspirationPrompts.map((prompt) => (
-                                      <div
-                                          key={prompt.title}
-                                          className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-2"
-                                      >
-                                          <h3 className="text-base font-semibold text-white">
-                                              {prompt.title}
-                                          </h3>
-                                          <p className="text-sm text-white/70 leading-relaxed">
-                                              {prompt.body}
-                                          </p>
-                                      </div>
-                                  ))}
-                              </div>
-                          </CardContent>
-                      </Card>
-                  </section>
+                <section className="relative px-4">
+                    <Card className="bg-background/50 border border-border/40 backdrop-blur-xl shadow-lg">
+                        <CardHeader className="space-y-1">
+                            <CardTitle className="flex items-center gap-2 text-xl text-white">
+                                <Lightbulb className="w-5 h-5 text-yellow-300" />
+                                Content sparks that resonate
+                            </CardTitle>
+                            <CardDescription className="text-muted-foreground">
+                                Need inspiration? Try one of these community-tested ideas.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex flex-col md:flex-row md:flex-wrap gap-4">
+                                {inspirationPrompts.map((prompt) => (
+                                    <div
+                                        key={prompt.title}
+                                        className="w-full md:flex-1 min-w-[240px] rounded-xl border border-white/10 bg-white/5 p-4 space-y-2"
+                                    >
+                                        <h3 className="text-base font-semibold text-white">
+                                            {prompt.title}
+                                        </h3>
+                                        <p className="text-sm text-white/70 leading-relaxed">
+                                            {prompt.body}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </section>
 
                 <section className="space-y-4">
                     <div className="flex items-center justify-between flex-wrap gap-3">
@@ -860,11 +860,11 @@ export default function SubmitContentPage() {
                     </div>
 
                     {loadingSubmissions ? (
-                        <div className="grid gap-4 md:grid-cols-2">
+                        <div className="flex flex-col md:flex-row md:flex-wrap gap-4">
                             {[...Array(2)].map((_, index) => (
                                 <div
                                     key={index}
-                                    className="animate-pulse rounded-xl border border-border/40 bg-background/40 h-40"
+                                    className="w-full md:flex-1 min-w-[240px] animate-pulse rounded-xl border border-border/40 bg-background/40 h-40"
                                 />
                             ))}
                         </div>
@@ -882,7 +882,7 @@ export default function SubmitContentPage() {
                             </CardContent>
                         </Card>
                     ) : (
-                        <div className="grid gap-4 md:grid-cols-2">
+                        <div className="flex flex-col md:flex-row md:flex-wrap gap-4">
                             {submissions.map((submission) => {
                                 let host: string | null = null
                                 try {
@@ -894,7 +894,7 @@ export default function SubmitContentPage() {
                                 return (
                                     <Card
                                         key={submission.id}
-                                        className="bg-background/50 border border-border/30 backdrop-blur-lg flex flex-col h-full"
+                                        className="w-full md:flex-1 min-w-[280px] bg-background/50 border border-border/30 backdrop-blur-lg flex flex-col h-full"
                                     >
                                         <CardContent className="space-y-3 p-5 flex flex-col h-full">
                                             <div className="flex items-start justify-between gap-3">
