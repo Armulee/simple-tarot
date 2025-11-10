@@ -475,43 +475,55 @@ export default function SubmitContentPage() {
 
     return (
         <div className="relative min-h-screen overflow-hidden">
-            <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-20 left-16 w-64 h-64 bg-purple-500/10 blur-3xl rounded-full" />
-                <div className="absolute bottom-10 right-20 w-72 h-72 bg-emerald-500/10 blur-3xl rounded-full" />
+            {/* Enhanced animated background */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-20 left-16 w-64 h-64 bg-purple-500/10 blur-3xl rounded-full animate-pulse-glow" />
+                <div className="absolute bottom-10 right-20 w-72 h-72 bg-emerald-500/10 blur-3xl rounded-full animate-pulse-glow" style={{ animationDelay: '1s' }} />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/5 blur-3xl rounded-full animate-float-gentle" />
             </div>
-            <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10">
-                <header className="text-center space-y-4">
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-500/40 bg-purple-500/10 text-purple-100">
-                        <ShieldCheck className="w-4 h-4" />
-                        <span className="text-sm font-medium">
+            
+            <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
+                <header className="text-center space-y-6 animate-fade-in-scale">
+                    <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-purple-500/50 bg-gradient-to-r from-purple-500/20 via-purple-500/10 to-transparent text-purple-100 backdrop-blur-sm shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 transition-all duration-300 hover:scale-105">
+                        <ShieldCheck className="w-4 h-4 animate-pulse-glow" />
+                        <span className="text-sm font-semibold tracking-wide">
                             Content Ownership Verification
                         </span>
                     </div>
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-white">
-                        Share Your Promotion, Prove It&apos;s Yours
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif font-bold text-white leading-tight">
+                        <span className="bg-gradient-to-r from-purple-200 via-pink-200 to-indigo-200 bg-clip-text text-transparent animate-gradient">
+                            Share Your Promotion
+                        </span>
+                        <br />
+                        <span className="text-white/90">Prove It&apos;s Yours</span>
                     </h1>
-                    <p className="text-muted-foreground max-w-2xl mx-auto text-base sm:text-lg">
+                    <p className="text-muted-foreground max-w-2xl mx-auto text-base sm:text-lg leading-relaxed">
                         Submit social posts, videos, or articles that feature Asking Fate.
                         We verify that you control the content before rewarding your effort.
                     </p>
-                    <div className="flex flex-col md:flex-row md:flex-wrap gap-4 max-w-5xl mx-auto pt-2">
-                        {highlightCards.map((card) => {
+                    <div className="flex flex-col md:flex-row md:flex-wrap gap-5 max-w-5xl mx-auto pt-4">
+                        {highlightCards.map((card, index) => {
                             const Icon = card.icon
                             return (
-                                <div key={card.title} className="w-full md:flex-1 min-w-[240px]">
+                                <div 
+                                    key={card.title} 
+                                    className="w-full md:flex-1 min-w-[240px] animate-fade-in-scale"
+                                    style={{ animationDelay: `${index * 0.1}s` }}
+                                >
                                     <div
-                                        className={`relative overflow-hidden rounded-2xl border ${card.accent} bg-gradient-to-br p-[1px] h-full`}
+                                        className={`relative overflow-hidden rounded-2xl border ${card.accent} bg-gradient-to-br p-[1px] h-full group hover:scale-[1.02] transition-all duration-300 hover:shadow-2xl`}
                                     >
-                                        <div className="rounded-2xl bg-[#050512]/80 p-5 h-full flex flex-col gap-3 backdrop-blur">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                        <div className="rounded-2xl bg-[#050512]/90 p-6 h-full flex flex-col gap-3 backdrop-blur-xl relative z-10">
                                             <div className="flex items-center gap-3">
-                                                <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 border border-white/20">
-                                                    <Icon className="w-5 h-5 text-white" />
+                                                <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-white/20 to-white/5 border border-white/20 group-hover:border-white/30 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+                                                    <Icon className="w-6 h-6 text-white group-hover:text-purple-200 transition-colors duration-300" />
                                                 </span>
-                                                <p className="text-left text-base font-semibold text-white">
+                                                <p className="text-left text-base font-semibold text-white group-hover:text-purple-100 transition-colors duration-300">
                                                     {card.title}
                                                 </p>
                                             </div>
-                                            <p className="text-sm text-white/70 text-left leading-relaxed">
+                                            <p className="text-sm text-white/70 text-left leading-relaxed group-hover:text-white/80 transition-colors duration-300">
                                                 {card.description}
                                             </p>
                                         </div>
@@ -522,29 +534,43 @@ export default function SubmitContentPage() {
                     </div>
                 </header>
 
-                <section className="flex flex-col lg:flex-row gap-6">
-                    <Card className="bg-background/60 border border-border/40 backdrop-blur-xl shadow-lg flex-1">
-                        <CardHeader className="space-y-1">
-                            <CardTitle className="flex items-center gap-2 text-xl text-white">
-                                <LinkIcon className="w-5 h-5 text-accent" />
+                <section className="flex flex-col lg:flex-row gap-8 animate-fade-in-scale" style={{ animationDelay: '0.2s' }}>
+                    <Card className="bg-gradient-to-br from-background/80 via-background/60 to-background/40 border border-border/50 backdrop-blur-2xl shadow-2xl flex-1 group hover:border-accent/30 transition-all duration-500 hover:shadow-purple-500/20">
+                        <CardHeader className="space-y-2 pb-6">
+                            <CardTitle className="flex items-center gap-3 text-2xl text-white group-hover:text-purple-100 transition-colors duration-300">
+                                <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/30 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                    <LinkIcon className="w-5 h-5 text-purple-300" />
+                                </div>
                                 Submit Content
                             </CardTitle>
-                            <CardDescription className="text-muted-foreground">
+                            <CardDescription className="text-muted-foreground text-base leading-relaxed">
                                 Provide the live link to your promotional content and we will
                                 attempt to verify ownership automatically.
                             </CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            <div className="mb-6 rounded-xl border border-dashed border-accent/30 bg-accent/5 p-4">
-                                <div className="flex flex-wrap items-center gap-3">
-                                    <div className="flex-1 min-w-[200px]">
-                                        <p className="text-sm text-muted-foreground mb-1">
-                                            Your permanent verification code
-                                        </p>
-                                        <div className="font-mono text-sm sm:text-base text-white bg-black/40 border border-white/10 rounded-lg px-3 py-2">
-                                            {verificationToken || "Loading..."}
+                        <CardContent className="space-y-6">
+                            <div className="relative mb-8 rounded-2xl border border-dashed border-purple-500/40 bg-gradient-to-br from-purple-500/10 via-indigo-500/5 to-transparent p-6 backdrop-blur-sm hover:border-purple-500/60 hover:bg-gradient-to-br hover:from-purple-500/15 hover:via-indigo-500/10 hover:to-transparent transition-all duration-300 group/verification">
+                                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/5 to-purple-500/0 opacity-0 group-hover/verification:opacity-100 transition-opacity duration-500 rounded-2xl" />
+                                <div className="relative z-10 flex flex-wrap items-center gap-4">
+                                    <div className="flex-1 min-w-[200px] space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <ShieldCheck className="w-4 h-4 text-purple-300 animate-pulse-glow" />
+                                            <p className="text-sm font-semibold text-purple-200">
+                                                Your permanent verification code
+                                            </p>
                                         </div>
-                                        <p className="text-xs text-muted-foreground mt-2">
+                                        <div className="relative">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 blur-xl rounded-lg opacity-50" />
+                                            <div className="relative font-mono text-sm sm:text-base text-white bg-black/60 border border-purple-500/30 rounded-xl px-4 py-3 backdrop-blur-sm shadow-lg shadow-purple-500/10 hover:border-purple-500/50 hover:shadow-purple-500/20 transition-all duration-300">
+                                                {verificationToken || (
+                                                    <span className="inline-flex items-center gap-2">
+                                                        <div className="h-4 w-4 border-2 border-purple-400/40 border-t-purple-400 rounded-full animate-spin" />
+                                                        Loading...
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <p className="text-xs text-purple-200/70 leading-relaxed">
                                             Add this code to your public content whenever you promote Asking Fate. It never expires.
                                         </p>
                                     </div>
@@ -554,20 +580,28 @@ export default function SubmitContentPage() {
                                             variant="outline"
                                             onClick={handleCopyCode}
                                             disabled={!verificationToken}
-                                            className="border-accent/50 text-accent hover:bg-accent/10 disabled:opacity-60 disabled:cursor-not-allowed"
+                                            className="border-purple-500/50 text-purple-200 bg-purple-500/10 hover:bg-purple-500/20 hover:border-purple-500/70 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/30"
                                         >
-                                            <Copy className="w-4 h-4 mr-2" />
-                                            {copied ? "Copied" : "Copy"}
+                                            <Copy className={`w-4 h-4 mr-2 transition-transform duration-300 ${copied ? 'scale-110' : ''}`} />
+                                            {copied ? (
+                                                <span className="flex items-center gap-2">
+                                                    <CheckCircle2 className="w-4 h-4" />
+                                                    Copied!
+                                                </span>
+                                            ) : (
+                                                "Copy"
+                                            )}
                                         </Button>
                                     </div>
                                 </div>
                             </div>
 
-                            <form className="space-y-5" onSubmit={handleSubmit}>
+                            <form className="space-y-6" onSubmit={handleSubmit}>
                                 <div className="flex flex-col md:flex-row md:gap-4">
-                                    <div className="space-y-2 flex-1">
-                                        <Label htmlFor="title" className="text-white">
-                                            Content Title (optional)
+                                    <div className="space-y-2.5 flex-1 group">
+                                        <Label htmlFor="title" className="text-white font-medium flex items-center gap-2 group-hover:text-purple-200 transition-colors duration-300">
+                                            Content Title
+                                            <span className="text-xs text-muted-foreground font-normal">(optional)</span>
                                         </Label>
                                         <Input
                                             id="title"
@@ -576,11 +610,11 @@ export default function SubmitContentPage() {
                                                 handleChange("title", event.target.value)
                                             }
                                             placeholder="E.g. Instagram Reel showcasing Asking Fate"
-                                            className="bg-background/50 border-border/40 text-white placeholder:text-muted-foreground"
+                                            className="bg-background/60 border-border/50 text-white placeholder:text-muted-foreground/60 hover:border-purple-500/30 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300 hover:bg-background/70"
                                         />
                                     </div>
-                                    <div className="space-y-2 flex-1">
-                                        <Label htmlFor="platform" className="text-white">
+                                    <div className="space-y-2.5 flex-1 group">
+                                        <Label htmlFor="platform" className="text-white font-medium group-hover:text-purple-200 transition-colors duration-300">
                                             Platform
                                         </Label>
                                         <Select
@@ -589,12 +623,16 @@ export default function SubmitContentPage() {
                                                 handleChange("platform", value)
                                             }
                                         >
-                                            <SelectTrigger className="bg-background/50 border-border/40 text-white">
+                                            <SelectTrigger className="bg-background/60 border-border/50 text-white hover:border-purple-500/30 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300 hover:bg-background/70">
                                                 <SelectValue placeholder="Choose platform" />
                                             </SelectTrigger>
-                                            <SelectContent className="bg-background/95 border-border/40 text-white">
+                                            <SelectContent className="bg-background/95 backdrop-blur-xl border-border/50 text-white">
                                                 {platformOptions.map((option) => (
-                                                    <SelectItem key={option.value} value={option.value}>
+                                                    <SelectItem 
+                                                        key={option.value} 
+                                                        value={option.value}
+                                                        className="hover:bg-purple-500/20 focus:bg-purple-500/20 transition-colors duration-200"
+                                                    >
                                                         {option.label}
                                                     </SelectItem>
                                                 ))}
@@ -603,25 +641,30 @@ export default function SubmitContentPage() {
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="url" className="text-white">
-                                        Content URL<span className="text-rose-400">*</span>
+                                <div className="space-y-2.5 group">
+                                    <Label htmlFor="url" className="text-white font-medium flex items-center gap-2 group-hover:text-purple-200 transition-colors duration-300">
+                                        Content URL
+                                        <span className="text-rose-400 font-semibold">*</span>
                                     </Label>
-                                    <Input
-                                        id="url"
-                                        value={formState.url}
-                                        onChange={(event) =>
-                                            handleChange("url", event.target.value)
-                                        }
-                                        placeholder="https://..."
-                                        required
-                                        className="bg-background/50 border-border/40 text-white placeholder:text-muted-foreground"
-                                    />
+                                    <div className="relative">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 blur-xl rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                        <Input
+                                            id="url"
+                                            value={formState.url}
+                                            onChange={(event) =>
+                                                handleChange("url", event.target.value)
+                                            }
+                                            placeholder="https://..."
+                                            required
+                                            className="relative bg-background/60 border-border/50 text-white placeholder:text-muted-foreground/60 hover:border-purple-500/30 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300 hover:bg-background/70"
+                                        />
+                                    </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label className="text-white">
-                                        Verification method<span className="text-rose-400">*</span>
+                                <div className="space-y-2.5 group">
+                                    <Label className="text-white font-medium flex items-center gap-2 group-hover:text-purple-200 transition-colors duration-300">
+                                        Verification method
+                                        <span className="text-rose-400 font-semibold">*</span>
                                     </Label>
                                     <Select
                                         value={formState.verificationMethod}
@@ -629,15 +672,15 @@ export default function SubmitContentPage() {
                                             handleChange("verificationMethod", value)
                                         }
                                     >
-                                        <SelectTrigger className="bg-background/50 border-border/40 text-white">
+                                        <SelectTrigger className="bg-background/60 border-border/50 text-white hover:border-purple-500/30 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300 hover:bg-background/70">
                                             <SelectValue placeholder="Select your verification method" />
                                         </SelectTrigger>
-                                        <SelectContent className="bg-background/95 border-border/40 text-white">
+                                        <SelectContent className="bg-background/95 backdrop-blur-xl border-border/50 text-white">
                                               {verificationMethodOptions.map((option) => (
                                                   <SelectItem
                                                       key={option.value}
                                                       value={option.value}
-                                                      className="text-left"
+                                                      className="text-left hover:bg-purple-500/20 focus:bg-purple-500/20 transition-colors duration-200"
                                                   >
                                                       {option.label}
                                                   </SelectItem>
@@ -646,39 +689,53 @@ export default function SubmitContentPage() {
                                     </Select>
                                 </div>
 
-                                <div className="rounded-lg border border-dashed border-border/40 bg-background/40 p-4 space-y-3">
-                                    <p className="text-sm text-muted-foreground">
-                                        How to verify with the selected method:
-                                    </p>
-                                    <pre className="text-xs sm:text-sm font-mono whitespace-pre-wrap break-words bg-black/40 border border-white/5 rounded-md p-3 text-white/90">
-                                        {verificationSnippet}
-                                    </pre>
+                                <div className="relative rounded-xl border border-dashed border-purple-500/40 bg-gradient-to-br from-purple-500/10 via-indigo-500/5 to-transparent p-5 space-y-4 backdrop-blur-sm hover:border-purple-500/60 hover:bg-gradient-to-br hover:from-purple-500/15 hover:via-indigo-500/10 hover:to-transparent transition-all duration-300 group/instructions">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/5 to-purple-500/0 opacity-0 group-hover/instructions:opacity-100 transition-opacity duration-500 rounded-xl" />
+                                    <div className="relative z-10 space-y-3">
+                                        <div className="flex items-center gap-2">
+                                            <Lightbulb className="w-4 h-4 text-purple-300" />
+                                            <p className="text-sm font-semibold text-purple-200">
+                                                How to verify with the selected method:
+                                            </p>
+                                        </div>
+                                        <div className="relative">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 blur-xl rounded-lg opacity-30" />
+                                            <pre className="relative text-xs sm:text-sm font-mono whitespace-pre-wrap break-words bg-black/60 border border-purple-500/20 rounded-lg p-4 text-white/90 backdrop-blur-sm shadow-lg shadow-purple-500/5">
+                                                {verificationSnippet}
+                                            </pre>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {formState.verificationMethod === "manual_proof" && (
-                                    <div className="space-y-2">
-                                        <Label htmlFor="evidenceUrl" className="text-white">
-                                            Evidence URL<span className="text-rose-400">*</span>
+                                    <div className="space-y-2.5 group animate-fade-in-scale">
+                                        <Label htmlFor="evidenceUrl" className="text-white font-medium flex items-center gap-2 group-hover:text-purple-200 transition-colors duration-300">
+                                            Evidence URL
+                                            <span className="text-rose-400 font-semibold">*</span>
                                         </Label>
-                                        <Input
-                                            id="evidenceUrl"
-                                            value={formState.evidenceUrl}
-                                            onChange={(event) =>
-                                                handleChange("evidenceUrl", event.target.value)
-                                            }
-                                            placeholder="Link to a screenshot, Google Drive folder, etc."
-                                            required
-                                            className="bg-background/50 border-border/40 text-white placeholder:text-muted-foreground"
-                                        />
-                                        <p className="text-xs text-muted-foreground">
+                                        <div className="relative">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-rose-500/10 to-pink-500/10 blur-xl rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                            <Input
+                                                id="evidenceUrl"
+                                                value={formState.evidenceUrl}
+                                                onChange={(event) =>
+                                                    handleChange("evidenceUrl", event.target.value)
+                                                }
+                                                placeholder="Link to a screenshot, Google Drive folder, etc."
+                                                required
+                                                className="relative bg-background/60 border-border/50 text-white placeholder:text-muted-foreground/60 hover:border-rose-500/30 focus:border-rose-500/50 focus:ring-2 focus:ring-rose-500/20 transition-all duration-300 hover:bg-background/70"
+                                            />
+                                        </div>
+                                        <p className="text-xs text-muted-foreground leading-relaxed">
                                             Share a viewable link (no login required) showing your account logged in with the content.
                                         </p>
                                     </div>
                                 )}
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="notes" className="text-white">
-                                        Additional context (optional)
+                                <div className="space-y-2.5 group">
+                                    <Label htmlFor="notes" className="text-white font-medium group-hover:text-purple-200 transition-colors duration-300">
+                                        Additional context
+                                        <span className="text-xs text-muted-foreground font-normal ml-2">(optional)</span>
                                     </Label>
                                     <Textarea
                                         id="notes"
@@ -687,42 +744,46 @@ export default function SubmitContentPage() {
                                             handleChange("notes", event.target.value)
                                         }
                                         placeholder="Tell us anything else helpful for reviewers."
-                                        className="bg-background/50 border-border/40 text-white placeholder:text-muted-foreground min-h-[90px]"
+                                        className="bg-background/60 border-border/50 text-white placeholder:text-muted-foreground/60 min-h-[100px] hover:border-purple-500/30 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300 hover:bg-background/70 resize-none"
                                     />
                                 </div>
 
-                                <Button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    className="w-full sm:w-auto bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 hover:from-purple-400 hover:via-indigo-400 hover:to-blue-400 text-white"
-                                >
-                                    {isSubmitting ? (
-                                        <span className="flex items-center gap-2">
-                                            <div className="h-4 w-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                                            Submitting…
-                                        </span>
-                                    ) : (
-                                        <span className="flex items-center gap-2">
-                                            <ShieldCheck className="w-4 h-4" />
-                                            Submit for verification
-                                        </span>
-                                    )}
-                                </Button>
+                                <div className="pt-2">
+                                    <Button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="w-full sm:w-auto bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 hover:from-purple-400 hover:via-indigo-400 hover:to-blue-400 text-white font-semibold shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                    >
+                                        {isSubmitting ? (
+                                            <span className="flex items-center gap-2">
+                                                <div className="h-4 w-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                                                Submitting…
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center gap-2">
+                                                <ShieldCheck className="w-4 h-4" />
+                                                Submit for verification
+                                            </span>
+                                        )}
+                                    </Button>
+                                </div>
                             </form>
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-background/50 border border-border/40 backdrop-blur-xl shadow-lg flex-1">
-                        <CardHeader className="space-y-1">
-                            <CardTitle className="flex items-center gap-2 text-xl text-white">
-                                <Sparkles className="w-5 h-5 text-accent" />
+                    <Card className="bg-gradient-to-br from-background/80 via-background/60 to-background/40 border border-border/50 backdrop-blur-2xl shadow-2xl flex-1 group hover:border-accent/30 transition-all duration-500 hover:shadow-indigo-500/20">
+                        <CardHeader className="space-y-2 pb-6">
+                            <CardTitle className="flex items-center gap-3 text-2xl text-white group-hover:text-indigo-100 transition-colors duration-300">
+                                <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                    <Sparkles className="w-5 h-5 text-indigo-300" />
+                                </div>
                                 How verification works
                             </CardTitle>
-                            <CardDescription className="text-muted-foreground">
+                            <CardDescription className="text-muted-foreground text-base leading-relaxed">
                                 Follow these steps to ensure your submission is auto-approved.
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-5">
                             <div className="space-y-4">
                                 {[
                                     {
@@ -743,56 +804,63 @@ export default function SubmitContentPage() {
                                 ].map((step, index) => (
                                     <div
                                         key={step.title}
-                                        className="flex items-start gap-3 rounded-xl border border-border/20 bg-background/40 p-3"
+                                        className="group/step flex items-start gap-4 rounded-xl border border-indigo-500/20 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent p-4 hover:border-indigo-500/40 hover:from-indigo-500/15 hover:via-purple-500/10 hover:to-transparent transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-indigo-500/10"
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center font-semibold">
-                                            {index + 1}
+                                        <div className="relative">
+                                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/30 to-purple-500/30 blur-lg opacity-0 group-hover/step:opacity-50 transition-opacity duration-300 rounded-full" />
+                                            <div className="relative w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-indigo-200 flex items-center justify-center font-bold text-sm border border-indigo-500/30 group-hover/step:scale-110 group-hover/step:rotate-6 transition-transform duration-300">
+                                                {index + 1}
+                                            </div>
                                         </div>
-                                        <div className="space-y-1">
-                                            <p className="text-sm font-semibold text-white">
+                                        <div className="space-y-1.5 flex-1">
+                                            <p className="text-sm font-semibold text-white group-hover/step:text-indigo-100 transition-colors duration-300">
                                                 {step.title}
                                             </p>
-                                            <p className="text-sm text-muted-foreground">
+                                            <p className="text-sm text-muted-foreground leading-relaxed group-hover/step:text-white/80 transition-colors duration-300">
                                                 {step.description}
                                             </p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
-                              <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100 flex gap-3">
-                                  <Clock className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                                  <div>
-                                      <p className="font-semibold text-amber-100">
-                                          Manual fallback
-                                      </p>
-                                      <p className="text-amber-100/90">
-                                          Some platforms block automated crawlers. If that happens, use
-                                          the manual proof option or share a public screenshot so our
-                                          team can verify you manually.
-                                      </p>
+                              <div className="relative rounded-xl border border-amber-500/50 bg-gradient-to-br from-amber-500/15 via-yellow-500/10 to-transparent p-5 text-sm text-amber-100 flex gap-4 backdrop-blur-sm hover:border-amber-500/70 hover:from-amber-500/20 hover:via-yellow-500/15 hover:to-transparent transition-all duration-300 group/warning">
+                                  <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/10 to-amber-500/0 opacity-0 group-hover/warning:opacity-100 transition-opacity duration-500 rounded-xl" />
+                                  <div className="relative z-10 flex gap-4">
+                                      <Clock className="w-5 h-5 mt-0.5 flex-shrink-0 text-amber-300 group-hover/warning:scale-110 transition-transform duration-300" />
+                                      <div className="space-y-1.5">
+                                          <p className="font-semibold text-amber-100">
+                                              Manual fallback
+                                          </p>
+                                          <p className="text-amber-100/90 leading-relaxed">
+                                              Some platforms block automated crawlers. If that happens, use
+                                              the manual proof option or share a public screenshot so our
+                                              team can verify you manually.
+                                          </p>
+                                      </div>
                                   </div>
                               </div>
-                              <div className="pt-2 space-y-3">
+                              <div className="pt-2 space-y-4">
                                   <h3 className="text-sm font-semibold text-white uppercase tracking-wide flex items-center gap-2">
-                                      <ShieldCheck className="w-4 h-4 text-accent" />
+                                      <ShieldCheck className="w-4 h-4 text-indigo-300" />
                                       Quick proof checklist
                                   </h3>
                                   <div className="space-y-3">
-                                      {proofShortcuts.map((shortcut) => {
+                                      {proofShortcuts.map((shortcut, index) => {
                                           const Icon = shortcut.icon
                                           return (
                                               <div
                                                   key={shortcut.title}
-                                                  className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3"
+                                                  className="group/shortcut flex items-start gap-4 rounded-xl border border-white/10 bg-gradient-to-br from-white/5 via-white/3 to-transparent p-4 hover:border-indigo-500/30 hover:from-indigo-500/10 hover:via-purple-500/5 hover:to-transparent transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-indigo-500/10"
+                                                  style={{ animationDelay: `${index * 0.1}s` }}
                                               >
-                                                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-accent/15 border border-accent/30 text-accent">
+                                                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-300 group-hover/shortcut:scale-110 group-hover/shortcut:rotate-3 group-hover/shortcut:border-indigo-500/50 transition-all duration-300">
                                                       <Icon className="w-5 h-5" />
                                                   </span>
-                                                  <div className="space-y-1">
-                                                      <p className="text-sm font-semibold text-white">
+                                                  <div className="space-y-1 flex-1">
+                                                      <p className="text-sm font-semibold text-white group-hover/shortcut:text-indigo-100 transition-colors duration-300">
                                                           {shortcut.title}
                                                       </p>
-                                                      <p className="text-xs text-white/70 leading-relaxed">
+                                                      <p className="text-xs text-white/70 leading-relaxed group-hover/shortcut:text-white/80 transition-colors duration-300">
                                                           {shortcut.description}
                                                       </p>
                                                   </div>
@@ -805,28 +873,31 @@ export default function SubmitContentPage() {
                     </Card>
                 </section>
 
-                <section className="relative px-4">
-                    <Card className="bg-background/50 border border-border/40 backdrop-blur-xl shadow-lg">
-                        <CardHeader className="space-y-1">
-                            <CardTitle className="flex items-center gap-2 text-xl text-white">
-                                <Lightbulb className="w-5 h-5 text-yellow-300" />
+                <section className="relative px-4 animate-fade-in-scale" style={{ animationDelay: '0.4s' }}>
+                    <Card className="bg-gradient-to-br from-background/80 via-background/60 to-background/40 border border-border/50 backdrop-blur-2xl shadow-2xl group hover:border-yellow-500/30 transition-all duration-500 hover:shadow-yellow-500/20">
+                        <CardHeader className="space-y-2 pb-6">
+                            <CardTitle className="flex items-center gap-3 text-2xl text-white group-hover:text-yellow-100 transition-colors duration-300">
+                                <div className="p-2 rounded-lg bg-gradient-to-br from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                                    <Lightbulb className="w-5 h-5 text-yellow-300" />
+                                </div>
                                 Content sparks that resonate
                             </CardTitle>
-                            <CardDescription className="text-muted-foreground">
+                            <CardDescription className="text-muted-foreground text-base leading-relaxed">
                                 Need inspiration? Try one of these community-tested ideas.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="flex flex-col md:flex-row md:flex-wrap gap-4">
-                                {inspirationPrompts.map((prompt) => (
+                            <div className="flex flex-col md:flex-row md:flex-wrap gap-5">
+                                {inspirationPrompts.map((prompt, index) => (
                                     <div
                                         key={prompt.title}
-                                        className="w-full md:flex-1 min-w-[240px] rounded-xl border border-white/10 bg-white/5 p-4 space-y-2"
+                                        className="w-full md:flex-1 min-w-[240px] rounded-xl border border-white/10 bg-gradient-to-br from-white/5 via-white/3 to-transparent p-5 space-y-3 group/prompt hover:border-yellow-500/30 hover:from-yellow-500/10 hover:via-amber-500/5 hover:to-transparent transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-500/10"
+                                        style={{ animationDelay: `${index * 0.1}s` }}
                                     >
-                                        <h3 className="text-base font-semibold text-white">
+                                        <h3 className="text-base font-semibold text-white group-hover/prompt:text-yellow-100 transition-colors duration-300">
                                             {prompt.title}
                                         </h3>
-                                        <p className="text-sm text-white/70 leading-relaxed">
+                                        <p className="text-sm text-white/70 leading-relaxed group-hover/prompt:text-white/80 transition-colors duration-300">
                                             {prompt.body}
                                         </p>
                                     </div>
@@ -836,13 +907,13 @@ export default function SubmitContentPage() {
                     </Card>
                 </section>
 
-                <section className="space-y-4">
-                    <div className="flex items-center justify-between flex-wrap gap-3">
-                        <div>
-                            <h2 className="text-2xl font-semibold text-white">
+                <section className="space-y-6 animate-fade-in-scale" style={{ animationDelay: '0.6s' }}>
+                    <div className="flex items-center justify-between flex-wrap gap-4">
+                        <div className="space-y-1">
+                            <h2 className="text-3xl font-bold text-white bg-gradient-to-r from-purple-200 via-pink-200 to-indigo-200 bg-clip-text text-transparent">
                                 Submission history
                             </h2>
-                            <p className="text-muted-foreground text-sm">
+                            <p className="text-muted-foreground text-sm leading-relaxed">
                                 Track verification results for each content link you&apos;ve shared.
                             </p>
                         </div>
@@ -851,9 +922,9 @@ export default function SubmitContentPage() {
                             variant="outline"
                             onClick={() => loadSubmissions(true)}
                             disabled={loadingSubmissions}
-                            className="border-accent/40 text-accent hover:bg-accent/10"
+                            className="border-purple-500/50 text-purple-200 bg-purple-500/10 hover:bg-purple-500/20 hover:border-purple-500/70 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/30"
                         >
-                            <RefreshCcw className="w-4 h-4 mr-2" />
+                            <RefreshCcw className={`w-4 h-4 mr-2 transition-transform duration-300 ${loadingSubmissions ? 'animate-spin' : ''}`} />
                             {loadingSubmissions ? "Refreshing…" : "Refresh"}
                         </Button>
                     </div>
@@ -868,7 +939,7 @@ export default function SubmitContentPage() {
                             ))}
                         </div>
                     ) : submissions.length === 0 ? (
-                        <Card className="bg-background/40 border border-border/30 backdrop-blur-lg">
+                        <Card className="bg-gradient-to-br from-background/60 via-background/40 to-background/30 border border-border/40 backdrop-blur-xl shadow-xl group hover:border-purple-500/30 transition-all duration-500">
                             <CardContent className="py-10 text-center space-y-3">
                                 <ShieldAlert className="w-8 h-8 text-muted-foreground mx-auto" />
                                 <h3 className="text-lg font-semibold text-white">
@@ -881,8 +952,8 @@ export default function SubmitContentPage() {
                             </CardContent>
                         </Card>
                     ) : (
-                        <div className="flex flex-col md:flex-row md:flex-wrap gap-4">
-                            {submissions.map((submission) => {
+                        <div className="flex flex-col md:flex-row md:flex-wrap gap-5">
+                            {submissions.map((submission, index) => {
                                 let host: string | null = null
                                 try {
                                     host = new URL(submission.url).hostname
@@ -893,41 +964,46 @@ export default function SubmitContentPage() {
                                 return (
                                     <Card
                                         key={submission.id}
-                                        className="w-full md:flex-1 min-w-[280px] bg-background/50 border border-border/30 backdrop-blur-lg flex flex-col h-full"
+                                        className="w-full md:flex-1 min-w-[280px] bg-gradient-to-br from-background/60 via-background/50 to-background/40 border border-border/40 backdrop-blur-xl shadow-xl flex flex-col h-full group hover:border-purple-500/40 hover:shadow-purple-500/20 transition-all duration-500 hover:scale-[1.02]"
+                                        style={{ animationDelay: `${index * 0.05}s` }}
                                     >
-                                        <CardContent className="space-y-3 p-5 flex flex-col h-full">
+                                        <CardContent className="space-y-4 p-6 flex flex-col h-full">
                                             <div className="flex items-start justify-between gap-3">
-                                                <div className="space-y-1">
-                                                    <p className="text-sm text-muted-foreground uppercase tracking-wide">
+                                                <div className="space-y-1.5 flex-1">
+                                                    <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
                                                         {submission.platform
                                                             ? submission.platform
                                                             : host || "Custom link"}
                                                     </p>
-                                                    <h3 className="text-lg font-semibold text-white">
+                                                    <h3 className="text-lg font-bold text-white group-hover:text-purple-100 transition-colors duration-300 leading-tight">
                                                         {submission.title ||
                                                             submission.url.replace(/^https?:\/\//, "")}
                                                     </h3>
                                                 </div>
-                                                {renderStatusBadge(submission.verification_status)}
+                                                <div className="flex-shrink-0">
+                                                    {renderStatusBadge(submission.verification_status)}
+                                                </div>
                                             </div>
 
                                             <a
                                                 href={submission.url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                                                className="inline-flex items-center gap-2 text-sm text-purple-300 hover:text-purple-200 font-medium transition-colors duration-300 group/link"
                                             >
-                                                <ExternalLink className="w-4 h-4" />
+                                                <ExternalLink className="w-4 h-4 group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform duration-300" />
                                                 View content
                                             </a>
 
-                                            <div className="text-xs text-muted-foreground/80">
-                                                <p>
+                                            <div className="text-xs text-muted-foreground/80 space-y-1">
+                                                <p className="flex items-center gap-2">
+                                                    <Clock className="w-3 h-3" />
                                                     Submitted{" "}
                                                     {formatter.format(new Date(submission.created_at))}
                                                 </p>
                                                 {submission.verified_at && (
-                                                    <p>
+                                                    <p className="flex items-center gap-2">
+                                                        <CheckCircle2 className="w-3 h-3 text-emerald-400" />
                                                         Verified{" "}
                                                         {formatter.format(new Date(submission.verified_at))}
                                                     </p>
@@ -935,11 +1011,11 @@ export default function SubmitContentPage() {
                                             </div>
 
                                             {submission.notes && (
-                                                <div className="rounded-lg border border-border/30 bg-background/40 p-3">
-                                                    <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
+                                                <div className="rounded-xl border border-purple-500/20 bg-gradient-to-br from-purple-500/10 via-indigo-500/5 to-transparent p-4 group/notes hover:border-purple-500/30 transition-all duration-300">
+                                                    <p className="text-xs uppercase tracking-wide text-purple-200 font-semibold mb-2">
                                                         Notes
                                                     </p>
-                                                    <p className="text-sm text-muted-foreground">
+                                                    <p className="text-sm text-white/80 leading-relaxed">
                                                         {submission.notes}
                                                     </p>
                                                 </div>
