@@ -22,7 +22,21 @@ const ALLOWED_METHODS: Set<VerificationMethod> = new Set([
     "manual_proof",
 ])
 
-type VerificationResult = Record<string, any>
+type VerificationResult = {
+    checkedAt: string
+    verificationCode: string
+    method: VerificationMethod
+    httpStatus?: number
+    contentType?: string
+    truncated?: boolean
+    autoCheck?: boolean
+    found?: boolean
+    reason?: string
+    preview?: string
+    fetchError?: string
+    evidenceUrl?: string
+    [key: string]: string | number | boolean | undefined
+}
 
 interface VerificationOutcome {
     status: Exclude<VerificationStatus, "pending">
