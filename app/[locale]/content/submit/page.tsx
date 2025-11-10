@@ -493,26 +493,27 @@ export default function SubmitContentPage() {
                         Submit social posts, videos, or articles that feature Asking Fate.
                         We verify that you control the content before rewarding your effort.
                     </p>
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto pt-2">
+                    <div className="flex flex-col md:flex-row md:flex-wrap gap-4 max-w-5xl mx-auto pt-2">
                         {highlightCards.map((card) => {
                             const Icon = card.icon
                             return (
-                                <div
-                                    key={card.title}
-                                    className={`relative overflow-hidden rounded-2xl border ${card.accent} bg-gradient-to-br p-[1px]`}
-                                >
-                                    <div className="rounded-2xl bg-[#050512]/80 p-5 h-full flex flex-col gap-3 backdrop-blur">
-                                        <div className="flex items-center gap-3">
-                                            <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 border border-white/20">
-                                                <Icon className="w-5 h-5 text-white" />
-                                            </span>
-                                            <p className="text-left text-base font-semibold text-white">
-                                                {card.title}
+                                <div key={card.title} className="w-full md:flex-1 min-w-[240px]">
+                                    <div
+                                        className={`relative overflow-hidden rounded-2xl border ${card.accent} bg-gradient-to-br p-[1px] h-full`}
+                                    >
+                                        <div className="rounded-2xl bg-[#050512]/80 p-5 h-full flex flex-col gap-3 backdrop-blur">
+                                            <div className="flex items-center gap-3">
+                                                <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 border border-white/20">
+                                                    <Icon className="w-5 h-5 text-white" />
+                                                </span>
+                                                <p className="text-left text-base font-semibold text-white">
+                                                    {card.title}
+                                                </p>
+                                            </div>
+                                            <p className="text-sm text-white/70 text-left leading-relaxed">
+                                                {card.description}
                                             </p>
                                         </div>
-                                        <p className="text-sm text-white/70 text-left leading-relaxed">
-                                            {card.description}
-                                        </p>
                                     </div>
                                 </div>
                             )
@@ -758,22 +759,82 @@ export default function SubmitContentPage() {
                                     </div>
                                 ))}
                             </div>
-                            <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100 flex gap-3">
-                                <Clock className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                                <div>
-                                    <p className="font-semibold text-amber-100">
-                                        Manual fallback
-                                    </p>
-                                    <p className="text-amber-100/90">
-                                        Some platforms block automated crawlers. If that happens, use
-                                        the manual proof option or share a public screenshot so our
-                                        team can verify you manually.
-                                    </p>
-                                </div>
-                            </div>
+                              <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100 flex gap-3">
+                                  <Clock className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                  <div>
+                                      <p className="font-semibold text-amber-100">
+                                          Manual fallback
+                                      </p>
+                                      <p className="text-amber-100/90">
+                                          Some platforms block automated crawlers. If that happens, use
+                                          the manual proof option or share a public screenshot so our
+                                          team can verify you manually.
+                                      </p>
+                                  </div>
+                              </div>
+                              <div className="pt-2 space-y-3">
+                                  <h3 className="text-sm font-semibold text-white uppercase tracking-wide flex items-center gap-2">
+                                      <ShieldCheck className="w-4 h-4 text-accent" />
+                                      Quick proof checklist
+                                  </h3>
+                                  <div className="space-y-3">
+                                      {proofShortcuts.map((shortcut) => {
+                                          const Icon = shortcut.icon
+                                          return (
+                                              <div
+                                                  key={shortcut.title}
+                                                  className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3"
+                                              >
+                                                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-accent/15 border border-accent/30 text-accent">
+                                                      <Icon className="w-5 h-5" />
+                                                  </span>
+                                                  <div className="space-y-1">
+                                                      <p className="text-sm font-semibold text-white">
+                                                          {shortcut.title}
+                                                      </p>
+                                                      <p className="text-xs text-white/70 leading-relaxed">
+                                                          {shortcut.description}
+                                                      </p>
+                                                  </div>
+                                              </div>
+                                          )
+                                      })}
+                                  </div>
+                              </div>
                         </CardContent>
                     </Card>
                 </section>
+
+                  <section className="relative px-4">
+                      <Card className="bg-background/50 border border-border/40 backdrop-blur-xl shadow-lg">
+                          <CardHeader className="space-y-1">
+                              <CardTitle className="flex items-center gap-2 text-xl text-white">
+                                  <Lightbulb className="w-5 h-5 text-yellow-300" />
+                                  Content sparks that resonate
+                              </CardTitle>
+                              <CardDescription className="text-muted-foreground">
+                                  Need inspiration? Try one of these community-tested ideas.
+                              </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                              <div className="grid gap-4 md:grid-cols-2">
+                                  {inspirationPrompts.map((prompt) => (
+                                      <div
+                                          key={prompt.title}
+                                          className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-2"
+                                      >
+                                          <h3 className="text-base font-semibold text-white">
+                                              {prompt.title}
+                                          </h3>
+                                          <p className="text-sm text-white/70 leading-relaxed">
+                                              {prompt.body}
+                                          </p>
+                                      </div>
+                                  ))}
+                              </div>
+                          </CardContent>
+                      </Card>
+                  </section>
 
                 <section className="space-y-4">
                     <div className="flex items-center justify-between flex-wrap gap-3">
