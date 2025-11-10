@@ -36,7 +36,17 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { useAuth } from "@/hooks/use-auth"
+import { useStars } from "@/contexts/stars-context"
 import { cn } from "@/lib/utils"
+import {
+    AI_MEDIA_OPTIONS,
+    AI_STAR_COST_CAP,
+    CONTENT_TYPE_CATALOG,
+    CONTENT_TYPE_OPTIONS_BY_MEDIA,
+    PLATFORM_PROMPT_HINTS,
+    type ContentTypeKey,
+    type MediaPlatform,
+} from "@/lib/content-generator"
 
 type SubmissionStatus = "pending" | "verified" | "failed" | "manual_review"
 type VerificationMethod = "public_code" | "meta_tag" | "profile_bio" | "manual_proof"
@@ -68,7 +78,7 @@ interface ContentSubmission {
     updated_at: string
 }
 
-const platformOptions = [
+const submissionPlatformOptions = [
     { value: "twitter", label: "X / Twitter" },
     { value: "instagram", label: "Instagram" },
     { value: "facebook", label: "Facebook" },
@@ -217,6 +227,64 @@ export default function SubmitContentPage() {
         evidenceUrl: "",
     })
 
+    const { stars, spendStars } = useStars()
+    const defaultMediaPlatform = (AI_MEDIA_OPTIONS[0]?.value ?? "instagram") as MediaPlatform
+    const [selectedMediaPlatform, setSelectedMediaPlatform] =
+        useState<MediaPlatform>(defaultMediaPlatform)
+    const initialContentKey =
+        (CONTENT_TYPE_OPTIONS_BY_MEDIA[defaultMediaPlatform] ??
+            CONTENT_TYPE_OPTIONS_BY_MEDIA.other)[0]
+    const [selectedContentType, setSelectedContentType] =
+        useState<ContentTypeKey>(initialContentKey)
+    const [aiContent, setAiContent] = useState("")
+    const [aiGenerating, setAiGenerating] = useState(false)
+    const [aiCopied, setAiCopied] = useState(false)
+    const [aiError, setAiError] = useState<string | null>(null)
+
+    const availableContentTypeOptions = useMemo(() => {
+        const keys =
+            CONTENT_TYPE_OPTIONS_BY_MEDIA[selectedMediaPlatform] ??
+            CONTENT_TYPE_OPTIONS_BY_MEDIA.other
+        return keys.map((key) => ({
+            value: key,
+            label: CONTENT_TYPE_CATALOG[key].label,
+            cost: CONTENT_TYPE_CATALOG[key].cost,
+            guidance: CONTENT_TYPE_CATALOG[key].guidance,
+        }))
+    }, [selectedMediaPlatform])
+
+    useEffect(() => {
+        const keys =
+            CONTENT_TYPE_OPTIONS_BY_MEDIA[selectedMediaPlatform] ??
+            CONTENT_TYPE_OPTIONS_BY_MEDIA.other
+        if (keys.length > 0 && !keys.includes(selectedContentType)) {
+            setSelectedContentType(keys[0])
+        }
+    }, [selectedMediaPlatform, selectedContentType])
+
+    const activeContentType = useMemo(() => {
+        if (!availableContentTypeOptions.length) return null
+        return (
+            availableContentTypeOptions.find(
+                (option) => option.value === selectedContentType
+            ) ?? availableContentTypeOptions[0]
+        )
+    }, [availableContentTypeOptions, selectedContentType])
+
+    const starCost = useMemo(
+        () => (activeContentType ? Math.min(activeContentType.cost, AI_STAR_COST_CAP) : 1),
+        [activeContentType]
+    )
+
+    const notEnoughStars =
+        typeof stars === "number" && starCost > stars
+    const platformHint = PLATFORM_PROMPT_HINTS[selectedMediaPlatform]
+    
+    useEffect(() => {
+        setAiError(null)
+        setAiCopied(false)
+    }, [selectedMediaPlatform, selectedContentType])
+
     useEffect(() => {
         if (!authLoading && !user) {
             toast.info("Please sign in to submit promotional content.", {
@@ -306,6 +374,93 @@ export default function SubmitContentPage() {
             evidenceUrl: "",
         })
     }
+
+    const handleGenerateAi = useCallback(async () => {
+        if (!activeContentType) {
+            toast.error("Select a media platform and content type first.")
+            return
+        }
+        if (stars === null) {
+            toast.info("Star balance is loading. Please try again in a moment.")
+            return
+        }
+        const cost = starCost
+        if (stars < cost) {
+            toast.error(
+                `You need ${cost} ${cost === 1 ? "star" : "stars"} to generate this content.`
+            )
+            return
+        }
+        setAiGenerating(true)
+        setAiCopied(false)
+        setAiError(null)
+        try {
+            const response = await fetch("/api/content-submissions/generate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    mediaPlatform: selectedMediaPlatform,
+                    contentType: selectedContentType,
+                    context: {
+                        title: formState.title,
+                        notes: formState.notes,
+                    },
+                }),
+            })
+            if (!response.ok) {
+                const data = await response.json().catch(() => ({}))
+                const message =
+                    typeof data?.error === "string"
+                        ? data.error
+                        : "Failed to generate promotional content."
+                throw new Error(message)
+            }
+            const data = await response.json()
+            if (!data?.content) {
+                throw new Error("No AI content returned. Please try again.")
+            }
+            const spent = spendStars(cost)
+            if (!spent) {
+                throw new Error("We couldn't reserve your stars. Please try again.")
+            }
+            setAiContent(String(data.content).trim())
+            toast.success(
+                `Generated new content using ${cost} ${cost === 1 ? "star" : "stars"}.`
+            )
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "Something went wrong while generating content."
+            setAiError(message)
+            toast.error(message)
+        } finally {
+            setAiGenerating(false)
+        }
+    }, [
+        activeContentType,
+        formState.notes,
+        formState.title,
+        selectedContentType,
+        selectedMediaPlatform,
+        spendStars,
+        starCost,
+        stars,
+    ])
+
+    const handleCopyAi = useCallback(async () => {
+        if (!aiContent) return
+        try {
+            await navigator.clipboard.writeText(aiContent)
+            setAiCopied(true)
+            toast.success("AI content copied to clipboard.")
+            setTimeout(() => setAiCopied(false), 2000)
+        } catch {
+            toast.error("Unable to copy AI content. Please copy it manually.")
+        }
+    }, [aiContent])
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
@@ -532,6 +687,183 @@ export default function SubmitContentPage() {
                             )
                         })}
                     </div>
+
+                      <div className="max-w-5xl mx-auto w-full">
+                          <div className="relative overflow-hidden rounded-3xl border border-purple-500/40 bg-gradient-to-br from-purple-500/20 via-indigo-500/10 to-transparent p-6 sm:p-8 text-left backdrop-blur-xl shadow-2xl animate-fade-in-scale" style={{ animationDelay: '0.15s' }}>
+                              <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500 rounded-3xl pointer-events-none" />
+                              <div className="relative z-10 space-y-6">
+                                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                                      <div className="space-y-3">
+                                          <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-purple-200/80">
+                                              <Sparkles className="w-4 h-4 animate-pulse-glow" />
+                                              AI Promo Studio
+                                          </p>
+                                          <h2 className="text-2xl sm:text-3xl font-semibold text-white">
+                                              Generate a ready-to-post idea in Asking Fate’s voice
+                                          </h2>
+                                          <p className="text-sm text-white/70 leading-relaxed max-w-xl">
+                                              Pick a platform and format, then let our AI craft mystical copy that sparks curiosity about Asking Fate. We’ll tailor tone, length, and CTA automatically.
+                                          </p>
+                                      </div>
+                                      <div className="self-start md:self-auto rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-left text-sm text-white/80 shadow-lg shadow-purple-500/20">
+                                          <p className="font-semibold text-white text-base">
+                                              {stars ?? "–"} stars
+                                          </p>
+                                          <p className="text-xs text-white/70">Available balance</p>
+                                      </div>
+                                  </div>
+
+                                  <div className="space-y-5">
+                                      <div className="flex flex-col lg:flex-row gap-4">
+                                          <div className="flex-1 space-y-2">
+                                              <Label className="text-sm font-semibold text-white flex items-center gap-2">
+                                                  Media platform
+                                              </Label>
+                                              <Select
+                                                  value={selectedMediaPlatform}
+                                                  onValueChange={(value) =>
+                                                      setSelectedMediaPlatform(value as MediaPlatform)
+                                                  }
+                                              >
+                                                  <SelectTrigger className="bg-black/40 border border-white/15 text-white hover:border-purple-400/40 focus:border-purple-400/60 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300">
+                                                      <SelectValue placeholder="Choose a platform" />
+                                                  </SelectTrigger>
+                                                  <SelectContent className="bg-background/95 backdrop-blur-xl border border-white/15 text-white">
+                                                      {AI_MEDIA_OPTIONS.map((option) => (
+                                                          <SelectItem
+                                                              key={option.value}
+                                                              value={option.value}
+                                                              className="text-left hover:bg-purple-500/20 focus:bg-purple-500/20 transition-colors duration-200"
+                                                          >
+                                                              {option.label}
+                                                          </SelectItem>
+                                                      ))}
+                                                  </SelectContent>
+                                              </Select>
+                                          </div>
+                                          <div className="flex-1 space-y-2">
+                                              <Label className="text-sm font-semibold text-white flex items-center gap-2">
+                                                  Content type
+                                              </Label>
+                                              <Select
+                                                  value={selectedContentType}
+                                                  onValueChange={(value) =>
+                                                      setSelectedContentType(value as ContentTypeKey)
+                                                  }
+                                              >
+                                                  <SelectTrigger className="bg-black/40 border border-white/15 text-white hover:border-purple-400/40 focus:border-purple-400/60 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300">
+                                                      <SelectValue placeholder="Choose content type" />
+                                                  </SelectTrigger>
+                                                  <SelectContent className="bg-background/95 backdrop-blur-xl border border-white/15 text-white">
+                                                      {availableContentTypeOptions.map((option) => (
+                                                          <SelectItem
+                                                              key={option.value}
+                                                              value={option.value}
+                                                              className="text-left hover:bg-purple-500/20 focus:bg-purple-500/20 transition-colors duration-200"
+                                                          >
+                                                              {option.label} • {option.cost}★
+                                                          </SelectItem>
+                                                      ))}
+                                                  </SelectContent>
+                                              </Select>
+                                              {activeContentType && (
+                                                  <p className="text-xs text-white/70 leading-relaxed">
+                                                      {activeContentType.guidance}
+                                                  </p>
+                                              )}
+                                          </div>
+                                      </div>
+
+                                      <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/70 leading-relaxed">
+                                          {platformHint}
+                                      </div>
+
+                                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                          <div className="text-sm text-white/80">
+                                              Costs{" "}
+                                              <span className="font-semibold text-white">
+                                                  {starCost}
+                                              </span>{" "}
+                                              {starCost === 1 ? "star" : "stars"} • You have{" "}
+                                              <span className="font-semibold text-white">
+                                                  {stars ?? "–"}
+                                              </span>
+                                          </div>
+                                          <Button
+                                              type="button"
+                                              onClick={handleGenerateAi}
+                                              disabled={
+                                                  aiGenerating ||
+                                                  stars === null ||
+                                                  notEnoughStars
+                                              }
+                                              className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 px-6 py-2.5 text-white font-semibold shadow-lg shadow-purple-500/30 hover:shadow-purple-500/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                          >
+                                              {aiGenerating ? (
+                                                  <span className="flex items-center gap-2">
+                                                      <div className="h-4 w-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                                                      Crafting…
+                                                  </span>
+                                              ) : (
+                                                  <>
+                                                      <Sparkles className="w-4 h-4" />
+                                                      Generate with AI
+                                                  </>
+                                              )}
+                                          </Button>
+                                      </div>
+                                      {notEnoughStars && (
+                                          <p className="text-xs text-rose-300">
+                                              You need at least {starCost}{" "}
+                                              {starCost === 1 ? "star" : "stars"} to generate this
+                                              idea. Earn more by completing activities on the Stars
+                                              page.
+                                          </p>
+                                      )}
+                                      {aiError && (
+                                          <p className="text-xs text-rose-300">{aiError}</p>
+                                      )}
+
+                                      {aiContent && (
+                                          <div className="rounded-2xl border border-white/15 bg-black/40 p-5 space-y-3 shadow-inner shadow-purple-500/20">
+                                              <div className="flex items-center justify-between gap-3">
+                                                  <div>
+                                                      <p className="text-xs font-semibold uppercase tracking-[0.35em] text-purple-200/70">
+                                                          AI blueprint
+                                                      </p>
+                                                      <h3 className="text-sm text-white/90">
+                                                          {AI_MEDIA_OPTIONS.find(
+                                                              (option) =>
+                                                                  option.value === selectedMediaPlatform
+                                                          )?.label || "Generated concept"}
+                                                      </h3>
+                                                  </div>
+                                                  <Button
+                                                      type="button"
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      onClick={handleCopyAi}
+                                                      className="text-purple-200 hover:text-white hover:bg-purple-500/20"
+                                                  >
+                                                      <Copy className="w-4 h-4 mr-2" />
+                                                      {aiCopied ? "Copied" : "Copy"}
+                                                  </Button>
+                                              </div>
+                                              <Textarea
+                                                  value={aiContent}
+                                                  readOnly
+                                                  className="min-h-[180px] resize-none bg-black/30 border border-white/10 text-white text-sm leading-relaxed shadow-inner"
+                                              />
+                                              <p className="text-xs text-white/60">
+                                                  Tip: tweak the copy, add your refer-a-friend code, and
+                                                  then use the submission form below to claim rewards.
+                                              </p>
+                                          </div>
+                                      )}
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
                 </header>
 
                 <section className="flex flex-col lg:flex-row gap-8 animate-fade-in-scale" style={{ animationDelay: '0.2s' }}>
@@ -627,7 +959,7 @@ export default function SubmitContentPage() {
                                                 <SelectValue placeholder="Choose platform" />
                                             </SelectTrigger>
                                             <SelectContent className="bg-background/95 backdrop-blur-xl border-border/50 text-white">
-                                                {platformOptions.map((option) => (
+                                              {submissionPlatformOptions.map((option) => (
                                                     <SelectItem 
                                                         key={option.value} 
                                                         value={option.value}
