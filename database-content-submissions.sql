@@ -32,6 +32,24 @@ create policy "Users can insert their own submissions" on public.content_submiss
   for insert
   with check (auth.uid() = user_id);
 
+create table if not exists public.content_submission_tokens (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  token text not null unique,
+  created_at timestamptz not null default now()
+);
+
+alter table public.content_submission_tokens enable row level security;
+
+drop policy if exists "Users can view their submission token" on public.content_submission_tokens;
+create policy "Users can view their submission token" on public.content_submission_tokens
+  for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert their submission token" on public.content_submission_tokens;
+create policy "Users can insert their submission token" on public.content_submission_tokens
+  for insert
+  with check (auth.uid() = user_id);
+
 drop policy if exists "Users can view their own submissions" on public.content_submissions;
 create policy "Users can view their own submissions" on public.content_submissions
   for select

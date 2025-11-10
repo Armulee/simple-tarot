@@ -1,5 +1,7 @@
+import { randomUUID } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase"
+import type { PostgrestError } from "@supabase/supabase-js"
 
 const USER_AGENT =
     "AskingFateOwnershipBot/1.0 (+https://askingfate.com/ownership-policy)"
@@ -42,6 +44,11 @@ interface VerificationOutcome {
     status: Exclude<VerificationStatus, "pending">
     autoVerified: boolean
     result: VerificationResult
+}
+
+function generateVerificationToken() {
+    const randomPart = randomUUID().replace(/-/g, "").slice(0, 8).toLowerCase()
+    return `askingfate-${randomPart}`
 }
 
 function sanitizeUrl(value: string, field: string) {
@@ -90,6 +97,48 @@ async function getAuthenticatedUser(request: NextRequest) {
             { status: 500 }
         )
     }
+}
+
+async function getOrCreateUserVerificationToken(userId: string) {
+    const fetchExisting = await supabaseAdmin!
+        .from("content_submission_tokens")
+        .select("token")
+        .eq("user_id", userId)
+        .single()
+
+    if (fetchExisting.data?.token) {
+        return fetchExisting.data.token as string
+    }
+
+    if (fetchExisting.error && fetchExisting.error.code !== "PGRST116") {
+        throw fetchExisting.error
+    }
+
+    let attempts = 0
+    while (attempts < 5) {
+        const token = generateVerificationToken()
+        const insertResult = await supabaseAdmin!
+            .from("content_submission_tokens")
+            .insert({ user_id: userId, token })
+            .select("token")
+            .single()
+
+        const insertError = insertResult.error as PostgrestError | null
+        if (!insertError && insertResult.data?.token) {
+            return insertResult.data.token as string
+        }
+
+        if (insertError?.code === "23505") {
+            attempts += 1
+            continue
+        }
+
+        if (insertError) {
+            throw insertError
+        }
+    }
+
+    throw new Error("Failed to generate unique verification token")
 }
 
 async function verifyOwnership(
@@ -225,6 +274,7 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+        const verificationToken = await getOrCreateUserVerificationToken(user.id)
         const { data, error } = await supabaseAdmin!
             .from("content_submissions")
             .select("*")
@@ -239,7 +289,10 @@ export async function GET(request: NextRequest) {
             )
         }
 
-        return NextResponse.json({ submissions: data ?? [] })
+        return NextResponse.json({
+            verificationToken,
+            submissions: data ?? [],
+        })
     } catch (error) {
         console.error("GET /content-submissions error:", error)
         return NextResponse.json(
@@ -253,6 +306,17 @@ export async function POST(request: NextRequest) {
     const user = await getAuthenticatedUser(request)
     if (user instanceof NextResponse) {
         return user
+    }
+
+    let verificationToken: string
+    try {
+        verificationToken = await getOrCreateUserVerificationToken(user.id)
+    } catch (error) {
+        console.error("Failed to prepare verification token:", error)
+        return NextResponse.json(
+            { error: "Failed to create verification token" },
+            { status: 500 }
+        )
     }
 
     let payload: Record<string, unknown>
@@ -275,7 +339,7 @@ export async function POST(request: NextRequest) {
         typeof payload.notes === "string" && payload.notes.trim().length > 0
             ? payload.notes.trim()
             : null
-    const verificationCode =
+    const verificationCodePayload =
         typeof payload.verificationCode === "string"
             ? payload.verificationCode.trim()
             : ""
@@ -292,6 +356,18 @@ export async function POST(request: NextRequest) {
     if (!url) {
         return NextResponse.json({ error: "Content URL is required" }, { status: 400 })
     }
+
+    if (verificationCodePayload && verificationCodePayload !== verificationToken) {
+        return NextResponse.json(
+            {
+                error:
+                    "Verification code does not match your assigned token. Please use the code displayed on the submission page.",
+            },
+            { status: 400 }
+        )
+    }
+
+    const verificationCode = verificationToken
 
     if (!verificationCode) {
         return NextResponse.json(

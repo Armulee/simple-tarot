@@ -143,7 +143,7 @@ export default function SubmitContentPage() {
     const { user, session, loading: authLoading } = useAuth()
     const router = useRouter()
 
-    const [verificationCode, setVerificationCode] = useState<string>("")
+    const [verificationToken, setVerificationToken] = useState<string>("")
     const [copied, setCopied] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [loadingSubmissions, setLoadingSubmissions] = useState(false)
@@ -158,12 +158,6 @@ export default function SubmitContentPage() {
         evidenceUrl: "",
     })
 
-    const regenerateCode = useCallback(() => {
-        if (user?.id) {
-            setVerificationCode(createVerificationCode(user.id))
-        }
-    }, [user?.id])
-
     useEffect(() => {
         if (!authLoading && !user) {
             toast.info("Please sign in to submit promotional content.", {
@@ -173,12 +167,6 @@ export default function SubmitContentPage() {
             router.push(`/signin?callbackUrl=${callbackUrl}`)
         }
     }, [authLoading, user, router])
-
-    useEffect(() => {
-        if (user?.id && !verificationCode) {
-            regenerateCode()
-        }
-    }, [user?.id, verificationCode, regenerateCode])
 
     const loadSubmissions = useCallback(
         async (showToast = false) => {
@@ -197,12 +185,18 @@ export default function SubmitContentPage() {
                     )
                 }
                 const data = await response.json()
+                if (typeof data.verificationToken === "string") {
+                    setVerificationToken(data.verificationToken)
+                } else {
+                    setVerificationToken("")
+                }
                 setSubmissions(data.submissions ?? [])
                 if (showToast) {
                     toast.success("Submission list refreshed.")
                 }
             } catch (error) {
                 console.error("Failed to load submissions:", error)
+                setVerificationToken("")
                 toast.error(
                     error instanceof Error
                         ? error.message
@@ -222,16 +216,16 @@ export default function SubmitContentPage() {
     }, [user, session?.access_token, loadSubmissions])
 
     const handleCopyCode = useCallback(async () => {
-        if (!verificationCode) return
+        if (!verificationToken) return
         try {
-            await navigator.clipboard.writeText(verificationCode)
+            await navigator.clipboard.writeText(verificationToken)
             setCopied(true)
             toast.success("Verification code copied!")
             setTimeout(() => setCopied(false), 2000)
         } catch {
             toast.error("Unable to copy code. Please copy it manually.")
         }
-    }, [verificationCode])
+    }, [verificationToken])
 
     const handleChange = <Key extends keyof typeof formState>(
         key: Key,
@@ -252,7 +246,6 @@ export default function SubmitContentPage() {
             verificationMethod: "public_code",
             evidenceUrl: "",
         })
-        regenerateCode()
     }
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -262,8 +255,8 @@ export default function SubmitContentPage() {
             return
         }
 
-        if (!verificationCode) {
-            toast.error("Generate a verification code before submitting.")
+        if (!verificationToken) {
+            toast.error("We couldn't load your verification code yet. Please refresh the page and try again.")
             return
         }
 
@@ -293,7 +286,7 @@ export default function SubmitContentPage() {
                     url: formState.url,
                     platform: formState.platform || null,
                     notes: formState.notes || null,
-                    verificationCode,
+                    verificationCode: verificationToken,
                     verificationMethod: formState.verificationMethod,
                     evidenceUrl:
                         formState.verificationMethod === "manual_proof"
@@ -340,13 +333,19 @@ export default function SubmitContentPage() {
     const verificationSnippet = useMemo(() => {
         switch (formState.verificationMethod) {
             case "meta_tag":
-                return `<meta name="asking-fate-verification" content="${verificationCode}" />`
+                return verificationToken
+                    ? `<meta name="asking-fate-verification" content="${verificationToken}" />`
+                    : "Loading verification code..."
             case "profile_bio":
-                return `Bio snippet: “Partnered with Asking Fate ${verificationCode}”`
+                return verificationToken
+                    ? `Bio snippet: “Partnered with Asking Fate ${verificationToken}”`
+                    : "Loading verification code..."
             default:
-                return `Add this text verbatim anywhere in your content:\n${verificationCode}`
+                return verificationToken
+                    ? `Add this text verbatim anywhere in your content:\n${verificationToken}`
+                    : "Loading verification code..."
         }
-    }, [formState.verificationMethod, verificationCode])
+    }, [formState.verificationMethod, verificationToken])
 
     const renderStatusBadge = (status: SubmissionStatus) => {
         const config = statusConfig[status]
@@ -455,30 +454,25 @@ export default function SubmitContentPage() {
                                 <div className="flex flex-wrap items-center gap-3">
                                     <div className="flex-1 min-w-[200px]">
                                         <p className="text-sm text-muted-foreground mb-1">
-                                            Your verification code
+                                            Your permanent verification code
                                         </p>
                                         <div className="font-mono text-sm sm:text-base text-white bg-black/40 border border-white/10 rounded-lg px-3 py-2">
-                                            {verificationCode || "Generating..."}
+                                            {verificationToken || "Loading..."}
                                         </div>
+                                        <p className="text-xs text-muted-foreground mt-2">
+                                            Add this code to your public content whenever you promote Asking Fate. It never expires.
+                                        </p>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Button
                                             type="button"
                                             variant="outline"
                                             onClick={handleCopyCode}
-                                            className="border-accent/50 text-accent hover:bg-accent/10"
+                                            disabled={!verificationToken}
+                                            className="border-accent/50 text-accent hover:bg-accent/10 disabled:opacity-60 disabled:cursor-not-allowed"
                                         >
                                             <Copy className="w-4 h-4 mr-2" />
                                             {copied ? "Copied" : "Copy"}
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            onClick={regenerateCode}
-                                            className="text-muted-foreground hover:text-white"
-                                        >
-                                            <RefreshCcw className="w-4 h-4 mr-2" />
-                                            Regenerate
                                         </Button>
                                     </div>
                                 </div>
@@ -648,9 +642,9 @@ export default function SubmitContentPage() {
                             <div className="space-y-4">
                                 {[
                                     {
-                                        title: "Generate your code",
+                                        title: "Copy your code",
                                         description:
-                                            "Use the code above. It is unique to this submission and tied to your account.",
+                                            "Use the code above. It is unique to your account and never changes.",
                                     },
                                     {
                                         title: "Place it where we can read it",
