@@ -30,6 +30,8 @@ type ReadingProps = {
     initialInterpretation?: string | null
     ownerDid?: string | null
     ownerUserId?: string | null
+    isLargeScreen?: boolean
+    onInterpretationChange?: (text: string | null) => void
 }
 
 export default function Interpretation({
@@ -39,6 +41,8 @@ export default function Interpretation({
     initialInterpretation,
     ownerDid,
     ownerUserId,
+    isLargeScreen = false,
+    onInterpretationChange,
 }: ReadingProps) {
     const t = useTranslations("ReadingPage.interpretation")
     const { user } = useAuth()
@@ -51,6 +55,16 @@ export default function Interpretation({
         initialInterpretation ?? null
     )
     const [isGenerating, setIsGenerating] = useState(false)
+
+    useEffect(() => {
+        if (typeof onInterpretationChange === "function") {
+            const normalized =
+                interpretation && interpretation.trim().length > 0
+                    ? interpretation
+                    : null
+            onInterpretationChange(normalized)
+        }
+    }, [interpretation, onInterpretationChange])
     const [error, setError] = useState<string | null>(null)
     const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
     const [isAuthLoading, setIsAuthLoading] = useState(true)
@@ -395,7 +409,7 @@ Output:
                 </div>
             </Card>
 
-            {interpretation && !error && (
+            {!isLargeScreen && interpretation && !error && (
                 <div className='w-full max-w-4xl space-y-6'>
                     <ActionSection
                         question={question || ""}

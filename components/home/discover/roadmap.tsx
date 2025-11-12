@@ -172,7 +172,6 @@ export default function RoadmapSection() {
                             phase.status === t("status.completed")
                         const isInDevelopment =
                             phase.status === t("status.inDevelopment")
-                        const isPlanned = phase.status === t("status.planned")
                         const statusStyle = isCompleted
                             ? "bg-green-500/20 text-green-200 border border-green-400/40"
                             : isInDevelopment

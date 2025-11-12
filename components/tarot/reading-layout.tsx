@@ -45,8 +45,6 @@ export default function TarotReadingLayout({
     const [interpretation, setInterpretation] = useState<string | null>(
         initialInterpretation ?? null
     )
-    const [isGenerating, setIsGenerating] = useState(false)
-
     return (
         <div className="hidden lg:block space-y-8">
             {/* Row 1: Cards (left) + Interpretation (right) */}
@@ -140,12 +138,9 @@ export default function TarotReadingLayout({
                             cards={cards || []}
                             interpretation={interpretation}
                             readingId={readingId}
-                            onInterpretationChange={(text) =>
+                            onInterpretationChange={(text) => {
                                 setInterpretation(text)
-                            }
-                            onGeneratingChange={(loading) =>
-                                setIsGenerating(loading)
-                            }
+                            }}
                         />
                     </div>
 

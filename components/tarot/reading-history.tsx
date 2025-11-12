@@ -594,13 +594,6 @@ export default function ReadingHistory() {
 
         // If some follow-ups reference a main not in current filter (unlikely), we still create the group
         // Now, heuristically merge remaining unlinked by similarity/time where parent_id is missing
-        const tokenize = (text: string) =>
-            (text || "")
-                .toLowerCase()
-                .replace(/[^a-z0-9\sก-๙]/gi, " ")
-                .split(/\s+/)
-                .filter((w) => w.length >= 3)
-
         type Group = {
             key: string
             items: ReadingRow[]
