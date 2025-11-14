@@ -1,8 +1,8 @@
 export default function Head() {
     return (
         <>
-            <title>Checkout | Simple Tarot</title>
-            <meta name="description" content="Review your stars pack and complete secure checkout. Stars deliver instantly after payment." />
+            <title>Star Purchase Coming Soon | Simple Tarot</title>
+            <meta name="description" content="Star purchase feature coming soon. Stay tuned for updates!" />
         </>
     )
 }
