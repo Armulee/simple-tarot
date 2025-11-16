@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
             amountUsd,
             currency = "USD",
             reference,
-            provider = "checkout_com",
+            provider = "manual",
             providerPaymentId = null,
             subscription,
         } = body || {}
