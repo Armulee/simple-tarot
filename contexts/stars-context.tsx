@@ -44,7 +44,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     const [firstTimeLoginGrant, setFirstTimeLoginGrant] = useState<
         boolean | undefined
     >(undefined)
-    const { user } = useAuth()
+    const { user, loading: authLoading } = useAuth()
+    const [previousUserId, setPreviousUserId] = useState<string | null>(null)
 
     // Refill cap: anonymous 5 (no hourly refill), signed-in 12 (refill every 2 hours)
     const refillCap = user ? 12 : 5
@@ -80,17 +81,32 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         [getNextBangkokMidnightMs]
     )
 
-    // Initial fetch and whenever auth state changes, load state from Supabase
+    // Track user ID changes to detect login/logout
+    useEffect(() => {
+        const currentUserId = user?.id ?? null
+        if (previousUserId !== currentUserId) {
+            // User ID changed (login/logout), reset initialized to force re-fetch
+            setInitialized(false)
+            setPreviousUserId(currentUserId)
+        }
+    }, [user?.id, previousUserId])
+
+    // Initial fetch: wait for auth to load, then fetch stars with correct user ID
     useEffect(() => {
         let cancelled = false
         if (!hasCookieConsent()) {
             setInitialized(false)
             return
         }
+        // Wait for auth to finish loading before fetching stars
+        if (authLoading) {
+            return
+        }
         // Skip API call if already initialized to prevent duplicate calls
         if (!initialized) {
             ;(async () => {
                 try {
+                    // Use the correct user ID based on auth state (user?.id or null for anonymous)
                     const state = await starGetOrCreate(user ?? null)
                     if (cancelled) return
                     setStars(state.currentStars)
@@ -111,9 +127,9 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         return () => {
             cancelled = true
         }
-    }, [refillCap, computeNextRefillAt, initialized, user]) // Only depend on user.id, not the whole user object
+    }, [authLoading, refillCap, computeNextRefillAt, initialized, user])
 
-    // Initialize stars after consent is accepted
+    // Initialize stars after consent is accepted, waiting for auth to load
     type CookieConsentChangedDetail = { choice: "accepted" | "declined" }
     useEffect(() => {
         let cancelled = false
@@ -121,26 +137,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             const detail = (e as CustomEvent<CookieConsentChangedDetail>)
                 ?.detail
             if (detail?.choice === "accepted") {
-                // Immediately show 5 locally, then reconcile from server
-                setStars(5)
-                setInitialized(true)
-                ;(async () => {
-                    try {
-                        const state = await starGetOrCreate(user ?? null)
-                        if (cancelled) return
-                        setStars(state.currentStars)
-                        setNextRefillAt(
-                            computeNextRefillAt(
-                                state.currentStars,
-                                state.lastRefillAt,
-                                refillCap,
-                                Boolean(user)
-                            )
-                        )
-                        setFirstLoginBonusGranted(state.firstLoginBonusGranted)
-                        setFirstTimeLoginGrant(state.firstTimeLoginGrant)
-                    } catch {}
-                })()
+                // Reset initialized so main effect will fetch stars
+                setInitialized(false)
             }
         }
         if (typeof window !== "undefined") {
@@ -150,7 +148,6 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             )
         }
         return () => {
-            cancelled = true
             if (typeof window !== "undefined") {
                 window.removeEventListener(
                     "cookie-consent-changed",
@@ -158,7 +155,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                 )
             }
         }
-    }, [user, refillCap, computeNextRefillAt])
+    }, [])
 
     // Broadcast helper to notify other tabs/components to refresh
     const broadcastStarsUpdate = useCallback(() => {
