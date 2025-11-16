@@ -1150,7 +1150,9 @@
     "comingSoonTitle": "Star purchases are coming soon",
     "comingSoonDescription": "We're putting the finishing touches on a new way to buy stars securely inside Simple Tarot.",
     "comingSoonHelper": "Thanks for your patience! In the meantime you can keep exploring free readings and earn bonus stars from community activities.",
-    "close": "Close"
+    "close": "Close",
+    "stripeReady": "Stripe API key detected — live payments will unlock as soon as the new checkout ships.",
+    "stripeMissing": "Add STRIPE_API_KEY to your environment to prepare the upcoming Stripe checkout."
   },
 
   "StarsPurchase": {

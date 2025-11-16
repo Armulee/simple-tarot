@@ -24,12 +24,14 @@ type CheckoutProps = {
     plan?: "monthly" | "annual"
     infinityTerm?: "month" | "year"
     customTrigger?: ReactNode
+    availabilityLabel?: string
 }
 
-export function Checkout({ mode, customTrigger }: CheckoutProps) {
+export function Checkout({ mode, customTrigger, availabilityLabel }: CheckoutProps) {
     const { user } = useAuth()
     const t = useTranslations("Checkout")
     const [open, setOpen] = useState(false)
+    const stripeConfigured = Boolean(process.env.STRIPE_API_KEY)
 
     if (!user) {
         const signinHref = `/signin?callbackUrl=${encodeURIComponent("/pricing")}`
@@ -56,7 +58,14 @@ export function Checkout({ mode, customTrigger }: CheckoutProps) {
                         className='w-full rounded-full bg-white text-black hover:brightness-90'
                         onClick={() => setOpen(true)}
                     >
-                        {mode === "pack" ? t("purchase") : t("subscribe")}
+                        <div className='flex w-full flex-col items-center justify-center gap-1 text-center'>
+                            <span>{mode === "pack" ? t("purchase") : t("subscribe")}</span>
+                            {mode === "subscribe" && availabilityLabel && (
+                                <span className='text-xs font-semibold text-black/70'>
+                                    {availabilityLabel}
+                                </span>
+                            )}
+                        </div>
                     </Button>
                 )}
             </DialogTrigger>
@@ -71,6 +80,9 @@ export function Checkout({ mode, customTrigger }: CheckoutProps) {
                 </DialogHeader>
                 <p className='text-sm text-white/70 leading-relaxed'>
                     {t("comingSoonHelper")}
+                </p>
+                <p className='text-xs text-white/60 leading-relaxed'>
+                    {stripeConfigured ? t("stripeReady") : t("stripeMissing")}
                 </p>
                 <DialogFooter>
                     <Button

@@ -22,9 +22,11 @@ import SignInAccordion from "@/components/stars/sign-in-accordion"
 import { Checkout } from "@/components/checkout"
 import SubscribeDropdown from "@/components/stars/subscribe-dropdown"
 import { useTranslations } from "next-intl"
+import { getAvailabilityLabel } from "@/lib/roadmap"
 
 export default function StarsPage() {
     const t = useTranslations("StarsPage")
+    const availabilityLabel = getAvailabilityLabel()
     return (
         <div className='relative min-h-screen'>
             {/* Hero Section */}
@@ -87,31 +89,40 @@ export default function StarsPage() {
 
                         {/* Subscribe Button */}
                         <div className='relative mb-4'>
-                            <Checkout
-                                mode='subscribe'
-                                plan='monthly'
-                                customTrigger={
-                                    <button
-                                        type='button'
-                                        className='group relative w-full mx-auto rounded-2xl bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-black border border-yellow-500/40 hover:from-yellow-300 hover:via-amber-400 hover:to-orange-400 transition-all duration-300 px-8 py-4 text-lg font-bold flex items-center justify-center gap-3 hover:scale-105 hover:shadow-2xl hover:shadow-yellow-500/30'
-                                    >
-                                        {/* Animated background glow */}
-                                        <div className='absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl' />
+                          <Checkout
+                              mode='subscribe'
+                              plan='monthly'
+                              customTrigger={
+                                  <button
+                                      type='button'
+                                      className='group relative w-full mx-auto rounded-2xl bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-black border border-yellow-500/40 hover:from-yellow-300 hover:via-amber-400 hover:to-orange-400 transition-all duration-300 px-8 py-4 text-lg font-bold flex items-center justify-center gap-3 hover:scale-105 hover:shadow-2xl hover:shadow-yellow-500/30'
+                                  >
+                                      {/* Animated background glow */}
+                                      <div className='absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl' />
 
-                                        {/* Content */}
-                                        <div className='relative z-10 flex items-center gap-3'>
-                                            <Crown className='w-6 h-6 text-black group-hover:scale-110 transition-transform duration-300' />
-                                            <span>{t("subscribe.button")}</span>
-                                            <SubscribeDropdown />
-                                        </div>
+                                      {/* Content */}
+                                      <div className='relative z-10 flex w-full items-center justify-between gap-4'>
+                                          <div className='flex items-center gap-3'>
+                                              <Crown className='w-6 h-6 text-black group-hover:scale-110 transition-transform duration-300' />
+                                              <div className='flex flex-col text-left'>
+                                                  <span>{t("subscribe.button")}</span>
+                                                  {availabilityLabel && (
+                                                      <span className='text-xs font-semibold text-black/70'>
+                                                          {availabilityLabel}
+                                                      </span>
+                                                  )}
+                                              </div>
+                                          </div>
+                                          <SubscribeDropdown />
+                                      </div>
 
-                                        {/* Premium badge */}
-                                        <div className='absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center'>
-                                            <Crown className='w-3 h-3 text-white' />
-                                        </div>
-                                    </button>
-                                }
-                            />
+                                      {/* Premium badge */}
+                                      <div className='absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center'>
+                                          <Crown className='w-3 h-3 text-white' />
+                                      </div>
+                                  </button>
+                              }
+                          />
                         </div>
 
                         <OneTapTopUp />

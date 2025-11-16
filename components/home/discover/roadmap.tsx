@@ -25,6 +25,32 @@ import {
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useState, useEffect } from "react"
+import { roadmapPhases } from "@/lib/roadmap"
+
+type FeatureIconComponent = typeof Sparkles
+
+const featureIconMap: Record<string, FeatureIconComponent> = {
+    BarChart3,
+    Compass,
+    MessageCircle,
+    Orbit,
+    Sparkles,
+    Type,
+    ShieldCheck,
+    Hash,
+    AlertTriangle,
+    Brain,
+    Palette,
+    Shirt,
+    Smartphone,
+    Cloud,
+    LayoutDashboard,
+    Heart,
+    NotebookPen,
+    Hand,
+    LineChart,
+    Lightbulb,
+}
 
 export default function RoadmapSection() {
     const t = useTranslations("HomeDiscover.Roadmap")
@@ -40,104 +66,17 @@ export default function RoadmapSection() {
         return () => clearInterval(interval)
     }, [])
 
-    const roadmap = [
-        {
-            phase: t("phases.dec_2025"),
-            title: t("birthChart.title"),
-            status: t("status.inDevelopment"),
-            eta: t("birthChart.eta"),
-            features: t.raw("birthChart.features") as string[],
-            color: "from-indigo-500 to-sky-500",
-            glowColor: "shadow-indigo-500/20",
-            startDate: "2025-07-01",
-            targetDate: "2025-12-12",
-            featureIcons: [BarChart3, Compass, MessageCircle],
-        },
-        {
-            phase: t("phases.dec_2025"),
-            title: t("horoscope.title"),
-            status: t("status.inDevelopment"),
-            eta: t("horoscope.eta"),
-            features: t.raw("horoscope.features") as string[],
-            color: "from-fuchsia-500 to-rose-500",
-            glowColor: "shadow-fuchsia-500/20",
-            startDate: "2025-07-01",
-            targetDate: "2025-12-12",
-            featureIcons: [Orbit, Sparkles, MessageCircle],
-        },
-        {
-            phase: t("phases.jan_2026"),
-            title: t("namelogy.title"),
-            status: t("status.planned"),
-            eta: t("namelogy.eta"),
-            features: t.raw("namelogy.features") as string[],
-            color: "from-amber-500 to-orange-500",
-            glowColor: "shadow-amber-500/20",
-            startDate: "2025-09-15",
-            targetDate: "2026-01-15",
-            featureIcons: [Type, ShieldCheck, Sparkles],
-        },
-        {
-            phase: t("phases.jan_2026"),
-            title: t("numerology.title"),
-            status: t("status.planned"),
-            eta: t("numerology.eta"),
-            features: t.raw("numerology.features") as string[],
-            color: "from-emerald-500 to-teal-500",
-            glowColor: "shadow-emerald-500/20",
-            startDate: "2025-09-15",
-            targetDate: "2026-01-15",
-            featureIcons: [Hash, AlertTriangle, Brain],
-        },
-        {
-            phase: t("phases.jan_2026"),
-            title: t("luckyColors.title"),
-            status: t("status.planned"),
-            eta: t("luckyColors.eta"),
-            features: t.raw("luckyColors.features") as string[],
-            color: "from-cyan-500 to-blue-500",
-            glowColor: "shadow-cyan-500/20",
-            startDate: "2025-10-01",
-            targetDate: "2026-01-20",
-            featureIcons: [Palette, Shirt, Sparkles],
-        },
-        {
-            phase: t("phases.q1_2026"),
-            title: t("mobileApp.title"),
-            status: t("status.planned"),
-            eta: t("mobileApp.eta"),
-            features: t.raw("mobileApp.features") as string[],
-            color: "from-purple-500 to-indigo-500",
-            glowColor: "shadow-purple-500/20",
-            startDate: "2025-11-01",
-            targetDate: "2026-03-31",
-            featureIcons: [Smartphone, Cloud, LayoutDashboard],
-        },
-        {
-            phase: t("phases.q1_2026"),
-            title: t("fatedRelations.title"),
-            status: t("status.planned"),
-            eta: t("fatedRelations.eta"),
-            features: t.raw("fatedRelations.features") as string[],
-            color: "from-pink-500 to-red-500",
-            glowColor: "shadow-pink-500/20",
-            startDate: "2025-11-15",
-            targetDate: "2026-03-31",
-            featureIcons: [Heart, Sparkles, NotebookPen],
-        },
-        {
-            phase: t("phases.mar_2026"),
-            title: t("palmistry.title"),
-            status: t("status.planned"),
-            eta: t("palmistry.eta"),
-            features: t.raw("palmistry.features") as string[],
-            color: "from-slate-500 to-violet-500",
-            glowColor: "shadow-violet-500/20",
-            startDate: "2026-01-01",
-            targetDate: "2026-03-31",
-            featureIcons: [Hand, LineChart, Lightbulb],
-        },
-    ]
+    const roadmap = roadmapPhases.map((phase) => ({
+        ...phase,
+        phaseLabel: t(phase.phaseKey),
+        title: t(`${phase.translationKey}.title`),
+        statusLabel: t(phase.statusKey),
+        eta: t(`${phase.translationKey}.eta`),
+        features: t.raw(`${phase.translationKey}.features`) as string[],
+        featureIcons: phase.featureIconKeys.map(
+            (key) => featureIconMap[key as keyof typeof featureIconMap] ?? Sparkles
+        ),
+    }))
 
     return (
         <div className='space-y-12'>
@@ -167,11 +106,10 @@ export default function RoadmapSection() {
 
                 {/* Timeline items */}
                 <div className='space-y-8'>
-                    {roadmap.map((phase, index) => {
-                        const isCompleted =
-                            phase.status === t("status.completed")
-                        const isInDevelopment =
-                            phase.status === t("status.inDevelopment")
+                      {roadmap.map((phase, index) => {
+                          const isCompleted = phase.statusKey === "status.completed"
+                          const isInDevelopment =
+                              phase.statusKey === "status.inDevelopment"
                         const statusStyle = isCompleted
                             ? "bg-green-500/20 text-green-200 border border-green-400/40"
                             : isInDevelopment
@@ -242,7 +180,7 @@ export default function RoadmapSection() {
                                       <span
                                           className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase ${statusStyle}`}
                                       >
-                                          {phase.status}
+                                            {phase.statusLabel}
                                       </span>
                                   </div>
 

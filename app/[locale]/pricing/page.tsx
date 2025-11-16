@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select"
 import { useTranslations } from "next-intl"
 import { useParams } from "next/navigation"
+import { getAvailabilityLabel } from "@/lib/roadmap"
 
 type Pack = {
     id: string
@@ -39,6 +40,7 @@ export default function PricingPage() {
     const t = useTranslations("Pricing")
     const params = useParams()
     const locale = params.locale as string
+    const availabilityLabel = getAvailabilityLabel()
 
     // Default currency based on locale
     const defaultCurrency: Currency = locale === "th" ? "THB" : "USD"
@@ -237,7 +239,11 @@ export default function PricingPage() {
                                         {t("cancelFromAccount")}
                                     </li>
                                 </ul>
-                                <Checkout mode='subscribe' plan='monthly' />
+                                  <Checkout
+                                      mode='subscribe'
+                                      plan='monthly'
+                                      availabilityLabel={availabilityLabel}
+                                  />
                             </div>
                         </div>
                     </TabsContent>
@@ -299,7 +305,11 @@ export default function PricingPage() {
                                         {t("cancelRenewal")}
                                     </li>
                                 </ul>
-                                <Checkout mode='subscribe' plan='annual' />
+                                  <Checkout
+                                      mode='subscribe'
+                                      plan='annual'
+                                      availabilityLabel={availabilityLabel}
+                                  />
                             </div>
                         </div>
                     </TabsContent>
