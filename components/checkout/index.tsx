@@ -15,6 +15,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { StarsDialog } from "../star-consent"
+import { getAvailabilityLabel } from "@/lib/roadmap"
 
 type CheckoutMode = "pack" | "subscribe"
 
@@ -32,6 +33,7 @@ export function Checkout({ mode, customTrigger, availabilityLabel }: CheckoutPro
     const t = useTranslations("Checkout")
     const [open, setOpen] = useState(false)
     const stripeConfigured = Boolean(process.env.STRIPE_API_KEY)
+    const availabilityCountdown = availabilityLabel ?? getAvailabilityLabel()
 
     if (!user) {
         const signinHref = `/signin?callbackUrl=${encodeURIComponent("/pricing")}`
@@ -60,9 +62,9 @@ export function Checkout({ mode, customTrigger, availabilityLabel }: CheckoutPro
                     >
                         <div className='flex w-full flex-col items-center justify-center gap-1 text-center'>
                             <span>{mode === "pack" ? t("purchase") : t("subscribe")}</span>
-                            {mode === "subscribe" && availabilityLabel && (
+                            {mode === "subscribe" && availabilityCountdown && (
                                 <span className='text-xs font-semibold text-black/70'>
-                                    {availabilityLabel}
+                                    {availabilityCountdown}
                                 </span>
                             )}
                         </div>
@@ -82,7 +84,12 @@ export function Checkout({ mode, customTrigger, availabilityLabel }: CheckoutPro
                     {t("comingSoonHelper")}
                 </p>
                 <p className='text-xs text-white/60 leading-relaxed'>
-                    {stripeConfigured ? t("stripeReady") : t("stripeMissing")}
+                    {stripeConfigured
+                        ? t("stripeReady")
+                        : t("stripeMissing", {
+                              countdown:
+                                  availabilityCountdown ?? t("countdownUnknown"),
+                          })}
                 </p>
                 <DialogFooter>
                     <Button

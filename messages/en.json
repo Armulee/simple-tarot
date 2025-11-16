@@ -1152,7 +1152,8 @@
     "comingSoonHelper": "Thanks for your patience! In the meantime you can keep exploring free readings and earn bonus stars from community activities.",
     "close": "Close",
     "stripeReady": "Stripe API key detected — live payments will unlock as soon as the new checkout ships.",
-    "stripeMissing": "Add STRIPE_API_KEY to your environment to prepare the upcoming Stripe checkout."
+    "stripeMissing": "Available when {countdown}",
+    "countdownUnknown": "the next release is ready"
   },
 
   "StarsPurchase": {

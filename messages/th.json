@@ -658,7 +658,8 @@
     "comingSoonHelper": "ระหว่างรอ คุณยังสามารถรับดาวฟรีจากการใช้งานและกิจกรรมของชุมชนได้",
     "close": "ปิด",
     "stripeReady": "ตรวจพบ STRIPE_API_KEY แล้ว ระบบจะเปิดรับชำระจริงทันทีที่ Checkout ใหม่พร้อมใช้งาน",
-    "stripeMissing": "เพิ่ม STRIPE_API_KEY ในสภาพแวดล้อมเพื่อเตรียมระบบ Stripe ล่วงหน้า"
+    "stripeMissing": "พร้อมใช้งานเมื่อ {countdown}",
+    "countdownUnknown": "ฟีเจอร์ใหม่เสร็จสมบูรณ์"
   },
 
   "StarsPurchase": {
