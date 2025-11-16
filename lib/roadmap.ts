@@ -101,6 +101,14 @@ export const roadmapPhases: RoadmapPhaseDefinition[] = [
     },
 ]
 
+export type AvailabilityCountdown = {
+    hours: number
+    minutes: number
+    seconds: number
+    phaseId: string
+    targetDate: Date
+}
+
 type UpcomingPhase = {
     phase: RoadmapPhaseDefinition
     targetDate: Date
@@ -132,24 +140,31 @@ export function getUpcomingRoadmapPhase(referenceDate = new Date()): UpcomingPha
     return futurePhases[0]
 }
 
-export function getAvailabilityCountdown(referenceDate = new Date()) {
+export function getAvailabilityCountdown(referenceDate = new Date()): AvailabilityCountdown | null {
     const upcoming = getUpcomingRoadmapPhase(referenceDate)
     if (!upcoming) return null
     const diffMs = upcoming.targetDate.getTime() - referenceDate.getTime()
     if (diffMs <= 0) return null
     const hours = Math.floor(diffMs / (1000 * 60 * 60))
     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+    const seconds = Math.floor((diffMs % (1000 * 60)) / 1000)
     return {
         hours,
         minutes,
+        seconds,
         phaseId: upcoming.phase.id,
         targetDate: upcoming.targetDate,
     }
 }
 
-export function getAvailabilityLabel(referenceDate = new Date()): string | undefined {
-    const countdown = getAvailabilityCountdown(referenceDate)
+export function formatAvailabilityCountdown(countdown?: AvailabilityCountdown | null) {
     if (!countdown) return undefined
     const minuteLabel = countdown.minutes.toString().padStart(2, "0")
-    return `Available ${countdown.hours}h ${minuteLabel}m`
+    const secondLabel = countdown.seconds.toString().padStart(2, "0")
+    return `Available ${countdown.hours}h ${minuteLabel}m ${secondLabel}s`
+}
+
+export function getAvailabilityLabel(referenceDate = new Date()): string | undefined {
+    const countdown = getAvailabilityCountdown(referenceDate)
+    return formatAvailabilityCountdown(countdown)
 }

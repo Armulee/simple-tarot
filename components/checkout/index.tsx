@@ -1,7 +1,7 @@
 "use client"
 
 import type { ReactNode } from "react"
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
@@ -15,7 +15,11 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { StarsDialog } from "../star-consent"
-import { getAvailabilityLabel } from "@/lib/roadmap"
+import {
+    formatAvailabilityCountdown,
+    getAvailabilityCountdown,
+    getAvailabilityLabel,
+} from "@/lib/roadmap"
 
 type CheckoutMode = "pack" | "subscribe"
 
@@ -33,7 +37,20 @@ export function Checkout({ mode, customTrigger, availabilityLabel }: CheckoutPro
     const t = useTranslations("Checkout")
     const [open, setOpen] = useState(false)
     const stripeConfigured = Boolean(process.env.STRIPE_API_KEY)
-    const availabilityCountdown = availabilityLabel ?? getAvailabilityLabel()
+    const [countdown, setCountdown] = useState(getAvailabilityCountdown())
+    const fallbackLabel = useMemo(
+        () => availabilityLabel ?? getAvailabilityLabel(),
+        [availabilityLabel]
+    )
+    useEffect(() => {
+        if (typeof window === "undefined") return
+        const interval = window.setInterval(() => {
+            setCountdown(getAvailabilityCountdown())
+        }, 1000)
+        return () => window.clearInterval(interval)
+    }, [])
+    const displayLabel =
+        formatAvailabilityCountdown(countdown) ?? fallbackLabel ?? undefined
 
     if (!user) {
         const signinHref = `/signin?callbackUrl=${encodeURIComponent("/pricing")}`
@@ -62,9 +79,9 @@ export function Checkout({ mode, customTrigger, availabilityLabel }: CheckoutPro
                     >
                         <div className='flex w-full flex-col items-center justify-center gap-1 text-center'>
                             <span>{mode === "pack" ? t("purchase") : t("subscribe")}</span>
-                            {mode === "subscribe" && availabilityCountdown && (
+                            {mode === "subscribe" && displayLabel && (
                                 <span className='text-xs font-semibold text-black/70'>
-                                    {availabilityCountdown}
+                                    {displayLabel}
                                 </span>
                             )}
                         </div>
@@ -87,8 +104,7 @@ export function Checkout({ mode, customTrigger, availabilityLabel }: CheckoutPro
                     {stripeConfigured
                         ? t("stripeReady")
                         : t("stripeMissing", {
-                              countdown:
-                                  availabilityCountdown ?? t("countdownUnknown"),
+                              countdown: displayLabel ?? t("countdownUnknown"),
                           })}
                 </p>
                 <DialogFooter>
