@@ -27,7 +27,7 @@ export default function PurchasePage() {
                             Star Purchase Coming Soon
                         </h1>
                         <p className='text-muted-foreground max-w-md mx-auto'>
-                            We're working on bringing you a seamless star purchase experience. 
+                            We&apos;re working on bringing you a seamless star purchase experience. 
                             Stay tuned for updates!
                         </p>
                     </div>

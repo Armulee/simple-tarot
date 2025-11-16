@@ -19,9 +19,9 @@ type CheckoutMode = "pack" | "subscribe"
 
 export function Checkout({
     mode,
-    packId,
-    plan,
-    infinityTerm,
+    packId: _packId,
+    plan: _plan,
+    infinityTerm: _infinityTerm,
     customTrigger,
 }: {
     mode: CheckoutMode
@@ -74,7 +74,7 @@ export function Checkout({
                                     Star Purchase Coming Soon
                                 </h3>
                                 <p className='text-sm text-white/80 max-w-sm'>
-                                    We're working on bringing you a seamless star purchase experience. 
+                                    We&apos;re working on bringing you a seamless star purchase experience. 
                                     Stay tuned for updates!
                                 </p>
                             </div>
