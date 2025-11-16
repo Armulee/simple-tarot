@@ -147,9 +147,9 @@ export function getAvailabilityCountdown(referenceDate = new Date()) {
     }
 }
 
-export function getAvailabilityLabel(referenceDate = new Date()) {
+export function getAvailabilityLabel(referenceDate = new Date()): string | undefined {
     const countdown = getAvailabilityCountdown(referenceDate)
-    if (!countdown) return null
+    if (!countdown) return undefined
     const minuteLabel = countdown.minutes.toString().padStart(2, "0")
     return `Available ${countdown.hours}h ${minuteLabel}m`
 }
