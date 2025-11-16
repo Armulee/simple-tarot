@@ -140,7 +140,7 @@ export default function RoadmapSection() {
 
                         return (
                             <div
-                                key={`${phase.phase}-${phase.title}-${index}`}
+                                key={`${phase.phaseKey}-${phase.title}-${index}`}
                                 className={`relative transition-all duration-700 delay-${index * 150} ${
                                     isVisible
                                         ? "opacity-100 translate-x-0"
