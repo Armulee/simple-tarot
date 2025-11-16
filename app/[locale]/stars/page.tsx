@@ -23,6 +23,7 @@ import { Checkout } from "@/components/checkout"
 import SubscribeDropdown from "@/components/stars/subscribe-dropdown"
 import { useTranslations } from "next-intl"
 import { getAvailabilityLabel } from "@/lib/roadmap"
+import { LiveAvailabilityLabel } from "@/components/stars/live-availability-label"
 
 export default function StarsPage() {
     const t = useTranslations("StarsPage")
@@ -104,14 +105,12 @@ export default function StarsPage() {
                                       <div className='relative z-10 flex w-full items-center justify-between gap-4'>
                                           <div className='flex items-center gap-3'>
                                               <Crown className='w-6 h-6 text-black group-hover:scale-110 transition-transform duration-300' />
-                                              <div className='flex flex-col text-left'>
-                                                  <span>{t("subscribe.button")}</span>
-                                                  {availabilityLabel && (
-                                                      <span className='text-xs font-semibold text-black/70'>
-                                                          {availabilityLabel}
-                                                      </span>
-                                                  )}
-                                              </div>
+                                                <div className='flex flex-col text-left'>
+                                                    <span>{t("subscribe.button")}</span>
+                                                    <LiveAvailabilityLabel
+                                                        fallbackLabel={availabilityLabel}
+                                                    />
+                                                </div>
                                           </div>
                                           <SubscribeDropdown />
                                       </div>
