@@ -317,10 +317,10 @@ grant execute on function public.star_add(text, integer, uuid) to anon, authenti
 
 -- Billing tables
 -- Subscriptions: tracks recurring products
-create table if not exists public.billing_subscriptions (
+  create table if not exists public.billing_subscriptions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  provider text not null default 'checkout_com',
+    provider text not null default 'manual',
   provider_subscription_id text unique,
   plan text,
   status text not null default 'active',
@@ -332,11 +332,11 @@ create table if not exists public.billing_subscriptions (
 );
 
 -- Transactions: records one-time and subscription charges
-create table if not exists public.billing_transactions (
+  create table if not exists public.billing_transactions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  type text not null check (type in ('one_time','subscription_initial','subscription_recurring','refund','chargeback')),
-  provider text not null default 'checkout_com',
+    type text not null check (type in ('one_time','subscription_initial','subscription_recurring','refund','chargeback')),
+    provider text not null default 'manual',
   provider_payment_id text,
   amount_cents integer not null check (amount_cents >= 0),
   currency text not null default 'USD',

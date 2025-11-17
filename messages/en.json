@@ -1146,7 +1146,24 @@
     "loading": "Loading...",
     "done": "Done",
     "back": "Back",
-    "signInToSubscribe": "Sign in to subscribe"
+    "signInToSubscribe": "Sign in to subscribe",
+    "comingSoonTitle": "Star purchases are coming soon",
+    "comingSoonDescription": "We're putting the finishing touches on a new way to buy stars securely inside Askingfate.",
+    "comingSoonHelper": "Thanks for your patience! In the meantime you can keep exploring free readings and earn bonus stars from community activities.",
+    "close": "Close",
+    "stripeReady": "Stripe API key detected — live payments will unlock as soon as the new checkout ships.",
+    "stripeMissing": "Available when {countdown}",
+    "countdownUnknown": "the next release is ready"
+  },
+
+  "StarsPurchase": {
+    "badge": "Coming soon",
+    "title": "Star purchases are coming soon",
+    "description": "We're rebuilding the purchase flow so every pack and subscription feels safer and more seamless.",
+    "helper": "While we finish the update you can keep enjoying free readings, referrals, and community rewards to grow your balance.",
+    "backToPricing": "Back to pricing",
+    "ctaBackToStars": "Go to stars dashboard",
+    "ctaEarnFree": "Earn free stars"
   },
 
   "ReadingHistory": {
