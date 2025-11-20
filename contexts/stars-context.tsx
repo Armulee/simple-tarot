@@ -45,6 +45,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         boolean | undefined
     >(undefined)
     const { user } = useAuth()
+    const authKey = user?.id ?? "__anon__"
+    const [hydratedFor, setHydratedFor] = useState<string | null>(null)
 
     // Refill cap: anonymous 5 (no hourly refill), signed-in 12 (refill every 2 hours)
     const refillCap = user ? 12 : 5
@@ -85,33 +87,41 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         let cancelled = false
         if (!hasCookieConsent()) {
             setInitialized(false)
+            setHydratedFor(null)
             return
         }
-        // Skip API call if already initialized to prevent duplicate calls
-        if (!initialized) {
-            ;(async () => {
-                try {
-                    const state = await starGetOrCreate(user ?? null)
-                    if (cancelled) return
-                    setStars(state.currentStars)
-                    setNextRefillAt(
-                        computeNextRefillAt(
-                            state.currentStars,
-                            state.lastRefillAt,
-                            refillCap,
-                            Boolean(user)
-                        )
+        if (hydratedFor === authKey) return
+        if (initialized) setInitialized(false)
+        ;(async () => {
+            try {
+                const state = await starGetOrCreate(user ?? null)
+                if (cancelled) return
+                setStars(state.currentStars)
+                setNextRefillAt(
+                    computeNextRefillAt(
+                        state.currentStars,
+                        state.lastRefillAt,
+                        refillCap,
+                        Boolean(user)
                     )
-                    setFirstLoginBonusGranted(state.firstLoginBonusGranted)
-                    setFirstTimeLoginGrant(state.firstTimeLoginGrant)
-                    setInitialized(true)
-                } catch {}
-            })()
-        }
+                )
+                setFirstLoginBonusGranted(state.firstLoginBonusGranted)
+                setFirstTimeLoginGrant(state.firstTimeLoginGrant)
+                setHydratedFor(authKey)
+                setInitialized(true)
+            } catch {}
+        })()
         return () => {
             cancelled = true
         }
-    }, [refillCap, computeNextRefillAt, initialized, user]) // Only depend on user.id, not the whole user object
+    }, [
+        authKey,
+        computeNextRefillAt,
+        hydratedFor,
+        initialized,
+        refillCap,
+        user,
+    ]) // authKey keeps the dependency focused on identity changes
 
     // Initialize stars after consent is accepted
     type CookieConsentChangedDetail = { choice: "accepted" | "declined" }
@@ -139,6 +149,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                         )
                         setFirstLoginBonusGranted(state.firstLoginBonusGranted)
                         setFirstTimeLoginGrant(state.firstTimeLoginGrant)
+                        setHydratedFor(authKey)
+                        setInitialized(true)
                     } catch {}
                 })()
             }
@@ -158,7 +170,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                 )
             }
         }
-    }, [user, refillCap, computeNextRefillAt])
+    }, [user, refillCap, computeNextRefillAt, authKey])
 
     // Broadcast helper to notify other tabs/components to refresh
     const broadcastStarsUpdate = useCallback(() => {
