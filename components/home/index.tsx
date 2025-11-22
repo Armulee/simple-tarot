@@ -89,10 +89,10 @@ export default function Home() {
             >
                 {/* Main Content with Horizontal Swiper */}
                 <SwiperSlide className='w-full h-full relative'>
-                    <div ref={horizontalSwiperContainerRef} className='w-full h-full'>
+                    <div ref={horizontalSwiperContainerRef} className='w-full h-[calc(100%-100px)] md:h-[calc(100%-70px)]'>
                         <Swiper
                             ref={horizontalSwiperRef}
-                            className='w-full h-[calc(100%-100px)] md:h-[calc(100%-70px)]'
+                            className='w-full h-full'
                             direction='horizontal'
                             loop={true}
                             nested
@@ -138,7 +138,9 @@ export default function Home() {
                             }
                         }}
                     />
-                    <NormalFooter />
+                    <div className='absolute bottom-0 left-0 right-0 z-10'>
+                        <NormalFooter />
+                    </div>
                     {/* Learn more chevron indicator moved to Tarot section */}
                 </SwiperSlide>
 
