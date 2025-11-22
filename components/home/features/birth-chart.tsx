@@ -71,8 +71,8 @@ export default function BirthChart() {
 
                 {/* Input Card */}
                 <Card className='w-full p-6 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border-border/20'>
-                    <div className='grid grid-cols-3 gap-4'>
-                        {/* Date Input - Row 1 */}
+                    <div className='grid grid-cols-2 gap-4'>
+                        {/* Row 1: Date */}
                         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                             <PopoverTrigger asChild>
                                 <Button
@@ -105,7 +105,7 @@ export default function BirthChart() {
                             </PopoverContent>
                         </Popover>
 
-                        {/* Time Input - Row 1 */}
+                        {/* Row 1: Time */}
                         <Popover open={timePickerOpen} onOpenChange={setTimePickerOpen}>
                             <PopoverTrigger asChild>
                                 <Button
@@ -131,7 +131,7 @@ export default function BirthChart() {
                             </PopoverContent>
                         </Popover>
 
-                        {/* Country Input - Row 1 */}
+                        {/* Row 2: Country */}
                         <Popover>
                             <PopoverTrigger asChild>
                                 <Button
@@ -164,13 +164,8 @@ export default function BirthChart() {
                                 </div>
                             </PopoverContent>
                         </Popover>
-                    </div>
-                    
-                    {/* Second Row - State/Province */}
-                    <div className='grid grid-cols-3 gap-4 mt-4'>
-                        <div></div>
-                        <div></div>
-                        {/* State/Province Input - Row 2 */}
+
+                        {/* Row 2: State/Province */}
                         <Popover>
                             <PopoverTrigger asChild>
                                 <Button
