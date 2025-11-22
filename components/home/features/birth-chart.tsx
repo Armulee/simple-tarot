@@ -71,8 +71,8 @@ export default function BirthChart() {
 
                 {/* Input Card */}
                 <Card className='w-full p-6 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border-border/20'>
-                    <div className='space-y-4'>
-                        {/* Date Input Row */}
+                    <div className='grid grid-cols-3 gap-4'>
+                        {/* Date Input */}
                         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                             <PopoverTrigger asChild>
                                 <Button
@@ -81,7 +81,7 @@ export default function BirthChart() {
                                 >
                                     <div className='flex items-center gap-2'>
                                         <Calendar className='w-4 h-4' />
-                                        <span className={selectedDate ? "text-white" : "text-white/50"}>
+                                        <span className={selectedDate ? "text-white text-sm" : "text-white/50 text-sm"}>
                                             {formattedDate}
                                         </span>
                                     </div>
@@ -105,7 +105,7 @@ export default function BirthChart() {
                             </PopoverContent>
                         </Popover>
 
-                        {/* Time Input Row */}
+                        {/* Time Input */}
                         <Popover open={timePickerOpen} onOpenChange={setTimePickerOpen}>
                             <PopoverTrigger asChild>
                                 <Button
@@ -114,7 +114,7 @@ export default function BirthChart() {
                                 >
                                     <div className='flex items-center gap-2'>
                                         <Clock className='w-4 h-4' />
-                                        <span className={selectedTime.hour && selectedTime.minute ? "text-white" : "text-white/50"}>
+                                        <span className={selectedTime.hour && selectedTime.minute ? "text-white text-sm" : "text-white/50 text-sm"}>
                                             {formattedTime}
                                         </span>
                                     </div>
@@ -131,13 +131,77 @@ export default function BirthChart() {
                             </PopoverContent>
                         </Popover>
 
-                        {/* Location Input Row */}
-                        <LocationSelector
-                            selectedCountry={country}
-                            selectedState={stateProv}
-                            onCountryChange={setCountry}
-                            onStateChange={setStateProv}
-                        />
+                        {/* Location Input - Country and State side by side */}
+                        <div className='grid grid-cols-2 gap-2'>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant='outline'
+                                        className='w-full justify-between text-white backdrop-blur-md bg-white/5 border-2 border-white/10 hover:border-white/20 hover:bg-white/10 transition-all duration-300 rounded-xl min-h-[60px] py-3 px-2 text-xs'
+                                        onClick={() => {
+                                            // This will be handled by LocationSelector logic
+                                        }}
+                                    >
+                                        <span className={country ? "text-white" : "text-white/50"}>
+                                            {country || "Country"}
+                                        </span>
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className='w-72 p-0 bg-black/80 backdrop-blur-xl border-white/10 rounded-xl shadow-2xl'>
+                                    <div className='p-2'>
+                                        <input
+                                            type='text'
+                                            placeholder='Search countries...'
+                                            className='w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-white/50 text-sm'
+                                        />
+                                    </div>
+                                    <div className='max-h-60 overflow-y-auto'>
+                                        <Button 
+                                            variant='ghost' 
+                                            className='w-full justify-start text-white/90 hover:text-white hover:bg-white/10 rounded-none'
+                                            onClick={() => {
+                                                setCountry("United States")
+                                            }}
+                                        >
+                                            United States
+                                        </Button>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant='outline'
+                                        className='w-full justify-between text-white backdrop-blur-md bg-white/5 border-2 border-white/10 hover:border-white/20 hover:bg-white/10 transition-all duration-300 rounded-xl min-h-[60px] py-3 px-2 text-xs'
+                                        disabled={!country}
+                                    >
+                                        <span className={stateProv ? "text-white" : "text-white/50"}>
+                                            {stateProv || "State"}
+                                        </span>
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className='w-72 p-0 bg-black/80 backdrop-blur-xl border-white/10 rounded-xl shadow-2xl'>
+                                    <div className='p-2'>
+                                        <input
+                                            type='text'
+                                            placeholder='Search states...'
+                                            className='w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-white/50 text-sm'
+                                        />
+                                    </div>
+                                    <div className='max-h-60 overflow-y-auto'>
+                                        <Button 
+                                            variant='ghost' 
+                                            className='w-full justify-start text-white/90 hover:text-white hover:bg-white/10 rounded-none'
+                                            onClick={() => {
+                                                setStateProv("California")
+                                            }}
+                                        >
+                                            California
+                                        </Button>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
                     </div>
                 </Card>
 
