@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { CustomDatePicker } from "@/components/ui/custom-date-picker"
 import { CustomTimePicker } from "@/components/ui/custom-time-picker"
@@ -19,6 +20,8 @@ import {
     resolveLocationFromCoords,
 } from "@/lib/location"
 import { useAuth } from "@/contexts/auth-context"
+import { TypewriterText } from "../../typewriter-text"
+import { ChevronDown } from "lucide-react"
 
 function getDeviceTimezone(): number {
     if (typeof window === "undefined") return 0
@@ -39,6 +42,7 @@ function getDeviceTimezone(): number {
 
 export default function BirthChart() {
     const router = useRouter()
+    const t = useTranslations("Home")
     const { user } = useAuth()
     const [day, setDay] = useState("")
     const [month, setMonth] = useState("")
@@ -67,6 +71,24 @@ export default function BirthChart() {
         setDay(d)
         setCalendarOpen(false)
     }
+
+    // Sync selectedDate with day/month/year
+    useEffect(() => {
+        if (day && month && year) {
+            try {
+                const date = new Date(
+                    parseInt(year),
+                    parseInt(month) - 1,
+                    parseInt(day)
+                )
+                if (!isNaN(date.getTime())) {
+                    setSelectedDate(date)
+                }
+            } catch {
+                // Ignore invalid dates
+            }
+        }
+    }, [day, month, year])
 
     function onTimeSelect(time: { hour: string; minute: string }) {
         setHour(time.hour)
@@ -195,129 +217,123 @@ export default function BirthChart() {
         }
     }
 
+    // Format date display
+    const formattedDate = useMemo(() => {
+        if (day && month && year) {
+            try {
+                const date = new Date(
+                    parseInt(year),
+                    parseInt(month) - 1,
+                    parseInt(day)
+                )
+                return date.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                })
+            } catch {
+                return ""
+            }
+        }
+        return ""
+    }, [day, month, year])
+
+    const formattedTime = useMemo(() => {
+        if (hour && minute) {
+            const h = parseInt(hour)
+            const m = parseInt(minute)
+            const h12 = h % 12 || 12
+            const ampm = h >= 12 ? "PM" : "AM"
+            return `${h12}:${m.toString().padStart(2, "0")} ${ampm}`
+        }
+        return ""
+    }, [hour, minute])
+
     return (
-        <div className='w-full max-w-4xl mx-auto px-4 space-y-8'>
-            {/* Main Heading */}
-            <div className='space-y-4 text-center'>
-                <h1 className='font-serif font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-balance'>
-                    <span className='text-white'>Discover Your</span>
+        <div className='w-full max-w-3xl mx-auto px-4 space-y-8'>
+            {/* Main Heading with Typewriter */}
+            <div className='space-y-4'>
+                <h1 className='font-serif font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-balance h-20 sm:h-24 md:h-28 lg:h-32'>
+                    <TypewriterText
+                        text={t("birthChart.line1")}
+                        speed={60}
+                        className='text-white'
+                    />
                     <br />
-                    <span className='text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'>
-                        Cosmic Blueprint
-                    </span>
+                    <TypewriterText
+                        text={t("birthChart.line2")}
+                        speed={60}
+                        delay={60 * t("birthChart.line1").length}
+                        className='text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'
+                    />
                 </h1>
-                <p className='text-lg sm:text-xl text-white/70 max-w-2xl mx-auto'>
-                    Enter your birth details to generate your personalized birth
-                    chart
-                </p>
             </div>
 
             {/* Form */}
             <form onSubmit={onSubmit} className='space-y-6'>
-                {/* Date Inputs */}
-                <div className='space-y-4'>
-                    <div className='grid grid-cols-3 gap-4'>
-                        <CustomDatePicker
-                            value={day}
-                            onChange={setDay}
-                            min={1}
-                            max={31}
-                            placeholder={"DD"}
-                            label={"Day"}
-                        />
-                        <CustomDatePicker
-                            value={month}
-                            onChange={setMonth}
-                            min={1}
-                            max={12}
-                            placeholder={"MM"}
-                            label={"Month"}
-                        />
-                        <CustomDatePicker
-                            value={year}
-                            onChange={setYear}
-                            min={1900}
-                            max={new Date().getFullYear()}
-                            placeholder={"YYYY"}
-                            label={"Year"}
-                        />
-                    </div>
+                {/* Compact Date & Time Display */}
+                <div className='flex flex-col items-center gap-3 w-full max-w-md mx-auto'>
+                    {/* Date Display */}
+                    <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                        <PopoverTrigger asChild>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                className='w-full border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30 gap-3 rounded-xl h-14 text-base transition-all duration-200'
+                            >
+                                <Calendar className='w-4 h-4 shrink-0' />
+                                <span className='flex-1 text-left font-medium'>
+                                    {formattedDate || (
+                                        <span className='text-white/50 font-normal'>
+                                            Select birth date
+                                        </span>
+                                    )}
+                                </span>
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className='w-auto p-3 bg-black/80 backdrop-blur-xl border-white/10 rounded-xl shadow-2xl'>
+                            <CalendarComponent
+                                mode='single'
+                                selected={selectedDate}
+                                onSelect={onCalendarSelect}
+                                captionLayout='dropdown'
+                                disabled={(date) =>
+                                    date > new Date() ||
+                                    date < new Date("1900-01-01")
+                                }
+                                className='rounded-md border-0 bg-transparent'
+                            />
+                        </PopoverContent>
+                    </Popover>
 
-                    <div className='flex items-center justify-center'>
-                        <Popover
-                            open={calendarOpen}
-                            onOpenChange={setCalendarOpen}
-                        >
-                            <PopoverTrigger asChild>
-                                <Button
-                                    type='button'
-                                    variant='outline'
-                                    className='border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30 gap-2 rounded-xl'
-                                >
-                                    <Calendar className='w-4 h-4' /> Pick from
-                                    Calendar
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className='w-auto p-3 bg-black/80 backdrop-blur-xl border-white/10 rounded-xl shadow-2xl'>
-                                <CalendarComponent
-                                    mode='single'
-                                    selected={selectedDate}
-                                    onSelect={onCalendarSelect}
-                                    captionLayout='dropdown'
-                                    disabled={(date) =>
-                                        date > new Date() ||
-                                        date < new Date("1900-01-01")
-                                    }
-                                    className='rounded-md border-0 bg-transparent'
-                                />
-                            </PopoverContent>
-                        </Popover>
-                    </div>
-                </div>
-
-                {/* Time Inputs */}
-                <div className='space-y-4'>
-                    <div className='grid grid-cols-2 gap-4'>
-                        <CustomTimePicker
-                            value={hour}
-                            onChange={setHour}
-                            min={0}
-                            max={23}
-                            placeholder={"HH"}
-                            label={"Hour"}
-                        />
-                        <CustomTimePicker
-                            value={minute}
-                            onChange={setMinute}
-                            min={0}
-                            max={59}
-                            placeholder={"MM"}
-                            label={"Minute"}
-                        />
-                    </div>
-
-                    <div className='flex items-center justify-center'>
-                        <Popover
-                            open={timePickerOpen}
-                            onOpenChange={setTimePickerOpen}
-                        >
-                            <PopoverTrigger asChild>
-                                <Button
-                                    type='button'
-                                    variant='outline'
-                                    className='border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30 gap-2 rounded-xl'
-                                >
-                                    <Clock className='w-4 h-4' /> Pick from Clock
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className='w-auto p-3 bg-black/80 backdrop-blur-xl border-white/10 rounded-xl shadow-2xl'>
-                                <TimePicker
-                                    value={{ hour, minute }}
-                                    onChange={onTimeSelect}
-                                />
-                            </PopoverContent>
-                        </Popover>
-                    </div>
+                    {/* Time Display */}
+                    <Popover
+                        open={timePickerOpen}
+                        onOpenChange={setTimePickerOpen}
+                    >
+                        <PopoverTrigger asChild>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                className='w-full border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30 gap-3 rounded-xl h-14 text-base transition-all duration-200'
+                            >
+                                <Clock className='w-4 h-4 shrink-0' />
+                                <span className='flex-1 text-left font-medium'>
+                                    {formattedTime || (
+                                        <span className='text-white/50 font-normal'>
+                                            Select birth time
+                                        </span>
+                                    )}
+                                </span>
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className='w-auto p-3 bg-black/80 backdrop-blur-xl border-white/10 rounded-xl shadow-2xl'>
+                            <TimePicker
+                                value={{ hour, minute }}
+                                onChange={onTimeSelect}
+                            />
+                        </PopoverContent>
+                    </Popover>
                 </div>
 
                 {/* Location Selector */}
@@ -390,6 +406,25 @@ export default function BirthChart() {
                     </div>
                 )}
             </form>
+
+            {/* Learn More Button */}
+            <button
+                type='button'
+                className='flex flex-col items-center gap-2 text-white/80 hover:text-white mx-auto'
+                onClick={() => {
+                    const event = new CustomEvent("scrollToAbout")
+                    window.dispatchEvent(event)
+                }}
+            >
+                <div className='flex items-center gap-4'>
+                    <div className='h-px w-12 bg-white/30' />
+                    <span className='text-xs uppercase tracking-wide'>
+                        Learn more
+                    </span>
+                    <div className='h-px w-12 bg-white/30' />
+                </div>
+                <ChevronDown className='w-5 h-5 animate-bounce' />
+            </button>
         </div>
     )
 }
