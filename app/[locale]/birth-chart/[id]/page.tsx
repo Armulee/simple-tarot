@@ -3,7 +3,6 @@ import Link from "next/link"
 import {
     ArrowLeft,
     CalendarDays,
-    Clock,
     MapPin,
     Sparkles,
     SunMedium,

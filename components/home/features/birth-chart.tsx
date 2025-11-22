@@ -1,7 +1,8 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
+import { useLocale } from "next-intl"
 import {
     CalendarDays,
     Clock,
@@ -43,7 +44,7 @@ function createId() {
 
 export default function BirthChart() {
     const router = useRouter()
-    const params = useParams<{ locale?: string }>()
+    const locale = useLocale()
     const [day, setDay] = useState("")
     const [month, setMonth] = useState("")
     const [year, setYear] = useState("")
@@ -163,7 +164,7 @@ export default function BirthChart() {
             }
 
             const encoded = encodeURIComponent(JSON.stringify(payload))
-            const localePrefix = params?.locale ? `/${params.locale}` : ""
+            const localePrefix = locale ? `/${locale}` : ""
             router.push(`${localePrefix}/birth-chart/${payload.id}?data=${encoded}`)
         } catch (err) {
             setError(
