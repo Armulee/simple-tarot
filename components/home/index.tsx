@@ -112,23 +112,23 @@ export default function Home() {
                                     setActiveFeatureIndex(realIndex)
                                 }}
                             >
-                            {features.map((feature) => {
-                                const FeatureComponent = feature.component
-                                return (
-                                    <SwiperSlide
-                                        key={feature.id}
-                                        className='w-full h-full'
+                        {features.map((feature) => {
+                            const FeatureComponent = feature.component
+                            return (
+                                <SwiperSlide
+                                    key={feature.id}
+                                    className='w-full h-full'
+                                >
+                                    <div
+                                        className={`w-full h-full flex flex-col items-center justify-end mb-10 ${
+                                            feature.id !== "tarot" ? "px-8" : ""
+                                        }`}
                                     >
-                                        <div
-                                            className={`w-full h-full flex flex-col items-center justify-center ${
-                                                feature.id !== "tarot" ? "px-8" : ""
-                                            }`}
-                                        >
-                                            <FeatureComponent />
-                                        </div>
-                                    </SwiperSlide>
-                                )
-                            })}
+                                        <FeatureComponent />
+                                    </div>
+                                </SwiperSlide>
+                            )
+                        })}
                             </Swiper>
                         </div>
 
