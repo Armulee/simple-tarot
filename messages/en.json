@@ -639,6 +639,12 @@
     }
   },
 
+  "BirthChart": {
+    "title": "Decode your",
+    "subtitle": "Cosmic Blueprint",
+    "description": "Enter your birth date, time, and location. We will auto-detect your timezone and current location to help you generate a precise birth chart."
+  },
+
   "ReadingPage": {
     "questionHeading": "Question",
     "followUp": {
@@ -823,6 +829,15 @@
       "ogDescription": "Get a personalized AI tarot card reading for free. Ask your question and receive detailed interpretations.",
       "twitterTitle": "AI Tarot Card Reading - Get Your Free Reading",
       "twitterDescription": "Get a personalized AI tarot card reading for free. Ask your question and receive detailed interpretations."
+    },
+    "BirthChart": {
+      "title": "Birth Chart - Decode Your Cosmic Blueprint | Asking Fate",
+      "description": "Generate your personalized astrological birth chart by entering your birth date, time, and location. Discover your cosmic blueprint with detailed planetary positions and houses.",
+      "keywords": "birth chart, natal chart, astrological chart, cosmic blueprint, planetary positions, astrology, horoscope",
+      "ogTitle": "Birth Chart - Decode Your Cosmic Blueprint",
+      "ogDescription": "Generate your personalized astrological birth chart by entering your birth date, time, and location.",
+      "twitterTitle": "Birth Chart - Decode Your Cosmic Blueprint",
+      "twitterDescription": "Generate your personalized astrological birth chart by entering your birth date, time, and location."
     },
     "Contact": {
       "title": "Contact Us - Get Help with Your AI Tarot Reading | Asking Fate",
