@@ -137,6 +137,10 @@ export default function Home() {
                                 horizontalSwiperRef.current.swiper.slideToLoop(index)
                             }
                         }}
+                        onLearnMore={() => {
+                            const event = new CustomEvent("scrollToAbout")
+                            window.dispatchEvent(event)
+                        }}
                     />
                     <div className='absolute bottom-0 left-0 right-0 z-10'>
                         <NormalFooter />

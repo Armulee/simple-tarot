@@ -1,7 +1,6 @@
 "use client"
 
 import { TypewriterText } from "../../typewriter-text"
-import { ChevronDown } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
@@ -29,24 +28,6 @@ export default function BirthChart() {
                         Get Your Birth Chart
                     </Button>
                 </Link>
-
-                <button
-                    type='button'
-                    className='flex flex-col items-center gap-2 text-white/80 hover:text-white'
-                    onClick={() => {
-                        const event = new CustomEvent("scrollToAbout")
-                        window.dispatchEvent(event)
-                    }}
-                >
-                    <div className='flex items-center gap-4'>
-                        <div className='h-px w-12 bg-white/30' />
-                        <span className='text-xs uppercase tracking-wide'>
-                            Learn more
-                        </span>
-                        <div className='h-px w-12 bg-white/30' />
-                    </div>
-                    <ChevronDown className='w-5 h-5 animate-bounce' />
-                </button>
             </div>
         </>
     )
