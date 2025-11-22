@@ -120,7 +120,7 @@ export default function Home() {
                                     className='w-full h-full'
                                 >
                                     <div
-                                        className={`w-full h-full flex flex-col items-center justify-end mb-10 ${
+                                        className={`w-full h-full flex flex-col items-center justify-end pb-10 ${
                                             feature.id !== "tarot" ? "px-8" : ""
                                         }`}
                                     >
