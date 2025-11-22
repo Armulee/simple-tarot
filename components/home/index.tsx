@@ -20,6 +20,7 @@ import "swiper/css"
 export default function Home() {
     const mainSwiperRef = useRef<SwiperRef | null>(null)
     const horizontalSwiperRef = useRef<SwiperRef | null>(null)
+    const horizontalSwiperContainerRef = useRef<HTMLDivElement | null>(null)
     const [activeFeatureIndex, setActiveFeatureIndex] = useState(0)
 
     const features = [
@@ -42,6 +43,24 @@ export default function Home() {
         window.addEventListener("scrollToAbout", handleScrollToAbout)
         return () =>
             window.removeEventListener("scrollToAbout", handleScrollToAbout)
+    }, [])
+
+    // Prevent browser back/forward gestures on horizontal wheel scroll
+    useEffect(() => {
+        const el = horizontalSwiperContainerRef.current
+        if (!el) return
+
+        const onWheel = (e: WheelEvent) => {
+            // Stop propagation of horizontal wheel to avoid browser back/forward gestures
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+                e.stopPropagation()
+            }
+        }
+
+        el.addEventListener("wheel", onWheel, { passive: true })
+        return () => {
+            el.removeEventListener("wheel", onWheel)
+        }
     }, [])
 
     return (
@@ -70,19 +89,27 @@ export default function Home() {
             >
                 {/* Main Content with Horizontal Swiper */}
                 <SwiperSlide className='w-full h-full relative'>
-                    <Swiper
-                        ref={horizontalSwiperRef}
-                        className='w-full h-[calc(100%-100px)] md:h-[calc(100%-70px)]'
-                        direction='horizontal'
-                        loop={true}
-                        nested
-                        touchStartPreventDefault={false}
-                        onSlideChange={(swiper) => {
-                            // Calculate real index accounting for loop
-                            const realIndex = swiper.realIndex
-                            setActiveFeatureIndex(realIndex)
-                        }}
-                    >
+                    <div ref={horizontalSwiperContainerRef} className='w-full h-full'>
+                        <Swiper
+                            ref={horizontalSwiperRef}
+                            className='w-full h-[calc(100%-100px)] md:h-[calc(100%-70px)]'
+                            direction='horizontal'
+                            loop={true}
+                            nested
+                            touchStartPreventDefault={false}
+                            modules={[Mousewheel]}
+                            mousewheel={{
+                                enabled: true,
+                                forceToAxis: true,
+                                sensitivity: 1,
+                                releaseOnEdges: false,
+                            }}
+                            onSlideChange={(swiper) => {
+                                // Calculate real index accounting for loop
+                                const realIndex = swiper.realIndex
+                                setActiveFeatureIndex(realIndex)
+                            }}
+                        >
                         {features.map((feature) => {
                             const FeatureComponent = feature.component
                             return (
@@ -100,7 +127,8 @@ export default function Home() {
                                 </SwiperSlide>
                             )
                         })}
-                    </Swiper>
+                        </Swiper>
+                    </div>
                     <FeaturePagination
                         features={features}
                         activeIndex={activeFeatureIndex}
