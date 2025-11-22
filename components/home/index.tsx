@@ -88,64 +88,72 @@ export default function Home() {
                 // Do not force allowTouchMove in onSlideChange; About manages it
             >
                 {/* Main Content with Horizontal Swiper */}
-                <SwiperSlide className='w-full h-full relative'>
-                    <div ref={horizontalSwiperContainerRef} className='w-full h-[calc(100%-100px)] md:h-[calc(100%-70px)]'>
-                        <Swiper
-                            ref={horizontalSwiperRef}
-                            className='w-full h-full'
-                            direction='horizontal'
-                            loop={true}
-                            nested
-                            touchStartPreventDefault={false}
-                            modules={[Mousewheel]}
-                            mousewheel={{
-                                enabled: true,
-                                forceToAxis: true,
-                                sensitivity: 1,
-                                releaseOnEdges: false,
-                            }}
-                            onSlideChange={(swiper) => {
-                                // Calculate real index accounting for loop
-                                const realIndex = swiper.realIndex
-                                setActiveFeatureIndex(realIndex)
-                            }}
-                        >
-                        {features.map((feature) => {
-                            const FeatureComponent = feature.component
-                            return (
-                                <SwiperSlide
-                                    key={feature.id}
-                                    className='w-full h-full'
-                                >
-                                    <div
-                                        className={`w-full h-full flex flex-col items-center justify-center ${
-                                            feature.id !== "tarot" ? "px-8" : ""
-                                        }`}
+                <SwiperSlide className='w-full h-full'>
+                    <div className='w-full h-full flex flex-col'>
+                        {/* Feature Content Area - Expands to fill available space */}
+                        <div ref={horizontalSwiperContainerRef} className='flex-1 min-h-0 relative'>
+                            <Swiper
+                                ref={horizontalSwiperRef}
+                                className='w-full h-full'
+                                direction='horizontal'
+                                loop={true}
+                                nested
+                                touchStartPreventDefault={false}
+                                modules={[Mousewheel]}
+                                mousewheel={{
+                                    enabled: true,
+                                    forceToAxis: true,
+                                    sensitivity: 1,
+                                    releaseOnEdges: false,
+                                }}
+                                onSlideChange={(swiper) => {
+                                    // Calculate real index accounting for loop
+                                    const realIndex = swiper.realIndex
+                                    setActiveFeatureIndex(realIndex)
+                                }}
+                            >
+                            {features.map((feature) => {
+                                const FeatureComponent = feature.component
+                                return (
+                                    <SwiperSlide
+                                        key={feature.id}
+                                        className='w-full h-full'
                                     >
-                                        <FeatureComponent />
-                                    </div>
-                                </SwiperSlide>
-                            )
-                        })}
-                        </Swiper>
+                                        <div
+                                            className={`w-full h-full flex flex-col items-center justify-center ${
+                                                feature.id !== "tarot" ? "px-8" : ""
+                                            }`}
+                                        >
+                                            <FeatureComponent />
+                                        </div>
+                                    </SwiperSlide>
+                                )
+                            })}
+                            </Swiper>
+                        </div>
+
+                        {/* Pagination Section */}
+                        <div className='flex-shrink-0 py-4'>
+                            <FeaturePagination
+                                features={features}
+                                activeIndex={activeFeatureIndex}
+                                onDotClick={(index) => {
+                                    if (horizontalSwiperRef.current) {
+                                        horizontalSwiperRef.current.swiper.slideToLoop(index)
+                                    }
+                                }}
+                                onLearnMore={() => {
+                                    const event = new CustomEvent("scrollToAbout")
+                                    window.dispatchEvent(event)
+                                }}
+                            />
+                        </div>
+
+                        {/* Footer Section */}
+                        <div className='flex-shrink-0'>
+                            <NormalFooter />
+                        </div>
                     </div>
-                    <FeaturePagination
-                        features={features}
-                        activeIndex={activeFeatureIndex}
-                        onDotClick={(index) => {
-                            if (horizontalSwiperRef.current) {
-                                horizontalSwiperRef.current.swiper.slideToLoop(index)
-                            }
-                        }}
-                        onLearnMore={() => {
-                            const event = new CustomEvent("scrollToAbout")
-                            window.dispatchEvent(event)
-                        }}
-                    />
-                    <div className='absolute bottom-0 left-0 right-0 z-10'>
-                        <NormalFooter />
-                    </div>
-                    {/* Learn more chevron indicator moved to Tarot section */}
                 </SwiperSlide>
 
                 {/* About Section */}

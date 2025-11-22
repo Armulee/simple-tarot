@@ -43,7 +43,7 @@ export default function FeaturePagination({
     onLearnMore,
 }: FeaturePaginationProps) {
     return (
-        <div className='absolute bottom-[140px] md:bottom-[100px] left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-4 pointer-events-auto'>
+        <div className='flex flex-col items-center gap-4 pointer-events-auto'>
             {/* Feature Icons */}
             <div className='flex items-center gap-3'>
                 {features.map((feature, index) => {
