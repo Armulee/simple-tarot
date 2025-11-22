@@ -176,7 +176,7 @@ export default function BirthChart() {
         <>
             {/* Main Heading */}
             <div className='space-y-4'>
-                <h1 className='font-serif font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-balance h-20 sm:h-24 md:h-28 lg:h-32'>
+                <h1 className='font-serif font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-balance'>
                     <TypewriterText
                         text="Decode your cosmic blueprint"
                         speed={60}
@@ -186,10 +186,10 @@ export default function BirthChart() {
             </div>
 
             {/* Birth Information Section */}
-            <div className='flex flex-col gap-8 justify-center items-center pt-8 w-full max-w-2xl px-4'>
+            <div className='flex flex-col gap-6 justify-center items-center pt-8 w-full max-w-2xl px-4'>
                 {/* Input Card */}
                 <div 
-                    className='w-full p-8 rounded-[20px] bg-gradient-to-br from-[#0A0F26] to-[#131A3A] border border-white/[0.1] shadow-2xl relative overflow-hidden'
+                    className='w-full px-4 py-6 rounded-[20px] bg-gradient-to-br from-[#0A0F26] to-[#131A3A] border border-white/[0.1] shadow-2xl relative overflow-hidden'
                     style={{
                         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                     }}
@@ -197,9 +197,9 @@ export default function BirthChart() {
                     {/* Ambient glow effect */}
                     <div className='absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 pointer-events-none' />
                     
-                    <div className='relative z-10 space-y-6'>
+                    <div className='relative z-10 space-y-4'>
                         {/* Section Title */}
-                        <h2 className='text-[24px] font-semibold text-[#E6EAFF] mb-6'>
+                        <h2 className='text-[24px] font-semibold text-[#E6EAFF]'>
                             Your Birth Information
                         </h2>
 
@@ -209,7 +209,7 @@ export default function BirthChart() {
                             <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                                 <PopoverTrigger asChild>
                                     <button
-                                        className='w-full px-4 py-4 rounded-2xl bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
+                                        className='w-full px-4 py-3 rounded-2xl bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
                                     >
                                         <div className='flex items-center gap-3'>
                                             <Calendar className='w-4 h-4 text-[#E6EAFF]/70 group-hover:text-[#E6EAFF] transition-colors' />
@@ -241,7 +241,7 @@ export default function BirthChart() {
                             <Popover open={timePickerOpen} onOpenChange={setTimePickerOpen}>
                                 <PopoverTrigger asChild>
                                     <button
-                                        className='w-full px-4 py-4 rounded-2xl bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
+                                        className='w-full px-4 py-3 rounded-2xl bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
                                     >
                                         <div className='flex items-center gap-3'>
                                             <Clock className='w-4 h-4 text-[#E6EAFF]/70 group-hover:text-[#E6EAFF] transition-colors' />
@@ -267,7 +267,7 @@ export default function BirthChart() {
                         <Popover open={locationOpen} onOpenChange={setLocationOpen}>
                             <PopoverTrigger asChild>
                                 <button
-                                    className='w-full px-4 py-4 rounded-2xl bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
+                                    className='w-full px-4 py-3 rounded-2xl bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
                                 >
                                     <div className='flex items-center gap-3'>
                                         <MapPin className='w-4 h-4 text-[#E6EAFF]/70 group-hover:text-[#E6EAFF] transition-colors' />
@@ -346,27 +346,27 @@ export default function BirthChart() {
                                 </div>
                             </PopoverContent>
                         </Popover>
-
-                        {/* Generate Button */}
-                        <Button
-                            onClick={handleGenerate}
-                            disabled={!isValid || isGenerating}
-                            className='w-full py-6 rounded-[24px] bg-gradient-to-r from-[#6C4CFF] to-[#8B63FF] hover:from-[#7A5AFF] hover:to-[#9A73FF] text-white font-medium text-base shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed'
-                        >
-                            {isGenerating ? (
-                                <>
-                                    <Loader2 className='w-5 h-5 animate-spin' />
-                                    Generating...
-                                </>
-                            ) : (
-                                <>
-                                    <Sparkles className='w-5 h-5' />
-                                    GENERATE CHART
-                                </>
-                            )}
-                        </Button>
                     </div>
                 </div>
+
+                {/* Generate Button - Outside Card */}
+                <Button
+                    onClick={handleGenerate}
+                    disabled={!isValid || isGenerating}
+                    className='w-full py-6 rounded-[24px] bg-gradient-to-r from-[#6C4CFF] to-[#8B63FF] hover:from-[#7A5AFF] hover:to-[#9A73FF] text-white font-medium text-base shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed'
+                >
+                    {isGenerating ? (
+                        <>
+                            <Loader2 className='w-5 h-5 animate-spin' />
+                            Generating...
+                        </>
+                    ) : (
+                        <>
+                            <Sparkles className='w-5 h-5' />
+                            GENERATE CHART
+                        </>
+                    )}
+                </Button>
 
                 {/* Floating Action Button - Auto-fill */}
                 <button
