@@ -1,7 +1,7 @@
 "use client"
 
 import { Swiper, SwiperSlide } from "swiper/react"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { SwiperRef } from "swiper/react"
 import { Mousewheel } from "swiper/modules"
 import Tarot from "./features/tarot"
@@ -13,11 +13,14 @@ import LuckyColors from "./features/lucky-colors"
 import Palmistry from "./features/palmistry"
 import NormalFooter from "../footer/normal-footer"
 import DiscoverMore from "./discover"
+import FeaturePagination from "./feature-pagination"
 
 import "swiper/css"
 
 export default function Home() {
     const mainSwiperRef = useRef<SwiperRef | null>(null)
+    const horizontalSwiperRef = useRef<SwiperRef | null>(null)
+    const [activeFeatureIndex, setActiveFeatureIndex] = useState(0)
 
     const features = [
         { id: "tarot", component: Tarot, available: true },
@@ -68,11 +71,17 @@ export default function Home() {
                 {/* Main Content with Horizontal Swiper */}
                 <SwiperSlide className='w-full h-full relative'>
                     <Swiper
+                        ref={horizontalSwiperRef}
                         className='w-full h-[calc(100%-100px)] md:h-[calc(100%-70px)]'
                         direction='horizontal'
                         loop={true}
                         nested
                         touchStartPreventDefault={false}
+                        onSlideChange={(swiper) => {
+                            // Calculate real index accounting for loop
+                            const realIndex = swiper.realIndex
+                            setActiveFeatureIndex(realIndex)
+                        }}
                     >
                         {features.map((feature) => {
                             const FeatureComponent = feature.component
@@ -92,6 +101,15 @@ export default function Home() {
                             )
                         })}
                     </Swiper>
+                    <FeaturePagination
+                        features={features}
+                        activeIndex={activeFeatureIndex}
+                        onDotClick={(index) => {
+                            if (horizontalSwiperRef.current) {
+                                horizontalSwiperRef.current.swiper.slideToLoop(index)
+                            }
+                        }}
+                    />
                     <NormalFooter />
                     {/* Learn more chevron indicator moved to Tarot section */}
                 </SwiperSlide>
