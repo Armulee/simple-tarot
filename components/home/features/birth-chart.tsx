@@ -16,10 +16,11 @@ import {
 import { Calendar, Clock } from "lucide-react"
 
 export default function BirthChart() {
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
-    const [selectedTime, setSelectedTime] = useState<{ hour: string; minute: string }>({ hour: "", minute: "" })
-    const [country, setCountry] = useState<string>("")
-    const [stateProv, setStateProv] = useState<string>("")
+    // Default values: May 25, 1990, 10:45 AM, New York, NY, United States
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date(1990, 4, 25)) // Month is 0-indexed, so 4 = May
+    const [selectedTime, setSelectedTime] = useState<{ hour: string; minute: string }>({ hour: "10", minute: "45" })
+    const [country, setCountry] = useState<string>("United States")
+    const [stateProv, setStateProv] = useState<string>("New York")
     const [calendarOpen, setCalendarOpen] = useState(false)
     const [timePickerOpen, setTimePickerOpen] = useState(false)
 
@@ -203,12 +204,14 @@ export default function BirthChart() {
                 </Card>
 
                 {/* CTA Button */}
-                <Link href="/birth-chart">
+                <Link 
+                    href={`/birth-chart?day=${selectedDate?.getDate() || ""}&month=${selectedDate ? (selectedDate.getMonth() + 1) : ""}&year=${selectedDate?.getFullYear() || ""}&hour=${selectedTime.hour || ""}&minute=${selectedTime.minute || ""}&country=${encodeURIComponent(country)}&state=${encodeURIComponent(stateProv)}`}
+                >
                     <Button
                         size="lg"
                         className='card-glow text-lg px-8 py-6'
                     >
-                        Get Your Birth Chart
+                        GENERATE CHART
                     </Button>
                 </Link>
             </div>
