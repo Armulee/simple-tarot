@@ -40,7 +40,7 @@ export default function FeaturePagination({
     onDotClick,
 }: FeaturePaginationProps) {
     return (
-        <div className='absolute bottom-[100px] md:bottom-[70px] left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 pointer-events-auto'>
+        <div className='absolute bottom-[140px] md:bottom-[100px] left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 pointer-events-auto'>
             {features.map((feature, index) => {
                 const Icon = featureIcons[feature.id] || Sparkles
                 const isActive = index === activeIndex
