@@ -40,7 +40,6 @@ function getDeviceTimezone(): number {
 }
 
 export default function BirthChartForm() {
-    const router = useRouter()
     const [day, setDay] = useState("")
     const [month, setMonth] = useState("")
     const [year, setYear] = useState("")
