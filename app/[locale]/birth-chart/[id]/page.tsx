@@ -46,8 +46,20 @@ export default async function BirthChartPage({
         .maybeSingle()
 
     if (error || !birthChart) {
+        console.error("Error fetching birth chart:", error)
         return notFound()
     }
 
-    return <BirthChartDisplay birthChart={birthChart} />
+    // Parse JSONB fields if they're strings
+    const parsedBirthChart = {
+        ...birthChart,
+        houses: typeof birthChart.houses === "string" 
+            ? JSON.parse(birthChart.houses) 
+            : birthChart.houses,
+        planets: typeof birthChart.planets === "string" 
+            ? JSON.parse(birthChart.planets) 
+            : birthChart.planets,
+    }
+
+    return <BirthChartDisplay birthChart={parsedBirthChart} />
 }

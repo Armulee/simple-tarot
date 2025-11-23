@@ -59,6 +59,7 @@ export default function BirthChart() {
     const [lng, setLng] = useState<string>("")
     const [isGenerating, setIsGenerating] = useState(false)
     const [shouldStartTypewriter, setShouldStartTypewriter] = useState(false)
+    const [error, setError] = useState<string | null>(null)
 
     // Load countries
     useEffect(() => {
@@ -174,6 +175,7 @@ export default function BirthChart() {
         if (!selectedDate) return
         
         setIsGenerating(true)
+        setError(null)
         try {
             const day = selectedDate.getDate().toString()
             const month = (selectedDate.getMonth() + 1).toString()
@@ -198,7 +200,10 @@ export default function BirthChart() {
             })
             
             const res = await fetch(`/api/calculate-horoscope?${params.toString()}`)
-            if (!res.ok) throw new Error("Failed to calculate birth chart")
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}))
+                throw new Error(errorData.error || "Failed to calculate birth chart")
+            }
             const chartData = await res.json()
             
             // Create birth chart entry and get ID
@@ -220,14 +225,16 @@ export default function BirthChart() {
                 }),
             })
             
-            if (createRes.ok) {
-                const { id } = await createRes.json()
-                router.push(`/birth-chart/${id}`)
-            } else {
-                throw new Error("Failed to create birth chart entry")
+            if (!createRes.ok) {
+                const errorData = await createRes.json().catch(() => ({}))
+                throw new Error(errorData.error || "Failed to create birth chart entry. Please ensure the birth_charts table exists in your database.")
             }
+            
+            const { id } = await createRes.json()
+            router.push(`/birth-chart/${id}`)
         } catch (error) {
             console.error("Error generating chart:", error)
+            setError(error instanceof Error ? error.message : "An unexpected error occurred")
         } finally {
             setIsGenerating(false)
         }
@@ -447,6 +454,13 @@ export default function BirthChart() {
                         </Popover>
                     </div>
                 </div>
+
+                {/* Error Message */}
+                {error && (
+                    <div className='w-full px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm'>
+                        {error}
+                    </div>
+                )}
 
                 {/* Generate Button - Outside Card */}
                 <Button
