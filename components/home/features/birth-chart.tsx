@@ -11,7 +11,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import { Calendar, Clock, MapPin, Sparkles, Scan, Info } from "lucide-react"
+import { Calendar, Clock, MapPin, Sparkles, Info } from "lucide-react"
 import {
     Tooltip,
     TooltipContent,
@@ -110,10 +110,9 @@ export default function BirthChart() {
         }
     }, [])
 
-    // Request location permission when location select is clicked
+    // Request location permission when "use my location" is clicked
     const handleLocationClick = () => {
-        setLocationOpen(true)
-        if (navigator?.geolocation && !lat && !lng) {
+        if (navigator?.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 async (pos) => {
                     const latNum = pos.coords.latitude
@@ -123,6 +122,12 @@ export default function BirthChart() {
                     setLng(lngNum.toFixed(6))
                     if (resolved?.timezone !== undefined) {
                         setTimezone(resolved.timezone)
+                    }
+                    if (resolved?.country) {
+                        setCountry(resolved.country)
+                    }
+                    if (resolved?.state) {
+                        setStateProv(resolved.state)
                     }
                 },
                 () => {},
@@ -369,23 +374,24 @@ export default function BirthChart() {
                         </div>
 
                         {/* Location Input */}
-                        <Popover open={locationOpen} onOpenChange={setLocationOpen}>
-                            <PopoverTrigger asChild>
-                                <button
-                                    onClick={handleLocationClick}
-                                    className='w-full px-4 py-1 rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
-                                >
-                                    <div className='flex items-center gap-3'>
-                                        <MapPin className='w-4 h-4 text-[#E6EAFF]/70 group-hover:text-[#E6EAFF] transition-colors' />
-                                        <span className={`text-sm font-medium ${locationDisplay !== "Select location" ? "text-[#E6EAFF]" : "text-[#E6EAFF]/50"}`}>
-                                            {locationDisplay}
-                                        </span>
-                                    </div>
-                                    <svg className='w-4 h-4 text-[#E6EAFF]/50' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
-                                    </svg>
-                                </button>
-                            </PopoverTrigger>
+                        <div className='flex items-center gap-2'>
+                            <Popover open={locationOpen} onOpenChange={setLocationOpen}>
+                                <PopoverTrigger asChild>
+                                    <button
+                                        onClick={() => setLocationOpen(true)}
+                                        className='flex-1 px-4 py-1 rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
+                                    >
+                                        <div className='flex items-center gap-3'>
+                                            <MapPin className='w-4 h-4 text-[#E6EAFF]/70 group-hover:text-[#E6EAFF] transition-colors' />
+                                            <span className={`text-sm font-medium ${locationDisplay !== "Select location" ? "text-[#E6EAFF]" : "text-[#E6EAFF]/50"}`}>
+                                                {locationDisplay}
+                                            </span>
+                                        </div>
+                                        <svg className='w-4 h-4 text-[#E6EAFF]/50' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
+                                        </svg>
+                                    </button>
+                                </PopoverTrigger>
                             <PopoverContent className='w-80 p-0 bg-[#0A0F26]/95 backdrop-blur-xl border-white/10 rounded-xl shadow-2xl'>
                                 <div className='p-4 space-y-4'>
                                     {/* Country Search */}
@@ -452,6 +458,12 @@ export default function BirthChart() {
                                 </div>
                             </PopoverContent>
                         </Popover>
+                        <span
+                            onClick={handleLocationClick}
+                            className='text-sm text-[#E6EAFF]/70 hover:text-[#E6EAFF] underline cursor-pointer whitespace-nowrap transition-colors'
+                        >
+                            use my location
+                        </span>
                     </div>
                 </div>
 
@@ -483,35 +495,6 @@ export default function BirthChart() {
                         </>
                     )}
                 </Button>
-
-                {/* Floating Action Button - Auto-fill */}
-                <button
-                    onClick={async () => {
-                        if (navigator?.geolocation) {
-                            navigator.geolocation.getCurrentPosition(
-                                async (pos) => {
-                                    const latNum = pos.coords.latitude
-                                    const lngNum = pos.coords.longitude
-                                    const resolved = await resolveLocationFromCoords(latNum, lngNum)
-                                    setLat(latNum.toFixed(6))
-                                    setLng(lngNum.toFixed(6))
-                                    if (resolved?.timezone !== undefined) {
-                                        setTimezone(resolved.timezone)
-                                    }
-                                },
-                                () => {},
-                                { enableHighAccuracy: true, timeout: 8000 }
-                            )
-                        }
-                    }}
-                    className='fixed bottom-8 right-8 w-14 h-14 rounded-full bg-gradient-to-br from-white/10 to-white/5 border border-white/20 backdrop-blur-md shadow-2xl hover:bg-white/15 hover:scale-110 transition-all duration-300 flex items-center justify-center group z-50'
-                    style={{
-                        boxShadow: '0 8px 32px rgba(108, 76, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-                    }}
-                    aria-label='Auto-fill location'
-                >
-                    <Scan className='w-5 h-5 text-[#E6EAFF] group-hover:text-white transition-colors' />
-                </button>
             </div>
         </>
     )
