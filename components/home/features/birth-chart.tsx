@@ -44,10 +44,10 @@ function getDeviceTimezone(): number {
 
 export default function BirthChart() {
     const router = useRouter()
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date(1990, 4, 25))
-    const [selectedTime, setSelectedTime] = useState<{ hour: string; minute: string }>({ hour: "10", minute: "45" })
-    const [country, setCountry] = useState<string>("United States")
-    const [stateProv, setStateProv] = useState<string>("New York")
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+    const [selectedTime, setSelectedTime] = useState<{ hour: string; minute: string }>({ hour: "", minute: "" })
+    const [country, setCountry] = useState<string>("")
+    const [stateProv, setStateProv] = useState<string>("")
     const [calendarOpen, setCalendarOpen] = useState(false)
     const [timePickerOpen, setTimePickerOpen] = useState(false)
     const [locationOpen, setLocationOpen] = useState(false)
@@ -180,12 +180,6 @@ export default function BirthChart() {
 
     const handleGenerate = async () => {
         if (!selectedDate) return
-        
-        // Check if user has consented to star usage
-        if (choice === null || choice === "declined") {
-            show()
-            return
-        }
         
         setIsGenerating(true)
         setError(null)
@@ -324,7 +318,13 @@ export default function BirthChart() {
                         {/* Date & Time Row */}
                         <div className='grid grid-cols-2 gap-4'>
                             {/* Date Input */}
-                            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                            <Popover open={calendarOpen} onOpenChange={(open) => {
+                                if (open && (choice === null || choice === "declined")) {
+                                    show()
+                                    return
+                                }
+                                setCalendarOpen(open)
+                            }}>
                                 <PopoverTrigger asChild>
                                     <button
                                         className='w-full px-4 py-1 rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
@@ -356,7 +356,13 @@ export default function BirthChart() {
                             </Popover>
 
                             {/* Time Input */}
-                            <Popover open={timePickerOpen} onOpenChange={setTimePickerOpen}>
+                            <Popover open={timePickerOpen} onOpenChange={(open) => {
+                                if (open && (choice === null || choice === "declined")) {
+                                    show()
+                                    return
+                                }
+                                setTimePickerOpen(open)
+                            }}>
                                 <PopoverTrigger asChild>
                                     <button
                                         className='w-full px-4 py-1 rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
@@ -386,7 +392,13 @@ export default function BirthChart() {
                             <Popover open={locationOpen} onOpenChange={setLocationOpen}>
                                 <PopoverTrigger asChild>
                                     <button
-                                        onClick={() => setLocationOpen(true)}
+                                        onClick={() => {
+                                            if (choice === null || choice === "declined") {
+                                                show()
+                                                return
+                                            }
+                                            setLocationOpen(true)
+                                        }}
                                         className='flex-1 px-4 py-1 rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
                                     >
                                         <div className='flex items-center gap-3'>
