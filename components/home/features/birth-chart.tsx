@@ -186,6 +186,7 @@ export default function BirthChart() {
             const finalHour = selectedTime.hour || "12"
             const finalMinute = selectedTime.minute || "0"
             
+            // Calculate birth chart first
             const params = new URLSearchParams({
                 day,
                 month,
@@ -197,7 +198,35 @@ export default function BirthChart() {
                 lng: finalLng,
             })
             
-            router.push(`/birth-chart?${params.toString()}`)
+            const res = await fetch(`/api/calculate-horoscope?${params.toString()}`)
+            if (!res.ok) throw new Error("Failed to calculate birth chart")
+            const chartData = await res.json()
+            
+            // Create birth chart entry and get ID
+            const createRes = await fetch("/api/birth-chart/create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    day,
+                    month,
+                    year,
+                    hour: finalHour,
+                    minute: finalMinute,
+                    timezone: timezone.toString(),
+                    lat: finalLat,
+                    lng: finalLng,
+                    country,
+                    state: stateProv,
+                    chartData,
+                }),
+            })
+            
+            if (createRes.ok) {
+                const { id } = await createRes.json()
+                router.push(`/birth-chart/${id}`)
+            } else {
+                throw new Error("Failed to create birth chart entry")
+            }
         } catch (error) {
             console.error("Error generating chart:", error)
         } finally {
@@ -234,7 +263,7 @@ export default function BirthChart() {
             </div>
 
             {/* Birth Information Section */}
-            <div className='flex flex-col gap-4 justify-center items-center pt-8 w-full max-w-2xl px-2'>
+            <div className='flex flex-col gap-4 justify-center items-center pt-8 w-full max-w-2xl px-4'>
                 {/* Label - Outside Card */}
                 <div className='w-full flex items-center gap-2'>
                     <h2 className='font-serif font-semibold text-xl text-white text-left'>
