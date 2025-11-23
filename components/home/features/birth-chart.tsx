@@ -123,11 +123,11 @@ export default function BirthChart() {
                     if (resolved?.timezone !== undefined) {
                         setTimezone(resolved.timezone)
                     }
-                    if (resolved?.country) {
-                        setCountry(resolved.country)
+                    if (resolved?.countryName) {
+                        setCountry(resolved.countryName)
                     }
-                    if (resolved?.state) {
-                        setStateProv(resolved.state)
+                    if (resolved?.stateName) {
+                        setStateProv(resolved.stateName)
                     }
                 },
                 () => {},
