@@ -23,6 +23,7 @@ import {
 } from "@/lib/location"
 import { Country, State } from "country-state-city"
 import { Loader2 } from "lucide-react"
+import { useStarConsent } from "@/components/star-consent"
 
 function getDeviceTimezone(): number {
     if (typeof window === "undefined") return 0
@@ -60,6 +61,7 @@ export default function BirthChart() {
     const [isGenerating, setIsGenerating] = useState(false)
     const [shouldStartTypewriter, setShouldStartTypewriter] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const { choice, show } = useStarConsent()
 
     // Load countries
     useEffect(() => {
@@ -178,6 +180,12 @@ export default function BirthChart() {
 
     const handleGenerate = async () => {
         if (!selectedDate) return
+        
+        // Check if user has consented to star usage
+        if (choice === null || choice === "declined") {
+            show()
+            return
+        }
         
         setIsGenerating(true)
         setError(null)
