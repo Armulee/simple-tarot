@@ -17,8 +17,8 @@ interface BirthChartDisplayProps {
         lng: number
         country?: string | null
         state_province?: string | null
-        houses?: any
-        planets?: any
+        houses?: Record<string, unknown> | null
+        planets?: Record<string, unknown> | null
         created_at: string
     }
 }
@@ -103,8 +103,8 @@ export default function BirthChartDisplay({
                         Houses
                     </h2>
                     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                        {Object.entries(birthChart.houses).map(
-                            ([house, sign]: [string, any]) => (
+                        {Object.entries(birthChart.houses as Record<string, unknown>).map(
+                            ([house, sign]: [string, unknown]) => (
                                 <div
                                     key={house}
                                     className='p-4 rounded-lg bg-white/5 border border-white/10'
@@ -113,7 +113,7 @@ export default function BirthChartDisplay({
                                         {house}
                                     </Badge>
                                     <p className='text-white font-semibold'>
-                                        {sign}
+                                        {String(sign)}
                                     </p>
                                 </div>
                             )
@@ -129,8 +129,8 @@ export default function BirthChartDisplay({
                         Planetary Positions
                     </h2>
                     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                        {Object.entries(birthChart.planets).map(
-                            ([planet, position]: [string, any]) => (
+                        {Object.entries(birthChart.planets as Record<string, unknown>).map(
+                            ([planet, position]: [string, unknown]) => (
                                 <div
                                     key={planet}
                                     className='p-4 rounded-lg bg-white/5 border border-white/10'

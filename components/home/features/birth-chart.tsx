@@ -156,7 +156,6 @@ export default function BirthChart() {
     const formattedTime = selectedTime.hour && selectedTime.minute
         ? (() => {
             const hour = parseInt(selectedTime.hour)
-            const minute = parseInt(selectedTime.minute)
             const period = hour >= 12 ? "PM" : "AM"
             const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
             return `${displayHour.toString().padStart(2, "0")}:${selectedTime.minute.padStart(2, "0")} ${period}`
