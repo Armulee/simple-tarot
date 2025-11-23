@@ -11,7 +11,12 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import { Calendar, Clock, MapPin, Sparkles, Scan } from "lucide-react"
+import { Calendar, Clock, MapPin, Sparkles, Scan, Info } from "lucide-react"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 import {
     resolveLocationFromCountryState,
     resolveLocationFromCoords,
@@ -142,10 +147,10 @@ export default function BirthChart() {
         ? country
         : "Select location"
 
-    const isValid = selectedDate && selectedTime.hour && selectedTime.minute && lat && lng
+    const isValid = selectedDate !== undefined // Only date is required
 
     const handleGenerate = async () => {
-        if (!isValid || !selectedDate) return
+        if (!selectedDate) return
         
         setIsGenerating(true)
         try {
@@ -153,15 +158,21 @@ export default function BirthChart() {
             const month = (selectedDate.getMonth() + 1).toString()
             const year = selectedDate.getFullYear().toString()
             
+            // Use default coordinates if location not provided (0,0 as fallback)
+            const finalLat = lat || "0"
+            const finalLng = lng || "0"
+            const finalHour = selectedTime.hour || "12"
+            const finalMinute = selectedTime.minute || "0"
+            
             const params = new URLSearchParams({
                 day,
                 month,
                 year,
-                hour: selectedTime.hour,
-                minute: selectedTime.minute,
+                hour: finalHour,
+                minute: finalMinute,
                 timezone: timezone.toString(),
-                lat,
-                lng,
+                lat: finalLat,
+                lng: finalLng,
             })
             
             router.push(`/birth-chart?${params.toString()}`)
@@ -186,7 +197,33 @@ export default function BirthChart() {
             </div>
 
             {/* Birth Information Section */}
-            <div className='flex flex-col gap-6 justify-center items-center pt-8 w-full max-w-2xl px-4'>
+            <div className='flex flex-col gap-4 justify-center items-center pt-8 w-full max-w-2xl px-4'>
+                {/* Label - Outside Card */}
+                <div className='w-full flex items-center gap-2'>
+                    <h2 className='font-serif font-semibold text-xl text-white text-left'>
+                        Your Birth Information
+                    </h2>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button
+                                type='button'
+                                className='text-white/60 hover:text-white/80 transition-colors'
+                                aria-label='Information about birth information'
+                            >
+                                <Info className='w-4 h-4' />
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent 
+                            className='max-w-xs bg-[#0A0F26] border-white/20 text-[#E6EAFF] text-xs p-3'
+                            side='right'
+                        >
+                            <p>
+                                Your birth date establishes the core planetary framework used to generate your chart. Providing your birth time is optional, yet it significantly enhances precision because planetary positions shift throughout the day. Supplying your birth location further refines the calculation by allowing the system to align celestial coordinates with your exact geographic point of origin.
+                            </p>
+                        </TooltipContent>
+                    </Tooltip>
+                </div>
+
                 {/* Input Card */}
                 <div 
                     className='w-full px-4 py-6 rounded-[20px] bg-gradient-to-br from-[#0A0F26] to-[#131A3A] border border-white/[0.1] shadow-2xl relative overflow-hidden'
@@ -198,10 +235,6 @@ export default function BirthChart() {
                     <div className='absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 pointer-events-none' />
                     
                     <div className='relative z-10 space-y-4'>
-                        {/* Section Title */}
-                        <h2 className='text-[24px] font-semibold text-[#E6EAFF]'>
-                            Your Birth Information
-                        </h2>
 
                         {/* Date & Time Row */}
                         <div className='grid grid-cols-2 gap-4'>
@@ -209,7 +242,7 @@ export default function BirthChart() {
                             <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                                 <PopoverTrigger asChild>
                                     <button
-                                        className='w-full px-4 py-3 rounded-2xl bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
+                                        className='w-full px-4 py-1 rounded-2xl bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
                                     >
                                         <div className='flex items-center gap-3'>
                                             <Calendar className='w-4 h-4 text-[#E6EAFF]/70 group-hover:text-[#E6EAFF] transition-colors' />
@@ -241,7 +274,7 @@ export default function BirthChart() {
                             <Popover open={timePickerOpen} onOpenChange={setTimePickerOpen}>
                                 <PopoverTrigger asChild>
                                     <button
-                                        className='w-full px-4 py-3 rounded-2xl bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
+                                        className='w-full px-4 py-1 rounded-2xl bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
                                     >
                                         <div className='flex items-center gap-3'>
                                             <Clock className='w-4 h-4 text-[#E6EAFF]/70 group-hover:text-[#E6EAFF] transition-colors' />
