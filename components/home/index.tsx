@@ -106,11 +106,20 @@ export default function Home() {
                                     sensitivity: 1,
                                     releaseOnEdges: false,
                                 }}
-                                onSlideChange={(swiper) => {
-                                    // Calculate real index accounting for loop
-                                    const realIndex = swiper.realIndex
-                                    setActiveFeatureIndex(realIndex)
-                                }}
+                            onSlideChange={(swiper) => {
+                                // Calculate real index accounting for loop
+                                const realIndex = swiper.realIndex
+                                setActiveFeatureIndex(realIndex)
+                                
+                                // Notify birth chart component when it becomes active (index 1)
+                                if (realIndex === 1) {
+                                    try {
+                                        window.dispatchEvent(
+                                            new CustomEvent("birth-chart-slide-active")
+                                        )
+                                    } catch {}
+                                }
+                            }}
                             >
                         {features.map((feature) => {
                             const FeatureComponent = feature.component

@@ -58,6 +58,7 @@ export default function BirthChart() {
     const [lat, setLat] = useState<string>("")
     const [lng, setLng] = useState<string>("")
     const [isGenerating, setIsGenerating] = useState(false)
+    const [shouldStartTypewriter, setShouldStartTypewriter] = useState(false)
 
     // Load countries
     useEffect(() => {
@@ -88,8 +89,29 @@ export default function BirthChart() {
         }
     }, [country, stateProv])
 
-    // Auto-detect location on mount
+    // Listen for when this slide becomes active (index 1)
     useEffect(() => {
+        const handleSlideChange = () => {
+            setShouldStartTypewriter(true)
+        }
+        
+        // Check if we're on the birth chart slide (index 1)
+        const checkSlide = () => {
+            const event = new CustomEvent("check-birth-chart-slide")
+            window.dispatchEvent(event)
+        }
+        
+        window.addEventListener("birth-chart-slide-active", handleSlideChange)
+        checkSlide()
+        
+        return () => {
+            window.removeEventListener("birth-chart-slide-active", handleSlideChange)
+        }
+    }, [])
+
+    // Request location permission when location select is clicked
+    const handleLocationClick = () => {
+        setLocationOpen(true)
         if (navigator?.geolocation && !lat && !lng) {
             navigator.geolocation.getCurrentPosition(
                 async (pos) => {
@@ -106,7 +128,7 @@ export default function BirthChart() {
                 { enableHighAccuracy: true, timeout: 8000 }
             )
         }
-    }, [lat, lng])
+    }
 
     const filteredCountries = countries.filter(c =>
         c.name.toLowerCase().includes(searchCountry.toLowerCase())
@@ -188,11 +210,26 @@ export default function BirthChart() {
             {/* Main Heading */}
             <div className='space-y-4'>
                 <h1 className='font-serif font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-balance'>
-                    <TypewriterText
-                        text="Decode your cosmic blueprint"
-                        speed={60}
-                        className='text-white'
-                    />
+                    {shouldStartTypewriter ? (
+                        <>
+                            <TypewriterText
+                                text="Decode your "
+                                speed={60}
+                                className='text-white'
+                            />
+                            <TypewriterText
+                                text="cosmic blueprint"
+                                speed={60}
+                                delay={60 * "Decode your ".length}
+                                className='text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <span className='text-white'>Decode your </span>
+                            <span className='text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text'>cosmic blueprint</span>
+                        </>
+                    )}
                 </h1>
             </div>
 
@@ -242,7 +279,7 @@ export default function BirthChart() {
                             <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                                 <PopoverTrigger asChild>
                                     <button
-                                        className='w-full px-4 py-1 rounded-2xl bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
+                                        className='w-full px-4 py-1 rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
                                     >
                                         <div className='flex items-center gap-3'>
                                             <Calendar className='w-4 h-4 text-[#E6EAFF]/70 group-hover:text-[#E6EAFF] transition-colors' />
@@ -274,7 +311,7 @@ export default function BirthChart() {
                             <Popover open={timePickerOpen} onOpenChange={setTimePickerOpen}>
                                 <PopoverTrigger asChild>
                                     <button
-                                        className='w-full px-4 py-1 rounded-2xl bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
+                                        className='w-full px-4 py-1 rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
                                     >
                                         <div className='flex items-center gap-3'>
                                             <Clock className='w-4 h-4 text-[#E6EAFF]/70 group-hover:text-[#E6EAFF] transition-colors' />
@@ -300,7 +337,8 @@ export default function BirthChart() {
                         <Popover open={locationOpen} onOpenChange={setLocationOpen}>
                             <PopoverTrigger asChild>
                                 <button
-                                    className='w-full px-4 py-3 rounded-2xl bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
+                                    onClick={handleLocationClick}
+                                    className='w-full px-4 py-1 rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
                                 >
                                     <div className='flex items-center gap-3'>
                                         <MapPin className='w-4 h-4 text-[#E6EAFF]/70 group-hover:text-[#E6EAFF] transition-colors' />
@@ -386,7 +424,10 @@ export default function BirthChart() {
                 <Button
                     onClick={handleGenerate}
                     disabled={!isValid || isGenerating}
-                    className='w-full py-6 rounded-[24px] bg-gradient-to-r from-[#6C4CFF] to-[#8B63FF] hover:from-[#7A5AFF] hover:to-[#9A73FF] text-white font-medium text-base shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed'
+                    className='w-full py-6 rounded-[24px] bg-gradient-to-r from-[#6C4CFF] to-[#8B63FF] hover:from-[#7A5AFF] hover:to-[#9A73FF] text-white font-medium text-base shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer'
+                    style={{
+                        boxShadow: isValid ? '0 8px 24px rgba(108, 76, 255, 0.4)' : undefined
+                    }}
                 >
                     {isGenerating ? (
                         <>
