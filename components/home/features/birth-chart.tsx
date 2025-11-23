@@ -465,6 +465,7 @@ export default function BirthChart() {
                             use my location
                         </span>
                     </div>
+                    </div>
                 </div>
 
                 {/* Error Message */}
