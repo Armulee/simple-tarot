@@ -234,7 +234,7 @@ export default function BirthChart() {
             </div>
 
             {/* Birth Information Section */}
-            <div className='flex flex-col gap-4 justify-center items-center pt-8 w-full max-w-2xl px-4'>
+            <div className='flex flex-col gap-4 justify-center items-center pt-8 w-full max-w-2xl px-2'>
                 {/* Label - Outside Card */}
                 <div className='w-full flex items-center gap-2'>
                     <h2 className='font-serif font-semibold text-xl text-white text-left'>
@@ -263,7 +263,7 @@ export default function BirthChart() {
 
                 {/* Input Card */}
                 <div 
-                    className='w-full px-4 py-6 rounded-[20px] bg-gradient-to-br from-[#0A0F26] to-[#131A3A] border border-white/[0.1] shadow-2xl relative overflow-hidden'
+                    className='w-full p-4 rounded-[20px] bg-gradient-to-br from-[#0A0F26] to-[#131A3A] border border-white/[0.1] shadow-2xl relative overflow-hidden'
                     style={{
                         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                     }}
