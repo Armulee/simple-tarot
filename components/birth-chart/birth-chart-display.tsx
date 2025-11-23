@@ -139,9 +139,9 @@ export default function BirthChartDisplay({
                                         {planet}
                                     </Badge>
                                     <p className='text-white font-semibold'>
-                                        {typeof position === "object"
+                                        {typeof position === "object" && position !== null
                                             ? JSON.stringify(position)
-                                            : position}
+                                            : String(position)}
                                     </p>
                                 </div>
                             )
