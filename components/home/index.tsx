@@ -128,11 +128,7 @@ export default function Home() {
                                     key={feature.id}
                                     className='w-full h-full'
                                 >
-                                    <div
-                                        className={`w-full h-full flex flex-col items-center justify-end pb-10 ${
-                                            feature.id !== "tarot" ? "px-8" : ""
-                                        }`}
-                                    >
+                                    <div className='w-full h-full flex flex-col items-center justify-end pb-10'>
                                         <FeatureComponent />
                                     </div>
                                 </SwiperSlide>
