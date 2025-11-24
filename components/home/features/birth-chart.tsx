@@ -588,7 +588,7 @@ export default function BirthChart() {
                                                             <MapPin className='w-4 h-4' />
                                                             Use current location
                                                         </button>
-                                                        {filteredCountries.slice(0, 10).map((c) => (
+                                                        {filteredCountries.map((c) => (
                                                             <button
                                                                 key={c.code}
                                                                 onClick={() => {
@@ -617,7 +617,7 @@ export default function BirthChart() {
                                                         className='w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-[#E6EAFF] placeholder-[#E6EAFF]/50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/30'
                                                     />
                                                     <div className='max-h-40 overflow-y-auto mt-2 space-y-1'>
-                                                        {filteredStates.slice(0, 10).map((s) => (
+                                                        {filteredStates.map((s) => (
                                                             <button
                                                                 key={s.code}
                                                                 onClick={() => {
