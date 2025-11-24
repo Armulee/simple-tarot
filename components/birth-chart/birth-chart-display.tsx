@@ -7,6 +7,7 @@ import BirthChartStats from "./birth-chart-stats"
 import BirthChartWheel from "./birth-chart-wheel"
 import BirthChartShare from "./birth-chart-share"
 import BirthChartQuestion from "./birth-chart-question"
+import { AstroPoint } from "@/lib/birth-chart-utils"
 
 interface BirthChartDisplayProps {
     birthChart: {
@@ -138,7 +139,7 @@ export default function BirthChartDisplay({
                                     </Badge>
                                     <p className='text-white font-semibold'>
                                         {typeof sign === "object" && sign !== null && "sign" in sign 
-                                            ? (sign as any).sign 
+                                            ? (sign as AstroPoint).sign 
                                             : String(sign)}
                                     </p>
                                 </div>
@@ -166,7 +167,7 @@ export default function BirthChartDisplay({
                                     </Badge>
                                     <p className='text-white font-semibold'>
                                         {typeof position === "object" && position !== null && "sign" in position
-                                            ? (position as any).sign
+                                            ? (position as AstroPoint).sign
                                             : typeof position === "object"
                                                 ? JSON.stringify(position)
                                                 : String(position)}

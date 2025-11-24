@@ -10,14 +10,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import { Calendar, Clock, MapPin, Sparkles, Info, Send, ChevronLeft } from "lucide-react"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
+import { Calendar, Clock, MapPin, Info, Send, ChevronLeft } from "lucide-react"
 import {
     Tooltip,
     TooltipContent,

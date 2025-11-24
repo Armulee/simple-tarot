@@ -52,7 +52,7 @@ Rules:
             })
             .catch(() => {})
 
-        return result.toDataStreamResponse()
+        return result.toTextStreamResponse()
     } catch (error) {
         console.error("Error generating birth chart interpretation:", error)
         return new Response("Failed to generate interpretation", {

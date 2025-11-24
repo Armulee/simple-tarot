@@ -36,6 +36,13 @@ export interface RPGStats {
     creativity: number
 }
 
+// Interface for what we expect in planets/houses values
+export interface AstroPoint {
+    sign: string
+    degree?: number
+    [key: string]: unknown
+}
+
 // Simple mapping of signs to element/quality which boost certain stats
 const SIGN_MODIFIERS: Record<string, Partial<RPGStats>> = {
     Aries: { leadership: 8, vitality: 8, creativity: 4 },
@@ -91,7 +98,7 @@ export function calculateRPGStats(
             position !== null &&
             "sign" in position
         ) {
-            sign = (position as any).sign
+            sign = (position as AstroPoint).sign
         }
 
         // Normalize sign name
@@ -129,8 +136,6 @@ export function calculateRPGStats(
     // 10 planets * 20 = 200 points max.
     // We want average around 50-70.
     
-    // Let's just scale by count to get an average score 0-100
-    const scaler = planetCount > 0 ? (100 / (planetCount * 15)) : 1 
     // 15 is roughly average sum of planet+sign max points for a stat
 
     const finalStats = { ...stats }
