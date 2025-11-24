@@ -434,23 +434,28 @@ export default function BirthChart() {
                                                     className='w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-[#E6EAFF] placeholder-[#E6EAFF]/50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/30'
                                                 />
                                                 <div className='max-h-40 overflow-y-auto mt-2 space-y-1'>
-                                                    {Array.from({ length: 24 }, (_, i) => (
-                                                        <button
-                                                            key={i}
-                                                            onClick={() => {
-                                                                setSelectedTime({ ...selectedTime, hour: i.toString().padStart(2, "0") })
-                                                                setHourInput("")
-                                                                setTimeStep("minute")
-                                                            }}
-                                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                                                                selectedTime.hour === i.toString().padStart(2, "0")
-                                                                    ? "bg-purple-500/20 text-purple-300"
-                                                                    : "text-[#E6EAFF]/90 hover:bg-white/10 hover:text-[#E6EAFF]"
-                                                            }`}
-                                                        >
-                                                            {i.toString().padStart(2, "0")}
-                                                        </button>
-                                                    ))}
+                                                    {Array.from({ length: 24 }, (_, i) => {
+                                                        const hourStr = i.toString().padStart(2, "0")
+                                                        const matchesFilter = !hourInput || hourStr.includes(hourInput) || hourStr.startsWith(hourInput)
+                                                        if (!matchesFilter) return null
+                                                        return (
+                                                            <button
+                                                                key={i}
+                                                                onClick={() => {
+                                                                    setSelectedTime({ ...selectedTime, hour: hourStr })
+                                                                    setHourInput("")
+                                                                    setTimeStep("minute")
+                                                                }}
+                                                                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                                                                    selectedTime.hour === hourStr
+                                                                        ? "bg-purple-500/20 text-purple-300"
+                                                                        : "text-[#E6EAFF]/90 hover:bg-white/10 hover:text-[#E6EAFF]"
+                                                                }`}
+                                                            >
+                                                                {hourStr}
+                                                            </button>
+                                                        )
+                                                    })}
                                                 </div>
                                             </div>
                                         ) : (
@@ -477,24 +482,39 @@ export default function BirthChart() {
                                                     className='w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-[#E6EAFF] placeholder-[#E6EAFF]/50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/30'
                                                 />
                                                 <div className='max-h-40 overflow-y-auto mt-2 space-y-1'>
-                                                    {Array.from({ length: 60 }, (_, i) => (
-                                                        <button
-                                                            key={i}
-                                                            onClick={() => {
-                                                                setSelectedTime({ ...selectedTime, minute: i.toString().padStart(2, "0") })
-                                                                setMinuteInput("")
-                                                                setTimeStep("hour")
-                                                                setTimeOpen(false)
-                                                            }}
-                                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                                                                selectedTime.minute === i.toString().padStart(2, "0")
-                                                                    ? "bg-purple-500/20 text-purple-300"
-                                                                    : "text-[#E6EAFF]/90 hover:bg-white/10 hover:text-[#E6EAFF]"
-                                                            }`}
-                                                        >
-                                                            {i.toString().padStart(2, "0")}
-                                                        </button>
-                                                    ))}
+                                                    {Array.from({ length: 60 }, (_, i) => {
+                                                        const minuteStr = i.toString().padStart(2, "0")
+                                                        let matchesFilter = true
+                                                        if (minuteInput) {
+                                                            if (minuteInput.length === 1) {
+                                                                // Single digit: show that digit (02) and all numbers starting with it (20-29 for "2")
+                                                                const digit = minuteInput
+                                                                matchesFilter = i === parseInt(digit) || i.toString().startsWith(digit)
+                                                            } else {
+                                                                // Multiple digits: show exact matches or numbers starting with it
+                                                                matchesFilter = minuteStr.startsWith(minuteInput)
+                                                            }
+                                                        }
+                                                        if (!matchesFilter) return null
+                                                        return (
+                                                            <button
+                                                                key={i}
+                                                                onClick={() => {
+                                                                    setSelectedTime({ ...selectedTime, minute: minuteStr })
+                                                                    setMinuteInput("")
+                                                                    setTimeStep("hour")
+                                                                    setTimeOpen(false)
+                                                                }}
+                                                                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                                                                    selectedTime.minute === minuteStr
+                                                                        ? "bg-purple-500/20 text-purple-300"
+                                                                        : "text-[#E6EAFF]/90 hover:bg-white/10 hover:text-[#E6EAFF]"
+                                                                }`}
+                                                            >
+                                                                {minuteStr}
+                                                            </button>
+                                                        )
+                                                    })}
                                                 </div>
                                             </div>
                                         )}
@@ -560,6 +580,14 @@ export default function BirthChart() {
                                                         className='w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-[#E6EAFF] placeholder-[#E6EAFF]/50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/30'
                                                     />
                                                     <div className='max-h-40 overflow-y-auto mt-2 space-y-1'>
+                                                        {/* Use current location option */}
+                                                        <button
+                                                            onClick={handleLocationClick}
+                                                            className='w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 text-[#E6EAFF]/90 hover:bg-white/10 hover:text-[#E6EAFF]'
+                                                        >
+                                                            <MapPin className='w-4 h-4' />
+                                                            Use current location
+                                                        </button>
                                                         {filteredCountries.slice(0, 10).map((c) => (
                                                             <button
                                                                 key={c.code}
@@ -631,12 +659,6 @@ export default function BirthChart() {
                                     )}
                                 </Button>
                             </div>
-                            <span
-                                onClick={handleLocationClick}
-                                className='text-sm text-[#E6EAFF]/70 hover:text-[#E6EAFF] underline cursor-pointer transition-colors text-left block'
-                            >
-                                Use current location
-                            </span>
                         </div>
                     </div>
                 </div>
