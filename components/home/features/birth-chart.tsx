@@ -392,127 +392,127 @@ export default function BirthChart() {
                         </div>
 
                         {/* Location Input */}
-                        <div className='flex items-center gap-2'>
-                            <Popover open={locationOpen} onOpenChange={setLocationOpen}>
-                                <PopoverTrigger asChild>
-                                    <button
-                                        onClick={() => {
-                                            if (choice === null || choice === "declined") {
-                                                show()
-                                                return
-                                            }
-                                            setLocationOpen(true)
-                                        }}
-                                        className='flex-1 px-4 py-1 rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
-                                    >
-                                        <div className='flex items-center gap-3'>
-                                            <MapPin className='w-4 h-4 text-[#E6EAFF]/70 group-hover:text-[#E6EAFF] transition-colors' />
-                                            <span className={`text-sm font-medium ${locationDisplay !== "Select location" ? "text-[#E6EAFF]" : "text-[#E6EAFF]/50"}`}>
-                                                {locationDisplay}
-                                            </span>
-                                        </div>
-                                        <svg className='w-4 h-4 text-[#E6EAFF]/50' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
-                                        </svg>
-                                    </button>
-                                </PopoverTrigger>
-                            <PopoverContent className='w-80 p-0 bg-[#0A0F26]/95 backdrop-blur-xl border-white/10 rounded-xl shadow-2xl'>
-                                <div className='p-4 space-y-4'>
-                                    {/* Country Search */}
-                                    <div>
-                                        <input
-                                            type='text'
-                                            placeholder='Search countries...'
-                                            value={searchCountry}
-                                            onChange={(e) => setSearchCountry(e.target.value)}
-                                            className='w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-[#E6EAFF] placeholder-[#E6EAFF]/50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/30'
-                                        />
-                                        <div className='max-h-40 overflow-y-auto mt-2 space-y-1'>
-                                            {filteredCountries.slice(0, 10).map((c) => (
-                                                <button
-                                                    key={c.code}
-                                                    onClick={() => {
-                                                        setCountry(c.name)
-                                                        setSearchCountry("")
-                                                        setStateProv("")
-                                                    }}
-                                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                                                        country === c.name
-                                                            ? "bg-purple-500/20 text-purple-300"
-                                                            : "text-[#E6EAFF]/90 hover:bg-white/10 hover:text-[#E6EAFF]"
-                                                    }`}
-                                                >
-                                                    {c.name}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    
-                                    {/* State Search */}
-                                    {country && (
+                        <div className='space-y-2'>
+                            <div className='flex items-center gap-2'>
+                                <Popover open={locationOpen} onOpenChange={setLocationOpen}>
+                                    <PopoverTrigger asChild>
+                                        <button
+                                            onClick={() => {
+                                                if (choice === null || choice === "declined") {
+                                                    show()
+                                                    return
+                                                }
+                                                setLocationOpen(true)
+                                            }}
+                                            className='flex-1 px-4 py-1 rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
+                                        >
+                                            <div className='flex items-center gap-3'>
+                                                <MapPin className='w-4 h-4 text-[#E6EAFF]/70 group-hover:text-[#E6EAFF] transition-colors' />
+                                                <span className={`text-sm font-medium ${locationDisplay !== "Select location" ? "text-[#E6EAFF]" : "text-[#E6EAFF]/50"}`}>
+                                                    {locationDisplay}
+                                                </span>
+                                            </div>
+                                            <svg className='w-4 h-4 text-[#E6EAFF]/50' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
+                                            </svg>
+                                        </button>
+                                    </PopoverTrigger>
+                                <PopoverContent className='w-80 p-0 bg-[#0A0F26]/95 backdrop-blur-xl border-white/10 rounded-xl shadow-2xl'>
+                                    <div className='p-4 space-y-4'>
+                                        {/* Country Search */}
                                         <div>
                                             <input
                                                 type='text'
-                                                placeholder='Search states/provinces...'
-                                                value={searchState}
-                                                onChange={(e) => setSearchState(e.target.value)}
+                                                placeholder='Search countries...'
+                                                value={searchCountry}
+                                                onChange={(e) => setSearchCountry(e.target.value)}
                                                 className='w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-[#E6EAFF] placeholder-[#E6EAFF]/50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/30'
                                             />
                                             <div className='max-h-40 overflow-y-auto mt-2 space-y-1'>
-                                                {filteredStates.slice(0, 10).map((s) => (
+                                                {filteredCountries.slice(0, 10).map((c) => (
                                                     <button
-                                                        key={s.code}
+                                                        key={c.code}
                                                         onClick={() => {
-                                                            setStateProv(s.name)
-                                                            setSearchState("")
-                                                            setLocationOpen(false)
+                                                            setCountry(c.name)
+                                                            setSearchCountry("")
+                                                            setStateProv("")
                                                         }}
                                                         className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                                                            stateProv === s.name
+                                                            country === c.name
                                                                 ? "bg-purple-500/20 text-purple-300"
                                                                 : "text-[#E6EAFF]/90 hover:bg-white/10 hover:text-[#E6EAFF]"
                                                         }`}
                                                     >
-                                                        {s.name}
+                                                        {c.name}
                                                     </button>
                                                 ))}
                                             </div>
                                         </div>
-                                    )}
-                                </div>
-                            </PopoverContent>
-                        </Popover>
-                        <span
-                            onClick={handleLocationClick}
-                            className='text-sm text-[#E6EAFF]/70 hover:text-[#E6EAFF] underline cursor-pointer whitespace-nowrap transition-colors'
-                        >
-                            use my location
-                        </span>
-                    </div>
+                                        
+                                        {/* State Search */}
+                                        {country && (
+                                            <div>
+                                                <input
+                                                    type='text'
+                                                    placeholder='Search states/provinces...'
+                                                    value={searchState}
+                                                    onChange={(e) => setSearchState(e.target.value)}
+                                                    className='w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-[#E6EAFF] placeholder-[#E6EAFF]/50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/30'
+                                                />
+                                                <div className='max-h-40 overflow-y-auto mt-2 space-y-1'>
+                                                    {filteredStates.slice(0, 10).map((s) => (
+                                                        <button
+                                                            key={s.code}
+                                                            onClick={() => {
+                                                                setStateProv(s.name)
+                                                                setSearchState("")
+                                                                setLocationOpen(false)
+                                                            }}
+                                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                                                                stateProv === s.name
+                                                                    ? "bg-purple-500/20 text-purple-300"
+                                                                    : "text-[#E6EAFF]/90 hover:bg-white/10 hover:text-[#E6EAFF]"
+                                                            }`}
+                                                        >
+                                                            {s.name}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                            <Button
+                                onClick={handleGenerate}
+                                disabled={!isValid || isGenerating}
+                                className='flex-1 py-6 rounded-[24px] bg-gradient-to-r from-[#6C4CFF] to-[#8B63FF] hover:from-[#7A5AFF] hover:to-[#9A73FF] text-white font-medium text-base shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer'
+                                style={{
+                                    boxShadow: isValid ? '0 8px 24px rgba(108, 76, 255, 0.4)' : undefined
+                                }}
+                            >
+                                {isGenerating ? (
+                                    <>
+                                        <Loader2 className='w-5 h-5 animate-spin' />
+                                        Generating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles className='w-5 h-5' />
+                                        GENERATE CHART
+                                    </>
+                                )}
+                            </Button>
+                            </div>
+                            <span
+                                onClick={handleLocationClick}
+                                className='text-sm text-[#E6EAFF]/70 hover:text-[#E6EAFF] underline cursor-pointer transition-colors'
+                            >
+                                Use current location
+                            </span>
+                        </div>
                     </div>
                 </div>
-
-                {/* Generate Button - Outside Card */}
-                <Button
-                    onClick={handleGenerate}
-                    disabled={!isValid || isGenerating}
-                    className='w-full py-6 rounded-[24px] bg-gradient-to-r from-[#6C4CFF] to-[#8B63FF] hover:from-[#7A5AFF] hover:to-[#9A73FF] text-white font-medium text-base shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer'
-                    style={{
-                        boxShadow: isValid ? '0 8px 24px rgba(108, 76, 255, 0.4)' : undefined
-                    }}
-                >
-                    {isGenerating ? (
-                        <>
-                            <Loader2 className='w-5 h-5 animate-spin' />
-                            Generating...
-                        </>
-                    ) : (
-                        <>
-                            <Sparkles className='w-5 h-5' />
-                            GENERATE CHART
-                        </>
-                    )}
-                </Button>
             </div>
         </>
     )
