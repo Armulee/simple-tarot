@@ -3,6 +3,10 @@
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Sparkles } from "lucide-react"
+import BirthChartStats from "./birth-chart-stats"
+import BirthChartWheel from "./birth-chart-wheel"
+import BirthChartShare from "./birth-chart-share"
+import BirthChartQuestion from "./birth-chart-question"
 
 interface BirthChartDisplayProps {
     birthChart: {
@@ -96,7 +100,27 @@ export default function BirthChartDisplay({
                 </div>
             </Card>
 
-            {/* Houses */}
+            {/* Wheel */}
+            <div className="flex justify-center">
+                <BirthChartWheel 
+                    houses={birthChart.houses} 
+                    planets={birthChart.planets} 
+                />
+            </div>
+
+            {/* Stats */}
+            <BirthChartStats planets={birthChart.planets} />
+
+            {/* Question Section */}
+            <BirthChartQuestion 
+                houses={birthChart.houses} 
+                planets={birthChart.planets} 
+            />
+
+            {/* Share Section */}
+            <BirthChartShare />
+
+            {/* Houses Detail (Foldable or just listed) */}
             {birthChart.houses && (
                 <Card className='p-6 bg-card/10 backdrop-blur-sm border-border/20'>
                     <h2 className='font-serif font-bold text-xl mb-4 text-white'>
@@ -113,7 +137,9 @@ export default function BirthChartDisplay({
                                         {house}
                                     </Badge>
                                     <p className='text-white font-semibold'>
-                                        {String(sign)}
+                                        {typeof sign === "object" && sign !== null && "sign" in sign 
+                                            ? (sign as any).sign 
+                                            : String(sign)}
                                     </p>
                                 </div>
                             )
@@ -122,7 +148,7 @@ export default function BirthChartDisplay({
                 </Card>
             )}
 
-            {/* Planets */}
+            {/* Planets Detail */}
             {birthChart.planets && (
                 <Card className='p-6 bg-card/10 backdrop-blur-sm border-border/20'>
                     <h2 className='font-serif font-bold text-xl mb-4 text-white'>
@@ -139,9 +165,11 @@ export default function BirthChartDisplay({
                                         {planet}
                                     </Badge>
                                     <p className='text-white font-semibold'>
-                                        {typeof position === "object" && position !== null
-                                            ? JSON.stringify(position)
-                                            : String(position)}
+                                        {typeof position === "object" && position !== null && "sign" in position
+                                            ? (position as any).sign
+                                            : typeof position === "object"
+                                                ? JSON.stringify(position)
+                                                : String(position)}
                                     </p>
                                 </div>
                             )
