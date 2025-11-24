@@ -10,7 +10,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import { Calendar, Clock, MapPin, Sparkles, Info } from "lucide-react"
+import { Calendar, Clock, MapPin, Sparkles, Info, Send, ChevronLeft } from "lucide-react"
 import {
     Select,
     SelectContent,
@@ -57,8 +57,13 @@ export default function BirthChart() {
     const [stateProv, setStateProv] = useState<string>("")
     const [calendarOpen, setCalendarOpen] = useState(false)
     const [locationOpen, setLocationOpen] = useState(false)
+    const [timeOpen, setTimeOpen] = useState(false)
     const [searchCountry, setSearchCountry] = useState("")
     const [searchState, setSearchState] = useState("")
+    const [timeStep, setTimeStep] = useState<"hour" | "minute">("hour")
+    const [locationStep, setLocationStep] = useState<"country" | "state">("country")
+    const [hourInput, setHourInput] = useState("")
+    const [minuteInput, setMinuteInput] = useState("")
     const [countries, setCountries] = useState<Array<{ name: string; code: string }>>([])
     const [states, setStates] = useState<Array<{ name: string; code: string }>>([])
     const [timezone, setTimezone] = useState<number>(getDeviceTimezone())
@@ -365,123 +370,215 @@ export default function BirthChart() {
                             </Popover>
 
                             {/* Time Input */}
-                            <div className='flex items-center gap-2'>
-                                <Select
-                                    value={selectedTime.hour || undefined}
-                                    onValueChange={(value) => {
-                                        if (choice === null || choice === "declined") {
-                                            show()
-                                            return
-                                        }
-                                        setSelectedTime({ ...selectedTime, hour: value })
-                                    }}
-                                >
-                                    <SelectTrigger className='flex-1 px-4 py-1 h-auto rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] text-[#E6EAFF]/50 focus:ring-0 focus:ring-offset-0'>
-                                        <div className='flex items-center gap-3'>
-                                            <Clock className='w-4 h-4 text-[#E6EAFF]/70' />
-                                            <SelectValue placeholder='Hour' />
-                                        </div>
-                                    </SelectTrigger>
-                                    <SelectContent className='bg-[#0A0F26]/95 backdrop-blur-xl border-white/10'>
-                                        {Array.from({ length: 24 }, (_, i) => (
-                                            <SelectItem
-                                                key={i}
-                                                value={i.toString().padStart(2, "0")}
-                                                className='text-[#E6EAFF] focus:bg-white/10'
-                                            >
-                                                {i.toString().padStart(2, "0")}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {selectedTime.hour && (
-                                    <Select
-                                        value={selectedTime.minute || undefined}
-                                        onValueChange={(value) => {
-                                            setSelectedTime({ ...selectedTime, minute: value })
+                            <Popover open={timeOpen} onOpenChange={(open) => {
+                                if (!open) {
+                                    setTimeStep("hour")
+                                    setHourInput("")
+                                    setMinuteInput("")
+                                }
+                                setTimeOpen(open)
+                            }}>
+                                <PopoverTrigger asChild>
+                                    <button
+                                        onClick={() => {
+                                            if (choice === null || choice === "declined") {
+                                                show()
+                                                return
+                                            }
+                                            setTimeOpen(true)
                                         }}
+                                        className='w-full px-4 py-1 rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
                                     >
-                                        <SelectTrigger className='flex-1 px-4 py-1 h-auto rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] text-[#E6EAFF]/50 focus:ring-0 focus:ring-offset-0'>
-                                            <div className='flex items-center gap-3'>
-                                                <SelectValue placeholder='Minute' />
+                                        <div className='flex items-center gap-3'>
+                                            <Clock className='w-4 h-4 text-[#E6EAFF]/70 group-hover:text-[#E6EAFF] transition-colors' />
+                                            <span className={`text-sm font-medium ${selectedTime.hour && selectedTime.minute ? "text-[#E6EAFF]" : "text-[#E6EAFF]/50"}`}>
+                                                {formattedTime}
+                                            </span>
+                                        </div>
+                                        <svg className='w-4 h-4 text-[#E6EAFF]/50' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
+                                        </svg>
+                                    </button>
+                                </PopoverTrigger>
+                                <PopoverContent className='w-80 p-0 bg-[#0A0F26]/95 backdrop-blur-xl border-white/10 rounded-xl shadow-2xl'>
+                                    <div className='p-4 space-y-4'>
+                                        {timeStep === "minute" && (
+                                            <button
+                                                onClick={() => setTimeStep("hour")}
+                                                className='flex items-center gap-2 text-sm text-[#E6EAFF]/70 hover:text-[#E6EAFF] transition-colors mb-2'
+                                            >
+                                                <ChevronLeft className='w-4 h-4' />
+                                                Back to hour
+                                            </button>
+                                        )}
+                                        {timeStep === "hour" ? (
+                                            <div>
+                                                <input
+                                                    type='text'
+                                                    placeholder='Enter your birth hour'
+                                                    value={hourInput}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value.replace(/\D/g, "")
+                                                        if (val === "" || (parseInt(val) >= 0 && parseInt(val) <= 23)) {
+                                                            setHourInput(val)
+                                                        }
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter" && hourInput && parseInt(hourInput) >= 0 && parseInt(hourInput) <= 23) {
+                                                            setSelectedTime({ ...selectedTime, hour: parseInt(hourInput).toString().padStart(2, "0") })
+                                                            setHourInput("")
+                                                            setTimeStep("minute")
+                                                            e.preventDefault()
+                                                        }
+                                                    }}
+                                                    className='w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-[#E6EAFF] placeholder-[#E6EAFF]/50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/30'
+                                                />
+                                                <div className='max-h-40 overflow-y-auto mt-2 space-y-1'>
+                                                    {Array.from({ length: 24 }, (_, i) => (
+                                                        <button
+                                                            key={i}
+                                                            onClick={() => {
+                                                                setSelectedTime({ ...selectedTime, hour: i.toString().padStart(2, "0") })
+                                                                setHourInput("")
+                                                                setTimeStep("minute")
+                                                            }}
+                                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                                                                selectedTime.hour === i.toString().padStart(2, "0")
+                                                                    ? "bg-purple-500/20 text-purple-300"
+                                                                    : "text-[#E6EAFF]/90 hover:bg-white/10 hover:text-[#E6EAFF]"
+                                                            }`}
+                                                        >
+                                                            {i.toString().padStart(2, "0")}
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </SelectTrigger>
-                                        <SelectContent className='bg-[#0A0F26]/95 backdrop-blur-xl border-white/10'>
-                                            {Array.from({ length: 60 }, (_, i) => (
-                                                <SelectItem
-                                                    key={i}
-                                                    value={i.toString().padStart(2, "0")}
-                                                    className='text-[#E6EAFF] focus:bg-white/10'
-                                                >
-                                                    {i.toString().padStart(2, "0")}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            </div>
+                                        ) : (
+                                            <div>
+                                                <input
+                                                    type='text'
+                                                    placeholder='Enter your birth minute'
+                                                    value={minuteInput}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value.replace(/\D/g, "")
+                                                        if (val === "" || (parseInt(val) >= 0 && parseInt(val) <= 59)) {
+                                                            setMinuteInput(val)
+                                                        }
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter" && minuteInput && parseInt(minuteInput) >= 0 && parseInt(minuteInput) <= 59) {
+                                                            setSelectedTime({ ...selectedTime, minute: parseInt(minuteInput).toString().padStart(2, "0") })
+                                                            setMinuteInput("")
+                                                            setTimeStep("hour")
+                                                            setTimeOpen(false)
+                                                            e.preventDefault()
+                                                        }
+                                                    }}
+                                                    className='w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-[#E6EAFF] placeholder-[#E6EAFF]/50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/30'
+                                                />
+                                                <div className='max-h-40 overflow-y-auto mt-2 space-y-1'>
+                                                    {Array.from({ length: 60 }, (_, i) => (
+                                                        <button
+                                                            key={i}
+                                                            onClick={() => {
+                                                                setSelectedTime({ ...selectedTime, minute: i.toString().padStart(2, "0") })
+                                                                setMinuteInput("")
+                                                                setTimeStep("hour")
+                                                                setTimeOpen(false)
+                                                            }}
+                                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                                                                selectedTime.minute === i.toString().padStart(2, "0")
+                                                                    ? "bg-purple-500/20 text-purple-300"
+                                                                    : "text-[#E6EAFF]/90 hover:bg-white/10 hover:text-[#E6EAFF]"
+                                                            }`}
+                                                        >
+                                                            {i.toString().padStart(2, "0")}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
                         </div>
 
                         {/* Location Input */}
                         <div className='space-y-2'>
-                            <div className='flex items-center gap-2'>
-                                <Popover open={locationOpen} onOpenChange={setLocationOpen}>
-                                    <PopoverTrigger asChild>
-                                        <button
-                                            onClick={() => {
-                                                if (choice === null || choice === "declined") {
-                                                    show()
-                                                    return
-                                                }
-                                                setLocationOpen(true)
-                                            }}
-                                            className='flex-1 px-4 py-1 rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
-                                        >
-                                            <div className='flex items-center gap-3'>
-                                                <MapPin className='w-4 h-4 text-[#E6EAFF]/70 group-hover:text-[#E6EAFF] transition-colors' />
-                                                <span className={`text-sm font-medium ${locationDisplay !== "Select location" ? "text-[#E6EAFF]" : "text-[#E6EAFF]/50"}`}>
-                                                    {locationDisplay}
-                                                </span>
-                                            </div>
-                                            <svg className='w-4 h-4 text-[#E6EAFF]/50' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
-                                            </svg>
-                                        </button>
-                                    </PopoverTrigger>
+                            <Popover open={locationOpen} onOpenChange={(open) => {
+                                if (!open) {
+                                    setLocationStep("country")
+                                    setSearchCountry("")
+                                    setSearchState("")
+                                }
+                                setLocationOpen(open)
+                            }}>
+                                <PopoverTrigger asChild>
+                                    <button
+                                        onClick={() => {
+                                            if (choice === null || choice === "declined") {
+                                                show()
+                                                return
+                                            }
+                                            setLocationOpen(true)
+                                        }}
+                                        className='w-full px-4 py-1 rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
+                                    >
+                                        <div className='flex items-center gap-3'>
+                                            <MapPin className='w-4 h-4 text-[#E6EAFF]/70 group-hover:text-[#E6EAFF] transition-colors' />
+                                            <span className={`text-sm font-medium ${locationDisplay !== "Select location" ? "text-[#E6EAFF]" : "text-[#E6EAFF]/50"}`}>
+                                                {locationDisplay}
+                                            </span>
+                                        </div>
+                                        <svg className='w-4 h-4 text-[#E6EAFF]/50' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
+                                        </svg>
+                                    </button>
+                                </PopoverTrigger>
                                 <PopoverContent className='w-80 p-0 bg-[#0A0F26]/95 backdrop-blur-xl border-white/10 rounded-xl shadow-2xl'>
                                     <div className='p-4 space-y-4'>
-                                        {/* Country Search */}
-                                        <div>
-                                            <input
-                                                type='text'
-                                                placeholder='Search countries...'
-                                                value={searchCountry}
-                                                onChange={(e) => setSearchCountry(e.target.value)}
-                                                className='w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-[#E6EAFF] placeholder-[#E6EAFF]/50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/30'
-                                            />
-                                            <div className='max-h-40 overflow-y-auto mt-2 space-y-1'>
-                                                {filteredCountries.slice(0, 10).map((c) => (
-                                                    <button
-                                                        key={c.code}
-                                                        onClick={() => {
-                                                            setCountry(c.name)
-                                                            setSearchCountry("")
-                                                            setStateProv("")
-                                                        }}
-                                                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                                                            country === c.name
-                                                                ? "bg-purple-500/20 text-purple-300"
-                                                                : "text-[#E6EAFF]/90 hover:bg-white/10 hover:text-[#E6EAFF]"
-                                                        }`}
-                                                    >
-                                                        {c.name}
-                                                    </button>
-                                                ))}
+                                        {locationStep === "state" && (
+                                            <button
+                                                onClick={() => {
+                                                    setLocationStep("country")
+                                                    setSearchState("")
+                                                }}
+                                                className='flex items-center gap-2 text-sm text-[#E6EAFF]/70 hover:text-[#E6EAFF] transition-colors mb-2'
+                                            >
+                                                <ChevronLeft className='w-4 h-4' />
+                                                Back to country
+                                            </button>
+                                        )}
+                                        {locationStep === "country" ? (
+                                            <div>
+                                                <input
+                                                    type='text'
+                                                    placeholder='Search countries...'
+                                                    value={searchCountry}
+                                                    onChange={(e) => setSearchCountry(e.target.value)}
+                                                    className='w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-[#E6EAFF] placeholder-[#E6EAFF]/50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/30'
+                                                />
+                                                <div className='max-h-40 overflow-y-auto mt-2 space-y-1'>
+                                                    {filteredCountries.slice(0, 10).map((c) => (
+                                                        <button
+                                                            key={c.code}
+                                                            onClick={() => {
+                                                                setCountry(c.name)
+                                                                setSearchCountry("")
+                                                                setLocationStep("state")
+                                                            }}
+                                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                                                                country === c.name
+                                                                    ? "bg-purple-500/20 text-purple-300"
+                                                                    : "text-[#E6EAFF]/90 hover:bg-white/10 hover:text-[#E6EAFF]"
+                                                            }`}
+                                                        >
+                                                            {c.name}
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
-                                        
-                                        {/* State Search */}
-                                        {country && (
+                                        ) : (
                                             <div>
                                                 <input
                                                     type='text'
@@ -498,6 +595,7 @@ export default function BirthChart() {
                                                                 setStateProv(s.name)
                                                                 setSearchState("")
                                                                 setLocationOpen(false)
+                                                                setLocationStep("country")
                                                             }}
                                                             className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                                                                 stateProv === s.name
@@ -514,30 +612,31 @@ export default function BirthChart() {
                                     </div>
                                 </PopoverContent>
                             </Popover>
-                            <Button
-                                onClick={handleGenerate}
-                                disabled={!isValid || isGenerating}
-                                className='flex-1 py-6 rounded-[24px] bg-gradient-to-r from-[#6C4CFF] to-[#8B63FF] hover:from-[#7A5AFF] hover:to-[#9A73FF] text-white font-medium text-base shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer'
-                                style={{
-                                    boxShadow: isValid ? '0 8px 24px rgba(108, 76, 255, 0.4)' : undefined
-                                }}
-                            >
-                                {isGenerating ? (
-                                    <>
-                                        <Loader2 className='w-5 h-5 animate-spin' />
-                                        Generating...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Sparkles className='w-5 h-5' />
-                                        GENERATE CHART
-                                    </>
-                                )}
-                            </Button>
+                            <div className='flex items-center gap-2'>
+                                <Button
+                                    onClick={handleGenerate}
+                                    disabled={!isValid || isGenerating}
+                                    className='flex-1 py-6 rounded-[24px] bg-gradient-to-r from-[#6C4CFF] to-[#8B63FF] hover:from-[#7A5AFF] hover:to-[#9A73FF] text-white font-medium text-base shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer'
+                                    style={{
+                                        boxShadow: isValid ? '0 8px 24px rgba(108, 76, 255, 0.4)' : undefined
+                                    }}
+                                >
+                                    {isGenerating ? (
+                                        <>
+                                            <Loader2 className='w-5 h-5 animate-spin' />
+                                            <span className='hidden md:inline'>Generating...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Send className='w-5 h-5' />
+                                            <span className='hidden md:inline'>Generate Chart</span>
+                                        </>
+                                    )}
+                                </Button>
                             </div>
                             <span
                                 onClick={handleLocationClick}
-                                className='text-sm text-[#E6EAFF]/70 hover:text-[#E6EAFF] underline cursor-pointer transition-colors'
+                                className='text-sm text-[#E6EAFF]/70 hover:text-[#E6EAFF] underline cursor-pointer transition-colors text-left block'
                             >
                                 Use current location
                             </span>
