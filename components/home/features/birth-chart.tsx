@@ -616,10 +616,7 @@ export default function BirthChart() {
                                 <Button
                                     onClick={handleGenerate}
                                     disabled={!isValid || isGenerating}
-                                    className='py-6 px-4 md:px-6 rounded-[24px] bg-gradient-to-r from-[#6C4CFF] to-[#8B63FF] hover:from-[#7A5AFF] hover:to-[#9A73FF] text-white font-medium text-base shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0'
-                                    style={{
-                                        boxShadow: isValid ? '0 8px 24px rgba(108, 76, 255, 0.4)' : undefined
-                                    }}
+                                    className='py-1 px-4 md:px-6 rounded-md bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 hover:border-primary/60 text-white font-medium text-sm shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] hover:shadow-[0_10px_30px_-10px_rgba(56,189,248,0.5)] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0'
                                 >
                                     {isGenerating ? (
                                         <>
