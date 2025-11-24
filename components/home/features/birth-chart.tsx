@@ -5,13 +5,19 @@ import { TypewriterText } from "../../typewriter-text"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
-import { TimePicker } from "@/components/ui/time-picker"
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
 import { Calendar, Clock, MapPin, Sparkles, Info } from "lucide-react"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import {
     Tooltip,
     TooltipContent,
@@ -50,7 +56,6 @@ export default function BirthChart() {
     const [country, setCountry] = useState<string>("")
     const [stateProv, setStateProv] = useState<string>("")
     const [calendarOpen, setCalendarOpen] = useState(false)
-    const [timePickerOpen, setTimePickerOpen] = useState(false)
     const [locationOpen, setLocationOpen] = useState(false)
     const [searchCountry, setSearchCountry] = useState("")
     const [searchState, setSearchState] = useState("")
@@ -360,35 +365,61 @@ export default function BirthChart() {
                             </Popover>
 
                             {/* Time Input */}
-                            <Popover open={timePickerOpen} onOpenChange={(open) => {
-                                if (open && (choice === null || choice === "declined")) {
-                                    show()
-                                    return
-                                }
-                                setTimePickerOpen(open)
-                            }}>
-                                <PopoverTrigger asChild>
-                                    <button
-                                        className='w-full px-4 py-1 rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
-                                    >
+                            <div className='flex items-center gap-2'>
+                                <Select
+                                    value={selectedTime.hour || undefined}
+                                    onValueChange={(value) => {
+                                        if (choice === null || choice === "declined") {
+                                            show()
+                                            return
+                                        }
+                                        setSelectedTime({ ...selectedTime, hour: value })
+                                    }}
+                                >
+                                    <SelectTrigger className='flex-1 px-4 py-1 h-auto rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] text-[#E6EAFF]/50 focus:ring-0 focus:ring-offset-0'>
                                         <div className='flex items-center gap-3'>
-                                            <Clock className='w-4 h-4 text-[#E6EAFF]/70 group-hover:text-[#E6EAFF] transition-colors' />
-                                            <span className={`text-sm font-medium ${selectedTime.hour && selectedTime.minute ? "text-[#E6EAFF]" : "text-[#E6EAFF]/50"}`}>
-                                                {formattedTime}
-                                            </span>
+                                            <Clock className='w-4 h-4 text-[#E6EAFF]/70' />
+                                            <SelectValue placeholder='Hour' />
                                         </div>
-                                    </button>
-                                </PopoverTrigger>
-                                <PopoverContent className='w-auto p-3 bg-[#0A0F26]/95 backdrop-blur-xl border-white/10 rounded-xl shadow-2xl'>
-                                    <TimePicker
-                                        value={selectedTime}
-                                        onChange={(time) => {
-                                            setSelectedTime(time)
-                                            setTimePickerOpen(false)
+                                    </SelectTrigger>
+                                    <SelectContent className='bg-[#0A0F26]/95 backdrop-blur-xl border-white/10'>
+                                        {Array.from({ length: 24 }, (_, i) => (
+                                            <SelectItem
+                                                key={i}
+                                                value={i.toString().padStart(2, "0")}
+                                                className='text-[#E6EAFF] focus:bg-white/10'
+                                            >
+                                                {i.toString().padStart(2, "0")}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {selectedTime.hour && (
+                                    <Select
+                                        value={selectedTime.minute || undefined}
+                                        onValueChange={(value) => {
+                                            setSelectedTime({ ...selectedTime, minute: value })
                                         }}
-                                    />
-                                </PopoverContent>
-                            </Popover>
+                                    >
+                                        <SelectTrigger className='flex-1 px-4 py-1 h-auto rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] text-[#E6EAFF]/50 focus:ring-0 focus:ring-offset-0'>
+                                            <div className='flex items-center gap-3'>
+                                                <SelectValue placeholder='Minute' />
+                                            </div>
+                                        </SelectTrigger>
+                                        <SelectContent className='bg-[#0A0F26]/95 backdrop-blur-xl border-white/10'>
+                                            {Array.from({ length: 60 }, (_, i) => (
+                                                <SelectItem
+                                                    key={i}
+                                                    value={i.toString().padStart(2, "0")}
+                                                    className='text-[#E6EAFF] focus:bg-white/10'
+                                                >
+                                                    {i.toString().padStart(2, "0")}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            </div>
                         </div>
 
                         {/* Location Input */}
