@@ -5,8 +5,9 @@ import { Badge } from "@/components/ui/badge"
 import { Sparkles } from "lucide-react"
 import BirthChartStats from "./birth-chart-stats"
 import BirthChartWheel from "./birth-chart-wheel"
-import BirthChartShare from "./birth-chart-share"
+import BirthChartShareSection from "./birth-chart-share-section"
 import BirthChartQuestion from "./birth-chart-question"
+import BirthChartDebugSection from "./birth-chart-debug-section"
 import { AstroPoint } from "@/lib/birth-chart-utils"
 
 interface BirthChartDisplayProps {
@@ -119,7 +120,7 @@ export default function BirthChartDisplay({
             />
 
             {/* Share Section */}
-            <BirthChartShare />
+            <BirthChartShareSection id={birthChart.id} />
 
             {/* Houses Detail (Foldable or just listed) */}
             {birthChart.houses && (
@@ -188,6 +189,9 @@ export default function BirthChartDisplay({
                     qualified professionals for important life decisions.
                 </p>
             </Card>
+
+            {/* Debug Section */}
+            <BirthChartDebugSection data={birthChart} />
         </div>
     )
 }
