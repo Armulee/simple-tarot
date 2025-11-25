@@ -4,7 +4,7 @@ import { useMemo } from "react"
 import { Progress } from "@/components/ui/progress"
 import { Card } from "@/components/ui/card"
 import { calculatePlanetStats, PlanetStatType } from "@/lib/birth-chart-utils"
-import { Sun, Moon, Sword, Brain, Crown, Heart, Scale, CloudFog, Ghost, ArrowDown, Star } from "lucide-react"
+import { Sun, Moon, Sword, Brain, Crown, Heart, Scale, CloudFog, Ghost, ArrowDown, Star, ShieldCheck } from "lucide-react"
 
 interface BirthChartStatsProps {
     planets?: Record<string, unknown> | null
@@ -93,6 +93,17 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                             <Star className="w-3 h-3 fill-yellow-400 animate-pulse" /> Exalted
                         </span>
                     )
+                } else if (status === 'own_sign') {
+                    // Own Sign Styling (Subtle Boost)
+                    cardClassName = "p-4 bg-gradient-to-br from-blue-500/20 via-indigo-500/10 to-transparent border-blue-500/30 backdrop-blur-sm shadow-[0_0_15px_rgba(59,130,246,0.2)]"
+                    iconAura = "shadow-[0_0_10px_rgba(255,255,255,0.3)]"
+                    progressIndicatorClass = "bg-gradient-to-r from-blue-400 to-indigo-600"
+                    labelColor = "text-blue-200"
+                    statusLabel = (
+                        <span className="text-[10px] uppercase tracking-wider font-bold text-blue-400 flex items-center gap-1 mb-1 ml-auto">
+                            <ShieldCheck className="w-3 h-3 fill-blue-400" /> Own Sign
+                        </span>
+                    )
                 } else if (status === 'debilitated') {
                     // Dark/Debilitated styling
                     cardClassName = "p-4 bg-gradient-to-br from-gray-900/40 to-black/40 border-gray-700/30 backdrop-blur-sm"
@@ -125,8 +136,8 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                                 {/* Icon itself is white, no bg */}
                                 <Icon className="w-5 h-5 text-white relative z-10" />
                                 
-                                {/* Shine effect for exalted */}
-                                {status === 'exalted' && (
+                                {/* Shine effect for exalted or own sign */}
+                                {(status === 'exalted' || status === 'own_sign') && (
                                     <div className="absolute inset-0 bg-white/20 animate-pulse" />
                                 )}
                             </div>
@@ -151,14 +162,14 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
 
                         <div className="mt-1.5">
                             <div className="flex justify-between items-end mb-1.5">
-                                <span className={`font-bold text-lg leading-none ${status === 'exalted' ? 'text-yellow-400' : 'text-white'}`}>
+                                <span className={`font-bold text-lg leading-none ${status === 'exalted' ? 'text-yellow-400' : status === 'own_sign' ? 'text-blue-300' : 'text-white'}`}>
                                     {value}%
                                 </span>
                                 {statusLabel}
                             </div>
                             <Progress 
                                 value={value} 
-                                className={`h-2 bg-black/40 ${status === 'exalted' ? 'border border-yellow-500/20' : ''}`}
+                                className={`h-2 bg-black/40 ${status === 'exalted' ? 'border border-yellow-500/20' : status === 'own_sign' ? 'border border-blue-500/20' : ''}`}
                                 indicatorClassName={progressIndicatorClass}
                             />
                         </div>

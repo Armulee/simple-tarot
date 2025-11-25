@@ -49,7 +49,7 @@ export type PlanetStatType = 'Sun' | 'Moon' | 'Mars' | 'Mercury' | 'Jupiter' | '
 
 export interface PlanetStatValue {
     value: number
-    status: 'exalted' | 'debilitated' | 'normal'
+    status: 'exalted' | 'debilitated' | 'own_sign' | 'normal'
 }
 
 export type PlanetStats = Record<PlanetStatType, PlanetStatValue>
@@ -135,7 +135,7 @@ export function calculatePlanetStats(
         const position = pKey ? planets[pKey] : null
 
         let score = 50 // Base score
-        let status: 'exalted' | 'debilitated' | 'normal' = 'normal'
+        let status: 'exalted' | 'debilitated' | 'own_sign' | 'normal' = 'normal'
         
         if (typeof position === "object" && position !== null) {
             const p = position as AstroPoint
@@ -151,7 +151,6 @@ export function calculatePlanetStats(
             }
 
             // 2. Apply Dignity Modifiers
-            // Even if Shadbala is provided (often defaults to 50 in mock), add these to create spread
             if (p.isExalted) score += 30
             if (p.isDebilitated) score -= 30
             if (p.isOwnSign) score += 20
@@ -166,12 +165,6 @@ export function calculatePlanetStats(
             }
 
             if (normalizedSign) {
-                // Manual Dignity Check (if flags weren't set or to reinforce)
-                // Note: Avoid double counting if flags were accurate, but adding 
-                // explicit check ensures we catch edge cases.
-                // Let's trust flags first, but if shadbala is exactly 50, assume flags might need help
-                // or that shadbala is a placeholder.
-                
                 const isDefaultShadbala = score === 50 || (p.shadbala && p.shadbala.percentage === 50)
                 
                 if (isDefaultShadbala) {
@@ -182,16 +175,10 @@ export function calculatePlanetStats(
             }
 
             // 3. Degree Variance (Bell Curve-ish)
-            // Center of sign (15 deg) often stronger than edges (0 or 30)
-            // (15 - |degree - 15|) gives 0 at edges, 15 at center.
-            // Scale to e.g., -5 to +5 adjustment relative to average?
-            // Or just add directly.
             const degreeScore = (15 - Math.abs(degree - 15))
-            score += (degreeScore * 0.5) // Adds 0 to 7.5 points based on centrality
+            score += (degreeScore * 0.5) 
 
             // 4. Randomness / Variance (Deterministic)
-            // Use longitude/nakshatra to add "noise" so values aren't round numbers
-            // Longitude 0-360.
             const variance = (longitude % 13) - 6.5 // +/- 6.5
             score += variance
 
@@ -201,7 +188,7 @@ export function calculatePlanetStats(
                 if (exaltInfo.sign === normalizedSign) {
                     const diff = Math.abs(degree - exaltInfo.degree)
                     if (diff <= 5) {
-                        score += (6 - diff) * 3 // Significant boost near peak
+                        score += (6 - diff) * 3 
                         status = 'exalted'
                     } else {
                         status = 'exalted'
@@ -212,9 +199,11 @@ export function calculatePlanetStats(
             // 6. Determine Final Status
             if (p.isExalted || status === 'exalted') status = 'exalted'
             else if (p.isDebilitated || (normalizedSign && DEBILITATED_SIGNS[planetName]?.includes(normalizedSign))) status = 'debilitated'
+            else if (p.isOwnSign || (normalizedSign && OWN_SIGNS[planetName]?.includes(normalizedSign))) status = 'own_sign'
             
             // Manual Status Boost/Penalty to Score
             if (status === 'exalted') score += 10
+            if (status === 'own_sign') score += 5
             if (status === 'debilitated') score -= 10
         }
 
