@@ -10,16 +10,17 @@ interface BirthChartStatsProps {
     planets?: Record<string, unknown> | null
 }
 
+// Updated Icons matching Archetypes
 const STAT_ICONS: Record<PlanetStatType, React.ElementType> = {
-    Sun: Sun,
-    Moon: Moon,
-    Mars: Sword,
-    Mercury: Brain,
-    Jupiter: Crown,
-    Venus: Heart,
-    Saturn: Scale,
-    Rahu: CloudFog,
-    Ketu: Ghost,
+    Sun: Crown,        // Leadership
+    Moon: Heart,       // Emotion
+    Mars: Sword,       // Drive
+    Mercury: Brain,    // Intellect
+    Jupiter: Star,     // Wisdom
+    Venus: Heart,      // Romance (using Heart again, or maybe Sparkles/Flower?)
+    Saturn: Scale,     // Discipline
+    Rahu: CloudFog,    // Ambition
+    Ketu: Ghost,       // Spirituality
 }
 
 const STAT_COLORS: Record<PlanetStatType, string> = {
@@ -35,15 +36,15 @@ const STAT_COLORS: Record<PlanetStatType, string> = {
 }
 
 const STAT_DESCRIPTIONS: Record<PlanetStatType, string> = {
-    Sun: "Soul, Ego, Authority, Vitality",
-    Moon: "Mind, Emotions, Comfort, Queen",
+    Sun: "Soul, Ego, Vitality, Authority",
+    Moon: "Mind, Comfort, Intuition, Peace",
     Mars: "Energy, Action, Courage, Sibling",
-    Mercury: "Intellect, Speech, Business, Logic",
-    Jupiter: "Wisdom, Wealth, Growth, Guru",
-    Venus: "Love, Beauty, Luxury, Desire",
-    Saturn: "Karma, Discipline, Delay, Labor",
-    Rahu: "Obsession, Ambition, Innovation, Illusion",
-    Ketu: "Detachment, Spirituality, Liberation, Past",
+    Mercury: "Speech, Business, Logic, Trade", // Removed "Intellect" from description as it's the header
+    Jupiter: "Wealth, Growth, Guru, Luck", // Removed "Wisdom"
+    Venus: "Beauty, Luxury, Desire, Art", // Removed "Love"
+    Saturn: "Karma, Delay, Labor, Structure", // Removed "Discipline"
+    Rahu: "Obsession, Innovation, Illusion, Foreign", // Removed "Ambition"
+    Ketu: "Detachment, Liberation, Past, Mysticism", // Removed "Spirituality"
 }
 
 const PLANET_ARCHETYPES: Record<PlanetStatType, string> = {
@@ -88,7 +89,7 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                     progressIndicatorClass = "bg-gradient-to-r from-yellow-400 to-amber-600"
                     labelColor = "text-yellow-200"
                     statusLabel = (
-                        <span className="text-[10px] uppercase tracking-wider font-bold text-yellow-400 flex items-center gap-1 mb-1">
+                        <span className="text-[10px] uppercase tracking-wider font-bold text-yellow-400 flex items-center gap-1 mb-1 ml-auto">
                             <Star className="w-3 h-3 fill-yellow-400 animate-pulse" /> Exalted
                         </span>
                     )
@@ -99,7 +100,7 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                     progressIndicatorClass = "bg-gray-600"
                     labelColor = "text-gray-400"
                     statusLabel = (
-                        <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 flex items-center gap-1 mb-1">
+                        <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 flex items-center gap-1 mb-1 ml-auto">
                             <ArrowDown className="w-3 h-3" /> Debilitated
                         </span>
                     )
@@ -110,7 +111,7 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                         key={key}
                         className={cardClassName}
                     >
-                        <div className="flex items-start gap-3 mb-3">
+                        <div className="flex items-start gap-3 mb-1">
                             <div className={`p-2.5 rounded-xl ${STAT_COLORS[k]} ${iconAura} relative overflow-hidden shrink-0 mt-1`}>
                                 {/* Icon Box with stat color bg */}
                                 {/* Icon itself is white, no bg */}
@@ -128,20 +129,20 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                                         <h3 className={`font-bold capitalize text-lg ${labelColor} flex items-center gap-1`}>
                                             {archetype} 
                                             <span className="opacity-60 text-sm font-normal">
-                                                (<Icon className="w-3 h-3 inline -mt-0.5" /> {key})
+                                                ({key})
                                             </span>
                                         </h3>
                                     </div>
                                 </div>
                                 
-                                <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                                <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
                                     {STAT_DESCRIPTIONS[k]}
                                 </p>
                             </div>
                         </div>
 
-                        <div className="mt-4">
-                            <div className="flex justify-between items-end mb-2">
+                        <div className="mt-3">
+                            <div className="flex justify-between items-end mb-1.5">
                                 <span className={`font-bold text-lg leading-none ${status === 'exalted' ? 'text-yellow-400' : 'text-white'}`}>
                                     {value}%
                                 </span>
