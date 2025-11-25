@@ -40,6 +40,12 @@ const PLANET_SYMBOLS: Record<string, string> = {
     Lilith: "⚸",
 }
 
+const HOUSE_KEYWORDS = [
+    "Self", "Money", "Mind", "Home", 
+    "Love", "Health", "Partner", "Change", 
+    "Luck", "Career", "Gain", "Loss"
+]
+
 export default function BirthChartWheel({
     houses,
     planets,
@@ -240,25 +246,47 @@ export default function BirthChartWheel({
                              />
                          )
                     })}
-                    {/* House Numbers */}
+                    {/* House Numbers & Keywords */}
                     {[...Array(12)].map((_, i) => {
                         const angle = 165 - i * 30
                         const rad = (angle * Math.PI) / 180
-                        const r = 50
-                        const x = 200 + r * Math.cos(rad)
-                        const y = 200 + r * Math.sin(rad)
+                        
+                        // Number
+                        const rNum = 35
+                        const nx = 200 + rNum * Math.cos(rad)
+                        const ny = 200 + rNum * Math.sin(rad)
+                        
+                        // Keyword
+                        const rKey = 75
+                        const kx = 200 + rKey * Math.cos(rad)
+                        const ky = 200 + rKey * Math.sin(rad)
+                        
                         return (
-                            <text
-                                key={i}
-                                x={x}
-                                y={y}
-                                fill="rgba(255,255,255,0.3)"
-                                fontSize="10"
-                                textAnchor="middle"
-                                dominantBaseline="middle"
-                            >
-                                {i + 1}
-                            </text>
+                            <g key={i}>
+                                <text
+                                    x={nx}
+                                    y={ny}
+                                    fill="rgba(255,255,255,0.3)"
+                                    fontSize="10"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                >
+                                    {i + 1}
+                                </text>
+                                <text
+                                    x={kx}
+                                    y={ky}
+                                    fill="rgba(255,255,255,0.2)"
+                                    fontSize="8"
+                                    fontWeight="bold"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    transform={`rotate(${angle - 165} ${kx} ${ky})`} // Rotate text to align with center? Or keep upright? User didn't specify rotation for keywords, but "upright" is usually better. Let's keep upright.
+                                    style={{ pointerEvents: 'none' }}
+                                >
+                                    {HOUSE_KEYWORDS[i].toUpperCase()}
+                                </text>
+                            </g>
                         )
                     })}
                     
