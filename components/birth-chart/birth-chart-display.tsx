@@ -113,15 +113,6 @@ export default function BirthChartDisplay({
             {/* Stats */}
             <BirthChartStats planets={birthChart.planets} />
 
-            {/* Question Section */}
-            <BirthChartQuestion 
-                houses={birthChart.houses} 
-                planets={birthChart.planets} 
-            />
-
-            {/* Share Section */}
-            <BirthChartShareSection id={birthChart.id} />
-
             {/* Houses Detail (Foldable or just listed) */}
             {birthChart.houses && (
                 <Card className='p-6 bg-card/10 backdrop-blur-sm border-border/20'>
@@ -179,6 +170,15 @@ export default function BirthChartDisplay({
                     </div>
                 </Card>
             )}
+
+            {/* Share Section */}
+            <BirthChartShareSection id={birthChart.id} />
+
+            {/* Question Section */}
+            <BirthChartQuestion 
+                houses={birthChart.houses} 
+                planets={birthChart.planets} 
+            />
 
             {/* Disclaimer */}
             <Card className='p-4 bg-card/5 backdrop-blur-sm border-border/10'>
