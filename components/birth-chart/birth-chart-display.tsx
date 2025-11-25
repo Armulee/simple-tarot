@@ -35,16 +35,21 @@ export default function BirthChartDisplay({
     birthChart,
 }: BirthChartDisplayProps) {
     return (
-        <div className='space-y-8 px-4 max-w-4xl mx-auto h-full py-8'>
+        <div className='space-y-12 px-4 max-w-6xl mx-auto h-full py-12'>
             {/* Header */}
-            <Card className='px-6 pt-10 pb-6 border-0 relative overflow-hidden bg-gradient-to-br from-[#0A0F26] to-[#131A3A]'>
+            <Card className='px-8 pt-12 pb-8 border-0 relative overflow-hidden bg-gradient-to-br from-[#0A0F26] via-[#1a1f3a] to-[#131A3A] shadow-2xl'>
+                {/* Animated background elements */}
+                <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+                    <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
+                </div>
                 <div className='text-center space-y-6 relative z-10'>
-                    <div className='flex items-center justify-center space-x-2 relative'>
-                        <Sparkles className='w-6 h-6 text-primary' />
-                        <h1 className='font-serif font-bold text-2xl text-white'>
+                    <div className='flex items-center justify-center space-x-3 relative'>
+                        <Sparkles className='w-7 h-7 text-primary animate-pulse' />
+                        <h1 className='font-serif font-bold text-3xl sm:text-4xl bg-gradient-to-r from-white via-primary/90 to-white bg-clip-text text-transparent'>
                             Your Birth Chart
                         </h1>
-                        <Sparkles className='w-6 h-6 text-primary' />
+                        <Sparkles className='w-7 h-7 text-primary animate-pulse' />
                     </div>
 
                     {/* Birth Information */}
@@ -53,10 +58,11 @@ export default function BirthChartDisplay({
             </Card>
 
             {/* Wheel */}
-            <div className="flex justify-center py-8 relative">
-                 {/* Background Glow */}
-                <div className="absolute inset-0 bg-primary/5 blur-3xl rounded-full pointer-events-none" />
-                <div className="relative z-10">
+            <div className="flex justify-center py-12 relative">
+                 {/* Enhanced Background Glow */}
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-purple-500/10 to-primary/10 blur-3xl rounded-full pointer-events-none animate-pulse" />
+                <div className="absolute inset-0 bg-primary/5 blur-2xl rounded-full pointer-events-none" />
+                <div className="relative z-10 transform hover:scale-105 transition-transform duration-500">
                     <BirthChartWheel 
                         houses={birthChart.houses} 
                         planets={birthChart.planets} 
@@ -64,40 +70,58 @@ export default function BirthChartDisplay({
                 </div>
             </div>
 
-            {/* Stats */}
-            <BirthChartStats planets={birthChart.planets} />
+            {/* Stats Section */}
+            <div className="space-y-6">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+                    <h2 className="text-2xl font-serif font-bold text-white whitespace-nowrap">
+                        Planetary Strengths
+                    </h2>
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+                </div>
+                <BirthChartStats planets={birthChart.planets} />
+            </div>
 
             {/* Houses Detail */}
             <BirthChartHouses houses={birthChart.houses} />
 
             {/* Planets Detail */}
             {birthChart.planets && (
-                <Card className='p-6 bg-card/10 backdrop-blur-sm border-border/20'>
-                    <h2 className='font-serif font-bold text-xl mb-4 text-white'>
-                        Planetary Positions
-                    </h2>
-                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                        {Object.entries(birthChart.planets as Record<string, unknown>).map(
-                            ([planet, position]: [string, unknown]) => (
-                                <div
-                                    key={planet}
-                                    className='p-4 rounded-lg bg-white/5 border border-white/10'
-                                >
-                                    <Badge variant='secondary' className='mb-2'>
-                                        {planet}
-                                    </Badge>
-                                    <p className='text-white font-semibold'>
-                                        {typeof position === "object" && position !== null && "sign" in position
-                                            ? (position as AstroPoint).sign
-                                            : typeof position === "object"
-                                                ? JSON.stringify(position)
-                                                : String(position)}
-                                    </p>
-                                </div>
-                            )
-                        )}
+                <div className="space-y-6">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+                        <h2 className="text-2xl font-serif font-bold text-white whitespace-nowrap">
+                            Planetary Positions
+                        </h2>
+                        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
                     </div>
-                </Card>
+                    <Card className='p-8 bg-gradient-to-br from-white/5 via-white/3 to-transparent backdrop-blur-xl border-white/20 shadow-2xl'>
+                        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                            {Object.entries(birthChart.planets as Record<string, unknown>).map(
+                                ([planet, position]: [string, unknown]) => {
+                                    const sign = typeof position === "object" && position !== null && "sign" in position
+                                        ? (position as AstroPoint).sign
+                                        : typeof position === "object"
+                                            ? JSON.stringify(position)
+                                            : String(position)
+                                    return (
+                                        <div
+                                            key={planet}
+                                            className='group p-5 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 backdrop-blur-sm hover:border-primary/50 hover:bg-white/15 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1'
+                                        >
+                                            <Badge variant='secondary' className='mb-3 bg-primary/20 text-primary border-primary/30 hover:bg-primary/30'>
+                                                {planet}
+                                            </Badge>
+                                            <p className='text-white font-semibold text-lg group-hover:text-primary transition-colors'>
+                                                {sign}
+                                            </p>
+                                        </div>
+                                    )
+                                }
+                            )}
+                        </div>
+                    </Card>
+                </div>
             )}
 
             {/* Share Section */}
@@ -110,8 +134,8 @@ export default function BirthChartDisplay({
             />
 
             {/* Disclaimer */}
-            <Card className='p-4 bg-card/5 backdrop-blur-sm border-border/10'>
-                <p className='text-xs text-muted-foreground text-center'>
+            <Card className='p-6 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-sm border-white/10 shadow-lg'>
+                <p className='text-xs text-muted-foreground text-center leading-relaxed'>
                     Birth chart readings are for entertainment purposes only. The
                     interpretations provided are generated by AI and should not
                     be considered as professional advice. Always consult with

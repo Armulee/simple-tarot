@@ -118,17 +118,43 @@ export default function BirthChartWheel({
     const rotation = 180 - ascAngle
 
     return (
-        <div className="w-full aspect-square max-w-md mx-auto relative select-none">
-            <svg viewBox="0 0 400 400" className="w-full h-full">
+        <div className="w-full aspect-square max-w-lg mx-auto relative select-none">
+            <svg viewBox="0 0 400 400" className="w-full h-full drop-shadow-2xl">
                 <defs>
-                    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                        <feGaussianBlur stdDeviation="2" result="blur" />
-                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
                     </filter>
+                    <filter id="planetGlow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                    <radialGradient id="wheelGradient" cx="50%" cy="50%">
+                        <stop offset="0%" stopColor="#1a1f3a" stopOpacity="1" />
+                        <stop offset="50%" stopColor="#0A0F26" stopOpacity="1" />
+                        <stop offset="100%" stopColor="#050810" stopOpacity="1" />
+                    </radialGradient>
+                    <linearGradient id="zodiacGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="rgba(255,255,255,0.1)" />
+                        <stop offset="100%" stopColor="rgba(255,255,255,0.05)" />
+                    </linearGradient>
+                    <linearGradient id="zodiacGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="rgba(255,255,255,0.15)" />
+                        <stop offset="100%" stopColor="rgba(255,255,255,0.08)" />
+                    </linearGradient>
                 </defs>
                 
+                {/* Outer Glow Ring */}
+                <circle cx="200" cy="200" r="195" fill="none" stroke="url(#wheelGradient)" strokeWidth="2" opacity="0.5" />
+                
                 {/* Background */}
-                <circle cx="200" cy="200" r="198" fill="#0A0F26" stroke="#ffffff10" strokeWidth="1" />
+                <circle cx="200" cy="200" r="198" fill="url(#wheelGradient)" stroke="rgba(255,255,255,0.15)" strokeWidth="2" />
                 
                 {/* Rotatable Group */}
                 <g transform={`rotate(${-rotation} 200 200)`} style={{ transition: 'transform 1s ease-out' }}>
@@ -175,20 +201,23 @@ export default function BirthChartWheel({
                                  <g key={sign}>
                                     <path 
                                         d={`M ${x1} ${y1} A ${rOuter} ${rOuter} 0 0 0 ${x2} ${y2} L ${x3} ${y3} A ${rInner} ${rInner} 0 0 1 ${x4} ${y4} Z`}
-                                        fill={i % 2 === 0 ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.1)"}
-                                        stroke="rgba(255,255,255,0.2)"
-                                        strokeWidth="1"
+                                        fill={i % 2 === 0 ? "url(#zodiacGradient1)" : "url(#zodiacGradient2)"}
+                                        stroke="rgba(255,255,255,0.25)"
+                                        strokeWidth="1.5"
+                                        className="hover:opacity-80 transition-opacity"
                                     />
-                                    {/* Sign Symbol */}
+                                    {/* Sign Symbol with Glow */}
                                     <text 
                                         x={tx} 
                                         y={ty} 
                                         fill="white" 
-                                        fontSize="18" 
+                                        fontSize="20" 
                                         fontWeight="bold"
                                         textAnchor="middle" 
                                         dominantBaseline="middle"
                                         transform={`rotate(${angle - 15} ${tx} ${ty})`}
+                                        filter="url(#glow)"
+                                        className="drop-shadow-lg"
                                     >
                                         {ZODIAC_SYMBOLS[sign]}
                                     </text>
@@ -210,16 +239,42 @@ export default function BirthChartWheel({
                          
                          return (
                              <g key={`${p.name}-${i}`}>
-                                 <line x1="200" y1="200" x2={px} y2={py} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-                                 <circle cx={px} cy={py} r="10" fill="#0A0F26" stroke="white" strokeWidth="1" />
+                                 {/* Planet line with gradient */}
+                                 <line 
+                                     x1="200" 
+                                     y1="200" 
+                                     x2={px} 
+                                     y2={py} 
+                                     stroke="rgba(255,255,255,0.15)" 
+                                     strokeWidth="1.5"
+                                     strokeDasharray="2 2"
+                                 />
+                                 {/* Planet circle with glow */}
+                                 <circle 
+                                     cx={px} 
+                                     cy={py} 
+                                     r="12" 
+                                     fill="rgba(10,15,38,0.9)" 
+                                     stroke="#FFD700" 
+                                     strokeWidth="2"
+                                     filter="url(#planetGlow)"
+                                 />
+                                 <circle 
+                                     cx={px} 
+                                     cy={py} 
+                                     r="8" 
+                                     fill="rgba(255,215,0,0.2)" 
+                                 />
                                  <text 
                                      x={px} 
                                      y={py} 
                                      fill="#FFD700" 
-                                     fontSize="12" 
+                                     fontSize="14" 
+                                     fontWeight="bold"
                                      textAnchor="middle" 
                                      dominantBaseline="middle"
                                      className="font-serif"
+                                     filter="url(#glow)"
                                  >
                                      {p.symbol}
                                  </text>
@@ -263,11 +318,21 @@ export default function BirthChartWheel({
                         
                         return (
                             <g key={i}>
+                                {/* House number circle */}
+                                <circle 
+                                    cx={nx} 
+                                    cy={ny} 
+                                    r="8" 
+                                    fill="rgba(255,255,255,0.1)" 
+                                    stroke="rgba(255,255,255,0.3)" 
+                                    strokeWidth="1"
+                                />
                                 <text
                                     x={nx}
                                     y={ny}
-                                    fill="rgba(255,255,255,0.3)"
-                                    fontSize="10"
+                                    fill="rgba(255,255,255,0.9)"
+                                    fontSize="9"
+                                    fontWeight="bold"
                                     textAnchor="middle"
                                     dominantBaseline="middle"
                                 >
@@ -276,12 +341,11 @@ export default function BirthChartWheel({
                                 <text
                                     x={kx}
                                     y={ky}
-                                    fill="rgba(255,255,255,0.2)"
-                                    fontSize="8"
+                                    fill="rgba(255,255,255,0.6)"
+                                    fontSize="9"
                                     fontWeight="bold"
                                     textAnchor="middle"
                                     dominantBaseline="middle"
-                                    transform={`rotate(${angle - 165} ${kx} ${ky})`} // Rotate text to align with center? Or keep upright? User didn't specify rotation for keywords, but "upright" is usually better. Let's keep upright.
                                     style={{ pointerEvents: 'none' }}
                                 >
                                     {HOUSE_KEYWORDS[i].toUpperCase()}
@@ -290,11 +354,23 @@ export default function BirthChartWheel({
                         )
                     })}
                     
-                    {/* Markers for ASC/MC */}
-                    <text x="10" y="200" fill="white" fontSize="12" fontWeight="bold" dominantBaseline="middle">ASC</text>
-                    <text x="390" y="200" fill="white" fontSize="12" fontWeight="bold" textAnchor="end" dominantBaseline="middle">DSC</text>
-                    <text x="200" y="15" fill="white" fontSize="12" fontWeight="bold" textAnchor="middle">MC</text>
-                    <text x="200" y="390" fill="white" fontSize="12" fontWeight="bold" textAnchor="middle">IC</text>
+                    {/* Markers for ASC/MC with enhanced styling */}
+                    <g>
+                        <circle cx="10" cy="200" r="15" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" />
+                        <text x="10" y="200" fill="#FFD700" fontSize="10" fontWeight="bold" textAnchor="middle" dominantBaseline="middle">ASC</text>
+                    </g>
+                    <g>
+                        <circle cx="390" cy="200" r="15" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" />
+                        <text x="390" y="200" fill="#FFD700" fontSize="10" fontWeight="bold" textAnchor="middle" dominantBaseline="middle">DSC</text>
+                    </g>
+                    <g>
+                        <circle cx="200" cy="15" r="15" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" />
+                        <text x="200" y="15" fill="#FFD700" fontSize="10" fontWeight="bold" textAnchor="middle" dominantBaseline="middle">MC</text>
+                    </g>
+                    <g>
+                        <circle cx="200" cy="390" r="15" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" />
+                        <text x="200" y="390" fill="#FFD700" fontSize="10" fontWeight="bold" textAnchor="middle" dominantBaseline="middle">IC</text>
+                    </g>
                 </g>
                 
             </svg>

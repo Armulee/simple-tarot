@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { SANSKRIT_SIGNS, AstroPoint, ZODIAC_SIGNS } from "@/lib/birth-chart-utils"
+import { SANSKRIT_SIGNS, AstroPoint } from "@/lib/birth-chart-utils"
 import { Home } from "lucide-react"
 
 interface BirthChartHousesProps {
@@ -43,15 +43,21 @@ export default function BirthChartHouses({ houses }: BirthChartHousesProps) {
     if (!houses) return null
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-                <Home className="w-5 h-5 text-primary" />
-                <h2 className="text-xl font-serif font-semibold text-white">
-                    Your Houses
-                </h2>
+        <div className="space-y-6">
+            <div className="flex items-center gap-3 mb-8">
+                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+                <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/20 border border-primary/30">
+                        <Home className="w-6 h-6 text-primary" />
+                    </div>
+                    <h2 className="text-2xl font-serif font-bold text-white">
+                        Your Houses
+                    </h2>
+                </div>
+                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {Object.entries(houses).map(([houseNum, signData]) => {
                     // Normalize sign name
                     let signName = ""
@@ -70,32 +76,39 @@ export default function BirthChartHouses({ houses }: BirthChartHousesProps) {
                     const displaySign = englishSign || signName
 
                     const suffix = getOrdinalSuffix(Number(houseNum))
+                    const houseIndex = Number(houseNum) - 1
+                    const isEven = houseIndex % 2 === 0
 
                     return (
                         <Card
                             key={houseNum}
-                            className="p-4 bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 group"
+                            className={`p-5 bg-gradient-to-br ${isEven ? 'from-white/10 via-white/5 to-transparent' : 'from-primary/10 via-primary/5 to-transparent'} border-white/20 backdrop-blur-xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 transition-all duration-500 group relative overflow-hidden`}
                         >
-                            <div className="flex justify-between items-start mb-2">
-                                <div>
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-white/40 mb-1 block">
-                                        {houseNum}{suffix} House
-                                    </span>
-                                    <h3 className="font-bold text-white text-sm">
-                                        {HOUSE_MEANINGS[houseNum]}
-                                    </h3>
-                                </div>
-                                <Badge variant="outline" className="bg-primary/10 border-primary/20 text-primary hover:bg-primary/20">
-                                    {displaySign}
-                                </Badge>
-                            </div>
+                            {/* Animated background gradient on hover */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                             
-                            <p className="text-xs text-muted-foreground leading-relaxed mt-2">
-                                {HOUSE_DESCRIPTIONS[houseNum]} 
-                                <span className="block mt-1.5 text-white/80 italic">
+                            <div className="relative z-10">
+                                <div className="flex justify-between items-start mb-3">
+                                    <div className="flex-1">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-white/50 mb-2 block">
+                                            {houseNum}{suffix} House
+                                        </span>
+                                        <h3 className="font-bold text-white text-base leading-tight group-hover:text-primary transition-colors">
+                                            {HOUSE_MEANINGS[houseNum]}
+                                        </h3>
+                                    </div>
+                                    <Badge variant="outline" className="bg-primary/20 border-primary/40 text-primary hover:bg-primary/30 ml-3 shrink-0">
+                                        {displaySign}
+                                    </Badge>
+                                </div>
+                                
+                                <p className="text-xs text-muted-foreground leading-relaxed mt-3 mb-2">
+                                    {HOUSE_DESCRIPTIONS[houseNum]} 
+                                </p>
+                                <p className="text-xs text-white/70 italic leading-relaxed border-l-2 border-primary/30 pl-3 mt-3">
                                     &ldquo;{displaySign} is in the {houseNum}{suffix} House.&rdquo;
-                                </span>
-                            </p>
+                                </p>
+                            </div>
                         </Card>
                     )
                 })}
