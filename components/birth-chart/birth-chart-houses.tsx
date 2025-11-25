@@ -262,7 +262,7 @@ export default function BirthChartHouses({ houses, planets }: BirthChartHousesPr
                 <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
             </div>
             
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
                 {Object.entries(houses).map(([houseNum, signData]) => {
                     // Normalize sign name
                     let signName = ""

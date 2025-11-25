@@ -230,7 +230,7 @@ export default function BirthChartPlanets({ planets }: BirthChartPlanetsProps) {
                 <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
             </div>
             
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {Object.entries(planets as Record<string, unknown>).map(
                     ([planet, position]: [string, unknown]) => {
                         let signName = ""
