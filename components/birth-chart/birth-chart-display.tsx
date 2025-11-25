@@ -1,7 +1,6 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Sparkles } from "lucide-react"
 import BirthChartStats from "./birth-chart-stats"
 import BirthChartWheel from "./birth-chart-wheel"
@@ -10,7 +9,7 @@ import BirthChartQuestion from "./birth-chart-question"
 import BirthChartDebugSection from "./birth-chart-debug-section"
 import BirthChartInfoCard from "./birth-chart-info-card"
 import BirthChartHouses from "./birth-chart-houses"
-import { AstroPoint } from "@/lib/birth-chart-utils"
+import BirthChartPlanets from "./birth-chart-planets"
 
 interface BirthChartDisplayProps {
     birthChart: {
@@ -86,43 +85,7 @@ export default function BirthChartDisplay({
             <BirthChartHouses houses={birthChart.houses} />
 
             {/* Planets Detail */}
-            {birthChart.planets && (
-                <div className="space-y-6">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-                        <h2 className="text-2xl font-serif font-bold text-white whitespace-nowrap">
-                            Planetary Positions
-                        </h2>
-                        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-                    </div>
-                    <Card className='p-8 bg-gradient-to-br from-white/5 via-white/3 to-transparent backdrop-blur-xl border-white/20 shadow-2xl'>
-                        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                            {Object.entries(birthChart.planets as Record<string, unknown>).map(
-                                ([planet, position]: [string, unknown]) => {
-                                    const sign = typeof position === "object" && position !== null && "sign" in position
-                                        ? (position as AstroPoint).sign
-                                        : typeof position === "object"
-                                            ? JSON.stringify(position)
-                                            : String(position)
-                                    return (
-                                        <div
-                                            key={planet}
-                                            className='group p-5 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 backdrop-blur-sm hover:border-primary/50 hover:bg-white/15 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1'
-                                        >
-                                            <Badge variant='secondary' className='mb-3 bg-primary/20 text-primary border-primary/30 hover:bg-primary/30'>
-                                                {planet}
-                                            </Badge>
-                                            <p className='text-white font-semibold text-lg group-hover:text-primary transition-colors'>
-                                                {sign}
-                                            </p>
-                                        </div>
-                                    )
-                                }
-                            )}
-                        </div>
-                    </Card>
-                </div>
-            )}
+            <BirthChartPlanets planets={birthChart.planets} />
 
             {/* Share Section */}
             <BirthChartShareSection id={birthChart.id} />
