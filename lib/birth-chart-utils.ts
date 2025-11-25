@@ -44,14 +44,16 @@ export const SANSKRIT_SIGNS: Record<string, string> = {
     "Meena": "Pisces"
 }
 
-export type RPGStatType = 'leadership' | 'charm' | 'intellect' | 'vitality' | 'spirituality' | 'creativity'
+// Planet Stat Types based on the 9 Grahas (plus extras if needed, but user asked for 9)
+// We will map the 9 planets directly as stats.
+export type PlanetStatType = 'Sun' | 'Moon' | 'Mars' | 'Mercury' | 'Jupiter' | 'Venus' | 'Saturn' | 'Rahu' | 'Ketu'
 
-export interface RPGStatValue {
+export interface PlanetStatValue {
     value: number
     status: 'exalted' | 'debilitated' | 'normal'
 }
 
-export type RPGStats = Record<RPGStatType, RPGStatValue>
+export type PlanetStats = Record<PlanetStatType, PlanetStatValue>
 
 // Interface for what we expect in planets/houses values
 export interface AstroPoint {
@@ -66,26 +68,6 @@ export interface AstroPoint {
     [key: string]: unknown
 }
 
-// Map stats to their contributors for SCORING
-const STAT_CONTRIBUTORS: Record<RPGStatType, string[]> = {
-    leadership: ["Sun", "Mars", "Saturn"],
-    charm: ["Venus", "Moon"],
-    intellect: ["Mercury", "Uranus", "Rahu"],
-    vitality: ["Sun", "Mars", "Ascendant"],
-    spirituality: ["Jupiter", "Neptune", "Ketu"],
-    creativity: ["Venus", "Sun", "Neptune", "Rahu"],
-}
-
-// Map stats to their PRIMARY RULER for STATUS (Aura)
-const PRIMARY_STAT_RULER: Record<RPGStatType, string> = {
-    leadership: "Sun",
-    charm: "Venus", // changed from Moon to Venus as primary charm
-    intellect: "Mercury",
-    vitality: "Mars", // Use Mars for Vitality status to separate from Sun/Leadership
-    spirituality: "Jupiter",
-    creativity: "Venus", // Venus also rules creativity
-}
-
 // Deep exaltation degrees (approximate peaks)
 const DEEP_EXALTATION: Record<string, { sign: string, degree: number }> = {
     Sun: { sign: "Aries", degree: 10 },
@@ -95,158 +77,147 @@ const DEEP_EXALTATION: Record<string, { sign: string, degree: number }> = {
     Jupiter: { sign: "Cancer", degree: 5 },
     Venus: { sign: "Pisces", degree: 27 },
     Saturn: { sign: "Libra", degree: 20 },
+    Rahu: { sign: "Taurus", degree: 20 }, // Rahu exalted in Taurus/Gemini
+    Ketu: { sign: "Scorpio", degree: 20 }, // Ketu exalted in Scorpio/Sagittarius
 }
 
-export function calculateRPGStats(
+// Dignities (Exalted/Debilitated Signs) for fallback if API doesn't provide flags
+const EXALTED_SIGNS: Record<string, string[]> = {
+    Sun: ["Aries"],
+    Moon: ["Taurus"],
+    Mars: ["Capricorn"],
+    Mercury: ["Virgo"],
+    Jupiter: ["Cancer"],
+    Venus: ["Pisces"],
+    Saturn: ["Libra"],
+    Rahu: ["Taurus", "Gemini"],
+    Ketu: ["Scorpio", "Sagittarius"],
+}
+
+const DEBILITATED_SIGNS: Record<string, string[]> = {
+    Sun: ["Libra"],
+    Moon: ["Scorpio"],
+    Mars: ["Cancer"],
+    Mercury: ["Pisces"],
+    Jupiter: ["Capricorn"],
+    Venus: ["Virgo"],
+    Saturn: ["Aries"],
+    Rahu: ["Scorpio", "Sagittarius"],
+    Ketu: ["Taurus", "Gemini"],
+}
+
+const OWN_SIGNS: Record<string, string[]> = {
+    Sun: ["Leo"],
+    Moon: ["Cancer"],
+    Mars: ["Aries", "Scorpio"],
+    Mercury: ["Gemini", "Virgo"],
+    Jupiter: ["Sagittarius", "Pisces"],
+    Venus: ["Taurus", "Libra"],
+    Saturn: ["Capricorn", "Aquarius"],
+    Rahu: ["Aquarius"], // Co-ruler
+    Ketu: ["Scorpio"], // Co-ruler
+}
+
+export function calculatePlanetStats(
     planets: Record<string, unknown>
-): RPGStats {
-    const rawStats: Record<RPGStatType, number> = {
-        leadership: 0,
-        charm: 0,
-        intellect: 0,
-        vitality: 0,
-        spirituality: 0,
-        creativity: 0,
-    }
+): PlanetStats {
+    const stats: Partial<PlanetStats> = {}
+    
+    const targetPlanets: PlanetStatType[] = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu']
 
-    const maxStats: Record<RPGStatType, number> = {
-        leadership: 0,
-        charm: 0,
-        intellect: 0,
-        vitality: 0,
-        spirituality: 0,
-        creativity: 0,
-    }
+    targetPlanets.forEach(planetName => {
+        // Find data for this planet
+        // Handle case sensitivity and potential variations
+        const pKey = Object.keys(planets).find(k => k.toLowerCase() === planetName.toLowerCase())
+        const position = pKey ? planets[pKey] : null
 
-    const counts: Record<RPGStatType, number> = {
-        leadership: 0,
-        charm: 0,
-        intellect: 0,
-        vitality: 0,
-        spirituality: 0,
-        creativity: 0,
-    }
-
-    // Track status for PRIMARY rulers only
-    const statModifiers: Record<RPGStatType, { exalted: boolean, debilitated: boolean }> = {
-        leadership: { exalted: false, debilitated: false },
-        charm: { exalted: false, debilitated: false },
-        intellect: { exalted: false, debilitated: false },
-        vitality: { exalted: false, debilitated: false },
-        spirituality: { exalted: false, debilitated: false },
-        creativity: { exalted: false, debilitated: false },
-    }
-
-    Object.entries(planets).forEach(([planetName, position]) => {
-        // Find matching normalized planet name
-        const normalizedPlanet = PLANETS.find(
-            (p) => p.toLowerCase() === planetName.toLowerCase()
-        ) || planetName
-
-        let degree = 15
-        let explicitExalted = false
-        let explicitDebilitated = false
-        let strengthPercentage = 50 // Default average strength
-        let sign = ""
-
+        let score = 50 // Base score
+        let status: 'exalted' | 'debilitated' | 'normal' = 'normal'
+        
         if (typeof position === "object" && position !== null) {
             const p = position as AstroPoint
-            sign = p.sign
-            if ("degree" in p) degree = Number(p.degree) || 15
-            if (p.isExalted) explicitExalted = true
-            if (p.isDebilitated) explicitDebilitated = true
+            const sign = p.sign
+            const degree = Number(p.degree) || 15
             
-            // Use shadbala percentage if available (Vedic strength)
+            // 1. Use Shadbala if available (direct strength)
             if (p.shadbala && typeof p.shadbala.percentage === "number") {
-                strengthPercentage = p.shadbala.percentage
-            }
-        }
+                score = p.shadbala.percentage
+            } else {
+                // Fallback calculation if shadbala missing
+                // Normalize sign
+                let normalizedSign = ZODIAC_SIGNS.find(s => s.toLowerCase() === sign.toLowerCase())
+                if (!normalizedSign) {
+                    const englishSign = SANSKRIT_SIGNS[sign] || Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) && SANSKRIT_SIGNS[Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) || ""]
+                    if (englishSign) normalizedSign = englishSign
+                }
 
-        // Handle Deep Exaltation Bonus
-        let normalizedSign = ZODIAC_SIGNS.find(s => s.toLowerCase() === sign.toLowerCase())
-        if (!normalizedSign) {
-             const englishSign = SANSKRIT_SIGNS[sign] || Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) && SANSKRIT_SIGNS[Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) || ""]
-             if (englishSign) normalizedSign = englishSign
-        }
-
-        let deepExaltationBonus = 0
-        if (normalizedSign && DEEP_EXALTATION[normalizedPlanet]) {
-            const exaltInfo = DEEP_EXALTATION[normalizedPlanet]
-            if (exaltInfo.sign === normalizedSign) {
-                const diff = Math.abs(degree - exaltInfo.degree)
-                if (diff <= 5) {
-                    deepExaltationBonus = (5 - diff) * 4 // up to 20 points
-                    explicitExalted = true
-                } else {
-                    explicitExalted = true
+                if (normalizedSign) {
+                    // Check Dignities
+                    if (EXALTED_SIGNS[planetName]?.includes(normalizedSign)) {
+                        score += 30
+                    } else if (OWN_SIGNS[planetName]?.includes(normalizedSign)) {
+                        score += 20
+                    } else if (DEBILITATED_SIGNS[planetName]?.includes(normalizedSign)) {
+                        score -= 20
+                    } else {
+                        // Friendly/Neutral/Enemy logic omitted for brevity, keep minimal variation
+                        score += (degree % 10) - 5 // small noise
+                    }
                 }
             }
-        }
 
-        // 1. Update Status based on PRIMARY RULER
-        // Only update the status flag if this planet is the PRIMARY ruler for a stat
-        Object.keys(statModifiers).forEach((key) => {
-            const k = key as RPGStatType
-            if (PRIMARY_STAT_RULER[k] === normalizedPlanet) {
-                if (explicitExalted) statModifiers[k].exalted = true
-                if (explicitDebilitated) statModifiers[k].debilitated = true
+            // 2. Status Determination
+            if (p.isExalted) status = 'exalted'
+            else if (p.isDebilitated) status = 'debilitated'
+            else {
+                // Fallback check
+                let normalizedSign = ZODIAC_SIGNS.find(s => s.toLowerCase() === sign.toLowerCase())
+                if (!normalizedSign) {
+                    const englishSign = SANSKRIT_SIGNS[sign] || Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) && SANSKRIT_SIGNS[Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) || ""]
+                    if (englishSign) normalizedSign = englishSign
+                }
+                if (normalizedSign) {
+                    if (EXALTED_SIGNS[planetName]?.includes(normalizedSign)) status = 'exalted'
+                    else if (DEBILITATED_SIGNS[planetName]?.includes(normalizedSign)) status = 'debilitated'
+                }
             }
-        })
 
-        // 2. Calculate Score based on ALL CONTRIBUTORS
-        Object.keys(rawStats).forEach((key) => {
-            const k = key as RPGStatType
+            // 3. Deep Exaltation Bonus (Degree Specific)
+            let normalizedSign = ZODIAC_SIGNS.find(s => s.toLowerCase() === sign.toLowerCase())
+            if (!normalizedSign) {
+                 const englishSign = SANSKRIT_SIGNS[sign] || Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) && SANSKRIT_SIGNS[Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) || ""]
+                 if (englishSign) normalizedSign = englishSign
+            }
+
+            if (normalizedSign && DEEP_EXALTATION[planetName]) {
+                const exaltInfo = DEEP_EXALTATION[planetName]
+                if (exaltInfo.sign === normalizedSign) {
+                    const diff = Math.abs(degree - exaltInfo.degree)
+                    if (diff <= 5) {
+                        const bonus = (5 - diff) * 4
+                        score += bonus
+                        status = 'exalted' // Force exalted status
+                    } else {
+                        status = 'exalted'
+                    }
+                }
+            }
             
-            if (STAT_CONTRIBUTORS[k].includes(normalizedPlanet)) {
-                // This planet influences this stat
-                let contribution = strengthPercentage
-                
-                // Apply bonuses
-                contribution += deepExaltationBonus
-                if (explicitExalted) contribution += 20
-                if (explicitDebilitated) contribution -= 20
-
-                // Add degree variance (small noise)
-                contribution += (degree % 10) 
-
-                rawStats[k] += contribution
-                if (contribution > maxStats[k]) maxStats[k] = contribution
-                counts[k]++
-            }
-        })
-    })
-
-    const result: Partial<RPGStats> = {}
-
-    // Calculate Final Score
-    Object.keys(rawStats).forEach((key) => {
-        const k = key as RPGStatType
-        
-        let finalVal = 50
-        if (counts[k] > 0) {
-            const avg = rawStats[k] / counts[k]
-            const max = maxStats[k]
-            // Weight Max more heavily (80%)
-            const weightedScore = (max * 0.8) + (avg * 0.2)
-            finalVal = weightedScore
+            // Manual adjustment for explicit flags
+            if (status === 'exalted') score += 10
+            if (status === 'debilitated') score -= 10
         }
-        
+
         // Clamp
-        finalVal = Math.min(100, Math.max(10, finalVal))
+        score = Math.min(100, Math.max(10, score))
         
-        const roundedVal = Math.round(finalVal)
-
-        let status: 'exalted' | 'debilitated' | 'normal' = 'normal'
-        if (statModifiers[k].exalted) status = 'exalted'
-        else if (statModifiers[k].debilitated) status = 'debilitated'
-
-        result[k] = {
-            value: roundedVal,
+        stats[planetName as PlanetStatType] = {
+            value: Math.round(score),
             status
         }
     })
 
-    return result as RPGStats
+    return stats as PlanetStats
 }
 
 export function getZodiacRotation(sign: string): number {

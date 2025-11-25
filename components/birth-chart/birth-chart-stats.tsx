@@ -3,52 +3,61 @@
 import { useMemo } from "react"
 import { Progress } from "@/components/ui/progress"
 import { Card } from "@/components/ui/card"
-import { calculateRPGStats, RPGStats, RPGStatType } from "@/lib/birth-chart-utils"
-import { Shield, Heart, Zap, Brain, Sparkles, Crown, ArrowDown, Star } from "lucide-react"
+import { calculatePlanetStats, PlanetStats, PlanetStatType } from "@/lib/birth-chart-utils"
+import { Sun, Moon, Sword, Brain, Crown, Heart, Scale, CloudFog, Ghost, ArrowDown, Star } from "lucide-react"
 
 interface BirthChartStatsProps {
     planets?: Record<string, unknown> | null
 }
 
-const STAT_ICONS = {
-    leadership: Crown,
-    charm: Heart,
-    intellect: Brain,
-    vitality: Shield,
-    spirituality: Sparkles,
-    creativity: Zap,
+const STAT_ICONS: Record<PlanetStatType, React.ElementType> = {
+    Sun: Sun,
+    Moon: Moon,
+    Mars: Sword,
+    Mercury: Brain,
+    Jupiter: Crown,
+    Venus: Heart,
+    Saturn: Scale,
+    Rahu: CloudFog,
+    Ketu: Ghost,
 }
 
-const STAT_COLORS = {
-    leadership: "bg-yellow-500",
-    charm: "bg-pink-500",
-    intellect: "bg-blue-500",
-    vitality: "bg-green-500",
-    spirituality: "bg-purple-500",
-    creativity: "bg-orange-500",
+const STAT_COLORS: Record<PlanetStatType, string> = {
+    Sun: "bg-orange-500",
+    Moon: "bg-slate-300",
+    Mars: "bg-red-500",
+    Mercury: "bg-emerald-500",
+    Jupiter: "bg-yellow-500",
+    Venus: "bg-pink-500",
+    Saturn: "bg-indigo-500",
+    Rahu: "bg-violet-500",
+    Ketu: "bg-stone-500",
 }
 
-const STAT_DESCRIPTIONS = {
-    leadership: "Authority, Command, Willpower",
-    charm: "Social Grace, Attraction, Harmony",
-    intellect: "Logic, Communication, Analysis",
-    vitality: "Energy, Resilience, Physical Strength",
-    spirituality: "Intuition, Faith, Inner Wisdom",
-    creativity: "Innovation, Artistry, Expression",
+const STAT_DESCRIPTIONS: Record<PlanetStatType, string> = {
+    Sun: "Soul, Ego, Authority, Vitality",
+    Moon: "Mind, Emotions, Comfort, Queen",
+    Mars: "Energy, Action, Courage, Sibling",
+    Mercury: "Intellect, Speech, Business, Logic",
+    Jupiter: "Wisdom, Wealth, Growth, Guru",
+    Venus: "Love, Beauty, Luxury, Desire",
+    Saturn: "Karma, Discipline, Delay, Labor",
+    Rahu: "Obsession, Ambition, Innovation, Illusion",
+    Ketu: "Detachment, Spirituality, Liberation, Past",
 }
 
 export default function BirthChartStats({ planets }: BirthChartStatsProps) {
     const stats = useMemo(() => {
         if (!planets) return null
-        return calculateRPGStats(planets)
+        return calculatePlanetStats(planets)
     }, [planets])
 
     if (!stats) return null
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {Object.entries(stats).map(([key, stat]) => {
-                const k = key as RPGStatType
+                const k = key as PlanetStatType
                 const { value, status } = stat
                 const Icon = STAT_ICONS[k]
                 
@@ -77,9 +86,9 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                         key={key}
                         className={cardClassName}
                     >
-                        <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-start justify-between mb-3">
                             <div className="flex items-center gap-3">
-                                <div className={`p-2.5 rounded-xl ${STAT_COLORS[k]} ${iconAura} relative overflow-hidden`}>
+                                <div className={`p-2.5 rounded-xl ${STAT_COLORS[k]} ${iconAura} relative overflow-hidden shrink-0`}>
                                     {/* Icon Box with stat color bg */}
                                     {/* Icon itself is white, no bg */}
                                     <Icon className="w-5 h-5 text-white relative z-10" />
@@ -100,7 +109,7 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                                             <ArrowDown className="w-3 h-3 text-gray-500" />
                                         )}
                                     </h3>
-                                    <p className="text-xs text-muted-foreground">
+                                    <p className="text-xs text-muted-foreground line-clamp-1" title={STAT_DESCRIPTIONS[k]}>
                                         {STAT_DESCRIPTIONS[k]}
                                     </p>
                                 </div>
