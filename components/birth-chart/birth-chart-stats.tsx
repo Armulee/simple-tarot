@@ -104,6 +104,14 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                             <ArrowDown className="w-3 h-3" /> Debilitated
                         </span>
                     )
+                } else {
+                    // Normal case
+                    statusLabel = (
+                        <span className="text-[10px] uppercase tracking-wider font-bold text-white/50 flex items-center gap-1.5 mb-1 ml-auto">
+                            <div className="h-1.5 w-1.5 rounded-full bg-white/50 animate-pulse" />
+                            Normal
+                        </span>
+                    )
                 }
 
                 return (
