@@ -202,13 +202,20 @@ export function calculatePlanetStats(
             else if (p.isOwnSign || (normalizedSign && OWN_SIGNS[planetName]?.includes(normalizedSign))) status = 'own_sign'
             
             // Manual Status Boost/Penalty to Score
-            if (status === 'exalted') score += 10
-            if (status === 'own_sign') score += 5
-            if (status === 'debilitated') score -= 10
+            // For Exalted, we FORCE 120%
+            if (status === 'exalted') {
+                score = 120 
+            } else {
+                if (status === 'own_sign') score += 5
+                if (status === 'debilitated') score -= 10
+                
+                // Clamp final score for non-exalted
+                score = Math.min(100, Math.max(10, score))
+            }
+        } else {
+            // Fallback clamp
+            score = Math.min(100, Math.max(10, score))
         }
-
-        // Clamp final score
-        score = Math.min(100, Math.max(10, score))
         
         stats[planetName as PlanetStatType] = {
             value: Math.round(score),
