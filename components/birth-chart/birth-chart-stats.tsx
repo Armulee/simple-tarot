@@ -136,8 +136,8 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                                     <div>
                                         <h3 className={`font-bold capitalize text-lg ${labelColor} flex items-center gap-1`}>
                                             {archetype} 
-                                            <span className="opacity-60 text-sm font-normal">
-                                                ({key})
+                                            <span className="opacity-60 text-sm font-normal flex items-center gap-1">
+                                                (<Icon className="w-3 h-3" /> {key})
                                             </span>
                                         </h3>
                                     </div>
@@ -149,7 +149,7 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                             </div>
                         </div>
 
-                        <div className="mt-3">
+                        <div className="mt-1.5">
                             <div className="flex justify-between items-end mb-1.5">
                                 <span className={`font-bold text-lg leading-none ${status === 'exalted' ? 'text-yellow-400' : 'text-white'}`}>
                                     {value}%
