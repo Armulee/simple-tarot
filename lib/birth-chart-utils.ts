@@ -25,7 +25,24 @@ export const PLANETS = [
     "Neptune",
     "Pluto",
     "Ascendant",
+    "Rahu", // Added Rahu
+    "Ketu", // Added Ketu
 ]
+
+export const SANSKRIT_SIGNS: Record<string, string> = {
+    "Mesha": "Aries",
+    "Vrishabha": "Taurus",
+    "Mithuna": "Gemini",
+    "Karka": "Cancer",
+    "Simha": "Leo",
+    "Kanya": "Virgo",
+    "Tula": "Libra",
+    "Vrishchika": "Scorpio",
+    "Dhanu": "Sagittarius",
+    "Makara": "Capricorn",
+    "Kumbha": "Aquarius",
+    "Meena": "Pisces"
+}
 
 export type RPGStatType = 'leadership' | 'charm' | 'intellect' | 'vitality' | 'spirituality' | 'creativity'
 
@@ -39,7 +56,9 @@ export type RPGStats = Record<RPGStatType, RPGStatValue>
 // Interface for what we expect in planets/houses values
 export interface AstroPoint {
     sign: string
-    degree?: number
+    degree?: number | string
+    isExalted?: boolean
+    isDebilitated?: boolean
     [key: string]: unknown
 }
 
@@ -71,37 +90,18 @@ const PLANET_WEIGHTS: Record<string, Partial<Record<RPGStatType, number>>> = {
     Neptune: { spirituality: 10, creativity: 9 },
     Pluto: { leadership: 7, vitality: 7, spirituality: 6 },
     Ascendant: { vitality: 8, leadership: 5, charm: 5 },
-}
-
-// Dignity Mappings
-const EXALTATIONS: Record<string, string> = {
-    Sun: "Aries",
-    Moon: "Taurus",
-    Mercury: "Virgo",
-    Venus: "Pisces",
-    Mars: "Capricorn",
-    Jupiter: "Cancer",
-    Saturn: "Libra",
-}
-
-const DEBILITATIONS: Record<string, string> = {
-    Sun: "Libra",
-    Moon: "Scorpio",
-    Mercury: "Pisces",
-    Venus: "Virgo",
-    Mars: "Cancer",
-    Jupiter: "Capricorn",
-    Saturn: "Aries",
+    Rahu: { creativity: 8, charm: 6, intellect: 5 },
+    Ketu: { spirituality: 10, intellect: 4 },
 }
 
 // Map stats to their primary ruling planets (for determining exalted/debilitated status of the stat)
 const STAT_RULERS: Record<RPGStatType, string[]> = {
     leadership: ["Sun", "Mars", "Saturn"],
     charm: ["Venus", "Moon"],
-    intellect: ["Mercury", "Uranus"],
+    intellect: ["Mercury", "Uranus", "Rahu"],
     vitality: ["Sun", "Mars"],
-    spirituality: ["Jupiter", "Neptune"],
-    creativity: ["Venus", "Sun", "Neptune"],
+    spirituality: ["Jupiter", "Neptune", "Ketu"],
+    creativity: ["Venus", "Sun", "Neptune", "Rahu"],
 }
 
 export function calculateRPGStats(
@@ -131,6 +131,8 @@ export function calculateRPGStats(
     Object.entries(planets).forEach(([planet, position]) => {
         let sign = ""
         let degree = 15 // Default middle
+        let explicitExalted = false
+        let explicitDebilitated = false
 
         if (typeof position === "string") {
             sign = position
@@ -139,15 +141,27 @@ export function calculateRPGStats(
             position !== null &&
             "sign" in position
         ) {
-            sign = (position as AstroPoint).sign
-            if ("degree" in position) {
-                degree = Number((position as AstroPoint).degree) || 15
+            const p = position as AstroPoint
+            sign = p.sign
+            if ("degree" in p) {
+                degree = Number(p.degree) || 15
             }
+            if (p.isExalted) explicitExalted = true
+            if (p.isDebilitated) explicitDebilitated = true
         }
 
-        const normalizedSign = ZODIAC_SIGNS.find(
+        // Normalize sign name (handle Sanskrit)
+        let normalizedSign = ZODIAC_SIGNS.find(
             (s) => s.toLowerCase() === sign.toLowerCase()
         )
+        
+        if (!normalizedSign) {
+            // Try matching Sanskrit name
+            const englishSign = SANSKRIT_SIGNS[sign] || Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) && SANSKRIT_SIGNS[Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) || ""]
+            if (englishSign) {
+                normalizedSign = englishSign
+            }
+        }
 
         const normalizedPlanet = PLANETS.find(
             (p) => p.toLowerCase() === planet.toLowerCase()
@@ -165,13 +179,7 @@ export function calculateRPGStats(
                 creativity: 2,
             }
 
-            // Check Dignities
-            const isExalted = EXALTATIONS[normalizedPlanet] === normalizedSign
-            const isDebilitated = DEBILITATIONS[normalizedPlanet] === normalizedSign
-            
             // Calculate Degree Modifier (0 to 5 points based on degree)
-            // Use sine wave or simple linear? Linear is fine.
-            // Adds small variation so stats aren't round numbers
             const degreeMod = (degree / 30) * 4 
 
             // Add stats
@@ -183,15 +191,15 @@ export function calculateRPGStats(
                 if (val > 0) val += degreeMod
 
                 // Dignity bonuses to value
-                if (isExalted) val += 5
-                if (isDebilitated) val -= 2
+                if (explicitExalted) val += 5
+                if (explicitDebilitated) val -= 2
 
                 rawStats[k] += val
 
                 // Update status flags if this planet rules this stat
                 if (STAT_RULERS[k].includes(normalizedPlanet)) {
-                    if (isExalted) statModifiers[k].exalted = true
-                    if (isDebilitated) statModifiers[k].debilitated = true
+                    if (explicitExalted) statModifiers[k].exalted = true
+                    if (explicitDebilitated) statModifiers[k].debilitated = true
                 }
             })
         }
@@ -205,15 +213,12 @@ export function calculateRPGStats(
         let val = rawStats[k] * 4 // Boost raw score
         if (planetCount > 0) val = val / (planetCount * 0.15) // Normalize
         
-        // Ensure not round number if possible (degreeMod helps)
         // Clamp 0-100
         val = Math.min(100, Math.max(10, val))
         
-        // Round to 1 decimal place? Or integer. User asked for "97%", likely integer but not multiples of 10.
         const finalVal = Math.round(val)
 
         // Determine final status
-        // Priority: Exalted > Debilitated > Normal
         let status: 'exalted' | 'debilitated' | 'normal' = 'normal'
         if (statModifiers[k].exalted) status = 'exalted'
         else if (statModifiers[k].debilitated) status = 'debilitated'
@@ -228,8 +233,20 @@ export function calculateRPGStats(
 }
 
 export function getZodiacRotation(sign: string): number {
-    const index = ZODIAC_SIGNS.findIndex(
+    let normalizedSign = ZODIAC_SIGNS.find(
         (s) => s.toLowerCase() === sign.toLowerCase()
+    )
+    
+    if (!normalizedSign) {
+        // Try matching Sanskrit name
+        const englishSign = SANSKRIT_SIGNS[sign] || Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) && SANSKRIT_SIGNS[Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) || ""]
+        if (englishSign) {
+            normalizedSign = englishSign
+        }
+    }
+
+    const index = ZODIAC_SIGNS.findIndex(
+        (s) => s === normalizedSign
     )
     if (index === -1) return 0
     return index * 30
