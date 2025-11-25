@@ -9,6 +9,7 @@ import BirthChartShareSection from "./birth-chart-share-section"
 import BirthChartQuestion from "./birth-chart-question"
 import BirthChartDebugSection from "./birth-chart-debug-section"
 import BirthChartInfoCard from "./birth-chart-info-card"
+import BirthChartHouses from "./birth-chart-houses"
 import { AstroPoint } from "@/lib/birth-chart-utils"
 
 interface BirthChartDisplayProps {
@@ -52,43 +53,22 @@ export default function BirthChartDisplay({
             </Card>
 
             {/* Wheel */}
-            <div className="flex justify-center">
-                <BirthChartWheel 
-                    houses={birthChart.houses} 
-                    planets={birthChart.planets} 
-                />
+            <div className="flex justify-center py-8 relative">
+                 {/* Background Glow */}
+                <div className="absolute inset-0 bg-primary/5 blur-3xl rounded-full pointer-events-none" />
+                <div className="relative z-10">
+                    <BirthChartWheel 
+                        houses={birthChart.houses} 
+                        planets={birthChart.planets} 
+                    />
+                </div>
             </div>
 
             {/* Stats */}
             <BirthChartStats planets={birthChart.planets} />
 
-            {/* Houses Detail (Foldable or just listed) */}
-            {birthChart.houses && (
-                <Card className='p-6 bg-card/10 backdrop-blur-sm border-border/20'>
-                    <h2 className='font-serif font-bold text-xl mb-4 text-white'>
-                        Houses
-                    </h2>
-                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                        {Object.entries(birthChart.houses as Record<string, unknown>).map(
-                            ([house, sign]: [string, unknown]) => (
-                                <div
-                                    key={house}
-                                    className='p-4 rounded-lg bg-white/5 border border-white/10'
-                                >
-                                    <Badge variant='secondary' className='mb-2'>
-                                        {house}
-                                    </Badge>
-                                    <p className='text-white font-semibold'>
-                                        {typeof sign === "object" && sign !== null && "sign" in sign 
-                                            ? (sign as AstroPoint).sign 
-                                            : String(sign)}
-                                    </p>
-                                </div>
-                            )
-                        )}
-                    </div>
-                </Card>
-            )}
+            {/* Houses Detail */}
+            <BirthChartHouses houses={birthChart.houses} />
 
             {/* Planets Detail */}
             {birthChart.planets && (
