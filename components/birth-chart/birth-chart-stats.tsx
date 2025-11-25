@@ -3,7 +3,7 @@
 import { useMemo } from "react"
 import { Progress } from "@/components/ui/progress"
 import { Card } from "@/components/ui/card"
-import { calculatePlanetStats, PlanetStats, PlanetStatType } from "@/lib/birth-chart-utils"
+import { calculatePlanetStats, PlanetStatType } from "@/lib/birth-chart-utils"
 import { Sun, Moon, Sword, Brain, Crown, Heart, Scale, CloudFog, Ghost, ArrowDown, Star } from "lucide-react"
 
 interface BirthChartStatsProps {
@@ -46,6 +46,18 @@ const STAT_DESCRIPTIONS: Record<PlanetStatType, string> = {
     Ketu: "Detachment, Spirituality, Liberation, Past",
 }
 
+const PLANET_ARCHETYPES: Record<PlanetStatType, string> = {
+    Sun: "Leadership",
+    Moon: "Emotion",
+    Mars: "Drive",
+    Mercury: "Intellect",
+    Jupiter: "Wisdom",
+    Venus: "Romance",
+    Saturn: "Discipline",
+    Rahu: "Ambition",
+    Ketu: "Spirituality",
+}
+
 export default function BirthChartStats({ planets }: BirthChartStatsProps) {
     const stats = useMemo(() => {
         if (!planets) return null
@@ -60,12 +72,14 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                 const k = key as PlanetStatType
                 const { value, status } = stat
                 const Icon = STAT_ICONS[k]
+                const archetype = PLANET_ARCHETYPES[k]
                 
                 // Determine styling based on status
                 let cardClassName = "p-4 bg-white/5 border-white/10 backdrop-blur-sm transition-all duration-500"
                 let iconAura = ""
                 let progressIndicatorClass = STAT_COLORS[k]
                 let labelColor = "text-white"
+                let statusLabel = null
                 
                 if (status === 'exalted') {
                     // Golden/Exalted styling
@@ -73,12 +87,22 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                     iconAura = "shadow-[0_0_10px_rgba(255,255,255,0.5)]"
                     progressIndicatorClass = "bg-gradient-to-r from-yellow-400 to-amber-600"
                     labelColor = "text-yellow-200"
+                    statusLabel = (
+                        <span className="text-[10px] uppercase tracking-wider font-bold text-yellow-400 flex items-center gap-1 mb-1">
+                            <Star className="w-3 h-3 fill-yellow-400 animate-pulse" /> Exalted
+                        </span>
+                    )
                 } else if (status === 'debilitated') {
                     // Dark/Debilitated styling
                     cardClassName = "p-4 bg-gradient-to-br from-gray-900/40 to-black/40 border-gray-700/30 backdrop-blur-sm"
                     iconAura = "opacity-80 grayscale"
                     progressIndicatorClass = "bg-gray-600"
                     labelColor = "text-gray-400"
+                    statusLabel = (
+                        <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 flex items-center gap-1 mb-1">
+                            <ArrowDown className="w-3 h-3" /> Debilitated
+                        </span>
+                    )
                 }
 
                 return (
@@ -86,43 +110,49 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                         key={key}
                         className={cardClassName}
                     >
-                        <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                                <div className={`p-2.5 rounded-xl ${STAT_COLORS[k]} ${iconAura} relative overflow-hidden shrink-0`}>
-                                    {/* Icon Box with stat color bg */}
-                                    {/* Icon itself is white, no bg */}
-                                    <Icon className="w-5 h-5 text-white relative z-10" />
-                                    
-                                    {/* Shine effect for exalted */}
-                                    {status === 'exalted' && (
-                                        <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                                    )}
+                        <div className="flex items-start gap-3 mb-3">
+                            <div className={`p-2.5 rounded-xl ${STAT_COLORS[k]} ${iconAura} relative overflow-hidden shrink-0 mt-1`}>
+                                {/* Icon Box with stat color bg */}
+                                {/* Icon itself is white, no bg */}
+                                <Icon className="w-5 h-5 text-white relative z-10" />
+                                
+                                {/* Shine effect for exalted */}
+                                {status === 'exalted' && (
+                                    <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                                )}
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h3 className={`font-bold capitalize text-lg ${labelColor} flex items-center gap-1`}>
+                                            {archetype} 
+                                            <span className="opacity-60 text-sm font-normal">
+                                                (<Icon className="w-3 h-3 inline -mt-0.5" /> {key})
+                                            </span>
+                                        </h3>
+                                    </div>
                                 </div>
                                 
-                                <div>
-                                    <h3 className={`font-bold capitalize flex items-center gap-2 ${labelColor}`}>
-                                        {key}
-                                        {status === 'exalted' && (
-                                            <Star className="w-3 h-3 text-yellow-400 fill-yellow-400 animate-pulse" />
-                                        )}
-                                        {status === 'debilitated' && (
-                                            <ArrowDown className="w-3 h-3 text-gray-500" />
-                                        )}
-                                    </h3>
-                                    <p className="text-xs text-muted-foreground line-clamp-1" title={STAT_DESCRIPTIONS[k]}>
-                                        {STAT_DESCRIPTIONS[k]}
-                                    </p>
-                                </div>
+                                <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                                    {STAT_DESCRIPTIONS[k]}
+                                </p>
                             </div>
-                            <span className={`font-bold text-lg ${status === 'exalted' ? 'text-yellow-400' : 'text-white'}`}>
-                                {value}%
-                            </span>
                         </div>
-                        <Progress 
-                            value={value} 
-                            className={`h-2 bg-black/40 ${status === 'exalted' ? 'border border-yellow-500/20' : ''}`}
-                            indicatorClassName={progressIndicatorClass}
-                        />
+
+                        <div className="mt-4">
+                            <div className="flex justify-between items-end mb-2">
+                                <span className={`font-bold text-lg leading-none ${status === 'exalted' ? 'text-yellow-400' : 'text-white'}`}>
+                                    {value}%
+                                </span>
+                                {statusLabel}
+                            </div>
+                            <Progress 
+                                value={value} 
+                                className={`h-2 bg-black/40 ${status === 'exalted' ? 'border border-yellow-500/20' : ''}`}
+                                indicatorClassName={progressIndicatorClass}
+                            />
+                        </div>
                     </Card>
                 )
             })}
