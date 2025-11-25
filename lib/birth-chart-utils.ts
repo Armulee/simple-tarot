@@ -66,14 +66,24 @@ export interface AstroPoint {
     [key: string]: unknown
 }
 
-// Map stats to their primary ruling planets
-const STAT_RULERS: Record<RPGStatType, string[]> = {
+// Map stats to their contributors for SCORING
+const STAT_CONTRIBUTORS: Record<RPGStatType, string[]> = {
     leadership: ["Sun", "Mars", "Saturn"],
     charm: ["Venus", "Moon"],
     intellect: ["Mercury", "Uranus", "Rahu"],
     vitality: ["Sun", "Mars", "Ascendant"],
     spirituality: ["Jupiter", "Neptune", "Ketu"],
     creativity: ["Venus", "Sun", "Neptune", "Rahu"],
+}
+
+// Map stats to their PRIMARY RULER for STATUS (Aura)
+const PRIMARY_STAT_RULER: Record<RPGStatType, string> = {
+    leadership: "Sun",
+    charm: "Venus", // changed from Moon to Venus as primary charm
+    intellect: "Mercury",
+    vitality: "Mars", // Use Mars for Vitality status to separate from Sun/Leadership
+    spirituality: "Jupiter",
+    creativity: "Venus", // Venus also rules creativity
 }
 
 // Deep exaltation degrees (approximate peaks)
@@ -117,7 +127,7 @@ export function calculateRPGStats(
         creativity: 0,
     }
 
-    // Track status
+    // Track status for PRIMARY rulers only
     const statModifiers: Record<RPGStatType, { exalted: boolean, debilitated: boolean }> = {
         leadership: { exalted: false, debilitated: false },
         charm: { exalted: false, debilitated: false },
@@ -153,8 +163,6 @@ export function calculateRPGStats(
         }
 
         // Handle Deep Exaltation Bonus
-        // If planet is near its deep exaltation degree (+/- 5 deg), give massive boost
-        // Normalize sign first
         let normalizedSign = ZODIAC_SIGNS.find(s => s.toLowerCase() === sign.toLowerCase())
         if (!normalizedSign) {
              const englishSign = SANSKRIT_SIGNS[sign] || Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) && SANSKRIT_SIGNS[Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) || ""]
@@ -167,20 +175,29 @@ export function calculateRPGStats(
             if (exaltInfo.sign === normalizedSign) {
                 const diff = Math.abs(degree - exaltInfo.degree)
                 if (diff <= 5) {
-                    // Very close to peak exaltation
                     deepExaltationBonus = (5 - diff) * 4 // up to 20 points
-                    explicitExalted = true // Force exalted status if close
+                    explicitExalted = true
                 } else {
                     explicitExalted = true
                 }
             }
         }
 
-        // Distribute strength to relevant stats
+        // 1. Update Status based on PRIMARY RULER
+        // Only update the status flag if this planet is the PRIMARY ruler for a stat
+        Object.keys(statModifiers).forEach((key) => {
+            const k = key as RPGStatType
+            if (PRIMARY_STAT_RULER[k] === normalizedPlanet) {
+                if (explicitExalted) statModifiers[k].exalted = true
+                if (explicitDebilitated) statModifiers[k].debilitated = true
+            }
+        })
+
+        // 2. Calculate Score based on ALL CONTRIBUTORS
         Object.keys(rawStats).forEach((key) => {
             const k = key as RPGStatType
             
-            if (STAT_RULERS[k].includes(normalizedPlanet)) {
+            if (STAT_CONTRIBUTORS[k].includes(normalizedPlanet)) {
                 // This planet influences this stat
                 let contribution = strengthPercentage
                 
@@ -195,16 +212,13 @@ export function calculateRPGStats(
                 rawStats[k] += contribution
                 if (contribution > maxStats[k]) maxStats[k] = contribution
                 counts[k]++
-
-                if (explicitExalted) statModifiers[k].exalted = true
-                if (explicitDebilitated) statModifiers[k].debilitated = true
             }
         })
     })
 
     const result: Partial<RPGStats> = {}
 
-    // Calculate Final Score using weighted Mix of Max and Average
+    // Calculate Final Score
     Object.keys(rawStats).forEach((key) => {
         const k = key as RPGStatType
         
@@ -212,7 +226,7 @@ export function calculateRPGStats(
         if (counts[k] > 0) {
             const avg = rawStats[k] / counts[k]
             const max = maxStats[k]
-            // Weight Max more heavily (80%) to represent potential/peak talent
+            // Weight Max more heavily (80%)
             const weightedScore = (max * 0.8) + (avg * 0.2)
             finalVal = weightedScore
         }
