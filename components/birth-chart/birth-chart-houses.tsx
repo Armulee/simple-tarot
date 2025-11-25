@@ -7,6 +7,7 @@ import { Home } from "lucide-react"
 
 interface BirthChartHousesProps {
     houses?: Record<string, unknown> | null
+    planets?: Record<string, unknown> | null
 }
 
 const HOUSE_MEANINGS: Record<string, string> = {
@@ -211,8 +212,40 @@ const SIGN_IN_HOUSE_MEANINGS: Record<string, Record<string, string>> = {
     }
 }
 
-export default function BirthChartHouses({ houses }: BirthChartHousesProps) {
+export default function BirthChartHouses({ houses, planets }: BirthChartHousesProps) {
     if (!houses) return null
+
+    // Helper function to normalize sign name
+    const normalizeSign = (sign: string): string => {
+        const englishSign = SANSKRIT_SIGNS[sign] || 
+            (Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) 
+                ? SANSKRIT_SIGNS[Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) as string] 
+                : sign)
+        return englishSign || sign
+    }
+
+    // Find planets in a given sign
+    const getPlanetsInSign = (sign: string): string[] => {
+        if (!planets) return []
+        const normalizedSign = normalizeSign(sign)
+        const planetsInSign: string[] = []
+        
+        Object.entries(planets).forEach(([planetName, planetData]) => {
+            let planetSign = ""
+            if (typeof planetData === "string") {
+                planetSign = planetData
+            } else if (typeof planetData === "object" && planetData && "sign" in planetData) {
+                planetSign = (planetData as AstroPoint).sign
+            }
+            
+            const normalizedPlanetSign = normalizeSign(planetSign)
+            if (normalizedPlanetSign.toLowerCase() === normalizedSign.toLowerCase()) {
+                planetsInSign.push(planetName)
+            }
+        })
+        
+        return planetsInSign
+    }
 
     return (
         <div className="space-y-6">
@@ -240,12 +273,10 @@ export default function BirthChartHouses({ houses }: BirthChartHousesProps) {
                     }
 
                     // Translate sanskrit if needed
-                    const englishSign = SANSKRIT_SIGNS[signName] || 
-                        (Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === signName.toLowerCase()) 
-                            ? SANSKRIT_SIGNS[Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === signName.toLowerCase()) as string] 
-                            : signName)
+                    const displaySign = normalizeSign(signName)
                     
-                    const displaySign = englishSign || signName
+                    // Find planets in this house's sign
+                    const planetsInHouse = getPlanetsInSign(signName)
 
                     const suffix = getOrdinalSuffix(Number(houseNum))
                     const houseIndex = Number(houseNum) - 1
@@ -277,6 +308,26 @@ export default function BirthChartHouses({ houses }: BirthChartHousesProps) {
                                 <p className="text-xs text-muted-foreground leading-relaxed mt-3 mb-3">
                                     {HOUSE_DESCRIPTIONS[houseNum]} 
                                 </p>
+
+                                {/* Planets in House */}
+                                {planetsInHouse.length > 0 && (
+                                    <div className="mt-3 mb-3">
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-2">
+                                            Planets in this House
+                                        </p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {planetsInHouse.map((planet) => (
+                                                <Badge 
+                                                    key={planet}
+                                                    variant="outline" 
+                                                    className="bg-yellow-500/20 border-yellow-500/40 text-yellow-400 hover:bg-yellow-500/30 text-xs"
+                                                >
+                                                    {planet}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                                 
                                 {/* Sign in House Meaning */}
                                 {SIGN_IN_HOUSE_MEANINGS[houseNum]?.[displaySign] && (

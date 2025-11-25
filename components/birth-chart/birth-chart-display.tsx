@@ -82,7 +82,7 @@ export default function BirthChartDisplay({
             </div>
 
             {/* Houses Detail */}
-            <BirthChartHouses houses={birthChart.houses} />
+            <BirthChartHouses houses={birthChart.houses} planets={birthChart.planets} />
 
             {/* Planets Detail */}
             <BirthChartPlanets planets={birthChart.planets} />
