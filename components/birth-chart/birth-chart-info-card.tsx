@@ -259,8 +259,8 @@ export default function BirthChartInfoCard({ birthChart }: BirthChartInfoCardPro
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-4 gap-1 max-h-48 overflow-y-auto">
-                                            {Array.from({ length: 12 }, (_, i) => {
-                                                const m = (i * 5).toString().padStart(2, "0")
+                                            {Array.from({ length: 60 }, (_, i) => {
+                                                const m = i.toString().padStart(2, "0")
                                                 return (
                                                     <Button
                                                         key={i}
