@@ -3,8 +3,8 @@
 import { useMemo } from "react"
 import { Progress } from "@/components/ui/progress"
 import { Card } from "@/components/ui/card"
-import { calculateRPGStats, RPGStats } from "@/lib/birth-chart-utils"
-import { Shield, Heart, Zap, Brain, Sparkles, Crown } from "lucide-react"
+import { calculateRPGStats, RPGStats, RPGStatType } from "@/lib/birth-chart-utils"
+import { Shield, Heart, Zap, Brain, Sparkles, Crown, ArrowDown, Star } from "lucide-react"
 
 interface BirthChartStatsProps {
     planets?: Record<string, unknown> | null
@@ -47,36 +47,72 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Object.entries(stats).map(([key, value]) => {
-                const k = key as keyof RPGStats
+            {Object.entries(stats).map(([key, stat]) => {
+                const k = key as RPGStatType
+                const { value, status } = stat
                 const Icon = STAT_ICONS[k]
+                
+                // Determine styling based on status
+                let cardClassName = "p-4 bg-white/5 border-white/10 backdrop-blur-sm transition-all duration-500"
+                let iconAura = ""
+                let progressIndicatorClass = STAT_COLORS[k]
+                let labelColor = "text-white"
+                
+                if (status === 'exalted') {
+                    // Golden/Exalted styling
+                    cardClassName = "p-4 bg-gradient-to-br from-yellow-500/20 via-amber-500/10 to-transparent border-yellow-500/30 backdrop-blur-sm shadow-[0_0_15px_rgba(234,179,8,0.2)]"
+                    iconAura = "shadow-[0_0_10px_rgba(255,255,255,0.5)]"
+                    progressIndicatorClass = "bg-gradient-to-r from-yellow-400 to-amber-600"
+                    labelColor = "text-yellow-200"
+                } else if (status === 'debilitated') {
+                    // Dark/Debilitated styling
+                    cardClassName = "p-4 bg-gradient-to-br from-gray-900/40 to-black/40 border-gray-700/30 backdrop-blur-sm"
+                    iconAura = "opacity-80 grayscale"
+                    progressIndicatorClass = "bg-gray-600"
+                    labelColor = "text-gray-400"
+                }
+
                 return (
                     <Card
                         key={key}
-                        className="p-4 bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors"
+                        className={cardClassName}
                     >
                         <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                                <div className={`p-2 rounded-lg ${STAT_COLORS[k]} bg-opacity-20`}>
-                                    <Icon className={`w-4 h-4 ${STAT_COLORS[k].replace('bg-', 'text-')}`} />
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2.5 rounded-xl ${STAT_COLORS[k]} ${iconAura} relative overflow-hidden`}>
+                                    {/* Icon Box with stat color bg */}
+                                    {/* Icon itself is white, no bg */}
+                                    <Icon className="w-5 h-5 text-white relative z-10" />
+                                    
+                                    {/* Shine effect for exalted */}
+                                    {status === 'exalted' && (
+                                        <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                                    )}
                                 </div>
+                                
                                 <div>
-                                    <h3 className="font-semibold text-white capitalize">
+                                    <h3 className={`font-bold capitalize flex items-center gap-2 ${labelColor}`}>
                                         {key}
+                                        {status === 'exalted' && (
+                                            <Star className="w-3 h-3 text-yellow-400 fill-yellow-400 animate-pulse" />
+                                        )}
+                                        {status === 'debilitated' && (
+                                            <ArrowDown className="w-3 h-3 text-gray-500" />
+                                        )}
                                     </h3>
                                     <p className="text-xs text-muted-foreground">
                                         {STAT_DESCRIPTIONS[k]}
                                     </p>
                                 </div>
                             </div>
-                            <span className="font-bold text-lg text-white">
+                            <span className={`font-bold text-lg ${status === 'exalted' ? 'text-yellow-400' : 'text-white'}`}>
                                 {value}%
                             </span>
                         </div>
                         <Progress 
                             value={value} 
-                            className="h-2 bg-black/40" 
-                            indicatorClassName={STAT_COLORS[k]}
+                            className={`h-2 bg-black/40 ${status === 'exalted' ? 'border border-yellow-500/20' : ''}`}
+                            indicatorClassName={progressIndicatorClass}
                         />
                     </Card>
                 )
