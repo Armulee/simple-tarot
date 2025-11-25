@@ -4,7 +4,7 @@ import { useMemo } from "react"
 import { Progress } from "@/components/ui/progress"
 import { Card } from "@/components/ui/card"
 import { calculatePlanetStats, PlanetStats, PlanetStatType } from "@/lib/birth-chart-utils"
-import { Sun, Moon, Sword, Brain, Crown, Heart, Scale, CloudFog, Ghost, ArrowDown, Star, ShieldCheck } from "lucide-react"
+import { Sun, Moon, Sword, Brain, Crown, Heart, Scale, CloudFog, Ghost, ArrowDown, Star, ShieldCheck, Circle, CircleDot } from "lucide-react"
 
 interface BirthChartStatsProps {
     planets?: Record<string, unknown> | null
@@ -21,6 +21,19 @@ const STAT_ICONS: Record<PlanetStatType, React.ElementType> = {
     Saturn: Scale,     // Discipline
     Rahu: CloudFog,    // Ambition
     Ketu: Ghost,       // Spirituality
+}
+
+// Planet-specific icons for displaying planet names
+const PLANET_ICONS: Record<PlanetStatType, React.ElementType> = {
+    Sun: Sun,
+    Moon: Moon,
+    Mars: CircleDot,
+    Mercury: Circle,
+    Jupiter: Circle,
+    Venus: Circle,
+    Saturn: Circle,
+    Rahu: Circle,
+    Ketu: Circle,
 }
 
 const STAT_COLORS: Record<PlanetStatType, string> = {
@@ -73,6 +86,7 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                 const k = key as PlanetStatType
                 const { value, status } = stat
                 const Icon = STAT_ICONS[k]
+                const PlanetIcon = PLANET_ICONS[k]
                 const archetype = PLANET_ARCHETYPES[k]
                 
                 // Determine styling based on status
@@ -147,7 +161,7 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                                             {archetype}
                                         </h3>
                                         <span className="text-[10px] sm:text-xs opacity-60 font-medium flex items-center gap-1">
-                                            <Icon className="w-2.5 h-2.5" /> {key}
+                                            <PlanetIcon className="w-2.5 h-2.5" /> {key}
                                         </span>
                                     </div>
                                 </div>
