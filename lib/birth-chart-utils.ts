@@ -44,8 +44,7 @@ export const SANSKRIT_SIGNS: Record<string, string> = {
     "Meena": "Pisces"
 }
 
-// Planet Stat Types based on the 9 Grahas (plus extras if needed, but user asked for 9)
-// We will map the 9 planets directly as stats.
+// Planet Stat Types based on the 9 Grahas
 export type PlanetStatType = 'Sun' | 'Moon' | 'Mars' | 'Mercury' | 'Jupiter' | 'Venus' | 'Saturn' | 'Rahu' | 'Ketu'
 
 export interface PlanetStatValue {
@@ -61,10 +60,16 @@ export interface AstroPoint {
     degree?: number | string
     isExalted?: boolean
     isDebilitated?: boolean
+    isOwnSign?: boolean
+    isFriendlySign?: boolean
+    isEnemySign?: boolean
+    isNeutralSign?: boolean
     shadbala?: {
         percentage: number
         total?: number
     }
+    longitude?: string | number
+    nakshatraNumber?: number
     [key: string]: unknown
 }
 
@@ -77,11 +82,11 @@ const DEEP_EXALTATION: Record<string, { sign: string, degree: number }> = {
     Jupiter: { sign: "Cancer", degree: 5 },
     Venus: { sign: "Pisces", degree: 27 },
     Saturn: { sign: "Libra", degree: 20 },
-    Rahu: { sign: "Taurus", degree: 20 }, // Rahu exalted in Taurus/Gemini
-    Ketu: { sign: "Scorpio", degree: 20 }, // Ketu exalted in Scorpio/Sagittarius
+    Rahu: { sign: "Taurus", degree: 20 },
+    Ketu: { sign: "Scorpio", degree: 20 },
 }
 
-// Dignities (Exalted/Debilitated Signs) for fallback if API doesn't provide flags
+// Dignities (Exalted/Debilitated Signs)
 const EXALTED_SIGNS: Record<string, string[]> = {
     Sun: ["Aries"],
     Moon: ["Taurus"],
@@ -114,8 +119,8 @@ const OWN_SIGNS: Record<string, string[]> = {
     Jupiter: ["Sagittarius", "Pisces"],
     Venus: ["Taurus", "Libra"],
     Saturn: ["Capricorn", "Aquarius"],
-    Rahu: ["Aquarius"], // Co-ruler
-    Ketu: ["Scorpio"], // Co-ruler
+    Rahu: ["Aquarius"], 
+    Ketu: ["Scorpio"], 
 }
 
 export function calculatePlanetStats(
@@ -126,8 +131,6 @@ export function calculatePlanetStats(
     const targetPlanets: PlanetStatType[] = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu']
 
     targetPlanets.forEach(planetName => {
-        // Find data for this planet
-        // Handle case sensitivity and potential variations
         const pKey = Object.keys(planets).find(k => k.toLowerCase() === planetName.toLowerCase())
         const position = pKey ? planets[pKey] : null
 
@@ -138,77 +141,84 @@ export function calculatePlanetStats(
             const p = position as AstroPoint
             const sign = p.sign
             const degree = Number(p.degree) || 15
+            const longitude = Number(p.longitude) || 0
+            const nakshatra = p.nakshatraNumber || 0
             
-            // 1. Use Shadbala if available (direct strength)
+            // 1. Determine Base Score
+            // Use Shadbala percentage if available
             if (p.shadbala && typeof p.shadbala.percentage === "number") {
                 score = p.shadbala.percentage
-            } else {
-                // Fallback calculation if shadbala missing
-                // Normalize sign
-                let normalizedSign = ZODIAC_SIGNS.find(s => s.toLowerCase() === sign.toLowerCase())
-                if (!normalizedSign) {
-                    const englishSign = SANSKRIT_SIGNS[sign] || Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) && SANSKRIT_SIGNS[Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) || ""]
-                    if (englishSign) normalizedSign = englishSign
-                }
-
-                if (normalizedSign) {
-                    // Check Dignities
-                    if (EXALTED_SIGNS[planetName]?.includes(normalizedSign)) {
-                        score += 30
-                    } else if (OWN_SIGNS[planetName]?.includes(normalizedSign)) {
-                        score += 20
-                    } else if (DEBILITATED_SIGNS[planetName]?.includes(normalizedSign)) {
-                        score -= 20
-                    } else {
-                        // Friendly/Neutral/Enemy logic omitted for brevity, keep minimal variation
-                        score += (degree % 10) - 5 // small noise
-                    }
-                }
             }
 
-            // 2. Status Determination
-            if (p.isExalted) status = 'exalted'
-            else if (p.isDebilitated) status = 'debilitated'
-            else {
-                // Fallback check
-                let normalizedSign = ZODIAC_SIGNS.find(s => s.toLowerCase() === sign.toLowerCase())
-                if (!normalizedSign) {
-                    const englishSign = SANSKRIT_SIGNS[sign] || Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) && SANSKRIT_SIGNS[Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) || ""]
-                    if (englishSign) normalizedSign = englishSign
-                }
-                if (normalizedSign) {
-                    if (EXALTED_SIGNS[planetName]?.includes(normalizedSign)) status = 'exalted'
-                    else if (DEBILITATED_SIGNS[planetName]?.includes(normalizedSign)) status = 'debilitated'
-                }
-            }
-
-            // 3. Deep Exaltation Bonus (Degree Specific)
+            // 2. Apply Dignity Modifiers
+            // Even if Shadbala is provided (often defaults to 50 in mock), add these to create spread
+            if (p.isExalted) score += 30
+            if (p.isDebilitated) score -= 30
+            if (p.isOwnSign) score += 20
+            if (p.isFriendlySign) score += 10
+            if (p.isEnemySign) score -= 10
+            
+            // Fallback check if flags are missing but sign is known
             let normalizedSign = ZODIAC_SIGNS.find(s => s.toLowerCase() === sign.toLowerCase())
             if (!normalizedSign) {
-                 const englishSign = SANSKRIT_SIGNS[sign] || Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) && SANSKRIT_SIGNS[Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) || ""]
-                 if (englishSign) normalizedSign = englishSign
+                const englishSign = SANSKRIT_SIGNS[sign] || Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) && SANSKRIT_SIGNS[Object.keys(SANSKRIT_SIGNS).find(k => k.toLowerCase() === sign.toLowerCase()) || ""]
+                if (englishSign) normalizedSign = englishSign
             }
 
+            if (normalizedSign) {
+                // Manual Dignity Check (if flags weren't set or to reinforce)
+                // Note: Avoid double counting if flags were accurate, but adding 
+                // explicit check ensures we catch edge cases.
+                // Let's trust flags first, but if shadbala is exactly 50, assume flags might need help
+                // or that shadbala is a placeholder.
+                
+                const isDefaultShadbala = score === 50 || (p.shadbala && p.shadbala.percentage === 50)
+                
+                if (isDefaultShadbala) {
+                    if (EXALTED_SIGNS[planetName]?.includes(normalizedSign)) score += 25
+                    else if (DEBILITATED_SIGNS[planetName]?.includes(normalizedSign)) score -= 25
+                    else if (OWN_SIGNS[planetName]?.includes(normalizedSign)) score += 15
+                }
+            }
+
+            // 3. Degree Variance (Bell Curve-ish)
+            // Center of sign (15 deg) often stronger than edges (0 or 30)
+            // (15 - |degree - 15|) gives 0 at edges, 15 at center.
+            // Scale to e.g., -5 to +5 adjustment relative to average?
+            // Or just add directly.
+            const degreeScore = (15 - Math.abs(degree - 15))
+            score += (degreeScore * 0.5) // Adds 0 to 7.5 points based on centrality
+
+            // 4. Randomness / Variance (Deterministic)
+            // Use longitude/nakshatra to add "noise" so values aren't round numbers
+            // Longitude 0-360.
+            const variance = (longitude % 13) - 6.5 // +/- 6.5
+            score += variance
+
+            // 5. Deep Exaltation Bonus
             if (normalizedSign && DEEP_EXALTATION[planetName]) {
                 const exaltInfo = DEEP_EXALTATION[planetName]
                 if (exaltInfo.sign === normalizedSign) {
                     const diff = Math.abs(degree - exaltInfo.degree)
                     if (diff <= 5) {
-                        const bonus = (5 - diff) * 4
-                        score += bonus
-                        status = 'exalted' // Force exalted status
+                        score += (6 - diff) * 3 // Significant boost near peak
+                        status = 'exalted'
                     } else {
                         status = 'exalted'
                     }
                 }
             }
+
+            // 6. Determine Final Status
+            if (p.isExalted || status === 'exalted') status = 'exalted'
+            else if (p.isDebilitated || (normalizedSign && DEBILITATED_SIGNS[planetName]?.includes(normalizedSign))) status = 'debilitated'
             
-            // Manual adjustment for explicit flags
+            // Manual Status Boost/Penalty to Score
             if (status === 'exalted') score += 10
             if (status === 'debilitated') score -= 10
         }
 
-        // Clamp
+        // Clamp final score
         score = Math.min(100, Math.max(10, score))
         
         stats[planetName as PlanetStatType] = {
