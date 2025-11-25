@@ -8,6 +8,7 @@ import BirthChartWheel from "./birth-chart-wheel"
 import BirthChartShareSection from "./birth-chart-share-section"
 import BirthChartQuestion from "./birth-chart-question"
 import BirthChartDebugSection from "./birth-chart-debug-section"
+import BirthChartInfoCard from "./birth-chart-info-card"
 import { AstroPoint } from "@/lib/birth-chart-utils"
 
 interface BirthChartDisplayProps {
@@ -32,33 +33,6 @@ interface BirthChartDisplayProps {
 export default function BirthChartDisplay({
     birthChart,
 }: BirthChartDisplayProps) {
-    const formatDate = () => {
-        const date = new Date(
-            birthChart.year,
-            birthChart.month - 1,
-            birthChart.day
-        )
-        return date.toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-        })
-    }
-
-    const formatTime = () => {
-        const hours = birthChart.hour % 12 || 12
-        const minutes = birthChart.minute.toString().padStart(2, "0")
-        const ampm = birthChart.hour >= 12 ? "PM" : "AM"
-        return `${hours}:${minutes} ${ampm}`
-    }
-
-    const formatLocation = () => {
-        const parts = []
-        if (birthChart.state_province) parts.push(birthChart.state_province)
-        if (birthChart.country) parts.push(birthChart.country)
-        return parts.length > 0 ? parts.join(", ") : "Unknown location"
-    }
-
     return (
         <div className='space-y-8 px-4 max-w-4xl mx-auto h-full py-8'>
             {/* Header */}
@@ -73,32 +47,7 @@ export default function BirthChartDisplay({
                     </div>
 
                     {/* Birth Information */}
-                    <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mt-8'>
-                        <div className='text-center'>
-                            <p className='text-sm text-muted-foreground mb-1'>
-                                Birth Date
-                            </p>
-                            <p className='font-semibold text-white'>
-                                {formatDate()}
-                            </p>
-                        </div>
-                        <div className='text-center'>
-                            <p className='text-sm text-muted-foreground mb-1'>
-                                Birth Time
-                            </p>
-                            <p className='font-semibold text-white'>
-                                {formatTime()}
-                            </p>
-                        </div>
-                        <div className='text-center'>
-                            <p className='text-sm text-muted-foreground mb-1'>
-                                Location
-                            </p>
-                            <p className='font-semibold text-white'>
-                                {formatLocation()}
-                            </p>
-                        </div>
-                    </div>
+                    <BirthChartInfoCard birthChart={birthChart} />
                 </div>
             </Card>
 
