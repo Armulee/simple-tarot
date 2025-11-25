@@ -99,6 +99,15 @@ export function calculateRPGStats(
         creativity: 0,
     }
 
+    const maxStats: Record<RPGStatType, number> = {
+        leadership: 0,
+        charm: 0,
+        intellect: 0,
+        vitality: 0,
+        spirituality: 0,
+        creativity: 0,
+    }
+
     const counts: Record<RPGStatType, number> = {
         leadership: 0,
         charm: 0,
@@ -184,6 +193,7 @@ export function calculateRPGStats(
                 contribution += (degree % 10) 
 
                 rawStats[k] += contribution
+                if (contribution > maxStats[k]) maxStats[k] = contribution
                 counts[k]++
 
                 if (explicitExalted) statModifiers[k].exalted = true
@@ -194,22 +204,30 @@ export function calculateRPGStats(
 
     const result: Partial<RPGStats> = {}
 
-    // Average out
+    // Calculate Final Score using weighted Mix of Max and Average
     Object.keys(rawStats).forEach((key) => {
         const k = key as RPGStatType
-        let val = counts[k] > 0 ? rawStats[k] / counts[k] : 50 // Default to 50 if no contributors
+        
+        let finalVal = 50
+        if (counts[k] > 0) {
+            const avg = rawStats[k] / counts[k]
+            const max = maxStats[k]
+            // Weight Max more heavily (80%) to represent potential/peak talent
+            const weightedScore = (max * 0.8) + (avg * 0.2)
+            finalVal = weightedScore
+        }
         
         // Clamp
-        val = Math.min(100, Math.max(10, val))
+        finalVal = Math.min(100, Math.max(10, finalVal))
         
-        const finalVal = Math.round(val)
+        const roundedVal = Math.round(finalVal)
 
         let status: 'exalted' | 'debilitated' | 'normal' = 'normal'
         if (statModifiers[k].exalted) status = 'exalted'
         else if (statModifiers[k].debilitated) status = 'debilitated'
 
         result[k] = {
-            value: finalVal,
+            value: roundedVal,
             status
         }
     })
