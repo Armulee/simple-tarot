@@ -45,7 +45,7 @@ export default function BirthChartDisplay({
                 <div className='text-center space-y-6 relative z-10'>
                     <div className='flex items-center justify-center space-x-3 relative'>
                         <Sparkles className='w-7 h-7 text-accent animate-pulse' />
-                        <h1 className='font-serif font-bold text-3xl sm:text-4xl bg-gradient-to-r from-white via-accent/90 to-white bg-clip-text text-transparent'>
+                        <h1 className='font-serif font-bold text-3xl sm:text-4xl text-white'>
                             Your Birth Chart
                         </h1>
                         <Sparkles className='w-7 h-7 text-accent animate-pulse' />

@@ -1,9 +1,8 @@
 "use client"
 
-import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { SANSKRIT_SIGNS, AstroPoint } from "@/lib/birth-chart-utils"
-import { Sparkles, ChevronDown } from "lucide-react"
+import { Sparkles } from "lucide-react"
 
 interface BirthChartPlanetsProps {
     planets?: Record<string, unknown> | null
@@ -196,17 +195,7 @@ const PLANET_IN_SIGN_MEANINGS: Record<string, Record<string, string>> = {
 }
 
 export default function BirthChartPlanets({ planets }: BirthChartPlanetsProps) {
-    // Accordion state: track which planet is expanded
-    const [expandedPlanets, setExpandedPlanets] = useState<Record<string, boolean>>({})
-
     if (!planets) return null
-
-    const togglePlanet = (planet: string) => {
-        setExpandedPlanets(prev => ({
-            ...prev,
-            [planet]: !prev[planet]
-        }))
-    }
 
     return (
         <div className="space-y-6">
@@ -241,7 +230,6 @@ export default function BirthChartPlanets({ planets }: BirthChartPlanetsProps) {
                         
                         const displaySign = englishSign || signName
                         const planetInSignMeaning = PLANET_IN_SIGN_MEANINGS[planet]?.[displaySign] || ""
-                        const isExpanded = expandedPlanets[planet] || false
 
                         return (
                             <Card
@@ -252,18 +240,12 @@ export default function BirthChartPlanets({ planets }: BirthChartPlanetsProps) {
                                 <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                 
                                 <div className="relative z-10 space-y-4">
-                                    {/* Planet Header with Accordion */}
+                                    {/* Planet Header */}
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
-                                            <button
-                                                onClick={() => togglePlanet(planet)}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 hover:bg-yellow-500/30 text-sm transition-all duration-200"
-                                            >
+                                            <div className="px-3 py-1.5 rounded-md bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 text-sm">
                                                 <span className="font-semibold">{planet}</span>
-                                                <ChevronDown 
-                                                    className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} 
-                                                />
-                                            </button>
+                                            </div>
                                             <span className="text-white/60 text-sm">in</span>
                                             <span className="text-white font-semibold text-lg group-hover:text-accent transition-colors">
                                                 {displaySign}
@@ -271,8 +253,8 @@ export default function BirthChartPlanets({ planets }: BirthChartPlanetsProps) {
                                         </div>
                                     </div>
 
-                                    {/* Planet in Sign Meaning - Accordion Content */}
-                                    {isExpanded && planetInSignMeaning && (
+                                    {/* Planet in Sign Meaning - Always Visible */}
+                                    {planetInSignMeaning && (
                                         <div className="mt-4 p-4 rounded-lg bg-yellow-500/20 border border-yellow-500/40">
                                             <p className="text-[10px] font-bold uppercase tracking-wider text-yellow-400/90 mb-2">
                                                 {planet} in {displaySign}
