@@ -280,14 +280,21 @@ export default function BirthChartHouses({ houses, planets }: BirthChartHousesPr
                                             {HOUSE_MEANINGS[houseNum]}
                                         </h3>
                                     </div>
-                                    {/* Planets in House Badges */}
-                                    {planetsInHouse.length > 0 && (
-                                        <div className="flex flex-wrap gap-1.5 ml-3 shrink-0 justify-end">
+                                </div>
+                                
+                                <p className="text-xs text-muted-foreground leading-relaxed mt-3 mb-3">
+                                    {HOUSE_DESCRIPTIONS[houseNum]} 
+                                </p>
+
+                                {/* Planets in House Badges */}
+                                {planetsInHouse.length > 0 && (
+                                    <div className="mt-3 mb-3">
+                                        <div className="flex flex-wrap gap-1.5">
                                             {planetsInHouse.map((planet) => {
                                                 const key = `${houseNum}-${planet}`
                                                 const isExpanded = expandedPlanets[key] || false
                                                 return (
-                                                    <div key={planet} className="flex flex-col items-end">
+                                                    <div key={planet} className="flex flex-col">
                                                         <button
                                                             onClick={() => togglePlanet(houseNum, planet)}
                                                             className="flex items-center gap-1 px-2 py-1 rounded-md bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 hover:bg-yellow-500/30 text-xs transition-all duration-200"
@@ -311,12 +318,8 @@ export default function BirthChartHouses({ houses, planets }: BirthChartHousesPr
                                                 )
                                             })}
                                         </div>
-                                    )}
-                                </div>
-                                
-                                <p className="text-xs text-muted-foreground leading-relaxed mt-3 mb-3">
-                                    {HOUSE_DESCRIPTIONS[houseNum]} 
-                                </p>
+                                    </div>
+                                )}
                             </div>
                         </Card>
                     )
