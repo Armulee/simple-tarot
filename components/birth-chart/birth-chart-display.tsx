@@ -39,16 +39,16 @@ export default function BirthChartDisplay({
             <Card className='px-8 pt-12 pb-8 border-0 relative overflow-hidden bg-gradient-to-br from-[#0A0F26] via-[#1a1f3a] to-[#131A3A] shadow-2xl'>
                 {/* Animated background elements */}
                 <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+                    <div className="absolute -top-40 -right-40 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-pulse" />
                     <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
                 </div>
                 <div className='text-center space-y-6 relative z-10'>
                     <div className='flex items-center justify-center space-x-3 relative'>
-                        <Sparkles className='w-7 h-7 text-primary animate-pulse' />
-                        <h1 className='font-serif font-bold text-3xl sm:text-4xl bg-gradient-to-r from-white via-primary/90 to-white bg-clip-text text-transparent'>
+                        <Sparkles className='w-7 h-7 text-accent animate-pulse' />
+                        <h1 className='font-serif font-bold text-3xl sm:text-4xl bg-gradient-to-r from-white via-accent/90 to-white bg-clip-text text-transparent'>
                             Your Birth Chart
                         </h1>
-                        <Sparkles className='w-7 h-7 text-primary animate-pulse' />
+                        <Sparkles className='w-7 h-7 text-accent animate-pulse' />
                     </div>
 
                     {/* Birth Information */}
@@ -59,8 +59,8 @@ export default function BirthChartDisplay({
             {/* Wheel */}
             <div className="flex justify-center py-12 relative">
                  {/* Enhanced Background Glow */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-purple-500/10 to-primary/10 blur-3xl rounded-full pointer-events-none animate-pulse" />
-                <div className="absolute inset-0 bg-primary/5 blur-2xl rounded-full pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-r from-accent/10 via-purple-500/10 to-accent/10 blur-3xl rounded-full pointer-events-none animate-pulse" />
+                <div className="absolute inset-0 bg-accent/5 blur-2xl rounded-full pointer-events-none" />
                 <div className="relative z-10 transform hover:scale-105 transition-transform duration-500">
                     <BirthChartWheel 
                         houses={birthChart.houses} 
@@ -72,11 +72,11 @@ export default function BirthChartDisplay({
             {/* Stats Section */}
             <div className="space-y-6">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
                     <h2 className="text-2xl font-serif font-bold text-white whitespace-nowrap">
                         Planetary Strengths
                     </h2>
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
                 </div>
                 <BirthChartStats planets={birthChart.planets} />
             </div>

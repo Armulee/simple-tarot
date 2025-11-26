@@ -237,11 +237,11 @@ export default function BirthChartShareSection({ id }: BirthChartShareSectionPro
                 {/* Header with padding */}
                 <div className='px-6 pt-6 pb-4'>
                     <div className='flex items-center gap-3 mb-6 animate-fade-up'>
-                        <div className='p-2 rounded-full bg-primary/20 backdrop-blur-sm group-hover:bg-primary/30 transition-all duration-300'>
-                            <Share2 className='w-5 h-5 text-primary group-hover:scale-110 transition-transform duration-300' />
+                        <div className='p-2 rounded-full bg-accent/20 backdrop-blur-sm group-hover:bg-accent/30 transition-all duration-300'>
+                            <Share2 className='w-5 h-5 text-accent group-hover:scale-110 transition-transform duration-300' />
                         </div>
                         <div>
-                            <h3 className='font-serif font-semibold text-lg text-foreground group-hover:text-primary/90 transition-colors duration-300 text-white'>
+                            <h3 className='font-serif font-semibold text-lg text-foreground group-hover:text-accent/90 transition-colors duration-300 text-white'>
                                 Share Your Birth Chart
                             </h3>
                             <p className='text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300'>

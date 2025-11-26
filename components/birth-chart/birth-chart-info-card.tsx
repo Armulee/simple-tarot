@@ -249,7 +249,7 @@ export default function BirthChartInfoCard({ birthChart }: BirthChartInfoCardPro
                                                         }}
                                                         className={cn(
                                                             "text-xs",
-                                                            time.hour === h ? "bg-primary text-primary-foreground" : "text-white/80"
+                                                            time.hour === h ? "bg-accent text-accent-foreground" : "text-white/80"
                                                         )}
                                                     >
                                                         {h}
@@ -273,7 +273,7 @@ export default function BirthChartInfoCard({ birthChart }: BirthChartInfoCardPro
                                                         }}
                                                         className={cn(
                                                             "text-xs",
-                                                            time.minute === m ? "bg-primary text-primary-foreground" : "text-white/80"
+                                                            time.minute === m ? "bg-accent text-accent-foreground" : "text-white/80"
                                                         )}
                                                     >
                                                         {m}
@@ -320,7 +320,7 @@ export default function BirthChartInfoCard({ birthChart }: BirthChartInfoCardPro
                                         </Button>
                                     )}
                                     <input
-                                        className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-sm text-white mb-2 focus:outline-none focus:border-primary/50"
+                                        className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-sm text-white mb-2 focus:outline-none focus:border-accent/50"
                                         placeholder={locationStep === "country" ? "Search country..." : "Search state..."}
                                         value={locationStep === "country" ? searchCountry : searchState}
                                         onChange={e => locationStep === "country" ? setSearchCountry(e.target.value) : setSearchState(e.target.value)}
@@ -381,7 +381,7 @@ export default function BirthChartInfoCard({ birthChart }: BirthChartInfoCardPro
                             <X className="w-4 h-4 mr-2" /> Cancel
                         </Button>
                         <Button 
-                            className="flex-1 bg-primary hover:bg-primary/90 text-white border-0"
+                            className="flex-1 bg-accent hover:bg-accent/90 text-white border-0"
                             onClick={handleSave}
                             disabled={isSaving}
                         >
@@ -398,17 +398,17 @@ export default function BirthChartInfoCard({ birthChart }: BirthChartInfoCardPro
         <div className="mt-6 bg-black/20 backdrop-blur-md rounded-xl px-4 py-3 border border-white/10 flex items-center justify-between gap-4">
             <div className="flex flex-row items-center justify-between gap-2 w-full text-[10px] sm:text-xs text-white/90 font-medium">
                 <div className="flex items-center gap-1.5 shrink-0">
-                    <Calendar className="w-3 h-3 text-primary/80" />
+                    <Calendar className="w-3 h-3 text-accent/80" />
                     <span className="whitespace-nowrap">{date ? formatDateDisplay(date) : "N/A"}</span>
                 </div>
                 <div className="w-px h-3 bg-white/20 shrink-0" />
                 <div className="flex items-center gap-1.5 shrink-0">
-                    <Clock className="w-3 h-3 text-primary/80" />
+                    <Clock className="w-3 h-3 text-accent/80" />
                     <span className="whitespace-nowrap">{formatTimeDisplay(time.hour, time.minute)}</span>
                 </div>
                 <div className="w-px h-3 bg-white/20 shrink-0" />
                 <div className="flex items-center gap-1.5 min-w-0 truncate">
-                    <MapPin className="w-3 h-3 text-primary/80 shrink-0" />
+                    <MapPin className="w-3 h-3 text-accent/80 shrink-0" />
                     <span className="truncate">{locationDisplay || "Unknown"}</span>
                 </div>
             </div>

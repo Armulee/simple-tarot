@@ -218,16 +218,16 @@ export default function BirthChartPlanets({ planets }: BirthChartPlanetsProps) {
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-3 mb-8">
-                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
                 <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/20 border border-primary/30">
-                        <Sparkles className="w-6 h-6 text-primary" />
+                    <div className="p-2 rounded-lg bg-accent/20 border border-accent/30">
+                        <Sparkles className="w-6 h-6 text-accent" />
                     </div>
                     <h2 className="text-2xl font-serif font-bold text-white">
                         Planetary Positions
                     </h2>
                 </div>
-                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
@@ -253,20 +253,20 @@ export default function BirthChartPlanets({ planets }: BirthChartPlanetsProps) {
                         return (
                             <Card
                                 key={planet}
-                                className="p-6 bg-gradient-to-br from-white/10 via-white/5 to-transparent border-white/20 backdrop-blur-xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20 transition-all duration-500 group relative overflow-hidden"
+                                className="p-6 bg-gradient-to-br from-white/10 via-white/5 to-transparent border-white/20 backdrop-blur-xl hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/20 transition-all duration-500 group relative overflow-hidden"
                             >
                                 {/* Animated background gradient on hover */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                 
                                 <div className="relative z-10 space-y-4">
                                     {/* Planet Header */}
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
-                                            <Badge variant="outline" className="bg-primary/20 border-primary/40 text-primary hover:bg-primary/30 text-sm px-3 py-1">
+                                            <Badge variant="outline" className="bg-accent/20 border-accent/40 text-accent hover:bg-accent/30 text-sm px-3 py-1">
                                                 {planet}
                                             </Badge>
                                             <span className="text-white/60 text-sm">in</span>
-                                            <span className="text-white font-semibold text-lg group-hover:text-primary transition-colors">
+                                            <span className="text-white font-semibold text-lg group-hover:text-accent transition-colors">
                                                 {displaySign}
                                             </span>
                                         </div>
@@ -274,7 +274,7 @@ export default function BirthChartPlanets({ planets }: BirthChartPlanetsProps) {
 
                                     {/* Planetary Meaning */}
                                     <div className="space-y-2">
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-primary/80">
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-accent/80">
                                             What {planet} Represents
                                         </p>
                                         <p className="text-sm text-white/90 leading-relaxed">
@@ -284,8 +284,8 @@ export default function BirthChartPlanets({ planets }: BirthChartPlanetsProps) {
 
                                     {/* Planet in Sign Meaning */}
                                     {planetInSignMeaning && (
-                                        <div className="mt-4 p-4 rounded-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
-                                            <p className="text-[10px] font-bold uppercase tracking-wider text-primary/80 mb-2">
+                                        <div className="mt-4 p-4 rounded-lg bg-gradient-to-br from-accent/10 via-accent/5 to-transparent border border-accent/20">
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-accent/80 mb-2">
                                                 {planet} in {displaySign}
                                             </p>
                                             <p className="text-sm text-white/90 leading-relaxed">

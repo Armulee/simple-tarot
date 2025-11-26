@@ -40,175 +40,147 @@ const HOUSE_DESCRIPTIONS: Record<string, string> = {
     "12": "This house covers the subconscious, secrets, hidden enemies, institutions, and karma."
 }
 
-// Sign in House Interpretations
-const SIGN_IN_HOUSE_MEANINGS: Record<string, Record<string, string>> = {
-    "1": {
-        "Aries": "You project confidence, initiative, and a pioneering spirit. You're seen as bold, independent, and a natural leader who takes charge.",
-        "Taurus": "You present as stable, reliable, and grounded. Others see you as patient, sensual, and someone who values comfort and beauty.",
-        "Gemini": "You appear curious, communicative, and versatile. People see you as quick-witted, adaptable, and always ready for conversation.",
-        "Cancer": "You come across as nurturing, sensitive, and protective. Others perceive you as emotional, intuitive, and family-oriented.",
-        "Leo": "You project charisma, creativity, and warmth. People see you as confident, dramatic, and someone who loves being in the spotlight.",
-        "Virgo": "You appear analytical, practical, and detail-oriented. Others see you as organized, helpful, and focused on improvement.",
-        "Libra": "You present as diplomatic, charming, and balanced. People see you as cooperative, aesthetic, and seeking harmony in relationships.",
-        "Scorpio": "You project intensity, mystery, and depth. Others perceive you as powerful, transformative, and someone with hidden strength.",
-        "Sagittarius": "You appear optimistic, adventurous, and philosophical. People see you as free-spirited, honest, and always seeking truth.",
-        "Capricorn": "You project seriousness, ambition, and discipline. Others see you as responsible, traditional, and goal-oriented.",
-        "Aquarius": "You appear unique, independent, and forward-thinking. People see you as innovative, humanitarian, and marching to your own beat.",
-        "Pisces": "You present as dreamy, compassionate, and intuitive. Others perceive you as artistic, empathetic, and spiritually inclined."
+// Planet in House Interpretations
+const PLANET_IN_HOUSE_MEANINGS: Record<string, Record<string, string>> = {
+    "Sun": {
+        "1": "Your identity and self-expression are central to your personality. You shine through your individuality and have strong leadership qualities. Your ego and vitality are expressed directly through your outer persona.",
+        "2": "Your identity is tied to your resources and values. You find confidence through material security and may express yourself through possessions. Your self-worth is connected to what you own and accumulate.",
+        "3": "Your identity is expressed through communication and learning. You shine through your words, ideas, and intellectual pursuits. Your ego is tied to your ability to express yourself and share knowledge.",
+        "4": "Your identity is rooted in home and family. You find confidence through emotional security and your roots. Your ego is connected to your private life and the foundation you've built.",
+        "5": "Your identity is expressed through creativity and self-expression. You shine through your talents, romance, and ability to have fun. Your ego is tied to your creative output and personal expression.",
+        "6": "Your identity is expressed through service and daily work. You find confidence through helping others and maintaining health. Your ego is connected to your ability to be useful and improve things.",
+        "7": "Your identity is expressed through partnerships and relationships. You shine through your ability to relate to others. Your ego is tied to how you appear in partnerships and your ability to balance.",
+        "8": "Your identity involves transformation and shared resources. You find confidence through deep change and regeneration. Your ego is connected to your ability to transform and handle intensity.",
+        "9": "Your identity is expressed through philosophy and higher learning. You shine through your beliefs, wisdom, and search for truth. Your ego is tied to your worldview and spiritual understanding.",
+        "10": "Your identity is expressed through career and public image. You find confidence through achievement and recognition. Your ego is connected to your reputation and professional success.",
+        "11": "Your identity is expressed through friendships and hopes. You shine through your social connections and humanitarian ideals. Your ego is tied to your ability to connect with groups and realize dreams.",
+        "12": "Your identity involves the subconscious and hidden matters. You find confidence through spiritual connection and letting go of ego. Your ego is connected to your inner world and spiritual growth."
     },
-    "2": {
-        "Aries": "You earn money quickly through initiative and action. You may spend impulsively but also have the drive to rebuild resources.",
-        "Taurus": "You have a natural talent for accumulating wealth and material security. You value quality possessions and steady income.",
-        "Gemini": "You earn through communication, writing, or multiple income streams. Your finances may fluctuate but you adapt quickly.",
-        "Cancer": "You value security and may save for family needs. Money is tied to emotional security and home comforts.",
-        "Leo": "You spend on luxury, entertainment, and things that enhance your image. You're generous and may earn through creative pursuits.",
-        "Virgo": "You manage money carefully and practically. You earn through service, analysis, or detailed work, valuing quality over quantity.",
-        "Libra": "You value beautiful possessions and may earn through partnerships or aesthetics. Money brings harmony and balance to your life.",
-        "Scorpio": "You have intense financial focus and may earn through transformation, investments, or shared resources. You're resourceful.",
-        "Sagittarius": "You may spend on travel, education, or adventures. Money comes and goes, but you're optimistic about future abundance.",
-        "Capricorn": "You build wealth steadily and conservatively. You value long-term security and may earn through traditional careers.",
-        "Aquarius": "You may have unconventional income sources or earn through technology. You value financial independence and freedom.",
-        "Pisces": "You may earn through creative or spiritual pursuits. Money can be fluid, and you may be generous or need to guard against loss."
+    "Moon": {
+        "1": "Your emotions are visible and part of your outer personality. You're emotionally expressive and others see your feelings. Your emotional needs are tied to how you present yourself.",
+        "2": "Your emotions are tied to security and resources. You feel secure through material stability and may have emotional attachments to possessions. Your feelings are connected to your values.",
+        "3": "Your emotions are expressed through communication and learning. You process feelings through talking and intellectual activity. Your emotional needs involve mental stimulation and variety.",
+        "4": "Your emotions are deeply connected to home and family. This is your natural house. You feel most secure at home and have strong emotional ties to family and roots.",
+        "5": "Your emotions are expressed through creativity and romance. You feel secure through self-expression and fun. Your emotional needs involve being creative and enjoying life.",
+        "6": "Your emotions are tied to daily work and service. You feel secure through routine and helping others. Your emotional needs involve being useful and maintaining health.",
+        "7": "Your emotions are expressed through partnerships. You feel secure through relationships and may be emotionally dependent on partners. Your feelings are tied to how others see you.",
+        "8": "Your emotions involve transformation and intensity. You feel secure through deep emotional bonds and may have intense emotional experiences. Your feelings are connected to shared resources.",
+        "9": "Your emotions are expressed through philosophy and expansion. You feel secure through learning and exploring beliefs. Your emotional needs involve seeking truth and meaning.",
+        "10": "Your emotions are tied to career and public image. You feel secure through achievement and may be emotionally invested in your reputation. Your feelings are connected to your professional life.",
+        "11": "Your emotions are expressed through friendships and hopes. You feel secure through social connections and may have emotional attachments to groups. Your feelings are tied to your dreams.",
+        "12": "Your emotions involve the subconscious and hidden matters. You feel secure through spiritual connection and may have deep, hidden emotional patterns. Your feelings are connected to your inner world."
     },
-    "3": {
-        "Aries": "You communicate directly and assertively. You're quick to speak your mind and may have competitive relationships with siblings.",
-        "Taurus": "You communicate slowly and deliberately. Your words are practical and grounded, and you value stability in communication.",
-        "Gemini": "You're naturally gifted in communication, writing, and learning. You may have multiple siblings or varied educational experiences.",
-        "Cancer": "You communicate emotionally and intuitively. Your early education and sibling relationships are deeply meaningful to you.",
-        "Leo": "You express yourself dramatically and creatively. You may teach or inspire others through your communication style.",
-        "Virgo": "You communicate precisely and analytically. You excel at detailed explanations and may have a critical or helpful communication style.",
-        "Libra": "You communicate diplomatically and harmoniously. You seek balance in conversations and may mediate between siblings.",
-        "Scorpio": "You communicate with intensity and depth. Your words have power, and you may keep some thoughts private or secretive.",
-        "Sagittarius": "You communicate with enthusiasm and honesty. You love sharing knowledge and may have diverse educational or travel experiences.",
-        "Capricorn": "You communicate seriously and purposefully. Your early education may have been structured, and you value traditional learning.",
-        "Aquarius": "You communicate in unique and innovative ways. You may use technology or unconventional methods to express ideas.",
-        "Pisces": "You communicate intuitively and creatively. Your words may be poetic or dreamy, and you pick up on unspoken messages."
+    "Mercury": {
+        "1": "Your thinking and communication are central to your identity. You express yourself through words and ideas. Your mind is quick and you're known for your communication style.",
+        "2": "Your thinking is focused on resources and values. You communicate about money and possessions. Your mind is practical and you think about material security.",
+        "3": "Your thinking is naturally versatile and communicative. This is your natural house. You excel at learning, writing, and sharing ideas. Your mind is curious and adaptable.",
+        "4": "Your thinking is tied to home and family. You communicate about emotional matters and may think about your roots. Your mind is connected to your private life.",
+        "5": "Your thinking is creative and expressive. You communicate through art, play, and self-expression. Your mind is imaginative and you think about fun and romance.",
+        "6": "Your thinking is practical and service-oriented. You communicate about work and health. Your mind is analytical and you think about improvement and details.",
+        "7": "Your thinking is focused on partnerships. You communicate through relationships and may think about balance. Your mind is diplomatic and you consider others' perspectives.",
+        "8": "Your thinking involves transformation and depth. You communicate about intense topics and may think about mysteries. Your mind is penetrating and you seek hidden truths.",
+        "9": "Your thinking is philosophical and expansive. You communicate about beliefs and higher learning. Your mind seeks truth and you think about meaning and purpose.",
+        "10": "Your thinking is focused on career and reputation. You communicate about your profession and public image. Your mind is goal-oriented and you think about achievement.",
+        "11": "Your thinking involves friendships and hopes. You communicate about groups and ideals. Your mind is innovative and you think about the future and humanitarian causes.",
+        "12": "Your thinking involves the subconscious and hidden matters. You communicate intuitively and may think about spiritual matters. Your mind is creative and you process information unconsciously."
     },
-    "4": {
-        "Aries": "Your home is active and independent. You may move frequently or have a dynamic family environment with strong personalities.",
-        "Taurus": "Your home is stable, comfortable, and beautiful. You value security and may have a strong connection to your roots and family traditions.",
-        "Gemini": "Your home is busy with communication and activity. You may have multiple homes or a family that values learning and conversation.",
-        "Cancer": "Your home is deeply emotional and nurturing. Family bonds are strong, and you may have a close relationship with your mother.",
-        "Leo": "Your home is warm, creative, and dramatic. Family life may be theatrical, and you value pride and recognition at home.",
-        "Virgo": "Your home is organized and practical. You may focus on health, service, or improvement within the family environment.",
-        "Libra": "Your home is harmonious and aesthetic. You seek balance in family relationships and may have a beautiful, well-decorated home.",
-        "Scorpio": "Your home life is intense and transformative. Family secrets or deep emotional bonds may characterize your upbringing.",
-        "Sagittarius": "Your home may be far from your birthplace or culturally diverse. You value freedom and may have traveled or moved frequently.",
-        "Capricorn": "Your home is traditional and structured. You may have had a strict or disciplined upbringing with emphasis on responsibility.",
-        "Aquarius": "Your home is unique and unconventional. Family may be diverse or you may have had an unusual or progressive upbringing.",
-        "Pisces": "Your home is dreamy and emotional. Family bonds are deep, and you may have a spiritual or artistic family background."
+    "Venus": {
+        "1": "Your values and love nature are part of your outer personality. You're attractive and charming. Your approach to love and beauty is visible to others.",
+        "2": "Your values are tied to resources and possessions. This is your natural house. You find beauty in material things and may earn through aesthetics. Your love nature is sensual and stable.",
+        "3": "Your values are expressed through communication and learning. You find beauty in ideas and may love through words. Your love nature is playful and intellectual.",
+        "4": "Your values are tied to home and family. You find beauty in your roots and may love through nurturing. Your love nature is emotional and protective.",
+        "5": "Your values are expressed through creativity and romance. You find beauty in self-expression and love through fun. Your love nature is passionate and dramatic.",
+        "6": "Your values are tied to service and daily work. You find beauty in helping others and may love through service. Your love nature is practical and helpful.",
+        "7": "Your values are expressed through partnerships. This is also your natural house. You find beauty in relationships and love through partnership. Your love nature is balanced and harmonious.",
+        "8": "Your values involve transformation and intensity. You find beauty in depth and may love intensely. Your love nature is passionate and transformative.",
+        "9": "Your values are expressed through philosophy and expansion. You find beauty in beliefs and may love through learning. Your love nature is optimistic and adventurous.",
+        "10": "Your values are tied to career and reputation. You find beauty in achievement and may love through your profession. Your love nature is ambitious and traditional.",
+        "11": "Your values involve friendships and hopes. You find beauty in groups and may love through friendship. Your love nature is independent and humanitarian.",
+        "12": "Your values involve the subconscious and spiritual matters. You find beauty in dreams and may love through compassion. Your love nature is idealistic and selfless."
     },
-    "5": {
-        "Aries": "You express creativity through action and competition. You're passionate in romance and may have energetic, independent children.",
-        "Taurus": "You express creativity through art, music, or sensual pleasures. Romance is steady and loyal, and you value comfort in love.",
-        "Gemini": "You express creativity through communication, writing, or teaching. Romance is playful and intellectual, with lots of conversation.",
-        "Cancer": "You express creativity emotionally and protectively. Romance is nurturing, and you may have a strong emotional bond with children.",
-        "Leo": "You express creativity dramatically and confidently. Romance is passionate and showy, and you love being adored and admired.",
-        "Virgo": "You express creativity through service and improvement. Romance is practical and helpful, and you may be critical or perfectionist in love.",
-        "Libra": "You express creativity through beauty and harmony. Romance is balanced and aesthetic, and you seek partnership and cooperation.",
-        "Scorpio": "You express creativity with intensity and depth. Romance is transformative and passionate, with deep emotional connections.",
-        "Sagittarius": "You express creativity through adventure and philosophy. Romance is optimistic and free-spirited, and you value honesty and growth.",
-        "Capricorn": "You express creativity through structure and discipline. Romance is serious and traditional, and you may delay having children.",
-        "Aquarius": "You express creativity in unique and innovative ways. Romance is independent and unconventional, valuing friendship in love.",
-        "Pisces": "You express creativity through art, music, or spirituality. Romance is dreamy and idealistic, with deep emotional and spiritual connections."
+    "Mars": {
+        "1": "Your energy and drive are central to your identity. You're assertive and action-oriented. Your approach to conflict and desire is direct and visible.",
+        "2": "Your energy is focused on resources and values. You take action to build security and may be driven by material goals. Your assertiveness is tied to possessions.",
+        "3": "Your energy is expressed through communication and learning. You take action through words and ideas. Your drive involves mental pursuits and variety.",
+        "4": "Your energy is tied to home and family. You take action to protect your roots and may be driven by emotional security. Your assertiveness is connected to your private life.",
+        "5": "Your energy is expressed through creativity and romance. You take action through self-expression and fun. Your drive involves passion and play.",
+        "6": "Your energy is focused on service and daily work. You take action through helping others and maintaining health. Your drive involves improvement and routine.",
+        "7": "Your energy is expressed through partnerships. You take action through relationships and may be driven by partnership goals. Your assertiveness is tied to how you relate.",
+        "8": "Your energy involves transformation and intensity. This is also your natural house. You take action through deep change and may be driven by power. Your drive is intense and transformative.",
+        "9": "Your energy is expressed through philosophy and expansion. You take action through beliefs and may be driven by truth-seeking. Your drive involves adventure and learning.",
+        "10": "Your energy is focused on career and reputation. You take action through your profession and may be driven by achievement. Your assertiveness is tied to your public image.",
+        "11": "Your energy involves friendships and hopes. You take action through groups and may be driven by ideals. Your drive involves innovation and humanitarian causes.",
+        "12": "Your energy involves the subconscious and hidden matters. You take action through spiritual practice and may suppress direct action. Your drive is internal and may involve service."
     },
-    "6": {
-        "Aries": "You work with energy and initiative. Health requires active management, and you may be prone to headaches or inflammation.",
-        "Taurus": "You work steadily and reliably. Health is generally stable, but you may need to watch your diet and avoid overindulgence.",
-        "Gemini": "You work in communication, writing, or varied tasks. Health may involve nervous system issues, and you need mental stimulation.",
-        "Cancer": "You work in nurturing or caregiving roles. Health is tied to emotions, and you may need to manage stress and digestive issues.",
-        "Leo": "You work creatively or in leadership roles. Health is generally good, but you may need to watch your heart and avoid overexertion.",
-        "Virgo": "You work in service, health, or detail-oriented fields. You're health-conscious and may be prone to worry or digestive issues.",
-        "Libra": "You work in partnerships or aesthetic fields. Health requires balance, and you may need to avoid indecision or kidney issues.",
-        "Scorpio": "You work in transformation, research, or healing. Health may involve regeneration, and you're drawn to deep, meaningful work.",
-        "Sagittarius": "You work in education, travel, or philosophy. Health is generally good, but you may need to watch your liver and avoid excess.",
-        "Capricorn": "You work with discipline and structure. Health requires careful management, and you may be prone to bone or joint issues.",
-        "Aquarius": "You work in technology or humanitarian fields. Health may be unusual, and you need freedom and variety in your routine.",
-        "Pisces": "You work in service, healing, or creative fields. Health is sensitive, and you may need to avoid escapism or substance issues."
+    "Jupiter": {
+        "1": "Your growth and expansion are central to your identity. You're optimistic and philosophical. Your approach to life is expansive and you seek meaning through your personality.",
+        "2": "Your growth is tied to resources and values. You expand through building security and may find luck through possessions. Your optimism is connected to material abundance.",
+        "3": "Your growth is expressed through communication and learning. You expand through knowledge and may find luck through ideas. Your optimism involves mental pursuits.",
+        "4": "Your growth is tied to home and family. You expand through emotional security and may find luck through your roots. Your optimism is connected to your foundation.",
+        "5": "Your growth is expressed through creativity and romance. You expand through self-expression and may find luck through fun. Your optimism involves play and creativity.",
+        "6": "Your growth is focused on service and daily work. You expand through helping others and may find luck through health. Your optimism involves improvement and routine.",
+        "7": "Your growth is expressed through partnerships. You expand through relationships and may find luck through others. Your optimism is connected to balance and harmony.",
+        "8": "Your growth involves transformation and shared resources. You expand through deep change and may find luck through transformation. Your optimism is connected to regeneration.",
+        "9": "Your growth is expressed through philosophy and higher learning. This is your natural house. You expand through beliefs and find luck through seeking truth. Your optimism involves meaning and purpose.",
+        "10": "Your growth is focused on career and reputation. You expand through achievement and may find luck through your profession. Your optimism is connected to your public image.",
+        "11": "Your growth involves friendships and hopes. You expand through groups and may find luck through ideals. Your optimism involves humanitarian causes and innovation.",
+        "12": "Your growth involves the subconscious and spiritual matters. This is also your natural house. You expand through spiritual connection and may find luck through compassion. Your optimism involves transcendence."
     },
-    "7": {
-        "Aries": "You attract partners who are independent, assertive, and direct. Relationships are dynamic but may involve competition or conflict.",
-        "Taurus": "You attract stable, reliable partners who value security. Relationships are steady and long-lasting, with emphasis on loyalty.",
-        "Gemini": "You attract communicative, intellectual partners. Relationships are lively and may involve multiple connections or mental stimulation.",
-        "Cancer": "You attract nurturing, emotional partners. Relationships are deeply emotional, and you seek security and family in partnership.",
-        "Leo": "You attract confident, creative partners. Relationships are passionate and dramatic, with emphasis on mutual admiration.",
-        "Virgo": "You attract practical, helpful partners. Relationships focus on service and improvement, and you may be critical or perfectionist.",
-        "Libra": "You attract balanced, aesthetic partners. Relationships are harmonious and beautiful, with emphasis on partnership and cooperation.",
-        "Scorpio": "You attract intense, transformative partners. Relationships are deep and passionate, with potential for power struggles.",
-        "Sagittarius": "You attract adventurous, philosophical partners. Relationships are optimistic and free-spirited, valuing honesty and growth.",
-        "Capricorn": "You attract serious, ambitious partners. Relationships are traditional and structured, with emphasis on long-term commitment.",
-        "Aquarius": "You attract unique, independent partners. Relationships are unconventional and value friendship, freedom, and innovation.",
-        "Pisces": "You attract dreamy, compassionate partners. Relationships are idealistic and spiritual, with deep emotional and intuitive connections."
+    "Saturn": {
+        "1": "Your challenges and discipline are central to your identity. You're serious and responsible. Your approach to life involves structure and you may feel restricted in self-expression.",
+        "2": "Your challenges are tied to resources and values. You build security through discipline and may face restrictions with money. Your responsibility involves material stability.",
+        "3": "Your challenges are expressed through communication and learning. You build knowledge through discipline and may face restrictions in expression. Your responsibility involves education.",
+        "4": "Your challenges are tied to home and family. You build security through discipline and may face restrictions with roots. Your responsibility involves emotional foundations.",
+        "5": "Your challenges are expressed through creativity and romance. You build self-expression through discipline and may face restrictions in play. Your responsibility involves creative work.",
+        "6": "Your challenges are focused on service and daily work. You build health through discipline and may face restrictions in routine. Your responsibility involves service and improvement.",
+        "7": "Your challenges are expressed through partnerships. You build relationships through discipline and may face restrictions in relating. Your responsibility involves commitment and balance.",
+        "8": "Your challenges involve transformation and shared resources. You build change through discipline and may face restrictions with intensity. Your responsibility involves regeneration.",
+        "9": "Your challenges are expressed through philosophy and higher learning. You build beliefs through discipline and may face restrictions in expansion. Your responsibility involves seeking truth.",
+        "10": "Your challenges are focused on career and reputation. This is your natural house. You build achievement through discipline and may face restrictions professionally. Your responsibility involves your public image.",
+        "11": "Your challenges involve friendships and hopes. You build groups through discipline and may face restrictions with ideals. Your responsibility involves innovation and humanitarian causes.",
+        "12": "Your challenges involve the subconscious and hidden matters. You build spirituality through discipline and may face restrictions with illusions. Your responsibility involves inner work and letting go."
     },
-    "8": {
-        "Aries": "You transform through action and courage. Shared resources may involve conflict, and you're direct about transformation.",
-        "Taurus": "You transform slowly and steadily. Shared resources are stable, and you value security in joint finances and inheritances.",
-        "Gemini": "You transform through communication and learning. Shared resources may involve multiple sources, and you adapt to change easily.",
-        "Cancer": "You transform emotionally and protectively. Shared resources are tied to family, and you may inherit or share with family members.",
-        "Leo": "You transform dramatically and creatively. Shared resources may be generous, and you transform through self-expression and pride.",
-        "Virgo": "You transform through analysis and service. Shared resources require careful management, and you improve through transformation.",
-        "Libra": "You transform through partnership and balance. Shared resources involve others, and you seek harmony in joint finances.",
-        "Scorpio": "You transform intensely and deeply. This is your natural house, so transformation is powerful, and you're drawn to mysteries.",
-        "Sagittarius": "You transform through philosophy and expansion. Shared resources may come from distant sources, and you're optimistic about change.",
-        "Capricorn": "You transform through discipline and structure. Shared resources are managed carefully, and you build security through transformation.",
-        "Aquarius": "You transform through innovation and independence. Shared resources may be unconventional, and you value freedom in transformation.",
-        "Pisces": "You transform through spirituality and intuition. Shared resources may be fluid, and you're drawn to mystical or hidden matters."
+    "Rahu": {
+        "1": "Your desires involve being independent and taking initiative. You're drawn to leadership and may obsess over being first. Your ambitions are tied to your identity.",
+        "2": "Your desires involve accumulating resources and material security. You're drawn to possessions and may obsess over money. Your ambitions are tied to values.",
+        "3": "Your desires involve communication and learning. You're drawn to knowledge and may obsess over ideas. Your ambitions are tied to mental pursuits.",
+        "4": "Your desires involve home and family security. You're drawn to roots and may obsess over emotional stability. Your ambitions are tied to your foundation.",
+        "5": "Your desires involve creativity and recognition. You're drawn to self-expression and may obsess over being admired. Your ambitions are tied to play and romance.",
+        "6": "Your desires involve service and perfection. You're drawn to helping others and may obsess over health. Your ambitions are tied to improvement.",
+        "7": "Your desires involve partnerships and balance. You're drawn to relationships and may obsess over finding the perfect partner. Your ambitions are tied to harmony.",
+        "8": "Your desires involve transformation and power. You're drawn to intensity and may obsess over control. Your ambitions are tied to deep change.",
+        "9": "Your desires involve philosophy and expansion. You're drawn to truth-seeking and may obsess over beliefs. Your ambitions are tied to higher learning.",
+        "10": "Your desires involve career and achievement. You're drawn to recognition and may obsess over status. Your ambitions are tied to your public image.",
+        "11": "Your desires involve friendships and innovation. You're drawn to groups and may obsess over ideals. Your ambitions are tied to humanitarian causes.",
+        "12": "Your desires involve spirituality and escape. You're drawn to transcendence and may obsess over illusions. Your ambitions are tied to letting go."
     },
-    "9": {
-        "Aries": "You seek truth through action and adventure. Philosophy is direct and practical, and you may travel for adventure or competition.",
-        "Taurus": "You seek truth through stability and tradition. Philosophy is grounded, and you may travel for comfort or to appreciate beauty.",
-        "Gemini": "You seek truth through learning and communication. Philosophy involves multiple perspectives, and you may travel for education or variety.",
-        "Cancer": "You seek truth through emotion and tradition. Philosophy is tied to family values, and you may travel to connect with roots.",
-        "Leo": "You seek truth through creativity and self-expression. Philosophy is dramatic, and you may travel for adventure or to be admired.",
-        "Virgo": "You seek truth through analysis and service. Philosophy is practical, and you may travel for work or to improve yourself.",
-        "Libra": "You seek truth through balance and aesthetics. Philosophy involves harmony, and you may travel for beauty or partnership.",
-        "Scorpio": "You seek truth through depth and transformation. Philosophy is intense, and you're drawn to mysteries, psychology, or the occult.",
-        "Sagittarius": "You seek truth through expansion and adventure. This is your natural house, so philosophy and travel are central to your life.",
-        "Capricorn": "You seek truth through structure and tradition. Philosophy is serious, and you may travel for career or to honor traditions.",
-        "Aquarius": "You seek truth through innovation and independence. Philosophy is unconventional, and you may travel for humanitarian causes.",
-        "Pisces": "You seek truth through spirituality and intuition. Philosophy is mystical, and you may travel for spiritual growth or artistic inspiration."
+    "Ketu": {
+        "1": "You're releasing attachment to ego and identity. Your spiritual path involves learning humility and letting go of the need to be first. You seek detachment from self.",
+        "2": "You're releasing attachment to possessions and material security. Your spiritual path involves learning to value non-material things. You seek detachment from resources.",
+        "3": "You're releasing attachment to communication and mental activity. Your spiritual path involves learning silence and going beyond words. You seek detachment from ideas.",
+        "4": "You're releasing attachment to home and family patterns. Your spiritual path involves learning independence and letting go of the past. You seek detachment from roots.",
+        "5": "You're releasing attachment to creativity and recognition. Your spiritual path involves learning humility and letting go of the need for attention. You seek detachment from self-expression.",
+        "6": "You're releasing attachment to service and perfection. Your spiritual path involves learning to accept imperfection. You seek detachment from improvement.",
+        "7": "You're releasing attachment to partnerships and balance. Your spiritual path involves learning independence and letting go of the need for others. You seek detachment from relationships.",
+        "8": "You're releasing attachment to power and control. Your spiritual path involves learning to let go and finding peace in surrender. You seek detachment from transformation.",
+        "9": "You're releasing attachment to beliefs and expansion. Your spiritual path involves learning to be present and letting go of the need to seek more. You seek detachment from philosophy.",
+        "10": "You're releasing attachment to career and achievement. Your spiritual path involves learning flexibility and letting go of the need for status. You seek detachment from reputation.",
+        "11": "You're releasing attachment to friendships and innovation. Your spiritual path involves learning connection and letting go of the need to be different. You seek detachment from groups.",
+        "12": "You're releasing attachment to illusions and escape. Your spiritual path involves learning to face reality and letting go of the need to transcend. You seek detachment from the subconscious."
     },
-    "10": {
-        "Aries": "You're a natural leader and pioneer in your career. You're seen as independent, ambitious, and someone who takes initiative.",
-        "Taurus": "You build a stable, reliable career. You're seen as patient and persistent, and may work in finance, art, or stable industries.",
-        "Gemini": "You excel in communication, writing, or varied careers. You're seen as versatile and may have multiple career paths or interests.",
-        "Cancer": "You're drawn to nurturing or family-oriented careers. You're seen as protective and may work in caregiving, real estate, or food industries.",
-        "Leo": "You shine in creative or leadership roles. You're seen as confident and dramatic, and may work in entertainment, management, or the arts.",
-        "Virgo": "You excel in service, health, or detail-oriented careers. You're seen as practical and helpful, and may work in healthcare or analysis.",
-        "Libra": "You're drawn to partnership, aesthetics, or justice careers. You're seen as diplomatic and may work in law, design, or relationships.",
-        "Scorpio": "You're drawn to transformation, research, or power careers. You're seen as intense and may work in psychology, investigation, or healing.",
-        "Sagittarius": "You're drawn to education, travel, or philosophy careers. You're seen as optimistic and may work in teaching, publishing, or travel.",
-        "Capricorn": "You build a traditional, structured career. This is your natural house, so you're ambitious, disciplined, and may achieve high status.",
-        "Aquarius": "You're drawn to technology, innovation, or humanitarian careers. You're seen as unique and may work in science, technology, or social causes.",
-        "Pisces": "You're drawn to creative, spiritual, or healing careers. You're seen as intuitive and may work in arts, healing, or service to others."
-    },
-    "11": {
-        "Aries": "You have independent, active friends. Your hopes involve leadership and initiative, and you're drawn to groups that take action.",
-        "Taurus": "You have stable, loyal friends. Your hopes involve security and comfort, and you value long-term friendships and steady groups.",
-        "Gemini": "You have communicative, diverse friends. Your hopes involve learning and variety, and you're part of multiple groups or networks.",
-        "Cancer": "You have emotional, protective friends. Your hopes involve family and security, and you're drawn to nurturing or family-oriented groups.",
-        "Leo": "You have creative, confident friends. Your hopes involve recognition and self-expression, and you're drawn to groups that celebrate creativity.",
-        "Virgo": "You have practical, helpful friends. Your hopes involve improvement and service, and you're drawn to groups focused on health or improvement.",
-        "Libra": "You have balanced, aesthetic friends. Your hopes involve harmony and partnership, and you're drawn to groups focused on beauty or justice.",
-        "Scorpio": "You have intense, transformative friends. Your hopes involve depth and power, and you're drawn to groups focused on transformation or mystery.",
-        "Sagittarius": "You have adventurous, philosophical friends. Your hopes involve expansion and truth, and you're drawn to groups focused on travel or learning.",
-        "Capricorn": "You have serious, ambitious friends. Your hopes involve achievement and structure, and you're drawn to professional or traditional groups.",
-        "Aquarius": "You have unique, independent friends. This is your natural house, so friendships and hopes are central, and you value innovation and freedom.",
-        "Pisces": "You have dreamy, compassionate friends. Your hopes involve spirituality and creativity, and you're drawn to groups focused on healing or art."
-    },
-    "12": {
-        "Aries": "Your subconscious is active and independent. Hidden matters involve action and courage, and you may need solitude to recharge energy.",
-        "Taurus": "Your subconscious is stable and grounded. Hidden matters involve security and comfort, and you may retreat to peaceful, beautiful places.",
-        "Gemini": "Your subconscious is communicative and varied. Hidden matters involve learning and adaptation, and you may process through writing or talking.",
-        "Cancer": "Your subconscious is emotional and protective. Hidden matters involve family and security, and you may retreat to familiar, safe spaces.",
-        "Leo": "Your subconscious is creative and proud. Hidden matters involve self-expression and recognition, and you may need creative solitude.",
-        "Virgo": "Your subconscious is analytical and practical. Hidden matters involve service and improvement, and you may process through work or analysis.",
-        "Libra": "Your subconscious is balanced and aesthetic. Hidden matters involve partnership and harmony, and you may retreat to beautiful, peaceful places.",
-        "Scorpio": "Your subconscious is intense and transformative. Hidden matters involve depth and power, and you're drawn to mysteries and the occult.",
-        "Sagittarius": "Your subconscious is optimistic and philosophical. Hidden matters involve truth and expansion, and you may process through travel or learning.",
-        "Capricorn": "Your subconscious is structured and disciplined. Hidden matters involve responsibility and tradition, and you may process through work or duty.",
-        "Aquarius": "Your subconscious is innovative and independent. Hidden matters involve freedom and uniqueness, and you may process through technology or innovation.",
-        "Pisces": "Your subconscious is dreamy and spiritual. This is your natural house, so the subconscious and hidden matters are central to your life."
+    "Ascendant": {
+        "1": "Your outer personality is your identity. This is your natural house. How others see you is central to who you are. Your approach to life defines your essence.",
+        "2": "Your outer personality is tied to resources and values. Others see you as stable and value-oriented. Your approach to life involves building security.",
+        "3": "Your outer personality is communicative and versatile. Others see you as curious and adaptable. Your approach to life involves learning and sharing ideas.",
+        "4": "Your outer personality is nurturing and protective. Others see you as emotional and family-oriented. Your approach to life involves creating security.",
+        "5": "Your outer personality is creative and expressive. Others see you as playful and dramatic. Your approach to life involves self-expression and fun.",
+        "6": "Your outer personality is practical and service-oriented. Others see you as helpful and detail-focused. Your approach to life involves improvement and service.",
+        "7": "Your outer personality is diplomatic and relationship-focused. Others see you as balanced and cooperative. Your approach to life involves partnership and harmony.",
+        "8": "Your outer personality is intense and mysterious. Others see you as transformative and deep. Your approach to life involves intensity and regeneration.",
+        "9": "Your outer personality is optimistic and philosophical. Others see you as adventurous and truth-seeking. Your approach to life involves expansion and learning.",
+        "10": "Your outer personality is serious and ambitious. Others see you as responsible and goal-oriented. Your approach to life involves achievement and structure.",
+        "11": "Your outer personality is unique and independent. Others see you as innovative and humanitarian. Your approach to life involves freedom and ideals.",
+        "12": "Your outer personality is dreamy and intuitive. Others see you as artistic and compassionate. Your approach to life involves spirituality and inner work."
     }
 }
 
@@ -250,16 +222,16 @@ export default function BirthChartHouses({ houses, planets }: BirthChartHousesPr
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-3 mb-8">
-                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
                 <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/20 border border-primary/30">
-                        <Home className="w-6 h-6 text-primary" />
+                    <div className="p-2 rounded-lg bg-accent/20 border border-accent/30">
+                        <Home className="w-6 h-6 text-accent" />
                     </div>
                     <h2 className="text-2xl font-serif font-bold text-white">
                         Your Houses
                     </h2>
                 </div>
-                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
@@ -272,9 +244,6 @@ export default function BirthChartHouses({ houses, planets }: BirthChartHousesPr
                         signName = (signData as AstroPoint).sign
                     }
 
-                    // Translate sanskrit if needed
-                    const displaySign = normalizeSign(signName)
-                    
                     // Find planets in this house's sign
                     const planetsInHouse = getPlanetsInSign(signName)
 
@@ -285,10 +254,10 @@ export default function BirthChartHouses({ houses, planets }: BirthChartHousesPr
                     return (
                         <Card
                             key={houseNum}
-                            className={`p-5 bg-gradient-to-br ${isEven ? 'from-white/10 via-white/5 to-transparent' : 'from-primary/10 via-primary/5 to-transparent'} border-white/20 backdrop-blur-xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 transition-all duration-500 group relative overflow-hidden`}
+                            className={`p-5 bg-gradient-to-br ${isEven ? 'from-white/10 via-white/5 to-transparent' : 'from-accent/10 via-accent/5 to-transparent'} border-white/20 backdrop-blur-xl hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/20 hover:-translate-y-1 transition-all duration-500 group relative overflow-hidden`}
                         >
                             {/* Animated background gradient on hover */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                             
                             <div className="relative z-10">
                                 <div className="flex justify-between items-start mb-3">
@@ -296,50 +265,45 @@ export default function BirthChartHouses({ houses, planets }: BirthChartHousesPr
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-white/50 mb-2 block">
                                             {houseNum}{suffix} House
                                         </span>
-                                        <h3 className="font-bold text-white text-base leading-tight group-hover:text-primary transition-colors">
+                                        <h3 className="font-bold text-white text-base leading-tight group-hover:text-accent transition-colors">
                                             {HOUSE_MEANINGS[houseNum]}
                                         </h3>
                                     </div>
-                                    <Badge variant="outline" className="bg-primary/20 border-primary/40 text-primary hover:bg-primary/30 ml-3 shrink-0">
-                                        {displaySign}
-                                    </Badge>
-                                </div>
-                                
-                                <p className="text-xs text-muted-foreground leading-relaxed mt-3 mb-3">
-                                    {HOUSE_DESCRIPTIONS[houseNum]} 
-                                </p>
-
-                                {/* Planets in House */}
-                                {planetsInHouse.length > 0 && (
-                                    <div className="mt-3 mb-3">
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-2">
-                                            Planets in this House
-                                        </p>
-                                        <div className="flex flex-wrap gap-2">
+                                    {/* Planets in House Badges */}
+                                    {planetsInHouse.length > 0 && (
+                                        <div className="flex flex-wrap gap-1.5 ml-3 shrink-0 justify-end">
                                             {planetsInHouse.map((planet) => (
                                                 <Badge 
                                                     key={planet}
                                                     variant="outline" 
-                                                    className="bg-yellow-500/20 border-yellow-500/40 text-yellow-400 hover:bg-yellow-500/30 text-xs"
+                                                    className="bg-accent/20 border-accent/40 text-accent hover:bg-accent/30 text-xs"
                                                 >
                                                     {planet}
                                                 </Badge>
                                             ))}
                                         </div>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                                 
-                                {/* Sign in House Meaning */}
-                                {SIGN_IN_HOUSE_MEANINGS[houseNum]?.[displaySign] && (
-                                    <div className="mt-4 p-3 rounded-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-primary/80 mb-2">
-                                            {displaySign} in {houseNum}{suffix} House
-                                        </p>
-                                        <p className="text-xs text-white/90 leading-relaxed">
-                                            {SIGN_IN_HOUSE_MEANINGS[houseNum][displaySign]}
-                                        </p>
-                                    </div>
-                                )}
+                                <p className="text-xs text-muted-foreground leading-relaxed mt-3 mb-3">
+                                    {HOUSE_DESCRIPTIONS[houseNum]} 
+                                </p>
+                                
+                                {/* Planet in House Meanings */}
+                                {planetsInHouse.length > 0 && planetsInHouse.map((planet) => {
+                                    const planetMeaning = PLANET_IN_HOUSE_MEANINGS[planet]?.[houseNum]
+                                    if (!planetMeaning) return null
+                                    return (
+                                        <div key={planet} className="mt-4 p-3 rounded-lg bg-gradient-to-br from-accent/10 via-accent/5 to-transparent border border-accent/20">
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-accent/80 mb-2">
+                                                {planet} in {houseNum}{suffix} House
+                                            </p>
+                                            <p className="text-xs text-white/90 leading-relaxed">
+                                                {planetMeaning}
+                                            </p>
+                                        </div>
+                                    )
+                                })}
                             </div>
                         </Card>
                     )

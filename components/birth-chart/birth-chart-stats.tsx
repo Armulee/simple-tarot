@@ -90,7 +90,7 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                 const archetype = PLANET_ARCHETYPES[k]
                 
                 // Determine styling based on status
-                let cardClassName = "p-4 sm:p-5 bg-gradient-to-br from-white/10 via-white/5 to-transparent border-white/20 backdrop-blur-xl transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/40"
+                let cardClassName = "p-4 sm:p-5 bg-gradient-to-br from-white/10 via-white/5 to-transparent border-white/20 backdrop-blur-xl transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-accent/20 hover:border-accent/40"
                 let iconAura = ""
                 let progressIndicatorClass = STAT_COLORS[k]
                 let labelColor = "text-white"
@@ -131,7 +131,7 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                     )
                 } else {
                     // Normal case
-                    cardClassName = "p-4 sm:p-5 bg-gradient-to-br from-white/10 via-white/5 to-transparent border-white/20 backdrop-blur-xl hover:scale-105 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/30 transition-all duration-500"
+                    cardClassName = "p-4 sm:p-5 bg-gradient-to-br from-white/10 via-white/5 to-transparent border-white/20 backdrop-blur-xl hover:scale-105 hover:shadow-xl hover:shadow-accent/10 hover:border-accent/30 transition-all duration-500"
                     statusLabel = (
                         <span className="text-[10px] uppercase tracking-wider font-bold text-white/50 flex items-center gap-1.5 mb-1 ml-auto">
                             <div className="h-1.5 w-1.5 rounded-full bg-white/50 animate-pulse" />
