@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useRef, useEffect } from "react"
+import { useTranslations } from "next-intl"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { FreeMode, Mousewheel } from "swiper/modules"
 import "swiper/css"
@@ -184,6 +185,7 @@ interface BirthChartShareSectionProps {
 }
 
 export default function BirthChartShareSection({ id }: BirthChartShareSectionProps = {}) {
+    const t = useTranslations("BirthChart")
     const navGuardRef = useRef<HTMLDivElement>(null)
     const [unavailableOpen, setUnavailableOpen] = useState(false)
     const [unavailableLabel, setUnavailableLabel] = useState<string>("")
@@ -242,10 +244,10 @@ export default function BirthChartShareSection({ id }: BirthChartShareSectionPro
                         </div>
                         <div>
                             <h3 className='font-serif font-semibold text-lg text-foreground group-hover:text-accent/90 transition-colors duration-300 text-white'>
-                                Share Your Birth Chart
+                                {t("shareTitle")}
                             </h3>
                             <p className='text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300'>
-                                Share your cosmic blueprint with friends
+                                {t("shareDescription")}
                             </p>
                         </div>
                     </div>
