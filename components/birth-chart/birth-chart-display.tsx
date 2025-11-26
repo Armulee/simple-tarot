@@ -39,11 +39,11 @@ export default function BirthChartDisplay({
     return (
         <div className='space-y-12 px-4 max-w-6xl mx-auto h-full py-12'>
             {/* Header */}
-            <Card className='px-8 pt-12 pb-8 border-0 relative overflow-hidden bg-gradient-to-br from-[#0A0F26] via-[#1a1f3a] to-[#131A3A] shadow-2xl'>
+            <Card className='px-8 pt-12 pb-8 border-0 relative overflow-hidden bg-transparent shadow-2xl'>
                 {/* Animated background elements */}
                 <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute -top-40 -right-40 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-pulse" />
-                    <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
+                    <div className="absolute -top-40 -right-40 w-80 h-80 bg-transparent rounded-full blur-3xl animate-pulse" />
+                    <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-transparent rounded-full blur-3xl animate-pulse delay-1000" />
                 </div>
                 <div className='text-center space-y-6 relative z-10'>
                     <div className='flex items-center justify-center space-x-3 relative'>

@@ -70,9 +70,9 @@ export default function BirthChartPlanets({ planets }: BirthChartPlanetsProps) {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <div className="px-3 py-1.5 rounded-md bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 text-sm">
-                                                <span className="font-semibold">{planet}</span>
+                                                <span className="font-semibold">{t(`planets.${planet}`)}</span>
                                             </div>
-                                            <span className="text-white/60 text-sm">in</span>
+                                            <span className="text-white/60 text-sm">{t("in")}</span>
                                             <span className="text-white font-semibold text-lg group-hover:text-accent transition-colors">
                                                 {displaySign}
                                             </span>
@@ -83,7 +83,7 @@ export default function BirthChartPlanets({ planets }: BirthChartPlanetsProps) {
                                     {planetInSignMeaning && (
                                         <div className="mt-4 p-4 rounded-lg bg-yellow-500/20 border border-yellow-500/40">
                                             <p className="text-[10px] font-bold uppercase tracking-wider text-yellow-400/90 mb-2">
-                                                {planet} in {displaySign}
+                                                {t(`planets.${planet}`)} {t("in")} {displaySign}
                                             </p>
                                             <p className="text-sm text-white/90 leading-relaxed">
                                                 {planetInSignMeaning}

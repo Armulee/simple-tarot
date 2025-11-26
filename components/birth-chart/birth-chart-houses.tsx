@@ -109,8 +109,8 @@ export default function BirthChartHouses({ houses, planets }: BirthChartHousesPr
                             <div className="relative z-10">
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="flex-1">
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-white/50 mb-2 block">
-                                            {houseNum}{suffix} House
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-white/50 mb-2 block">
+                                            {houseNum}{suffix} {t("house")}
                                         </span>
                                         <h3 className="font-bold text-white text-base leading-tight group-hover:text-accent transition-colors">
                                             {getHouseMeaning(houseNum)}
@@ -124,7 +124,7 @@ export default function BirthChartHouses({ houses, planets }: BirthChartHousesPr
                                                     key={planet}
                                                     className="px-2 py-1 rounded-md bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 text-xs"
                                                 >
-                                                    {planet}
+                                                    {t(`planets.${planet}`)}
                                                 </div>
                                             ))}
                                         </div>
@@ -142,7 +142,7 @@ export default function BirthChartHouses({ houses, planets }: BirthChartHousesPr
                                     return (
                                         <div key={planet} className="mt-3 mb-3 p-3 rounded-lg bg-yellow-500/20 border border-yellow-500/40">
                                             <p className="text-[10px] font-bold uppercase tracking-wider text-yellow-400/90 mb-2">
-                                                {planet} in {houseNum}{suffix} House
+                                                {t(`planets.${planet}`)} {t("in")} {houseNum}{suffix} {t("house")}
                                             </p>
                                             <p className="text-xs text-white/90 leading-relaxed">
                                                 {planetMeaning}

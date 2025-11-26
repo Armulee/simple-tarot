@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress"
 import { Card } from "@/components/ui/card"
 import { calculatePlanetStats, PlanetStats, PlanetStatType } from "@/lib/birth-chart-utils"
 import { Sun, Moon, Sword, Brain, Crown, Heart, Scale, CloudFog, Ghost, ArrowDown, Star, ShieldCheck, Circle, CircleDot } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface BirthChartStatsProps {
     planets?: Record<string, unknown> | null
@@ -48,31 +49,10 @@ const STAT_COLORS: Record<PlanetStatType, string> = {
     Ketu: "bg-stone-500",
 }
 
-const STAT_DESCRIPTIONS: Record<PlanetStatType, string> = {
-    Sun: "Soul, Ego, Vitality, Authority",
-    Moon: "Mind, Comfort, Intuition, Peace",
-    Mars: "Energy, Action, Courage, Sibling",
-    Mercury: "Speech, Business, Logic, Trade",
-    Jupiter: "Wealth, Growth, Guru, Luck",
-    Venus: "Beauty, Luxury, Desire, Art",
-    Saturn: "Karma, Delay, Labor, Structure",
-    Rahu: "Obsession, Innovation, Illusion, Foreign",
-    Ketu: "Detachment, Liberation, Past, Mysticism",
-}
-
-const PLANET_ARCHETYPES: Record<PlanetStatType, string> = {
-    Sun: "Leadership",
-    Moon: "Emotion",
-    Mars: "Drive",
-    Mercury: "Intellect",
-    Jupiter: "Wisdom",
-    Venus: "Romance",
-    Saturn: "Discipline",
-    Rahu: "Ambition",
-    Ketu: "Spirituality",
-}
 
 export default function BirthChartStats({ planets }: BirthChartStatsProps) {
+    const t = useTranslations("BirthChart")
+    
     const stats = useMemo(() => {
         if (!planets) return null
         return calculatePlanetStats(planets)
@@ -87,7 +67,9 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                 const { value, status } = stat
                 const Icon = STAT_ICONS[k]
                 const PlanetIcon = PLANET_ICONS[k]
-                const archetype = PLANET_ARCHETYPES[k]
+                const archetype = t(`stats.archetypes.${k}`)
+                const description = t(`stats.descriptions.${k}`)
+                const planetName = t(`planets.${k}`)
                 
                 // Determine styling based on status
                 let cardClassName = "p-4 sm:p-5 bg-gradient-to-br from-white/10 via-white/5 to-transparent border-white/20 backdrop-blur-xl transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-accent/20 hover:border-accent/40"
@@ -104,7 +86,7 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                     labelColor = "text-yellow-200"
                     statusLabel = (
                         <span className="text-[10px] uppercase tracking-wider font-bold text-yellow-400 flex items-center gap-1 mb-1 ml-auto">
-                            <Star className="w-3 h-3 fill-yellow-400 animate-pulse" /> Exalted
+                            <Star className="w-3 h-3 fill-yellow-400 animate-pulse" /> {t("stats.status.exalted")}
                         </span>
                     )
                 } else if (status === 'own_sign') {
@@ -115,7 +97,7 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                     labelColor = "text-blue-200"
                     statusLabel = (
                         <span className="text-[10px] uppercase tracking-wider font-bold text-blue-400 flex items-center gap-1 mb-1 ml-auto">
-                            <ShieldCheck className="w-3 h-3 fill-blue-400" /> Own Sign
+                            <ShieldCheck className="w-3 h-3 fill-blue-400" /> {t("stats.status.ownSign")}
                         </span>
                     )
                 } else if (status === 'debilitated') {
@@ -126,7 +108,7 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                     labelColor = "text-gray-400"
                     statusLabel = (
                         <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 flex items-center gap-1 mb-1 ml-auto">
-                            <ArrowDown className="w-3 h-3" /> Debilitated
+                            <ArrowDown className="w-3 h-3" /> {t("stats.status.debilitated")}
                         </span>
                     )
                 } else {
@@ -135,7 +117,7 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                     statusLabel = (
                         <span className="text-[10px] uppercase tracking-wider font-bold text-white/50 flex items-center gap-1.5 mb-1 ml-auto">
                             <div className="h-1.5 w-1.5 rounded-full bg-white/50 animate-pulse" />
-                            Normal
+                            {t("stats.status.normal")}
                         </span>
                     )
                 }
@@ -165,14 +147,14 @@ export default function BirthChartStats({ planets }: BirthChartStatsProps) {
                                             {archetype}
                                         </h3>
                                         <span className="text-[10px] sm:text-xs opacity-70 font-medium flex items-center gap-1.5 mt-0.5">
-                                            <PlanetIcon className="w-3 h-3" /> {key}
+                                            <PlanetIcon className="w-3 h-3" /> {planetName}
                                         </span>
                                     </div>
                                 </div>
                             </div>
                             
                             <p className="text-[11px] sm:text-xs text-muted-foreground line-clamp-2 leading-relaxed min-h-[2.5rem]">
-                                {STAT_DESCRIPTIONS[k]}
+                                {description}
                             </p>
 
                             <div className="mt-2">
