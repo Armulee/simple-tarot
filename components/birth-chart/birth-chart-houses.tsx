@@ -1,9 +1,9 @@
 "use client"
 
+import { useState } from "react"
 import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { SANSKRIT_SIGNS, AstroPoint } from "@/lib/birth-chart-utils"
-import { Home } from "lucide-react"
+import { Home, ChevronDown } from "lucide-react"
 
 interface BirthChartHousesProps {
     houses?: Record<string, unknown> | null
@@ -185,6 +185,9 @@ const PLANET_IN_HOUSE_MEANINGS: Record<string, Record<string, string>> = {
 }
 
 export default function BirthChartHouses({ houses, planets }: BirthChartHousesProps) {
+    // Accordion state: track which planet in which house is expanded
+    const [expandedPlanets, setExpandedPlanets] = useState<Record<string, boolean>>({})
+
     if (!houses) return null
 
     // Helper function to normalize sign name
@@ -217,6 +220,14 @@ export default function BirthChartHouses({ houses, planets }: BirthChartHousesPr
         })
         
         return planetsInSign
+    }
+
+    const togglePlanet = (houseNum: string, planet: string) => {
+        const key = `${houseNum}-${planet}`
+        setExpandedPlanets(prev => ({
+            ...prev,
+            [key]: !prev[key]
+        }))
     }
 
     return (
@@ -272,15 +283,33 @@ export default function BirthChartHouses({ houses, planets }: BirthChartHousesPr
                                     {/* Planets in House Badges */}
                                     {planetsInHouse.length > 0 && (
                                         <div className="flex flex-wrap gap-1.5 ml-3 shrink-0 justify-end">
-                                            {planetsInHouse.map((planet) => (
-                                                <Badge 
-                                                    key={planet}
-                                                    variant="outline" 
-                                                    className="bg-accent/20 border-accent/40 text-accent hover:bg-accent/30 text-xs"
-                                                >
-                                                    {planet}
-                                                </Badge>
-                                            ))}
+                                            {planetsInHouse.map((planet) => {
+                                                const key = `${houseNum}-${planet}`
+                                                const isExpanded = expandedPlanets[key] || false
+                                                return (
+                                                    <div key={planet} className="flex flex-col items-end">
+                                                        <button
+                                                            onClick={() => togglePlanet(houseNum, planet)}
+                                                            className="flex items-center gap-1 px-2 py-1 rounded-md bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 hover:bg-yellow-500/30 text-xs transition-all duration-200"
+                                                        >
+                                                            {planet}
+                                                            <ChevronDown 
+                                                                className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} 
+                                                            />
+                                                        </button>
+                                                        {isExpanded && PLANET_IN_HOUSE_MEANINGS[planet]?.[houseNum] && (
+                                                            <div className="mt-2 w-full max-w-xs p-3 rounded-lg bg-yellow-500/20 border border-yellow-500/40">
+                                                                <p className="text-[10px] font-bold uppercase tracking-wider text-yellow-400/90 mb-2">
+                                                                    {planet} in {houseNum}{suffix} House
+                                                                </p>
+                                                                <p className="text-xs text-white/90 leading-relaxed">
+                                                                    {PLANET_IN_HOUSE_MEANINGS[planet][houseNum]}
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )
+                                            })}
                                         </div>
                                     )}
                                 </div>
@@ -288,22 +317,6 @@ export default function BirthChartHouses({ houses, planets }: BirthChartHousesPr
                                 <p className="text-xs text-muted-foreground leading-relaxed mt-3 mb-3">
                                     {HOUSE_DESCRIPTIONS[houseNum]} 
                                 </p>
-                                
-                                {/* Planet in House Meanings */}
-                                {planetsInHouse.length > 0 && planetsInHouse.map((planet) => {
-                                    const planetMeaning = PLANET_IN_HOUSE_MEANINGS[planet]?.[houseNum]
-                                    if (!planetMeaning) return null
-                                    return (
-                                        <div key={planet} className="mt-4 p-3 rounded-lg bg-gradient-to-br from-accent/10 via-accent/5 to-transparent border border-accent/20">
-                                            <p className="text-[10px] font-bold uppercase tracking-wider text-accent/80 mb-2">
-                                                {planet} in {houseNum}{suffix} House
-                                            </p>
-                                            <p className="text-xs text-white/90 leading-relaxed">
-                                                {planetMeaning}
-                                            </p>
-                                        </div>
-                                    )
-                                })}
                             </div>
                         </Card>
                     )

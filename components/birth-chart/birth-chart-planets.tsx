@@ -1,29 +1,12 @@
 "use client"
 
+import { useState } from "react"
 import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { SANSKRIT_SIGNS, AstroPoint } from "@/lib/birth-chart-utils"
-import { Sparkles } from "lucide-react"
+import { Sparkles, ChevronDown } from "lucide-react"
 
 interface BirthChartPlanetsProps {
     planets?: Record<string, unknown> | null
-}
-
-// Planetary Meanings - What each planet represents
-const PLANET_MEANINGS: Record<string, string> = {
-    "Sun": "The Sun represents your core identity, ego, vitality, and life force. It shows your essential self, how you shine, and what gives you confidence and purpose.",
-    "Moon": "The Moon represents your emotions, instincts, intuition, and inner world. It shows how you process feelings, your need for security, and your emotional nature.",
-    "Mercury": "Mercury represents communication, thinking, learning, and mental processes. It shows how you express ideas, gather information, and connect with others intellectually.",
-    "Venus": "Venus represents love, beauty, relationships, values, and pleasure. It shows what you find attractive, how you give and receive love, and what brings you joy.",
-    "Mars": "Mars represents energy, action, desire, courage, and assertion. It shows how you take action, pursue goals, express anger, and channel your drive.",
-    "Jupiter": "Jupiter represents expansion, wisdom, growth, optimism, and abundance. It shows where you find luck, seek meaning, and experience growth and opportunities.",
-    "Saturn": "Saturn represents structure, discipline, responsibility, limitations, and karma. It shows where you face challenges, learn lessons, and build lasting foundations.",
-    "Uranus": "Uranus represents innovation, freedom, rebellion, sudden change, and individuality. It shows where you break free from tradition and embrace uniqueness.",
-    "Neptune": "Neptune represents dreams, intuition, spirituality, illusion, and compassion. It shows where you seek transcendence, creativity, and spiritual connection.",
-    "Pluto": "Pluto represents transformation, power, regeneration, and deep change. It shows where you experience profound transformation and uncover hidden truths.",
-    "Rahu": "Rahu (North Node) represents desires, ambition, material pursuits, and what you're drawn to in this lifetime. It shows your obsessions and worldly ambitions.",
-    "Ketu": "Ketu (South Node) represents detachment, spirituality, past karma, and what you're releasing. It shows your spiritual path and areas of letting go.",
-    "Ascendant": "The Ascendant (Rising Sign) represents your outer personality, how others see you, and your approach to life. It's the mask you wear and your first impressions."
 }
 
 // Planet in Sign Meanings
@@ -213,7 +196,17 @@ const PLANET_IN_SIGN_MEANINGS: Record<string, Record<string, string>> = {
 }
 
 export default function BirthChartPlanets({ planets }: BirthChartPlanetsProps) {
+    // Accordion state: track which planet is expanded
+    const [expandedPlanets, setExpandedPlanets] = useState<Record<string, boolean>>({})
+
     if (!planets) return null
+
+    const togglePlanet = (planet: string) => {
+        setExpandedPlanets(prev => ({
+            ...prev,
+            [planet]: !prev[planet]
+        }))
+    }
 
     return (
         <div className="space-y-6">
@@ -247,8 +240,8 @@ export default function BirthChartPlanets({ planets }: BirthChartPlanetsProps) {
                                 : signName)
                         
                         const displaySign = englishSign || signName
-                        const planetMeaning = PLANET_MEANINGS[planet] || "This planet represents important aspects of your personality and life."
                         const planetInSignMeaning = PLANET_IN_SIGN_MEANINGS[planet]?.[displaySign] || ""
+                        const isExpanded = expandedPlanets[planet] || false
 
                         return (
                             <Card
@@ -259,12 +252,18 @@ export default function BirthChartPlanets({ planets }: BirthChartPlanetsProps) {
                                 <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                 
                                 <div className="relative z-10 space-y-4">
-                                    {/* Planet Header */}
+                                    {/* Planet Header with Accordion */}
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
-                                            <Badge variant="outline" className="bg-accent/20 border-accent/40 text-accent hover:bg-accent/30 text-sm px-3 py-1">
-                                                {planet}
-                                            </Badge>
+                                            <button
+                                                onClick={() => togglePlanet(planet)}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 hover:bg-yellow-500/30 text-sm transition-all duration-200"
+                                            >
+                                                <span className="font-semibold">{planet}</span>
+                                                <ChevronDown 
+                                                    className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} 
+                                                />
+                                            </button>
                                             <span className="text-white/60 text-sm">in</span>
                                             <span className="text-white font-semibold text-lg group-hover:text-accent transition-colors">
                                                 {displaySign}
@@ -272,20 +271,10 @@ export default function BirthChartPlanets({ planets }: BirthChartPlanetsProps) {
                                         </div>
                                     </div>
 
-                                    {/* Planetary Meaning */}
-                                    <div className="space-y-2">
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-accent/80">
-                                            What {planet} Represents
-                                        </p>
-                                        <p className="text-sm text-white/90 leading-relaxed">
-                                            {planetMeaning}
-                                        </p>
-                                    </div>
-
-                                    {/* Planet in Sign Meaning */}
-                                    {planetInSignMeaning && (
-                                        <div className="mt-4 p-4 rounded-lg bg-gradient-to-br from-accent/10 via-accent/5 to-transparent border border-accent/20">
-                                            <p className="text-[10px] font-bold uppercase tracking-wider text-accent/80 mb-2">
+                                    {/* Planet in Sign Meaning - Accordion Content */}
+                                    {isExpanded && planetInSignMeaning && (
+                                        <div className="mt-4 p-4 rounded-lg bg-yellow-500/20 border border-yellow-500/40">
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-yellow-400/90 mb-2">
                                                 {planet} in {displaySign}
                                             </p>
                                             <p className="text-sm text-white/90 leading-relaxed">
