@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useCompletion } from "@ai-sdk/react"
+import { useTranslations } from "next-intl"
 import BirthChartQuestionInput from "./birth-chart-question-input"
 
 interface BirthChartQuestionProps {
@@ -13,6 +14,7 @@ export default function BirthChartQuestion({
     houses,
     planets,
 }: BirthChartQuestionProps) {
+    const t = useTranslations("BirthChart")
     const [question, setQuestion] = useState("")
     const [answer, setAnswer] = useState("")
 
@@ -52,8 +54,8 @@ User Question: ${question}
                 onChange={setQuestion}
                 onSubmit={handleSubmit}
                 isLoading={isLoading}
-                placeholder="Ask a question about your love life, career, or personality..."
-                label="Ask about your Chart"
+                placeholder={t("questionPlaceholder")}
+                label={t("questionLabel")}
             />
         </div>
     )
