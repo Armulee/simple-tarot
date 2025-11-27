@@ -1,0 +1,379 @@
+"use client"
+
+import { useMemo } from "react"
+import { ZODIAC_SIGNS, AstroPoint } from "@/lib/birth-chart-utils"
+
+interface BirthChartWheelProps {
+    houses?: Record<string, unknown> | null
+    planets?: Record<string, unknown> | null
+}
+
+const ZODIAC_SYMBOLS: Record<string, string> = {
+    Aries: "♈",
+    Taurus: "♉",
+    Gemini: "♊",
+    Cancer: "♋",
+    Leo: "♌",
+    Virgo: "♍",
+    Libra: "♎",
+    Scorpio: "♏",
+    Sagittarius: "♐",
+    Capricorn: "♑",
+    Aquarius: "♒",
+    Pisces: "♓",
+}
+
+const PLANET_SYMBOLS: Record<string, string> = {
+    Sun: "☉",
+    Moon: "☽",
+    Mercury: "☿",
+    Venus: "♀",
+    Mars: "♂",
+    Jupiter: "♃",
+    Saturn: "♄",
+    Uranus: "♅",
+    Neptune: "♆",
+    Pluto: "♇",
+    Ascendant: "ASC",
+    Node: "☊", // North Node
+    Chiron: "⚷",
+    Lilith: "⚸",
+}
+
+const HOUSE_KEYWORDS = [
+    "Self", "Money", "Mind", "Home", 
+    "Love", "Health", "Partner", "Change", 
+    "Luck", "Career", "Gain", "Loss"
+]
+
+export default function BirthChartWheel({
+    houses,
+    planets,
+}: BirthChartWheelProps) {
+    const { ascendantSign, planetPositions } = useMemo(() => {
+        let ascSign = "Aries" // Default
+
+        // Try to find Ascendant from houses or planets
+        if (houses && (houses["1"] || houses["House 1"])) {
+            const h1 = houses["1"] || houses["House 1"]
+            if (typeof h1 === "string") ascSign = h1
+            else if (typeof h1 === "object" && h1 && "sign" in h1)
+                ascSign = (h1 as AstroPoint).sign
+        } else if (planets && planets["Ascendant"]) {
+            const asc = planets["Ascendant"]
+            if (typeof asc === "string") ascSign = asc
+            else if (typeof asc === "object" && asc && "sign" in asc)
+                ascSign = (asc as AstroPoint).sign
+        }
+
+        // Parse planets
+        const positions: Array<{
+            name: string
+            sign: string
+            symbol: string
+            degree: number
+        }> = []
+
+        if (planets) {
+            Object.entries(planets).forEach(([key, val]) => {
+                let sign = ""
+                let degree = 15 // Default to middle of sign
+
+                if (typeof val === "string") {
+                    sign = val
+                } else if (typeof val === "object" && val) {
+                    if ("sign" in val) sign = (val as AstroPoint).sign
+                    if ("degree" in val) degree = Number((val as AstroPoint).degree)
+                }
+
+                // Normalize sign
+                const normSign = ZODIAC_SIGNS.find(
+                    (s) => s.toLowerCase() === sign.toLowerCase()
+                )
+
+                if (normSign) {
+                    positions.push({
+                        name: key,
+                        sign: normSign,
+                        symbol:
+                            PLANET_SYMBOLS[
+                                Object.keys(PLANET_SYMBOLS).find(
+                                    (k) =>
+                                        k.toLowerCase() === key.toLowerCase()
+                                ) || ""
+                            ] || key.substring(0, 2),
+                        degree,
+                    })
+                }
+            })
+        }
+
+        return { ascendantSign: ascSign, planetPositions: positions }
+    }, [houses, planets])
+
+    const ascendantSignObj = ZODIAC_SIGNS.find(s => s.toLowerCase() === ascendantSign.toLowerCase())
+    const ascIndex = ZODIAC_SIGNS.indexOf(ascendantSignObj || "Aries")
+    const ascAngle = ascIndex * 30 // Assuming 0 degree in sign for simplicity
+    
+    const rotation = 180 - ascAngle
+
+    return (
+        <div className="w-full aspect-square max-w-lg mx-auto relative select-none">
+            <svg viewBox="0 0 400 400" className="w-full h-full drop-shadow-2xl">
+                <defs>
+                    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                    <filter id="planetGlow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                    <radialGradient id="wheelGradient" cx="50%" cy="50%">
+                        <stop offset="0%" stopColor="#1a1f3a" stopOpacity="1" />
+                        <stop offset="50%" stopColor="#0A0F26" stopOpacity="1" />
+                        <stop offset="100%" stopColor="#050810" stopOpacity="1" />
+                    </radialGradient>
+                    <linearGradient id="zodiacGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="rgba(255,255,255,0.1)" />
+                        <stop offset="100%" stopColor="rgba(255,255,255,0.05)" />
+                    </linearGradient>
+                    <linearGradient id="zodiacGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="rgba(255,255,255,0.15)" />
+                        <stop offset="100%" stopColor="rgba(255,255,255,0.08)" />
+                    </linearGradient>
+                </defs>
+                
+                {/* Outer Glow Ring */}
+                <circle cx="200" cy="200" r="195" fill="none" stroke="url(#wheelGradient)" strokeWidth="2" opacity="0.5" />
+                
+                {/* Background */}
+                <circle cx="200" cy="200" r="198" fill="url(#wheelGradient)" stroke="rgba(255,255,255,0.15)" strokeWidth="2" />
+                
+                {/* Rotatable Group */}
+                <g transform={`rotate(${-rotation} 200 200)`} style={{ transition: 'transform 1s ease-out' }}>
+                    
+                    {/* Zodiac Ring */}
+                    {ZODIAC_SIGNS.map((sign, i) => {
+                        const startAngle = -i * 30
+                        
+                        // We use the angles for rotation
+                        return (
+                            <g key={sign} transform={`rotate(${startAngle} 200 200)`}>
+                                {/* Wedge area is mainly visual via the ring below */}
+                            </g>
+                        )
+                    })}
+                    
+                    {/* Base Wheel: 0 is Aries, -30 is Taurus, etc. (CCW) */}
+                    <g className="opacity-90">
+                        {ZODIAC_SIGNS.map((sign, i) => {
+                             const angle = -i * 30
+                             const rad = (angle * Math.PI) / 180
+                             const nextRad = ((angle - 30) * Math.PI) / 180
+                             
+                             // Outer Ring Segment
+                             const rOuter = 190
+                             const rInner = 150
+                             
+                             const x1 = 200 + rOuter * Math.cos(rad)
+                             const y1 = 200 + rOuter * Math.sin(rad)
+                             const x2 = 200 + rOuter * Math.cos(nextRad)
+                             const y2 = 200 + rOuter * Math.sin(nextRad)
+                             
+                             const x3 = 200 + rInner * Math.cos(nextRad)
+                             const y3 = 200 + rInner * Math.sin(nextRad)
+                             const x4 = 200 + rInner * Math.cos(rad)
+                             const y4 = 200 + rInner * Math.sin(rad)
+                             
+                             const midRad = ((angle - 15) * Math.PI) / 180
+                             const textR = (rOuter + rInner) / 2
+                             const tx = 200 + textR * Math.cos(midRad)
+                             const ty = 200 + textR * Math.sin(midRad)
+                             
+                             return (
+                                 <g key={sign}>
+                                    <path 
+                                        d={`M ${x1} ${y1} A ${rOuter} ${rOuter} 0 0 0 ${x2} ${y2} L ${x3} ${y3} A ${rInner} ${rInner} 0 0 1 ${x4} ${y4} Z`}
+                                        fill={i % 2 === 0 ? "url(#zodiacGradient1)" : "url(#zodiacGradient2)"}
+                                        stroke="rgba(255,255,255,0.25)"
+                                        strokeWidth="1.5"
+                                        className="hover:opacity-80 transition-opacity"
+                                    />
+                                    {/* Sign Symbol with Glow */}
+                                    <text 
+                                        x={tx} 
+                                        y={ty} 
+                                        fill="white" 
+                                        fontSize="20" 
+                                        fontWeight="bold"
+                                        textAnchor="middle" 
+                                        dominantBaseline="middle"
+                                        transform={`rotate(${angle - 15} ${tx} ${ty})`}
+                                        filter="url(#glow)"
+                                        className="drop-shadow-lg"
+                                    >
+                                        {ZODIAC_SYMBOLS[sign]}
+                                    </text>
+                                 </g>
+                             )
+                        })}
+                    </g>
+                    
+                    {/* Planets */}
+                    {planetPositions.map((p, i) => {
+                         const signIdx = ZODIAC_SIGNS.indexOf(p.sign)
+                         const pAngle = -(signIdx * 30 + p.degree)
+                         const pRad = (pAngle * Math.PI) / 180
+                         
+                         const rPlanet = 120
+                         
+                         const px = 200 + rPlanet * Math.cos(pRad)
+                         const py = 200 + rPlanet * Math.sin(pRad)
+                         
+                         return (
+                             <g key={`${p.name}-${i}`}>
+                                 {/* Planet line with gradient */}
+                                 <line 
+                                     x1="200" 
+                                     y1="200" 
+                                     x2={px} 
+                                     y2={py} 
+                                     stroke="rgba(255,255,255,0.15)" 
+                                     strokeWidth="1.5"
+                                     strokeDasharray="2 2"
+                                 />
+                                 {/* Planet circle with glow */}
+                                 <circle 
+                                     cx={px} 
+                                     cy={py} 
+                                     r="12" 
+                                     fill="rgba(10,15,38,0.9)" 
+                                     stroke="#FFD700" 
+                                     strokeWidth="2"
+                                     filter="url(#planetGlow)"
+                                 />
+                                 <circle 
+                                     cx={px} 
+                                     cy={py} 
+                                     r="8" 
+                                     fill="rgba(255,215,0,0.2)" 
+                                 />
+                                 <text 
+                                     x={px} 
+                                     y={py} 
+                                     fill="#FFD700" 
+                                     fontSize="14" 
+                                     fontWeight="bold"
+                                     textAnchor="middle" 
+                                     dominantBaseline="middle"
+                                     className="font-serif"
+                                     filter="url(#glow)"
+                                 >
+                                     {p.symbol}
+                                 </text>
+                             </g>
+                         )
+                    })}
+                </g>
+                
+                {/* Fixed Elements (Houses Lines) */}
+                <g className="pointer-events-none">
+                    {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((angle, i) => {
+                         const rad = (angle * Math.PI) / 180
+                         const x2 = 200 + 140 * Math.cos(rad)
+                         const y2 = 200 + 140 * Math.sin(rad)
+                         return (
+                             <line 
+                                key={i}
+                                x1="200" 
+                                y1="200" 
+                                x2={x2} 
+                                y2={y2} 
+                                stroke="rgba(255,255,255,0.2)" 
+                                strokeDasharray="4 4"
+                             />
+                         )
+                    })}
+                    {/* House Numbers & Keywords */}
+                    {[...Array(12)].map((_, i) => {
+                        const angle = 165 - i * 30
+                        const rad = (angle * Math.PI) / 180
+                        
+                        // Number
+                        const rNum = 35
+                        const nx = 200 + rNum * Math.cos(rad)
+                        const ny = 200 + rNum * Math.sin(rad)
+                        
+                        // Keyword
+                        const rKey = 75
+                        const kx = 200 + rKey * Math.cos(rad)
+                        const ky = 200 + rKey * Math.sin(rad)
+                        
+                        return (
+                            <g key={i}>
+                                {/* House number circle */}
+                                <circle 
+                                    cx={nx} 
+                                    cy={ny} 
+                                    r="8" 
+                                    fill="rgba(255,255,255,0.1)" 
+                                    stroke="rgba(255,255,255,0.3)" 
+                                    strokeWidth="1"
+                                />
+                                <text
+                                    x={nx}
+                                    y={ny}
+                                    fill="rgba(255,255,255,0.9)"
+                                    fontSize="9"
+                                    fontWeight="bold"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                >
+                                    {i + 1}
+                                </text>
+                                <text
+                                    x={kx}
+                                    y={ky}
+                                    fill="rgba(255,255,255,0.6)"
+                                    fontSize="9"
+                                    fontWeight="bold"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    style={{ pointerEvents: 'none' }}
+                                >
+                                    {HOUSE_KEYWORDS[i].toUpperCase()}
+                                </text>
+                            </g>
+                        )
+                    })}
+                    
+                    {/* Markers for ASC/MC with enhanced styling */}
+                    <g>
+                        <circle cx="10" cy="200" r="15" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" />
+                        <text x="10" y="200" fill="#FFD700" fontSize="10" fontWeight="bold" textAnchor="middle" dominantBaseline="middle">ASC</text>
+                    </g>
+                    <g>
+                        <circle cx="390" cy="200" r="15" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" />
+                        <text x="390" y="200" fill="#FFD700" fontSize="10" fontWeight="bold" textAnchor="middle" dominantBaseline="middle">DSC</text>
+                    </g>
+                    <g>
+                        <circle cx="200" cy="15" r="15" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" />
+                        <text x="200" y="15" fill="#FFD700" fontSize="10" fontWeight="bold" textAnchor="middle" dominantBaseline="middle">MC</text>
+                    </g>
+                    <g>
+                        <circle cx="200" cy="390" r="15" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" />
+                        <text x="200" y="390" fill="#FFD700" fontSize="10" fontWeight="bold" textAnchor="middle" dominantBaseline="middle">IC</text>
+                    </g>
+                </g>
+                
+            </svg>
+        </div>
+    )
+}

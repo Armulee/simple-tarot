@@ -1,8 +1,16 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Sparkles } from "lucide-react"
+import { useTranslations } from "next-intl"
+import BirthChartStats from "./birth-chart-stats"
+import BirthChartWheel from "./birth-chart-wheel"
+import BirthChartShareSection from "./birth-chart-share-section"
+import BirthChartQuestion from "./birth-chart-question"
+import BirthChartDebugSection from "./birth-chart-debug-section"
+import BirthChartInfoCard from "./birth-chart-info-card"
+import BirthChartHouses from "./birth-chart-houses"
+import BirthChartPlanets from "./birth-chart-planets"
 
 interface BirthChartDisplayProps {
     birthChart: {
@@ -26,139 +34,80 @@ interface BirthChartDisplayProps {
 export default function BirthChartDisplay({
     birthChart,
 }: BirthChartDisplayProps) {
-    const formatDate = () => {
-        const date = new Date(
-            birthChart.year,
-            birthChart.month - 1,
-            birthChart.day
-        )
-        return date.toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-        })
-    }
-
-    const formatTime = () => {
-        const hours = birthChart.hour % 12 || 12
-        const minutes = birthChart.minute.toString().padStart(2, "0")
-        const ampm = birthChart.hour >= 12 ? "PM" : "AM"
-        return `${hours}:${minutes} ${ampm}`
-    }
-
-    const formatLocation = () => {
-        const parts = []
-        if (birthChart.state_province) parts.push(birthChart.state_province)
-        if (birthChart.country) parts.push(birthChart.country)
-        return parts.length > 0 ? parts.join(", ") : "Unknown location"
-    }
-
+    const t = useTranslations("BirthChart")
+    
     return (
-        <div className='space-y-8 px-4 max-w-4xl mx-auto h-full py-8'>
+        <div className='space-y-12 px-4 max-w-6xl mx-auto h-full py-12'>
             {/* Header */}
-            <Card className='px-6 pt-10 pb-6 border-0 relative overflow-hidden bg-gradient-to-br from-[#0A0F26] to-[#131A3A]'>
+            <Card className='px-8 pt-12 pb-8 border-0 relative overflow-hidden bg-transparent shadow-2xl'>
+                {/* Animated background elements */}
+                <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute -top-40 -right-40 w-80 h-80 bg-transparent rounded-full blur-3xl animate-pulse" />
+                    <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-transparent rounded-full blur-3xl animate-pulse delay-1000" />
+                </div>
                 <div className='text-center space-y-6 relative z-10'>
-                    <div className='flex items-center justify-center space-x-2 relative'>
-                        <Sparkles className='w-6 h-6 text-primary' />
-                        <h1 className='font-serif font-bold text-2xl text-white'>
-                            Your Birth Chart
+                    <div className='flex items-center justify-center space-x-3 relative'>
+                        <Sparkles className='w-7 h-7 text-accent animate-pulse' />
+                        <h1 className='font-serif font-bold text-3xl sm:text-4xl text-white'>
+                            {t("pageTitle")}
                         </h1>
-                        <Sparkles className='w-6 h-6 text-primary' />
+                        <Sparkles className='w-7 h-7 text-accent animate-pulse' />
                     </div>
 
                     {/* Birth Information */}
-                    <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mt-8'>
-                        <div className='text-center'>
-                            <p className='text-sm text-muted-foreground mb-1'>
-                                Birth Date
-                            </p>
-                            <p className='font-semibold text-white'>
-                                {formatDate()}
-                            </p>
-                        </div>
-                        <div className='text-center'>
-                            <p className='text-sm text-muted-foreground mb-1'>
-                                Birth Time
-                            </p>
-                            <p className='font-semibold text-white'>
-                                {formatTime()}
-                            </p>
-                        </div>
-                        <div className='text-center'>
-                            <p className='text-sm text-muted-foreground mb-1'>
-                                Location
-                            </p>
-                            <p className='font-semibold text-white'>
-                                {formatLocation()}
-                            </p>
-                        </div>
-                    </div>
+                    <BirthChartInfoCard birthChart={birthChart} />
                 </div>
             </Card>
 
-            {/* Houses */}
-            {birthChart.houses && (
-                <Card className='p-6 bg-card/10 backdrop-blur-sm border-border/20'>
-                    <h2 className='font-serif font-bold text-xl mb-4 text-white'>
-                        Houses
-                    </h2>
-                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                        {Object.entries(birthChart.houses as Record<string, unknown>).map(
-                            ([house, sign]: [string, unknown]) => (
-                                <div
-                                    key={house}
-                                    className='p-4 rounded-lg bg-white/5 border border-white/10'
-                                >
-                                    <Badge variant='secondary' className='mb-2'>
-                                        {house}
-                                    </Badge>
-                                    <p className='text-white font-semibold'>
-                                        {String(sign)}
-                                    </p>
-                                </div>
-                            )
-                        )}
-                    </div>
-                </Card>
-            )}
+            {/* Wheel */}
+            <div className="flex justify-center py-12 relative">
+                 {/* Enhanced Background Glow */}
+                <div className="absolute inset-0 bg-gradient-to-r from-accent/10 via-purple-500/10 to-accent/10 blur-3xl rounded-full pointer-events-none animate-pulse" />
+                <div className="absolute inset-0 bg-accent/5 blur-2xl rounded-full pointer-events-none" />
+                <div className="relative z-10 transform hover:scale-105 transition-transform duration-500">
+                    <BirthChartWheel 
+                        houses={birthChart.houses} 
+                        planets={birthChart.planets} 
+                    />
+                </div>
+            </div>
 
-            {/* Planets */}
-            {birthChart.planets && (
-                <Card className='p-6 bg-card/10 backdrop-blur-sm border-border/20'>
-                    <h2 className='font-serif font-bold text-xl mb-4 text-white'>
-                        Planetary Positions
+            {/* Stats Section */}
+            <div className="space-y-6">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
+                    <h2 className="text-2xl font-serif font-bold text-white whitespace-nowrap">
+                        {t("planetaryStrengths")}
                     </h2>
-                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                        {Object.entries(birthChart.planets as Record<string, unknown>).map(
-                            ([planet, position]: [string, unknown]) => (
-                                <div
-                                    key={planet}
-                                    className='p-4 rounded-lg bg-white/5 border border-white/10'
-                                >
-                                    <Badge variant='secondary' className='mb-2'>
-                                        {planet}
-                                    </Badge>
-                                    <p className='text-white font-semibold'>
-                                        {typeof position === "object" && position !== null
-                                            ? JSON.stringify(position)
-                                            : String(position)}
-                                    </p>
-                                </div>
-                            )
-                        )}
-                    </div>
-                </Card>
-            )}
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
+                </div>
+                <BirthChartStats planets={birthChart.planets} />
+            </div>
+
+            {/* Houses Detail */}
+            <BirthChartHouses houses={birthChart.houses} planets={birthChart.planets} />
+
+            {/* Planets Detail */}
+            <BirthChartPlanets planets={birthChart.planets} />
+
+            {/* Share Section */}
+            <BirthChartShareSection id={birthChart.id} />
+
+            {/* Question Section */}
+            <BirthChartQuestion 
+                houses={birthChart.houses} 
+                planets={birthChart.planets} 
+            />
 
             {/* Disclaimer */}
-            <Card className='p-4 bg-card/5 backdrop-blur-sm border-border/10'>
-                <p className='text-xs text-muted-foreground text-center'>
-                    Birth chart readings are for entertainment purposes only. The
-                    interpretations provided are generated by AI and should not
-                    be considered as professional advice. Always consult with
-                    qualified professionals for important life decisions.
+            <Card className='p-6 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-sm border-white/10 shadow-lg'>
+                <p className='text-xs text-muted-foreground text-center leading-relaxed'>
+                    {t("disclaimer")}
                 </p>
             </Card>
+
+            {/* Debug Section */}
+            <BirthChartDebugSection data={birthChart} />
         </div>
     )
 }
