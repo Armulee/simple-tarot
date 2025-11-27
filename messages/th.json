@@ -510,6 +510,20 @@
     },
     "in": "ใน",
     "house": "เรือน",
+    "zodiacSigns": {
+      "Aries": "เมษ",
+      "Taurus": "พฤษภ",
+      "Gemini": "มิถุน",
+      "Cancer": "กรกฎ",
+      "Leo": "สิงห์",
+      "Virgo": "กันย์",
+      "Libra": "ตุลย์",
+      "Scorpio": "พิจิก",
+      "Sagittarius": "ธนู",
+      "Capricorn": "มังกร",
+      "Aquarius": "กุมภ์",
+      "Pisces": "มีน"
+    },
     "houseMeanings": {
       "1": "ตัวตน & อัตลักษณ์",
       "2": "เงิน & ทรัพย์สิน",

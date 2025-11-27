@@ -55,6 +55,7 @@ export default function BirthChartPlanets({ planets }: BirthChartPlanetsProps) {
                                 : signName)
                         
                         const displaySign = englishSign || signName
+                        const translatedSign = t(`zodiacSigns.${displaySign}`, { defaultValue: displaySign })
                         const planetInSignMeaning = getPlanetInSignMeaning(planet, displaySign)
 
                         return (
@@ -74,7 +75,7 @@ export default function BirthChartPlanets({ planets }: BirthChartPlanetsProps) {
                                             </div>
                                             <span className="text-white/60 text-sm">{t("in")}</span>
                                             <span className="text-white font-semibold text-lg group-hover:text-accent transition-colors">
-                                                {displaySign}
+                                                {translatedSign}
                                             </span>
                                         </div>
                                     </div>
@@ -83,7 +84,7 @@ export default function BirthChartPlanets({ planets }: BirthChartPlanetsProps) {
                                     {planetInSignMeaning && (
                                         <div className="mt-4 p-4 rounded-lg bg-yellow-500/20 border border-yellow-500/40">
                                             <p className="text-[10px] font-bold uppercase tracking-wider text-yellow-400/90 mb-2">
-                                                {t(`planets.${planet}`)} {t("in")} {displaySign}
+                                                {t(`planets.${planet}`)} {t("in")} {translatedSign}
                                             </p>
                                             <p className="text-sm text-white/90 leading-relaxed">
                                                 {planetInSignMeaning}
