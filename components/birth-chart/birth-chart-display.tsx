@@ -1,0 +1,113 @@
+"use client"
+
+import { Card } from "@/components/ui/card"
+import { Sparkles } from "lucide-react"
+import { useTranslations } from "next-intl"
+import BirthChartStats from "./birth-chart-stats"
+import BirthChartWheel from "./birth-chart-wheel"
+import BirthChartShareSection from "./birth-chart-share-section"
+import BirthChartQuestion from "./birth-chart-question"
+import BirthChartDebugSection from "./birth-chart-debug-section"
+import BirthChartInfoCard from "./birth-chart-info-card"
+import BirthChartHouses from "./birth-chart-houses"
+import BirthChartPlanets from "./birth-chart-planets"
+
+interface BirthChartDisplayProps {
+    birthChart: {
+        id: string
+        day: number
+        month: number
+        year: number
+        hour: number
+        minute: number
+        timezone: number
+        lat: number
+        lng: number
+        country?: string | null
+        state_province?: string | null
+        houses?: Record<string, unknown> | null
+        planets?: Record<string, unknown> | null
+        created_at: string
+    }
+}
+
+export default function BirthChartDisplay({
+    birthChart,
+}: BirthChartDisplayProps) {
+    const t = useTranslations("BirthChart")
+    
+    return (
+        <div className='space-y-12 px-4 max-w-6xl mx-auto h-full py-12'>
+            {/* Header */}
+            <Card className='px-8 pt-12 pb-8 border-0 relative overflow-hidden bg-transparent shadow-2xl'>
+                {/* Animated background elements */}
+                <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute -top-40 -right-40 w-80 h-80 bg-transparent rounded-full blur-3xl animate-pulse" />
+                    <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-transparent rounded-full blur-3xl animate-pulse delay-1000" />
+                </div>
+                <div className='text-center space-y-6 relative z-10'>
+                    <div className='flex items-center justify-center space-x-3 relative'>
+                        <Sparkles className='w-7 h-7 text-accent animate-pulse' />
+                        <h1 className='font-serif font-bold text-3xl sm:text-4xl text-white'>
+                            {t("pageTitle")}
+                        </h1>
+                        <Sparkles className='w-7 h-7 text-accent animate-pulse' />
+                    </div>
+
+                    {/* Birth Information */}
+                    <BirthChartInfoCard birthChart={birthChart} />
+                </div>
+            </Card>
+
+            {/* Wheel */}
+            <div className="flex justify-center py-12 relative">
+                 {/* Enhanced Background Glow */}
+                <div className="absolute inset-0 bg-gradient-to-r from-accent/10 via-purple-500/10 to-accent/10 blur-3xl rounded-full pointer-events-none animate-pulse" />
+                <div className="absolute inset-0 bg-accent/5 blur-2xl rounded-full pointer-events-none" />
+                <div className="relative z-10 transform hover:scale-105 transition-transform duration-500">
+                    <BirthChartWheel 
+                        houses={birthChart.houses} 
+                        planets={birthChart.planets} 
+                    />
+                </div>
+            </div>
+
+            {/* Stats Section */}
+            <div className="space-y-6">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
+                    <h2 className="text-2xl font-serif font-bold text-white whitespace-nowrap">
+                        {t("planetaryStrengths")}
+                    </h2>
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
+                </div>
+                <BirthChartStats planets={birthChart.planets} />
+            </div>
+
+            {/* Houses Detail */}
+            <BirthChartHouses houses={birthChart.houses} planets={birthChart.planets} />
+
+            {/* Planets Detail */}
+            <BirthChartPlanets planets={birthChart.planets} />
+
+            {/* Share Section */}
+            <BirthChartShareSection id={birthChart.id} />
+
+            {/* Question Section */}
+            <BirthChartQuestion 
+                houses={birthChart.houses} 
+                planets={birthChart.planets} 
+            />
+
+            {/* Disclaimer */}
+            <Card className='p-6 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-sm border-white/10 shadow-lg'>
+                <p className='text-xs text-muted-foreground text-center leading-relaxed'>
+                    {t("disclaimer")}
+                </p>
+            </Card>
+
+            {/* Debug Section */}
+            <BirthChartDebugSection data={birthChart} />
+        </div>
+    )
+}

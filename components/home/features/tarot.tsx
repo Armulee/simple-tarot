@@ -4,7 +4,6 @@ import { TypewriterText } from "../../typewriter-text"
 import { Suspense, useState } from "react"
 import Question from "../question"
 import { useTranslations } from "next-intl"
-import { ChevronDown } from "lucide-react"
 // Sticky footer removed per request
 
 export default function Tarot() {
@@ -40,24 +39,6 @@ export default function Tarot() {
                         />
                     </div>
                 </Suspense>
-
-                <button
-                    type='button'
-                    className='flex flex-col items-center gap-2 text-white/80 hover:text-white'
-                    onClick={() => {
-                        const event = new CustomEvent("scrollToAbout")
-                        window.dispatchEvent(event)
-                    }}
-                >
-                    <div className='flex items-center gap-4'>
-                        <div className='h-px w-12 bg-white/30' />
-                        <span className='text-xs uppercase tracking-wide'>
-                            Learn more
-                        </span>
-                        <div className='h-px w-12 bg-white/30' />
-                    </div>
-                    <ChevronDown className='w-5 h-5 animate-bounce' />
-                </button>
             </div>
         </>
     )
