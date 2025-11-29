@@ -17,14 +17,6 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
 import { useTranslations } from "next-intl"
 import {
-    Dialog,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog"
-import { StarsDialog } from "../star-consent"
-import {
     formatAvailabilityCountdown,
     getAvailabilityCountdown,
     getAvailabilityLabel,
@@ -75,7 +67,6 @@ export function Checkout({
         currency ?? preferredCurrency ?? localeCurrency ?? "USD"
     const [countdown, setCountdown] = useState(getAvailabilityCountdown())
     const [processing, setProcessing] = useState(false)
-    const [fallbackOpen, setFallbackOpen] = useState(false)
     const fallbackLabel = useMemo(
         () => availabilityLabel ?? getAvailabilityLabel(),
         [availabilityLabel]
@@ -118,13 +109,11 @@ export function Checkout({
         )
     }
 
-    const openFallback = () => setFallbackOpen(true)
-
     const handleCheckout = async () => {
         if (processing) return
 
         if (!stripePromise) {
-            openFallback()
+            toast.error(t("sessionError"))
             return
         }
 
@@ -162,7 +151,7 @@ export function Checkout({
 
             const stripe = await stripePromise
             if (!stripe) {
-                openFallback()
+                toast.error(t("sessionError"))
                 throw new Error("STRIPE_NOT_READY")
             }
 
@@ -223,7 +212,7 @@ export function Checkout({
                 onClick={handleCheckout}
                 disabled={processing}
             >
-                <div className='flex w-full flex-col items-center justify-center gap-1 text-center'>
+                <div className='flex w-full flex-col.items-center justify-center gap-1 text-center'>
                     <span>
                         {processing
                             ? t("loading")
@@ -232,7 +221,7 @@ export function Checkout({
                               : t("subscribe")}
                     </span>
                     {mode === "subscribe" && displayLabel && !processing && (
-                        <span className='text-xs font-semibold text-black/70'>
+                        <span className='text-xs font-semibold text.black/70'>
                             {displayLabel}
                         </span>
                     )}
@@ -241,40 +230,5 @@ export function Checkout({
         )
     }
 
-    return (
-        <>
-            {triggerContent}
-
-            <Dialog open={fallbackOpen} onOpenChange={setFallbackOpen}>
-                <StarsDialog className='relative space-y-4'>
-                    <DialogHeader className='space-y-2'>
-                        <DialogTitle className='text-yellow-300 font-serif text-xl'>
-                            {t("comingSoonTitle")}
-                        </DialogTitle>
-                        <DialogDescription className='text-white/85'>
-                            {t("comingSoonDescription")}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <p className='text-sm text-white/70 leading-relaxed'>
-                        {t("comingSoonHelper")}
-                    </p>
-                    <p className='text-xs text-white/60 leading-relaxed'>
-                        {publishableKey
-                            ? t("stripeReady")
-                            : t("stripeMissing", {
-                                  countdown: displayLabel ?? t("countdownUnknown"),
-                              })}
-                    </p>
-                    <DialogFooter>
-                        <Button
-                            className='w-full rounded-full bg-white text-black hover:brightness-95'
-                            onClick={() => setFallbackOpen(false)}
-                        >
-                            {t("close")}
-                        </Button>
-                    </DialogFooter>
-                </StarsDialog>
-            </Dialog>
-        </>
-    )
+    return <>{triggerContent}</>
 }
