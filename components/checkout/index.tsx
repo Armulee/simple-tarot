@@ -143,9 +143,6 @@ export function Checkout({
                 | null
 
             if (!response.ok || !data?.id) {
-                if (data?.code === "STRIPE_NOT_CONFIGURED") {
-                    openFallback()
-                }
                 throw new Error(data?.message ?? "SESSION_ERROR")
             }
 
