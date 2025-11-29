@@ -12,7 +12,10 @@ import {
 } from "@/lib/payments/currency-utils"
 
 const stripeSecretKey =
-    process.env.STRIPE_SECRET_KEY ?? process.env.STRIPE_API_KEY ?? null
+    process.env.STRIPE_SECRET_KEY ??
+    process.env.STRIPE_API_KEY ??
+    process.env.STRIPE_TEST_SECRET_KEY ??
+    null
 
 const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null
 
