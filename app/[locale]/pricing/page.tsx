@@ -113,7 +113,7 @@ export default function PricingPage() {
                     <Select
                         value={currency}
                         onValueChange={(value) =>
-                            setCurrency(value as Currency)
+                            setCurrency(value as CurrencyCode)
                         }
                     >
                         <SelectTrigger className='w-[100px] bg-accent/30 border-border/30 rounded-r-md rounded-l-none'>
