@@ -193,7 +193,7 @@ export async function POST(req: NextRequest) {
 
         const session = await stripeClient.checkout.sessions.create(sessionParams)
 
-        return NextResponse.json({ id: session.id })
+        return NextResponse.json({ id: session.id, url: session.url })
     } catch (error) {
         console.error("Stripe checkout error", error)
         const code =

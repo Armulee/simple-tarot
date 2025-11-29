@@ -11,7 +11,6 @@ import {
 } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { loadStripe, type Stripe as ClientStripe } from "@stripe/stripe-js"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
@@ -25,11 +24,6 @@ import { resolveCurrencyFromLocale } from "@/lib/payments/star-products"
 import type { CurrencyCode } from "@/lib/payments/currency-utils"
 import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
 
-const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-const stripePromise: Promise<ClientStripe | null> | null = publishableKey
-    ? loadStripe(publishableKey)
-    : null
-
 type CheckoutMode = "pack" | "subscribe"
 
 type CheckoutProps = {
@@ -40,12 +34,6 @@ type CheckoutProps = {
     customTrigger?: ReactNode
     availabilityLabel?: string
     currency?: CurrencyCode
-}
-
-type RedirectCapableStripe = ClientStripe & {
-    redirectToCheckout: (options: { sessionId: string }) => Promise<{
-        error?: { message?: string }
-    }>
 }
 
 export function Checkout({
@@ -112,11 +100,6 @@ export function Checkout({
     const handleCheckout = async () => {
         if (processing) return
 
-        if (!stripePromise) {
-            toast.error(t("sessionError"))
-            return
-        }
-
         let toastId: string | number | undefined
         try {
             setProcessing(true)
@@ -139,24 +122,17 @@ export function Checkout({
                 body: JSON.stringify(payload),
             })
             const data = (await response.json().catch(() => null)) as
-                | { id?: string; code?: string; message?: string }
+                | { id?: string; url?: string; code?: string; message?: string }
                 | null
 
             if (!response.ok || !data?.id) {
                 throw new Error(data?.message ?? "SESSION_ERROR")
             }
 
-            const stripe = await stripePromise
-            if (!stripe) {
-                toast.error(t("sessionError"))
-                throw new Error("STRIPE_NOT_READY")
-            }
-
-            const { error } = await (stripe as RedirectCapableStripe).redirectToCheckout({
-                sessionId: data.id,
-            })
-            if (error) {
-                throw new Error(error.message)
+            if (data?.url) {
+                window.location.assign(data.url)
+            } else {
+                throw new Error("SESSION_URL_MISSING")
             }
         } catch (error) {
             toast.error(t("sessionError"))
