@@ -61,13 +61,6 @@ export default function BirthChartDisplay({
 
             {/* Stats Section */}
             <div className="space-y-6">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
-                    <h2 className="text-2xl font-serif font-bold text-white whitespace-nowrap">
-                        {t("planetaryStrengths")}
-                    </h2>
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
-                </div>
                 <BirthChartStats planets={birthChart.planets} />
             </div>
 
