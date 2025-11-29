@@ -3,6 +3,7 @@
 import {
     cloneElement,
     isValidElement,
+    type HTMLAttributes,
     type ReactNode,
     useEffect,
     useMemo,
@@ -10,7 +11,7 @@ import {
 } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { loadStripe } from "@stripe/stripe-js"
+import { loadStripe, type Stripe as ClientStripe } from "@stripe/stripe-js"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
@@ -34,7 +35,9 @@ import {
 } from "@/lib/payments/star-products"
 
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-const stripePromise = publishableKey ? loadStripe(publishableKey) : null
+const stripePromise: Promise<ClientStripe | null> | null = publishableKey
+    ? loadStripe(publishableKey)
+    : null
 
 type CheckoutMode = "pack" | "subscribe"
 
@@ -46,6 +49,12 @@ type CheckoutProps = {
     customTrigger?: ReactNode
     availabilityLabel?: string
     currency?: CurrencyCode
+}
+
+type RedirectCapableStripe = ClientStripe & {
+    redirectToCheckout: (options: { sessionId: string }) => Promise<{
+        error?: { message?: string }
+    }>
 }
 
 export function Checkout({
@@ -89,16 +98,7 @@ export function Checkout({
                 : defaultCallback
         const signinHref = `/signin?callbackUrl=${encodeURIComponent(pathname)}`
         if (customTrigger && isValidElement(customTrigger)) {
-            return (
-                <Link href={signinHref}>
-                    {cloneElement(customTrigger, {
-                        ...customTrigger.props,
-                        onClick: (event) => {
-                            customTrigger.props.onClick?.(event)
-                        },
-                    })}
-                </Link>
-            )
+            return <Link href={signinHref}>{customTrigger}</Link>
         }
         if (customTrigger) {
             return (
@@ -164,7 +164,7 @@ export function Checkout({
                 throw new Error("STRIPE_NOT_READY")
             }
 
-            const { error } = await stripe.redirectToCheckout({
+            const { error } = await (stripe as RedirectCapableStripe).redirectToCheckout({
                 sessionId: data.id,
             })
             if (error) {
@@ -179,65 +179,69 @@ export function Checkout({
         }
     }
 
-    const triggerContent = customTrigger
-        ? isValidElement(customTrigger)
-            ? cloneElement(customTrigger, {
-                  ...customTrigger.props,
-                  onClick: (event) => {
-                      customTrigger.props.onClick?.(event)
-                      if (event.defaultPrevented || processing) return
-                      handleCheckout()
-                  },
-                  "aria-busy": processing ? true : customTrigger.props["aria-busy"],
-              })
-            : (
-                  <span
-                      role='button'
-                      tabIndex={0}
-                      onClick={(event) => {
-                          if (processing) return
-                          event.preventDefault()
-                          handleCheckout()
-                      }}
-                      onKeyDown={(event) => {
-                          if (processing) return
-                          if (event.key === "Enter" || event.key === " ") {
-                              event.preventDefault()
-                              handleCheckout()
-                          }
-                      }}
-                  >
-                      {customTrigger}
-                  </span>
-              )
-        : null
+    let triggerContent: ReactNode = null
+    if (customTrigger) {
+        if (isValidElement(customTrigger)) {
+            const element =
+                customTrigger as React.ReactElement<HTMLAttributes<HTMLElement>>
+            triggerContent = cloneElement(element, {
+                onClick: (event) => {
+                    element.props.onClick?.(event)
+                    if (event.defaultPrevented || processing) return
+                    handleCheckout()
+                },
+                "aria-busy": processing ? true : element.props["aria-busy"],
+            })
+        } else {
+            triggerContent = (
+                <span
+                    role='button'
+                    tabIndex={0}
+                    onClick={(event) => {
+                        if (processing) return
+                        event.preventDefault()
+                        handleCheckout()
+                    }}
+                    onKeyDown={(event) => {
+                        if (processing) return
+                        if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault()
+                            handleCheckout()
+                        }
+                    }}
+                >
+                    {customTrigger}
+                </span>
+            )
+        }
+    } else {
+        triggerContent = (
+            <Button
+                className='w-full rounded-full bg-white text-black hover:brightness-90'
+                onClick={handleCheckout}
+                disabled={processing}
+            >
+                <div className='flex w-full flex-col items-center justify-center gap-1 text-center'>
+                    <span>
+                        {processing
+                            ? t("loading")
+                            : mode === "pack"
+                              ? t("purchase")
+                              : t("subscribe")}
+                    </span>
+                    {mode === "subscribe" && displayLabel && !processing && (
+                        <span className='text-xs font-semibold text-black/70'>
+                            {displayLabel}
+                        </span>
+                    )}
+                </div>
+            </Button>
+        )
+    }
 
     return (
         <>
-            {triggerContent ? (
-                triggerContent
-            ) : (
-                <Button
-                    className='w-full rounded-full bg-white text-black hover:brightness-90'
-                    onClick={handleCheckout}
-                    disabled={processing}
-                >
-                    <div className='flex w-full flex-col items-center justify-center gap-1 text-center'>
-                        <span>
-                            {processing
-                                ? t("loading")
-                                : mode === "pack"
-                                  ? t("purchase")
-                                  : t("subscribe")}
-                        </span>
-                        {mode === "subscribe" && displayLabel && !processing && (
-                            <span className='text-xs font-semibold text-black/70'>
-                                {displayLabel}
-                            </span>
-                        )}
-                    </div>
-                </Button>
-            )}
+            {triggerContent}
 
             <Dialog open={fallbackOpen} onOpenChange={setFallbackOpen}>
                 <StarsDialog className='relative space-y-4'>

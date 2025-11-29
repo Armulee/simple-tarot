@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useRef, useEffect } from "react"
+import { useState, useCallback, useRef, useEffect, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { FreeMode, Mousewheel } from "swiper/modules"
@@ -189,6 +189,13 @@ export default function BirthChartShareSection({ id }: BirthChartShareSectionPro
     const navGuardRef = useRef<HTMLDivElement>(null)
     const [unavailableOpen, setUnavailableOpen] = useState(false)
     const [unavailableLabel, setUnavailableLabel] = useState<string>("")
+    const fallbackShareUrl = useMemo(() => {
+        if (!id) return ""
+        const base =
+            process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+            "https://askingfate.com"
+        return `${base}/birth-chart/${id}`
+    }, [id])
 
     useEffect(() => {
         const el = navGuardRef.current
@@ -226,8 +233,8 @@ export default function BirthChartShareSection({ id }: BirthChartShareSectionPro
         if (typeof window !== "undefined") {
             return window.location.href
         }
-        return ""
-    }, [])
+        return fallbackShareUrl
+    }, [fallbackShareUrl])
 
     return (
         <div className='relative overflow-hidden group rounded-xl border border-border/20 bg-card/10 backdrop-blur-sm'>

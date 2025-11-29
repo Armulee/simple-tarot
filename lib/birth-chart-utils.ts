@@ -142,7 +142,6 @@ export function calculatePlanetStats(
             const sign = p.sign
             const degree = Number(p.degree) || 15
             const longitude = Number(p.longitude) || 0
-            const nakshatra = p.nakshatraNumber || 0
             
             // 1. Determine Base Score
             // Use Shadbala percentage if available

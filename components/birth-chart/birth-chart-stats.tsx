@@ -3,7 +3,7 @@
 import { useMemo } from "react"
 import { Progress } from "@/components/ui/progress"
 import { Card } from "@/components/ui/card"
-import { calculatePlanetStats, PlanetStats, PlanetStatType } from "@/lib/birth-chart-utils"
+import { calculatePlanetStats, PlanetStatType } from "@/lib/birth-chart-utils"
 import { Sun, Moon, Sword, Brain, Crown, Heart, Scale, CloudFog, Ghost, ArrowDown, Star, ShieldCheck, Circle, CircleDot } from "lucide-react"
 import { useTranslations } from "next-intl"
 

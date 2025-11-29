@@ -31,6 +31,11 @@ const bodySchema = z.object({
 
 type CheckoutBody = z.infer<typeof bodySchema>
 
+type SessionConfig = {
+    mode: Stripe.Checkout.SessionCreateParams.Mode
+    line_items: Stripe.Checkout.SessionCreateParams.LineItem[]
+}
+
 function buildUrls(mode: CheckoutBody["mode"], locale: string | undefined, origin: string) {
     const safeLocale = locale ?? "en"
     const successPath = `/${safeLocale}/stars?checkout=success&session_id={CHECKOUT_SESSION_ID}`
@@ -53,7 +58,10 @@ function requireStripe() {
     return stripe
 }
 
-function buildPackLineItem(packId: string, currency: CurrencyCode) {
+function buildPackLineItem(
+    packId: string,
+    currency: CurrencyCode
+): SessionConfig {
     const pack = getPackById(packId)
     if (!pack) throw new Error("UNKNOWN_PACK")
     const amount = getPackPrice(packId, currency)
@@ -66,51 +74,64 @@ function buildPackLineItem(packId: string, currency: CurrencyCode) {
         pack.stars === "infinity"
             ? "Unlimited stars for 30 days"
             : `${pack.stars} stars with +${pack.bonus} bonus delivery`
-    return {
-        mode: "payment" as const,
-        line_items: [
-            {
-                price_data: {
-                    currency: toStripeCurrency(currency),
-                    unit_amount: toMinorUnits(amount),
-                    product_data: {
-                        name,
-                        description,
-                    },
-                },
-                quantity: 1,
+
+    const stripeCurrency =
+        toStripeCurrency(currency) as Stripe.Checkout.SessionCreateParams.LineItem.PriceData["currency"]
+
+    const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = {
+        price_data: {
+            currency: stripeCurrency,
+            unit_amount: toMinorUnits(amount),
+            product_data: {
+                name,
+                description,
             },
-        ],
+        },
+        quantity: 1,
+    }
+
+    return {
+        mode: "payment",
+        line_items: [lineItem],
     }
 }
 
-function buildSubscriptionLineItem(plan: NonNullable<CheckoutBody["plan"]>, currency: CurrencyCode) {
+function buildSubscriptionLineItem(
+    plan: NonNullable<CheckoutBody["plan"]>,
+    currency: CurrencyCode
+): SessionConfig {
     const amount = getSubscriptionPrice(plan, currency)
     if (amount === null) throw new Error("PLAN_PRICE_UNAVAILABLE")
-    const interval = plan === "annual" ? "year" : "month"
+
+    const interval: Stripe.Checkout.SessionCreateParams.LineItem.PriceData.Recurring.Interval =
+        plan === "annual" ? "year" : "month"
     const planName =
         plan === "annual"
             ? "Asking Fate Annual Subscription"
             : "Asking Fate Monthly Subscription"
-    return {
-        mode: "subscription" as const,
-        line_items: [
-            {
-                price_data: {
-                    currency: toStripeCurrency(currency),
-                    unit_amount: toMinorUnits(amount),
-                    recurring: { interval },
-                    product_data: {
-                        name: planName,
-                        description:
-                            plan === "annual"
-                                ? "Save over the monthly plan when billed yearly"
-                                : "Flexible month-to-month access",
-                    },
-                },
-                quantity: 1,
+
+    const stripeCurrency =
+        toStripeCurrency(currency) as Stripe.Checkout.SessionCreateParams.LineItem.PriceData["currency"]
+
+    const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = {
+        price_data: {
+            currency: stripeCurrency,
+            unit_amount: toMinorUnits(amount),
+            recurring: { interval },
+            product_data: {
+                name: planName,
+                description:
+                    plan === "annual"
+                        ? "Save over the monthly plan when billed yearly"
+                        : "Flexible month-to-month access",
             },
-        ],
+        },
+        quantity: 1,
+    }
+
+    return {
+        mode: "subscription",
+        line_items: [lineItem],
     }
 }
 
