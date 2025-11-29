@@ -24,17 +24,13 @@ import {
 import { useTranslations } from "next-intl"
 import { useParams } from "next/navigation"
 import { getAvailabilityLabel } from "@/lib/roadmap"
-
-type Pack = {
-    id: string
-    priceThb: number
-    priceUsd: number
-    stars: number
-    bonus: number
-    label?: string
-}
-
-type Currency = "THB" | "USD"
+import {
+    INFINITY_PACK,
+    STAR_PACKS,
+    SUBSCRIPTION_PRICES,
+    resolveCurrencyFromLocale,
+    type CurrencyCode,
+} from "@/lib/payments/star-products"
 
 export default function PricingPage() {
     const t = useTranslations("Pricing")
@@ -43,9 +39,8 @@ export default function PricingPage() {
     const availabilityLabel = getAvailabilityLabel()
 
     // Default currency based on locale
-    const defaultCurrency: Currency = locale === "th" ? "THB" : "USD"
-    const [currency, setCurrency] = useState<Currency>(defaultCurrency)
-    const basePerDollar = 60
+    const defaultCurrency = resolveCurrencyFromLocale(locale)
+    const [currency, setCurrency] = useState<CurrencyCode>(defaultCurrency)
 
     // How it works
     const getCurrencySymbol = () => (currency === "THB" ? "฿" : "$")
@@ -71,35 +66,6 @@ export default function PricingPage() {
             title: t("instantDelivery"),
             desc: t("instantDeliveryDesc"),
         },
-    ]
-
-    // Pricing constants
-    const prices = {
-        monthly: { thb: 349, usd: 9.99 },
-        annual: { thb: 3499, usd: 99.99, monthlyThb: 292, monthlyUsd: 8.34 },
-        infinity: { thb: 349, usd: 9.99 },
-    }
-
-    const packs: Pack[] = [
-        { id: "pack-1", priceThb: 35, priceUsd: 0.99, stars: 60, bonus: 0 },
-        { id: "pack-2", priceThb: 69, priceUsd: 1.99, stars: 130, bonus: 10 },
-        {
-            id: "pack-3",
-            priceThb: 99,
-            priceUsd: 2.99,
-            stars: 200,
-            bonus: 200 - 3 * basePerDollar,
-            label: t("popular"),
-        },
-        {
-            id: "pack-5",
-            priceThb: 169,
-            priceUsd: 4.99,
-            stars: 350,
-            bonus: 350 - 5 * basePerDollar,
-            label: t("bestValue"),
-        },
-        { id: "pack-7", priceThb: 249, priceUsd: 6.99, stars: 500, bonus: 80 },
     ]
 
     // Format price based on currency
@@ -212,8 +178,8 @@ export default function PricingPage() {
                                 </div>
                                 <div className='text-3xl font-bold'>
                                     {formatPrice(
-                                        prices.monthly.thb,
-                                        prices.monthly.usd
+                                        SUBSCRIPTION_PRICES.monthly.THB,
+                                        SUBSCRIPTION_PRICES.monthly.USD
                                     )}
                                     <span className='text-sm text-white/70'>
                                         /month
@@ -239,11 +205,12 @@ export default function PricingPage() {
                                         {t("cancelFromAccount")}
                                     </li>
                                 </ul>
-                                  <Checkout
-                                      mode='subscribe'
-                                      plan='monthly'
-                                      availabilityLabel={availabilityLabel}
-                                  />
+                                <Checkout
+                                    mode='subscribe'
+                                    plan='monthly'
+                                    availabilityLabel={availabilityLabel}
+                                    currency={currency}
+                                />
                             </div>
                         </div>
                     </TabsContent>
@@ -264,14 +231,16 @@ export default function PricingPage() {
                                 <div className='inline-flex items-baseline gap-2'>
                                     <div className='text-3xl font-bold'>
                                         {formatPrice(
-                                            prices.annual.monthlyThb,
-                                            prices.annual.monthlyUsd
+                                            SUBSCRIPTION_PRICES.annual
+                                                .monthlyThb ?? 0,
+                                            SUBSCRIPTION_PRICES.annual
+                                                .monthlyUsd ?? 0
                                         )}{" "}
                                     </div>
                                     <div className='text-sm text-white/70 line-through'>
                                         {formatPrice(
-                                            prices.monthly.thb,
-                                            prices.monthly.usd
+                                            SUBSCRIPTION_PRICES.monthly.THB,
+                                            SUBSCRIPTION_PRICES.monthly.USD
                                         )}{" "}
                                     </div>
                                     <span className='text-sm text-white/70'>
@@ -284,8 +253,8 @@ export default function PricingPage() {
                                 <div className='text-sm text-muted-foreground'>
                                     {t("perMonth")} · {t("billedYearly")} (
                                     {formatPrice(
-                                        prices.annual.thb,
-                                        prices.annual.usd
+                                        SUBSCRIPTION_PRICES.annual.THB,
+                                        SUBSCRIPTION_PRICES.annual.USD
                                     )}
                                     )
                                 </div>
@@ -305,11 +274,12 @@ export default function PricingPage() {
                                         {t("cancelRenewal")}
                                     </li>
                                 </ul>
-                                  <Checkout
-                                      mode='subscribe'
-                                      plan='annual'
-                                      availabilityLabel={availabilityLabel}
-                                  />
+                                <Checkout
+                                    mode='subscribe'
+                                    plan='annual'
+                                    availabilityLabel={availabilityLabel}
+                                    currency={currency}
+                                />
                             </div>
                         </div>
                     </TabsContent>
@@ -329,7 +299,7 @@ export default function PricingPage() {
 
             {/* Packs & Infinity one-time */}
             <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-                {packs.map((p) => (
+                {STAR_PACKS.map((p) => (
                     <Card
                         key={p.id}
                         className={`relative overflow-visible border-0 p-6 rounded-xl bg-card/10 hover:brightness-110 transition`}
@@ -345,7 +315,11 @@ export default function PricingPage() {
                                     <Star
                                         className={`w-4 h-4 ${packIconColor()}`}
                                     />
-                                    <span>{p.label || t("oneTime")}</span>
+                                    <span>
+                                        {p.labelKey
+                                            ? t(p.labelKey)
+                                            : t("oneTime")}
+                                    </span>
                                 </div>
                                 {/* Stars amount first (above price) with bonus badge at top-right */}
                                 <div className='inline-flex items-center gap-2 justify-center w-full mt-2'>
@@ -404,7 +378,11 @@ export default function PricingPage() {
                                     )}
                                 </ul>
                                 <div>
-                                    <Checkout mode='pack' packId={p.id} />
+                                    <Checkout
+                                        mode='pack'
+                                        packId={p.id}
+                                        currency={currency}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -436,10 +414,10 @@ export default function PricingPage() {
                                 </span>
                             </div>
                             <div className='text-3xl font-bold'>
-                                {formatPrice(
-                                    prices.infinity.thb,
-                                    prices.infinity.usd
-                                )}
+                                    {formatPrice(
+                                        SUBSCRIPTION_PRICES.infinity.THB,
+                                        SUBSCRIPTION_PRICES.infinity.USD
+                                    )}
                             </div>
                             <div className='text-sm text-muted-foreground'>
                                 {t("oneTime")} · 30 {t("days")} ·{" "}
@@ -470,8 +448,9 @@ export default function PricingPage() {
                             <div>
                                 <Checkout
                                     mode='pack'
-                                    packId='pack-infinity'
-                                    infinityTerm='month'
+                                    packId={INFINITY_PACK.id}
+                                    infinityTerm={INFINITY_PACK.infinityTerm}
+                                    currency={currency}
                                 />
                             </div>
                         </div>

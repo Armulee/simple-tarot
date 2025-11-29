@@ -1,8 +1,17 @@
 "use client"
 
-import type { ReactNode } from "react"
-import { useEffect, useMemo, useState } from "react"
+import {
+    cloneElement,
+    isValidElement,
+    type ReactNode,
+    useEffect,
+    useMemo,
+    useState,
+} from "react"
 import Link from "next/link"
+import { useParams } from "next/navigation"
+import { loadStripe } from "@stripe/stripe-js"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
 import { useTranslations } from "next-intl"
@@ -12,7 +21,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog"
 import { StarsDialog } from "../star-consent"
 import {
@@ -20,6 +28,13 @@ import {
     getAvailabilityCountdown,
     getAvailabilityLabel,
 } from "@/lib/roadmap"
+import {
+    resolveCurrencyFromLocale,
+    type CurrencyCode,
+} from "@/lib/payments/star-products"
+
+const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+const stripePromise = publishableKey ? loadStripe(publishableKey) : null
 
 type CheckoutMode = "pack" | "subscribe"
 
@@ -30,35 +45,69 @@ type CheckoutProps = {
     infinityTerm?: "month" | "year"
     customTrigger?: ReactNode
     availabilityLabel?: string
+    currency?: CurrencyCode
 }
 
-export function Checkout({ mode, customTrigger, availabilityLabel }: CheckoutProps) {
+export function Checkout({
+    mode,
+    packId,
+    plan,
+    infinityTerm,
+    customTrigger,
+    availabilityLabel,
+    currency,
+}: CheckoutProps) {
     const { user } = useAuth()
     const t = useTranslations("Checkout")
-    const [open, setOpen] = useState(false)
-    const stripeConfigured = Boolean(process.env.STRIPE_API_KEY)
+    const params = useParams()
+    const locale = (params?.locale as string) ?? "en"
+    const effectiveCurrency = currency ?? resolveCurrencyFromLocale(locale)
     const [countdown, setCountdown] = useState(getAvailabilityCountdown())
+    const [processing, setProcessing] = useState(false)
+    const [fallbackOpen, setFallbackOpen] = useState(false)
     const fallbackLabel = useMemo(
         () => availabilityLabel ?? getAvailabilityLabel(),
         [availabilityLabel]
     )
+
     useEffect(() => {
         if (typeof window === "undefined") return
-        const interval = window.setInterval(() => {
+        const timer = window.setInterval(() => {
             setCountdown(getAvailabilityCountdown())
         }, 1000)
-        return () => window.clearInterval(interval)
+        return () => window.clearInterval(timer)
     }, [])
+
     const displayLabel =
         formatAvailabilityCountdown(countdown) ?? fallbackLabel ?? undefined
 
     if (!user) {
-        const signinHref = `/signin?callbackUrl=${encodeURIComponent("/pricing")}`
-        return customTrigger ? (
-            <Link href={signinHref}>
-                <span>{customTrigger}</span>
-            </Link>
-        ) : (
+        const defaultCallback = mode === "pack" ? "/pricing" : "/stars"
+        const pathname =
+            typeof window !== "undefined"
+                ? window.location.pathname
+                : defaultCallback
+        const signinHref = `/signin?callbackUrl=${encodeURIComponent(pathname)}`
+        if (customTrigger && isValidElement(customTrigger)) {
+            return (
+                <Link href={signinHref}>
+                    {cloneElement(customTrigger, {
+                        ...customTrigger.props,
+                        onClick: (event) => {
+                            customTrigger.props.onClick?.(event)
+                        },
+                    })}
+                </Link>
+            )
+        }
+        if (customTrigger) {
+            return (
+                <Link href={signinHref}>
+                    <span>{customTrigger}</span>
+                </Link>
+            )
+        }
+        return (
             <Link href={signinHref}>
                 <Button className='w-full rounded-full bg-white text-black hover:brightness-90'>
                     {t("signInToSubscribe")}
@@ -67,55 +116,159 @@ export function Checkout({ mode, customTrigger, availabilityLabel }: CheckoutPro
         )
     }
 
+    const openFallback = () => setFallbackOpen(true)
+
+    const handleCheckout = async () => {
+        if (processing) return
+
+        if (!stripePromise) {
+            openFallback()
+            return
+        }
+
+        let toastId: string | number | undefined
+        try {
+            setProcessing(true)
+            toastId = toast.loading(t("redirecting"))
+
+            const payload: Record<string, unknown> = {
+                mode,
+                locale,
+                currency: effectiveCurrency,
+                userId: user.id,
+            }
+            if (packId) payload.packId = packId
+            if (plan) payload.plan = plan
+            if (infinityTerm) payload.infinityTerm = infinityTerm
+            if (user.email) payload.email = user.email
+
+            const response = await fetch("/api/checkout/session", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            })
+            const data = (await response.json().catch(() => null)) as
+                | { id?: string; code?: string; message?: string }
+                | null
+
+            if (!response.ok || !data?.id) {
+                if (data?.code === "STRIPE_NOT_CONFIGURED") {
+                    openFallback()
+                }
+                throw new Error(data?.message ?? "SESSION_ERROR")
+            }
+
+            const stripe = await stripePromise
+            if (!stripe) {
+                openFallback()
+                throw new Error("STRIPE_NOT_READY")
+            }
+
+            const { error } = await stripe.redirectToCheckout({
+                sessionId: data.id,
+            })
+            if (error) {
+                throw new Error(error.message)
+            }
+        } catch (error) {
+            toast.error(t("sessionError"))
+            console.error(error)
+        } finally {
+            if (toastId) toast.dismiss(toastId)
+            setProcessing(false)
+        }
+    }
+
+    const triggerContent = customTrigger
+        ? isValidElement(customTrigger)
+            ? cloneElement(customTrigger, {
+                  ...customTrigger.props,
+                  onClick: (event) => {
+                      customTrigger.props.onClick?.(event)
+                      if (event.defaultPrevented || processing) return
+                      handleCheckout()
+                  },
+                  "aria-busy": processing ? true : customTrigger.props["aria-busy"],
+              })
+            : (
+                  <span
+                      role='button'
+                      tabIndex={0}
+                      onClick={(event) => {
+                          if (processing) return
+                          event.preventDefault()
+                          handleCheckout()
+                      }}
+                      onKeyDown={(event) => {
+                          if (processing) return
+                          if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault()
+                              handleCheckout()
+                          }
+                      }}
+                  >
+                      {customTrigger}
+                  </span>
+              )
+        : null
+
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                {customTrigger ? (
-                    <span onClick={() => setOpen(true)}>{customTrigger}</span>
-                ) : (
-                    <Button
-                        className='w-full rounded-full bg-white text-black hover:brightness-90'
-                        onClick={() => setOpen(true)}
-                    >
-                        <div className='flex w-full flex-col items-center justify-center gap-1 text-center'>
-                            <span>{mode === "pack" ? t("purchase") : t("subscribe")}</span>
-                            {mode === "subscribe" && displayLabel && (
-                                <span className='text-xs font-semibold text-black/70'>
-                                    {displayLabel}
-                                </span>
-                            )}
-                        </div>
-                    </Button>
-                )}
-            </DialogTrigger>
-            <StarsDialog className='relative space-y-4'>
-                <DialogHeader className='space-y-2'>
-                    <DialogTitle className='text-yellow-300 font-serif text-xl'>
-                        {t("comingSoonTitle")}
-                    </DialogTitle>
-                    <DialogDescription className='text-white/85'>
-                        {t("comingSoonDescription")}
-                    </DialogDescription>
-                </DialogHeader>
-                <p className='text-sm text-white/70 leading-relaxed'>
-                    {t("comingSoonHelper")}
-                </p>
-                <p className='text-xs text-white/60 leading-relaxed'>
-                    {stripeConfigured
-                        ? t("stripeReady")
-                        : t("stripeMissing", {
-                              countdown: displayLabel ?? t("countdownUnknown"),
-                          })}
-                </p>
-                <DialogFooter>
-                    <Button
-                        className='w-full rounded-full bg-white text-black hover:brightness-95'
-                        onClick={() => setOpen(false)}
-                    >
-                        {t("close")}
-                    </Button>
-                </DialogFooter>
-            </StarsDialog>
-        </Dialog>
+        <>
+            {triggerContent ? (
+                triggerContent
+            ) : (
+                <Button
+                    className='w-full rounded-full bg-white text-black hover:brightness-90'
+                    onClick={handleCheckout}
+                    disabled={processing}
+                >
+                    <div className='flex w-full flex-col items-center justify-center gap-1 text-center'>
+                        <span>
+                            {processing
+                                ? t("loading")
+                                : mode === "pack"
+                                  ? t("purchase")
+                                  : t("subscribe")}
+                        </span>
+                        {mode === "subscribe" && displayLabel && !processing && (
+                            <span className='text-xs font-semibold text-black/70'>
+                                {displayLabel}
+                            </span>
+                        )}
+                    </div>
+                </Button>
+            )}
+
+            <Dialog open={fallbackOpen} onOpenChange={setFallbackOpen}>
+                <StarsDialog className='relative space-y-4'>
+                    <DialogHeader className='space-y-2'>
+                        <DialogTitle className='text-yellow-300 font-serif text-xl'>
+                            {t("comingSoonTitle")}
+                        </DialogTitle>
+                        <DialogDescription className='text-white/85'>
+                            {t("comingSoonDescription")}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <p className='text-sm text-white/70 leading-relaxed'>
+                        {t("comingSoonHelper")}
+                    </p>
+                    <p className='text-xs text-white/60 leading-relaxed'>
+                        {publishableKey
+                            ? t("stripeReady")
+                            : t("stripeMissing", {
+                                  countdown: displayLabel ?? t("countdownUnknown"),
+                              })}
+                    </p>
+                    <DialogFooter>
+                        <Button
+                            className='w-full rounded-full bg-white text-black hover:brightness-95'
+                            onClick={() => setFallbackOpen(false)}
+                        >
+                            {t("close")}
+                        </Button>
+                    </DialogFooter>
+                </StarsDialog>
+            </Dialog>
+        </>
     )
 }
