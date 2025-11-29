@@ -59,6 +59,18 @@ export default function BirthChartDisplay({
                 </div>
             </Card>
 
+            {/* Stats Section */}
+            <div className="space-y-6">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
+                    <h2 className="text-2xl font-serif font-bold text-white whitespace-nowrap">
+                        {t("planetaryStrengths")}
+                    </h2>
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
+                </div>
+                <BirthChartStats planets={birthChart.planets} />
+            </div>
+
             {/* Wheel */}
             <div className="flex justify-center py-12 relative">
                  {/* Enhanced Background Glow */}
@@ -70,18 +82,6 @@ export default function BirthChartDisplay({
                         planets={birthChart.planets} 
                     />
                 </div>
-            </div>
-
-            {/* Stats Section */}
-            <div className="space-y-6">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
-                    <h2 className="text-2xl font-serif font-bold text-white whitespace-nowrap">
-                        {t("planetaryStrengths")}
-                    </h2>
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
-                </div>
-                <BirthChartStats planets={birthChart.planets} />
             </div>
 
             {/* Houses Detail */}
