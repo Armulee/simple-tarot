@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import {
     Star,
@@ -10,6 +12,7 @@ import {
     Crown,
 } from "lucide-react"
 import Link from "next/link"
+import { useParams } from "next/navigation"
 import {
     Accordion,
     AccordionContent,
@@ -24,10 +27,16 @@ import SubscribeDropdown from "@/components/stars/subscribe-dropdown"
 import { useTranslations } from "next-intl"
 import { getAvailabilityLabel } from "@/lib/roadmap"
 import { LiveAvailabilityLabel } from "@/components/stars/live-availability-label"
+import { resolveCurrencyFromLocale } from "@/lib/payments/star-products"
+import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
 
 export default function StarsPage() {
     const t = useTranslations("StarsPage")
     const availabilityLabel = getAvailabilityLabel()
+    const params = useParams()
+    const locale = (params?.locale as string) ?? "en"
+    const defaultCurrency = resolveCurrencyFromLocale(locale)
+    const currency = usePreferredCurrency(defaultCurrency)
     return (
         <div className='relative min-h-screen'>
             {/* Hero Section */}
@@ -93,6 +102,7 @@ export default function StarsPage() {
                           <Checkout
                               mode='subscribe'
                               plan='monthly'
+                              currency={currency}
                               customTrigger={
                                   <button
                                       type='button'
@@ -112,7 +122,7 @@ export default function StarsPage() {
                                                     />
                                                 </div>
                                           </div>
-                                          <SubscribeDropdown />
+                                          <SubscribeDropdown currency={currency} />
                                       </div>
 
                                       {/* Premium badge */}
@@ -124,7 +134,7 @@ export default function StarsPage() {
                           />
                         </div>
 
-                        <OneTapTopUp />
+                        <OneTapTopUp currency={currency} />
                     </div>
                 </div>
             </section>

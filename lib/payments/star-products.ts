@@ -1,29 +1,23 @@
-export type CurrencyCode = "USD" | "THB"
+import {
+    convertUsdToCurrency,
+    DEFAULT_CURRENCY,
+    type CurrencyCode,
+} from "@/lib/payments/currency-utils"
 
 export type SubscriptionPlanId = "monthly" | "annual"
 
-type SubscriptionPriceMap = {
-    USD: number
-    THB: number
-    monthlyUsd?: number
-    monthlyThb?: number
-}
-
-export const SUBSCRIPTION_PRICES: Record<
-    SubscriptionPlanId | "infinity",
-    SubscriptionPriceMap
-> = {
-    monthly: { THB: 349, USD: 9.99 },
-    annual: { THB: 3499, USD: 99.99, monthlyThb: 292, monthlyUsd: 8.34 },
-    infinity: { THB: 349, USD: 9.99 },
-}
+const SUBSCRIPTION_BASE_PRICES_USD = {
+    monthly: 9.99,
+    annual: 99.99,
+    annualMonthlyEquivalent: 8.34,
+    infinity: 9.99,
+} as const
 
 export type LabelTranslationKey = "popular" | "bestValue"
 
 export type StarPackDefinition = {
     id: string
-    priceThb: number
-    priceUsd: number
+    baseUsdPrice: number
     stars: number | "infinity"
     bonus: number
     labelKey?: LabelTranslationKey
@@ -31,31 +25,28 @@ export type StarPackDefinition = {
 }
 
 export const STAR_PACKS: StarPackDefinition[] = [
-    { id: "pack-1", priceThb: 35, priceUsd: 0.99, stars: 60, bonus: 0 },
-    { id: "pack-2", priceThb: 69, priceUsd: 1.99, stars: 130, bonus: 10 },
+    { id: "pack-1", baseUsdPrice: 0.99, stars: 60, bonus: 0 },
+    { id: "pack-2", baseUsdPrice: 1.99, stars: 130, bonus: 10 },
     {
         id: "pack-3",
-        priceThb: 99,
-        priceUsd: 2.99,
+        baseUsdPrice: 2.99,
         stars: 200,
         bonus: 20,
         labelKey: "popular",
     },
     {
         id: "pack-5",
-        priceThb: 169,
-        priceUsd: 4.99,
+        baseUsdPrice: 4.99,
         stars: 350,
         bonus: 50,
         labelKey: "bestValue",
     },
-    { id: "pack-7", priceThb: 249, priceUsd: 6.99, stars: 500, bonus: 80 },
+    { id: "pack-7", baseUsdPrice: 6.99, stars: 500, bonus: 80 },
 ]
 
 export const INFINITY_PACK: StarPackDefinition = {
     id: "pack-infinity",
-    priceThb: SUBSCRIPTION_PRICES.infinity.THB,
-    priceUsd: SUBSCRIPTION_PRICES.infinity.USD,
+    baseUsdPrice: SUBSCRIPTION_BASE_PRICES_USD.infinity,
     stars: "infinity",
     bonus: 0,
     infinityTerm: "month",
@@ -74,22 +65,9 @@ export function getPackById(id: string): StarPackDefinition | null {
     return PACK_LOOKUP.get(id) ?? null
 }
 
-export function normalizeCurrency(input?: string | null): CurrencyCode {
-    if (input && input.toUpperCase() === "THB") return "THB"
-    return "USD"
-}
-
 export function resolveCurrencyFromLocale(locale?: string | null): CurrencyCode {
     if (!locale) return "USD"
-    return locale.toLowerCase() === "th" ? "THB" : "USD"
-}
-
-export function toStripeCurrency(currency: CurrencyCode): "usd" | "thb" {
-    return currency.toLowerCase() as "usd" | "thb"
-}
-
-export function toMinorUnits(amount: number): number {
-    return Math.round(amount * 100)
+    return locale.toLowerCase() === "th" ? "THB" : DEFAULT_CURRENCY
 }
 
 export function getPackPrice(
@@ -98,13 +76,23 @@ export function getPackPrice(
 ): number | null {
     const pack = getPackById(packId)
     if (!pack) return null
-    return currency === "THB" ? pack.priceThb : pack.priceUsd
+    return convertUsdToCurrency(pack.baseUsdPrice, currency)
 }
 
 export function getSubscriptionPrice(
     plan: SubscriptionPlanId,
     currency: CurrencyCode
 ): number | null {
-    const price = SUBSCRIPTION_PRICES[plan]?.[currency]
-    return typeof price === "number" ? price : null
+    const base = SUBSCRIPTION_BASE_PRICES_USD[plan]
+    if (typeof base !== "number") return null
+    return convertUsdToCurrency(base, currency)
+}
+
+export function getAnnualMonthlyEquivalent(
+    currency: CurrencyCode
+): number | null {
+    return convertUsdToCurrency(
+        SUBSCRIPTION_BASE_PRICES_USD.annualMonthlyEquivalent,
+        currency
+    )
 }

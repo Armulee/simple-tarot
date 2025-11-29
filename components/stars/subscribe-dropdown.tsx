@@ -4,8 +4,13 @@ import { Checkout } from "../checkout"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { ChevronDown } from "lucide-react"
 import { useTranslations } from "next-intl"
+import type { CurrencyCode } from "@/lib/payments/currency-utils"
 
-export default function SubscribeDropdown() {
+interface SubscribeDropdownProps {
+    currency: CurrencyCode
+}
+
+export default function SubscribeDropdown({ currency }: SubscribeDropdownProps) {
     const t = useTranslations("SubscribeDropdown")
     return (
         <Popover>
@@ -33,8 +38,9 @@ export default function SubscribeDropdown() {
                 <Checkout
                     mode='subscribe'
                     plan='monthly'
+                    currency={currency}
                     customTrigger={
-                        <button className='w-full text-left text-sm px-3 py-2 rounded-lg hover:bg-white/10 transition-colors duration-200'>
+                        <button className='w-full text-left text-sm px-3 py-2 rounded-lg hover:bg-white/10 transition-colors.duration-200'>
                             <div className='font-medium'>{t("monthly")}</div>
                             <div className='text-xs text-gray-400'>
                                 {t("monthlyPrice")}
@@ -45,8 +51,9 @@ export default function SubscribeDropdown() {
                 <Checkout
                     mode='subscribe'
                     plan='annual'
+                    currency={currency}
                     customTrigger={
-                        <button className='w-full text-left text-sm px-3 py-2 rounded-lg hover:bg-white/10 transition-colors duration-200'>
+                        <button className='w-full text-left text-sm px-3 py-2 rounded-lg hover:bg-white/10 transition-colors.duration-200'>
                             <div className='font-medium'>{t("annual")}</div>
                             <div className='text-xs text-gray-400'>
                                 {t("annualPrice")}

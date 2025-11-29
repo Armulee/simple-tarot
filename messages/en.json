@@ -1490,7 +1490,7 @@
     "signIn": "Sign in",
     "signInDesc": "Create or sign in to your account",
     "pickPack": "Pick a pack",
-    "pickPackDesc": "฿1=60 stars, larger packs include bonus",
+    "pickPackDesc": "We auto-select a local currency. Larger packs include bonus stars.",
     "paySecurely": "Pay securely",
     "paySecurelyDesc": "Processed by trusted providers",
     "instantDeliveryDesc": "Stars appear right after payment",

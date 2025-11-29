@@ -29,10 +29,9 @@ import {
     getAvailabilityCountdown,
     getAvailabilityLabel,
 } from "@/lib/roadmap"
-import {
-    resolveCurrencyFromLocale,
-    type CurrencyCode,
-} from "@/lib/payments/star-products"
+import { resolveCurrencyFromLocale } from "@/lib/payments/star-products"
+import type { CurrencyCode } from "@/lib/payments/currency-utils"
+import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
 
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 const stripePromise: Promise<ClientStripe | null> | null = publishableKey
@@ -70,7 +69,10 @@ export function Checkout({
     const t = useTranslations("Checkout")
     const params = useParams()
     const locale = (params?.locale as string) ?? "en"
-    const effectiveCurrency = currency ?? resolveCurrencyFromLocale(locale)
+    const localeCurrency = resolveCurrencyFromLocale(locale)
+    const preferredCurrency = usePreferredCurrency(localeCurrency)
+    const effectiveCurrency =
+        currency ?? preferredCurrency ?? localeCurrency ?? "USD"
     const [countdown, setCountdown] = useState(getAvailabilityCountdown())
     const [processing, setProcessing] = useState(false)
     const [fallbackOpen, setFallbackOpen] = useState(false)

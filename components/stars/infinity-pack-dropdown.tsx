@@ -4,13 +4,16 @@ import { Checkout } from "../checkout"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { ChevronDown } from "lucide-react"
 import { useTranslations } from "next-intl"
+import type { CurrencyCode } from "@/lib/payments/currency-utils"
 
 interface InfinityPackDropdownProps {
     packId: string
+    currency: CurrencyCode
 }
 
 export default function InfinityPackDropdown({
     packId,
+    currency,
 }: InfinityPackDropdownProps) {
     const t = useTranslations("InfinityPackDropdown")
     return (
@@ -39,6 +42,7 @@ export default function InfinityPackDropdown({
                 <Checkout
                     mode='pack'
                     packId={packId}
+                    currency={currency}
                     infinityTerm='month'
                     customTrigger={
                         <button className='w-full text-left text-sm px-3 py-2 rounded-lg hover:bg-white/10 transition-colors duration-200'>

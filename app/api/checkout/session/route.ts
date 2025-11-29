@@ -3,15 +3,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 import { z } from "zod"
+import { getPackById, getPackPrice, getSubscriptionPrice } from "@/lib/payments/star-products"
 import {
-    getPackById,
-    getPackPrice,
-    getSubscriptionPrice,
-    normalizeCurrency,
-    toMinorUnits,
-    toStripeCurrency,
+    DEFAULT_CURRENCY,
     type CurrencyCode,
-} from "@/lib/payments/star-products"
+    normalizeCurrencyCode,
+    toMinorUnits,
+} from "@/lib/payments/currency-utils"
 
 const stripeSecretKey =
     process.env.STRIPE_SECRET_KEY ?? process.env.STRIPE_API_KEY ?? null
@@ -23,7 +21,7 @@ const bodySchema = z.object({
     packId: z.string().optional(),
     plan: z.enum(["monthly", "annual"]).optional(),
     infinityTerm: z.enum(["month", "year"]).optional(),
-    currency: z.enum(["USD", "THB"]).optional(),
+    currency: z.string().optional(),
     locale: z.string().optional(),
     userId: z.string().min(1),
     email: z.string().email().optional(),
@@ -75,13 +73,11 @@ function buildPackLineItem(
             ? "Unlimited stars for 30 days"
             : `${pack.stars} stars with +${pack.bonus} bonus delivery`
 
-    const stripeCurrency =
-        toStripeCurrency(currency) as Stripe.Checkout.SessionCreateParams.LineItem.PriceData["currency"]
-
     const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = {
         price_data: {
-            currency: stripeCurrency,
-            unit_amount: toMinorUnits(amount),
+            currency:
+                currency.toLowerCase() as Stripe.Checkout.SessionCreateParams.LineItem.PriceData["currency"],
+            unit_amount: toMinorUnits(amount, currency),
             product_data: {
                 name,
                 description,
@@ -110,13 +106,11 @@ function buildSubscriptionLineItem(
             ? "Asking Fate Annual Subscription"
             : "Asking Fate Monthly Subscription"
 
-    const stripeCurrency =
-        toStripeCurrency(currency) as Stripe.Checkout.SessionCreateParams.LineItem.PriceData["currency"]
-
     const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = {
         price_data: {
-            currency: stripeCurrency,
-            unit_amount: toMinorUnits(amount),
+            currency:
+                currency.toLowerCase() as Stripe.Checkout.SessionCreateParams.LineItem.PriceData["currency"],
+            unit_amount: toMinorUnits(amount, currency),
             recurring: { interval },
             product_data: {
                 name: planName,
@@ -139,7 +133,8 @@ export async function POST(req: NextRequest) {
     try {
         const raw = await req.json()
         const body = bodySchema.parse(raw) as CheckoutBody
-        const currency = normalizeCurrency(body.currency) as CurrencyCode
+        const currency =
+            normalizeCurrencyCode(body.currency) ?? (DEFAULT_CURRENCY as CurrencyCode)
 
         if (body.mode === "pack" && !body.packId) {
             return NextResponse.json(
@@ -174,12 +169,12 @@ export async function POST(req: NextRequest) {
                 ? buildPackLineItem(body.packId!, currency)
                 : buildSubscriptionLineItem(body.plan!, currency)
 
-        const session = await stripeClient.checkout.sessions.create({
+        const sessionParams: Stripe.Checkout.SessionCreateParams = {
             mode: sessionConfig.mode,
             line_items: sessionConfig.line_items,
             success_url: success,
             cancel_url: cancel,
-            customer_email: body.email,
+            customer_email: body.email ?? undefined,
             metadata: {
                 mode: body.mode,
                 packId: body.packId ?? "",
@@ -189,7 +184,14 @@ export async function POST(req: NextRequest) {
                 currency,
             },
             allow_promotion_codes: true,
-        })
+        }
+
+        ;(sessionParams as Record<string, unknown>).automatic_payment_methods = {
+            enabled: true,
+            allow_redirects: "always",
+        }
+
+        const session = await stripeClient.checkout.sessions.create(sessionParams)
 
         return NextResponse.json({ id: session.id })
     } catch (error) {
