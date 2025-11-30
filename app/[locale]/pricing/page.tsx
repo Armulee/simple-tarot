@@ -33,9 +33,10 @@ import {
     resolveCurrencyFromLocale,
 } from "@/lib/payments/star-products"
 import {
+    ensureSupportedCurrency,
     formatCurrency,
     getCurrencySymbol,
-    POPULAR_CURRENCIES,
+    SUPPORTED_PAYMENT_CURRENCIES,
     type CurrencyCode,
 } from "@/lib/payments/currency-utils"
 import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
@@ -48,12 +49,14 @@ export default function PricingPage() {
 
     const defaultCurrency = resolveCurrencyFromLocale(locale)
     const preferredCurrency = usePreferredCurrency(defaultCurrency)
-    const [currency, setCurrency] = useState<CurrencyCode>(preferredCurrency)
+    const [currency, setCurrency] = useState<CurrencyCode>(
+        ensureSupportedCurrency(preferredCurrency)
+    )
     const [isManualCurrency, setIsManualCurrency] = useState(false)
 
     useEffect(() => {
         if (!isManualCurrency) {
-            setCurrency(preferredCurrency)
+            setCurrency(ensureSupportedCurrency(preferredCurrency))
         }
     }, [preferredCurrency, isManualCurrency])
 
@@ -103,7 +106,7 @@ export default function PricingPage() {
     )
 
     const currencyOptions = useMemo(() => {
-        const set = new Set<CurrencyCode>(POPULAR_CURRENCIES)
+        const set = new Set<CurrencyCode>(SUPPORTED_PAYMENT_CURRENCIES)
         set.add(currency)
         return Array.from(set)
     }, [currency])
@@ -147,12 +150,10 @@ export default function PricingPage() {
                     </span>
                     <Select
                         value={currency}
-                        onValueChange={(value) =>
-                            {
-                                setIsManualCurrency(true)
-                                setCurrency(value as CurrencyCode)
-                            }
-                        }
+                        onValueChange={(value) => {
+                            setIsManualCurrency(true)
+                            setCurrency(ensureSupportedCurrency(value))
+                        }}
                     >
                         <SelectTrigger className='w-[190px] bg-accent/30 border-border/30 rounded-r-md rounded-l-none'>
                             <SelectValue

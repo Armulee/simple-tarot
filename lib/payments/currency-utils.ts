@@ -1,6 +1,45 @@
 export type CurrencyCode = string
 
-export const DEFAULT_CURRENCY: CurrencyCode = "USD"
+const defaultCurrencyEnv =
+    (typeof process !== "undefined" && process.env.NEXT_PUBLIC_STRIPE_DEFAULT_CURRENCY) ||
+    (typeof process !== "undefined" && process.env.STRIPE_DEFAULT_CURRENCY) ||
+    "USD"
+
+export const DEFAULT_CURRENCY: CurrencyCode = (defaultCurrencyEnv || "USD")
+    .trim()
+    .toUpperCase()
+
+const supportedCurrenciesEnv =
+    (typeof process !== "undefined" && process.env.NEXT_PUBLIC_STRIPE_SUPPORTED_CURRENCIES) ||
+    (typeof process !== "undefined" && process.env.STRIPE_SUPPORTED_CURRENCIES) ||
+    ""
+
+function parseCurrencyList(raw: string): CurrencyCode[] {
+    if (!raw) return []
+    return raw
+        .split(",")
+        .map((part) => part.trim().toUpperCase())
+        .filter((code) => /^[A-Z]{3}$/.test(code))
+}
+
+const defaultSupported: CurrencyCode[] = [
+    "USD",
+    "EUR",
+    "GBP",
+    "AUD",
+    "CAD",
+    "NZD",
+    "SGD",
+    "HKD",
+    "JPY",
+    "THB",
+]
+
+const configuredSupported = parseCurrencyList(supportedCurrenciesEnv)
+
+export const SUPPORTED_PAYMENT_CURRENCIES: CurrencyCode[] = Array.from(
+    new Set([DEFAULT_CURRENCY, ...configuredSupported, ...defaultSupported])
+)
 
 export const POPULAR_CURRENCIES: CurrencyCode[] = [
     "USD",
@@ -114,6 +153,14 @@ export function normalizeCurrencyCode(code?: string | null): CurrencyCode | null
     const trimmed = code.trim().toUpperCase()
     if (!/^[A-Z]{3}$/.test(trimmed)) return null
     return trimmed
+}
+
+export function ensureSupportedCurrency(code?: string | null): CurrencyCode {
+    const normalized = normalizeCurrencyCode(code)
+    if (normalized && SUPPORTED_PAYMENT_CURRENCIES.includes(normalized)) {
+        return normalized
+    }
+    return SUPPORTED_PAYMENT_CURRENCIES[0] ?? DEFAULT_CURRENCY
 }
 
 export function getCurrencySymbol(currency: CurrencyCode): string {

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import {
     DEFAULT_CURRENCY,
     detectRegionFromLocales,
-    normalizeCurrencyCode,
+    ensureSupportedCurrency,
     type CurrencyCode,
 } from "@/lib/payments/currency-utils"
 
@@ -17,10 +17,12 @@ function extractRegionFromNavigator(): string | null {
 export function usePreferredCurrency(
     fallbackCurrency: CurrencyCode = DEFAULT_CURRENCY
 ): CurrencyCode {
-    const [currency, setCurrency] = useState<CurrencyCode>(fallbackCurrency)
+    const [currency, setCurrency] = useState<CurrencyCode>(
+        ensureSupportedCurrency(fallbackCurrency)
+    )
 
     useEffect(() => {
-        setCurrency(fallbackCurrency)
+        setCurrency(ensureSupportedCurrency(fallbackCurrency))
     }, [fallbackCurrency])
 
     useEffect(() => {
@@ -33,8 +35,8 @@ export function usePreferredCurrency(
                 const { Country } = await import("country-state-city")
                 const info = Country.getCountryByCode(region)
                 const candidate = info?.currency?.split(",")?.[0]
-                const normalized = normalizeCurrencyCode(candidate)
-                if (normalized && !cancelled) {
+                const normalized = ensureSupportedCurrency(candidate)
+                if (!cancelled) {
                     setCurrency(normalized)
                 }
             } catch {

@@ -6,6 +6,7 @@ import { z } from "zod"
 import { getPackById, getPackPrice, getSubscriptionPrice } from "@/lib/payments/star-products"
 import {
     DEFAULT_CURRENCY,
+    ensureSupportedCurrency,
     type CurrencyCode,
     normalizeCurrencyCode,
     toMinorUnits,
@@ -136,8 +137,9 @@ export async function POST(req: NextRequest) {
     try {
         const raw = await req.json()
         const body = bodySchema.parse(raw) as CheckoutBody
-        const currency =
-            normalizeCurrencyCode(body.currency) ?? (DEFAULT_CURRENCY as CurrencyCode)
+        const currency = ensureSupportedCurrency(
+            normalizeCurrencyCode(body.currency) ?? DEFAULT_CURRENCY
+        )
 
         if (body.mode === "pack" && !body.packId) {
             return NextResponse.json(
@@ -167,36 +169,58 @@ export async function POST(req: NextRequest) {
             body.locale,
             fallbackOrigin
         )
-        const sessionConfig =
-            body.mode === "pack"
-                ? buildPackLineItem(body.packId!, currency)
-                : buildSubscriptionLineItem(body.plan!, currency)
 
-        const sessionParams: Stripe.Checkout.SessionCreateParams = {
-            mode: sessionConfig.mode,
-            line_items: sessionConfig.line_items,
-            success_url: success,
-            cancel_url: cancel,
-            customer_email: body.email ?? undefined,
-            metadata: {
-                mode: body.mode,
-                packId: body.packId ?? "",
-                plan: body.plan ?? "",
-                userId: body.userId,
-                locale: body.locale ?? "en",
-                currency,
-            },
-            allow_promotion_codes: true,
+        async function createCheckoutSession(targetCurrency: CurrencyCode) {
+            const sessionConfig =
+                body.mode === "pack"
+                    ? buildPackLineItem(body.packId!, targetCurrency)
+                    : buildSubscriptionLineItem(body.plan!, targetCurrency)
+
+            const sessionParams: Stripe.Checkout.SessionCreateParams = {
+                mode: sessionConfig.mode,
+                line_items: sessionConfig.line_items,
+                success_url: success,
+                cancel_url: cancel,
+                customer_email: body.email ?? undefined,
+                metadata: {
+                    mode: body.mode,
+                    packId: body.packId ?? "",
+                    plan: body.plan ?? "",
+                    userId: body.userId,
+                    locale: body.locale ?? "en",
+                    currency: targetCurrency,
+                },
+                allow_promotion_codes: true,
+            }
+
+            ;(sessionParams as Record<string, unknown>).automatic_payment_methods = {
+                enabled: true,
+                allow_redirects: "always",
+            }
+
+            return stripeClient.checkout.sessions.create(sessionParams)
         }
 
-        ;(sessionParams as Record<string, unknown>).automatic_payment_methods = {
-            enabled: true,
-            allow_redirects: "always",
+        try {
+            const session = await createCheckoutSession(currency)
+            return NextResponse.json({ id: session.id, url: session.url, currency })
+        } catch (error) {
+            const fallbackCurrency = ensureSupportedCurrency(DEFAULT_CURRENCY)
+            if (
+                error instanceof Stripe.errors.StripeInvalidRequestError &&
+                error.message?.toLowerCase().includes("currency") &&
+                currency !== fallbackCurrency
+            ) {
+                const session = await createCheckoutSession(fallbackCurrency)
+                return NextResponse.json({
+                    id: session.id,
+                    url: session.url,
+                    currency: fallbackCurrency,
+                    fallback: true,
+                })
+            }
+            throw error
         }
-
-        const session = await stripeClient.checkout.sessions.create(sessionParams)
-
-        return NextResponse.json({ id: session.id, url: session.url })
     } catch (error) {
         console.error("Stripe checkout error", error)
         const code =

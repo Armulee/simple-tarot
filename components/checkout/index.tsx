@@ -21,7 +21,10 @@ import {
     getAvailabilityLabel,
 } from "@/lib/roadmap"
 import { resolveCurrencyFromLocale } from "@/lib/payments/star-products"
-import type { CurrencyCode } from "@/lib/payments/currency-utils"
+import {
+    ensureSupportedCurrency,
+    type CurrencyCode,
+} from "@/lib/payments/currency-utils"
 import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
 
 type CheckoutMode = "pack" | "subscribe"
@@ -51,8 +54,12 @@ export function Checkout({
     const locale = (params?.locale as string) ?? "en"
     const localeCurrency = resolveCurrencyFromLocale(locale)
     const preferredCurrency = usePreferredCurrency(localeCurrency)
+    const safePreferredCurrency = ensureSupportedCurrency(preferredCurrency)
+    const safePropCurrency = currency ? ensureSupportedCurrency(currency) : null
     const effectiveCurrency =
-        currency ?? preferredCurrency ?? localeCurrency ?? "USD"
+        safePropCurrency ??
+        safePreferredCurrency ??
+        ensureSupportedCurrency(localeCurrency)
     const [countdown, setCountdown] = useState(getAvailabilityCountdown())
     const [processing, setProcessing] = useState(false)
     const fallbackLabel = useMemo(
