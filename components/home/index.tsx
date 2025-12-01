@@ -39,10 +39,18 @@ export default function Home() {
                 mainSwiperRef.current.swiper.slideNext()
             }
         }
+        const handleScrollToHero = () => {
+            if (mainSwiperRef.current) {
+                mainSwiperRef.current.swiper.slideTo(0)
+            }
+        }
 
         window.addEventListener("scrollToAbout", handleScrollToAbout)
-        return () =>
+        window.addEventListener("scrollToHero", handleScrollToHero)
+        return () => {
             window.removeEventListener("scrollToAbout", handleScrollToAbout)
+            window.removeEventListener("scrollToHero", handleScrollToHero)
+        }
     }, [])
 
     // Prevent browser back/forward gestures on horizontal wheel scroll
