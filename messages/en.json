@@ -1456,6 +1456,8 @@
     "heroDescription": "Flexible one-time packs and a simple monthly plan. Instant delivery. Cancel anytime.",
     "priceNote": "Prices in THB. Stars deliver instantly after purchase.",
     "currency": "Currency",
+    "currencySearchPlaceholder": "Search currency or code...",
+    "currencyNoResults": "No currencies match your search.",
     "subscriptionPlans": "subscription plans",
     "oneTimePacks": "one-time star packs",
     "monthly": "Monthly",

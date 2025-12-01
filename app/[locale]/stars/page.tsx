@@ -12,7 +12,6 @@ import {
     Crown,
 } from "lucide-react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
 import {
     Accordion,
     AccordionContent,
@@ -25,14 +24,12 @@ import SignInAccordion from "@/components/stars/sign-in-accordion"
 import { Checkout } from "@/components/checkout"
 import SubscribeDropdown from "@/components/stars/subscribe-dropdown"
 import { useTranslations } from "next-intl"
-import { resolveCurrencyFromLocale } from "@/lib/payments/star-products"
 import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
+import type { CurrencyCode } from "@/lib/payments/currency-utils"
 
 export default function StarsPage() {
     const t = useTranslations("StarsPage")
-    const params = useParams()
-    const locale = (params?.locale as string) ?? "en"
-    const defaultCurrency = resolveCurrencyFromLocale(locale)
+    const defaultCurrency: CurrencyCode = "USD"
     const currency = usePreferredCurrency(defaultCurrency)
     return (
         <div className='relative min-h-screen'>

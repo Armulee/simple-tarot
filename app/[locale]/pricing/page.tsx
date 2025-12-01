@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import {
     Star,
     Crown,
@@ -29,12 +30,12 @@ import {
     getAnnualMonthlyEquivalent,
     getPackPrice,
     getSubscriptionPrice,
-    resolveCurrencyFromLocale,
 } from "@/lib/payments/star-products"
 import {
     ensureSupportedCurrency,
     formatCurrency,
     getCurrencySymbol,
+    POPULAR_CURRENCIES,
     SUPPORTED_PAYMENT_CURRENCIES,
     type CurrencyCode,
 } from "@/lib/payments/currency-utils"
@@ -44,12 +45,13 @@ export default function PricingPage() {
     const t = useTranslations("Pricing")
     const params = useParams()
     const locale = params.locale as string
-    const defaultCurrency = resolveCurrencyFromLocale(locale)
+    const defaultCurrency: CurrencyCode = "USD"
     const preferredCurrency = usePreferredCurrency(defaultCurrency)
     const [currency, setCurrency] = useState<CurrencyCode>(
         ensureSupportedCurrency(preferredCurrency)
     )
     const [isManualCurrency, setIsManualCurrency] = useState(false)
+    const [currencyQuery, setCurrencyQuery] = useState("")
 
     useEffect(() => {
         if (!isManualCurrency) {
@@ -103,10 +105,40 @@ export default function PricingPage() {
     )
 
     const currencyOptions = useMemo(() => {
-        const set = new Set<CurrencyCode>(SUPPORTED_PAYMENT_CURRENCIES)
-        set.add(currency)
-        return Array.from(set)
+        const ordered = [
+            currency,
+            ...SUPPORTED_PAYMENT_CURRENCIES,
+            ...POPULAR_CURRENCIES,
+            "THB",
+        ] as CurrencyCode[]
+        const deduped = [] as CurrencyCode[]
+        const seen = new Set<CurrencyCode>()
+        for (const code of ordered) {
+            if (!code) continue
+            if (seen.has(code)) continue
+            seen.add(code)
+            deduped.push(code)
+        }
+        return deduped
     }, [currency])
+
+    const normalizedCurrencyQuery = currencyQuery.trim().toLowerCase()
+
+    const filteredCurrencyOptions = useMemo(() => {
+        if (!normalizedCurrencyQuery) {
+            return currencyOptions
+        }
+        return currencyOptions.filter((code) => {
+            const symbol = getCurrencySymbol(code).toLowerCase()
+            const name = getCurrencyName(code).toLowerCase()
+            const normalizedCode = code.toLowerCase()
+            return (
+                normalizedCode.includes(normalizedCurrencyQuery) ||
+                name.includes(normalizedCurrencyQuery) ||
+                symbol.includes(normalizedCurrencyQuery)
+            )
+        })
+    }, [currencyOptions, normalizedCurrencyQuery, currencyFormatter])
 
     const formatAmount = (amount?: number | null) =>
         amount != null ? formatCurrency(amount, currency, locale) : "--"
@@ -151,25 +183,50 @@ export default function PricingPage() {
                             setIsManualCurrency(true)
                             setCurrency(ensureSupportedCurrency(value))
                         }}
+                        onOpenChange={(open) => {
+                            if (!open) {
+                                setCurrencyQuery("")
+                            }
+                        }}
                     >
                         <SelectTrigger className='w-[190px] bg-accent/30 border-border/30 rounded-r-md rounded-l-none'>
                             <SelectValue
                                 placeholder={`${getCurrencySymbol(currency)} · ${currency}`}
                             />
                         </SelectTrigger>
-                        <SelectContent className='bg-black border-border/30'>
-                            {currencyOptions.map((code) => (
-                                <SelectItem key={code} value={code}>
-                                    <div className='flex flex-col'>
-                                        <span className='font-semibold text-white'>
-                                            {getCurrencySymbol(code)} · {code}
-                                        </span>
-                                        <span className='text-xs text-white/60'>
-                                            {getCurrencyName(code)}
-                                        </span>
+                        <SelectContent className='bg-black border-border/30 p-0'>
+                            <div className='sticky top-0 z-10 bg-black/95 border-b border-border/30 p-2'>
+                                <Input
+                                    value={currencyQuery}
+                                    autoFocus
+                                    onChange={(event) =>
+                                        setCurrencyQuery(event.target.value)
+                                    }
+                                    placeholder={t("currencySearchPlaceholder")}
+                                    className='h-9 bg-background/40 border-border/40 text-sm placeholder:text-white/50'
+                                />
+                            </div>
+                            <div className='max-h-60 overflow-y-auto'>
+                                {filteredCurrencyOptions.length === 0 ? (
+                                    <div className='px-4 py-6 text-center text-sm text-white/60'>
+                                        {t("currencyNoResults")}
                                     </div>
-                                </SelectItem>
-                            ))}
+                                ) : (
+                                    filteredCurrencyOptions.map((code) => (
+                                        <SelectItem key={code} value={code}>
+                                            <div className='flex flex-col'>
+                                                <span className='font-semibold text-white'>
+                                                    {getCurrencySymbol(code)} ·{" "}
+                                                    {code}
+                                                </span>
+                                                <span className='text-xs text-white/60'>
+                                                    {getCurrencyName(code)}
+                                                </span>
+                                            </div>
+                                        </SelectItem>
+                                    ))
+                                )}
+                            </div>
                         </SelectContent>
                     </Select>
                 </div>
