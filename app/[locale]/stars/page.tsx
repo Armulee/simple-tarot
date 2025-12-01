@@ -25,14 +25,11 @@ import SignInAccordion from "@/components/stars/sign-in-accordion"
 import { Checkout } from "@/components/checkout"
 import SubscribeDropdown from "@/components/stars/subscribe-dropdown"
 import { useTranslations } from "next-intl"
-import { getAvailabilityLabel } from "@/lib/roadmap"
-import { LiveAvailabilityLabel } from "@/components/stars/live-availability-label"
 import { resolveCurrencyFromLocale } from "@/lib/payments/star-products"
 import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
 
 export default function StarsPage() {
     const t = useTranslations("StarsPage")
-    const availabilityLabel = getAvailabilityLabel()
     const params = useParams()
     const locale = (params?.locale as string) ?? "en"
     const defaultCurrency = resolveCurrencyFromLocale(locale)
@@ -117,9 +114,6 @@ export default function StarsPage() {
                                               <Crown className='w-6 h-6 text-black group-hover:scale-110 transition-transform duration-300' />
                                                 <div className='flex flex-col text-left'>
                                                     <span>{t("subscribe.button")}</span>
-                                                    <LiveAvailabilityLabel
-                                                        fallbackLabel={availabilityLabel}
-                                                    />
                                                 </div>
                                           </div>
                                           <SubscribeDropdown currency={currency} />

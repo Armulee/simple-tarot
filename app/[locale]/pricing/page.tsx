@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/select"
 import { useTranslations } from "next-intl"
 import { useParams } from "next/navigation"
-import { getAvailabilityLabel } from "@/lib/roadmap"
 import {
     INFINITY_PACK,
     STAR_PACKS,
@@ -45,8 +44,6 @@ export default function PricingPage() {
     const t = useTranslations("Pricing")
     const params = useParams()
     const locale = params.locale as string
-    const availabilityLabel = getAvailabilityLabel()
-
     const defaultCurrency = resolveCurrencyFromLocale(locale)
     const preferredCurrency = usePreferredCurrency(defaultCurrency)
     const [currency, setCurrency] = useState<CurrencyCode>(
@@ -246,7 +243,6 @@ export default function PricingPage() {
                                 <Checkout
                                     mode='subscribe'
                                     plan='monthly'
-                                    availabilityLabel={availabilityLabel}
                                     currency={currency}
                                 />
                             </div>
@@ -306,7 +302,6 @@ export default function PricingPage() {
                                 <Checkout
                                     mode='subscribe'
                                     plan='annual'
-                                    availabilityLabel={availabilityLabel}
                                     currency={currency}
                                 />
                             </div>
