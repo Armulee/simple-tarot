@@ -67,8 +67,8 @@ export default function BirthChartDisplay({
             {/* Wheel */}
             <div className="flex justify-center py-12 relative">
                  {/* Enhanced Background Glow */}
-                <div className="absolute inset-0 bg-gradient-to-r from-accent/10 via-purple-500/10 to-accent/10 blur-3xl rounded-full pointer-events-none animate-pulse" />
-                <div className="absolute inset-0 bg-accent/5 blur-2xl rounded-full pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-blue-500/10 to-primary/10 blur-3xl rounded-full pointer-events-none animate-pulse" />
+                <div className="absolute inset-0 bg-primary/5.blur-2xl rounded-full pointer-events-none" />
                 <div className="relative z-10 transform hover:scale-105 transition-transform duration-500">
                     <BirthChartWheel 
                         houses={birthChart.houses} 
