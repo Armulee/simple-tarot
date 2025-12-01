@@ -193,11 +193,6 @@ export async function POST(req: NextRequest) {
                 allow_promotion_codes: true,
             }
 
-            ;(sessionParams as Record<string, unknown>).automatic_payment_methods = {
-                enabled: true,
-                allow_redirects: "always",
-            }
-
             return stripeClient.checkout.sessions.create(sessionParams)
         }
 
