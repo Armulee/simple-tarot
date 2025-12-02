@@ -506,73 +506,87 @@
 
   "About": {
     "hero": {
-      "title1": "A calmer way",
-      "title2": "to ask and reflect",
-      "subtitle": "We just launched. Asking Fate offers practical, personal guidance you can use today—built with real feedback from early users."
+      "title1": "Ancient wisdom",
+      "title2": "meets modern AI",
+      "subtitle": "See how we blend long-standing tarot traditions with AI to deliver personal cosmic guidance just for you."
     },
     "features": {
       "ai": {
-        "title": "Clear, AI‑assisted insights",
-        "desc": "Thoughtful interpretations tailored to your question"
+        "title": "Clear AI-powered insight",
+        "desc": "Intentional interpretations tuned to your question"
       },
       "cosmic": {
         "title": "Focused experience",
         "desc": "A quiet space to read, reflect, and save what matters"
       },
       "personal": {
-        "title": "Personal by design",
+        "title": "Designed for you",
         "desc": "Built for everyday decisions and gentle reflection"
       }
     },
     "story": {
       "title": "Why we’re building this",
-      "p1": "Asking Fate started with a simple idea: create a calm, reliable way to pause and think more clearly. No noise—just a short reading and a prompt to reflect.",
-      "p2": "We’re keeping it small and practical, improving week by week with early users. If it helps you make one better decision, it worked."
-    },
-    "aiSection": {
-      "title": "How it works",
-      "p1": "You ask a question. We draw a card and generate a concise interpretation—grounded in traditional meanings and tuned for clarity.",
-      "p2": "It’s guidance to consider, not a verdict. You stay in control of your decisions."
+      "p1": "Asking Fate began with one idea: offer a calm, trustworthy place to pause and think clearly. No noise—just a short reading and a prompt to reflect.",
+      "p2": "We keep it simple and practical, improving week by week with early users. If it helps you make one better decision, that’s success."
     },
     "mission": {
       "title": "Our mission",
-      "p": "Help people pause, reflect, and make everyday decisions with more intention. Keep it clear, calm, and actually useful."
+      "p": "Help people pause, reflect, and make everyday decisions with more intention—through tools that stay calm, clear, and genuinely useful."
     },
     "vision": {
       "title": "Our vision",
-      "p": "A trusted companion for thoughtful decisions — simple enough for anyone, thoughtful enough for teams, and respectful of privacy."
+      "p": "Become a trusted companion for intentional decisions: easy for anyone to use, and always respectful of privacy."
     },
     "valuesSection": {
       "title": "Our values",
       "privacyFirst": {
         "title": "Privacy first",
-        "desc": "Your questions and readings remain private. No selling data, ever."
+        "desc": "Your questions and readings stay private. We never sell data."
       },
       "clarity": {
         "title": "Clarity over hype",
-        "desc": "Short, plain-language interpretations you can act on today."
+        "desc": "Short, plain-language interpretations you can act on right away."
       },
       "inclusive": {
-        "title": "Inclusive by default",
-        "desc": "Useful for beginners and practitioners; welcoming across backgrounds and beliefs."
+        "title": "Inclusive by nature",
+        "desc": "Helpful for beginners and practitioners; welcoming across backgrounds and beliefs."
       }
     },
     "quickStatsSection": {
       "title": "Quick stats",
       "users": "Early users",
       "cards": "Cards drawn",
-      "updates": "Updates shipped",
-      "availability": "Available"
+      "updates": "Weekly updates",
+      "availability": "Available now"
     },
     "pressSection": {
-      "title": "Press, partnerships, or questions",
-      "desc": "We’re early and open to thoughtful collaborations. Reach out for a short walkthrough or materials.",
+      "title": "Press, partners, or questions",
+      "desc": "We’re still early and welcome thoughtful collaborations. Reach out for a quick walkthrough or more details.",
       "primary": "Request a demo",
       "secondary": "Contact us"
     },
+    "aiSection": {
+      "title": "How it works",
+      "p1": "You ask a question. We draw a card and craft a concise interpretation rooted in traditional meanings and tuned for clarity.",
+      "p2": "It’s guidance to consider, not a verdict. You remain in control of every decision."
+    },
+    "values": {
+      "respectfulTradition": {
+        "title": "Honoring tradition",
+        "description": "We respect the sacred roots of tarot while making it accessible to modern seekers."
+      },
+      "personalizedGuidance": {
+        "title": "Personalized guidance",
+        "description": "Every reading is different because it’s shaped by your question and life context."
+      },
+      "inclusiveCommunity": {
+        "title": "Inclusive community",
+        "description": "We welcome seekers from every background and belief, creating a safe space for exploration."
+      }
+    },
     "cta": {
       "title": "Ready to begin?",
-      "desc": "We’ve just launched—join early users exploring calm, practical guidance.",
+      "desc": "We’ve just launched—join early users exploring calm, clear, practical guidance.",
       "primary": "Start your first reading",
       "secondary": "Learn more"
     }
