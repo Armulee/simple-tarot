@@ -16,7 +16,8 @@ const SUBSCRIPTION_BASE_PRICES_USD = {
 export type LabelTranslationKey = "popular" | "bestValue"
 
 export type StarPackDefinition = {
-    id: string
+    id: string | undefined
+    name: string
     baseUsdPrice: number
     stars: number | "infinity"
     bonus: number
@@ -24,48 +25,99 @@ export type StarPackDefinition = {
     infinityTerm?: "month" | "year"
 }
 
+// NEXT_PUBLIC_STARTER_PACK_ID
+// NEXT_PUBLIC_EXPLORER_PACK_ID
+// NEXT_PUBLIC_SEEKER_PACK_ID
+// NEXT_PUBLIC_MYSTIC_PACK_ID
+// NEXT_PUBLIC_MASTER_PACK_ID
+// NEXT_PUBLIC_INFINITY_PACK_ID
+// NEXT_PUBLIC_MONTHLY_PACK_ID
+// NEXT_PUBLIC_ANNUALLY_PACK_ID
 export const STAR_PACKS: StarPackDefinition[] = [
-    { id: "pack-1", baseUsdPrice: 0.99, stars: 60, bonus: 0 },
-    { id: "pack-2", baseUsdPrice: 1.99, stars: 130, bonus: 10 },
     {
-        id: "pack-3",
+        id: process.env.NEXT_PUBLIC_STARTER_PACK_ID,
+        name: "Starter",
+        baseUsdPrice: 0.99,
+        stars: 60,
+        bonus: 0,
+    },
+    {
+        id: process.env.NEXT_PUBLIC_EXPLORER_PACK_ID,
+        name: "Explorer",
+        baseUsdPrice: 1.99,
+        stars: 130,
+        bonus: 10,
+    },
+    {
+        id: process.env.NEXT_PUBLIC_SEEKER_PACK_ID,
+        name: "Seeker",
         baseUsdPrice: 2.99,
         stars: 200,
         bonus: 20,
         labelKey: "popular",
     },
     {
-        id: "pack-5",
+        id: process.env.NEXT_PUBLIC_MYSTIC_PACK_ID,
+        name: "Mystic",
         baseUsdPrice: 4.99,
         stars: 350,
         bonus: 50,
         labelKey: "bestValue",
     },
-    { id: "pack-7", baseUsdPrice: 6.99, stars: 500, bonus: 80 },
+    {
+        id: process.env.NEXT_PUBLIC_MASTER_PACK_ID,
+        name: "Master",
+        baseUsdPrice: 6.99,
+        stars: 500,
+        bonus: 80,
+    },
 ]
 
 export const INFINITY_PACK: StarPackDefinition = {
-    id: "pack-infinity",
+    id: process.env.NEXT_PUBLIC_INFINITY_PACK_ID,
+    name: "Infinity",
     baseUsdPrice: SUBSCRIPTION_BASE_PRICES_USD.infinity,
     stars: "infinity",
     bonus: 0,
     infinityTerm: "month",
 }
 
+export const MONTHLY_PACKS: StarPackDefinition = {
+    id: process.env.NEXT_PUBLIC_MONTHLY_PACK_ID,
+    name: "Monthly Subscription",
+    baseUsdPrice: SUBSCRIPTION_BASE_PRICES_USD.monthly,
+    stars: "infinity",
+    bonus: 0,
+    infinityTerm: "month",
+}
+
+export const ANNUALLY_PACKS: StarPackDefinition = {
+    id: process.env.NEXT_PUBLIC_ANNUALLY_PACK_ID,
+    name: "Annually Subscription",
+    baseUsdPrice: SUBSCRIPTION_BASE_PRICES_USD.annual,
+    stars: "infinity",
+    bonus: 0,
+    infinityTerm: "year",
+}
+
 export const ALL_STAR_PACKS: StarPackDefinition[] = [
     ...STAR_PACKS,
     INFINITY_PACK,
+    MONTHLY_PACKS,
+    ANNUALLY_PACKS,
 ]
 
 const PACK_LOOKUP = new Map<string, StarPackDefinition>(
-    ALL_STAR_PACKS.map((pack) => [pack.id, pack])
+    ALL_STAR_PACKS.map((pack) => [pack.id ?? "", pack])
 )
 
 export function getPackById(id: string): StarPackDefinition | null {
     return PACK_LOOKUP.get(id) ?? null
 }
 
-export function resolveCurrencyFromLocale(locale?: string | null): CurrencyCode {
+export function resolveCurrencyFromLocale(
+    locale?: string | null
+): CurrencyCode {
     if (!locale) return "USD"
     return locale.toLowerCase() === "th" ? "THB" : DEFAULT_CURRENCY
 }

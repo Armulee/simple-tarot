@@ -1,124 +1,53 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import {
-    useCallback,
-    useEffect,
-    useMemo,
-    useState,
-    type ReactElement,
-} from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { ExternalLink, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/hooks/use-auth"
-
-type LogoProps = React.SVGProps<SVGSVGElement>
-
-const FacebookLogo = (props: LogoProps) => (
-    <svg
-        viewBox='0 0 24 24'
-        aria-hidden='true'
-        className='w-7 h-7 text-[#1877F2]'
-        {...props}
-    >
-        <path
-            fill='currentColor'
-            d='M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879v-6.988h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.095 0 2.238.196 2.238.196v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.128 22 16.99 22 12Z'
-        />
-    </svg>
-)
-
-const InstagramLogo = (props: LogoProps) => (
-    <svg
-        viewBox='0 0 24 24'
-        aria-hidden='true'
-        className='w-7 h-7 text-[#F56040]'
-        {...props}
-    >
-        <path
-            fill='currentColor'
-            d='M7 2C4.243 2 2 4.243 2 7v10c0 2.757 2.243 5 5 5h10c2.757 0 5-2.243 5-5V7c0-2.757-2.243-5-5-5H7Zm0 2h10c1.654 0 3 1.346 3 3v10c0 1.654-1.346 3-3 3H7c-1.654 0-3-1.346-3-3V7c0-1.654 1.346-3 3-3Zm9.5 1.75a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5ZM12 7.5A4.5 4.5 0 1 0 16.5 12 4.505 4.505 0 0 0 12 7.5Zm0 2a2.5 2.5 0 1 1-2.5 2.5A2.503 2.503 0 0 1 12 9.5Z'
-        />
-    </svg>
-)
-
-const ThreadsLogo = (props: LogoProps) => (
-    <svg
-        viewBox='0 0 24 24'
-        aria-hidden='true'
-        className='w-7 h-7 text-white'
-        {...props}
-    >
-        <path
-            fill='currentColor'
-            d='M12.002 2C7.03 2 2 5.532 2 12.292 2 18.15 6.125 22 11.176 22c4.21 0 7.384-2.317 8.438-6.006l-2.725-.75c-.68 2.424-2.65 3.77-5.443 3.77-3.315 0-5.689-2.315-5.689-5.841 0-3.756 2.64-5.91 5.696-5.91 2.77 0 4.592 1.516 5.182 3.62l-4.014.002v2.482h6.7c.022-.262.03-.53.03-.804C19.35 5.583 15.63 2 12.002 2Z'
-        />
-    </svg>
-)
-
-const TiktokLogo = (props: LogoProps) => (
-    <svg
-        viewBox='0 0 24 24'
-        aria-hidden='true'
-        className='w-7 h-7 text-[#25F4EE]'
-        {...props}
-    >
-        <path
-            fill='currentColor'
-            d='M21 8.25c-1.77-.02-3.583-.72-4.867-2.01A6.112 6.112 0 0 1 14.75 2h-3v13.156a2.308 2.308 0 0 1-4.23 1.183 2.307 2.307 0 0 1 2.807-3.465V8.8a5.03 5.03 0 0 0-6.07 3.497 5.03 5.03 0 0 0 8.285 4.86V22h2.75v-7.089a9.07 9.07 0 0 0 4.708 1.336V13.5a5.61 5.61 0 0 1-3-1.015V9.19a8.2 8.2 0 0 0 3 1.06V8.25Z'
-        />
-    </svg>
-)
-
-const TwitterLogo = (props: LogoProps) => (
-    <svg
-        viewBox='0 0 24 24'
-        aria-hidden='true'
-        className='w-7 h-7 text-white'
-        {...props}
-    >
-        <path
-            fill='currentColor'
-            d='M19.633 7.997c.013.18.013.36.013.54 0 5.507-4.195 11.856-11.856 11.856-2.36 0-4.554-.69-6.4-1.874.332.04.651.053.997.053a8.36 8.36 0 0 0 5.18-1.782 4.177 4.177 0 0 1-3.896-2.892c.26.04.522.066.797.066.384 0 .768-.053 1.126-.146a4.17 4.17 0 0 1-3.344-4.096v-.053c.56.312 1.204.5 1.89.526a4.163 4.163 0 0 1-1.857-3.473c0-.768.205-1.47.56-2.082a11.842 11.842 0 0 0 8.595 4.357 4.706 4.706 0 0 1-.105-.955 4.167 4.167 0 0 1 7.214-2.85 8.21 8.21 0 0 0 2.646-1.01 4.158 4.158 0 0 1-1.83 2.297 8.31 8.31 0 0 0 2.398-.64 8.95 8.95 0 0 1-2.09 2.162Z'
-        />
-    </svg>
-)
+import {
+    FaFacebook,
+    FaInstagram,
+    FaThreads,
+    FaTiktok,
+    FaXTwitter,
+} from "react-icons/fa6"
 
 type SocialPlatformId = "facebook" | "instagram" | "threads" | "tiktok" | "x"
 
 type SocialPlatform = {
     id: SocialPlatformId
     url: string
-    Logo: (props: LogoProps) => ReactElement
+    Logo: React.ComponentType<React.SVGProps<SVGSVGElement>>
 }
 
 const SOCIAL_PLATFORMS: SocialPlatform[] = [
     {
         id: "facebook",
         url: "https://www.facebook.com/share/17kKrNfrSG/?mibextid=wwXIfr",
-        Logo: FacebookLogo,
+        Logo: FaFacebook,
     },
     {
         id: "instagram",
         url: "https://www.instagram.com/askingfate?igsh=MWhuYWNnMmtzNjk5NQ%3D%3D&utm_source=qr",
-        Logo: InstagramLogo,
+        Logo: FaInstagram,
     },
     {
         id: "threads",
         url: "https://www.threads.com/@askingfate?igshid=NTc4MTIwNjQ2YQ==",
-        Logo: ThreadsLogo,
+        Logo: FaThreads,
     },
     {
         id: "tiktok",
         url: "https://www.tiktok.com/@askingfate?_r=1&_t=ZS-91s6jFCbi9y",
-        Logo: TiktokLogo,
+        Logo: FaTiktok,
     },
     {
         id: "x",
         url: "https://x.com/asking_fate?s=21",
-        Logo: TwitterLogo,
+        Logo: FaXTwitter,
     },
 ]
 
@@ -211,9 +140,9 @@ export function SocialFollowRewards({ onProgress }: SocialFollowRewardsProps) {
                     },
                     body: JSON.stringify({ platform }),
                 })
-                const payload = (await response
-                    .json()
-                    .catch(() => ({}))) as { error?: string }
+                const payload = (await response.json().catch(() => ({}))) as {
+                    error?: string
+                }
                 if (!response.ok) {
                     if (response.status === 409) {
                         toast.info(
@@ -266,6 +195,55 @@ export function SocialFollowRewards({ onProgress }: SocialFollowRewardsProps) {
         [claimedPlatforms.size, t, totalPlatforms]
     )
 
+    // Platform-specific brand colors
+    const platformColors: Record<
+        SocialPlatformId,
+        {
+            icon: string
+            bg: string
+            hoverBg: string
+            border: string
+            text: string
+        }
+    > = {
+        facebook: {
+            icon: "text-[#1877F2]",
+            bg: "bg-[#1877F2]/10",
+            hoverBg: "hover:bg-[#1877F2]/20",
+            border: "border-[#1877F2]/30",
+            text: "text-[#1877F2]",
+        },
+        instagram: {
+            icon: "text-[#E4405F]",
+            bg: "bg-gradient-to-r from-[#E4405F]/10 via-[#F56040]/10 to-[#FCAF45]/10",
+            hoverBg:
+                "hover:from-[#E4405F]/20 hover:via-[#F56040]/20 hover:to-[#FCAF45]/20",
+            border: "border-[#E4405F]/30",
+            text: "text-[#E4405F]",
+        },
+        threads: {
+            icon: "text-white",
+            bg: "bg-white/10",
+            hoverBg: "hover:bg-white/20",
+            border: "border-white/30",
+            text: "text-white",
+        },
+        tiktok: {
+            icon: "text-[#25F4EE]",
+            bg: "bg-gradient-to-r from-[#25F4EE]/10 to-[#FE2C55]/10",
+            hoverBg: "hover:from-[#25F4EE]/20 hover:to-[#FE2C55]/20",
+            border: "border-[#25F4EE]/30",
+            text: "text-[#25F4EE]",
+        },
+        x: {
+            icon: "text-white",
+            bg: "bg-white/10",
+            hoverBg: "hover:bg-white/20",
+            border: "border-white/30",
+            text: "text-white",
+        },
+    }
+
     return (
         <div className='space-y-3'>
             <div className='flex items-center justify-between text-xs text-muted-foreground'>
@@ -285,19 +263,29 @@ export function SocialFollowRewards({ onProgress }: SocialFollowRewardsProps) {
                         className='flex flex-wrap items-center gap-4 py-3 border-b border-white/10 last:border-b-0'
                     >
                         <div className='flex items-center gap-3 min-w-[180px]'>
-                            <Logo />
+                            <Logo
+                                className={`w-5 h-5 ${claimed ? platformColors[platform.id].icon : ""}`}
+                            />
                             <div>
-                                <p className='font-semibold'>
+                                <p
+                                    className={`font-semibold ${claimed ? platformColors[platform.id].text : ""}`}
+                                >
                                     {t(`earn.platforms.${platform.id}`)}
                                 </p>
-                                <p className='text-xs text-muted-foreground'>
-                                    {t("earn.social.rewardLabel")}
-                                </p>
+                                {!claimed && (
+                                    <p className='text-xs text-muted-foreground'>
+                                        {t("earn.social.rewardLabel")}
+                                    </p>
+                                )}
                             </div>
                         </div>
                         <Button
                             size='sm'
-                            className='ml-auto gap-2'
+                            className={`ml-auto gap-2 transition-all duration-300 ${
+                                claimed
+                                    ? "bg-transparent text-white/50"
+                                    : "bg-gradient-to-r from-yellow-400/20 via-amber-500/20 to-orange-500/20 text-yellow-200 hover:from-yellow-400/30 hover:via-amber-500/30 hover:to-orange-500/30 border border-yellow-500/40"
+                            }`}
                             disabled={claiming === platform.id || loadingClaims}
                             onClick={() => handleFollowClick(platform)}
                         >

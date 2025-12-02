@@ -5,8 +5,6 @@ import {
     isValidElement,
     type HTMLAttributes,
     type ReactNode,
-    useEffect,
-    useMemo,
     useState,
 } from "react"
 import Link from "next/link"
@@ -15,17 +13,12 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
 import { useTranslations } from "next-intl"
-import {
-    formatAvailabilityCountdown,
-    getAvailabilityCountdown,
-    getAvailabilityLabel,
-} from "@/lib/roadmap"
 import { resolveCurrencyFromLocale } from "@/lib/payments/star-products"
 import {
     ensureSupportedCurrency,
     type CurrencyCode,
 } from "@/lib/payments/currency-utils"
-import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
+import { usePathname } from "@/i18n/navigation"
 
 type CheckoutMode = "pack" | "subscribe"
 
@@ -35,7 +28,6 @@ type CheckoutProps = {
     plan?: "monthly" | "annual"
     infinityTerm?: "month" | "year"
     customTrigger?: ReactNode
-    availabilityLabel?: string
     currency?: CurrencyCode
 }
 
@@ -45,46 +37,22 @@ export function Checkout({
     plan,
     infinityTerm,
     customTrigger,
-    availabilityLabel,
     currency,
 }: CheckoutProps) {
     const { user } = useAuth()
     const t = useTranslations("Checkout")
     const params = useParams()
+    const pathname = usePathname()
     const locale = (params?.locale as string) ?? "en"
     const localeCurrency = resolveCurrencyFromLocale(locale)
-    const preferredCurrency = usePreferredCurrency(localeCurrency)
-    const safePreferredCurrency = ensureSupportedCurrency(preferredCurrency)
-    const safePropCurrency = currency ? ensureSupportedCurrency(currency) : null
-    const effectiveCurrency =
-        safePropCurrency ??
-        safePreferredCurrency ??
-        ensureSupportedCurrency(localeCurrency)
-    const [countdown, setCountdown] = useState(getAvailabilityCountdown())
+    const effectiveCurrency = currency
+        ? ensureSupportedCurrency(currency)
+        : ensureSupportedCurrency(localeCurrency)
     const [processing, setProcessing] = useState(false)
-    const fallbackLabel = useMemo(
-        () => availabilityLabel ?? getAvailabilityLabel(),
-        [availabilityLabel]
-    )
-
-    useEffect(() => {
-        if (typeof window === "undefined") return
-        const timer = window.setInterval(() => {
-            setCountdown(getAvailabilityCountdown())
-        }, 1000)
-        return () => window.clearInterval(timer)
-    }, [])
-
-    const displayLabel =
-        formatAvailabilityCountdown(countdown) ?? fallbackLabel ?? undefined
 
     if (!user) {
-        const defaultCallback = mode === "pack" ? "/pricing" : "/stars"
-        const pathname =
-            typeof window !== "undefined"
-                ? window.location.pathname
-                : defaultCallback
         const signinHref = `/signin?callbackUrl=${encodeURIComponent(pathname)}`
+
         if (customTrigger && isValidElement(customTrigger)) {
             return <Link href={signinHref}>{customTrigger}</Link>
         }
@@ -117,8 +85,8 @@ export function Checkout({
                 locale,
                 currency: effectiveCurrency,
                 userId: user.id,
+                priceId: packId,
             }
-            if (packId) payload.packId = packId
             if (plan) payload.plan = plan
             if (infinityTerm) payload.infinityTerm = infinityTerm
             if (user.email) payload.email = user.email
@@ -128,11 +96,9 @@ export function Checkout({
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             })
-            const data = (await response.json().catch(() => null)) as
-                | { id?: string; url?: string; code?: string; message?: string }
-                | null
+            const data = await response.json()
 
-            if (!response.ok || !data?.id) {
+            if (!response.ok) {
                 throw new Error(data?.message ?? "SESSION_ERROR")
             }
 
@@ -153,8 +119,9 @@ export function Checkout({
     let triggerContent: ReactNode = null
     if (customTrigger) {
         if (isValidElement(customTrigger)) {
-            const element =
-                customTrigger as React.ReactElement<HTMLAttributes<HTMLElement>>
+            const element = customTrigger as React.ReactElement<
+                HTMLAttributes<HTMLElement>
+            >
             triggerContent = cloneElement(element, {
                 onClick: (event) => {
                     element.props.onClick?.(event)
@@ -188,24 +155,15 @@ export function Checkout({
     } else {
         triggerContent = (
             <Button
-                className='w-full rounded-full bg-white text-black hover:brightness-90'
                 onClick={handleCheckout}
+                className='w-full rounded-full bg-white text-black hover:brightness-90'
                 disabled={processing}
             >
-                <div className='flex w-full flex-col.items-center justify-center gap-1 text-center'>
-                    <span>
-                        {processing
-                            ? t("loading")
-                            : mode === "pack"
-                              ? t("purchase")
-                              : t("subscribe")}
-                    </span>
-                    {mode === "subscribe" && displayLabel && !processing && (
-                        <span className='text-xs font-semibold text.black/70'>
-                            {displayLabel}
-                        </span>
-                    )}
-                </div>
+                {processing
+                    ? t("loading")
+                    : mode === "pack"
+                      ? t("purchase")
+                      : t("subscribe")}
             </Button>
         )
     }

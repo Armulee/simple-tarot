@@ -10,7 +10,9 @@ interface SubscribeDropdownProps {
     currency: CurrencyCode
 }
 
-export default function SubscribeDropdown({ currency }: SubscribeDropdownProps) {
+export default function SubscribeDropdown({
+    currency,
+}: SubscribeDropdownProps) {
     const t = useTranslations("SubscribeDropdown")
     return (
         <Popover>
@@ -39,6 +41,7 @@ export default function SubscribeDropdown({ currency }: SubscribeDropdownProps) 
                     mode='subscribe'
                     plan='monthly'
                     currency={currency}
+                    packId={process.env.NEXT_PUBLIC_MONTHLY_PACK_ID ?? ""}
                     customTrigger={
                         <button className='w-full text-left text-sm px-3 py-2 rounded-lg hover:bg-white/10 transition-colors.duration-200'>
                             <div className='font-medium'>{t("monthly")}</div>
@@ -52,6 +55,7 @@ export default function SubscribeDropdown({ currency }: SubscribeDropdownProps) 
                     mode='subscribe'
                     plan='annual'
                     currency={currency}
+                    packId={process.env.NEXT_PUBLIC_ANNUALLY_PACK_ID ?? ""}
                     customTrigger={
                         <button className='w-full text-left text-sm px-3 py-2 rounded-lg hover:bg-white/10 transition-colors.duration-200'>
                             <div className='font-medium'>{t("annual")}</div>

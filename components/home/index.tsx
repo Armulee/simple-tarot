@@ -72,10 +72,10 @@ export default function Home() {
     }, [])
 
     return (
-        <div className='w-full h-[calc(100dvh-64px)] overflow-hidden relative'>
+        <div className='w-full max-h-[calc(100dvh-65px)] overflow-hidden relative'>
             <Swiper
                 ref={mainSwiperRef}
-                className='w-full h-full'
+                className='w-full h-full max-h-[calc(100dvh-65px)]'
                 direction='vertical'
                 loop={false}
                 modules={[Mousewheel]}
@@ -99,7 +99,10 @@ export default function Home() {
                 <SwiperSlide className='w-full h-full'>
                     <div className='w-full h-full flex flex-col'>
                         {/* Feature Content Area - Expands to fill available space */}
-                        <div ref={horizontalSwiperContainerRef} className='flex-1 min-h-0 relative'>
+                        <div
+                            ref={horizontalSwiperContainerRef}
+                            className='flex-1 min-h-0 relative'
+                        >
                             <Swiper
                                 ref={horizontalSwiperRef}
                                 className='w-full h-full'
@@ -114,34 +117,36 @@ export default function Home() {
                                     sensitivity: 1,
                                     releaseOnEdges: false,
                                 }}
-                            onSlideChange={(swiper) => {
-                                // Calculate real index accounting for loop
-                                const realIndex = swiper.realIndex
-                                setActiveFeatureIndex(realIndex)
-                                
-                                // Notify birth chart component when it becomes active (index 1)
-                                if (realIndex === 1) {
-                                    try {
-                                        window.dispatchEvent(
-                                            new CustomEvent("birth-chart-slide-active")
-                                        )
-                                    } catch {}
-                                }
-                            }}
+                                onSlideChange={(swiper) => {
+                                    // Calculate real index accounting for loop
+                                    const realIndex = swiper.realIndex
+                                    setActiveFeatureIndex(realIndex)
+
+                                    // Notify birth chart component when it becomes active (index 1)
+                                    if (realIndex === 1) {
+                                        try {
+                                            window.dispatchEvent(
+                                                new CustomEvent(
+                                                    "birth-chart-slide-active"
+                                                )
+                                            )
+                                        } catch {}
+                                    }
+                                }}
                             >
-                        {features.map((feature) => {
-                            const FeatureComponent = feature.component
-                            return (
-                                <SwiperSlide
-                                    key={feature.id}
-                                    className='w-full h-full'
-                                >
-                                    <div className='w-full h-full flex flex-col items-center justify-end pb-10'>
-                                        <FeatureComponent />
-                                    </div>
-                                </SwiperSlide>
-                            )
-                        })}
+                                {features.map((feature) => {
+                                    const FeatureComponent = feature.component
+                                    return (
+                                        <SwiperSlide
+                                            key={feature.id}
+                                            className='w-full h-full'
+                                        >
+                                            <div className='w-full h-full flex flex-col items-center justify-end pb-18'>
+                                                <FeatureComponent />
+                                            </div>
+                                        </SwiperSlide>
+                                    )
+                                })}
                             </Swiper>
                         </div>
 
@@ -152,11 +157,15 @@ export default function Home() {
                                 activeIndex={activeFeatureIndex}
                                 onDotClick={(index) => {
                                     if (horizontalSwiperRef.current) {
-                                        horizontalSwiperRef.current.swiper.slideToLoop(index)
+                                        horizontalSwiperRef.current.swiper.slideToLoop(
+                                            index
+                                        )
                                     }
                                 }}
                                 onLearnMore={() => {
-                                    const event = new CustomEvent("scrollToAbout")
+                                    const event = new CustomEvent(
+                                        "scrollToAbout"
+                                    )
                                     window.dispatchEvent(event)
                                 }}
                             />

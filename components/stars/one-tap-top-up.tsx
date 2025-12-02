@@ -23,13 +23,38 @@ type Pack = {
 }
 
 const packs: Pack[] = [
-    { id: "pack-1", stars: 60, labelKey: "starter", color: "yellow" },
-    { id: "pack-2", stars: 130, labelKey: "explorer", color: "yellow" },
-    { id: "pack-3", stars: 200, labelKey: "seeker", color: "yellow" },
-    { id: "pack-5", stars: 350, labelKey: "mystic", color: "yellow" },
-    { id: "pack-7", stars: 500, labelKey: "master", color: "yellow" },
     {
-        id: "pack-infinity",
+        id: process.env.NEXT_PUBLIC_STARTER_PACK_ID ?? "",
+        stars: 60,
+        labelKey: "starter",
+        color: "yellow",
+    },
+    {
+        id: process.env.NEXT_PUBLIC_EXPLORER_PACK_ID ?? "",
+        stars: 130,
+        labelKey: "explorer",
+        color: "yellow",
+    },
+    {
+        id: process.env.NEXT_PUBLIC_SEEKER_PACK_ID ?? "",
+        stars: 200,
+        labelKey: "seeker",
+        color: "yellow",
+    },
+    {
+        id: process.env.NEXT_PUBLIC_MYSTIC_PACK_ID ?? "",
+        stars: 350,
+        labelKey: "mystic",
+        color: "yellow",
+    },
+    {
+        id: process.env.NEXT_PUBLIC_MASTER_PACK_ID ?? "",
+        stars: 500,
+        labelKey: "master",
+        color: "yellow",
+    },
+    {
+        id: process.env.NEXT_PUBLIC_INFINITY_PACK_ID ?? "",
         stars: "infinity",
         labelKey: "unlimited",
         color: "yellow",

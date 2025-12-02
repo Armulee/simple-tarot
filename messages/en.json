@@ -1722,5 +1722,16 @@
         "viewReferral": "View Referral Link"
       }
     }
+  },
+  "CheckoutSuccess": {
+    "badge": "Payment Successful",
+    "title": "Thank You for Your Purchase!",
+    "description": "Your payment has been processed successfully. Your stars have been added to your account and are ready to use.",
+    "emailLabel": "Confirmation email sent to",
+    "emailNote": "A confirmation email with your receipt has been sent to your email address.",
+    "viewStars": "View My Stars",
+    "backToPricing": "Back to Pricing",
+    "backToStars": "Back to Stars",
+    "supportText": "If you have any questions, please email"
   }
 }
