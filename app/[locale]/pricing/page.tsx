@@ -68,6 +68,9 @@ export default function PricingPage() {
         }
     }, [locale])
 
+    const getCurrencyLabel = (code: CurrencyCode) =>
+        currencyFormatter?.of(code) ?? code
+
     const howItWorks = [
         {
             icon: <Lock className='w-5 h-5 text-white' />,
@@ -217,7 +220,7 @@ export default function PricingPage() {
                                                     {code}
                                                 </span>
                                                 <span className='text-xs text-white/60'>
-                                                    {getCurrencyName(code)}
+                                                    {getCurrencyLabel(code)}
                                                 </span>
                                             </div>
                                         </SelectItem>
