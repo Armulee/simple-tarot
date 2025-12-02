@@ -191,13 +191,7 @@ export default function DiscoverMore({ mainSwiperRef }: DiscoverMore) {
         <div ref={scrollRef} className='w-full h-full overflow-y-auto'>
             <div className='max-w-6xl mx-auto px-6 py-10 space-y-8'>
                 <DiscoverHeader />
-                <ServicesSection />
-                <RoadmapSection />
-                <TechnologySection />
-                <TestimonialsSection />
-                <StatisticsSection />
-                <CallToActionSection />
-                <div className='flex justify-center py-8'>
+                <div className='flex justify-center pt-2'>
                     <button
                         type='button'
                         className='flex flex-col items-center gap-2 text-white/80 hover:text-white transition-colors'
@@ -219,6 +213,12 @@ export default function DiscoverMore({ mainSwiperRef }: DiscoverMore) {
                         <ChevronUp className='w-5 h-5 animate-bounce' />
                     </button>
                 </div>
+                <ServicesSection />
+                <RoadmapSection />
+                <TechnologySection />
+                <TestimonialsSection />
+                <StatisticsSection />
+                <CallToActionSection />
                 <NormalFooter />
             </div>
         </div>
