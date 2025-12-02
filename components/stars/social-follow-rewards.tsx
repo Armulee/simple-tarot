@@ -9,6 +9,7 @@ import {
     AtSign,
     Twitter,
     ExternalLink,
+    Star,
     type LucideIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -62,7 +63,11 @@ type ClaimResponse = {
     claims?: { platform: SocialPlatformId }[]
 }
 
-export function SocialFollowRewards() {
+type SocialFollowRewardsProps = {
+    onProgress?: (payload: { claimed: number; total: number }) => void
+}
+
+export function SocialFollowRewards({ onProgress }: SocialFollowRewardsProps) {
     const t = useTranslations("StarsPage")
     const { user } = useAuth()
     const [claimedPlatforms, setClaimedPlatforms] = useState<
@@ -71,11 +76,27 @@ export function SocialFollowRewards() {
     const [claiming, setClaiming] = useState<SocialPlatformId | null>(null)
     const [loadingClaims, setLoadingClaims] = useState(false)
 
+    const totalPlatforms = SOCIAL_PLATFORMS.length
     const hasUser = Boolean(user)
+
+    const notifyProgress = useCallback(
+        (claimedCount: number) => {
+            onProgress?.({ claimed: claimedCount, total: totalPlatforms })
+        },
+        [onProgress, totalPlatforms]
+    )
+
+    const syncClaims = useCallback(
+        (platforms: Set<SocialPlatformId>) => {
+            setClaimedPlatforms(platforms)
+            notifyProgress(platforms.size)
+        },
+        [notifyProgress]
+    )
 
     const fetchClaims = useCallback(async () => {
         if (!user) {
-            setClaimedPlatforms(new Set())
+            syncClaims(new Set())
             return
         }
         setLoadingClaims(true)
@@ -94,21 +115,21 @@ export function SocialFollowRewards() {
             const next = new Set<SocialPlatformId>(
                 payload.claims?.map((claim) => claim.platform) ?? []
             )
-            setClaimedPlatforms(next)
+            syncClaims(next)
         } finally {
             setLoadingClaims(false)
         }
-    }, [user])
+    }, [syncClaims, user])
 
     useEffect(() => {
         fetchClaims()
     }, [fetchClaims])
 
-    const handleClaim = useCallback(
+    const claimPlatform = useCallback(
         async (platform: SocialPlatformId) => {
             if (!user) {
                 toast.info(t("earn.social.signIn"))
-                return
+                return false
             }
             setClaiming(platform)
             try {
@@ -116,8 +137,8 @@ export function SocialFollowRewards() {
                     data: { session },
                 } = await supabase.auth.getSession()
                 if (!session) {
-                    toast.error(t("earn.social.signIn"))
-                    return
+                    toast.info(t("earn.social.signIn"))
+                    return false
                 }
                 const response = await fetch("/api/stars/social-follow", {
                     method: "POST",
@@ -137,126 +158,115 @@ export function SocialFollowRewards() {
                                 platform: t(`earn.platforms.${platform}`),
                             })
                         )
-                        setClaimedPlatforms((prev) => {
-                            const next = new Set(prev)
-                            next.add(platform)
-                            return next
-                        })
-                        return
+                        const copy = new Set(claimedPlatforms)
+                        copy.add(platform)
+                        syncClaims(copy)
+                        return false
                     }
-                    toast.error(
-                        payload?.error ?? t("earn.social.error")
-                    )
-                    return
+                    toast.error(payload?.error ?? t("earn.social.error"))
+                    return false
                 }
-                setClaimedPlatforms((prev) => {
-                    const next = new Set(prev)
-                    next.add(platform)
-                    return next
-                })
+                const updated = new Set(claimedPlatforms)
+                updated.add(platform)
+                syncClaims(updated)
                 toast.success(
                     t("earn.social.success", {
                         platform: t(`earn.platforms.${platform}`),
                     })
                 )
+                return true
             } finally {
                 setClaiming(null)
             }
         },
-        [t, user]
+        [claimedPlatforms, syncClaims, t, user]
     )
 
-    const claimedCount = claimedPlatforms.size
-    const totalPlatforms = SOCIAL_PLATFORMS.length
+    const handleFollowClick = useCallback(
+        async (platform: SocialPlatform) => {
+            const claimed = claimedPlatforms.has(platform.id)
+            if (typeof window !== "undefined") {
+                window.open(platform.url, "_blank", "noopener,noreferrer")
+            }
+            if (claimed) return
+            await claimPlatform(platform.id)
+        },
+        [claimPlatform, claimedPlatforms]
+    )
+
     const progressLabel = useMemo(
         () =>
             t("earn.social.progress", {
-                claimed: claimedCount,
+                claimed: claimedPlatforms.size,
                 total: totalPlatforms,
             }),
-        [claimedCount, totalPlatforms, t]
+        [claimedPlatforms.size, t, totalPlatforms]
     )
 
     return (
-        <div className='space-y-4'>
-            <div className='flex flex-wrap items-center justify-between gap-3'>
-                <div>
-                    <h4 className='text-lg font-semibold'>
-                        {t("earn.social.title")}
-                    </h4>
-                    <p className='text-sm text-muted-foreground'>
-                        {t("earn.social.subtitle")}
-                    </p>
-                </div>
-                <span className='text-xs font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full'>
-                    {progressLabel}
-                </span>
+        <div className='space-y-3'>
+            <div className='flex items-center justify-between text-xs text-muted-foreground'>
+                <span>{progressLabel}</span>
+                {!hasUser && (
+                    <span className='text-yellow-200'>
+                        {t("earn.social.signIn")}
+                    </span>
+                )}
             </div>
-
-            <div className='space-y-3'>
-                {SOCIAL_PLATFORMS.map((platform) => {
-                    const Icon = platform.icon
-                    const claimed = claimedPlatforms.has(platform.id)
-                    return (
-                        <div
-                            key={platform.id}
-                            className='flex flex-col gap-3 rounded-xl border border-white/10 bg-card/20 p-4 md:flex-row md:items-center md:justify-between'
-                        >
-                            <div className='flex items-center gap-3'>
-                                <div
-                                    className={`p-3 rounded-full bg-gradient-to-r ${platform.gradient} border border-white/10`}
-                                >
-                                    <Icon className='w-5 h-5 text-white' />
-                                </div>
-                                <div>
-                                    <p className='font-semibold'>
-                                        {t(`earn.platforms.${platform.id}`)}
-                                    </p>
-                                    <p className='text-xs text-muted-foreground'>
-                                        {t("earn.social.rewardLabel")}
-                                    </p>
-                                </div>
+            {SOCIAL_PLATFORMS.map((platform) => {
+                const Icon = platform.icon
+                const claimed = claimedPlatforms.has(platform.id)
+                return (
+                    <div
+                        key={platform.id}
+                        className='flex flex-col gap-3 rounded-xl border border-white/10 bg-card/20 p-4 md:flex-row md:items-center md:justify-between'
+                    >
+                        <div className='flex items-center gap-3'>
+                            <div
+                                className={`p-3 rounded-full bg-gradient-to-r ${platform.gradient} border border-white/10`}
+                            >
+                                <Icon className='w-5 h-5 text-white' />
                             </div>
-                            <div className='flex flex-wrap items-center gap-2'>
-                                <Button
-                                    asChild
-                                    variant='ghost'
-                                    size='sm'
-                                    className='gap-2 text-white/80 hover:text-white'
-                                >
-                                    <a
-                                        href={platform.url}
-                                        target='_blank'
-                                        rel='noreferrer'
-                                    >
-                                        <ExternalLink className='w-4 h-4' />
-                                        {t("earn.social.followCta")}
-                                    </a>
-                                </Button>
-                                <Button
-                                    size='sm'
-                                    disabled={
-                                        !hasUser ||
-                                        claimed ||
-                                        claiming === platform.id ||
-                                        loadingClaims
-                                    }
-                                    onClick={() => handleClaim(platform.id)}
-                                >
-                                    {claimed
-                                        ? t("earn.social.claimed")
-                                        : t("earn.social.claimCta")}
-                                </Button>
+                            <div>
+                                <p className='font-semibold'>
+                                    {t(`earn.platforms.${platform.id}`)}
+                                </p>
+                                <p className='text-xs text-muted-foreground'>
+                                    {t("earn.social.rewardLabel")}
+                                </p>
                             </div>
                         </div>
-                    )
-                })}
-            </div>
-            {!hasUser && (
-                <p className='text-xs text-muted-foreground text-center'>
-                    {t("earn.social.signIn")}
-                </p>
-            )}
+                        <Button
+                            size='sm'
+                            className='gap-2'
+                            disabled={
+                                claiming === platform.id ||
+                                loadingClaims
+                            }
+                            onClick={() => handleFollowClick(platform)}
+                        >
+                            {claimed ? (
+                                <>
+                                    <ExternalLink className='w-4 h-4' />
+                                    {t("earn.social.openCta")}
+                                </>
+                            ) : (
+                                <>
+                                    {t("earn.social.followCta")}
+                                    <span className='flex items-center gap-1 text-xs font-semibold text-yellow-200'>
+                                        +
+                                        <Star
+                                            className='w-3 h-3'
+                                            fill='currentColor'
+                                        />
+                                        1
+                                    </span>
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                )
+            })}
         </div>
     )
 }

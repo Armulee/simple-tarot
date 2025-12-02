@@ -1659,9 +1659,10 @@
       "social": {
         "title": "Follow us on social",
         "subtitle": "Earn +1 star per platform (up to 5 total).",
+        "description": "Tap a platform, follow Asking Fate, and we'll add your bonus instantly. Each platform can be claimed once.",
         "rewardLabel": "+1 star reward",
-        "followCta": "Open link",
-        "claimCta": "Claim 1 star",
+        "followCta": "Follow us",
+        "openCta": "Open link",
         "claimed": "Claimed",
         "signIn": "Sign in to claim these social rewards.",
         "success": "Thanks for following us on {platform}! +1 star added.",
