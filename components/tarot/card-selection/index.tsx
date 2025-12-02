@@ -300,10 +300,10 @@ export default function CardSelection({
                                         &rdquo;
                                     </p>
                                     <Badge
-                                        className={`text-sm text-accent bg-transparent border-accent/50 ${
+                                        className={`text-sm text-primary bg-transparent border-primary/50 ${
                                             isFollowUp
                                                 ? "cursor-default"
-                                                : "cursor-pointer hover:bg-accent/10 transition-colors"
+                                                : "cursor-pointer hover:bg-primary/10 transition-colors"
                                         }`}
                                         onClick={
                                             isFollowUp

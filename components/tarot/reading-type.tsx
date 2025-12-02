@@ -113,7 +113,7 @@ export default function ReadingType({
                                 <div className='flex justify-center'>
                                     <Badge
                                         variant='secondary'
-                                        className='bg-accent/20 text-accent border-accent/30 px-4 py-2'
+                                        className='bg-primary/20 text-primary border-primary/30 px-4 py-2'
                                     >
                                         {t("followUp.simple")}
                                     </Badge>
@@ -136,7 +136,7 @@ export default function ReadingType({
                                     ([key, config]) => (
                                         <Card
                                             key={key}
-                                            className='p-6 bg-card/10 backdrop-blur-sm border-border/20 hover:border-primary/50 cursor-pointer transition-all duration-300 hover:scale-105 card-glow'
+                                            className='p-6 bg-card/10 backdrop-blur-sm border-border/20 hover:border-primary/50 cursor-pointer transition-all duration-300 hover:scale-105 animate-glow-pulse'
                                             onClick={() =>
                                                 handleReadingTypeSelect(
                                                     key as

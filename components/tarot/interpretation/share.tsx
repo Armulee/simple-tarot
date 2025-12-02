@@ -462,7 +462,7 @@ export default function ShareSection({
     return (
         <div className='relative overflow-hidden group'>
             {/* Background gradient with animation */}
-            <div className='absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/5 to-primary/5 rounded-xl transition-all duration-500 group-hover:from-primary/10 group-hover:via-accent/10 group-hover:to-primary/10' />
+            <div className='absolute inset-0 bg-gradient-to-br from-primary/5 via-sky-500/5 to-primary/5 rounded-xl transition-all duration-500 group-hover:from-primary/10 group-hover:via-sky-500/10 group-hover:to-primary/10' />
 
             {/* Animated border */}
             <div className='absolute inset-0 rounded-xl border border-primary/20 group-hover:border-primary/40 transition-all duration-500' />

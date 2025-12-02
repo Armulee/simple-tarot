@@ -691,7 +691,7 @@ export default function ReadingHistory() {
         <div className='max-w-4xl mx-auto w-full px-4 py-8'>
             {/* Header */}
             <div className="text-center mb-12">
-                <h1 className='text-4xl font-serif font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent'>
+                <h1 className='text-4xl font-serif font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent'>
                     {t('title')}
                 </h1>
                 <p className='text-muted-foreground text-lg max-w-2xl mx-auto'>
