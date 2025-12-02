@@ -2,6 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+    type ReactElement,
+} from "react"
 import { ExternalLink, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
@@ -85,7 +92,7 @@ type SocialPlatformId = "facebook" | "instagram" | "threads" | "tiktok" | "x"
 type SocialPlatform = {
     id: SocialPlatformId
     url: string
-    Logo: (props: LogoProps) => JSX.Element
+    Logo: (props: LogoProps) => ReactElement
 }
 
 const SOCIAL_PLATFORMS: SocialPlatform[] = [

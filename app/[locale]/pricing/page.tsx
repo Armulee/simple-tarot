@@ -68,9 +68,6 @@ export default function PricingPage() {
         }
     }, [locale])
 
-    const getCurrencyName = (code: CurrencyCode) =>
-        currencyFormatter?.of(code) ?? code
-
     const howItWorks = [
         {
             icon: <Lock className='w-5 h-5 text-white' />,
@@ -130,7 +127,7 @@ export default function PricingPage() {
         }
         return currencyOptions.filter((code) => {
             const symbol = getCurrencySymbol(code).toLowerCase()
-            const name = getCurrencyName(code).toLowerCase()
+            const name = (currencyFormatter?.of(code) ?? code).toLowerCase()
             const normalizedCode = code.toLowerCase()
             return (
                 normalizedCode.includes(normalizedCurrencyQuery) ||
