@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import {
     Star,
     Crown,
@@ -23,32 +24,52 @@ import {
 } from "@/components/ui/select"
 import { useTranslations } from "next-intl"
 import { useParams } from "next/navigation"
-import { getAvailabilityLabel } from "@/lib/roadmap"
-
-type Pack = {
-    id: string
-    priceThb: number
-    priceUsd: number
-    stars: number
-    bonus: number
-    label?: string
-}
-
-type Currency = "THB" | "USD"
+import {
+    INFINITY_PACK,
+    STAR_PACKS,
+    getAnnualMonthlyEquivalent,
+    getPackPrice,
+    getSubscriptionPrice,
+} from "@/lib/payments/star-products"
+import {
+    ensureSupportedCurrency,
+    formatCurrency,
+    getCurrencySymbol,
+    POPULAR_CURRENCIES,
+    SUPPORTED_PAYMENT_CURRENCIES,
+    type CurrencyCode,
+} from "@/lib/payments/currency-utils"
+import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
 
 export default function PricingPage() {
     const t = useTranslations("Pricing")
     const params = useParams()
     const locale = params.locale as string
-    const availabilityLabel = getAvailabilityLabel()
+    const defaultCurrency: CurrencyCode = "USD"
+    const preferredCurrency = usePreferredCurrency(defaultCurrency)
+    const [currency, setCurrency] = useState<CurrencyCode>(
+        ensureSupportedCurrency(preferredCurrency)
+    )
+    const [isManualCurrency, setIsManualCurrency] = useState(false)
+    const [currencyQuery, setCurrencyQuery] = useState("")
 
-    // Default currency based on locale
-    const defaultCurrency: Currency = locale === "th" ? "THB" : "USD"
-    const [currency, setCurrency] = useState<Currency>(defaultCurrency)
-    const basePerDollar = 60
+    useEffect(() => {
+        if (!isManualCurrency) {
+            setCurrency(ensureSupportedCurrency(preferredCurrency))
+        }
+    }, [preferredCurrency, isManualCurrency])
 
-    // How it works
-    const getCurrencySymbol = () => (currency === "THB" ? "฿" : "$")
+    const currencyFormatter = useMemo(() => {
+        if (typeof Intl.DisplayNames === "undefined") return null
+        try {
+            return new Intl.DisplayNames([locale], { type: "currency" })
+        } catch {
+            return null
+        }
+    }, [locale])
+
+    const getCurrencyLabel = (code: CurrencyCode) =>
+        currencyFormatter?.of(code) ?? code
 
     const howItWorks = [
         {
@@ -59,7 +80,7 @@ export default function PricingPage() {
         {
             icon: <Star className='w-5 h-5 text-yellow-300' />,
             title: t("pickPack"),
-            desc: `${getCurrencySymbol()}1=60 stars, larger packs include bonus`,
+            desc: t("pickPackDesc"),
         },
         {
             icon: <CreditCard className='w-5 h-5 text-emerald-300' />,
@@ -73,42 +94,54 @@ export default function PricingPage() {
         },
     ]
 
-    // Pricing constants
-    const prices = {
-        monthly: { thb: 349, usd: 9.99 },
-        annual: { thb: 3499, usd: 99.99, monthlyThb: 292, monthlyUsd: 8.34 },
-        infinity: { thb: 349, usd: 9.99 },
-    }
+    const pricingSnapshot = useMemo(
+        () => ({
+            monthly: getSubscriptionPrice("monthly", currency),
+            annual: getSubscriptionPrice("annual", currency),
+            annualMonthlyEquivalent: getAnnualMonthlyEquivalent(currency),
+            infinity: getPackPrice(INFINITY_PACK.id, currency),
+        }),
+        [currency]
+    )
 
-    const packs: Pack[] = [
-        { id: "pack-1", priceThb: 35, priceUsd: 0.99, stars: 60, bonus: 0 },
-        { id: "pack-2", priceThb: 69, priceUsd: 1.99, stars: 130, bonus: 10 },
-        {
-            id: "pack-3",
-            priceThb: 99,
-            priceUsd: 2.99,
-            stars: 200,
-            bonus: 200 - 3 * basePerDollar,
-            label: t("popular"),
-        },
-        {
-            id: "pack-5",
-            priceThb: 169,
-            priceUsd: 4.99,
-            stars: 350,
-            bonus: 350 - 5 * basePerDollar,
-            label: t("bestValue"),
-        },
-        { id: "pack-7", priceThb: 249, priceUsd: 6.99, stars: 500, bonus: 80 },
-    ]
-
-    // Format price based on currency
-    const formatPrice = (thb: number, usd: number) => {
-        if (currency === "THB") {
-            return `฿${thb.toFixed(0)}`
+    const currencyOptions = useMemo(() => {
+        const ordered = [
+            currency,
+            ...SUPPORTED_PAYMENT_CURRENCIES,
+            ...POPULAR_CURRENCIES,
+            "THB",
+        ] as CurrencyCode[]
+        const deduped = [] as CurrencyCode[]
+        const seen = new Set<CurrencyCode>()
+        for (const code of ordered) {
+            if (!code) continue
+            if (seen.has(code)) continue
+            seen.add(code)
+            deduped.push(code)
         }
-        return `$${usd.toFixed(usd < 10 ? 2 : 0)}`
-    }
+        return deduped
+    }, [currency])
+
+    const normalizedCurrencyQuery = currencyQuery.trim().toLowerCase()
+
+    const filteredCurrencyOptions = useMemo(() => {
+        if (!normalizedCurrencyQuery) {
+            return currencyOptions
+        }
+        return currencyOptions.filter((code) => {
+            const symbol = getCurrencySymbol(code).toLowerCase()
+            const name = (currencyFormatter?.of(code) ?? code).toLowerCase()
+            const normalizedCode = code.toLowerCase()
+            return (
+                normalizedCode.includes(normalizedCurrencyQuery) ||
+                name.includes(normalizedCurrencyQuery) ||
+                symbol.includes(normalizedCurrencyQuery)
+            )
+        })
+    }, [currencyOptions, normalizedCurrencyQuery, currencyFormatter])
+
+    const formatAmount = (amount?: number | null) =>
+        amount != null ? formatCurrency(amount, currency, locale) : "--"
 
     const packIconColor = () => {
         return "text-yellow-300"
@@ -146,26 +179,54 @@ export default function PricingPage() {
                     </span>
                     <Select
                         value={currency}
-                        onValueChange={(value) =>
-                            setCurrency(value as Currency)
-                        }
+                        onValueChange={(value) => {
+                            setIsManualCurrency(true)
+                            setCurrency(ensureSupportedCurrency(value))
+                        }}
+                        onOpenChange={(open) => {
+                            if (!open) {
+                                setCurrencyQuery("")
+                            }
+                        }}
                     >
-                        <SelectTrigger className='w-[100px] bg-accent/30 border-border/30 rounded-r-md rounded-l-none'>
-                            <SelectValue />
+                        <SelectTrigger className='w-[190px] bg-accent/30 border-border/30 rounded-r-md rounded-l-none'>
+                            <SelectValue
+                                placeholder={`${getCurrencySymbol(currency)} · ${currency}`}
+                            />
                         </SelectTrigger>
-                        <SelectContent className='bg-black border-border/30'>
-                            <SelectItem value='USD'>
-                                <div className='flex items-center gap-2'>
-                                    <span className='text-lg'>🇺🇸</span>
-                                    <span>USD ($)</span>
-                                </div>
-                            </SelectItem>
-                            <SelectItem value='THB'>
-                                <div className='flex items-center gap-2'>
-                                    <span className='text-lg'>🇹🇭</span>
-                                    <span>THB (฿)</span>
-                                </div>
-                            </SelectItem>
+                        <SelectContent className='bg-black border-border/30 p-0'>
+                            <div className='sticky top-0 z-10 bg-black/95 border-b border-border/30 p-2'>
+                                <Input
+                                    value={currencyQuery}
+                                    autoFocus
+                                    onChange={(event) =>
+                                        setCurrencyQuery(event.target.value)
+                                    }
+                                    placeholder={t("currencySearchPlaceholder")}
+                                    className='h-9 bg-background/40 border-border/40 text-sm placeholder:text-white/50'
+                                />
+                            </div>
+                            <div className='max-h-60 overflow-y-auto'>
+                                {filteredCurrencyOptions.length === 0 ? (
+                                    <div className='px-4 py-6 text-center text-sm text-white/60'>
+                                        {t("currencyNoResults")}
+                                    </div>
+                                ) : (
+                                    filteredCurrencyOptions.map((code) => (
+                                        <SelectItem key={code} value={code}>
+                                            <div className='flex flex-col'>
+                                                <span className='font-semibold text-white'>
+                                                    {getCurrencySymbol(code)} ·{" "}
+                                                    {code}
+                                                </span>
+                                                <span className='text-xs text-white/60'>
+                                                    {getCurrencyLabel(code)}
+                                                </span>
+                                            </div>
+                                        </SelectItem>
+                                    ))
+                                )}
+                            </div>
                         </SelectContent>
                     </Select>
                 </div>
@@ -211,10 +272,7 @@ export default function PricingPage() {
                                     {t("monthlySubscription")}
                                 </div>
                                 <div className='text-3xl font-bold'>
-                                    {formatPrice(
-                                        prices.monthly.thb,
-                                        prices.monthly.usd
-                                    )}
+                                    {formatAmount(pricingSnapshot.monthly)}
                                     <span className='text-sm text-white/70'>
                                         /month
                                     </span>
@@ -239,11 +297,11 @@ export default function PricingPage() {
                                         {t("cancelFromAccount")}
                                     </li>
                                 </ul>
-                                  <Checkout
-                                      mode='subscribe'
-                                      plan='monthly'
-                                      availabilityLabel={availabilityLabel}
-                                  />
+                                <Checkout
+                                    mode='subscribe'
+                                    plan='monthly'
+                                    currency={currency}
+                                />
                             </div>
                         </div>
                     </TabsContent>
@@ -263,16 +321,12 @@ export default function PricingPage() {
                                 </div>
                                 <div className='inline-flex items-baseline gap-2'>
                                     <div className='text-3xl font-bold'>
-                                        {formatPrice(
-                                            prices.annual.monthlyThb,
-                                            prices.annual.monthlyUsd
+                                        {formatAmount(
+                                            pricingSnapshot.annualMonthlyEquivalent
                                         )}{" "}
                                     </div>
                                     <div className='text-sm text-white/70 line-through'>
-                                        {formatPrice(
-                                            prices.monthly.thb,
-                                            prices.monthly.usd
-                                        )}{" "}
+                                        {formatAmount(pricingSnapshot.monthly)}{" "}
                                     </div>
                                     <span className='text-sm text-white/70'>
                                         /month
@@ -283,10 +337,7 @@ export default function PricingPage() {
                                 </div>
                                 <div className='text-sm text-muted-foreground'>
                                     {t("perMonth")} · {t("billedYearly")} (
-                                    {formatPrice(
-                                        prices.annual.thb,
-                                        prices.annual.usd
-                                    )}
+                                    {formatAmount(pricingSnapshot.annual)}
                                     )
                                 </div>
                             </div>
@@ -305,11 +356,11 @@ export default function PricingPage() {
                                         {t("cancelRenewal")}
                                     </li>
                                 </ul>
-                                  <Checkout
-                                      mode='subscribe'
-                                      plan='annual'
-                                      availabilityLabel={availabilityLabel}
-                                  />
+                                <Checkout
+                                    mode='subscribe'
+                                    plan='annual'
+                                    currency={currency}
+                                />
                             </div>
                         </div>
                     </TabsContent>
@@ -329,7 +380,7 @@ export default function PricingPage() {
 
             {/* Packs & Infinity one-time */}
             <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-                {packs.map((p) => (
+                {STAR_PACKS.map((p) => (
                     <Card
                         key={p.id}
                         className={`relative overflow-visible border-0 p-6 rounded-xl bg-card/10 hover:brightness-110 transition`}
@@ -345,7 +396,11 @@ export default function PricingPage() {
                                     <Star
                                         className={`w-4 h-4 ${packIconColor()}`}
                                     />
-                                    <span>{p.label || t("oneTime")}</span>
+                                    <span>
+                                        {p.labelKey
+                                            ? t(p.labelKey)
+                                            : t("oneTime")}
+                                    </span>
                                 </div>
                                 {/* Stars amount first (above price) with bonus badge at top-right */}
                                 <div className='inline-flex items-center gap-2 justify-center w-full mt-2'>
@@ -374,7 +429,7 @@ export default function PricingPage() {
                                     </span>
                                 </div>
                                 <div className='text-3xl font-bold'>
-                                    {formatPrice(p.priceThb, p.priceUsd)}
+                                    {formatAmount(getPackPrice(p.id, currency))}
                                 </div>
                                 <div className='text-sm text-muted-foreground'>
                                     {t("oneTime")} · {t("instantDelivery")}
@@ -404,7 +459,11 @@ export default function PricingPage() {
                                     )}
                                 </ul>
                                 <div>
-                                    <Checkout mode='pack' packId={p.id} />
+                                    <Checkout
+                                        mode='pack'
+                                        packId={p.id}
+                                        currency={currency}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -436,10 +495,7 @@ export default function PricingPage() {
                                 </span>
                             </div>
                             <div className='text-3xl font-bold'>
-                                {formatPrice(
-                                    prices.infinity.thb,
-                                    prices.infinity.usd
-                                )}
+                                {formatAmount(pricingSnapshot.infinity)}
                             </div>
                             <div className='text-sm text-muted-foreground'>
                                 {t("oneTime")} · 30 {t("days")} ·{" "}
@@ -470,8 +526,9 @@ export default function PricingPage() {
                             <div>
                                 <Checkout
                                     mode='pack'
-                                    packId='pack-infinity'
-                                    infinityTerm='month'
+                                    packId={INFINITY_PACK.id}
+                                    infinityTerm={INFINITY_PACK.infinityTerm}
+                                    currency={currency}
                                 />
                             </div>
                         </div>

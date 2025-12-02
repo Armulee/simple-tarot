@@ -55,8 +55,6 @@ export default function BirthChartInfoCard({ birthChart }: BirthChartInfoCardPro
     const [locationStep, setLocationStep] = useState<"country" | "state">("country")
     const [searchCountry, setSearchCountry] = useState("")
     const [searchState, setSearchState] = useState("")
-    const [hourInput, setHourInput] = useState("")
-    const [minuteInput, setMinuteInput] = useState("")
 
     // Data
     const [countries, setCountries] = useState<Array<{ name: string; code: string }>>([])
@@ -208,14 +206,15 @@ export default function BirthChartInfoCard({ birthChart }: BirthChartInfoCardPro
                     {/* Time Picker */}
                     <div className="flex flex-col gap-1">
                         <span className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">Time</span>
-                        <Popover open={timeOpen} onOpenChange={(open) => {
-                            if (!open) {
-                                setTimeStep("hour")
-                                setHourInput("")
-                                setMinuteInput("")
-                            }
-                            setTimeOpen(open)
-                        }}>
+                        <Popover
+                            open={timeOpen}
+                            onOpenChange={(open) => {
+                                if (!open) {
+                                    setTimeStep("hour")
+                                }
+                                setTimeOpen(open)
+                            }}
+                        >
                             <PopoverTrigger asChild>
                                 <Button variant="outline" className="w-full justify-start text-left font-normal bg-white/5 border-white/10 hover:bg-white/10 text-white">
                                     <Clock className="mr-2 h-4 w-4" />

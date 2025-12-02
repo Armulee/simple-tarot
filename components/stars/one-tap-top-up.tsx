@@ -4,6 +4,7 @@ import { Checkout } from "../checkout"
 import { Star, Zap, Infinity } from "lucide-react"
 import InfinityPackDropdown from "./infinity-pack-dropdown"
 import { useTranslations } from "next-intl"
+import type { CurrencyCode } from "@/lib/payments/currency-utils"
 
 type LabelKey =
     | "starter"
@@ -85,7 +86,11 @@ const getColorClasses = (color: string) => {
     return colorMap[color as keyof typeof colorMap] || colorMap.blue
 }
 
-export default function OneTapTopUp() {
+type OneTapTopUpProps = {
+    currency: CurrencyCode
+}
+
+export default function OneTapTopUp({ currency }: OneTapTopUpProps) {
     const t = useTranslations("OneTapTopUp.packs")
     return (
         <div className='w-full max-w-5xl mx-auto'>
@@ -99,6 +104,7 @@ export default function OneTapTopUp() {
                                 key={p.id}
                                 mode='pack'
                                 packId={p.id}
+                                currency={currency}
                                 infinityTerm={
                                     p.isInfinity ? "month" : undefined
                                 }
@@ -171,6 +177,7 @@ export default function OneTapTopUp() {
                                         {p.isInfinity && (
                                             <InfinityPackDropdown
                                                 packId={p.id}
+                                                currency={currency}
                                             />
                                         )}
 

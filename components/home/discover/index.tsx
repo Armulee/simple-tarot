@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useRef } from "react"
+import { useTranslations } from "next-intl"
+import { ChevronUp } from "lucide-react"
 import type { SwiperRef } from "swiper/react"
 import NormalFooter from "../../footer/normal-footer"
 import DiscoverHeader from "./header"
@@ -16,6 +18,7 @@ type DiscoverMore = {
 }
 
 export default function DiscoverMore({ mainSwiperRef }: DiscoverMore) {
+    const t = useTranslations("HomeDiscover")
     const scrollRef = useRef<HTMLDivElement | null>(null)
     const lockUntilRef = useRef<number>(0)
     // Require a release before allowing swipe to previous slide when at top
@@ -187,6 +190,28 @@ export default function DiscoverMore({ mainSwiperRef }: DiscoverMore) {
     return (
         <div ref={scrollRef} className='w-full h-full overflow-y-auto'>
             <div className='max-w-6xl mx-auto px-6 py-10 space-y-8'>
+                <div className='flex justify-center pb-6'>
+                    <button
+                        type='button'
+                        className='flex flex-col items-center gap-2 text-white/80 hover:text-white transition-colors'
+                        onClick={() => {
+                            try {
+                                window.dispatchEvent(
+                                    new CustomEvent("scrollToHero")
+                                )
+                            } catch {}
+                        }}
+                    >
+                        <div className='flex items-center gap-4'>
+                            <div className='h-px w-12 bg-white/30' />
+                            <span className='text-xs uppercase tracking-wide'>
+                                {t("askYourFate")}
+                            </span>
+                            <div className='h-px w-12 bg-white/30' />
+                        </div>
+                        <ChevronUp className='w-5 h-5 animate-bounce' />
+                    </button>
+                </div>
                 <DiscoverHeader />
                 <ServicesSection />
                 <RoadmapSection />

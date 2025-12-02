@@ -79,6 +79,31 @@ create unique index if not exists stars_unique_device on public.stars(anon_devic
 
 alter table public.stars enable row level security;
 
+-- Track which social follow rewards each user has claimed (one per platform)
+create table if not exists public.star_social_claims (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  platform text not null check (platform in ('facebook','instagram','threads','tiktok','x')),
+  stars_awarded integer not null default 1 check (stars_awarded >= 0),
+  claimed_at timestamptz not null default now()
+);
+
+create unique index if not exists star_social_claims_user_platform on public.star_social_claims(user_id, platform);
+
+alter table public.star_social_claims enable row level security;
+
+drop policy if exists "Users can view own social claims" on public.star_social_claims;
+create policy "Users can view own social claims" on public.star_social_claims
+  for select using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert own social claims" on public.star_social_claims;
+create policy "Users can insert own social claims" on public.star_social_claims
+  for insert with check (auth.uid() = user_id);
+
+drop policy if exists "Users can delete own social claims" on public.star_social_claims;
+create policy "Users can delete own social claims" on public.star_social_claims
+  for delete using (auth.uid() = user_id);
+
 -- Removed star_identities as it's not used by the app
 drop table if exists public.star_identities;
 

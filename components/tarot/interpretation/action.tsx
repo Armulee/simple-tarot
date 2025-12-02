@@ -603,21 +603,21 @@ Output:
                 </div>
             )}
             {/* Background gradient with animation */}
-            <div className='absolute inset-0 bg-gradient-to-br from-accent/5 via-primary/5 to-accent/5 rounded-xl transition-all duration-500 group-hover:from-accent/10 group-hover:via-primary/10 group-hover:to-accent/10' />
+            <div className='absolute inset-0 bg-gradient-to-br from-primary/5 via-sky-500/5 to-primary/5 rounded-xl transition-all duration-500 group-hover:from-primary/10 group-hover:via-sky-500/10 group-hover:to-primary/10' />
 
             {/* Animated border */}
-            <div className='absolute inset-0 rounded-xl border border-accent/20 group-hover:border-accent/40 transition-all duration-500' />
+            <div className='absolute inset-0 rounded-xl border border-primary/20 group-hover:border-primary/40 transition-all duration-500' />
 
             {/* Content */}
             <div className='relative'>
                 {/* Header with padding */}
                 <div className='px-6 pt-6 pb-4'>
                     <div className='flex items-center gap-3 mb-6 animate-fade-up'>
-                        <div className='p-2 rounded-full bg-accent/20 backdrop-blur-sm group-hover:bg-accent/30 transition-all duration-300'>
-                            <Settings className='w-5 h-5 text-accent group-hover:scale-110 transition-transform duration-300' />
+                        <div className='p-2 rounded-full bg-primary/20 backdrop-blur-sm group-hover:bg-primary/30 transition-all duration-300'>
+                            <Settings className='w-5 h-5 text-primary group-hover:scale-110 transition-transform duration-300' />
                         </div>
                         <div>
-                            <h3 className='font-serif font-semibold text-lg text-foreground group-hover:text-accent/90 transition-colors duration-300'>
+                            <h3 className='font-serif font-semibold text-lg text-foreground group-hover:text-primary/90 transition-colors duration-300'>
                                 Actions
                             </h3>
                             <p className='text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300'>
@@ -755,7 +755,7 @@ Output:
                                                 </button>
                                                 <button
                                                     type='button'
-                                                    className='w-full px-3 py-2 rounded-md bg-accent/20 hover:bg-accent/30 text-sm'
+                                                    className='w-full px-3 py-2 rounded-md bg-primary/20 hover:bg-primary/30 text-sm'
                                                     onClick={async () => {
                                                         try {
                                                             setIsDownloading(

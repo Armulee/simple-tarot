@@ -1,25 +1,31 @@
 "use client"
 
-import type { ReactNode } from "react"
-import { useEffect, useMemo, useState } from "react"
+import {
+    cloneElement,
+    isValidElement,
+    type HTMLAttributes,
+    type ReactNode,
+    useEffect,
+    useMemo,
+    useState,
+} from "react"
 import Link from "next/link"
+import { useParams } from "next/navigation"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
 import { useTranslations } from "next-intl"
-import {
-    Dialog,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog"
-import { StarsDialog } from "../star-consent"
 import {
     formatAvailabilityCountdown,
     getAvailabilityCountdown,
     getAvailabilityLabel,
 } from "@/lib/roadmap"
+import { resolveCurrencyFromLocale } from "@/lib/payments/star-products"
+import {
+    ensureSupportedCurrency,
+    type CurrencyCode,
+} from "@/lib/payments/currency-utils"
+import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
 
 type CheckoutMode = "pack" | "subscribe"
 
@@ -30,35 +36,66 @@ type CheckoutProps = {
     infinityTerm?: "month" | "year"
     customTrigger?: ReactNode
     availabilityLabel?: string
+    currency?: CurrencyCode
 }
 
-export function Checkout({ mode, customTrigger, availabilityLabel }: CheckoutProps) {
+export function Checkout({
+    mode,
+    packId,
+    plan,
+    infinityTerm,
+    customTrigger,
+    availabilityLabel,
+    currency,
+}: CheckoutProps) {
     const { user } = useAuth()
     const t = useTranslations("Checkout")
-    const [open, setOpen] = useState(false)
-    const stripeConfigured = Boolean(process.env.STRIPE_API_KEY)
+    const params = useParams()
+    const locale = (params?.locale as string) ?? "en"
+    const localeCurrency = resolveCurrencyFromLocale(locale)
+    const preferredCurrency = usePreferredCurrency(localeCurrency)
+    const safePreferredCurrency = ensureSupportedCurrency(preferredCurrency)
+    const safePropCurrency = currency ? ensureSupportedCurrency(currency) : null
+    const effectiveCurrency =
+        safePropCurrency ??
+        safePreferredCurrency ??
+        ensureSupportedCurrency(localeCurrency)
     const [countdown, setCountdown] = useState(getAvailabilityCountdown())
+    const [processing, setProcessing] = useState(false)
     const fallbackLabel = useMemo(
         () => availabilityLabel ?? getAvailabilityLabel(),
         [availabilityLabel]
     )
+
     useEffect(() => {
         if (typeof window === "undefined") return
-        const interval = window.setInterval(() => {
+        const timer = window.setInterval(() => {
             setCountdown(getAvailabilityCountdown())
         }, 1000)
-        return () => window.clearInterval(interval)
+        return () => window.clearInterval(timer)
     }, [])
+
     const displayLabel =
         formatAvailabilityCountdown(countdown) ?? fallbackLabel ?? undefined
 
     if (!user) {
-        const signinHref = `/signin?callbackUrl=${encodeURIComponent("/pricing")}`
-        return customTrigger ? (
-            <Link href={signinHref}>
-                <span>{customTrigger}</span>
-            </Link>
-        ) : (
+        const defaultCallback = mode === "pack" ? "/pricing" : "/stars"
+        const pathname =
+            typeof window !== "undefined"
+                ? window.location.pathname
+                : defaultCallback
+        const signinHref = `/signin?callbackUrl=${encodeURIComponent(pathname)}`
+        if (customTrigger && isValidElement(customTrigger)) {
+            return <Link href={signinHref}>{customTrigger}</Link>
+        }
+        if (customTrigger) {
+            return (
+                <Link href={signinHref}>
+                    <span>{customTrigger}</span>
+                </Link>
+            )
+        }
+        return (
             <Link href={signinHref}>
                 <Button className='w-full rounded-full bg-white text-black hover:brightness-90'>
                     {t("signInToSubscribe")}
@@ -67,55 +104,111 @@ export function Checkout({ mode, customTrigger, availabilityLabel }: CheckoutPro
         )
     }
 
-    return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                {customTrigger ? (
-                    <span onClick={() => setOpen(true)}>{customTrigger}</span>
-                ) : (
-                    <Button
-                        className='w-full rounded-full bg-white text-black hover:brightness-90'
-                        onClick={() => setOpen(true)}
-                    >
-                        <div className='flex w-full flex-col items-center justify-center gap-1 text-center'>
-                            <span>{mode === "pack" ? t("purchase") : t("subscribe")}</span>
-                            {mode === "subscribe" && displayLabel && (
-                                <span className='text-xs font-semibold text-black/70'>
-                                    {displayLabel}
-                                </span>
-                            )}
-                        </div>
-                    </Button>
-                )}
-            </DialogTrigger>
-            <StarsDialog className='relative space-y-4'>
-                <DialogHeader className='space-y-2'>
-                    <DialogTitle className='text-yellow-300 font-serif text-xl'>
-                        {t("comingSoonTitle")}
-                    </DialogTitle>
-                    <DialogDescription className='text-white/85'>
-                        {t("comingSoonDescription")}
-                    </DialogDescription>
-                </DialogHeader>
-                <p className='text-sm text-white/70 leading-relaxed'>
-                    {t("comingSoonHelper")}
-                </p>
-                <p className='text-xs text-white/60 leading-relaxed'>
-                    {stripeConfigured
-                        ? t("stripeReady")
-                        : t("stripeMissing", {
-                              countdown: displayLabel ?? t("countdownUnknown"),
-                          })}
-                </p>
-                <DialogFooter>
-                    <Button
-                        className='w-full rounded-full bg-white text-black hover:brightness-95'
-                        onClick={() => setOpen(false)}
-                    >
-                        {t("close")}
-                    </Button>
-                </DialogFooter>
-            </StarsDialog>
-        </Dialog>
-    )
+    const handleCheckout = async () => {
+        if (processing) return
+
+        let toastId: string | number | undefined
+        try {
+            setProcessing(true)
+            toastId = toast.loading(t("redirecting"))
+
+            const payload: Record<string, unknown> = {
+                mode,
+                locale,
+                currency: effectiveCurrency,
+                userId: user.id,
+            }
+            if (packId) payload.packId = packId
+            if (plan) payload.plan = plan
+            if (infinityTerm) payload.infinityTerm = infinityTerm
+            if (user.email) payload.email = user.email
+
+            const response = await fetch("/api/checkout/session", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            })
+            const data = (await response.json().catch(() => null)) as
+                | { id?: string; url?: string; code?: string; message?: string }
+                | null
+
+            if (!response.ok || !data?.id) {
+                throw new Error(data?.message ?? "SESSION_ERROR")
+            }
+
+            if (data?.url) {
+                window.location.assign(data.url)
+            } else {
+                throw new Error("SESSION_URL_MISSING")
+            }
+        } catch (error) {
+            toast.error(t("sessionError"))
+            console.error(error)
+        } finally {
+            if (toastId) toast.dismiss(toastId)
+            setProcessing(false)
+        }
+    }
+
+    let triggerContent: ReactNode = null
+    if (customTrigger) {
+        if (isValidElement(customTrigger)) {
+            const element =
+                customTrigger as React.ReactElement<HTMLAttributes<HTMLElement>>
+            triggerContent = cloneElement(element, {
+                onClick: (event) => {
+                    element.props.onClick?.(event)
+                    if (event.defaultPrevented || processing) return
+                    handleCheckout()
+                },
+                "aria-busy": processing ? true : element.props["aria-busy"],
+            })
+        } else {
+            triggerContent = (
+                <span
+                    role='button'
+                    tabIndex={0}
+                    onClick={(event) => {
+                        if (processing) return
+                        event.preventDefault()
+                        handleCheckout()
+                    }}
+                    onKeyDown={(event) => {
+                        if (processing) return
+                        if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault()
+                            handleCheckout()
+                        }
+                    }}
+                >
+                    {customTrigger}
+                </span>
+            )
+        }
+    } else {
+        triggerContent = (
+            <Button
+                className='w-full rounded-full bg-white text-black hover:brightness-90'
+                onClick={handleCheckout}
+                disabled={processing}
+            >
+                <div className='flex w-full flex-col.items-center justify-center gap-1 text-center'>
+                    <span>
+                        {processing
+                            ? t("loading")
+                            : mode === "pack"
+                              ? t("purchase")
+                              : t("subscribe")}
+                    </span>
+                    {mode === "subscribe" && displayLabel && !processing && (
+                        <span className='text-xs font-semibold text.black/70'>
+                            {displayLabel}
+                        </span>
+                    )}
+                </div>
+            </Button>
+        )
+    }
+
+    return <>{triggerContent}</>
 }

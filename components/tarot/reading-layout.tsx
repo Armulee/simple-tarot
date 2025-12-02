@@ -68,7 +68,7 @@ export default function TarotReadingLayout({
                                     >
                                         {/* Glow effect behind card */}
                                         <div
-                                            className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/30 via-accent/30 to-primary/30 blur-xl opacity-50 scale-110 animate-pulse"
+                                            className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/30 via-sky-500/30 to-primary/30 blur-xl opacity-50 scale-110 animate-pulse"
                                             style={{
                                                 animationDelay: `${index * 150 + 500}ms`,
                                             }}
@@ -77,7 +77,7 @@ export default function TarotReadingLayout({
                                         {/* Badge on top */}
                                         <Badge
                                             variant="secondary"
-                                            className="bg-accent/20 text-accent border-accent/30"
+                                            className="bg-primary/20 text-primary border-primary/30"
                                         >
                                             {card.meaning}
                                         </Badge>

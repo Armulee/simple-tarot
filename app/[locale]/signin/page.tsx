@@ -86,8 +86,12 @@ export default function SignInPage() {
             <AuthDivider />
 
             {/* Sign In Form */}
-            <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20 card-glow'>
-                <form onSubmit={handlePasswordSubmit} className='space-y-6'>
+            <Card className='relative overflow-hidden p-8 bg-card/10 backdrop-blur-sm border border-border/20 animate-glow-pulse'>
+                <div
+                    aria-hidden='true'
+                    className='absolute inset-0 bg-gradient-to-br from-primary/30 via-sky-500/20 to-primary/30 blur-3xl opacity-60 pointer-events-none animate-pulse'
+                />
+                <form onSubmit={handlePasswordSubmit} className='relative space-y-6'>
                     <div className='space-y-2'>
                         <Label
                             htmlFor='email'

@@ -19,15 +19,17 @@ interface BirthChartQuestionInputProps {
 
 export default function BirthChartQuestionInput({
     id = "bc-question-input",
-    label = "Ask a follow-up question",
+    label,
     placeholder,
     value,
     onChange,
     onSubmit,
     isLoading = false,
 }: BirthChartQuestionInputProps) {
-    const t = useTranslations("QuestionInput") // Reuse existing translations if possible
+    const t = useTranslations("QuestionInput")
     const [isSmallDevice, setIsSmallDevice] = useState(false)
+    const resolvedLabel = label ?? t("label")
+    const resolvedPlaceholder = placeholder ?? t("placeholder")
 
     // Detect small devices
     useEffect(() => {
@@ -60,9 +62,9 @@ export default function BirthChartQuestionInput({
 
     return (
         <div className='w-full mb-6 text-left'>
-            {label && (
+            {resolvedLabel && (
                 <Label htmlFor={id} className='block mb-2 text-lg text-white'>
-                    {label}
+                    {resolvedLabel}
                 </Label>
             )}
             <div className='relative group w-full'>
@@ -70,7 +72,9 @@ export default function BirthChartQuestionInput({
                 <AutoHeightTextarea
                     id={id}
                     name={id}
-                    placeholder={placeholder || "Ask about your love life, career, etc..."}
+                    placeholder={
+                        resolvedPlaceholder || "Ask about your love life, career, etc..."
+                    }
                     className='relative z-10 w-full pl-4 pr-15 py-2 text-white placeholder:text-white/70 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 focus:border-accent/60 focus:ring-2 focus:ring-accent/40 rounded-2xl resize-y shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] resize-none'
                     onChange={(e) => onChange(e.target.value)}
                     value={value}

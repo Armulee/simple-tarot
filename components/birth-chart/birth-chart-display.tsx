@@ -59,29 +59,22 @@ export default function BirthChartDisplay({
                 </div>
             </Card>
 
+            {/* Stats Section */}
+            <div className="space-y-6">
+                <BirthChartStats planets={birthChart.planets} />
+            </div>
+
             {/* Wheel */}
             <div className="flex justify-center py-12 relative">
                  {/* Enhanced Background Glow */}
-                <div className="absolute inset-0 bg-gradient-to-r from-accent/10 via-purple-500/10 to-accent/10 blur-3xl rounded-full pointer-events-none animate-pulse" />
-                <div className="absolute inset-0 bg-accent/5 blur-2xl rounded-full pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-blue-500/10 to-primary/10 blur-3xl rounded-full pointer-events-none animate-pulse" />
+                <div className="absolute inset-0 bg-primary/5.blur-2xl rounded-full pointer-events-none" />
                 <div className="relative z-10 transform hover:scale-105 transition-transform duration-500">
                     <BirthChartWheel 
                         houses={birthChart.houses} 
                         planets={birthChart.planets} 
                     />
                 </div>
-            </div>
-
-            {/* Stats Section */}
-            <div className="space-y-6">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
-                    <h2 className="text-2xl font-serif font-bold text-white whitespace-nowrap">
-                        {t("planetaryStrengths")}
-                    </h2>
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
-                </div>
-                <BirthChartStats planets={birthChart.planets} />
             </div>
 
             {/* Houses Detail */}

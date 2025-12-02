@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
     Star,
@@ -8,6 +11,7 @@ import {
     Zap,
     Gift,
     Crown,
+    Check,
 } from "lucide-react"
 import Link from "next/link"
 import {
@@ -21,13 +25,22 @@ import OneTapTopUp from "@/components/stars/one-tap-top-up"
 import SignInAccordion from "@/components/stars/sign-in-accordion"
 import { Checkout } from "@/components/checkout"
 import SubscribeDropdown from "@/components/stars/subscribe-dropdown"
+import { SocialFollowRewards } from "@/components/stars/social-follow-rewards"
 import { useTranslations } from "next-intl"
-import { getAvailabilityLabel } from "@/lib/roadmap"
-import { LiveAvailabilityLabel } from "@/components/stars/live-availability-label"
+import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
+import type { CurrencyCode } from "@/lib/payments/currency-utils"
 
 export default function StarsPage() {
     const t = useTranslations("StarsPage")
-    const availabilityLabel = getAvailabilityLabel()
+    const defaultCurrency: CurrencyCode = "USD"
+    const currency = usePreferredCurrency(defaultCurrency)
+    const [socialProgress, setSocialProgress] = useState({
+        claimed: 0,
+        total: 5,
+    })
+    const allSocialClaimed =
+        socialProgress.total > 0 &&
+        socialProgress.claimed >= socialProgress.total
     return (
         <div className='relative min-h-screen'>
             {/* Hero Section */}
@@ -93,6 +106,7 @@ export default function StarsPage() {
                           <Checkout
                               mode='subscribe'
                               plan='monthly'
+                              currency={currency}
                               customTrigger={
                                   <button
                                       type='button'
@@ -107,12 +121,9 @@ export default function StarsPage() {
                                               <Crown className='w-6 h-6 text-black group-hover:scale-110 transition-transform duration-300' />
                                                 <div className='flex flex-col text-left'>
                                                     <span>{t("subscribe.button")}</span>
-                                                    <LiveAvailabilityLabel
-                                                        fallbackLabel={availabilityLabel}
-                                                    />
                                                 </div>
                                           </div>
-                                          <SubscribeDropdown />
+                                          <SubscribeDropdown currency={currency} />
                                       </div>
 
                                       {/* Premium badge */}
@@ -124,7 +135,7 @@ export default function StarsPage() {
                           />
                         </div>
 
-                        <OneTapTopUp />
+                        <OneTapTopUp currency={currency} />
                     </div>
                 </div>
             </section>
@@ -201,6 +212,65 @@ export default function StarsPage() {
                                                 </Button>
                                             </Link>
                                         </div>
+                                    </div>
+
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+
+                        {/* Social Follow */}
+                        <AccordionItem className='group relative overflow-hidden rounded-2xl border border-blue-500/30 bg-gradient-to-r from-blue-400/15 via-sky-500/15 to-blue-600/15 px-4 py-2 hover:from-blue-400/20 hover:via-sky-500/20 hover:to-blue-600/20 transition-all duration-300'>
+                            <AccordionTrigger className='px-2 py-4 hover:no-underline'>
+                                <div className='flex items-center gap-4 w-full'>
+                                    <div className='relative'>
+                                        <span
+                                            className={`h-12 w-12 rounded-full border flex items-center justify-center group-hover:scale-110 transition-transform duration-300 ${
+                                                allSocialClaimed
+                                                    ? "bg-green-500/20 border-green-400/40 text-green-300"
+                                                    : "bg-gradient-to-r from-blue-500/30 to-sky-500/30 border-blue-500/40 text-blue-100"
+                                            }`}
+                                        >
+                                            {allSocialClaimed ? (
+                                                <Check className='w-6 h-6' />
+                                            ) : (
+                                                <Share2 className='w-6 h-6' />
+                                            )}
+                                        </span>
+                                        <div className='absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center'>
+                                            <Star
+                                                className='w-2.5 h-2.5 text-white'
+                                                fill='currentColor'
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className='flex-1 text-left'>
+                                        <h3 className='text-lg font-semibold text-white group-hover:text-blue-100 transition-colors'>
+                                            {t("earn.social.title")}
+                                        </h3>
+                                        <p className='text-sm text-gray-300'>
+                                            {t("earn.social.subtitle")}
+                                        </p>
+                                    </div>
+                                    <span className='text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-400/30 to-sky-500/30 border border-blue-500/40 text-blue-200 flex items-center gap-1.5 font-medium'>
+                                        <Star
+                                            className='w-3.5 h-3.5'
+                                            fill='currentColor'
+                                        />
+                                        +5
+                                    </span>
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent className='px-2 pb-4'>
+                                <div className='space-y-4 p-6 rounded-xl bg-gradient-to-br from-blue-400/10 via-sky-500/10 to-blue-600/10 border border-blue-500/30 relative overflow-hidden'>
+                                    <div className='pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-blue-400/20 blur-3xl animate-pulse' />
+                                    <div className='pointer-events-none absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-sky-400/15 blur-3xl animate-pulse delay-1000' />
+                                    <div className='relative z-10 space-y-4'>
+                                        <p className='text-gray-300 leading-relaxed'>
+                                            {t("earn.social.description")}
+                                        </p>
+                                        <SocialFollowRewards
+                                            onProgress={setSocialProgress}
+                                        />
                                     </div>
                                 </div>
                             </AccordionContent>

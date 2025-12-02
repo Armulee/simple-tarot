@@ -199,7 +199,7 @@ export default function BirthChart() {
                             setTimezone(resolved.timezone)
                         }
                     }
-                }, [country, stateProv])
+    }, [country, stateProv, lat, lng])
                 */
                 
                 // Yes, it seems it would overwrite.
@@ -229,7 +229,7 @@ export default function BirthChart() {
                 }
             }
         }
-    }, [country, stateProv]) // This dependency array matches original
+    }, [country, stateProv, lat, lng])
 
     // Listen for when this slide becomes active (index 1)
     useEffect(() => {
