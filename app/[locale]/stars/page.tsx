@@ -23,6 +23,7 @@ import OneTapTopUp from "@/components/stars/one-tap-top-up"
 import SignInAccordion from "@/components/stars/sign-in-accordion"
 import { Checkout } from "@/components/checkout"
 import SubscribeDropdown from "@/components/stars/subscribe-dropdown"
+import { SocialFollowRewards } from "@/components/stars/social-follow-rewards"
 import { useTranslations } from "next-intl"
 import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
 import type { CurrencyCode } from "@/lib/payments/currency-utils"
@@ -202,6 +203,10 @@ export default function StarsPage() {
                                                 </Button>
                                             </Link>
                                         </div>
+                                    </div>
+
+                                    <div className='relative z-10 pt-4'>
+                                        <SocialFollowRewards />
                                     </div>
                                 </div>
                             </AccordionContent>
