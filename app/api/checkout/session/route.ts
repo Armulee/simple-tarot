@@ -5,7 +5,7 @@ import { stripe } from "@/lib/stripe"
 
 export async function POST(req: Request) {
     try {
-        const { priceId } = await req.json()
+        const { priceId, userId, mode } = await req.json()
         console.log(priceId)
         const headersList = await headers()
         const origin = headersList.get("origin")
@@ -22,6 +22,10 @@ export async function POST(req: Request) {
             mode: "payment",
             success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
             automatic_tax: { enabled: true },
+            metadata: {
+                userId: userId || "",
+                mode: mode || "pack",
+            },
         })
         if (!session.url) {
             return NextResponse.json(

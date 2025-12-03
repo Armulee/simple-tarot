@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { stripe } from "@/lib/stripe"
 import { getTranslations } from "next-intl/server"
+import { getPackById } from "@/lib/payments/star-products"
+import { supabaseAdmin } from "@/lib/supabase"
 
 export default async function Success({
     searchParams,
@@ -28,9 +30,52 @@ export default async function Success({
     const customerEmail = session.customer_details?.email
     const metadata = session.metadata || {}
     const mode = metadata.mode || "pack"
+    const userId = metadata.userId
 
     if (status === "open") {
         return redirect("/")
+    }
+
+    // Add stars to user balance after successful purchase (only for pack mode)
+    if (status === "complete" && mode === "pack" && userId && supabaseAdmin) {
+        try {
+            // Get price ID from line items
+            const lineItems = session.line_items?.data || []
+            const priceId = lineItems[0]?.price?.id
+
+            if (priceId) {
+                // Get pack info to determine stars amount
+                const pack = getPackById(priceId)
+                
+                if (pack && typeof pack.stars === "number") {
+                    // Get current stars balance
+                    const { data: currentData, error: currentErr } = await supabaseAdmin.rpc(
+                        "star_get_or_create",
+                        {
+                            p_anon_device_id: null,
+                            p_user_id: userId,
+                        }
+                    )
+
+                    if (!currentErr && currentData?.[0]) {
+                        const currentStars = (currentData[0] as { current_stars?: number })
+                            .current_stars || 0
+                        const totalStars = pack.stars + pack.bonus
+                        const newBalance = currentStars + totalStars
+
+                        // Update stars balance
+                        await supabaseAdmin.rpc("star_set", {
+                            p_anon_device_id: null,
+                            p_new_balance: newBalance,
+                            p_user_id: userId,
+                        })
+                    }
+                }
+            }
+        } catch (error) {
+            // Log error but don't block the success page
+            console.error("Error adding stars after purchase:", error)
+        }
     }
 
     if (status === "complete") {
