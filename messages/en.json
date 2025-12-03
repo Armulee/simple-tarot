@@ -1617,7 +1617,10 @@
     "nextRefill": "Next refill",
     "anonymousPrefix": "Anonymous User:",
     "anonymousRefill": "Refills to 5 stars at midnight (UTC+7). Countdown shows time until next cosmic alignment.",
-    "autoRefill": "Auto-refills by 1 star every 2 hours (up to {cap} stars)."
+    "autoRefill": "Auto-refills by 1 star every 2 hours (up to {cap} stars).",
+    "infinityActive": "You have unlimited stars! Use them freely.",
+    "expiresIn": "Expires in",
+    "renewInfinity": "Renew Infinity Pack"
   },
   "SignInAccordion": {
     "title": "Sign in",
@@ -1727,8 +1730,9 @@
     "badge": "Payment Successful",
     "title": "Thank You for Your Purchase!",
     "description": "Your payment has been processed successfully. Your stars have been added to your account and are ready to use.",
-    "emailLabel": "Confirmation email sent to",
-    "emailNote": "A confirmation email with your receipt has been sent to your email address.",
+    "descriptionWithStars": "Your payment has been processed successfully. {stars} stars have been added to your account and are ready to use.",
+    "descriptionInfinity": "Your payment has been processed successfully. You now have unlimited stars and are ready to use them.",
+    "emailLabel": "Receipt has been sent to your email address:",
     "viewStars": "View My Stars",
     "backToPricing": "Back to Pricing",
     "backToStars": "Back to Stars",

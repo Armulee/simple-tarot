@@ -118,7 +118,8 @@ export default function Interpretation({
 
     useEffect(() => {
         const normalizedCurrent =
-            typeof interpretation === "string" && interpretation.trim().length > 0
+            typeof interpretation === "string" &&
+            interpretation.trim().length > 0
                 ? interpretation
                 : null
         const normalizedInitial =
@@ -216,7 +217,8 @@ export default function Interpretation({
                             question?: string
                             interpretation?: string
                         }
-                        previousQuestion = (backup?.question || "").trim() || null
+                        previousQuestion =
+                            (backup?.question || "").trim() || null
                         previousInterpretation =
                             (backup?.interpretation || "").trim() || null
                     }
@@ -429,14 +431,16 @@ Output:
                         interpretation={interpretation}
                         readingId={readingId!}
                     />
-                    <div className='border-t border-border/50 pt-4'>
-                        <QuestionInput
-                            followUp={true}
-                            id='follow-up-question'
-                            label={t("followUp.label")}
-                            placeholder={t("followUp.placeholder")}
-                            followUpParentId={readingId}
-                        />
+                    <div className='border-t border-border/50 pt-4 flex justify-center'>
+                        <div className='w-full max-w-2xl'>
+                            <QuestionInput
+                                followUp={true}
+                                id='follow-up-question'
+                                label={t("followUp.label")}
+                                placeholder={t("followUp.placeholder")}
+                                followUpParentId={readingId}
+                            />
+                        </div>
                     </div>
                 </div>
             )}

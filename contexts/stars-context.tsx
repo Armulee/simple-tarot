@@ -28,6 +28,8 @@ interface StarsContextType {
     refillCap: number
     firstLoginBonusGranted?: boolean
     firstTimeLoginGrant?: boolean
+    isInfinity?: boolean
+    infinityExpiresAt?: number | null
 }
 
 const StarsContext = createContext<StarsContextType | undefined>(undefined)
@@ -44,6 +46,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     const [firstTimeLoginGrant, setFirstTimeLoginGrant] = useState<
         boolean | undefined
     >(undefined)
+    const [isInfinity, setIsInfinity] = useState<boolean>(false)
+    const [infinityExpiresAt, setInfinityExpiresAt] = useState<number | null>(null)
     const { user } = useAuth()
 
     // Refill cap: anonymous 5 (no hourly refill), signed-in 12 (refill every 2 hours)
@@ -104,6 +108,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                     )
                     setFirstLoginBonusGranted(state.firstLoginBonusGranted)
                     setFirstTimeLoginGrant(state.firstTimeLoginGrant)
+                    setIsInfinity(state.isInfinity ?? false)
+                    setInfinityExpiresAt(state.infinityExpiresAt ?? null)
                     setInitialized(true)
                 } catch {}
             })()
@@ -139,6 +145,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                         )
                         setFirstLoginBonusGranted(state.firstLoginBonusGranted)
                         setFirstTimeLoginGrant(state.firstTimeLoginGrant)
+                        setIsInfinity(state.isInfinity ?? false)
+                        setInfinityExpiresAt(state.infinityExpiresAt ?? null)
                     } catch {}
                 })()
             }
@@ -323,6 +331,13 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         (amount: number) => {
             if (!Number.isFinite(amount) || amount <= 0) return false
             if (!initialized) return false
+            
+            // If user has infinity stars and it hasn't expired, always allow spending
+            if (isInfinity && (infinityExpiresAt === null || infinityExpiresAt > Date.now())) {
+                // Don't deduct stars, just return success
+                return true
+            }
+            
             let success = false
             setStars((prev: number | null) => {
                 const current = prev ?? 0
@@ -396,6 +411,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             computeNextRefillAt,
             nextRefillAt,
             broadcastStarsUpdate,
+            isInfinity,
+            infinityExpiresAt,
         ]
     )
 
@@ -427,6 +444,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             refillCap,
             firstLoginBonusGranted,
             firstTimeLoginGrant,
+            isInfinity,
+            infinityExpiresAt,
         }),
         [
             stars,
@@ -439,6 +458,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             refillCap,
             firstLoginBonusGranted,
             firstTimeLoginGrant,
+            isInfinity,
+            infinityExpiresAt,
         ]
     )
 

@@ -103,7 +103,7 @@ export default function CurrencySelector({
 
     return (
         <div className='flex items-center justify-center pt-4'>
-            <span className='text-sm text-white/70 px-4 py-2 bg-white/30 border-border/30 rounded-l-md'>
+            <span className='text-sm text-white/70 px-4 h-12 flex items-center bg-white/30 border-border/30 rounded-l-md'>
                 {t("currency")}:
             </span>
             <Select
@@ -115,7 +115,7 @@ export default function CurrencySelector({
                     }
                 }}
             >
-                <SelectTrigger className='w-[190px] bg-accent/30 border-border/30 rounded-r-md rounded-l-none'>
+                <SelectTrigger className='w-[190px] bg-accent/30 border-border/30 rounded-r-md rounded-l-none !h-12'>
                     <SelectValue
                         placeholder={`${getCurrencySymbol(currency)} · ${currency}`}
                     />
@@ -157,4 +157,3 @@ export default function CurrencySelector({
         </div>
     )
 }
-
