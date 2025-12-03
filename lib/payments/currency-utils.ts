@@ -5,7 +5,7 @@ const defaultCurrencyEnv =
     (typeof process !== "undefined" && process.env.STRIPE_DEFAULT_CURRENCY) ||
     "USD"
 
-export const DEFAULT_CURRENCY: CurrencyCode = (defaultCurrencyEnv || "USD")
+export const DEFAULT_CURRENCY: CurrencyCode = defaultCurrencyEnv
     .trim()
     .toUpperCase()
 
