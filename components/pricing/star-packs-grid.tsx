@@ -81,7 +81,7 @@ export default function StarPacksGrid({
                                 </span>
                             </div>
                             <div className='text-3xl font-bold'>
-                                {formatAmount(getPackPrice(p.id, currency))}
+                                {formatAmount(p.id ? getPackPrice(p.id, currency) : null)}
                             </div>
                             <div className='text-sm text-muted-foreground'>
                                 {t("oneTime")} · {t("instantDelivery")}
@@ -147,7 +147,7 @@ export default function StarPacksGrid({
                             </span>
                         </div>
                         <div className='text-3xl font-bold'>
-                            {formatAmount(getPackPrice(INFINITY_PACK.id, currency))}
+                            {formatAmount(INFINITY_PACK.id ? getPackPrice(INFINITY_PACK.id, currency) : null)}
                         </div>
                         <div className='text-sm text-muted-foreground'>
                             {t("oneTime")} · 30 {t("days")} · {t("instantDelivery")}
