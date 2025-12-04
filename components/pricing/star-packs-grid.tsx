@@ -44,7 +44,7 @@ export default function StarPacksGrid({
         <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
             {STAR_PACKS.map((p, index) => (
                 <Card
-                    key={p.id || `pack-${p.name}-${index}`}
+                    key={p.id ?? `star-pack-${index}`}
                     className={`relative overflow-visible border-0 p-6 rounded-xl bg-card/10 hover:brightness-110 transition`}
                 >
                     <div
