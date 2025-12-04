@@ -13,7 +13,15 @@ import {
     DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/use-auth"
-import { LogOut, CreditCard, Bell, User, Shield, BookOpen } from "lucide-react"
+import {
+    LogOut,
+    CreditCard,
+    Bell,
+    User,
+    Shield,
+    BookOpen,
+    Settings,
+} from "lucide-react"
 import { NotificationSheet } from "@/components/notifications/notification-sheet"
 
 interface UserProfileDropdownProps {
@@ -63,6 +71,11 @@ export function UserProfileDropdown({
 
     const handleBillingClick = () => {
         router.push("/billing")
+        if (onClose) onClose()
+    }
+
+    const handleSettingsClick = () => {
+        router.push("/settings")
         if (onClose) onClose()
     }
 
@@ -122,6 +135,10 @@ export function UserProfileDropdown({
                         <DropdownMenuItem onClick={handleBillingClick}>
                             <CreditCard className='w-4 h-4 mr-2' />
                             {t("billing")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleSettingsClick}>
+                            <Settings className='w-4 h-4 mr-2' />
+                            {t("settings")}
                         </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />

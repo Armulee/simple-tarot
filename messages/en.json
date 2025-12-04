@@ -37,6 +37,8 @@
   "Profile": {
     "title": "Profile Settings",
     "subtitle": "Customize your profile information and reading preferences to enhance your mystical journey",
+    "authRequired": "Please sign in to access your profile",
+    "loading": "Loading profile...",
     "profileInformation": "Profile Information",
     "fullName": "Full Name",
     "fullNameRequired": "Full Name *",
@@ -67,6 +69,8 @@
   "Account": {
     "title": "Account Settings",
     "subtitle": "Manage your account information, security settings, and preferences",
+    "authRequired": "Please sign in to access account settings",
+    "loading": "Loading account settings...",
     "email": "Email",
     "phone": "Phone",
     "authentication": "Authentication",
@@ -1387,6 +1391,7 @@
     "account": "Account",
     "theme": "Theme",
     "billing": "Billing",
+    "settings": "Settings",
     "signOut": "Sign out",
     "signingOut": "Signing out...",
     "themes": {
@@ -1408,6 +1413,8 @@
   "Billing": {
     "title": "Transaction History",
     "subtitle": "View your purchase records and billing information",
+    "authRequired": "Please sign in to access billing",
+    "loading": "Loading billing history...",
     "currentPlan": "Current Plan",
     "planDetails": "Plan Details",
     "billingHistory": "Billing History",
@@ -1597,6 +1604,8 @@
 
   "ReadingHistory": {
     "title": "Your Reading History",
+    "authRequired": "Please sign in to access your reading history",
+    "loading": "Loading reading history...",
     "subtitle": "Explore your past tarot readings and insights",
     "searchPlaceholder": "Search readings or cards...",
     "filters": {
@@ -1614,7 +1623,7 @@
     "noReadings": "No readings found",
     "noReadingsDesc": "You haven't created any tarot readings yet. Start your mystical journey with your first reading!",
     "startReading": "Start Reading",
-    "loading": "Loading your readings...",
+    "loadingReadings": "Loading your readings...",
     "error": "Failed to load readings",
     "errorDesc": "There was an error loading your reading history. Please try again.",
     "retry": "Try Again",
@@ -1755,5 +1764,76 @@
     "backToPricing": "Back to Pricing",
     "backToStars": "Back to Stars",
     "supportText": "If you have any questions, please email"
+  },
+
+  "Settings": {
+    "title": "Settings",
+    "subtitle": "Manage your account preferences and email marketing settings",
+    "loading": "Loading settings...",
+    "saving": "Saving...",
+    "save": "Save Settings",
+    "saveSuccess": "Settings saved successfully",
+    "saveError": "Failed to save settings",
+    "fetchError": "Failed to load settings",
+    "authRequired": "Please sign in to access settings",
+    "emailMarketing": {
+      "title": "Email Marketing",
+      "enable": "Enable Email Marketing",
+      "enableDesc": "Receive marketing emails from us",
+      "promotional": "Promotional Emails",
+      "promotionalDesc": "Special offers and discounts",
+      "newsletter": "Newsletter",
+      "newsletterDesc": "Weekly updates and insights",
+      "productUpdates": "Product Updates",
+      "productUpdatesDesc": "New features and improvements",
+      "readingReminders": "Reading Reminders",
+      "readingRemindersDesc": "Reminders to check your readings",
+      "specialOffers": "Special Offers",
+      "specialOffersDesc": "Exclusive deals and promotions"
+    },
+    "notifications": {
+      "title": "Push Notifications",
+      "enable": "Enable Push Notifications",
+      "enableDesc": "Receive push notifications on your device",
+      "readingReminders": "Reading Reminders",
+      "specialOffers": "Special Offers",
+      "systemUpdates": "System Updates"
+    },
+    "privacy": {
+      "title": "Privacy Settings",
+      "profileVisibility": "Profile Visibility",
+      "private": "Private",
+      "public": "Public",
+      "friends": "Friends Only",
+      "showEmail": "Show Email",
+      "showEmailDesc": "Display your email on your profile",
+      "showBirthDate": "Show Birth Date",
+      "showBirthDateDesc": "Display your birth date on your profile",
+      "allowMessages": "Allow Messages",
+      "allowMessagesDesc": "Allow others to send you messages"
+    },
+    "reading": {
+      "title": "Reading Preferences",
+      "autoSave": "Auto-save Readings",
+      "autoSaveDesc": "Automatically save your readings",
+      "shareByDefault": "Share Readings by Default",
+      "shareByDefaultDesc": "Automatically share new readings"
+    },
+    "localization": {
+      "title": "Language & Localization",
+      "language": "Language",
+      "timeFormat": "Time Format"
+    },
+    "accessibility": {
+      "title": "Accessibility",
+      "reducedMotion": "Reduced Motion",
+      "reducedMotionDesc": "Reduce animations and transitions",
+      "highContrast": "High Contrast",
+      "highContrastDesc": "Increase contrast for better visibility",
+      "fontSize": "Font Size",
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large"
+    }
   }
 }

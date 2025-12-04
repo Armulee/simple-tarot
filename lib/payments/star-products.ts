@@ -10,7 +10,7 @@ const SUBSCRIPTION_BASE_PRICES_USD = {
     monthly: 9.99,
     annual: 99.99,
     annualMonthlyEquivalent: 8.34,
-    infinity: 34.99, // More expensive than 1000 stars pack ($24.99)
+    infinity: 9.99,
 } as const
 
 export type LabelTranslationKey = "popular" | "bestValue"
@@ -30,8 +30,6 @@ export type StarPackDefinition = {
 // NEXT_PUBLIC_SEEKER_PACK_ID
 // NEXT_PUBLIC_MYSTIC_PACK_ID
 // NEXT_PUBLIC_MASTER_PACK_ID
-// NEXT_PUBLIC_500_STARS_PACK_ID
-// NEXT_PUBLIC_1000_STARS_PACK_ID
 // NEXT_PUBLIC_INFINITY_PACK_ID
 // NEXT_PUBLIC_MONTHLY_PACK_ID
 // NEXT_PUBLIC_ANNUALLY_PACK_ID
@@ -72,21 +70,6 @@ export const STAR_PACKS: StarPackDefinition[] = [
         baseUsdPrice: 6.99,
         stars: 250,
         bonus: 40,
-    },
-    {
-        id: process.env.NEXT_PUBLIC_500_STARS_PACK_ID,
-        name: "Grand Master",
-        baseUsdPrice: 12.99,
-        stars: 500,
-        bonus: 75,
-    },
-    {
-        id: process.env.NEXT_PUBLIC_1000_STARS_PACK_ID,
-        name: "Ultimate",
-        baseUsdPrice: 24.99,
-        stars: 1000,
-        bonus: 150,
-        labelKey: "bestValue",
     },
 ]
 

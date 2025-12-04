@@ -58,18 +58,6 @@ const packs: Pack[] = [
         color: "yellow",
     },
     {
-        id: process.env.NEXT_PUBLIC_500_STARS_PACK_ID ?? "",
-        stars: 500,
-        labelKey: "grandMaster",
-        color: "yellow",
-    },
-    {
-        id: process.env.NEXT_PUBLIC_1000_STARS_PACK_ID ?? "",
-        stars: 1000,
-        labelKey: "ultimate",
-        color: "yellow",
-    },
-    {
         id: process.env.NEXT_PUBLIC_INFINITY_PACK_ID ?? "",
         stars: "infinity",
         labelKey: "unlimited",
@@ -146,7 +134,7 @@ export default function OneTapTopUp({
         <div className='w-full max-w-5xl mx-auto'>
             {/* Star Packs Grid */}
             <div className='mb-8'>
-                <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-8 gap-4'>
+                <div className='grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-8 gap-4'>
                     {packs.map((p) => {
                         const colors = getColorClasses(p.color)
                         return (
@@ -212,15 +200,6 @@ export default function OneTapTopUp({
                                                 </p>
                                                 <p className='text-xs text-amber-200/80 font-medium'>
                                                     {t(p.labelKey)}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        {/* Dynamic Price Box */}
-                                        <div className='relative z-10 mt-2 w-full'>
-                                            <div className='bg-white/10 backdrop-blur-sm border border-amber-400/30 rounded-lg px-3 py-2'>
-                                                <p className='text-sm font-semibold text-amber-100 text-center'>
-                                                    {formatAmount(p.id)}
                                                 </p>
                                             </div>
                                         </div>

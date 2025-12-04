@@ -5,6 +5,7 @@ import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/hooks/use-auth"
 import { useTranslations } from "next-intl"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Card } from "@/components/ui/card"
@@ -14,15 +15,11 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import {
-    CalendarIcon,
-    Star,
-    CreditCard,
-    Smartphone,
-    Wallet,
-} from "lucide-react"
+import { CalendarIcon, Star } from "lucide-react"
 import { DateRange } from "react-day-picker"
 import { format } from "date-fns"
+import { useRouter } from "next/navigation"
+import BrandLoader from "@/components/brand-loader"
 
 type Tx = {
     id: string
@@ -33,6 +30,8 @@ type Tx = {
     provider: string
     created_at: string
     provider_payment_id?: string
+    stars_amount?: number | null
+    pack_name?: string | null
     payment_method?: {
         type: string
         last_four?: string
@@ -41,21 +40,32 @@ type Tx = {
 }
 
 export default function BillingPage() {
-    const { user } = useAuth()
+    const { user, loading: authLoading } = useAuth()
+    const router = useRouter()
     const t = useTranslations("Billing")
     const [txs, setTxs] = useState<Tx[]>([])
     const [loading, setLoading] = useState(false)
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
 
+    // Auth guard: redirect to signin if not logged in
     useEffect(() => {
+        if (!authLoading && !user) {
+            toast.error(t("authRequired") || "Please sign in to access billing")
+            router.push("/signin?callbackUrl=/billing")
+        }
+    }, [user, authLoading, router, t])
+
+    // Fetch billing transactions
+    useEffect(() => {
+        if (!user || authLoading) return
+
         let mounted = true
-        if (!user) return
         ;(async () => {
             setLoading(true)
             const { data } = await supabase
                 .from("billing_transactions")
                 .select(
-                    "id,type,amount_cents,currency,reference,provider,created_at"
+                    "id,type,amount_cents,currency,reference,provider,created_at,stars_amount,pack_name"
                 )
                 .eq("user_id", user.id)
                 .order("created_at", { ascending: false })
@@ -66,11 +76,27 @@ export default function BillingPage() {
         return () => {
             mounted = false
         }
-    }, [user])
+    }, [user, authLoading])
+
+    // Show loading state
+    if (authLoading || loading) {
+        return <BrandLoader />
+    }
+
+    // Don't render if not authenticated (redirect will happen)
+    if (!user) {
+        return null
+    }
 
     // Helper function to extract stars from reference
-    const getStarsFromReference = (reference: string | null): number | null => {
+    const getStarsFromReference = (
+        reference: string | null
+    ): number | "infinity" | null => {
         if (!reference) return null
+        // Check for infinity
+        if (reference.toLowerCase().includes("infinity")) {
+            return "infinity"
+        }
         const match = reference.match(/(\d+)\s*stars?/i)
         return match ? parseInt(match[1]) : null
     }
@@ -89,32 +115,6 @@ export default function BillingPage() {
                 minute: "2-digit",
                 hour12: true,
             }),
-        }
-    }
-
-    // Get payment method display
-    const getPaymentMethodDisplay = (tx: Tx) => {
-        if (tx.payment_method?.type === "card" && tx.payment_method.last_four) {
-            const brand = tx.payment_method.brand || "card"
-            return {
-                icon: <CreditCard className='w-4 h-4' />,
-                text: `${brand.toUpperCase()} •••• ${
-                    tx.payment_method.last_four
-                }`,
-                type: "card",
-            }
-        } else if (tx.payment_method?.type === "digital_wallet") {
-            return {
-                icon: <Smartphone className='w-4 h-4' />,
-                text: t("digitalWallet"),
-                type: "digital_wallet",
-            }
-        } else {
-            return {
-                icon: <Wallet className='w-4 h-4' />,
-                text: t("payment"),
-                type: "unknown",
-            }
         }
     }
 
@@ -286,26 +286,7 @@ export default function BillingPage() {
                 )}
 
                 {/* Transactions List */}
-                <div className='space-y-6'>
-                    {loading && (
-                        <Card className='bg-gradient-to-r from-black/40 to-black/20 border-yellow-400/20 p-12 shadow-xl shadow-black/20 backdrop-blur-sm'>
-                            <div className='flex items-center justify-center space-x-3'>
-                                <div className='w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-pulse shadow-lg shadow-yellow-400/50'></div>
-                                <div
-                                    className='w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-pulse shadow-lg shadow-yellow-400/50'
-                                    style={{ animationDelay: "0.2s" }}
-                                />
-                                <div
-                                    className='w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-pulse shadow-lg shadow-yellow-400/50'
-                                    style={{ animationDelay: "0.4s" }}
-                                />
-                                <span className='text-yellow-300 ml-4 text-lg font-medium'>
-                                    {t("loadingHistory")}
-                                </span>
-                            </div>
-                        </Card>
-                    )}
-
+                <div className='space-y-6 mt-6'>
                     {!loading && txs.length === 0 && (
                         <Card className='bg-gradient-to-r from-black/40 to-black/20 border-yellow-400/20 p-16 text-center shadow-xl shadow-black/20 backdrop-blur-sm'>
                             <div className='text-8xl mb-6 drop-shadow-lg'>
@@ -339,7 +320,8 @@ export default function BillingPage() {
                                     <div className='space-y-3'>
                                         {periodTxs.map((transaction) => {
                                             const amount =
-                                                (transaction.amount_cents ?? 0) / 100
+                                                (transaction.amount_cents ??
+                                                    0) / 100
                                             const { date, time } = formatDate(
                                                 transaction.created_at
                                             )
@@ -350,9 +332,6 @@ export default function BillingPage() {
                                                 transaction.type.startsWith(
                                                     "subscription"
                                                 )
-
-                                            const paymentMethod =
-                                                getPaymentMethodDisplay(transaction)
 
                                             return (
                                                 <Link
@@ -376,23 +355,6 @@ export default function BillingPage() {
                                                             </Badge>
                                                         </div>
 
-                                                        {/* Payment Method badge positioned at top right */}
-                                                        <div className='absolute top-3 right-3'>
-                                                            <Badge
-                                                                variant='outline'
-                                                                className='bg-gradient-to-r from-blue-400/20 to-cyan-500/20 text-blue-200 border-blue-400/40 text-xs font-medium shadow-lg shadow-blue-400/20 backdrop-blur-sm hover:from-blue-400/30 hover:to-cyan-500/30 transition-all duration-300 flex items-center space-x-1'
-                                                            >
-                                                                {
-                                                                    paymentMethod.icon
-                                                                }
-                                                                <span>
-                                                                    {
-                                                                        paymentMethod.text
-                                                                    }
-                                                                </span>
-                                                            </Badge>
-                                                        </div>
-
                                                         <div className='p-6'>
                                                             <div className='flex items-center justify-between'>
                                                                 <div className='flex items-center space-x-4'>
@@ -411,17 +373,39 @@ export default function BillingPage() {
 
                                                                     {/* Details */}
                                                                     <div className='flex items-center space-x-3'>
-                                                                        <h3 className='text-xl font-bold text-white group-hover:text-yellow-300 transition-colors duration-300'>
-                                                                            {stars
-                                                                                ? `${stars} ${t("stars")}`
-                                                                                : t("purchase")}
-                                                                        </h3>
+                                                                        <div>
+                                                                            <h3 className='text-xl font-bold text-white group-hover:text-yellow-300 transition-colors duration-300'>
+                                                                                {transaction.stars_amount ===
+                                                                                null
+                                                                                    ? "Infinity"
+                                                                                    : transaction.stars_amount
+                                                                                      ? `${transaction.stars_amount} ${t("stars")}`
+                                                                                      : stars ===
+                                                                                          "infinity"
+                                                                                        ? "Infinity"
+                                                                                        : stars
+                                                                                          ? `${stars} ${t("stars")}`
+                                                                                          : t(
+                                                                                                "purchase"
+                                                                                            )}
+                                                                            </h3>
+                                                                            {transaction.pack_name && (
+                                                                                <p className='text-sm text-gray-400 mt-1'>
+                                                                                    {
+                                                                                        transaction.pack_name
+                                                                                    }{" "}
+                                                                                    Pack
+                                                                                </p>
+                                                                            )}
+                                                                        </div>
                                                                         {isSubscription && (
                                                                             <Badge
                                                                                 variant='secondary'
                                                                                 className='bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-purple-200 border-purple-400/50 shadow-lg shadow-purple-500/20 backdrop-blur-sm'
                                                                             >
-                                                                                {t("subscription")}
+                                                                                {t(
+                                                                                    "subscription"
+                                                                                )}
                                                                             </Badge>
                                                                         )}
                                                                     </div>

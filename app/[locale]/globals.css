@@ -1258,3 +1258,13 @@
   .content-card { font-size: 1.05rem; line-height: 1.8; }
   .content-card p { margin-bottom: 1rem; }
 }
+
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}

@@ -18,8 +18,13 @@ import {
     DollarSign,
     Hash,
     Shield,
+    Copy,
+    Check,
 } from "lucide-react"
 import { format } from "date-fns"
+import BrandLoader from "@/components/brand-loader"
+import { getPackById } from "@/lib/payments/star-products"
+import { toast } from "sonner"
 
 type Transaction = {
     id: string
@@ -30,6 +35,8 @@ type Transaction = {
     provider: string
     created_at: string
     provider_payment_id?: string
+    stars_amount?: number | null
+    pack_name?: string | null
     payment_method?: {
         type: string
         last_four?: string
@@ -44,6 +51,8 @@ export default function TransactionDetailsPage() {
     const { user } = useAuth()
     const [transaction, setTransaction] = useState<Transaction | null>(null)
     const [loading, setLoading] = useState(true)
+    const [copiedId, setCopiedId] = useState(false)
+    const [copiedSession, setCopiedSession] = useState(false)
 
     useEffect(() => {
         if (!user || !params.id) return
@@ -100,35 +109,36 @@ export default function TransactionDetailsPage() {
         }
     }
 
-    const getStarsFromReference = (reference: string | null) => {
+    const getStarsFromReference = (
+        reference: string | null
+    ): number | "infinity" | null => {
         if (!reference) return null
+        // Check for infinity
+        if (reference.toLowerCase().includes("infinity")) {
+            return "infinity"
+        }
         const match = reference.match(/(\d+)\s*stars?/i)
         return match ? parseInt(match[1]) : null
     }
 
+    const copyToClipboard = async (text: string, type: "id" | "session") => {
+        try {
+            await navigator.clipboard.writeText(text)
+            if (type === "id") {
+                setCopiedId(true)
+                setTimeout(() => setCopiedId(false), 2000)
+            } else {
+                setCopiedSession(true)
+                setTimeout(() => setCopiedSession(false), 2000)
+            }
+            toast.success("Copied to clipboard")
+        } catch {
+            toast.error("Failed to copy")
+        }
+    }
+
     if (loading) {
-        return (
-            <div className='min-h-screen bg-gradient-to-br from-[#0a0a1a] via-[#0d0b1f] to-[#0a0a1a] p-6 relative overflow-hidden'>
-                <div className='max-w-4xl mx-auto pt-10 relative z-10'>
-                    <Card className='bg-gradient-to-r from-black/40 to-black/20 border-yellow-400/20 p-12 shadow-xl shadow-black/20 backdrop-blur-sm'>
-                        <div className='flex items-center justify-center space-x-3'>
-                            <div className='w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-pulse shadow-lg shadow-yellow-400/50'></div>
-                            <div
-                                className='w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-pulse shadow-lg shadow-yellow-400/50'
-                                style={{ animationDelay: "0.2s" }}
-                            ></div>
-                            <div
-                                className='w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-pulse shadow-lg shadow-yellow-400/50'
-                                style={{ animationDelay: "0.4s" }}
-                            ></div>
-                            <span className='text-yellow-300 ml-4 text-lg font-medium'>
-                                Loading transaction details...
-                            </span>
-                        </div>
-                    </Card>
-                </div>
-            </div>
-        )
+        return <BrandLoader />
     }
 
     if (!transaction) {
@@ -161,9 +171,12 @@ export default function TransactionDetailsPage() {
     const isSubscription = transaction.type.startsWith("subscription")
     const paymentMethod = getPaymentMethodDisplay(transaction)
     const createdDate = new Date(transaction.created_at)
+    const packName = transaction.provider_payment_id
+        ? getPackById(transaction.provider_payment_id)?.name || null
+        : null
 
     return (
-        <div className='min-h-screen bg-gradient-to-br from-[#0a0a1a] via-[#0d0b1f] to-[#0a0a1a] p-6 relative overflow-hidden'>
+        <div className='min-h-screen p-6 relative overflow-hidden'>
             {/* Background decorative elements */}
             <div className='absolute inset-0 overflow-hidden pointer-events-none'>
                 <div className='absolute -top-40 -right-40 w-80 h-80 bg-yellow-400/5 rounded-full blur-3xl'></div>
@@ -213,8 +226,22 @@ export default function TransactionDetailsPage() {
                                 {/* Details */}
                                 <div>
                                     <h2 className='text-2xl font-bold text-white mb-1'>
-                                        {stars ? `${stars} Stars` : "Purchase"}
+                                        {transaction.stars_amount === null
+                                            ? "Infinity"
+                                            : transaction.stars_amount
+                                              ? `${transaction.stars_amount} Stars`
+                                              : stars === "infinity"
+                                                ? "Infinity"
+                                                : stars
+                                                  ? `${stars} Stars`
+                                                  : "Purchase"}
                                     </h2>
+                                    {(transaction.pack_name || packName) && (
+                                        <p className='text-sm text-gray-300 mb-2'>
+                                            {transaction.pack_name || packName}{" "}
+                                            Pack
+                                        </p>
+                                    )}
                                     <div className='flex items-center space-x-2'>
                                         <Badge
                                             variant='secondary'
@@ -242,6 +269,22 @@ export default function TransactionDetailsPage() {
                                 <div className='text-sm text-gray-300 font-medium uppercase'>
                                     {transaction.currency || "USD"}
                                 </div>
+                                {transaction.stars_amount !== null &&
+                                    transaction.stars_amount !== undefined && (
+                                        <div className='text-xs text-gray-400 mt-1'>
+                                            {transaction.stars_amount} Stars
+                                        </div>
+                                    )}
+                                {transaction.stars_amount === null && (
+                                    <div className='text-xs text-gray-400 mt-1'>
+                                        Infinity
+                                    </div>
+                                )}
+                                {(transaction.pack_name || packName) && (
+                                    <div className='text-xs text-gray-400 mt-1'>
+                                        {transaction.pack_name || packName} Pack
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -289,8 +332,67 @@ export default function TransactionDetailsPage() {
                                         Transaction ID
                                     </span>
                                 </div>
-                                <div className='text-white font-mono text-sm'>
-                                    {transaction.provider_payment_id || "N/A"}
+                                <div className='flex items-center gap-2'>
+                                    <div className='flex-1 overflow-x-auto scrollbar-hide'>
+                                        <div className='text-white font-mono text-sm whitespace-nowrap'>
+                                            {transaction.provider_payment_id ||
+                                                transaction.id ||
+                                                "N/A"}
+                                        </div>
+                                    </div>
+                                    {transaction.provider_payment_id && (
+                                        <Button
+                                            variant='ghost'
+                                            size='sm'
+                                            onClick={() =>
+                                                copyToClipboard(
+                                                    transaction.provider_payment_id!,
+                                                    "id"
+                                                )
+                                            }
+                                            className='flex-shrink-0 h-8 w-8 p-0'
+                                        >
+                                            {copiedId ? (
+                                                <Check className='w-4 h-4 text-green-400' />
+                                            ) : (
+                                                <Copy className='w-4 h-4' />
+                                            )}
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Session ID */}
+                            <div className='space-y-3'>
+                                <div className='flex items-center space-x-2 text-gray-400'>
+                                    <Hash className='w-4 h-4' />
+                                    <span className='text-sm font-medium'>
+                                        Session ID
+                                    </span>
+                                </div>
+                                <div className='flex items-center gap-2'>
+                                    <div className='flex-1 overflow-x-auto scrollbar-hide'>
+                                        <div className='text-white font-mono text-sm whitespace-nowrap'>
+                                            {transaction.id}
+                                        </div>
+                                    </div>
+                                    <Button
+                                        variant='ghost'
+                                        size='sm'
+                                        onClick={() =>
+                                            copyToClipboard(
+                                                transaction.id,
+                                                "session"
+                                            )
+                                        }
+                                        className='flex-shrink-0 h-8 w-8 p-0'
+                                    >
+                                        {copiedSession ? (
+                                            <Check className='w-4 h-4 text-green-400' />
+                                        ) : (
+                                            <Copy className='w-4 h-4' />
+                                        )}
+                                    </Button>
                                 </div>
                             </div>
 

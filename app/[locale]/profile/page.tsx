@@ -13,26 +13,20 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import {
-    User,
-    Save,
-    Calendar,
-    Sparkles,
-    Star,
-    Moon,
-    Sun,
-} from "lucide-react"
+import { User, Save, Calendar, Sparkles, Star, Moon, Sun } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 import { useProfile } from "@/contexts/profile-context"
 import { useTranslations } from "next-intl"
+import { useRouter } from "next/navigation"
 
 export default function ProfilePage() {
-    const { user } = useAuth()
+    const { user, loading: authLoading } = useAuth()
     const { profile, updateProfile } = useProfile()
     const [isLoading, setIsLoading] = useState(false)
     const t = useTranslations("Profile")
+    const router = useRouter()
     const [profileData, setProfileData] = useState({
         name: "",
         bio: "",
@@ -42,6 +36,16 @@ export default function ProfilePage() {
         job: "",
         gender: "",
     })
+
+    // Auth guard: redirect to signin if not logged in
+    useEffect(() => {
+        if (!authLoading && !user) {
+            toast.error(
+                t("authRequired") || "Please sign in to access your profile"
+            )
+            router.push("/signin?callbackUrl=/profile")
+        }
+    }, [user, authLoading, router, t])
 
     // Update profile data when profile context changes
     useEffect(() => {
@@ -68,7 +72,9 @@ export default function ProfilePage() {
     const handleSave = async () => {
         setIsLoading(true)
         try {
-            const { data: { session } } = await supabase.auth.getSession()
+            const {
+                data: { session },
+            } = await supabase.auth.getSession()
             if (!session) {
                 toast.error(t("signInRequired"))
                 return
@@ -111,8 +117,29 @@ export default function ProfilePage() {
         { value: "male", label: t("genderOptions.male") },
         { value: "female", label: t("genderOptions.female") },
         { value: "non-binary", label: t("genderOptions.nonBinary") },
-        { value: "prefer-not-to-say", label: t("genderOptions.preferNotToSay") },
+        {
+            value: "prefer-not-to-say",
+            label: t("genderOptions.preferNotToSay"),
+        },
     ]
+
+    // Show loading state
+    if (authLoading) {
+        return (
+            <div className='min-h-screen flex items-center justify-center'>
+                <div className='text-center'>
+                    <p className='text-muted-foreground'>
+                        {t("loading") || "Loading..."}
+                    </p>
+                </div>
+            </div>
+        )
+    }
+
+    // Don't render if not authenticated (redirect will happen)
+    if (!user) {
+        return null
+    }
 
     return (
         <div className='min-h-screen relative overflow-x-hidden'>
@@ -176,14 +203,15 @@ export default function ProfilePage() {
                                     <Select
                                         value={profileData.gender}
                                         onValueChange={(value) =>
-                                            handleInputChange(
-                                                "gender",
-                                                value
-                                            )
+                                            handleInputChange("gender", value)
                                         }
                                     >
                                         <SelectTrigger className='bg-background/40 border-border/40 text-white focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'>
-                                            <SelectValue placeholder={t("genderPlaceholder")} />
+                                            <SelectValue
+                                                placeholder={t(
+                                                    "genderPlaceholder"
+                                                )}
+                                            />
                                         </SelectTrigger>
                                         <SelectContent className='bg-background/95 border-border/40 backdrop-blur-md'>
                                             {genderOptions.map((option) => (

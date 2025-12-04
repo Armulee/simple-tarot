@@ -1,13 +1,7 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import {
-    useState,
-    useEffect,
-    useRef,
-    useCallback,
-    useMemo,
-} from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { TrendingUp, Users, Sparkles } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 
@@ -32,10 +26,7 @@ const colorByKey: Record<string, string> = {
 
 export default function StatisticsSection() {
     const t = useTranslations("HomeDiscover.Statistics")
-    const statsConfig = useMemo(
-        () => t.raw("items") as StatConfig[],
-        [t]
-    )
+    const statsConfig = useMemo(() => t.raw("items") as StatConfig[], [t])
 
     const [isVisible, setIsVisible] = useState(false)
     const [hoveredItem, setHoveredItem] = useState<number | null>(null)
@@ -43,9 +34,7 @@ export default function StatisticsSection() {
     const [displayValues, setDisplayValues] = useState<StatsResponse>({})
     const sectionRef = useRef<HTMLDivElement>(null)
     const displayValuesRef = useRef(displayValues)
-    const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-        null
-    )
+    const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     useEffect(() => {
         displayValuesRef.current = displayValues
@@ -171,9 +160,6 @@ export default function StatisticsSection() {
 
     return (
         <div ref={sectionRef} className='relative overflow-hidden'>
-            <div className='absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-2xl'></div>
-            <div className='absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-secondary rounded-t-2xl'></div>
-
             <div className='absolute inset-0 overflow-hidden rounded-2xl'>
                 <div className='absolute top-4 left-4 w-2 h-2 bg-primary/30 rounded-full animate-ping delay-1000'></div>
                 <div className='absolute top-8 right-8 w-1 h-1 bg-secondary/40 rounded-full animate-pulse delay-2000'></div>
@@ -181,13 +167,9 @@ export default function StatisticsSection() {
                 <div className='absolute bottom-4 right-1/3 w-1 h-1 bg-secondary/30 rounded-full animate-ping delay-4000'></div>
             </div>
 
-            <div className='relative bg-gradient-to-r from-gray-800/40 to-gray-900/60 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-8'>
+            <div className='relative bg-transparent rounded-2xl py-8'>
                 <div
-                    className={`text-center mb-12 transition-all duration-1000 ${
-                        isVisible
-                            ? "opacity-100 translate-y-0"
-                            : "opacity-0 translate-y-8"
-                    }`}
+                    className={`text-center mb-12 transition-all duration-1000`}
                 >
                     <div className='inline-flex items-center gap-2 mb-4'>
                         <TrendingUp className='w-6 h-6 text-accent animate-pulse' />
@@ -204,10 +186,11 @@ export default function StatisticsSection() {
                     </p>
                 </div>
 
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8'>
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
                     {statsConfig.map((item, idx) => {
                         const IconComponent = iconByKey[item.key] || TrendingUp
-                        const color = colorByKey[item.key] || "from-primary to-secondary"
+                        const color =
+                            colorByKey[item.key] || "from-primary to-secondary"
                         const value = displayValues[item.key] ?? 0
                         const hasLoaded = Object.prototype.hasOwnProperty.call(
                             targets,
@@ -250,7 +233,9 @@ export default function StatisticsSection() {
                                                 ${hoveredItem === idx ? "scale-110" : ""}
                                             `}
                                         >
-                                            {hasLoaded ? value.toLocaleString() : "—"}
+                                            {hasLoaded
+                                                ? value.toLocaleString()
+                                                : "—"}
                                         </div>
 
                                         <div

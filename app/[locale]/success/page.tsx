@@ -185,6 +185,15 @@ export default async function Success({
 
                             // Record the transaction to prevent duplicate grants
                             const amountTotal = session.amount_total || 0
+
+                            // Calculate stars amount
+                            let starsAmount: number | null = null
+                            if (pack.stars === "infinity") {
+                                starsAmount = null // null for infinity
+                            } else if (typeof pack.stars === "number") {
+                                starsAmount = pack.stars + pack.bonus
+                            }
+
                             await supabaseAdmin
                                 .from("billing_transactions")
                                 .insert({
@@ -196,6 +205,8 @@ export default async function Success({
                                     currency: currency,
                                     reference: `Checkout session: ${session_id}`,
                                     status: "succeeded",
+                                    stars_amount: starsAmount,
+                                    pack_name: pack.name,
                                 })
                         }
                     }

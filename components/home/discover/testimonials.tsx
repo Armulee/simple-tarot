@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl"
 import { useState, useEffect } from "react"
-import { ChevronLeft, ChevronRight, Star, Quote } from "lucide-react"
+import { ChevronLeft, ChevronRight, Star } from "lucide-react"
 
 export default function TestimonialsSection() {
     const t = useTranslations("HomeDiscover.Testimonials")

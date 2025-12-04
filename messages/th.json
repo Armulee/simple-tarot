@@ -47,6 +47,8 @@
   "Profile": {
     "title": "ตั้งค่าโปรไฟล์",
     "subtitle": "ปรับแต่งข้อมูลโปรไฟล์และการตั้งค่าการอ่านของคุณเพื่อเพิ่มพูนการเดินทางแห่งความลี้ลับ",
+    "authRequired": "กรุณาเข้าสู่ระบบเพื่อเข้าถึงโปรไฟล์ของคุณ",
+    "loading": "กำลังโหลดโปรไฟล์...",
     "profileInformation": "ข้อมูลโปรไฟล์",
     "fullName": "ชื่อ-นามสกุล",
     "fullNameRequired": "ชื่อ-นามสกุล *",
@@ -77,6 +79,8 @@
   "Account": {
     "title": "ตั้งค่าบัญชี",
     "subtitle": "จัดการข้อมูลบัญชี การตั้งค่าความปลอดภัย และการตั้งค่าต่างๆ",
+    "authRequired": "กรุณาเข้าสู่ระบบเพื่อเข้าถึงการตั้งค่าบัญชี",
+    "loading": "กำลังโหลดการตั้งค่าบัญชี...",
     "email": "อีเมล",
     "phone": "โทรศัพท์",
     "authentication": "การยืนยันตัวตน",
@@ -938,11 +942,11 @@
     "SignUp": {"title": "เข้าร่วมจักรวาล", "subtitle": "สร้างบัญชีของคุณและเริ่มต้นการเดินทางลี้ลับ", "google": "สมัครด้วย Google", "success": "สร้างบัญชีสำเร็จ! โปรดตรวจสอบอีเมลเพื่อยืนยันบัญชี กำลังพาไปยังหน้าลงชื่อเข้าใช้...", "nameLabel": "ชื่อ-นามสกุล", "namePlaceholder": "กรอกชื่อ-นามสกุล", "emailLabel": "อีเมล", "emailPlaceholder": "กรอกอีเมลของคุณ", "passwordLabel": "รหัสผ่าน", "passwordPlaceholder": "สร้างรหัสผ่าน", "confirmPasswordLabel": "ยืนยันรหัสผ่าน", "confirmPasswordPlaceholder": "ยืนยันรหัสผ่านของคุณ", "agreePrefix": "ฉันยอมรับ", "terms": "ข้อกำหนดในการให้บริการ", "and": "และ", "privacy": "นโยบายความเป็นส่วนตัว", "button": "สร้างบัญชี", "buttonLoading": "กำลังสร้างบัญชี...", "signinPrompt": "มีบัญชีอยู่แล้ว?", "signinLink": "ลงชื่อเข้าใช้"}
   },
 
-  "UserProfile": {"notifications": "การแจ้งเตือน", "yourReading": "การอ่านของคุณ", "profile": "โปรไฟล์", "account": "บัญชี", "theme": "ธีม", "billing": "การเรียกเก็บเงิน", "signOut": "ออกจากระบบ", "signingOut": "กำลังออกจากระบบ...", "themes": {"default": "เริ่มต้น", "antiverse": "แอนตี้เวิร์ส", "zodiac": "ราศี", "singularity": "ซิงกูลาริตี้", "luminous": "ลูมินัส", "mystic": "มิสติก"}},
+  "UserProfile": {"notifications": "การแจ้งเตือน", "yourReading": "การอ่านของคุณ", "profile": "โปรไฟล์", "account": "บัญชี", "theme": "ธีม", "billing": "การเรียกเก็บเงิน", "settings": "การตั้งค่า", "signOut": "ออกจากระบบ", "signingOut": "กำลังออกจากระบบ...", "themes": {"default": "เริ่มต้น", "antiverse": "แอนตี้เวิร์ส", "zodiac": "ราศี", "singularity": "ซิงกูลาริตี้", "luminous": "ลูมินัส", "mystic": "มิสติก"}},
 
   "Notifications": {"title": "การแจ้งเตือน", "noNotifications": "ไม่มีการแจ้งเตือน", "noNotificationsDescription": "คุณทันสมัยแล้ว! เราจะแจ้งเตือนคุณเกี่ยวกับการอัปเดตที่สำคัญ"},
 
-  "Billing": {"title": "ประวัติการทำธุรกรรม", "subtitle": "ดูบันทึกการซื้อและข้อมูลการเรียกเก็บเงินของคุณ", "currentPlan": "แพ็กเกจปัจจุบัน", "planDetails": "รายละเอียดแพ็กเกจ", "billingHistory": "ประวัติการเรียกเก็บเงิน", "paymentMethod": "วิธีการชำระเงิน", "nextBilling": "การเรียกเก็บเงินครั้งถัดไป", "manageSubscription": "จัดการการสมัครสมาชิก", "upgradePlan": "อัปเกรดแพ็กเกจ", "viewInvoices": "ดูใบแจ้งหนี้", "noTransactions": "ไม่พบธุรกรรม", "transactionId": "รหัสธุรกรรม", "amount": "จำนวนเงิน", "status": "สถานะ", "date": "วันที่", "viewDetails": "ดูรายละเอียด", "filterByDate": "กรองตามวันที่", "pickDate": "เลือกวันที่", "clearFilters": "ล้างตัวกรอง", "loadingHistory": "กำลังโหลดประวัติเวทมนตร์ของคุณ...", "noPurchases": "ยังไม่มีการซื้อ", "noPurchasesDescription": "การเดินทางเวทมนตร์ของคุณเริ่มต้นด้วยการซื้อดวงดาวครั้งแรก", "stars": "ดวงดาว", "purchase": "การซื้อ", "subscription": "การสมัครสมาชิก", "digitalWallet": "กระเป๋าเงินดิจิทัล", "payment": "การชำระเงิน"},
+  "Billing": {"title": "ประวัติการทำธุรกรรม", "subtitle": "ดูบันทึกการซื้อและข้อมูลการเรียกเก็บเงินของคุณ", "authRequired": "กรุณาเข้าสู่ระบบเพื่อเข้าถึงการเรียกเก็บเงิน", "loading": "กำลังโหลดประวัติการเรียกเก็บเงิน...", "currentPlan": "แพ็กเกจปัจจุบัน", "planDetails": "รายละเอียดแพ็กเกจ", "billingHistory": "ประวัติการเรียกเก็บเงิน", "paymentMethod": "วิธีการชำระเงิน", "nextBilling": "การเรียกเก็บเงินครั้งถัดไป", "manageSubscription": "จัดการการสมัครสมาชิก", "upgradePlan": "อัปเกรดแพ็กเกจ", "viewInvoices": "ดูใบแจ้งหนี้", "noTransactions": "ไม่พบธุรกรรม", "transactionId": "รหัสธุรกรรม", "amount": "จำนวนเงิน", "status": "สถานะ", "date": "วันที่", "viewDetails": "ดูรายละเอียด", "filterByDate": "กรองตามวันที่", "pickDate": "เลือกวันที่", "clearFilters": "ล้างตัวกรอง", "loadingHistory": "กำลังโหลดประวัติเวทมนตร์ของคุณ...", "noPurchases": "ยังไม่มีการซื้อ", "noPurchasesDescription": "การเดินทางเวทมนตร์ของคุณเริ่มต้นด้วยการซื้อดวงดาวครั้งแรก", "stars": "ดวงดาว", "purchase": "การซื้อ", "subscription": "การสมัครสมาชิก", "digitalWallet": "กระเป๋าเงินดิจิทัล", "payment": "การชำระเงิน"},
 
   "Contact": {
     "title": "ติดต่อ & สนับสนุน",
@@ -1078,13 +1082,15 @@
   "ReadingHistory": {
     "title": "ประวัติการอ่านของคุณ",
     "subtitle": "สำรวจการอ่านไพ่ทาโรต์และข้อมูลเชิงลึกในอดีตของคุณ",
+    "authRequired": "กรุณาเข้าสู่ระบบเพื่อเข้าถึงประวัติการอ่านของคุณ",
+    "loading": "กำลังโหลดประวัติการอ่าน...",
     "searchPlaceholder": "ค้นหาการอ่านหรือไพ่...",
     "filters": {"allTime": "ทุกเวลา", "today": "วันนี้", "thisWeek": "สัปดาห์นี้", "thisMonth": "เดือนนี้", "customRange": "ช่วงกำหนดเอง", "allTypes": "ทุกประเภท", "simple": "ง่าย", "intermediate": "ปานกลาง", "advanced": "ขั้นสูง"},
     "clearFilters": "ล้างตัวกรอง",
     "noReadings": "ไม่พบการอ่าน",
     "noReadingsDesc": "คุณยังไม่ได้สร้างการอ่านไพ่ทาโรต์เลย เริ่มต้นการเดินทางลึกลับของคุณด้วยการอ่านครั้งแรก!",
     "startReading": "เริ่มอ่าน",
-    "loading": "กำลังโหลดการอ่านของคุณ...",
+    "loadingReadings": "กำลังโหลดการอ่านของคุณ...",
     "error": "ไม่สามารถโหลดการอ่านได้",
     "errorDesc": "เกิดข้อผิดพลาดในการโหลดประวัติการอ่านของคุณ กรุณาลองใหม่อีกครั้ง",
     "retry": "ลองใหม่",
@@ -1186,6 +1192,77 @@
       "howToPlay": {"title": "วิธีการเล่น", "description": "ถามคำถาม เลือกไพ่ และไตร่ตรอง—ทีละขั้นตอน"},
       "helpSupport": {"title": "ช่วยเหลือ & สนับสนุน", "description": "ดูวิธีรับความช่วยเหลือ ติดต่อทีม และการแก้ไขปัญหา"},
       "faq": {"title": "คำถามที่พบบ่อย", "description": "คำตอบสำหรับคำถามยอดนิยมเกี่ยวกับการอ่านและดวงดาว"}
+    }
+  },
+
+  "Settings": {
+    "title": "การตั้งค่า",
+    "subtitle": "จัดการการตั้งค่าบัญชีและการตลาดทางอีเมลของคุณ",
+    "loading": "กำลังโหลดการตั้งค่า...",
+    "saving": "กำลังบันทึก...",
+    "save": "บันทึกการตั้งค่า",
+    "saveSuccess": "บันทึกการตั้งค่าสำเร็จ",
+    "saveError": "บันทึกการตั้งค่าไม่สำเร็จ",
+    "fetchError": "โหลดการตั้งค่าไม่สำเร็จ",
+    "authRequired": "กรุณาเข้าสู่ระบบเพื่อเข้าถึงการตั้งค่า",
+    "emailMarketing": {
+      "title": "การตลาดทางอีเมล",
+      "enable": "เปิดใช้งานการตลาดทางอีเมล",
+      "enableDesc": "รับอีเมลการตลาดจากเรา",
+      "promotional": "อีเมลโปรโมชัน",
+      "promotionalDesc": "ข้อเสนอพิเศษและส่วนลด",
+      "newsletter": "จดหมายข่าว",
+      "newsletterDesc": "อัปเดตและข้อมูลเชิงลึกรายสัปดาห์",
+      "productUpdates": "อัปเดตผลิตภัณฑ์",
+      "productUpdatesDesc": "ฟีเจอร์ใหม่และการปรับปรุง",
+      "readingReminders": "การแจ้งเตือนการอ่าน",
+      "readingRemindersDesc": "แจ้งเตือนให้ตรวจสอบการอ่านของคุณ",
+      "specialOffers": "ข้อเสนอพิเศษ",
+      "specialOffersDesc": "ข้อเสนอและโปรโมชันพิเศษ"
+    },
+    "notifications": {
+      "title": "การแจ้งเตือนแบบพุช",
+      "enable": "เปิดใช้งานการแจ้งเตือนแบบพุช",
+      "enableDesc": "รับการแจ้งเตือนแบบพุชบนอุปกรณ์ของคุณ",
+      "readingReminders": "การแจ้งเตือนการอ่าน",
+      "specialOffers": "ข้อเสนอพิเศษ",
+      "systemUpdates": "อัปเดตระบบ"
+    },
+    "privacy": {
+      "title": "การตั้งค่าความเป็นส่วนตัว",
+      "profileVisibility": "การมองเห็นโปรไฟล์",
+      "private": "ส่วนตัว",
+      "public": "สาธารณะ",
+      "friends": "เพื่อนเท่านั้น",
+      "showEmail": "แสดงอีเมล",
+      "showEmailDesc": "แสดงอีเมลของคุณในโปรไฟล์",
+      "showBirthDate": "แสดงวันเกิด",
+      "showBirthDateDesc": "แสดงวันเกิดของคุณในโปรไฟล์",
+      "allowMessages": "อนุญาตข้อความ",
+      "allowMessagesDesc": "อนุญาตให้ผู้อื่นส่งข้อความถึงคุณ"
+    },
+    "reading": {
+      "title": "การตั้งค่าการอ่าน",
+      "autoSave": "บันทึกการอ่านอัตโนมัติ",
+      "autoSaveDesc": "บันทึกการอ่านของคุณโดยอัตโนมัติ",
+      "shareByDefault": "แชร์การอ่านตามค่าเริ่มต้น",
+      "shareByDefaultDesc": "แชร์การอ่านใหม่โดยอัตโนมัติ"
+    },
+    "localization": {
+      "title": "ภาษาและการแปล",
+      "language": "ภาษา",
+      "timeFormat": "รูปแบบเวลา"
+    },
+    "accessibility": {
+      "title": "การเข้าถึง",
+      "reducedMotion": "ลดการเคลื่อนไหว",
+      "reducedMotionDesc": "ลดภาพเคลื่อนไหวและการเปลี่ยนผ่าน",
+      "highContrast": "ความคมชัดสูง",
+      "highContrastDesc": "เพิ่มความคมชัดเพื่อการมองเห็นที่ดีขึ้น",
+      "fontSize": "ขนาดตัวอักษร",
+      "small": "เล็ก",
+      "medium": "กลาง",
+      "large": "ใหญ่"
     }
   }
 }

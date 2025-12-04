@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { useLocale } from "next-intl"
 import { useTranslations } from "next-intl"
 import {
@@ -11,11 +13,44 @@ import {
     useLoginMethod,
 } from "@/components/account"
 import { Shield } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
+import { toast } from "sonner"
 
 export default function AccountPage() {
+    const { user, loading: authLoading } = useAuth()
+    const router = useRouter()
     const locale = useLocale()
     const loginMethod = useLoginMethod()
     const t = useTranslations("Account")
+
+    // Auth guard: redirect to signin if not logged in
+    useEffect(() => {
+        if (!authLoading && !user) {
+            toast.error(
+                t("authRequired") || "Please sign in to access account settings"
+            )
+            router.push("/signin?callbackUrl=/account")
+        }
+    }, [user, authLoading, router, t])
+
+    // Show loading state
+    if (authLoading) {
+        return (
+            <div className='min-h-screen flex items-center justify-center'>
+                <div className='text-center'>
+                    <Shield className='w-8 h-8 animate-spin mx-auto mb-4 text-primary' />
+                    <p className='text-muted-foreground'>
+                        {t("loading") || "Loading..."}
+                    </p>
+                </div>
+            </div>
+        )
+    }
+
+    // Don't render if not authenticated (redirect will happen)
+    if (!user) {
+        return null
+    }
 
     return (
         <div className='min-h-screen relative overflow-x-hidden'>

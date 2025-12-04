@@ -4,7 +4,7 @@ import { type NextRequest } from "next/server"
 
 const intlMiddleware = createMiddleware(routing)
 
-export default function middleware(req: NextRequest) {
+export default function proxy(req: NextRequest) {
     // Just run i18n; do NOT set any cookies pre-consent
     return intlMiddleware(req)
 }

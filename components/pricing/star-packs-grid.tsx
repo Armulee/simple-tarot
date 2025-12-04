@@ -41,7 +41,7 @@ export default function StarPacksGrid({
         "from-amber-500/12 via-amber-600/10 to-orange-600/12"
 
     return (
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
             {STAR_PACKS.map((p, index) => (
                 <Card
                     key={p.id ?? `star-pack-${index}`}
