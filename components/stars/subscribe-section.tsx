@@ -4,7 +4,7 @@ import { Star, Zap, Crown } from "lucide-react"
 import { Checkout } from "@/components/checkout"
 import SubscribeDropdown from "@/components/stars/subscribe-dropdown"
 import OneTapTopUp from "@/components/stars/one-tap-top-up"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
 import type { CurrencyCode } from "@/lib/payments/currency-utils"
 
@@ -16,6 +16,7 @@ export default function SubscribeSection({
     defaultCurrency = "USD",
 }: SubscribeSectionProps) {
     const t = useTranslations("StarsPage")
+    const locale = useLocale()
     const currency = usePreferredCurrency(defaultCurrency)
 
     return (
@@ -24,9 +25,7 @@ export default function SubscribeSection({
                 <h2 className='text-2xl font-serif font-semibold text-white mb-2'>
                     {t("subscribe.title")}
                 </h2>
-                <p className='text-gray-400'>
-                    {t("subscribe.subtitle")}
-                </p>
+                <p className='text-gray-400'>{t("subscribe.subtitle")}</p>
             </div>
             {/* Feature highlights */}
             <div className='mb-4 flex flex-wrap justify-center gap-4 text-sm text-gray-400'>
@@ -35,21 +34,15 @@ export default function SubscribeSection({
                         className='w-4 h-4 text-yellow-400'
                         fill='currentColor'
                     />
-                    <span>
-                        {t("subscribe.features.unlimitedReadings")}
-                    </span>
+                    <span>{t("subscribe.features.unlimitedReadings")}</span>
                 </div>
                 <div className='flex items-center gap-2'>
                     <Zap className='w-4 h-4 text-yellow-400' />
-                    <span>
-                        {t("subscribe.features.premiumFeatures")}
-                    </span>
+                    <span>{t("subscribe.features.premiumFeatures")}</span>
                 </div>
                 <div className='flex items-center gap-2'>
                     <Crown className='w-4 h-4 text-yellow-400' />
-                    <span>
-                        {t("subscribe.features.prioritySupport")}
-                    </span>
+                    <span>{t("subscribe.features.prioritySupport")}</span>
                 </div>
             </div>
 
@@ -87,8 +80,7 @@ export default function SubscribeSection({
                 />
             </div>
 
-            <OneTapTopUp currency={currency} />
+            <OneTapTopUp currency={currency} locale={locale} />
         </div>
     )
 }
-

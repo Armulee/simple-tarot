@@ -10,6 +10,7 @@ import {
     formatCurrency,
     type CurrencyCode,
 } from "@/lib/payments/currency-utils"
+import CurrencySelector from "./currency-selector"
 
 type SubscriptionSectionProps = {
     locale: string
@@ -17,6 +18,8 @@ type SubscriptionSectionProps = {
     monthlyPrice: number | null
     annualPrice: number | null
     annualMonthlyEquivalent: number | null
+    defaultCurrency: CurrencyCode
+    onCurrencyChange: (currency: CurrencyCode) => void
 }
 
 export default function SubscriptionSection({
@@ -25,6 +28,8 @@ export default function SubscriptionSection({
     monthlyPrice,
     annualPrice,
     annualMonthlyEquivalent,
+    defaultCurrency,
+    onCurrencyChange,
 }: SubscriptionSectionProps) {
     const t = useTranslations("Pricing")
 
@@ -60,11 +65,19 @@ export default function SubscriptionSection({
                                 <Crown className='w-4 h-4' />
                                 {t("monthlySubscription")}
                             </div>
-                            <div className='text-3xl font-bold'>
-                                {formatAmount(monthlyPrice)}
-                                <span className='text-sm text-white/70'>
-                                    /month
-                                </span>
+                            <div className='flex items-baseline gap-2 flex-wrap'>
+                                <div className='text-3xl font-bold'>
+                                    {formatAmount(monthlyPrice)}
+                                    <span className='text-sm text-white/70'>
+                                        /month
+                                    </span>
+                                </div>
+                                <CurrencySelector
+                                    locale={locale}
+                                    defaultCurrency={defaultCurrency}
+                                    currency={currency}
+                                    onCurrencyChange={onCurrencyChange}
+                                />
                             </div>
                             <div className='text-sm text-muted-foreground'>
                                 {t("perMonth")} · {t("autoRenew")} ·{" "}
@@ -109,19 +122,29 @@ export default function SubscriptionSection({
                                 <Crown className='w-4 h-4' />
                                 {t("annualSubscription")}
                             </div>
-                            <div className='inline-flex items-baseline gap-2'>
-                                <div className='text-3xl font-bold'>
-                                    {formatAmount(annualMonthlyEquivalent)}{" "}
+                            <div className='flex items-baseline gap-2 flex-wrap'>
+                                <div className='inline-flex items-baseline gap-2'>
+                                    <div className='text-3xl font-bold'>
+                                        {formatAmount(
+                                            annualMonthlyEquivalent
+                                        )}{" "}
+                                    </div>
+                                    <div className='text-sm text-white/70 line-through'>
+                                        {formatAmount(monthlyPrice)}{" "}
+                                    </div>
+                                    <span className='text-sm text-white/70'>
+                                        /month
+                                    </span>
+                                    <span className='text-xs px-2 py-0.5 rounded border bg-indigo-400/15 border-indigo-400/30 text-indigo-300 font-semibold'>
+                                        {t("save17")}
+                                    </span>
                                 </div>
-                                <div className='text-sm text-white/70 line-through'>
-                                    {formatAmount(monthlyPrice)}{" "}
-                                </div>
-                                <span className='text-sm text-white/70'>
-                                    /month
-                                </span>
-                                <span className='text-xs px-2 py-0.5 rounded border bg-indigo-400/15 border-indigo-400/30 text-indigo-300 font-semibold'>
-                                    {t("save17")}
-                                </span>
+                                <CurrencySelector
+                                    locale={locale}
+                                    defaultCurrency={defaultCurrency}
+                                    currency={currency}
+                                    onCurrencyChange={onCurrencyChange}
+                                />
                             </div>
                             <div className='text-sm text-muted-foreground'>
                                 {t("perMonth")} · {t("billedYearly")} (

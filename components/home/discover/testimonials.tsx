@@ -6,7 +6,6 @@ import { ChevronLeft, ChevronRight, Star, Quote } from "lucide-react"
 
 export default function TestimonialsSection() {
     const t = useTranslations("HomeDiscover.Testimonials")
-    const [isVisible, setIsVisible] = useState(false)
     const [currentIndex, setCurrentIndex] = useState(0)
     const [isAutoPlaying, setIsAutoPlaying] = useState(true)
 
@@ -16,10 +15,6 @@ export default function TestimonialsSection() {
         role: string
         initial: string
     }>
-
-    useEffect(() => {
-        setIsVisible(true)
-    }, [])
 
     useEffect(() => {
         if (!isAutoPlaying) return
@@ -49,9 +44,7 @@ export default function TestimonialsSection() {
     return (
         <div className='space-y-12'>
             {/* Enhanced section header */}
-            <div
-                className={`text-center transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
-            >
+            <div className={`text-center transition-all duration-1000`}>
                 <div className='inline-flex items-center gap-2 mb-4'>
                     <Star className='w-6 h-6 text-accent animate-pulse' />
                     <span className='text-primary font-semibold text-sm uppercase tracking-wider'>
@@ -79,14 +72,7 @@ export default function TestimonialsSection() {
                     >
                         {items.map((item, index) => (
                             <div key={index} className='w-full flex-shrink-0'>
-                                <div className='bg-gradient-to-br from-gray-800/40 to-gray-900/60 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-8 mx-4'>
-                                    {/* Quote icon */}
-                                    <div className='flex justify-center mb-6'>
-                                        <div className='w-16 h-16 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center shadow-lg'>
-                                            <Quote className='w-8 h-8 text-white' />
-                                        </div>
-                                    </div>
-
+                                <div className='bg-transparent rounded-2xl px-6 py-8 mx-4'>
                                     {/* Quote text */}
                                     <blockquote className='text-center mb-8'>
                                         <p className='text-xl text-gray-300 italic leading-relaxed mb-4'>
@@ -180,11 +166,7 @@ export default function TestimonialsSection() {
                 {items.slice(0, 4).map((item, index) => (
                     <div
                         key={index}
-                        className={`transition-all duration-700 delay-${index * 100} ${
-                            isVisible
-                                ? "opacity-100 translate-y-0"
-                                : "opacity-0 translate-y-8"
-                        }`}
+                        className={`transition-all duration-700 delay-${index * 100}`}
                     >
                         <div className='bg-gradient-to-br from-gray-800/30 to-gray-900/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6 hover:border-primary/30 transition-all duration-300 group'>
                             <div className='flex items-start space-x-4'>

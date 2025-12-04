@@ -21,11 +21,12 @@
   "Services": {
     "tarot": "Tarot",
     "birthChart": "Birth Chart",
-    "horoscope": "Horoscope",
+    "astrology": "Astrology",
     "namelogy": "Namelogy",
     "numerology": "Numerology",
     "luckyColors": "Lucky Colors",
-    "palmistry": "Palmistry"
+    "palmistry": "Palmistry",
+    "fatedRelations": "Fated Relations"
   },
 
   "Languages": {
@@ -218,8 +219,8 @@
           "name": "Birth Chart Analysis",
           "description": "Discover your cosmic blueprint through detailed astrological birth chart analysis"
         },
-        "horoscope": {
-          "name": "Daily Horoscope",
+        "astrology": {
+          "name": "Astrology",
           "description": "Receive personalized daily insights based on your zodiac sign and planetary movements"
         },
         "namelogy": {
@@ -237,6 +238,10 @@
         "palmistry": {
           "name": "Palmistry",
           "description": "Read the lines of destiny written in your palms through ancient palm reading wisdom"
+        },
+        "fatedRelations": {
+          "name": "Fated Relations",
+          "description": "Discover the cosmic connections and compatibility between you and your loved ones"
         }
       }
     },
@@ -251,13 +256,23 @@
           "planned": "Planned"
         },
         "phases": {
+          "completed": "Completed",
           "dec_2025": "December 12, 2025",
           "jan_2026": "January 2026",
           "q1_2026": "Q1 2026",
           "mar_2026": "March 2026"
         },
+        "tarot": {
+          "title": "AI Tarot Reading",
+          "eta": "Available Now",
+          "features": [
+            "Get personalized tarot card readings powered by advanced AI",
+            "Ask follow-up questions for deeper insights",
+            "Save and revisit your readings anytime"
+          ]
+        },
         "birthChart": {
-          "title": "Birth Chart Launch",
+          "title": "Birth Chart",
           "eta": "December 12, 2025",
           "features": [
             "Snapshot stats from your personal birth chart",
@@ -265,8 +280,8 @@
             "Ask follow-up questions about traits and life stats"
           ]
         },
-        "horoscope": {
-          "title": "Horoscope",
+        "astrology": {
+          "title": "Astrology",
           "eta": "December 12, 2025",
           "features": [
             "Transit forecasts from your birth data and target dates",
@@ -275,7 +290,7 @@
           ]
         },
         "namelogy": {
-          "title": "Namelogy Insights",
+          "title": "Namelogy",
           "eta": "January 2026",
           "features": [
             "Transform desired names (optional birth date) into numerology",
@@ -284,7 +299,7 @@
           ]
         },
         "numerology": {
-          "title": "Numerology Decoder",
+          "title": "Numerology",
           "eta": "January 2026",
           "features": [
             "Decode phone numbers or key digits into spiritual meanings",
@@ -293,7 +308,7 @@
           ]
         },
         "luckyColors": {
-          "title": "Lucky Colors Concierge",
+          "title": "Lucky Colors",
           "eta": "January 2026",
           "features": [
             "Daily palette matched to planetary rulers",
@@ -320,7 +335,7 @@
           ]
         },
         "palmistry": {
-          "title": "Palmistry Scanner",
+          "title": "Palmistry",
           "eta": "March 2026",
           "features": [
             "Live webcam palm scanning for instant readings",
@@ -1471,6 +1486,7 @@
     "heroDescription": "Flexible one-time packs and a simple monthly plan. Instant delivery. Cancel anytime.",
     "priceNote": "Prices in THB. Stars deliver instantly after purchase.",
     "currency": "Currency",
+    "changeCurrency": "Change Currency",
     "currencySearchPlaceholder": "Search currency or code...",
     "currencyNoResults": "No currencies match your search.",
     "subscriptionPlans": "subscription plans",
@@ -1634,6 +1650,8 @@
       "seeker": "Seeker",
       "mystic": "Mystic",
       "master": "Master",
+      "grandMaster": "Grand Master",
+      "ultimate": "Ultimate",
       "unlimited": "Unlimited",
       "infinity": "Infinity"
     }

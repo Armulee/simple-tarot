@@ -8,6 +8,7 @@ import {
     Hash,
     Palette,
     Hand,
+    Heart,
     Sparkles,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -37,18 +38,27 @@ export default function ServicesSection() {
             name: t("items.birthChart.name"),
             description: t("items.birthChart.description"),
             icon: Calendar,
-            status: t("status.comingSoon"),
+            status: t("status.available"),
             color: "from-purple-400 to-indigo-500",
             glowColor: "shadow-purple-500/20",
         },
         {
-            id: "horoscope",
-            name: t("items.horoscope.name"),
-            description: t("items.horoscope.description"),
+            id: "astrology",
+            name: t("items.astrology.name"),
+            description: t("items.astrology.description"),
             icon: Star,
             status: t("status.comingSoon"),
             color: "from-yellow-400 to-orange-500",
             glowColor: "shadow-yellow-500/20",
+        },
+        {
+            id: "fatedRelations",
+            name: t("items.fatedRelations.name"),
+            description: t("items.fatedRelations.description"),
+            icon: Heart,
+            status: t("status.comingSoon"),
+            color: "from-pink-400 to-rose-500",
+            glowColor: "shadow-pink-500/20",
         },
         {
             id: "namelogy",
@@ -114,6 +124,8 @@ export default function ServicesSection() {
                 {services.map((service, index) => {
                     const IconComponent = service.icon
                     const isAvailable = service.status === t("status.available")
+                    const isComingSoon =
+                        service.status === t("status.comingSoon")
 
                     return (
                         <div
@@ -167,19 +179,17 @@ export default function ServicesSection() {
                                         ></div>
                                     </div>
 
-                                    {/* Status badge with animation */}
-                                    <div
-                                        className={`
-                                        px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300
-                                        ${
-                                            isAvailable
-                                                ? "bg-green-500/20 text-green-400 border border-green-500/30 group-hover:bg-green-500/30"
-                                                : "bg-amber-500/20 text-amber-400 border border-amber-500/30 group-hover:bg-amber-500/30"
-                                        }
-                                    `}
-                                    >
-                                        {service.status}
-                                    </div>
+                                    {/* Status badge with animation - only show for coming soon */}
+                                    {isComingSoon && (
+                                        <div
+                                            className={`
+                                            px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300
+                                            bg-amber-500/20 text-amber-400 border border-amber-500/30 group-hover:bg-amber-500/30
+                                        `}
+                                        >
+                                            {service.status}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Content */}

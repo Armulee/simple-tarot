@@ -2,14 +2,16 @@
 
 import { useState } from "react"
 import { useTranslations } from "next-intl"
-import CurrencySelector from "./currency-selector"
 import SubscriptionSection from "./subscription-section"
 import StarPacksGrid from "./star-packs-grid"
 import {
     getAnnualMonthlyEquivalent,
     getSubscriptionPrice,
 } from "@/lib/payments/star-products"
-import { ensureSupportedCurrency, type CurrencyCode } from "@/lib/payments/currency-utils"
+import {
+    ensureSupportedCurrency,
+    type CurrencyCode,
+} from "@/lib/payments/currency-utils"
 
 type PricingContentProps = {
     locale: string
@@ -31,12 +33,6 @@ export default function PricingContent({
 
     return (
         <>
-            <CurrencySelector
-                locale={locale}
-                defaultCurrency={defaultCurrency}
-                onCurrencyChange={setCurrency}
-            />
-
             {/* Divider: Subscription plans */}
             <div className='flex items-center gap-3 mt-6'>
                 <span className='h-px flex-1 bg-white/60'></span>
@@ -52,6 +48,8 @@ export default function PricingContent({
                 monthlyPrice={monthlyPrice}
                 annualPrice={annualPrice}
                 annualMonthlyEquivalent={annualMonthlyEquivalent}
+                defaultCurrency={defaultCurrency}
+                onCurrencyChange={setCurrency}
             />
 
             {/* Divider: One-time star packs */}
@@ -63,8 +61,12 @@ export default function PricingContent({
                 <span className='h-px flex-1 bg-white/60'></span>
             </div>
 
-            <StarPacksGrid locale={locale} currency={currency} />
+            <StarPacksGrid
+                locale={locale}
+                currency={currency}
+                defaultCurrency={defaultCurrency}
+                onCurrencyChange={setCurrency}
+            />
         </>
     )
 }
-

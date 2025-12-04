@@ -10,7 +10,7 @@ const SUBSCRIPTION_BASE_PRICES_USD = {
     monthly: 9.99,
     annual: 99.99,
     annualMonthlyEquivalent: 8.34,
-    infinity: 9.99,
+    infinity: 34.99, // More expensive than 1000 stars pack ($24.99)
 } as const
 
 export type LabelTranslationKey = "popular" | "bestValue"
@@ -30,6 +30,8 @@ export type StarPackDefinition = {
 // NEXT_PUBLIC_SEEKER_PACK_ID
 // NEXT_PUBLIC_MYSTIC_PACK_ID
 // NEXT_PUBLIC_MASTER_PACK_ID
+// NEXT_PUBLIC_500_STARS_PACK_ID
+// NEXT_PUBLIC_1000_STARS_PACK_ID
 // NEXT_PUBLIC_INFINITY_PACK_ID
 // NEXT_PUBLIC_MONTHLY_PACK_ID
 // NEXT_PUBLIC_ANNUALLY_PACK_ID
@@ -38,38 +40,53 @@ export const STAR_PACKS: StarPackDefinition[] = [
         id: process.env.NEXT_PUBLIC_STARTER_PACK_ID,
         name: "Starter",
         baseUsdPrice: 0.99,
-        stars: 60,
+        stars: 30,
         bonus: 0,
     },
     {
         id: process.env.NEXT_PUBLIC_EXPLORER_PACK_ID,
         name: "Explorer",
         baseUsdPrice: 1.99,
-        stars: 130,
-        bonus: 10,
+        stars: 65,
+        bonus: 5,
     },
     {
         id: process.env.NEXT_PUBLIC_SEEKER_PACK_ID,
         name: "Seeker",
         baseUsdPrice: 2.99,
-        stars: 200,
-        bonus: 20,
+        stars: 100,
+        bonus: 10,
         labelKey: "popular",
     },
     {
         id: process.env.NEXT_PUBLIC_MYSTIC_PACK_ID,
         name: "Mystic",
         baseUsdPrice: 4.99,
-        stars: 350,
-        bonus: 50,
+        stars: 175,
+        bonus: 25,
         labelKey: "bestValue",
     },
     {
         id: process.env.NEXT_PUBLIC_MASTER_PACK_ID,
         name: "Master",
         baseUsdPrice: 6.99,
+        stars: 250,
+        bonus: 40,
+    },
+    {
+        id: process.env.NEXT_PUBLIC_500_STARS_PACK_ID,
+        name: "Grand Master",
+        baseUsdPrice: 12.99,
         stars: 500,
-        bonus: 80,
+        bonus: 75,
+    },
+    {
+        id: process.env.NEXT_PUBLIC_1000_STARS_PACK_ID,
+        name: "Ultimate",
+        baseUsdPrice: 24.99,
+        stars: 1000,
+        bonus: 150,
+        labelKey: "bestValue",
     },
 ]
 

@@ -16,8 +16,8 @@ export default function CallToActionSection() {
     return (
         <div className='relative overflow-hidden'>
             {/* Animated background */}
-            <div className='absolute inset-0 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 rounded-2xl'></div>
-            <div className='absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-2xl'></div>
+            {/* <div className='absolute inset-0 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 rounded-2xl'></div> */}
+            {/* <div className='absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-2xl'></div> */}
 
             {/* Floating particles */}
             <div className='absolute inset-0 overflow-hidden rounded-2xl'>
@@ -30,9 +30,9 @@ export default function CallToActionSection() {
             </div>
 
             {/* Gradient overlay */}
-            <div className='absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/20 rounded-2xl'></div>
+            {/* <div className='absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/20 rounded-2xl'></div> */}
 
-            <div className='relative bg-gradient-to-r from-gray-800/40 to-gray-900/60 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-12 text-center'>
+            <div className='relative bg-transparent rounded-2xl px-4 py-8 text-center'>
                 {/* Enhanced header */}
                 <div
                     className={`transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}

@@ -13,15 +13,20 @@ import {
     formatCurrency,
     type CurrencyCode,
 } from "@/lib/payments/currency-utils"
+import CurrencySelector from "./currency-selector"
 
 type StarPacksGridProps = {
     locale: string
     currency: CurrencyCode
+    defaultCurrency: string
+    onCurrencyChange: (currency: CurrencyCode) => void
 }
 
 export default function StarPacksGrid({
     locale,
     currency,
+    defaultCurrency,
+    onCurrencyChange,
 }: StarPacksGridProps) {
     const t = useTranslations("Pricing")
 
@@ -37,9 +42,9 @@ export default function StarPacksGrid({
 
     return (
         <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-            {STAR_PACKS.map((p) => (
+            {STAR_PACKS.map((p, index) => (
                 <Card
-                    key={p.id}
+                    key={p.id || `pack-${p.name}-${index}`}
                     className={`relative overflow-visible border-0 p-6 rounded-xl bg-card/10 hover:brightness-110 transition`}
                 >
                     <div
@@ -50,7 +55,9 @@ export default function StarPacksGrid({
                             <div
                                 className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border ${packBadgeClasses()} absolute -top-3 left-2`}
                             >
-                                <Star className={`w-4 h-4 ${packIconColor()}`} />
+                                <Star
+                                    className={`w-4 h-4 ${packIconColor()}`}
+                                />
                                 <span>
                                     {p.labelKey ? t(p.labelKey) : t("oneTime")}
                                 </span>
@@ -80,8 +87,23 @@ export default function StarPacksGrid({
                                     )}
                                 </span>
                             </div>
-                            <div className='text-3xl font-bold'>
-                                {formatAmount(p.id ? getPackPrice(p.id, currency) : null)}
+                            {/* Dynamic Price Box */}
+                            <div className='bg-white/10 backdrop-blur-sm border border-yellow-400/30 rounded-lg px-4 py-3'>
+                                <div className='flex items-center justify-between gap-2'>
+                                    <div className='text-2xl font-bold text-yellow-200'>
+                                        {formatAmount(
+                                            p.id
+                                                ? getPackPrice(p.id, currency)
+                                                : null
+                                        )}
+                                    </div>
+                                    <CurrencySelector
+                                        locale={locale}
+                                        defaultCurrency={defaultCurrency}
+                                        currency={currency}
+                                        onCurrencyChange={onCurrencyChange}
+                                    />
+                                </div>
                             </div>
                             <div className='text-sm text-muted-foreground'>
                                 {t("oneTime")} · {t("instantDelivery")}
@@ -146,11 +168,30 @@ export default function StarPacksGrid({
                                 </span>
                             </span>
                         </div>
-                        <div className='text-3xl font-bold'>
-                            {formatAmount(INFINITY_PACK.id ? getPackPrice(INFINITY_PACK.id, currency) : null)}
+                        {/* Dynamic Price Box */}
+                        <div className='bg-white/10 backdrop-blur-sm border border-yellow-400/30 rounded-lg px-4 py-3'>
+                            <div className='flex items-center justify-between gap-2'>
+                                <div className='text-2xl font-bold text-yellow-200'>
+                                    {formatAmount(
+                                        INFINITY_PACK.id
+                                            ? getPackPrice(
+                                                  INFINITY_PACK.id,
+                                                  currency
+                                              )
+                                            : null
+                                    )}
+                                </div>
+                                <CurrencySelector
+                                    locale={locale}
+                                    defaultCurrency={defaultCurrency}
+                                    currency={currency}
+                                    onCurrencyChange={onCurrencyChange}
+                                />
+                            </div>
                         </div>
                         <div className='text-sm text-muted-foreground'>
-                            {t("oneTime")} · 30 {t("days")} · {t("instantDelivery")}
+                            {t("oneTime")} · 30 {t("days")} ·{" "}
+                            {t("instantDelivery")}
                         </div>
                     </div>
                     <div className='space-y-3 text-left'>
@@ -188,4 +229,3 @@ export default function StarPacksGrid({
         </div>
     )
 }
-

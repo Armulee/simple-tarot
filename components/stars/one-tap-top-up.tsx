@@ -5,6 +5,8 @@ import { Star, Zap, Infinity } from "lucide-react"
 import InfinityPackDropdown from "./infinity-pack-dropdown"
 import { useTranslations } from "next-intl"
 import type { CurrencyCode } from "@/lib/payments/currency-utils"
+import { getPackPrice } from "@/lib/payments/star-products"
+import { formatCurrency } from "@/lib/payments/currency-utils"
 
 type LabelKey =
     | "starter"
@@ -12,6 +14,8 @@ type LabelKey =
     | "seeker"
     | "mystic"
     | "master"
+    | "grandMaster"
+    | "ultimate"
     | "unlimited"
 
 type Pack = {
@@ -25,32 +29,44 @@ type Pack = {
 const packs: Pack[] = [
     {
         id: process.env.NEXT_PUBLIC_STARTER_PACK_ID ?? "",
-        stars: 60,
+        stars: 30,
         labelKey: "starter",
         color: "yellow",
     },
     {
         id: process.env.NEXT_PUBLIC_EXPLORER_PACK_ID ?? "",
-        stars: 130,
+        stars: 65,
         labelKey: "explorer",
         color: "yellow",
     },
     {
         id: process.env.NEXT_PUBLIC_SEEKER_PACK_ID ?? "",
-        stars: 200,
+        stars: 100,
         labelKey: "seeker",
         color: "yellow",
     },
     {
         id: process.env.NEXT_PUBLIC_MYSTIC_PACK_ID ?? "",
-        stars: 350,
+        stars: 175,
         labelKey: "mystic",
         color: "yellow",
     },
     {
         id: process.env.NEXT_PUBLIC_MASTER_PACK_ID ?? "",
-        stars: 500,
+        stars: 250,
         labelKey: "master",
+        color: "yellow",
+    },
+    {
+        id: process.env.NEXT_PUBLIC_500_STARS_PACK_ID ?? "",
+        stars: 500,
+        labelKey: "grandMaster",
+        color: "yellow",
+    },
+    {
+        id: process.env.NEXT_PUBLIC_1000_STARS_PACK_ID ?? "",
+        stars: 1000,
+        labelKey: "ultimate",
         color: "yellow",
     },
     {
@@ -113,15 +129,24 @@ const getColorClasses = (color: string) => {
 
 type OneTapTopUpProps = {
     currency: CurrencyCode
+    locale?: string
 }
 
-export default function OneTapTopUp({ currency }: OneTapTopUpProps) {
+export default function OneTapTopUp({
+    currency,
+    locale = "en",
+}: OneTapTopUpProps) {
     const t = useTranslations("OneTapTopUp.packs")
+
+    const formatAmount = (packId: string) => {
+        const price = getPackPrice(packId, currency)
+        return price != null ? formatCurrency(price, currency, locale) : "--"
+    }
     return (
         <div className='w-full max-w-5xl mx-auto'>
             {/* Star Packs Grid */}
             <div className='mb-8'>
-                <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4'>
+                <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-8 gap-4'>
                     {packs.map((p) => {
                         const colors = getColorClasses(p.color)
                         return (
@@ -187,6 +212,15 @@ export default function OneTapTopUp({ currency }: OneTapTopUpProps) {
                                                 </p>
                                                 <p className='text-xs text-amber-200/80 font-medium'>
                                                     {t(p.labelKey)}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Dynamic Price Box */}
+                                        <div className='relative z-10 mt-2 w-full'>
+                                            <div className='bg-white/10 backdrop-blur-sm border border-amber-400/30 rounded-lg px-3 py-2'>
+                                                <p className='text-sm font-semibold text-amber-100 text-center'>
+                                                    {formatAmount(p.id)}
                                                 </p>
                                             </div>
                                         </div>

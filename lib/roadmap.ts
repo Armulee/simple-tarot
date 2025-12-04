@@ -12,6 +12,17 @@ export type RoadmapPhaseDefinition = {
 
 export const roadmapPhases: RoadmapPhaseDefinition[] = [
     {
+        id: "tarot",
+        translationKey: "tarot",
+        phaseKey: "phases.completed",
+        statusKey: "status.completed",
+        startDate: "2024-01-01",
+        targetDate: "2024-12-31",
+        color: "from-primary to-secondary",
+        glowColor: "shadow-primary/20",
+        featureIconKeys: ["BookOpen", "Sparkles", "MessageCircle"],
+    },
+    {
         id: "birth-chart",
         translationKey: "birthChart",
         phaseKey: "phases.dec_2025",
@@ -23,8 +34,8 @@ export const roadmapPhases: RoadmapPhaseDefinition[] = [
         featureIconKeys: ["BarChart3", "Compass", "MessageCircle"],
     },
     {
-        id: "horoscope",
-        translationKey: "horoscope",
+        id: "astrology",
+        translationKey: "astrology",
         phaseKey: "phases.dec_2025",
         statusKey: "status.inDevelopment",
         startDate: "2025-07-01",
@@ -120,7 +131,9 @@ function parseDate(value?: string) {
     return Number.isNaN(date.valueOf()) ? null : date
 }
 
-export function getUpcomingRoadmapPhase(referenceDate = new Date()): UpcomingPhase | null {
+export function getUpcomingRoadmapPhase(
+    referenceDate = new Date()
+): UpcomingPhase | null {
     const now = referenceDate.getTime()
     const futurePhases = roadmapPhases
         .map((phase) => {
@@ -140,7 +153,9 @@ export function getUpcomingRoadmapPhase(referenceDate = new Date()): UpcomingPha
     return futurePhases[0]
 }
 
-export function getAvailabilityCountdown(referenceDate = new Date()): AvailabilityCountdown | null {
+export function getAvailabilityCountdown(
+    referenceDate = new Date()
+): AvailabilityCountdown | null {
     const upcoming = getUpcomingRoadmapPhase(referenceDate)
     if (!upcoming) return null
     const diffMs = upcoming.targetDate.getTime() - referenceDate.getTime()
@@ -157,14 +172,18 @@ export function getAvailabilityCountdown(referenceDate = new Date()): Availabili
     }
 }
 
-export function formatAvailabilityCountdown(countdown?: AvailabilityCountdown | null) {
+export function formatAvailabilityCountdown(
+    countdown?: AvailabilityCountdown | null
+) {
     if (!countdown) return undefined
     const minuteLabel = countdown.minutes.toString().padStart(2, "0")
     const secondLabel = countdown.seconds.toString().padStart(2, "0")
     return `Available ${countdown.hours}h ${minuteLabel}m ${secondLabel}s`
 }
 
-export function getAvailabilityLabel(referenceDate = new Date()): string | undefined {
+export function getAvailabilityLabel(
+    referenceDate = new Date()
+): string | undefined {
     const countdown = getAvailabilityCountdown(referenceDate)
     return formatAvailabilityCountdown(countdown)
 }

@@ -17,34 +17,34 @@ import {
     SUPPORTED_PAYMENT_CURRENCIES,
     type CurrencyCode,
 } from "@/lib/payments/currency-utils"
-import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
 
 type CurrencySelectorProps = {
     locale: string
     defaultCurrency: CurrencyCode
+    currency?: CurrencyCode
     onCurrencyChange: (currency: CurrencyCode) => void
 }
 
 export default function CurrencySelector({
     locale,
     defaultCurrency,
+    currency: externalCurrency,
     onCurrencyChange,
 }: CurrencySelectorProps) {
     const t = useTranslations("Pricing")
-    const preferredCurrency = usePreferredCurrency(defaultCurrency)
+    // Use external currency if provided, otherwise default to USD
     const [currency, setCurrency] = useState<CurrencyCode>(
-        ensureSupportedCurrency(preferredCurrency)
+        ensureSupportedCurrency(externalCurrency || defaultCurrency || "USD")
     )
-    const [isManualCurrency, setIsManualCurrency] = useState(false)
     const [currencyQuery, setCurrencyQuery] = useState("")
 
+    // Sync with external currency prop
     useEffect(() => {
-        if (!isManualCurrency) {
-            const newCurrency = ensureSupportedCurrency(preferredCurrency)
-            setCurrency(newCurrency)
-            onCurrencyChange(newCurrency)
+        if (externalCurrency) {
+            const syncedCurrency = ensureSupportedCurrency(externalCurrency)
+            setCurrency(syncedCurrency)
         }
-    }, [preferredCurrency, isManualCurrency, onCurrencyChange])
+    }, [externalCurrency])
 
     const currencyFormatter = useMemo(() => {
         if (typeof Intl.DisplayNames === "undefined") return null
@@ -95,17 +95,13 @@ export default function CurrencySelector({
     }, [currencyOptions, normalizedCurrencyQuery, currencyFormatter])
 
     const handleCurrencyChange = (value: string) => {
-        setIsManualCurrency(true)
         const newCurrency = ensureSupportedCurrency(value)
         setCurrency(newCurrency)
         onCurrencyChange(newCurrency)
     }
 
     return (
-        <div className='flex items-center justify-center pt-4'>
-            <span className='text-sm text-white/70 px-4 h-12 flex items-center bg-white/30 border-border/30 rounded-l-md'>
-                {t("currency")}:
-            </span>
+        <div className='inline-flex items-center'>
             <Select
                 value={currency}
                 onValueChange={handleCurrencyChange}
@@ -115,10 +111,18 @@ export default function CurrencySelector({
                     }
                 }}
             >
-                <SelectTrigger className='w-[190px] bg-accent/30 border-border/30 rounded-r-md rounded-l-none !h-12'>
-                    <SelectValue
-                        placeholder={`${getCurrencySymbol(currency)} · ${currency}`}
-                    />
+                <SelectTrigger className='h-8 px-3 text-xs bg-white/10 hover:bg-white/20 border-border/30 rounded-md'>
+                    <SelectValue>
+                        {currency === "USD" ? (
+                            <span>
+                                {t("changeCurrency") || "Change Currency"}
+                            </span>
+                        ) : (
+                            <span>
+                                {getCurrencySymbol(currency)} · {currency}
+                            </span>
+                        )}
+                    </SelectValue>
                 </SelectTrigger>
                 <SelectContent className='bg-black border-border/30 p-0'>
                     <div className='sticky top-0 z-10 bg-black/95 border-b border-border/30 p-2'>
