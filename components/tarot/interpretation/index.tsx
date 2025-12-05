@@ -205,14 +205,21 @@ export default function Interpretation({
             
             // Check if stars need to be deducted (only if not already paid and no initial interpretation)
             if (!initialInterpretation && !paidForInterpretation) {
-                // Wait for stars to be initialized before checking
+                // Wait for stars to be initialized AND stars value to be loaded
+                // starsInitialized should match the initialized flag in spendStars
                 if (!starsInitialized) {
                     // Stars not initialized yet, wait for them to load
                     return
                 }
                 
-                // Check if user has enough stars (stars can be null initially, so check properly)
-                const currentStars = stars ?? 0
+                // Ensure stars value is actually loaded (not null/undefined)
+                if (stars === null || stars === undefined) {
+                    // Stars value not loaded yet, wait
+                    return
+                }
+                
+                // Check if user has enough stars - must be a valid number >= 1
+                const currentStars = typeof stars === 'number' ? stars : Number(stars)
                 if (!Number.isFinite(currentStars) || currentStars < 1) {
                     setShowNoStarsDialog(true)
                     setError("Not enough stars to generate interpretation")
@@ -220,8 +227,15 @@ export default function Interpretation({
                 }
                 
                 // Deduct star for interpretation
+                // spendStars internally checks initialized. Since starsInitialized is true
+                // and stars is a valid number >= 1, this should succeed.
                 const starSuccess = spendStars(1)
                 if (!starSuccess) {
+                    // spendStars failed despite our checks. This could happen if:
+                    // 1. The initialized flag in spendStars closure is stale (shouldn't happen)
+                    // 2. Stars were spent between our check and the spendStars call
+                    // 3. Some other validation in spendStars failed
+                    // Show error to user
                     setShowNoStarsDialog(true)
                     setError("Not enough stars to generate interpretation")
                     return
