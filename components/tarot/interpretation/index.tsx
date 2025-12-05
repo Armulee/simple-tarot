@@ -8,6 +8,7 @@ import QuestionInput from "../../question-input"
 import { useTranslations } from "next-intl"
 import { useAuth } from "@/hooks/use-auth"
 import { useTarot } from "@/contexts/tarot-context"
+import { useStars } from "@/contexts/stars-context"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -50,7 +51,10 @@ export default function Interpretation({
         isFollowUp,
         setInterpretation: setContextInterpretation,
         setQuestion: setContextQuestion,
+        paidForInterpretation,
+        setPaidForInterpretation,
     } = useTarot()
+    const { stars, spendStars } = useStars()
     const [interpretation, setInterpretationState] = useState<string | null>(
         initialInterpretation ?? null
     )
@@ -199,6 +203,28 @@ export default function Interpretation({
                     : null
             if (genKey && sessionStorage.getItem(genKey)) return
             if (genKey) sessionStorage.setItem(genKey, "1")
+            
+            // Check if stars need to be deducted (only if not already paid and no initial interpretation)
+            if (!initialInterpretation && !paidForInterpretation) {
+                // Check if user has enough stars
+                if (!Number.isFinite(stars as number) || (stars as number) < 1) {
+                    setShowNoStarsDialog(true)
+                    setError("Not enough stars to generate interpretation")
+                    return
+                }
+                
+                // Deduct star for interpretation
+                const starSuccess = spendStars(1)
+                if (!starSuccess) {
+                    setShowNoStarsDialog(true)
+                    setError("Not enough stars to generate interpretation")
+                    return
+                }
+                
+                // Mark as paid
+                setPaidForInterpretation(true)
+            }
+            
             setHasAttemptedGeneration(true)
             setIsGenerating(true)
             setError(null)
@@ -287,6 +313,11 @@ Output:
         complete,
         readingId,
         isFollowUp,
+        initialInterpretation,
+        paidForInterpretation,
+        stars,
+        spendStars,
+        setPaidForInterpretation,
     ])
 
     useEffect(() => {

@@ -102,11 +102,7 @@ export default function CardSelection({
     const handleCardsSelected = async (
         cards: { name: string; isReversed: boolean }[]
     ) => {
-        // If not enough stars, block and show dialog; do not mutate state
-        if (!Number.isFinite(stars as number) || (stars as number) < 1) {
-            setShowNoStarsDialog(true)
-            return
-        }
+        // Note: Star check happens when interpretation is generated, not here
         // Clear old interpretation state when new cards are selected
         clearInterpretationState()
 
@@ -152,13 +148,8 @@ export default function CardSelection({
                 }
             } catch {}
 
-            // Deduct star before creating the reading
-            const starSuccess = spendStars(1)
-            if (!starSuccess) {
-                setShowNoStarsDialog(true)
-                setIsCreatingReading(false)
-                return
-            }
+            // Note: Star deduction happens when interpretation is generated, not here
+            // This ensures stars are only deducted when an interpretation is actually created
 
             const response = await fetch("/api/tarot/create", {
                 method: "POST",
@@ -351,7 +342,7 @@ export default function CardSelection({
                                     fill='currentColor'
                                 />
                                 {
-                                    "Starting the interpretation will consume 1 star."
+                                    "Generating the interpretation will consume 1 star."
                                 }
                             </p>
                         </div>
