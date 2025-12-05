@@ -37,33 +37,6 @@ Your purpose is to sound like a real spiritual reader who connects with the user
         Note: Only include card symbolism, spread mechanics, or detailed card meanings if the user's message explicitly asks for them. Otherwise, answer directly without those details.`,
         })
 
-        // 3) If the mapping is weak or ambiguous, do not force symbolism; provide grounded, practical guidance that still answers the question.
-
-        // Log cost calculation immediately without waiting
-        console.log(
-            "Cost calculation:",
-            costPerUsage(undefined, undefined, MODEL)
-        )
-
-        // Log actual usage asynchronously without blocking streaming
-        result.usage
-            .then((usage) => {
-                const inputTokens = usage?.inputTokens
-                const outputTokens = usage?.outputTokens
-                const estimatedCost = costPerUsage(
-                    inputTokens,
-                    outputTokens,
-                    MODEL
-                )
-                console.log("AI usage", {
-                    model: MODEL,
-                    inputTokens,
-                    outputTokens,
-                    estimatedCostUSD: estimatedCost,
-                })
-            })
-            .catch(() => {})
-
         return result.toUIMessageStreamResponse()
     } catch (error) {
         console.error("Error generating interpretation:", error)
@@ -73,28 +46,28 @@ Your purpose is to sound like a real spiritual reader who connects with the user
     }
 }
 
-function costPerUsage(
-    input: number | undefined,
-    output: number | undefined,
-    model: string = MODEL
-) {
-    if (model === "openai/gpt-5-nano" && input && output) {
-        return {
-            input,
-            output,
-            cost: input * (0.05 / 1000000) + output * (0.4 / 1000000),
-        }
-    }
-    if (model === "openai/gpt-4.1-mini" && input && output) {
-        return input * (0.4 / 1000000) + output * (1.6 / 1000000)
-    }
-    if (model === "openai/gpt-5-mini" && input && output) {
-        return input * (0.25 / 1000000) + output * (2 / 1000000)
-    }
-    if (model === "openai/gpt-5" && input && output) {
-        return input * (1.25 / 1000000) + output * (10.0 / 1000000)
-    }
-    if (model === "openai/gpt-4o-mini" && input && output) {
-        return input * (0.15 / 1000000) + output * (0.6 / 1000000)
-    }
-}
+// function costPerUsage(
+//     input: number | undefined,
+//     output: number | undefined,
+//     model: string = MODEL
+// ) {
+//     if (model === "openai/gpt-5-nano" && input && output) {
+//         return {
+//             input,
+//             output,
+//             cost: input * (0.05 / 1000000) + output * (0.4 / 1000000),
+//         }
+//     }
+//     if (model === "openai/gpt-4.1-mini" && input && output) {
+//         return input * (0.4 / 1000000) + output * (1.6 / 1000000)
+//     }
+//     if (model === "openai/gpt-5-mini" && input && output) {
+//         return input * (0.25 / 1000000) + output * (2 / 1000000)
+//     }
+//     if (model === "openai/gpt-5" && input && output) {
+//         return input * (1.25 / 1000000) + output * (10.0 / 1000000)
+//     }
+//     if (model === "openai/gpt-4o-mini" && input && output) {
+//         return input * (0.15 / 1000000) + output * (0.6 / 1000000)
+//     }
+// }

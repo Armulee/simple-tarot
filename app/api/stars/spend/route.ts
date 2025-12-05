@@ -33,7 +33,6 @@ export async function POST(req: Request) {
         p_amount: amount,
         p_user_id: null,
     })
-    console.log(data)
     if (error) {
         console.error(error)
         return NextResponse.json({ error: error.message }, { status: 400 })

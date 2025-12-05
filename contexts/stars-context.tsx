@@ -356,7 +356,6 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                             : nextRefillAt
                     if (nextRefill !== nextRefillAt)
                         setNextRefillAt(nextRefill ?? null)
-                    console.log(next)
                     return next
                 }
                 return current
