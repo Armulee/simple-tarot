@@ -20,7 +20,6 @@ export async function POST(req: Request) {
         // This was causing double deduction
 
         if (error) {
-            console.error(data, error)
             return NextResponse.json({ error: error.message }, { status: 400 })
         }
         return NextResponse.json({ data })
@@ -34,7 +33,6 @@ export async function POST(req: Request) {
         p_user_id: null,
     })
     if (error) {
-        console.error(error)
         return NextResponse.json({ error: error.message }, { status: 400 })
     }
     return NextResponse.json({ data })

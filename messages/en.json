@@ -1055,6 +1055,27 @@
         "Aquarius": "You appear unique, independent, and forward-thinking. Others see you as innovative and humanitarian. You approach life with originality and value freedom.",
         "Pisces": "You appear dreamy, compassionate, and intuitive. Others see you as artistic and empathetic. You approach life with imagination and spiritual sensitivity."
       }
+    },
+    "form": {
+      "birthInformation": "Your Birth Information",
+      "birthInformationTooltip": "Your birth date establishes the core planetary framework used to generate your chart. Providing your birth time is optional, yet it significantly enhances precision because planetary positions shift throughout the day. Supplying your birth location further refines the calculation by allowing the system to align celestial coordinates with your exact geographic point of origin.",
+      "selectDate": "Select date",
+      "selectTime": "Select time",
+      "selectLocation": "Select location",
+      "backToHour": "Back to hour",
+      "enterBirthHour": "Enter your birth hour",
+      "enterBirthMinute": "Enter your birth minute",
+      "backToCountry": "Back to country",
+      "searchCountries": "Search countries...",
+      "useCurrentLocation": "Use current location",
+      "searchStatesProvinces": "Search states/provinces...",
+      "generating": "Generating...",
+      "generateChart": "Generate Chart",
+      "errors": {
+        "calculateFailed": "Failed to calculate birth chart",
+        "createFailed": "Failed to create birth chart entry. Please ensure the birth_charts table exists in your database.",
+        "unexpectedError": "An unexpected error occurred"
+      }
     }
   },
 
