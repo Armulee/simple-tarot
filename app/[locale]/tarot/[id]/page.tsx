@@ -152,7 +152,7 @@ export default async function TarotReadingPage({
                                 {/* Badge on top */}
                                 <Badge
                                     variant='secondary'
-                                    className='bg-primary/20 text-primary border-primary/30'
+                                    className='bg-white/20 text-white/80 border-primary/30'
                                 >
                                     {card.meaning}
                                 </Badge>
@@ -170,7 +170,7 @@ export default async function TarotReadingPage({
                                     asChild
                                     size='sm'
                                     variant='ghost'
-                                    className='mt-2 shadow-md text-xs underline underline-offset-2 text-yellow-500 opacity-60 hover:opacity-100 hover:bg-transparent ease duration-300'
+                                    className='mt-2 shadow-md text-xs underline underline-offset-2 text-white/80 opacity-60 hover:opacity-100 hover:bg-transparent ease duration-300'
                                 >
                                     <Link
                                         href={`/articles/tarot/${card.slug}${card.isReversed ? "#reversed-overview" : ""}`}

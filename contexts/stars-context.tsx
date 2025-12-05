@@ -47,7 +47,9 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         boolean | undefined
     >(undefined)
     const [isInfinity, setIsInfinity] = useState<boolean>(false)
-    const [infinityExpiresAt, setInfinityExpiresAt] = useState<number | null>(null)
+    const [infinityExpiresAt, setInfinityExpiresAt] = useState<number | null>(
+        null
+    )
     const { user } = useAuth()
 
     // Refill cap: anonymous 5 (no hourly refill), signed-in 12 (refill every 2 hours)
@@ -331,13 +333,16 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         (amount: number) => {
             if (!Number.isFinite(amount) || amount <= 0) return false
             if (!initialized) return false
-            
+
             // If user has infinity stars and it hasn't expired, always allow spending
-            if (isInfinity && (infinityExpiresAt === null || infinityExpiresAt > Date.now())) {
+            if (
+                isInfinity &&
+                (infinityExpiresAt === null || infinityExpiresAt > Date.now())
+            ) {
                 // Don't deduct stars, just return success
                 return true
             }
-            
+
             let success = false
             setStars((prev: number | null) => {
                 const current = prev ?? 0
@@ -351,6 +356,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                             : nextRefillAt
                     if (nextRefill !== nextRefillAt)
                         setNextRefillAt(nextRefill ?? null)
+                    console.log(next)
                     return next
                 }
                 return current

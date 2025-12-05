@@ -49,6 +49,7 @@ export async function starSpend(
     user: User | null,
     amount: number
 ): Promise<{ ok: boolean; state: StarState }> {
+    console.log(amount)
     const res = await fetch("/api/stars/spend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

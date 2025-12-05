@@ -140,14 +140,22 @@ export default function CardSelection({
             try {
                 const raw = localStorage.getItem("reading-state-v1")
                 if (raw) {
-                    const data = JSON.parse(raw) as { parentReadingId?: string | null }
-                    if (data.parentReadingId) parentReadingId = data.parentReadingId
+                    const data = JSON.parse(raw) as {
+                        parentReadingId?: string | null
+                    }
+                    if (data.parentReadingId)
+                        parentReadingId = data.parentReadingId
                 }
                 if (!parentReadingId) {
-                    const rawBackup = localStorage.getItem("reading-state-v1-backup")
+                    const rawBackup = localStorage.getItem(
+                        "reading-state-v1-backup"
+                    )
                     if (rawBackup) {
-                        const backup = JSON.parse(rawBackup) as { parentReadingId?: string | null }
-                        if (backup.parentReadingId) parentReadingId = backup.parentReadingId
+                        const backup = JSON.parse(rawBackup) as {
+                            parentReadingId?: string | null
+                        }
+                        if (backup.parentReadingId)
+                            parentReadingId = backup.parentReadingId
                     }
                 }
             } catch {}

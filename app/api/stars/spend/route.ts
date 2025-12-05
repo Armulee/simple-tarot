@@ -1,11 +1,9 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { readAndVerifyDid } from "@/lib/server/did"
 import { supabase } from "@/lib/supabase"
 
-export async function POST(req: NextRequest) {
-    const body = await req.json()
-    const amount = body?.amount
-    const userId: string | null = body?.user_id ?? null
+export async function POST(req: Request) {
+    const { amount, user_id: userId } = await req.json()
     const did = await readAndVerifyDid()
     if (!Number.isFinite(amount) || amount <= 0)
         return NextResponse.json({ error: "BAD_AMOUNT" }, { status: 400 })
@@ -18,13 +16,8 @@ export async function POST(req: NextRequest) {
             p_user_id: userId,
         })
 
-        if (did) {
-            await supabase.rpc("star_spend", {
-                p_anon_device_id: did,
-                p_amount: amount,
-                p_user_id: null,
-            })
-        }
+        // REMOVED: Don't deduct from anonymous device when user is logged in
+        // This was causing double deduction
 
         if (error) {
             console.error(data, error)
@@ -40,7 +33,10 @@ export async function POST(req: NextRequest) {
         p_amount: amount,
         p_user_id: null,
     })
-    if (error)
+    console.log(data)
+    if (error) {
+        console.error(error)
         return NextResponse.json({ error: error.message }, { status: 400 })
+    }
     return NextResponse.json({ data })
 }

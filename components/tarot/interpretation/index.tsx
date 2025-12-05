@@ -200,6 +200,7 @@ export default function Interpretation({
             if (genKey && sessionStorage.getItem(genKey)) return
             if (genKey) sessionStorage.setItem(genKey, "1")
             setHasAttemptedGeneration(true)
+
             setIsGenerating(true)
             setError(null)
             const cardNames = (cards ?? []).join(", ")
