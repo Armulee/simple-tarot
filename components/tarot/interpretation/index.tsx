@@ -54,7 +54,7 @@ export default function Interpretation({
         paidForInterpretation,
         setPaidForInterpretation,
     } = useTarot()
-    const { stars, spendStars } = useStars()
+    const { stars, spendStars, initialized: starsInitialized } = useStars()
     const [interpretation, setInterpretationState] = useState<string | null>(
         initialInterpretation ?? null
     )
@@ -202,12 +202,18 @@ export default function Interpretation({
                     ? `reading:${readingId}:gen`
                     : null
             if (genKey && sessionStorage.getItem(genKey)) return
-            if (genKey) sessionStorage.setItem(genKey, "1")
             
             // Check if stars need to be deducted (only if not already paid and no initial interpretation)
             if (!initialInterpretation && !paidForInterpretation) {
-                // Check if user has enough stars
-                if (!Number.isFinite(stars as number) || (stars as number) < 1) {
+                // Wait for stars to be initialized before checking
+                if (!starsInitialized) {
+                    // Stars not initialized yet, wait for them to load
+                    return
+                }
+                
+                // Check if user has enough stars (stars can be null initially, so check properly)
+                const currentStars = stars ?? 0
+                if (!Number.isFinite(currentStars) || currentStars < 1) {
                     setShowNoStarsDialog(true)
                     setError("Not enough stars to generate interpretation")
                     return
@@ -224,6 +230,9 @@ export default function Interpretation({
                 // Mark as paid
                 setPaidForInterpretation(true)
             }
+            
+            // Only mark as attempted and set sessionStorage after all checks pass
+            if (genKey) sessionStorage.setItem(genKey, "1")
             
             setHasAttemptedGeneration(true)
             setIsGenerating(true)
@@ -316,6 +325,7 @@ Output:
         initialInterpretation,
         paidForInterpretation,
         stars,
+        starsInitialized,
         spendStars,
         setPaidForInterpretation,
     ])
