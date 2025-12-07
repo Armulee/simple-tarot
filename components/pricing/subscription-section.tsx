@@ -102,7 +102,7 @@ export default function SubscriptionSection({
                             <Checkout
                                 mode='subscribe'
                                 plan='monthly'
-                                packId={MONTHLY_PACKS.id}
+                                packId={MONTHLY_PACKS.id || undefined}
                                 currency={currency}
                             />
                         </div>
@@ -169,7 +169,7 @@ export default function SubscriptionSection({
                             <Checkout
                                 mode='subscribe'
                                 plan='annual'
-                                packId={ANNUALLY_PACKS.id}
+                                packId={ANNUALLY_PACKS.id || undefined}
                                 currency={currency}
                             />
                         </div>

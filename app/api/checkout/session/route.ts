@@ -8,9 +8,9 @@ export async function POST(req: Request) {
         const { priceId, userId, mode } = await req.json()
         
         // Validate required fields
-        if (!priceId) {
+        if (!priceId || (typeof priceId === "string" && priceId.trim() === "")) {
             return NextResponse.json(
-                { error: "Price ID is required" },
+                { error: "Price ID is required. Please ensure Stripe price IDs are configured in your environment variables." },
                 { status: 400 }
             )
         }

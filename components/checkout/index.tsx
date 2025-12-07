@@ -75,6 +75,16 @@ export function Checkout({
     const handleCheckout = async () => {
         if (processing) return
 
+        // Validate packId before making the API call
+        if (!packId || packId.trim() === "") {
+            const errorMsg = mode === "subscribe" 
+                ? "Subscription price is not configured. Please contact support."
+                : "Product price is not configured. Please contact support."
+            toast.error(errorMsg)
+            console.error("Missing packId for mode:", mode, "plan:", plan, "packId:", packId)
+            return
+        }
+
         let toastId: string | number | undefined
         try {
             setProcessing(true)
@@ -160,13 +170,15 @@ export function Checkout({
             <Button
                 onClick={handleCheckout}
                 className='w-full rounded-full bg-white text-black hover:brightness-90'
-                disabled={processing}
+                disabled={processing || !packId}
             >
                 {processing
                     ? t("loading")
-                    : mode === "pack"
-                      ? t("purchase")
-                      : t("subscribe")}
+                    : !packId
+                      ? t("unavailable", { defaultValue: "Unavailable" })
+                      : mode === "pack"
+                        ? t("purchase")
+                        : t("subscribe")}
             </Button>
         )
     }
