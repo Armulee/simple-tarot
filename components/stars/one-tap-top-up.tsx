@@ -5,8 +5,6 @@ import { Star, Zap, Infinity } from "lucide-react"
 import InfinityPackDropdown from "./infinity-pack-dropdown"
 import { useTranslations } from "next-intl"
 import type { CurrencyCode } from "@/lib/payments/currency-utils"
-import { getPackPrice } from "@/lib/payments/star-products"
-import { formatCurrency } from "@/lib/payments/currency-utils"
 
 type LabelKey =
     | "starter"
@@ -120,21 +118,14 @@ type OneTapTopUpProps = {
     locale?: string
 }
 
-export default function OneTapTopUp({
-    currency,
-    locale = "en",
-}: OneTapTopUpProps) {
+export default function OneTapTopUp({ currency }: OneTapTopUpProps) {
     const t = useTranslations("OneTapTopUp.packs")
 
-    const formatAmount = (packId: string) => {
-        const price = getPackPrice(packId, currency)
-        return price != null ? formatCurrency(price, currency, locale) : "--"
-    }
     return (
         <div className='w-full max-w-5xl mx-auto'>
             {/* Star Packs Grid */}
             <div className='mb-8'>
-                <div className='grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-8 gap-4'>
+                <div className='grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-6 gap-4'>
                     {packs.map((p) => {
                         const colors = getColorClasses(p.color)
                         return (
@@ -149,7 +140,7 @@ export default function OneTapTopUp({
                                 customTrigger={
                                     <button
                                         type='button'
-                                        className={`group relative w-full rounded-2xl border border-amber-400/50 bg-gradient-to-br ${colors.bg} ${colors.hoverBg} ${colors.text} px-4 py-6 flex flex-col items-center gap-3 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-amber-500/25 overflow-hidden`}
+                                        className={`group relative w-full rounded-2xl border border-amber-400/50 bg-gradient-to-br ${colors.bg} ${colors.hoverBg} ${colors.text} p-3 flex flex-col items-center gap-3 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-amber-500/25 overflow-hidden`}
                                     >
                                         {/* Modern gradient background */}
                                         <div className='absolute inset-0 bg-gradient-to-br from-amber-300/20 via-yellow-400/15 to-orange-400/20 group-hover:from-amber-300/30 group-hover:via-yellow-400/25 group-hover:to-orange-400/30 transition-all duration-500' />
@@ -171,20 +162,20 @@ export default function OneTapTopUp({
                                         />
 
                                         {/* Content */}
-                                        <div className='relative z-10 flex flex-col items-center gap-2'>
+                                        <div className='relative z-10 flex items-center gap-2'>
                                             <div
-                                                className={`w-12 h-12 rounded-full bg-gradient-to-br from-amber-300/30 via-yellow-400/25 to-orange-400/30 border border-amber-400/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 relative overflow-hidden`}
+                                                className={`p-2 rounded-full bg-gradient-to-br from-amber-300/30 via-yellow-400/25 to-orange-400/30 border border-amber-400/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 relative overflow-hidden`}
                                             >
                                                 {/* Star sparkle effect */}
                                                 <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse' />
 
                                                 {p.isInfinity ? (
                                                     <Infinity
-                                                        className={`w-6 h-6 ${colors.icon} drop-shadow-sm`}
+                                                        className={`w-5 h-5 ${colors.icon} drop-shadow-sm`}
                                                     />
                                                 ) : (
                                                     <Star
-                                                        className={`w-6 h-6 ${colors.icon} drop-shadow-sm group-hover:animate-spin-slow`}
+                                                        className={`w-5 h-5 ${colors.icon} drop-shadow-sm group-hover:animate-spin-slow`}
                                                         fill='currentColor'
                                                     />
                                                 )}
@@ -192,14 +183,11 @@ export default function OneTapTopUp({
 
                                             <div className='text-center'>
                                                 <p
-                                                    className={`text-2xl font-bold ${colors.text} drop-shadow-sm`}
+                                                    className={`text-xl font-bold ${colors.text} drop-shadow-sm`}
                                                 >
                                                     {p.isInfinity
                                                         ? t("infinity")
                                                         : p.stars}
-                                                </p>
-                                                <p className='text-xs text-amber-200/80 font-medium'>
-                                                    {t(p.labelKey)}
                                                 </p>
                                             </div>
                                         </div>
