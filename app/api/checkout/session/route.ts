@@ -6,9 +6,28 @@ import { stripe } from "@/lib/stripe"
 export async function POST(req: Request) {
     try {
         const { priceId, userId, mode } = await req.json()
-        console.log(priceId)
+        
+        // Validate required fields
+        if (!priceId) {
+            return NextResponse.json(
+                { error: "Price ID is required" },
+                { status: 400 }
+            )
+        }
+
         const headersList = await headers()
         const origin = headersList.get("origin")
+
+        if (!origin) {
+            return NextResponse.json(
+                { error: "Origin header is required" },
+                { status: 400 }
+            )
+        }
+
+        // Determine Stripe checkout mode based on request mode
+        // "subscribe" mode requires "subscription" in Stripe, "pack" mode uses "payment"
+        const stripeMode = mode === "subscribe" ? "subscription" : "payment"
 
         // Create Checkout Sessions from body params.
         const session = await stripe.checkout.sessions.create({
@@ -19,7 +38,7 @@ export async function POST(req: Request) {
                     quantity: 1,
                 },
             ],
-            mode: "payment",
+            mode: stripeMode,
             success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
             automatic_tax: { enabled: true },
             metadata: {

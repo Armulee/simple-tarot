@@ -99,7 +99,9 @@ export function Checkout({
             const data = await response.json()
 
             if (!response.ok) {
-                throw new Error(data?.message ?? "SESSION_ERROR")
+                const errorMessage = data?.error || data?.message || "SESSION_ERROR"
+                console.error("Checkout session error:", errorMessage, data)
+                throw new Error(errorMessage)
             }
 
             if (data?.url) {
@@ -108,8 +110,9 @@ export function Checkout({
                 throw new Error("SESSION_URL_MISSING")
             }
         } catch (error) {
-            toast.error(t("sessionError"))
-            console.error(error)
+            const errorMessage = error instanceof Error ? error.message : t("sessionError")
+            toast.error(errorMessage)
+            console.error("Checkout error:", error)
         } finally {
             if (toastId) toast.dismiss(toastId)
             setProcessing(false)
