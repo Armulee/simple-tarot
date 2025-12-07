@@ -12,6 +12,11 @@ import {
 } from "@/lib/payments/currency-utils"
 import CurrencySelector from "./currency-selector"
 
+// Access env variables directly - Next.js makes NEXT_PUBLIC_* vars available in client components
+// Fallback to the pre-evaluated value from the module in case env isn't available
+const MONTHLY_PACK_ID = process.env.NEXT_PUBLIC_MONTHLY_PACK_ID || MONTHLY_PACKS.id
+const ANNUALLY_PACK_ID = process.env.NEXT_PUBLIC_ANNUALLY_PACK_ID || ANNUALLY_PACKS.id
+
 type SubscriptionSectionProps = {
     locale: string
     currency: CurrencyCode
@@ -32,6 +37,22 @@ export default function SubscriptionSection({
     onCurrencyChange,
 }: SubscriptionSectionProps) {
     const t = useTranslations("Pricing")
+
+    // Debug: Log pack IDs to help diagnose issues
+    if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+        console.log("Subscription Pack IDs:", {
+            monthly: {
+                fromEnv: process.env.NEXT_PUBLIC_MONTHLY_PACK_ID,
+                fromModule: MONTHLY_PACKS.id,
+                final: MONTHLY_PACK_ID,
+            },
+            annual: {
+                fromEnv: process.env.NEXT_PUBLIC_ANNUALLY_PACK_ID,
+                fromModule: ANNUALLY_PACKS.id,
+                final: ANNUALLY_PACK_ID,
+            },
+        })
+    }
 
     const formatAmount = (amount?: number | null) =>
         amount != null ? formatCurrency(amount, currency, locale) : "--"
@@ -102,7 +123,7 @@ export default function SubscriptionSection({
                             <Checkout
                                 mode='subscribe'
                                 plan='monthly'
-                                packId={MONTHLY_PACKS.id || undefined}
+                                packId={MONTHLY_PACK_ID || MONTHLY_PACKS.id || undefined}
                                 currency={currency}
                             />
                         </div>
@@ -169,7 +190,7 @@ export default function SubscriptionSection({
                             <Checkout
                                 mode='subscribe'
                                 plan='annual'
-                                packId={ANNUALLY_PACKS.id || undefined}
+                                packId={ANNUALLY_PACK_ID || ANNUALLY_PACKS.id || undefined}
                                 currency={currency}
                             />
                         </div>
