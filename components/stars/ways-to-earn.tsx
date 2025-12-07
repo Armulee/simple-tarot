@@ -25,8 +25,8 @@ export default function WaysToEarn() {
         socialProgress.claimed >= socialProgress.total
 
     return (
-        <section className='relative px-4 pb-12'>
-            <div className='max-w-lg mx-auto'>
+        <section className='relative'>
+            <div className='w-full'>
                 <div className='text-center mb-8'>
                     <div className='inline-flex items-center gap-2 mb-4'>
                         <Zap className='w-6 h-6 text-yellow-400' />
