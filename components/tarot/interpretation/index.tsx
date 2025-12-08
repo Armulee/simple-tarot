@@ -8,6 +8,7 @@ import QuestionInput from "../../question-input"
 import { useTranslations } from "next-intl"
 import { useAuth } from "@/hooks/use-auth"
 import { useTarot } from "@/contexts/tarot-context"
+import { useStars } from "@/contexts/stars-context"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -50,7 +51,10 @@ export default function Interpretation({
         isFollowUp,
         setInterpretation: setContextInterpretation,
         setQuestion: setContextQuestion,
+        paidForInterpretation,
+        setPaidForInterpretation,
     } = useTarot()
+    const { stars, spendStars, initialized: starsInitialized } = useStars()
     const [interpretation, setInterpretationState] = useState<string | null>(
         initialInterpretation ?? null
     )
@@ -198,7 +202,52 @@ export default function Interpretation({
                     ? `reading:${readingId}:gen`
                     : null
             if (genKey && sessionStorage.getItem(genKey)) return
+            
+            // Check if stars need to be deducted (only if not already paid and no initial interpretation)
+            if (!initialInterpretation && !paidForInterpretation) {
+                // Wait for stars to be initialized AND stars value to be loaded
+                // starsInitialized should match the initialized flag in spendStars
+                if (!starsInitialized) {
+                    // Stars not initialized yet, wait for them to load
+                    return
+                }
+                
+                // Ensure stars value is actually loaded (not null/undefined)
+                if (stars === null || stars === undefined) {
+                    // Stars value not loaded yet, wait
+                    return
+                }
+                
+                // Check if user has enough stars - must be a valid number >= 1
+                const currentStars = typeof stars === 'number' ? stars : Number(stars)
+                if (!Number.isFinite(currentStars) || currentStars < 1) {
+                    setShowNoStarsDialog(true)
+                    setError("Not enough stars to generate interpretation")
+                    return
+                }
+                
+                // Deduct star for interpretation
+                // spendStars internally checks initialized. Since starsInitialized is true
+                // and stars is a valid number >= 1, this should succeed.
+                const starSuccess = spendStars(1)
+                if (!starSuccess) {
+                    // spendStars failed despite our checks. This could happen if:
+                    // 1. The initialized flag in spendStars closure is stale (shouldn't happen)
+                    // 2. Stars were spent between our check and the spendStars call
+                    // 3. Some other validation in spendStars failed
+                    // Show error to user
+                    setShowNoStarsDialog(true)
+                    setError("Not enough stars to generate interpretation")
+                    return
+                }
+                
+                // Mark as paid
+                setPaidForInterpretation(true)
+            }
+            
+            // Only mark as attempted and set sessionStorage after all checks pass
             if (genKey) sessionStorage.setItem(genKey, "1")
+            
             setHasAttemptedGeneration(true)
 
             setIsGenerating(true)
@@ -288,6 +337,12 @@ Output:
         complete,
         readingId,
         isFollowUp,
+        initialInterpretation,
+        paidForInterpretation,
+        stars,
+        starsInitialized,
+        spendStars,
+        setPaidForInterpretation,
     ])
 
     useEffect(() => {
