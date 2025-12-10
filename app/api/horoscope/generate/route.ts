@@ -141,8 +141,11 @@ export async function POST(req: Request) {
         )
 
         // Format birth chart data for prompt
+        const birthPlanets = birthChart.planets as Record<string, unknown>
+        const transitPlanets = transitChart.planets as Record<string, unknown>
+        
         const systemPrompt = formatBirthChartForPrompt(
-            birthChart.planets,
+            birthPlanets,
             birthDateStr || `${birthDay} ${getMonthName(parseInt(birthMonth))} ${birthYear}`,
             birthTimeStr || `${birthHour.padStart(2, "0")}:${birthMinute.padStart(2, "0")}${parseInt(birthHour) >= 12 ? "PM" : "AM"}`,
             locationStr || "Unknown Location",
@@ -156,8 +159,8 @@ export async function POST(req: Request) {
         const transitPositionsList: string[] = []
         
         targetPlanets.forEach(planetName => {
-            const pKey = Object.keys(transitChart.planets).find(k => k.toLowerCase() === planetName.toLowerCase())
-            const position = pKey ? transitChart.planets[pKey] : null
+            const pKey = Object.keys(transitPlanets).find(k => k.toLowerCase() === planetName.toLowerCase())
+            const position = pKey ? transitPlanets[pKey] : null
             
             if (typeof position === "object" && position !== null) {
                 const p = position as { sign: string; [key: string]: unknown }
