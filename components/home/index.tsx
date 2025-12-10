@@ -132,6 +132,17 @@ export default function Home() {
                                             )
                                         } catch {}
                                     }
+
+                                    // Notify horoscope component when it becomes active (index 2)
+                                    if (realIndex === 2) {
+                                        try {
+                                            window.dispatchEvent(
+                                                new CustomEvent(
+                                                    "horoscope-slide-active"
+                                                )
+                                            )
+                                        } catch {}
+                                    }
                                 }}
                             >
                                 {features.map((feature) => {

@@ -59,6 +59,25 @@ export default function HoroscopeFormWithQuestion() {
     // Question
     const [question, setQuestion] = useState("")
 
+    // Load question from localStorage if available (from homepage)
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            try {
+                const saved = localStorage.getItem("horoscope-question")
+                if (saved) {
+                    const data = JSON.parse(saved)
+                    if (data.question) {
+                        setQuestion(data.question)
+                        // Clear it after loading so it doesn't persist
+                        localStorage.removeItem("horoscope-question")
+                    }
+                }
+            } catch {
+                // ignore errors
+            }
+        }
+    }, [])
+
     // Country/State selection
     const [country, setCountry] = useState<string>("")
     const [stateProv, setStateProv] = useState<string>("")
