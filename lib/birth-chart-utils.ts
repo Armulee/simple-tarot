@@ -243,3 +243,65 @@ export function getZodiacRotation(sign: string): number {
     if (index === -1) return 0
     return index * 30
 }
+
+/**
+ * Normalizes a sign name to English format (handles both English and Sanskrit names)
+ */
+function normalizeSign(sign: string): string {
+    const normalized = ZODIAC_SIGNS.find(
+        (s) => s.toLowerCase() === sign.toLowerCase()
+    )
+    if (normalized) return normalized
+    
+    const englishSign = SANSKRIT_SIGNS[sign]
+    if (englishSign) return englishSign
+    
+    // Try to find by key
+    const key = Object.keys(SANSKRIT_SIGNS).find(
+        (k) => k.toLowerCase() === sign.toLowerCase()
+    )
+    if (key) return SANSKRIT_SIGNS[key]
+    
+    // Fallback: capitalize first letter
+    return sign.charAt(0).toUpperCase() + sign.slice(1).toLowerCase()
+}
+
+/**
+ * Formats birth chart data into a prompt string for AI horoscope generation
+ */
+export function formatBirthChartForPrompt(
+    planets: Record<string, unknown>,
+    birthDate: string,
+    birthTime: string,
+    location: string,
+    transitDate?: string,
+    transitTime?: string
+): string {
+    const targetPlanets = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Neptune']
+    const planetPositions: string[] = []
+    
+    targetPlanets.forEach(planetName => {
+        const pKey = Object.keys(planets).find(k => k.toLowerCase() === planetName.toLowerCase())
+        const position = pKey ? planets[pKey] : null
+        
+        if (typeof position === "object" && position !== null) {
+            const p = position as AstroPoint
+            const sign = normalizeSign(p.sign)
+            planetPositions.push(`- ${planetName} in ${sign.toLowerCase()}`)
+        }
+    })
+    
+    let prompt = `Act as expert Thai horoscopic fortune teller based on real star positions, making predictions without user bias.`
+    
+    if (transitDate && transitTime) {
+        prompt += ` In some question you might need to calculate the certain position of star in the transit date user provided.`
+    }
+    
+    prompt += ` User's birth date and time will ${birthDate}, ${birthTime}, ${location}. Due to the Thai horoscope (Lagna system) this star position in the birth chart:\n${planetPositions.join('\n')}`
+    
+    if (transitDate && transitTime) {
+        prompt += `\n\nTransit date and time: ${transitDate}, ${transitTime}.`
+    }
+    
+    return prompt
+}
