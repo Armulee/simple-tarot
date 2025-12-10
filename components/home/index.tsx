@@ -26,7 +26,7 @@ export default function Home() {
     const features = [
         { id: "tarot", component: Tarot, available: true },
         { id: "birthChart", component: BirthChart, available: true },
-        { id: "horoscope", component: Horoscope, available: false },
+        { id: "horoscope", component: Horoscope, available: true },
         { id: "namelogy", component: Namelogy, available: false },
         { id: "numelogy", component: Numelogy, available: false },
         { id: "luckyColors", component: LuckyColors, available: false },
