@@ -14,9 +14,7 @@ export function BetaAnnouncementModal() {
 
             // Small delay to ensure smooth page load
             setTimeout(() => {
-                toast("Beta notice", {
-                    description:
-                        "We’re in beta—expect occasional bugs and unfinished features.",
+                toast("We're in beta! You may encounter bugs and some features are still in development.", {
                     icon: <Sparkle className='h-4 w-4 text-yellow-300' />,
                     duration: 12000,
                     className:
