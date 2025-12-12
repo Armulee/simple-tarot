@@ -27,14 +27,16 @@ export function BetaAnnouncementModal() {
         }
     }, [])
 
-    const handleClose = () => {
-        setOpen(false)
-        // Mark as seen in localStorage
-        localStorage.setItem(STORAGE_KEY, "true")
+    const handleOpenChange = (isOpen: boolean) => {
+        setOpen(isOpen)
+        // If dialog is being closed, mark as seen in localStorage
+        if (!isOpen) {
+            localStorage.setItem(STORAGE_KEY, "true")
+        }
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold">
@@ -55,7 +57,10 @@ export function BetaAnnouncementModal() {
                     </p>
                 </div>
                 <DialogFooter>
-                    <Button onClick={handleClose} className="w-full sm:w-auto">
+                    <Button
+                        onClick={() => handleOpenChange(false)}
+                        className="w-full sm:w-auto"
+                    >
                         I Understand
                     </Button>
                 </DialogFooter>
