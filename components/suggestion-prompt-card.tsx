@@ -330,6 +330,7 @@ export default function SuggestionPromptCard({
                         }}
                         speed={8000}
                         loop={true}
+                        nested={true}
                         className='suggestion-swiper'
                     >
                         {selectedCategory.questions.map((question, index) => (

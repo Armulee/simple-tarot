@@ -22,6 +22,7 @@ export default function Question({
                 value={inputValue}
                 onChange={setInputValue}
                 label={t("label")}
+                centered
             />
             <div className='mx-6'>
                 <SuggestionPromptCard
