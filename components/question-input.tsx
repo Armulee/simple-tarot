@@ -18,6 +18,7 @@ export default function QuestionInput({
     onChange,
     followUp = false,
     followUpParentId,
+    centered = false,
 }: {
     id?: string
     label?: string
@@ -27,6 +28,7 @@ export default function QuestionInput({
     onChange?: (value: string) => void
     followUp?: boolean
     followUpParentId?: string
+    centered?: boolean
 }) {
     const t = useTranslations("QuestionInput")
     // removed unused pathname
@@ -162,11 +164,17 @@ export default function QuestionInput({
     }
 
     return (
-        <div className='w-full mb-6 text-left'>
+        <div
+            className={`w-full mb-6 ${centered ? "text-center" : "text-left"}`}
+        >
             <Label htmlFor={id} className='block mb-2 text-lg'>
                 {label}
             </Label>
-            <div className='relative group max-w-sm md:max-w-md'>
+            <div
+                className={`relative group max-w-sm md:max-w-md ${
+                    centered ? "mx-auto" : ""
+                }`}
+            >
                 <div className='pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(120%_120%_at_0%_0%,rgba(99,102,241,0.18),rgba(168,85,247,0.12)_35%,rgba(34,211,238,0.10)_70%,transparent_80%)] blur-xl opacity-90 group-focus-within:opacity-0 transition-opacity' />
                 <AutoHeightTextarea
                     id={id}

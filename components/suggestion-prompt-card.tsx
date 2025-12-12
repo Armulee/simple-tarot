@@ -190,7 +190,7 @@ export default function SuggestionPromptCard({
         onSuggestionClick(suggestion)
     }
 
-    const handleSwiperInteraction = () => {
+    const manageAutoplay = () => {
         const swiper = swiperRef.current
         if (!swiper) return
 
@@ -206,6 +206,22 @@ export default function SuggestionPromptCard({
         pauseTimeoutRef.current = setTimeout(() => {
             swiper.autoplay?.resume()
         }, 3000)
+    }
+
+    const handleSwiperEvent = (swiper: SwiperType, event: any) => {
+        // Stop propagation to prevent parent swiper from taking over
+        if (event && event.stopPropagation) {
+            event.stopPropagation()
+        }
+        manageAutoplay()
+    }
+
+    const handleMouseEvent = (event: React.MouseEvent | React.TouchEvent | any) => {
+        // Stop propagation to prevent parent swiper from taking over
+        if (event && event.stopPropagation) {
+            event.stopPropagation()
+        }
+        manageAutoplay()
     }
 
     // Cleanup timeout on unmount
@@ -304,12 +320,12 @@ export default function SuggestionPromptCard({
                         onSwiper={(swiper) => {
                             swiperRef.current = swiper
                         }}
-                        onTouchStart={handleSwiperInteraction}
-                        onTouchMove={handleSwiperInteraction}
-                        onTouchEnd={handleSwiperInteraction}
-                        onMouseDown={handleSwiperInteraction}
-                        onMouseMove={handleSwiperInteraction}
-                        onMouseUp={handleSwiperInteraction}
+                        onTouchStart={handleSwiperEvent}
+                        onTouchMove={handleSwiperEvent}
+                        onTouchEnd={handleSwiperEvent}
+                        onMouseDown={handleMouseEvent}
+                        onMouseMove={handleMouseEvent}
+                        onMouseUp={handleMouseEvent}
                         modules={[Autoplay, FreeMode]}
                         spaceBetween={12}
                         slidesPerView='auto'
@@ -329,7 +345,8 @@ export default function SuggestionPromptCard({
                             reverseDirection: false,
                         }}
                         speed={8000}
-                        loop={true}
+                        loop={false}
+                        nested={true}
                         className='suggestion-swiper'
                     >
                         {selectedCategory.questions.map((question, index) => (
