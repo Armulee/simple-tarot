@@ -38,7 +38,7 @@ export function BetaAnnouncementModal() {
 
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
-            <BetaDialog className='fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 relative overflow-hidden'>
+            <BetaDialog className='relative overflow-hidden'>
                 <DialogHeader className='text-center space-y-4'>
                     <DialogTitle className='text-yellow-300 font-serif text-xl'>
                         Beta Testing Notice
