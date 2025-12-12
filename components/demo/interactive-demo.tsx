@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Sparkles, PlayCircle, Send, Wand2 } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { toast } from "sonner"
 
 export default function InteractiveDemo() {
   const t = useTranslations("Demo")
@@ -46,7 +47,9 @@ export default function InteractiveDemo() {
     e.preventDefault()
     setSubmitting(true)
     await new Promise((r) => setTimeout(r, 1200))
-    alert("Thanks! We’ll email you to schedule a quick walkthrough.")
+    toast.success("Request sent!", {
+      description: "We’ll email you shortly.",
+    })
     setFormData({ name: "", email: "", teamSize: "", goals: "", notes: "" })
     setSubmitting(false)
   }
