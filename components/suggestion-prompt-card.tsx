@@ -345,7 +345,7 @@ export default function SuggestionPromptCard({
                             reverseDirection: false,
                         }}
                         speed={8000}
-                        loop={true}
+                        loop={false}
                         nested={true}
                         className='suggestion-swiper'
                     >
