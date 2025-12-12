@@ -51,6 +51,20 @@ interface ActionSectionProps {
     onGeneratingChange?: (loading: boolean) => void
 }
 
+function truncateMiddle(value: string, max = 72) {
+    const str = String(value)
+    if (str.length <= max) return str
+    if (max <= 1) return "…"
+    const keep = max - 1
+    const front = Math.ceil(keep * 0.6)
+    const back = Math.max(0, keep - front)
+    return `${str.slice(0, front)}…${str.slice(str.length - back)}`
+}
+
+function compactWhitespace(value: string) {
+    return String(value).replace(/\s+/g, " ").trim()
+}
+
 export default function ActionSection({
     question: propQuestion,
     cards: propCards,
@@ -446,13 +460,17 @@ Output:
                         setCopiedLink(true)
                         window.setTimeout(() => setCopiedLink(false), 2000)
                     } else {
-                        // If both methods fail, show the link in an alert
-                        alert(`Copy this link: ${link}`)
+                        toast.info("Copy link manually", {
+                            description: truncateMiddle(link, 72),
+                            closeButton: true,
+                        })
                     }
                 } catch (fallbackError) {
                     console.error("Fallback copy failed:", fallbackError)
-                    // Last resort: show the link
-                    alert(`Copy this link: ${link}`)
+                    toast.info("Copy link manually", {
+                        description: truncateMiddle(link, 72),
+                        closeButton: true,
+                    })
                 }
             },
         },
@@ -504,13 +522,20 @@ Output:
                         setCopiedText(true)
                         window.setTimeout(() => setCopiedText(false), 2000)
                     } else {
-                        // If both methods fail, show the text in an alert
-                        alert(`Copy this text: ${text}`)
+                        toast.info("Copy text manually", {
+                            description: truncateMiddle(
+                                compactWhitespace(text),
+                                88
+                            ),
+                            closeButton: true,
+                        })
                     }
                 } catch (fallbackError) {
                     console.error("Fallback copy failed:", fallbackError)
-                    // Last resort: show the text
-                    alert(`Copy this text: ${text}`)
+                    toast.info("Copy text manually", {
+                        description: truncateMiddle(compactWhitespace(text), 88),
+                        closeButton: true,
+                    })
                 }
             },
         },

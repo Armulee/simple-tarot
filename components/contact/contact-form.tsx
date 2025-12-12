@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner"
 
 export default function ContactForm() {
     const [formData, setFormData] = useState({
@@ -24,7 +25,9 @@ export default function ContactForm() {
         // Simulate form submission
         await new Promise((resolve) => setTimeout(resolve, 1500))
 
-        alert("Thank you for your message! We'll get back to you soon.")
+        toast.success("Message sent!", {
+            description: "We’ll get back to you soon.",
+        })
 
         // Reset form
         setFormData({ name: "", email: "", subject: "", message: "" })
