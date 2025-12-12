@@ -133,7 +133,7 @@ export default async function RootLayout({
                 </NextIntlClientProvider>
                 <Analytics />
                 <Toaster
-                    position='bottom-center'
+                    position='top-center'
                     theme='dark'
                     richColors
                     closeButton
