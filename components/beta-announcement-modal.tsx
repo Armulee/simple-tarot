@@ -50,10 +50,11 @@ export function BetaAnnouncementModal() {
                             or unexpected behavior while using our services.
                         </p>
                         <p className='text-sm text-white/75'>
-                            We appreciate your patience and feedback as we work to
-                            improve the experience. If you encounter any issues,
-                            please don&apos;t hesitate to reach out to our support
-                            team.
+                            Please note that some features will be unavailable as they
+                            are still in development. We appreciate your patience and
+                            feedback as we work to improve the experience. If you
+                            encounter any issues, please don&apos;t hesitate to reach
+                            out to our support team.
                         </p>
                     </DialogDescription>
                 </DialogHeader>
