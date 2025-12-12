@@ -190,8 +190,12 @@ export default function SuggestionPromptCard({
         onSuggestionClick(suggestion)
     }
 
-    const handleSwiperInteraction = () => {
-        const swiper = swiperRef.current
+    const handleSwiperInteraction = (swiper: SwiperType, event: any) => {
+        // Stop propagation to prevent parent swiper from taking over
+        if (event && event.stopPropagation) {
+            event.stopPropagation()
+        }
+
         if (!swiper) return
 
         // Pause autoplay

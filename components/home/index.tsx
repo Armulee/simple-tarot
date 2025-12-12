@@ -141,7 +141,7 @@ export default function Home() {
                                             key={feature.id}
                                             className='w-full h-full'
                                         >
-                                            <div className='w-full h-full flex flex-col items-center justify-end pb-18'>
+                                            <div className='w-full h-full flex flex-col items-center justify-end pb-18 overflow-hidden'>
                                                 <FeatureComponent />
                                             </div>
                                         </SwiperSlide>
