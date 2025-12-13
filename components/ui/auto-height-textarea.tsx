@@ -40,7 +40,7 @@ export default function AutoHeightTextarea({
             {...props}
             ref={ref}
             onChange={handleChange}
-            className={`${className} min-h-[40px] max-h-[200px] resize-none overflow-x-hidden scrollbar-hide`}
+            className={`${className} min-h-[40px] max-h-[200px] resize-none overflow-x-hidden scrollbar-hide appearance-none`}
         />
     )
 }
