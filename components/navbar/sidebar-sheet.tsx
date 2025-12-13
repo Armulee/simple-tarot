@@ -128,7 +128,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                 </div>
 
                 {/* Scrollable Navigation Section */}
-                <div className='flex-1 overflow-y-auto px-4'>
+                <div className='flex-1 overflow-y-auto px-4 scrollbar-hide'>
                     <nav>
                         <ul className='flex flex-col space-y-1'>
                             <li>
