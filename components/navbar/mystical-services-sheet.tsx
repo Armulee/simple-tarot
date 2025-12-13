@@ -37,7 +37,7 @@ export default function MysticalServicesSheet({
             </SheetTrigger>
             <SheetContent
                 side='right'
-                className='w-80 bg-card/95 backdrop-blur-md border-border/30 p-0 overflow-y-auto scrollbar-hide'
+                className='w-80 bg-card/95 backdrop-blur-md border-border/30 p-0 overflow-y-auto scrollbar-hide appearance-none'
             >
                 <div className='px-4 py-4 border-b border-white/10'>
                     <SheetHeader>
