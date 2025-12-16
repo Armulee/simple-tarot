@@ -281,32 +281,32 @@ Follow-up question: "${question}"
 
 Cards: ${cardNames}
 
-Goal: Provide a concise follow-up interpretation that directly answers the follow-up while staying consistent with the previous interpretation.
+Goal: Provide a direct answer to the follow-up question.
+- If the user asks "When", give a timing estimate.
+- If "Will I", give a clear outcome.
 
 Guidance:
-- Build on the earlier reading; reference it briefly (do not repeat it).
-- If the follow-up shifts focus, explain the link in a short phrase, then answer directly.
-- Do not fetch or cite external sources (e.g., thetarotguide.com). Use only the provided card names (and reversed markers) as context.
+- Build on the earlier reading but prioritize the new answer.
+- Do not repeat the previous interpretation.
+- No fluff.
 
 Output:
 - One short paragraph, <= 100 words.
-- Clear, grounded. Mention cards only if essential.
-- Answer directly to the question; trim verbosity; add specifics if vague.`
+- Direct and grounded.`
                 : `Question: "${question}"
 
 Cards: ${cardNames}
 
-Goal: Provide a concise interpretation that directly answers the question.
+Goal: Provide a direct answer to the question.
 
-Silent steps (do not reveal):
-1) Classify the question intent into: love/relationships, work/career, finances, health/wellbeing, personal growth, spiritual, or general.
-2) Map the listed cards to that intent and emphasize the most relevant angles.
-3) Do not fetch or cite external sources (e.g., thetarotguide.com). Use only the provided card names (and reversed markers) as context.
+Instructions:
+1) If the question is about Timing (When), provide a specific timeframe or sequence of events. Do not be vague.
+2) If the question is about Outcome (Will I), provide a likely outcome.
+3) Use the cards to justify the answer, but focus on the answer itself.
 
 Output:
 - One short paragraph, <= 100 words.
-- Clear, grounded. Mention cards only if essential.
-- Answer directly to the question. ground it; if vague, add specificity; if too long, trim; if too short, enrich with specifics.`
+- Direct, clear, and specific.`
 
             // Generate new interpretation
             const newText = await complete(prompt)
