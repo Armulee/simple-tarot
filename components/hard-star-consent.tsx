@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
     Sheet,
     SheetContent,
@@ -19,6 +19,32 @@ interface HardStarConsentProps {
 
 export default function HardStarConsent({ open, onAccept }: HardStarConsentProps) {
     const [isAccepting, setIsAccepting] = useState(false)
+
+    useEffect(() => {
+        if (open) {
+            window.dispatchEvent(
+                new CustomEvent("toaster-position-change", {
+                    detail: { position: "top-center" },
+                })
+            )
+        } else {
+            window.dispatchEvent(
+                new CustomEvent("toaster-position-change", {
+                    detail: { position: "bottom-center" },
+                })
+            )
+        }
+        
+        return () => {
+             // Reset on unmount
+             window.dispatchEvent(
+                new CustomEvent("toaster-position-change", {
+                    detail: { position: "bottom-center" },
+                })
+            )
+        }
+    }, [open])
+
 
     const handleAccept = async () => {
         setIsAccepting(true)
