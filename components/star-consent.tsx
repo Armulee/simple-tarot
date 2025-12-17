@@ -60,6 +60,27 @@ export function StarConsentProvider({
         } catch {}
     }, [])
 
+    useEffect(() => {
+        // Force a re-render/event dispatch on the next tick to ensure listeners are ready
+        const timer = setTimeout(() => {
+            if (open) {
+                window.dispatchEvent(
+                    new CustomEvent("toaster-position-change", {
+                        detail: { position: "top-center" },
+                    })
+                )
+            } else {
+                window.dispatchEvent(
+                    new CustomEvent("toaster-position-change", {
+                        detail: { position: "bottom-center" },
+                    })
+                )
+            }
+        }, 100)
+        
+        return () => clearTimeout(timer)
+    }, [open])
+
     const show = useCallback(() => {
         setOpen(true)
     }, [])
