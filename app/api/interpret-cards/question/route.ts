@@ -35,6 +35,14 @@ Constraints:
 - Cards: Mention them naturally only if they add value to the answer.
 - No fluff, no "I sense", no "The cards indicate". Just say it.
 
+Format:
+Start with 3 short keywords summing up the answer (comma-separated), then a double newline, then the answer.
+Example:
+Hope, Patience, Success
+
+Your answer here...
+`,
+
 Your purpose is to give a clear, human-like answer that feels personal and verified.
 `,
             prompt: `${prompt}

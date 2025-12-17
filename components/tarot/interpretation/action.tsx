@@ -289,23 +289,36 @@ Instructions:
 3) Double-check that the answer is readable and not robotic.
 
 Output:
+- 3 keywords (comma-separated).
 - One paragraph, approx. 120 words.
-- Natural and grounded.`
+- Natural and grounded.
+
+Format:
+Keywords
+[Empty Line]
+Answer`
                 : `Question: "${question}"
 
 Cards: ${cardNames}
 
-Goal: Provide a direct, human-like answer to the question.
+Goal: Provide a direct, human-like answer to the question with keywords.
 
 Instructions:
 1) Check the question type (Timing, Outcome, etc.) and answer it explicitly.
 2) Ensure the response sounds like a real person talking, not an AI.
 3) Verify the text is readable and directly addresses the specific concern.
+4) Provide 3 keywords summarizing the answer at the top.
 
 Output:
+- 3 keywords (comma-separated).
 - Natural, conversational tone.
 - One paragraph, approx. 120 words.
-- Direct and specific.`
+- Direct and specific.
+
+Format:
+Keywords
+[Empty Line]
+Answer`
 
             // Generate new interpretation
             const newText = await complete(prompt)
