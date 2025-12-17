@@ -242,32 +242,31 @@ Follow-up question: "${question ?? ""}"
 
 Cards: ${cardNames}
 
-Goal: Provide a direct answer to the follow-up question.
-- If the user asks "When", give a timing estimate.
-- If "Will I", give a clear outcome.
+Goal: Provide a direct, human-like answer to the follow-up.
 
-Guidance:
-- Build on the earlier reading but prioritize the new answer.
-- Do not repeat the previous interpretation.
-- No fluff.
+Instructions:
+1) Answer the specific follow-up question directly.
+2) Sound like a real person (conversational, warm).
+3) Double-check that the answer is readable and not robotic.
 
 Output:
 - One short paragraph, <= 100 words.
-- Direct and grounded.`
+- Natural and grounded.`
                 : `Question: "${question ?? ""}"
 
 Cards: ${cardNames}
 
-Goal: Provide a direct answer to the question.
+Goal: Provide a direct, human-like answer to the question.
 
 Instructions:
-1) If the question is about Timing (When), provide a specific timeframe or sequence of events. Do not be vague.
-2) If the question is about Outcome (Will I), provide a likely outcome.
-3) Use the cards to justify the answer, but focus on the answer itself.
+1) Check the question type (Timing, Outcome, etc.) and answer it explicitly.
+2) Ensure the response sounds like a real person talking, not an AI.
+3) Verify the text is readable and directly addresses the specific concern.
 
 Output:
+- Natural, conversational tone.
 - One short paragraph, <= 100 words.
-- Direct, clear, and specific.`
+- Direct and specific.`
             complete(prompt).catch((e) => {
                 setError(e.message)
                 setIsGenerating(false)
