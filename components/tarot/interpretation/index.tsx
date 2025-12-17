@@ -250,7 +250,7 @@ Instructions:
 3) Double-check that the answer is readable and not robotic.
 
 Output:
-- One short paragraph, <= 100 words.
+- One paragraph, approx. 120 words.
 - Natural and grounded.`
                 : `Question: "${question ?? ""}"
 
@@ -265,7 +265,7 @@ Instructions:
 
 Output:
 - Natural, conversational tone.
-- One short paragraph, <= 100 words.
+- One paragraph, approx. 120 words.
 - Direct and specific.`
             complete(prompt).catch((e) => {
                 setError(e.message)
