@@ -41,7 +41,6 @@ Example:
 Hope, Patience, Success
 
 Your answer here...
-`,
 
 Your purpose is to give a clear, human-like answer that feels personal and verified.
 `,
