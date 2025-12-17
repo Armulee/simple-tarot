@@ -17,6 +17,7 @@ export function BetaAnnouncementModal() {
                 toast("We're in beta! You may encounter bugs and some features are still in development.", {
                     icon: <Sparkle className='h-4 w-4 text-yellow-300' />,
                     duration: 12000,
+                    position: "top-center",
                     className:
                         "w-[92vw] max-w-md border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 text-white shadow-[0_10px_40px_-10px_rgba(234,179,8,0.35)]",
                 })
