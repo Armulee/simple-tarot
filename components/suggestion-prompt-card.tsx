@@ -354,7 +354,11 @@ export default function SuggestionPromptCard({
                                 <Badge
                                     variant='outline'
                                     onClick={() =>
-                                        handleSuggestionClick(question)
+                                        handleSuggestionClick(
+                                            t(
+                                                `categories.${selectedCategory.id}.questions.${index}`
+                                            )
+                                        )
                                     }
                                     className={`cursor-pointer px-4 py-2 text-xs font-medium bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 backdrop-blur-sm transition-all duration-300 whitespace-nowrap ${selectedCategory.borderColor} hover:${selectedCategory.color} hover:bg-gradient-to-r hover:from-indigo-500/30 hover:via-purple-500/30 hover:to-cyan-500/30 hover:${selectedCategory.borderColor} shadow-[0_4px_15px_-5px_rgba(56,189,248,0.25)] hover:shadow-[0_8px_25px_-8px_rgba(56,189,248,0.35)]`}
                                 >
