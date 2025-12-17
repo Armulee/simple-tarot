@@ -21,28 +21,35 @@ export default function HardStarConsent({ open, onAccept }: HardStarConsentProps
     const [isAccepting, setIsAccepting] = useState(false)
 
     useEffect(() => {
-        if (open) {
-            window.dispatchEvent(
-                new CustomEvent("toaster-position-change", {
-                    detail: { position: "top-center" },
-                })
-            )
-        } else {
-            window.dispatchEvent(
-                new CustomEvent("toaster-position-change", {
-                    detail: { position: "bottom-center" },
-                })
-            )
-        }
-        
+        // Force reset on unmount
         return () => {
-             // Reset on unmount
              window.dispatchEvent(
                 new CustomEvent("toaster-position-change", {
                     detail: { position: "bottom-center" },
                 })
             )
         }
+    }, [])
+    
+    useEffect(() => {
+        // Force a re-render/event dispatch on the next tick to ensure listeners are ready
+        const timer = setTimeout(() => {
+            if (open) {
+                window.dispatchEvent(
+                    new CustomEvent("toaster-position-change", {
+                        detail: { position: "top-center" },
+                    })
+                )
+            } else {
+                window.dispatchEvent(
+                    new CustomEvent("toaster-position-change", {
+                        detail: { position: "bottom-center" },
+                    })
+                )
+            }
+        }, 100)
+        
+        return () => clearTimeout(timer)
     }, [open])
 
 
