@@ -110,6 +110,7 @@ export function LinearCardSpread({
     cardsToSelect,
     onCardsSelected,
     onProvideShuffle,
+    onProvideRandomPick,
 }: {
     cardsToSelect: number
     onCardsSelected: (cards: BasicCard[]) => void
