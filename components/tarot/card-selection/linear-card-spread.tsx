@@ -114,6 +114,7 @@ export function LinearCardSpread({
     cardsToSelect: number
     onCardsSelected: (cards: BasicCard[]) => void
     onProvideShuffle?: (fn: () => void) => void
+    onProvideRandomPick?: (fn: () => void) => void
 }) {
     const t = useTranslations("ReadingPage.chooseCards")
     const initialDeck = useMemo(() => shuffle(TAROT_DECK), [])
@@ -143,10 +144,48 @@ export function LinearCardSpread({
     const suppressClickRef = useRef<boolean>(false)
     const suppressClickTimeoutRef = useRef<number | null>(null)
 
-    const finalizeIfDone = (next: BasicCard[]) => {
+    const finalizeIfDone = (next: BasicCard[], delay = 0) => {
         if (next.length === cardsToSelect) {
-            onCardsSelected(next)
+            if (delay > 0) {
+                setTimeout(() => {
+                    onCardsSelected(next)
+                }, delay)
+            } else {
+                onCardsSelected(next)
+            }
         }
+    }
+
+    const randomPick = () => {
+        // Find unselected cards
+        const unselectedNames = deckList.filter(name => !selectedNames.has(name))
+        if (unselectedNames.length === 0) return
+
+        // Pick one randomly
+        const randomName = unselectedNames[Math.floor(Math.random() * unselectedNames.length)]
+        
+        // Determine reversal
+        const mapped = reversalByName.get(randomName)
+        const isReversed = mapped != null ? mapped : Math.random() < 0.5
+        
+        // Update state
+        const next = [...selected, { name: randomName, isReversed }]
+        setSelected(next)
+        setSelectedNames((prev) => new Set(prev).add(randomName))
+        
+        // Animate
+        requestAnimationFrame(() => {
+            const cardEl = deckRef.current?.querySelector(`[data-card-name="${randomName}"]`) as HTMLElement
+            
+            if (cardEl) {
+                // Apply transition and transform
+                cardEl.style.transition = "transform 500ms cubic-bezier(0.2, 0.8, 0.2, 1)"
+                cardEl.style.transform = "translateY(-120%) rotate(-6deg)"
+            }
+        })
+
+        // Finalize with delay to allow animation
+        finalizeIfDone(next, 800)
     }
 
     const shuffleUnselected = () => {
@@ -181,7 +220,7 @@ export function LinearCardSpread({
 
     useEffect(() => {
         onProvideShuffle?.(shuffleUnselected)
-        // It's okay to provide a stable function; dependencies keep it fresh when state changes
+        onProvideRandomPick?.(randomPick)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [deckList, reversalByName, selected])
 
@@ -412,6 +451,7 @@ export function LinearCardSpread({
                                                 : "cursor-pointer"
                                         }`}
                                         data-card='true'
+                                        data-card-name={name}
                                         onClick={(e) => {
                                             if (suppressClickRef.current) {
                                                 e.preventDefault()
