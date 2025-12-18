@@ -123,7 +123,7 @@ export default async function TarotReadingPage({
                     <div className='flex items-center justify-center space-x-2 relative'>
                         <Sparkles className='w-6 h-6 text-primary' />
                         <h1 className='font-serif font-bold text-2xl relative'>
-                            <FollowUpBadge show={!!data.parent_id} />
+                            {data.parent_id && <FollowUpBadge show={true} />}
                             &ldquo;
                             {getCleanQuestionText(data.question || "")}
                             &rdquo;
