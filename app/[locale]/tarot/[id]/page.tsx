@@ -1,7 +1,8 @@
-import { getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { getTranslations } from "next-intl/server"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
@@ -10,8 +11,6 @@ import { CardImage } from "@/components/card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import Interpretation from "@/components/tarot/interpretation"
 import FollowUpBadge from "@/components/tarot/follow-up-badge"
-
-async function getTarotReading(id: string) {
     const { data } = await supabase
         .from("tarot_readings")
         .select(
