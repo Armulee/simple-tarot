@@ -10,6 +10,8 @@ import { Sparkles } from "lucide-react"
 import { CardImage } from "@/components/card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import Interpretation from "@/components/tarot/interpretation"
+import FollowUpBadge from "@/components/tarot/follow-up-badge"
+
 async function getTarotReading(id: string) {
     const { data } = await supabase
         .from("tarot_readings")
