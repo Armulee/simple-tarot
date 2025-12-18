@@ -36,7 +36,7 @@ Constraints:
 - No fluff, no "I sense", no "The cards indicate". Just say it.
 
 Format:
-Start with 3 short keywords summing up the answer (comma-separated), then a double newline, then the answer.
+Start with 3 short keywords summing up the answer (comma-separated) in the same language as the answer, then a double newline, then the answer.
 Example:
 Hope, Patience, Success
 

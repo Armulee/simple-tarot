@@ -289,7 +289,7 @@ Instructions:
 3) Double-check that the answer is readable and not robotic.
 
 Output:
-- 3 keywords (comma-separated).
+- 3 keywords (comma-separated) in the same language as the answer.
 - One paragraph, approx. 120 words.
 - Natural and grounded.
 
@@ -310,7 +310,7 @@ Instructions:
 4) Provide 3 keywords summarizing the answer at the top.
 
 Output:
-- 3 keywords (comma-separated).
+- 3 keywords (comma-separated) in the same language as the answer.
 - Natural, conversational tone.
 - One paragraph, approx. 120 words.
 - Direct and specific.
