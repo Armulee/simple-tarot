@@ -1,7 +1,7 @@
+import { getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
@@ -58,6 +58,8 @@ export default async function TarotReadingPage({
               }
           })
         : []
+
+    const t = await getTranslations("ReadingPage")
 
     return (
         <div className='space-y-8 px-4 max-w-xl mx-auto h-full'>
@@ -175,7 +177,7 @@ export default async function TarotReadingPage({
                                     <Link
                                         href={`/articles/tarot/${card.slug}${card.isReversed ? "#reversed-overview" : ""}`}
                                     >
-                                        View full details
+                                        {t("viewDetails")}
                                         <ArrowRight className='ml-0.5' />
                                     </Link>
                                 </Button>
