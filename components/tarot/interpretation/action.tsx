@@ -384,6 +384,7 @@ Answer`
     ])
 
     const actionOptions = [
+        {
             id: "regen",
             label: (
                 <span className='leading-tight text-center'>
