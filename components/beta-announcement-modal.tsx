@@ -3,10 +3,13 @@
 import { useEffect } from "react"
 import { toast } from "sonner"
 import { Sparkle } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 const STORAGE_KEY = "beta-announcement-seen"
 
 export function BetaAnnouncementModal() {
+    const t = useTranslations()
+
     useEffect(() => {
         try {
             const hasSeen = localStorage.getItem(STORAGE_KEY)
@@ -14,7 +17,7 @@ export function BetaAnnouncementModal() {
 
             // Small delay to ensure smooth page load
             setTimeout(() => {
-                toast("We're in beta! You may encounter bugs and some features are still in development.", {
+                toast(t("Beta.notice"), {
                     icon: <Sparkle className='h-4 w-4 text-yellow-300' />,
                     duration: 12000,
                     className:

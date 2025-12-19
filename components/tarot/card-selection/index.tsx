@@ -4,7 +4,7 @@ import { TarotCard, useTarot } from "@/contexts/tarot-context"
 import { Button } from "../../ui/button"
 import { Card } from "../../ui/card"
 import { Badge } from "../../ui/badge"
-import { Pencil, RotateCw, Star } from "lucide-react"
+import { Pencil, RotateCw, Star, Sparkles } from "lucide-react"
 import { ReadingConfig } from "../../../app/[locale]/reading/page"
 import { CircularCardSpread } from "./circular-card-spread"
 import LinearCardSpread from "./linear-card-spread"
@@ -56,6 +56,8 @@ export default function CardSelection({
     const [isEditing, setIsEditing] = useState(false)
     const linearShuffleRef = React.useRef<(() => void) | null>(null)
     const circularShuffleRef = React.useRef<(() => void) | null>(null)
+    const linearRandomPickRef = React.useRef<(() => void) | null>(null)
+    const circularRandomPickRef = React.useRef<(() => void) | null>(null)
 
     // Aggregated selection for dual circular spreads
     const [aggSelected, setAggSelected] = useState<
@@ -231,6 +233,15 @@ export default function CardSelection({
         }
     }
 
+    const handleRandomPick = () => {
+        const useLinear = isMobile || spreadMode === "linear"
+        if (useLinear) {
+            linearRandomPickRef.current?.()
+        } else {
+            circularRandomPickRef.current?.()
+        }
+    }
+
     return (
         <>
             {/* Creating Reading Loader */}
@@ -359,7 +370,7 @@ export default function CardSelection({
                                     fill='currentColor'
                                 />
                                 {
-                                    "Starting the interpretation will consume 1 star."
+                                    t("chooseCards.consumeStar")
                                 }
                             </p>
                         </div>
@@ -443,6 +454,9 @@ export default function CardSelection({
                                         onProvideShuffle={(fn) =>
                                             (linearShuffleRef.current = fn)
                                         }
+                                        onProvideRandomPick={(fn) =>
+                                            (linearRandomPickRef.current = fn)
+                                        }
                                     />
                                 ) : (
                                     <div className='flex justify-center'>
@@ -464,9 +478,14 @@ export default function CardSelection({
                                                 (circularShuffleRef.current =
                                                     fn)
                                             }
+                                            onProvideRandomPick={(fn) =>
+                                                (circularRandomPickRef.current =
+                                                    fn)
+                                            }
                                         />
                                     </div>
                                 )}
+                                
                             </>
                         )}
                     </div>

@@ -242,30 +242,44 @@ Follow-up question: "${question ?? ""}"
 
 Cards: ${cardNames}
 
-Goal: Provide a concise follow-up interpretation that directly answers the follow-up while staying consistent with the previous interpretation.
+Goal: Provide a direct, human-like answer to the follow-up.
 
-Guidance:
-- Build on the earlier reading; reference it briefly (do not repeat it).
-- If the follow-up shifts focus, explain the link in a short phrase, then answer directly.
-- Do not fetch or cite external sources. Use only the provided card names (and reversed markers) as context.
+Instructions:
+1) Answer the specific follow-up question directly.
+2) Sound like a real person (conversational, warm).
+3) Double-check that the answer is readable and not robotic.
 
 Output:
-- One short paragraph, <= 100 words.
-- Clear, grounded. Mention cards only if essential.`
+- 3 keywords (comma-separated) in the same language as the answer.
+- One paragraph, approx. 120 words.
+- Natural and grounded.
+
+Format:
+Keywords
+[Empty Line]
+Answer`
                 : `Question: "${question ?? ""}"
 
 Cards: ${cardNames}
 
-Goal: Provide a concise interpretation that directly answers the question.
+Goal: Provide a direct, human-like answer to the question with keywords.
 
-Silent steps (do not reveal):
-1) Classify the question intent into: love/relationships, work/career, finances, health/wellbeing, personal growth, spiritual, or general.
-2) Map the listed cards to that intent and emphasize the most relevant angles.
-3) Do not fetch or cite external sources. Use only the provided card names (and reversed markers) as context.
+Instructions:
+1) Check the question type (Timing, Outcome, etc.) and answer it explicitly.
+2) Ensure the response sounds like a real person talking, not an AI.
+3) Verify the text is readable and directly addresses the specific concern.
+4) Provide 3 keywords summarizing the answer at the top.
 
 Output:
-- One short paragraph, <= 100 words.
-- Clear, grounded. Mention cards only if essential.`
+- 3 keywords (comma-separated) in the same language as the answer.
+- Natural, conversational tone.
+- One paragraph, approx. 120 words.
+- Direct and specific.
+
+Format:
+Keywords
+[Empty Line]
+Answer`
             complete(prompt).catch((e) => {
                 setError(e.message)
                 setIsGenerating(false)
@@ -405,7 +419,38 @@ Output:
                                     animationFillMode: "both",
                                 }}
                             >
-                                {interpretation || completion}
+                                {(() => {
+                                    const text = interpretation || completion || ""
+                                    // Split by double newline to find keywords
+                                    const parts = text.split(/\n\n/)
+                                    if (parts.length > 1) {
+                                        const keywords = parts[0]
+                                        const content = parts.slice(1).join("\n\n")
+                                        return (
+                                            <>
+                                                <div className='flex flex-wrap gap-2 mb-4'>
+                                                    {keywords
+                                                        .split(",")
+                                                        .map((k, i) => {
+                                                            const trimmed = k.trim()
+                                                            if (!trimmed) return null
+                                                            const capitalized = trimmed.charAt(0).toUpperCase() + trimmed.slice(1)
+                                                            return (
+                                                                <span
+                                                                    key={i}
+                                                                    className='px-3 py-1 text-xs font-medium rounded-full bg-white/10 text-white border border-white/20'
+                                                                >
+                                                                    {capitalized}
+                                                                </span>
+                                                            )
+                                                        })}
+                                                </div>
+                                                {content}
+                                            </>
+                                        )
+                                    }
+                                    return text
+                                })()}
                             </div>
                         )}
                     </div>

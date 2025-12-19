@@ -1,4 +1,7 @@
 "use client"
+import { useTranslations } from "next-intl"
+import { Button } from "@/components/ui/button"
+import { Sparkles } from "lucide-react"
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
 // Controls are rendered by parent; this component exposes a shuffle function
 // import { SwipeUpOverlay } from "./swipe-up-overlay"
@@ -112,6 +115,7 @@ interface CircularCardSpreadProps {
     externalSelectedNames?: string[]
     deckId?: string // Add deck ID to ensure unique decks
     onProvideShuffle?: (fn: () => void) => void
+    onProvideRandomPick?: (fn: () => void) => void
 }
 
 export function CircularCardSpread({
@@ -120,7 +124,9 @@ export function CircularCardSpread({
     externalSelectedNames = [],
     deckId = "default",
     onProvideShuffle,
+    onProvideRandomPick,
 }: CircularCardSpreadProps) {
+    const t = useTranslations("ReadingPage")
     const [selectedCards, setSelectedCards] = useState<TarotCard[]>([])
     const [shuffledDeck, setShuffledDeck] = useState<TarotCard[]>([])
     const pendingPartialRef = useRef<{
@@ -198,8 +204,40 @@ export function CircularCardSpread({
         })
     }
 
+    const randomPick = () => {
+        const selectedNames = new Set(selectedCards.map((c) => c.name))
+        // Consider external selection too
+        const taken = new Set([...selectedNames, ...externalSelectedNames])
+        const unselected = shuffledDeck.filter((c) => !taken.has(c.name))
+        
+        if (unselected.length === 0) return
+
+        const randomCard = unselected[Math.floor(Math.random() * unselected.length)]
+        
+        // Circular spread logic
+        // We select it directly.
+        // Animation? We can flash it or scale it.
+        // But the main thing is adding it to state.
+        
+        handleCardClick(randomCard)
+        // handleCardClick updates selectedCards and calls onPartialSelect via effect.
+        // The parent (CardSelection) handles "Confirm" logic for circular spread usually.
+        // But for random pick, user might expect instant action?
+        // But circular spread usually waits for manual confirm.
+        // Let's stick to just selecting it for now, unless we want to auto-confirm if full.
+        // The Linear spread auto-confirms. Circular is manual.
+        // Let's keep Circular manual consistent with manual selection behavior for now, 
+        // OR auto-confirm if random pick fills the last slot?
+        // But "CardSelection" handles the confirm button.
+        // We can't easily auto-confirm from here without onCardsSelected prop being wired up to navigate.
+        // But onCardsSelected is passed! It just wasn't used.
+        // If I update handleCardClick to use onCardsSelected? No, handleCardClick is used for manual too.
+        // Let's just select it.
+    }
+
     useEffect(() => {
         onProvideShuffle?.(shuffleUnselected)
+        onProvideRandomPick?.(randomPick)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shuffledDeck, selectedCards])
 
@@ -378,6 +416,15 @@ export function CircularCardSpread({
     return (
         <>
             <div className='relative w-full max-w-4xl mx-auto'>
+                <div className="flex justify-center mb-6">
+                    <Button
+                        onClick={randomPick}
+                        className="gap-2 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 hover:from-indigo-500/30 hover:to-purple-500/30 border border-white/10 text-white backdrop-blur-sm transition-all duration-300 shadow-lg hover:shadow-primary/20 hover:scale-105"
+                    >
+                        <Sparkles className="w-4 h-4 text-yellow-300 animate-pulse" />
+                        {t("chooseCards.random", { default: "Pick For Me" })}
+                    </Button>
+                </div>
                 {/* Shuffle control moved to parent header */}
                 <div
                     className='relative w-full aspect-square max-w-md mx-auto min-h-[400px]'
