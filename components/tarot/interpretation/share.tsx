@@ -325,7 +325,7 @@ export default function ShareSection({
     const shareOptions = useMemo(() => [
         {
             id: "facebook",
-            label: "Facebook",
+            label: t("facebook"),
             icon: <FaFacebook className='w-5.5 h-5.5 text-white' />,
             bg: "linear-gradient(135deg, #1877F2, #0D5FCC)",
             href: (u: string) =>
@@ -333,7 +333,7 @@ export default function ShareSection({
         },
         {
             id: "messenger",
-            label: "Messenger",
+            label: t("messenger"),
             icon: <FaFacebookMessenger className='w-5.5 h-5.5 text-white' />,
             bg: "linear-gradient(135deg, #0084FF, #0066CC)",
             href: (u: string) =>
@@ -341,14 +341,14 @@ export default function ShareSection({
         },
         {
             id: "instagram",
-            label: "Instagram",
+            label: t("instagram"),
             icon: <SiInstagram className='w-5.5 h-5.5 text-white' />,
             bg: "linear-gradient(135deg, #E4405F, #C13584)",
             href: () => null,
         },
         {
             id: "threads",
-            label: "Threads",
+            label: t("threads"),
             icon: <SiThreads className='w-5.5 h-5.5 text-white' />,
             bg: "linear-gradient(135deg, #000000, #333333)",
             href: (u: string, t?: string) =>
@@ -356,14 +356,14 @@ export default function ShareSection({
         },
         {
             id: "tiktok",
-            label: "TikTok",
+            label: t("tiktok"),
             icon: <SiTiktok className='w-5.5 h-5.5 text-white' />,
             bg: "linear-gradient(135deg, #000000, #333333)",
             href: () => null,
         },
         {
             id: "x",
-            label: "X",
+            label: t("x"),
             icon: <FaXTwitter className='w-5.5 h-5.5 text-white' />,
             bg: "linear-gradient(135deg, #000000, #333333)",
             href: (u: string, t?: string) =>
@@ -371,7 +371,7 @@ export default function ShareSection({
         },
         {
             id: "line",
-            label: "LINE",
+            label: t("line"),
             icon: <FaLine className='w-5.5 h-5.5 text-white' />,
             bg: "linear-gradient(135deg, #00C300, #00A000)",
             href: (u: string) =>
@@ -379,7 +379,7 @@ export default function ShareSection({
         },
         {
             id: "whatsapp",
-            label: "WhatsApp",
+            label: t("whatsapp"),
             icon: <FaWhatsapp className='w-5.5 h-5.5 text-white' />,
             bg: "linear-gradient(135deg, #25D366, #1DA851)",
             href: (u: string) =>
@@ -387,7 +387,7 @@ export default function ShareSection({
         },
         {
             id: "telegram",
-            label: "Telegram",
+            label: t("telegram"),
             icon: <FaTelegram className='w-5.5 h-5.5 text-white' />,
             bg: "linear-gradient(135deg, #24A1DE, #1E8BC3)",
             href: (u: string) =>
@@ -395,21 +395,21 @@ export default function ShareSection({
         },
         {
             id: "snapchat",
-            label: "Snapchat",
+            label: t("snapchat"),
             icon: <SiSnapchat className='w-5.5 h-5.5 text-black' />,
             bg: "linear-gradient(135deg, #FFFC00, #FFD700)",
             href: () => null,
         },
         {
             id: "discord",
-            label: "Discord",
+            label: t("discord"),
             icon: <SiDiscord className='w-5.5 h-5.5 text-white' />,
             bg: "linear-gradient(135deg, #5865F2, #4752C4)",
             href: () => null,
         },
         {
             id: "pinterest",
-            label: "Pinterest",
+            label: t("pinterest"),
             icon: <SiPinterest className='w-5.5 h-5.5 text-white' />,
             bg: "linear-gradient(135deg, #E60023, #CC001F)",
             href: (u: string, t?: string) =>
@@ -417,7 +417,7 @@ export default function ShareSection({
         },
         {
             id: "tumblr",
-            label: "Tumblr",
+            label: t("tumblr"),
             icon: <SiTumblr className='w-5.5 h-5.5 text-white' />,
             bg: "linear-gradient(135deg, #36465D, #2C3E50)",
             href: (u: string, t?: string) =>
@@ -425,14 +425,14 @@ export default function ShareSection({
         },
         {
             id: "wechat",
-            label: "WeChat",
+            label: t("wechat"),
             icon: <SiWechat className='w-5.5 h-5.5 text-white' />,
             bg: "linear-gradient(135deg, #07C160, #05A050)",
             href: () => null,
         },
         {
             id: "reddit",
-            label: "Reddit",
+            label: t("reddit"),
             icon: <FaReddit className='w-5.5 h-5.5 text-white' />,
             bg: "linear-gradient(135deg, #FF4500, #E63900)",
             href: (u: string, t?: string) =>
@@ -440,7 +440,7 @@ export default function ShareSection({
         },
         {
             id: "sms",
-            label: "SMS",
+            label: t("sms"),
             icon: <FaCommentDots className='w-5.5 h-5.5 text-white' />,
             bg: "linear-gradient(135deg, #34C759, #30A46C)",
             href: (u: string, t?: string) =>
@@ -448,7 +448,7 @@ export default function ShareSection({
         },
         {
             id: "email",
-            label: "Email",
+            label: t("email"),
             icon: <FaEnvelope className='w-5.5 h-5.5 text-white' />,
             bg: "linear-gradient(135deg, #EA4335, #D33B2C)",
             href: (u: string, t?: string) =>
