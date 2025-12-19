@@ -431,14 +431,19 @@ Answer`
                                                 <div className='flex flex-wrap gap-2 mb-4'>
                                                     {keywords
                                                         .split(",")
-                                                        .map((k, i) => (
-                                                            <span
-                                                                key={i}
-                                                                className='px-3 py-1 text-xs font-medium rounded-full bg-white/10 text-white border border-white/20'
-                                                            >
-                                                                {k.trim()}
-                                                            </span>
-                                                        ))}
+                                                        .map((k, i) => {
+                                                            const trimmed = k.trim()
+                                                            if (!trimmed) return null
+                                                            const capitalized = trimmed.charAt(0).toUpperCase() + trimmed.slice(1)
+                                                            return (
+                                                                <span
+                                                                    key={i}
+                                                                    className='px-3 py-1 text-xs font-medium rounded-full bg-white/10 text-white border border-white/20'
+                                                                >
+                                                                    {capitalized}
+                                                                </span>
+                                                            )
+                                                        })}
                                                 </div>
                                                 {content}
                                             </>
