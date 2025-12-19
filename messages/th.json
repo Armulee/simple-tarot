@@ -878,6 +878,9 @@
     }
   },
 
+  "Footer": {
+    "copyright": "AskingFate, LLC. สงวนลิขสิทธิ์"
+  },
   "About": {
     "hero": {"title1": "ภูมิปัญญาโบราณ", "title2": "บรรจบกับ AI สมัยใหม่", "subtitle": "ค้นพบวิธีที่เราผสมผสานศาสตร์ทาโรต์อันยาวนานกับปัญญาประดิษฐ์ เพื่อมอบคำแนะนำจากจักรวาลที่เป็นส่วนตัวสำหรับคุณ"},
     "features": {
@@ -923,7 +926,7 @@
     "questionHeading": "คำถาม",
     "followUp": {"badge": "คำถามต่อเนื่อง", "title": "การอ่านแบบต่อเนื่อง", "desc": "คำถามต่อเนื่องจะใช้การอ่านแบบไพ่หนึ่งใบเพื่อคำแนะนำที่ชัดเจน", "simple": "การอ่านแบบง่าย - 1 ใบ"},
     "chooseType": {"title": "เลือกประเภทการอ่านของคุณ", "desc": "เลือกความลึกซึ้งของคำแนะนำที่คุณต้องการ"},
-    "chooseCards": {"title": "เลือกไพ่ของคุณ", "desc": "เชื่อในสัญชาตญาณและเลือก {amount} ใบ จากวงล้อแห่งจักรวาล", "reversed": "Reversed", "selectFromSpread": "{count, plural, one {เลือก # ใบ จากวงล้อแห่งจักรวาล} other {เลือก # ใบ จากวงล้อแห่งจักรวาล}}", "selectedCount": "{selected} จาก {total} ที่เลือกแล้ว", "swipeUpToSelect": "ปัดขึ้นบนไพ่เพื่อเลือก", "circular": "วงกลม", "linear": "เส้นตรง", "confirm": "ยืนยันการเลือก ({selected}/{total})", "shuffle": "สับไพ่"},
+    "chooseCards": {"title": "เลือกไพ่ของคุณ", "desc": "เชื่อในสัญชาตญาณและเลือก {amount} ใบ จากวงล้อแห่งจักรวาล", "reversed": "Reversed", "selectFromSpread": "{count, plural, one {เลือก # ใบ จากวงล้อแห่งจักรวาล} other {เลือก # ใบ จากวงล้อแห่งจักรวาล}}", "selectedCount": "{selected} จาก {total} ที่เลือกแล้ว", "swipeUpToSelect": "ปัดขึ้นบนไพ่เพื่อเลือก", "circular": "วงกลม", "linear": "เส้นตรง", "confirm": "ยืนยันการเลือก ({selected}/{total})", "shuffle": "สับไพ่", "random": "เลือกให้ฉัน"},
     "editQuestion": {"title": "แก้ไขคำถามของคุณ", "label": "คำถามของคุณ", "placeholder": "ถามคำถามของคุณกับจักรวาล...", "hint": "กด Ctrl+Enter เพื่อบันทึก, Escape เพื่อยกเลิก", "reset": "รีเซ็ต", "cancel": "ยกเลิก", "save": "บันทึกการเปลี่ยนแปลง", "saving": "กำลังบันทึก..."},
     "interpretation": {
       "title": "ผลการอ่านของคุณ",

@@ -357,17 +357,6 @@ export default function CardSelection({
                                         default: "Shuffle",
                                     })}
                                 </Button>
-                                <Button
-                                    variant='outline'
-                                    size='sm'
-                                    className='gap-2'
-                                    onClick={handleRandomPick}
-                                >
-                                    <Sparkles className='w-4 h-4' />{" "}
-                                    {t("chooseCards.random", {
-                                        default: "Pick For Me",
-                                    })}
-                                </Button>
                             </div>
                             <p className='text-muted-foreground'>
                                 {t("chooseCards.desc", {
@@ -496,6 +485,20 @@ export default function CardSelection({
                                         />
                                     </div>
                                 )}
+                                
+                                <div className='flex justify-center mt-6'>
+                                    <Button
+                                        variant='outline'
+                                        size='sm'
+                                        className='gap-2 bg-white/5 border-white/10 hover:bg-white/10'
+                                        onClick={handleRandomPick}
+                                    >
+                                        <Sparkles className='w-4 h-4 text-yellow-300' />{" "}
+                                        {t("chooseCards.random", {
+                                            default: "Pick For Me",
+                                        })}
+                                    </Button>
+                                </div>
                             </>
                         )}
                     </div>

@@ -523,6 +523,9 @@
     }
   },
 
+  "Footer": {
+    "copyright": "AskingFate, LLC. All rights reserved."
+  },
   "About": {
     "hero": {
       "title1": "Ancient wisdom",
@@ -1101,7 +1104,8 @@
       "circular": "Circular",
       "linear": "Linear",
       "confirm": "Confirm Selection ({selected}/{total})",
-      "shuffle": "Shuffle"
+      "shuffle": "Shuffle",
+      "random": "Pick For Me"
     },
     "editQuestion": {
       "title": "Edit Your Question",
