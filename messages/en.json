@@ -1095,6 +1095,7 @@
 
   "ReadingPage": {
     "questionHeading": "Question",
+    "viewDetails": "View full details",
     "followUp": {
       "badge": "Follow up",
       "title": "Follow-up Reading",

@@ -935,6 +935,7 @@
 
   "ReadingPage": {
     "questionHeading": "คำถาม",
+    "viewDetails": "ดูรายละเอียดเต็ม",
     "followUp": {"badge": "คำถามต่อเนื่อง", "title": "การอ่านแบบต่อเนื่อง", "desc": "คำถามต่อเนื่องจะใช้การอ่านแบบไพ่หนึ่งใบเพื่อคำแนะนำที่ชัดเจน", "simple": "การอ่านแบบง่าย - 1 ใบ"},
     "chooseType": {"title": "เลือกประเภทการอ่านของคุณ", "desc": "เลือกความลึกซึ้งของคำแนะนำที่คุณต้องการ"},
     "chooseCards": {"title": "เลือกไพ่ของคุณ", "desc": "เชื่อในสัญชาตญาณและเลือก {amount} ใบ จากวงล้อแห่งจักรวาล", "reversed": "Reversed", "selectFromSpread": "{count, plural, one {เลือก # ใบ จากวงล้อแห่งจักรวาล} other {เลือก # ใบ จากวงล้อแห่งจักรวาล}}", "selectedCount": "{selected} จาก {total} ที่เลือกแล้ว", "swipeUpToSelect": "ปัดขึ้นบนไพ่เพื่อเลือก", "circular": "วงกลม", "linear": "เส้นตรง", "confirm": "ยืนยันการเลือก ({selected}/{total})", "shuffle": "สับไพ่", "random": "เลือกให้ฉัน"},
