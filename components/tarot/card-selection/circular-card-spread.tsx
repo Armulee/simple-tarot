@@ -1,4 +1,7 @@
 "use client"
+import { useTranslations } from "next-intl"
+import { Button } from "@/components/ui/button"
+import { Sparkles } from "lucide-react"
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
 // Controls are rendered by parent; this component exposes a shuffle function
 // import { SwipeUpOverlay } from "./swipe-up-overlay"
@@ -123,6 +126,7 @@ export function CircularCardSpread({
     onProvideShuffle,
     onProvideRandomPick,
 }: CircularCardSpreadProps) {
+    const t = useTranslations("ReadingPage")
     const [selectedCards, setSelectedCards] = useState<TarotCard[]>([])
     const [shuffledDeck, setShuffledDeck] = useState<TarotCard[]>([])
     const pendingPartialRef = useRef<{
@@ -412,6 +416,15 @@ export function CircularCardSpread({
     return (
         <>
             <div className='relative w-full max-w-4xl mx-auto'>
+                <div className="flex justify-center mb-6">
+                    <Button
+                        onClick={randomPick}
+                        className="gap-2 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 hover:from-indigo-500/30 hover:to-purple-500/30 border border-white/10 text-white backdrop-blur-sm transition-all duration-300 shadow-lg hover:shadow-primary/20 hover:scale-105"
+                    >
+                        <Sparkles className="w-4 h-4 text-yellow-300 animate-pulse" />
+                        {t("chooseCards.random", { default: "Pick For Me" })}
+                    </Button>
+                </div>
                 {/* Shuffle control moved to parent header */}
                 <div
                     className='relative w-full aspect-square max-w-md mx-auto min-h-[400px]'

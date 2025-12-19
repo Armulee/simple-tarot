@@ -2,6 +2,8 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
+import { Button } from "@/components/ui/button"
+import { Sparkles } from "lucide-react"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { FreeMode, Mousewheel } from "swiper/modules"
 import "swiper/css"
@@ -411,6 +413,15 @@ export function LinearCardSpread({
 
     return (
         <>
+            <div className="flex justify-center mb-6">
+                <Button
+                    onClick={randomPick}
+                    className="gap-2 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 hover:from-indigo-500/30 hover:to-purple-500/30 border border-white/10 text-white backdrop-blur-sm transition-all duration-300 shadow-lg hover:shadow-primary/20 hover:scale-105"
+                >
+                    <Sparkles className="w-4 h-4 text-yellow-300 animate-pulse" />
+                    {t("chooseCards.random", { default: "Pick For Me" })}
+                </Button>
+            </div>
             <p className='text-xs text-muted-foreground w-full text-center smx-auto'>
                 {t("swipeUpToSelect")}
             </p>
