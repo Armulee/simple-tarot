@@ -18,6 +18,7 @@ import {
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Sparkle } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 type ConsentChoice = "accepted" | "declined" | null
 
@@ -125,6 +126,8 @@ export function StarConsentProvider({
         [choice, open, show, accept, decline]
     )
 
+    const t = useTranslations("StarConsent")
+
     return (
         <StarConsentContext.Provider value={value}>
             {children}
@@ -132,23 +135,19 @@ export function StarConsentProvider({
                 <StarsDialog className='fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 relative overflow-hidden'>
                     <DialogHeader>
                         <DialogTitle className='text-yellow-300 font-serif text-xl'>
-                            Introducing Star Currency
+                            {t("title")}
                         </DialogTitle>
                         <DialogDescription className='text-white/85'>
-                            Stars let you reveal AI interpretations and unlock
-                            features. With your consent, we create an anonymous
-                            device ID to securely store and sync your star
-                            balance and hourly refills in our database, and
-                            remember your preferences.
+                            {t("description")}
                         </DialogDescription>
                     </DialogHeader>
                     <div className='text-xs text-white/70 mb-3'>
-                        Read our{" "}
+                        {t("privacyPrefix")}
                         <Link
                             href='/privacy-policy'
                             className='underline text-yellow-300 hover:text-yellow-200'
                         >
-                            Privacy Policy
+                            {t("privacyLink")}
                         </Link>
                         .
                     </div>
@@ -157,13 +156,13 @@ export function StarConsentProvider({
                             onClick={decline}
                             className='px-3 py-2 rounded-md border border-white/20 text-white hover:bg-white/10'
                         >
-                            Decline
+                            {t("decline")}
                         </button>
                         <button
                             onClick={accept}
                             className='px-3 py-2 rounded-md bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.45)]'
                         >
-                            Accept
+                            {t("accept")}
                         </button>
                     </div>
                 </StarsDialog>
