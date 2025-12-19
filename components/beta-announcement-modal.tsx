@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl"
 const STORAGE_KEY = "beta-announcement-seen"
 
 export function BetaAnnouncementModal() {
-    const t = useTranslations("Beta")
+    const t = useTranslations()
 
     useEffect(() => {
         try {
@@ -17,7 +17,7 @@ export function BetaAnnouncementModal() {
 
             // Small delay to ensure smooth page load
             setTimeout(() => {
-                toast(t("notice"), {
+                toast(t("Beta.notice"), {
                     icon: <Sparkle className='h-4 w-4 text-yellow-300' />,
                     duration: 12000,
                     className:
