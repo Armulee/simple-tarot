@@ -30,19 +30,19 @@ import {
 import { useAuth } from "@/hooks/use-auth"
 import { Share2 } from "lucide-react"
 import { shareLinkCache } from "@/lib/share-cache"
-import Link from "next/link"
-import { useTarot } from "@/contexts/tarot-context"
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+import { useTranslations } from "next-intl"
 
-const shareOptions = [
+// ... imports ...
+
+export default function ShareSection({
+    question: propQuestion,
+    cards: propCards,
+    interpretation: propInterpretation,
+    readingId: propReadingId,
+}: ShareSectionProps = {}) {
+    const t = useTranslations("ReadingPage.interpretation.share")
+    const tCommon = useTranslations("ReadingPage.interpretation.dialogs.unavailable")
+    const {
     {
         id: "facebook",
         label: "Facebook",
@@ -176,7 +176,7 @@ const shareOptions = [
     },
     {
         id: "more",
-        label: "More",
+        label: t("more"),
         icon: <FaShareNodes className='w-5.5 h-5.5 text-white' />,
         bg: "linear-gradient(135deg, #6B7280, #4B5563)",
         href: () => null,
@@ -477,16 +477,18 @@ export default function ShareSection({
                         </div>
                         <div>
                             <h3 className='font-serif font-semibold text-lg text-foreground group-hover:text-primary/90 transition-colors duration-300'>
-                                Share Your Reading
+                                {t("title")}
                             </h3>
                             <p className='text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300'>
-                                Get 1 free star for each new person who visits
-                                your shared link ({earnedStars}/{maxStars}){" "}
+                                {t("desc", {
+                                    earned: earnedStars,
+                                    max: maxStars,
+                                })}{" "}
                                 <Link
                                     href='/articles/share-rewards'
                                     className='underline underline-offset-2 text-blue-300 hover:text-blue-200'
                                 >
-                                    Learn more
+                                    {t("learnMore")}
                                 </Link>
                             </p>
                         </div>
@@ -602,18 +604,17 @@ export default function ShareSection({
                     <AlertDialogContent>
                         <AlertDialogHeader>
                             <AlertDialogTitle>
-                                Sharing unavailable
+                                {tCommon("title")}
                             </AlertDialogTitle>
                             <AlertDialogDescription>
-                                {unavailableLabel} sharing is currently
-                                unavailable and still in work.
+                                {tCommon("desc", { label: unavailableLabel })}
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogAction
                                 onClick={() => setUnavailableOpen(false)}
                             >
-                                OK
+                                {tCommon("ok")}
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>

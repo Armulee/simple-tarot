@@ -259,7 +259,7 @@ export function Navbar({ locale }: { locale: string }) {
                                         className='flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-white/10 text-white/90 border border-white/10 hover:bg-white/15 transition'
                                     >
                                         <LogIn className='w-4 h-4' />
-                                        Sign In
+                                        {t("signIn")}
                                     </Button>
                                 </Link>
                             )}
