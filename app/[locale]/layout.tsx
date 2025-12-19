@@ -130,10 +130,10 @@ export default async function RootLayout({
                             </TarotProvider>
                         </StarsProvider>
                     </AuthProvider>
+                    <Analytics />
+                    <BetaToaster />
+                    <BetaAnnouncementModal />
                 </NextIntlClientProvider>
-                <Analytics />
-                <BetaToaster />
-                <BetaAnnouncementModal />
             </body>
         </html>
     )
