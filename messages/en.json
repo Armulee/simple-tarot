@@ -1119,6 +1119,7 @@
       "linear": "Linear",
       "confirm": "Confirm Selection ({selected}/{total})",
       "shuffle": "Shuffle",
+      "consumeStar": "Starting the interpretation will consume 1 star.",
       "random": "Pick For Me"
     },
     "editQuestion": {

@@ -370,7 +370,7 @@ export default function CardSelection({
                                     fill='currentColor'
                                 />
                                 {
-                                    "Starting the interpretation will consume 1 star."
+                                    t("chooseCards.consumeStar")
                                 }
                             </p>
                         </div>
