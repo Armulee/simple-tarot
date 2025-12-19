@@ -5,6 +5,17 @@
     "about": "About",
     "pricing": "Pricing"
   },
+  "Beta": {
+    "notice": "We're in beta! You may encounter bugs and some features are still in development."
+  },
+  "StarConsent": {
+    "title": "Introducing Star Currency",
+    "description": "Stars let you reveal AI interpretations and unlock features. With your consent, we create an anonymous device ID to securely store and sync your star balance and hourly refills in our database, and remember your preferences.",
+    "privacyPrefix": "Read our ",
+    "privacyLink": "Privacy Policy",
+    "decline": "Decline",
+    "accept": "Accept"
+  },
 
   "Sidebar": {
     "services": "Services",
@@ -525,17 +536,6 @@
 
   "Footer": {
     "copyright": "AskingFate, LLC. All rights reserved."
-  },
-  "Beta": {
-    "notice": "We're in beta! You may encounter bugs and some features are still in development."
-  },
-  "StarConsent": {
-    "title": "Introducing Star Currency",
-    "description": "Stars let you reveal AI interpretations and unlock features. With your consent, we create an anonymous device ID to securely store and sync your star balance and hourly refills in our database, and remember your preferences.",
-    "privacyPrefix": "Read our ",
-    "privacyLink": "Privacy Policy",
-    "decline": "Decline",
-    "accept": "Accept"
   },
   "About": {
     "hero": {
