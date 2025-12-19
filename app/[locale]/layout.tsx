@@ -11,7 +11,7 @@ import { Navbar } from "@/components/navbar"
 import "../globals.css"
 import Footer from "@/components/footer/footer"
 import CosmicStars from "@/components/cosmic-stars"
-import { Toaster } from "sonner"
+import { BetaToaster } from "@/components/beta-toaster"
 import { BetaAnnouncementModal } from "@/components/beta-announcement-modal"
 import { hasLocale } from "next-intl"
 import { routing } from "@/i18n/routing"
@@ -132,12 +132,7 @@ export default async function RootLayout({
                     </AuthProvider>
                 </NextIntlClientProvider>
                 <Analytics />
-                <Toaster
-                    position='bottom-center'
-                    theme='dark'
-                    richColors
-                    closeButton
-                />
+                <BetaToaster />
                 <BetaAnnouncementModal />
             </body>
         </html>
