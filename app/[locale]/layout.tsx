@@ -11,12 +11,9 @@ import { Navbar } from "@/components/navbar"
 import "../globals.css"
 import Footer from "@/components/footer/footer"
 import CosmicStars from "@/components/cosmic-stars"
-<<<<<<< HEAD
 import { Toaster } from "sonner"
 import { BetaAnnouncementModal } from "@/components/beta-announcement-modal"
-=======
 import { BetaToaster } from "@/components/beta-toaster"
->>>>>>> bbe36e9 (Improve tarot UX, prompts, and home testimonials.)
 import { hasLocale } from "next-intl"
 import { routing } from "@/i18n/routing"
 import { notFound } from "next/navigation"
@@ -134,11 +131,9 @@ export default async function RootLayout({
                             </TarotProvider>
                         </StarsProvider>
                     </AuthProvider>
-                    <Analytics />
-                    <BetaToaster />
                 </NextIntlClientProvider>
-<<<<<<< HEAD
                 <Analytics />
+                <BetaToaster />
                 <Toaster
                     position='bottom-center'
                     theme='dark'
@@ -146,8 +141,6 @@ export default async function RootLayout({
                     closeButton
                 />
                 <BetaAnnouncementModal />
-=======
->>>>>>> bbe36e9 (Improve tarot UX, prompts, and home testimonials.)
             </body>
         </html>
     )
