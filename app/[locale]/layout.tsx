@@ -131,16 +131,15 @@ export default async function RootLayout({
                             </TarotProvider>
                         </StarsProvider>
                     </AuthProvider>
+                    <BetaToaster />
+                    <Toaster
+                        position='bottom-center'
+                        theme='dark'
+                        richColors
+                        closeButton
+                    />
                 </NextIntlClientProvider>
                 <Analytics />
-                <BetaToaster />
-                <Toaster
-                    position='bottom-center'
-                    theme='dark'
-                    richColors
-                    closeButton
-                />
-                <BetaAnnouncementModal />
             </body>
         </html>
     )
