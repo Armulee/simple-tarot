@@ -57,8 +57,10 @@ export default function ShareSection({
     readingId: propReadingId,
 }: ShareSectionProps = {}) {
     const t = useTranslations("ReadingPage.interpretation.share")
-    const tCommon = useTranslations("ReadingPage.interpretation.dialogs.unavailable")
-    
+    const tCommon = useTranslations(
+        "ReadingPage.interpretation.dialogs.unavailable"
+    )
+
     const {
         question: contextQuestion,
         selectedCards,
@@ -322,146 +324,149 @@ export default function ShareSection({
         }
     }, [readingId, question, cards, interpretation, user?.id])
 
-    const shareOptions = useMemo(() => [
-        {
-            id: "facebook",
-            label: t("facebook"),
-            icon: <FaFacebook className='w-5.5 h-5.5 text-white' />,
-            bg: "linear-gradient(135deg, #1877F2, #0D5FCC)",
-            href: (u: string) =>
-                `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}`,
-        },
-        {
-            id: "messenger",
-            label: t("messenger"),
-            icon: <FaFacebookMessenger className='w-5.5 h-5.5 text-white' />,
-            bg: "linear-gradient(135deg, #0084FF, #0066CC)",
-            href: (u: string) =>
-                `https://www.messenger.com/t/?link=${encodeURIComponent(u)}`,
-        },
-        {
-            id: "instagram",
-            label: t("instagram"),
-            icon: <SiInstagram className='w-5.5 h-5.5 text-white' />,
-            bg: "linear-gradient(135deg, #E4405F, #C13584)",
-            href: () => null,
-        },
-        {
-            id: "threads",
-            label: t("threads"),
-            icon: <SiThreads className='w-5.5 h-5.5 text-white' />,
-            bg: "linear-gradient(135deg, #000000, #333333)",
-            href: (u: string, t?: string) =>
-                `https://www.threads.net/intent/post?url=${encodeURIComponent(u)}${t ? `&text=${encodeURIComponent(t)}` : ""}`,
-        },
-        {
-            id: "tiktok",
-            label: t("tiktok"),
-            icon: <SiTiktok className='w-5.5 h-5.5 text-white' />,
-            bg: "linear-gradient(135deg, #000000, #333333)",
-            href: () => null,
-        },
-        {
-            id: "x",
-            label: t("x"),
-            icon: <FaXTwitter className='w-5.5 h-5.5 text-white' />,
-            bg: "linear-gradient(135deg, #000000, #333333)",
-            href: (u: string, t?: string) =>
-                `https://twitter.com/intent/tweet?url=${encodeURIComponent(u)}${t ? `&text=${encodeURIComponent(t)}` : ""}`,
-        },
-        {
-            id: "line",
-            label: t("line"),
-            icon: <FaLine className='w-5.5 h-5.5 text-white' />,
-            bg: "linear-gradient(135deg, #00C300, #00A000)",
-            href: (u: string) =>
-                `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(u)}`,
-        },
-        {
-            id: "whatsapp",
-            label: t("whatsapp"),
-            icon: <FaWhatsapp className='w-5.5 h-5.5 text-white' />,
-            bg: "linear-gradient(135deg, #25D366, #1DA851)",
-            href: (u: string) =>
-                `https://api.whatsapp.com/send?text=${encodeURIComponent(u)}`,
-        },
-        {
-            id: "telegram",
-            label: t("telegram"),
-            icon: <FaTelegram className='w-5.5 h-5.5 text-white' />,
-            bg: "linear-gradient(135deg, #24A1DE, #1E8BC3)",
-            href: (u: string) =>
-                `https://t.me/share/url?url=${encodeURIComponent(u)}`,
-        },
-        {
-            id: "snapchat",
-            label: t("snapchat"),
-            icon: <SiSnapchat className='w-5.5 h-5.5 text-black' />,
-            bg: "linear-gradient(135deg, #FFFC00, #FFD700)",
-            href: () => null,
-        },
-        {
-            id: "discord",
-            label: t("discord"),
-            icon: <SiDiscord className='w-5.5 h-5.5 text-white' />,
-            bg: "linear-gradient(135deg, #5865F2, #4752C4)",
-            href: () => null,
-        },
-        {
-            id: "pinterest",
-            label: t("pinterest"),
-            icon: <SiPinterest className='w-5.5 h-5.5 text-white' />,
-            bg: "linear-gradient(135deg, #E60023, #CC001F)",
-            href: (u: string, t?: string) =>
-                `https://www.pinterest.com/pin/create/button/?url=${encodeURIComponent(u)}${t ? `&description=${encodeURIComponent(t)}` : ""}`,
-        },
-        {
-            id: "tumblr",
-            label: t("tumblr"),
-            icon: <SiTumblr className='w-5.5 h-5.5 text-white' />,
-            bg: "linear-gradient(135deg, #36465D, #2C3E50)",
-            href: (u: string, t?: string) =>
-                `https://www.tumblr.com/widgets/share/tool?canonicalUrl=${encodeURIComponent(u)}${t ? `&caption=${encodeURIComponent(t)}` : ""}`,
-        },
-        {
-            id: "wechat",
-            label: t("wechat"),
-            icon: <SiWechat className='w-5.5 h-5.5 text-white' />,
-            bg: "linear-gradient(135deg, #07C160, #05A050)",
-            href: () => null,
-        },
-        {
-            id: "reddit",
-            label: t("reddit"),
-            icon: <FaReddit className='w-5.5 h-5.5 text-white' />,
-            bg: "linear-gradient(135deg, #FF4500, #E63900)",
-            href: (u: string, t?: string) =>
-                `https://www.reddit.com/submit?url=${encodeURIComponent(u)}${t ? `&title=${encodeURIComponent(t)}` : ""}`,
-        },
-        {
-            id: "sms",
-            label: t("sms"),
-            icon: <FaCommentDots className='w-5.5 h-5.5 text-white' />,
-            bg: "linear-gradient(135deg, #34C759, #30A46C)",
-            href: (u: string, t?: string) =>
-                `sms:?&body=${encodeURIComponent(`${t ? t + " " : ""}${u}`)}`,
-        },
-        {
-            id: "email",
-            label: t("email"),
-            icon: <FaEnvelope className='w-5.5 h-5.5 text-white' />,
-            bg: "linear-gradient(135deg, #EA4335, #D33B2C)",
-            href: (u: string, t?: string) =>
-                `mailto:?subject=${encodeURIComponent("Check out my tarot reading")}&body=${encodeURIComponent(`${t ? t + "\n\n" : ""}${u}`)}`,
-        },
-        {
-            id: "more",
-            label: t("more"),
-            icon: <FaShareNodes className='w-5.5 h-5.5 text-white' />,
-            bg: "linear-gradient(135deg, #6B7280, #4B5563)",
-            href: () => null,
-        },
-    ], [t])
+    const shareOptions = useMemo(
+        () => [
+            {
+                id: "facebook",
+                label: t("facebook"),
+                icon: <FaFacebook className='w-7 h-7 text-white' />,
+                bg: "linear-gradient(135deg, var(--primary), var(--accent))",
+                href: (u: string) =>
+                    `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}`,
+            },
+            {
+                id: "messenger",
+                label: t("messenger"),
+                icon: <FaFacebookMessenger className='w-7 h-7 text-white' />,
+                bg: "linear-gradient(135deg, var(--primary), var(--accent))",
+                href: (u: string) =>
+                    `https://www.messenger.com/t/?link=${encodeURIComponent(u)}`,
+            },
+            {
+                id: "instagram",
+                label: t("instagram"),
+                icon: <SiInstagram className='w-7 h-7 text-white' />,
+                bg: "linear-gradient(135deg, var(--primary), var(--accent))",
+                href: () => null,
+            },
+            {
+                id: "threads",
+                label: t("threads"),
+                icon: <SiThreads className='w-7 h-7 text-white' />,
+                bg: "linear-gradient(135deg, var(--primary), var(--accent))",
+                href: (u: string, t?: string) =>
+                    `https://www.threads.net/intent/post?url=${encodeURIComponent(u)}${t ? `&text=${encodeURIComponent(t)}` : ""}`,
+            },
+            {
+                id: "tiktok",
+                label: t("tiktok"),
+                icon: <SiTiktok className='w-7 h-7 text-white' />,
+                bg: "linear-gradient(135deg, var(--primary), var(--accent))",
+                href: () => null,
+            },
+            {
+                id: "x",
+                label: t("x"),
+                icon: <FaXTwitter className='w-7 h-7 text-white' />,
+                bg: "linear-gradient(135deg, var(--primary), var(--accent))",
+                href: (u: string, t?: string) =>
+                    `https://twitter.com/intent/tweet?url=${encodeURIComponent(u)}${t ? `&text=${encodeURIComponent(t)}` : ""}`,
+            },
+            {
+                id: "line",
+                label: t("line"),
+                icon: <FaLine className='w-7 h-7 text-white' />,
+                bg: "linear-gradient(135deg, var(--primary), var(--accent))",
+                href: (u: string) =>
+                    `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(u)}`,
+            },
+            {
+                id: "whatsapp",
+                label: t("whatsapp"),
+                icon: <FaWhatsapp className='w-7 h-7 text-white' />,
+                bg: "linear-gradient(135deg, var(--primary), var(--accent))",
+                href: (u: string) =>
+                    `https://api.whatsapp.com/send?text=${encodeURIComponent(u)}`,
+            },
+            {
+                id: "telegram",
+                label: t("telegram"),
+                icon: <FaTelegram className='w-7 h-7 text-white' />,
+                bg: "linear-gradient(135deg, var(--primary), var(--accent))",
+                href: (u: string) =>
+                    `https://t.me/share/url?url=${encodeURIComponent(u)}`,
+            },
+            {
+                id: "snapchat",
+                label: t("snapchat"),
+                icon: <SiSnapchat className='w-7 h-7 text-white' />,
+                bg: "linear-gradient(135deg, var(--primary), var(--accent))",
+                href: () => null,
+            },
+            {
+                id: "discord",
+                label: t("discord"),
+                icon: <SiDiscord className='w-7 h-7 text-white' />,
+                bg: "linear-gradient(135deg, var(--primary), var(--accent))",
+                href: () => null,
+            },
+            {
+                id: "pinterest",
+                label: t("pinterest"),
+                icon: <SiPinterest className='w-7 h-7 text-white' />,
+                bg: "linear-gradient(135deg, var(--primary), var(--accent))",
+                href: (u: string, t?: string) =>
+                    `https://www.pinterest.com/pin/create/button/?url=${encodeURIComponent(u)}${t ? `&description=${encodeURIComponent(t)}` : ""}`,
+            },
+            {
+                id: "tumblr",
+                label: t("tumblr"),
+                icon: <SiTumblr className='w-7 h-7 text-white' />,
+                bg: "linear-gradient(135deg, var(--primary), var(--accent))",
+                href: (u: string, t?: string) =>
+                    `https://www.tumblr.com/widgets/share/tool?canonicalUrl=${encodeURIComponent(u)}${t ? `&caption=${encodeURIComponent(t)}` : ""}`,
+            },
+            {
+                id: "wechat",
+                label: t("wechat"),
+                icon: <SiWechat className='w-7 h-7 text-white' />,
+                bg: "linear-gradient(135deg, var(--primary), var(--accent))",
+                href: () => null,
+            },
+            {
+                id: "reddit",
+                label: t("reddit"),
+                icon: <FaReddit className='w-7 h-7 text-white' />,
+                bg: "linear-gradient(135deg, var(--primary), var(--accent))",
+                href: (u: string, t?: string) =>
+                    `https://www.reddit.com/submit?url=${encodeURIComponent(u)}${t ? `&title=${encodeURIComponent(t)}` : ""}`,
+            },
+            {
+                id: "sms",
+                label: t("sms"),
+                icon: <FaCommentDots className='w-7 h-7 text-white' />,
+                bg: "linear-gradient(135deg, var(--primary), var(--accent))",
+                href: (u: string, t?: string) =>
+                    `sms:?&body=${encodeURIComponent(`${t ? t + " " : ""}${u}`)}`,
+            },
+            {
+                id: "email",
+                label: t("email"),
+                icon: <FaEnvelope className='w-7 h-7 text-white' />,
+                bg: "linear-gradient(135deg, var(--primary), var(--accent))",
+                href: (u: string, t?: string) =>
+                    `mailto:?subject=${encodeURIComponent("Check out my tarot reading")}&body=${encodeURIComponent(`${t ? t + "\n\n" : ""}${u}`)}`,
+            },
+            {
+                id: "more",
+                label: t("more"),
+                icon: <FaShareNodes className='w-7 h-7 text-white' />,
+                bg: "linear-gradient(135deg, var(--primary), var(--accent))",
+                href: () => null,
+            },
+        ],
+        [t]
+    )
 
     return (
         <div className='relative overflow-hidden group'>

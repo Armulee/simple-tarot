@@ -339,6 +339,14 @@ export default function ActionSection({
 
     const actionOptions = [
         {
+            id: "new",
+            label: t("buttons.newReading"),
+            icon: <Sparkles className='w-6 h-6 text-white' />,
+            bg: "linear-gradient(135deg, var(--primary), var(--accent))",
+            description: "Start fresh",
+            onClick: async () => router.push("/"),
+        },
+        {
             id: "regen",
             label: (
                 <span className='leading-tight text-center'>
@@ -352,32 +360,22 @@ export default function ActionSection({
                     </span>
                 </span>
             ),
-            icon: <FaArrowsRotate className='w-4 h-4 text-white' />,
-            bg: "linear-gradient(135deg, #6366F1, #4F46E5)",
+            icon: <FaArrowsRotate className='w-6 h-6 text-white' />,
+            bg: "linear-gradient(135deg, var(--primary), var(--accent))",
             description: "Get a new interpretation",
             onClick: async () => {
                 await handleRegenerate()
             },
         },
         {
-            id: "new",
-            label: t("buttons.newReading"),
-            icon: <Sparkles className='w-4 h-4 text-white' />,
-            bg: "linear-gradient(135deg, #22C55E, #16A34A)",
-            description: "Start fresh",
-            onClick: async () => router.push("/"),
-        },
-        {
             id: "copy-link",
             label: copiedLink ? t("actions.copiedLink") : t("actions.copyLink"),
             icon: copiedLink ? (
-                <FaCheck className='w-4 h-4 text-white' />
+                <FaCheck className='w-6 h-6 text-white' />
             ) : (
-                <FaLink className='w-4 h-4 text-white' />
+                <FaLink className='w-6 h-6 text-white' />
             ),
-            bg: copiedLink
-                ? "linear-gradient(135deg, #22C55E, #16A34A)"
-                : "linear-gradient(135deg, #06B6D4, #0891B2)",
+            bg: "linear-gradient(135deg, var(--primary), var(--accent))",
             description: copiedLink
                 ? t("actions.linkCopiedDesc")
                 : t("actions.shareDesc"),
@@ -431,13 +429,11 @@ export default function ActionSection({
                 ? t("actions.copiedLink")
                 : t("actions.copyResult"),
             icon: copiedText ? (
-                <FaCheck className='w-4 h-4 text-white' />
+                <FaCheck className='w-6 h-6 text-white' />
             ) : (
-                <FaRegFileLines className='w-4 h-4 text-white' />
+                <FaRegFileLines className='w-6 h-6 text-white' />
             ),
-            bg: copiedText
-                ? "linear-gradient(135deg, #22C55E, #16A34A)"
-                : "linear-gradient(135deg, #10B981, #059669)",
+            bg: "linear-gradient(135deg, var(--primary), var(--accent))",
             description: copiedText
                 ? t("actions.textCopiedDesc")
                 : "Copy interpretation",
@@ -488,24 +484,24 @@ export default function ActionSection({
         {
             id: "download",
             label: t("actions.download"),
-            icon: <FaDownload className='w-4 h-4 text-white' />,
-            bg: "linear-gradient(135deg, #0EA5E9, #0284C7)",
+            icon: <FaDownload className='w-6 h-6 text-white' />,
+            bg: "linear-gradient(135deg, var(--primary), var(--accent))",
             description: t("actions.downloadDesc"),
             onClick: async () => {}, // handled by Popover wrapper
         },
         {
             id: "versions",
             label: t("actions.versions"),
-            icon: <FaRegFileLines className='w-4 h-4 text-white' />,
-            bg: "linear-gradient(135deg, #9333EA, #7E22CE)",
+            icon: <FaRegFileLines className='w-6 h-6 text-white' />,
+            bg: "linear-gradient(135deg, var(--primary), var(--accent))",
             description: t("actions.versionsDesc"),
             onClick: async () => {},
         },
         {
             id: "report",
             label: t("actions.report"),
-            icon: <FaFlag className='w-4 h-4 text-white' />,
-            bg: "linear-gradient(135deg, #EF4444, #DC2626)",
+            icon: <FaFlag className='w-6 h-6 text-white' />,
+            bg: "linear-gradient(135deg, var(--primary), var(--accent))",
             description: t("actions.reportDesc"),
             onClick: async () => setShowReport(true),
         },
@@ -513,8 +509,8 @@ export default function ActionSection({
             ? {
                   id: "vote-up",
                   label: t("actions.voteUp"),
-                  icon: <FaThumbsUp className='w-4 h-4 text-white' />,
-                  bg: "linear-gradient(135deg, #22C55E, #16A34A)",
+                  icon: <FaThumbsUp className='w-6 h-6 text-white' />,
+                  bg: "linear-gradient(135deg, var(--primary), var(--accent))",
                   description: t("actions.voteUpDesc"),
                   onClick: async () => {
                       setVoteState("up")
@@ -524,8 +520,8 @@ export default function ActionSection({
             : {
                   id: "vote-up-cancel",
                   label: t("actions.voteUp"),
-                  icon: <FaXmark className='w-4 h-4 text-white' />,
-                  bg: "linear-gradient(135deg, #6B7280, #4B5563)",
+                  icon: <FaXmark className='w-6 h-6 text-white' />,
+                  bg: "linear-gradient(135deg, var(--primary), var(--accent))",
                   description: t("actions.removeVoteUpDesc"),
                   onClick: async () => {
                       setVoteState(null)
@@ -536,8 +532,8 @@ export default function ActionSection({
             ? {
                   id: "vote-down",
                   label: t("actions.voteDown"),
-                  icon: <FaThumbsDown className='w-4 h-4 text-white' />,
-                  bg: "linear-gradient(135deg, #F59E0B, #D97706)",
+                  icon: <FaThumbsDown className='w-6 h-6 text-white' />,
+                  bg: "linear-gradient(135deg, var(--primary), var(--accent))",
                   description: t("actions.voteDownDesc"),
                   onClick: async () => {
                       setVoteState("down")
@@ -547,8 +543,8 @@ export default function ActionSection({
             : {
                   id: "vote-down-cancel",
                   label: t("actions.voteDown"),
-                  icon: <FaXmark className='w-4 h-4 text-white' />,
-                  bg: "linear-gradient(135deg, #6B7280, #4B5563)",
+                  icon: <FaXmark className='w-6 h-6 text-white' />,
+                  bg: "linear-gradient(135deg, var(--primary), var(--accent))",
                   description: t("actions.removeVoteDownDesc"),
                   onClick: async () => {
                       setVoteState(null)
@@ -558,8 +554,8 @@ export default function ActionSection({
         {
             id: "feedback",
             label: t("actions.feedback"),
-            icon: <FaComment className='w-4 h-4 text-white' />,
-            bg: "linear-gradient(135deg, #8B5CF6, #7C3AED)",
+            icon: <FaComment className='w-6 h-6 text-white' />,
+            bg: "linear-gradient(135deg, var(--primary), var(--accent))",
             description: t("actions.feedbackDesc"),
             onClick: async () => setShowFeedback(true),
         },
