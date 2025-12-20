@@ -2,7 +2,10 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
+import { Button } from "@/components/ui/button"
+import { Sparkles } from "lucide-react"
 import { Swiper, SwiperSlide } from "swiper/react"
+import { Swiper as SwiperType } from "swiper"
 import { FreeMode, Mousewheel } from "swiper/modules"
 import "swiper/css"
 import "swiper/css/free-mode"
@@ -110,10 +113,12 @@ export function LinearCardSpread({
     cardsToSelect,
     onCardsSelected,
     onProvideShuffle,
+    onProvideRandomPick,
 }: {
     cardsToSelect: number
     onCardsSelected: (cards: BasicCard[]) => void
     onProvideShuffle?: (fn: () => void) => void
+    onProvideRandomPick?: (fn: () => void) => void
 }) {
     const t = useTranslations("ReadingPage.chooseCards")
     const initialDeck = useMemo(() => shuffle(TAROT_DECK), [])
@@ -128,6 +133,8 @@ export function LinearCardSpread({
         x: number
         y: number
     }>({ x: 0, y: 0 })
+    const [swiper, setSwiper] = useState<SwiperType | null>(null)
+    const [isRandomPicking, setIsRandomPicking] = useState(false)
     const deckRef = useRef<HTMLDivElement | null>(null)
 
     // Active drag state for a slide
@@ -143,10 +150,82 @@ export function LinearCardSpread({
     const suppressClickRef = useRef<boolean>(false)
     const suppressClickTimeoutRef = useRef<number | null>(null)
 
-    const finalizeIfDone = (next: BasicCard[]) => {
+    const finalizeIfDone = (next: BasicCard[], delay = 0) => {
         if (next.length === cardsToSelect) {
-            onCardsSelected(next)
+            if (delay > 0) {
+                setTimeout(() => {
+                    onCardsSelected(next)
+                }, delay)
+            } else {
+                onCardsSelected(next)
+            }
         }
+    }
+
+    const randomPick = async () => {
+        if (isRandomPicking) return
+
+        // Find unselected cards
+        const unselectedNames = deckList.filter(
+            (name) => !selectedNames.has(name)
+        )
+        if (unselectedNames.length === 0) return
+
+        setIsRandomPicking(true)
+
+        // Pick one randomly
+        const randomName =
+            unselectedNames[Math.floor(Math.random() * unselectedNames.length)]
+
+        // 0. Get element & Apply Aura INSTANTLY
+        const cardEl = deckRef.current?.querySelector(
+            `[data-card-name="${randomName}"]`
+        ) as HTMLElement
+
+        if (cardEl) {
+            // Instant application or very fast transition for aura
+            cardEl.style.transition = "box-shadow 300ms ease, filter 300ms ease"
+            cardEl.style.boxShadow =
+                "0 0 0 2px rgba(59,130,246,0.8), 0 0 24px 10px rgba(124,58,237,0.7), 0 0 60px 24px rgba(59,130,246,0.5)"
+            cardEl.style.filter = "saturate(1.2) brightness(1.05)"
+        }
+
+        // 1. Scroll to card
+        const index = deckList.indexOf(randomName)
+        if (swiper) {
+            swiper.slideTo(index, 600) // 600ms scroll
+            await new Promise((r) => setTimeout(r, 700)) // wait for scroll + buffer
+        }
+
+        // 2. Animate card up
+        // (Re-querying cardEl is safe/clean, but we can reuse if valid.
+        // Re-querying ensures we have the latest ref if DOM shifted, though unlikely here.)
+        const currentCardEl = deckRef.current?.querySelector(
+            `[data-card-name="${randomName}"]`
+        ) as HTMLElement
+
+        if (currentCardEl) {
+            // Apply transition and transform
+            currentCardEl.style.transition =
+                "transform 500ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 300ms ease, filter 300ms ease"
+            currentCardEl.style.transform = "translateY(-120%) rotate(-6deg)"
+
+            // Wait for animation
+            await new Promise((r) => setTimeout(r, 500))
+        }
+
+        // Determine reversal
+        const mapped = reversalByName.get(randomName)
+        const isReversed = mapped != null ? mapped : Math.random() < 0.5
+
+        // Update state
+        const next = [...selected, { name: randomName, isReversed }]
+        setSelected(next)
+        setSelectedNames((prev) => new Set(prev).add(randomName))
+
+        // Finalize with delay to allow animation
+        finalizeIfDone(next)
+        setIsRandomPicking(false)
     }
 
     const shuffleUnselected = () => {
@@ -181,7 +260,7 @@ export function LinearCardSpread({
 
     useEffect(() => {
         onProvideShuffle?.(shuffleUnselected)
-        // It's okay to provide a stable function; dependencies keep it fresh when state changes
+        onProvideRandomPick?.(randomPick)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [deckList, reversalByName, selected])
 
@@ -371,12 +450,23 @@ export function LinearCardSpread({
 
     return (
         <>
+            <div className='flex justify-center mb-6'>
+                <Button
+                    onClick={randomPick}
+                    disabled={isRandomPicking}
+                    className='gap-2 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 hover:from-indigo-500/30 hover:to-purple-500/30 border border-white/10 text-white backdrop-blur-sm transition-all duration-300 shadow-lg hover:shadow-primary/20 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed'
+                >
+                    <Sparkles className='w-4 h-4 text-yellow-300 animate-pulse' />
+                    {t("random", { default: "Pick For Me" })}
+                </Button>
+            </div>
             <p className='text-xs text-muted-foreground w-full text-center smx-auto'>
                 {t("swipeUpToSelect")}
             </p>
             <div className='w-full relative' ref={deckRef}>
                 {/* Shuffle control moved to parent header */}
                 <Swiper
+                    onSwiper={setSwiper}
                     modules={[FreeMode, Mousewheel]}
                     freeMode={{
                         enabled: true,
@@ -412,6 +502,7 @@ export function LinearCardSpread({
                                                 : "cursor-pointer"
                                         }`}
                                         data-card='true'
+                                        data-card-name={name}
                                         onClick={(e) => {
                                             if (suppressClickRef.current) {
                                                 e.preventDefault()

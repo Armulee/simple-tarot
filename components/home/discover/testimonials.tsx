@@ -1,13 +1,18 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { useState, useEffect } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ChevronLeft, ChevronRight, Star } from "lucide-react"
+import { Swiper, SwiperSlide } from "swiper/react"
+import { Autoplay } from "swiper/modules"
+import type { Swiper as SwiperType } from "swiper"
+import "swiper/css"
 
 export default function TestimonialsSection() {
     const t = useTranslations("HomeDiscover.Testimonials")
     const [currentIndex, setCurrentIndex] = useState(0)
     const [isAutoPlaying, setIsAutoPlaying] = useState(true)
+    const swiperRef = useRef<SwiperType | null>(null)
 
     const items = t.raw("items") as Array<{
         quote: string
@@ -17,27 +22,26 @@ export default function TestimonialsSection() {
     }>
 
     useEffect(() => {
-        if (!isAutoPlaying) return
-
-        const interval = setInterval(() => {
-            setCurrentIndex((prev) => (prev + 1) % items.length)
-        }, 5000)
-
-        return () => clearInterval(interval)
-    }, [isAutoPlaying, items.length])
+        const s = swiperRef.current
+        if (!s || !s.autoplay) return
+        if (isAutoPlaying) s.autoplay.start()
+        else s.autoplay.stop()
+    }, [isAutoPlaying])
 
     const nextTestimonial = () => {
-        setCurrentIndex((prev) => (prev + 1) % items.length)
+        swiperRef.current?.slideNext()
         setIsAutoPlaying(false)
     }
 
     const prevTestimonial = () => {
-        setCurrentIndex((prev) => (prev - 1 + items.length) % items.length)
+        swiperRef.current?.slidePrev()
         setIsAutoPlaying(false)
     }
 
     const goToTestimonial = (index: number) => {
-        setCurrentIndex(index)
+        if (swiperRef.current) {
+            swiperRef.current.slideToLoop(index)
+        }
         setIsAutoPlaying(false)
     }
 
@@ -64,14 +68,29 @@ export default function TestimonialsSection() {
             <div className='relative max-w-4xl mx-auto'>
                 {/* Main testimonial display */}
                 <div className='relative overflow-hidden rounded-2xl'>
-                    <div
-                        className='flex transition-transform duration-500 ease-in-out'
-                        style={{
-                            transform: `translateX(-${currentIndex * 100}%)`,
+                    <Swiper
+                        modules={[Autoplay]}
+                        loop={items.length > 1}
+                        slidesPerView={1}
+                        spaceBetween={0}
+                        onSwiper={(s) => {
+                            swiperRef.current = s
                         }}
+                        onSlideChange={(s) => {
+                            setCurrentIndex(s.realIndex)
+                        }}
+                        autoplay={
+                            isAutoPlaying
+                                ? {
+                                      delay: 5000,
+                                      disableOnInteraction: false,
+                                      pauseOnMouseEnter: true,
+                                  }
+                                : false
+                        }
                     >
                         {items.map((item, index) => (
-                            <div key={index} className='w-full flex-shrink-0'>
+                            <SwiperSlide key={index}>
                                 <div className='bg-transparent rounded-2xl px-6 py-8 mx-4'>
                                     {/* Quote text */}
                                     <blockquote className='text-center mb-8'>
@@ -107,9 +126,9 @@ export default function TestimonialsSection() {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </SwiperSlide>
                         ))}
-                    </div>
+                    </Swiper>
                 </div>
 
                 {/* Navigation controls */}

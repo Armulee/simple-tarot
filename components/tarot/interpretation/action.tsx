@@ -39,7 +39,7 @@ import {
     PopoverTrigger,
     PopoverContent,
 } from "@/components/ui/popover"
-import { useEffect as ReactUseEffect } from "react"
+import { getTarotReadingPrompt } from "@/lib/prompts"
 import { toast } from "sonner"
 
 interface ActionSectionProps {
@@ -51,6 +51,8 @@ interface ActionSectionProps {
     onGeneratingChange?: (loading: boolean) => void
 }
 
+import { useTranslations } from "next-intl"
+
 export default function ActionSection({
     question: propQuestion,
     cards: propCards,
@@ -59,6 +61,7 @@ export default function ActionSection({
     onInterpretationChange,
     onGeneratingChange,
 }: ActionSectionProps = {}) {
+    const t = useTranslations("ReadingPage.interpretation")
     const {
         question: contextQuestion,
         selectedCards,
@@ -104,7 +107,7 @@ export default function ActionSection({
             setVersions(Array.isArray(data.versions) ? data.versions : [])
         } catch {}
     }, [readingId])
-    ReactUseEffect(() => {
+    useEffect(() => {
         void loadVersions()
     }, [loadVersions])
 
@@ -258,55 +261,21 @@ export default function ActionSection({
                             question?: string
                             interpretation?: string
                         }
-                        previousQuestion = (backup?.question || "").trim() || null
+                        previousQuestion =
+                            (backup?.question || "").trim() || null
                         previousInterpretation =
                             (backup?.interpretation || "").trim() || null
                     }
                 }
             } catch {}
 
-            const hasFollowUpContext =
-                isFollowUp &&
-                !!previousQuestion &&
-                !!previousInterpretation &&
-                previousQuestion !== (question || "")
-
-            const prompt = hasFollowUpContext
-                ? `Main question: "${previousQuestion}"
-
-Previous interpretation:
-${previousInterpretation}
-
-Follow-up question: "${question}"
-
-Cards: ${cardNames}
-
-Goal: Provide a concise follow-up interpretation that directly answers the follow-up while staying consistent with the previous interpretation.
-
-Guidance:
-- Build on the earlier reading; reference it briefly (do not repeat it).
-- If the follow-up shifts focus, explain the link in a short phrase, then answer directly.
-- Do not fetch or cite external sources (e.g., thetarotguide.com). Use only the provided card names (and reversed markers) as context.
-
-Output:
-- One short paragraph, <= 100 words.
-- Clear, grounded. Mention cards only if essential.
-- Answer directly to the question; trim verbosity; add specifics if vague.`
-                : `Question: "${question}"
-
-Cards: ${cardNames}
-
-Goal: Provide a concise interpretation that directly answers the question.
-
-Silent steps (do not reveal):
-1) Classify the question intent into: love/relationships, work/career, finances, health/wellbeing, personal growth, spiritual, or general.
-2) Map the listed cards to that intent and emphasize the most relevant angles.
-3) Do not fetch or cite external sources (e.g., thetarotguide.com). Use only the provided card names (and reversed markers) as context.
-
-Output:
-- One short paragraph, <= 100 words.
-- Clear, grounded. Mention cards only if essential.
-- Answer directly to the question. ground it; if vague, add specificity; if too long, trim; if too short, enrich with specifics.`
+            const prompt = getTarotReadingPrompt({
+                question: question || "",
+                cards: cardNames,
+                isFollowUp,
+                previousQuestion,
+                previousInterpretation,
+            })
 
             // Generate new interpretation
             const newText = await complete(prompt)
@@ -373,7 +342,7 @@ Output:
             id: "regen",
             label: (
                 <span className='leading-tight text-center'>
-                    <span className='block'>Regenerate</span>
+                    <span className='block'>{t("buttons.regenerate")}</span>
                     <span className='block text-[10px] text-yellow-300'>
                         -1{" "}
                         <Star
@@ -392,7 +361,7 @@ Output:
         },
         {
             id: "new",
-            label: "New Reading",
+            label: t("buttons.newReading"),
             icon: <Sparkles className='w-4 h-4 text-white' />,
             bg: "linear-gradient(135deg, #22C55E, #16A34A)",
             description: "Start fresh",
@@ -400,7 +369,7 @@ Output:
         },
         {
             id: "copy-link",
-            label: copiedLink ? "Copied!" : "Copy Link",
+            label: copiedLink ? t("actions.copiedLink") : t("actions.copyLink"),
             icon: copiedLink ? (
                 <FaCheck className='w-4 h-4 text-white' />
             ) : (
@@ -410,8 +379,8 @@ Output:
                 ? "linear-gradient(135deg, #22C55E, #16A34A)"
                 : "linear-gradient(135deg, #06B6D4, #0891B2)",
             description: copiedLink
-                ? "Link copied to clipboard"
-                : "Share this reading",
+                ? t("actions.linkCopiedDesc")
+                : t("actions.shareDesc"),
             onClick: async () => {
                 const link = await ensureShareLink()
                 if (!link) return
@@ -458,7 +427,9 @@ Output:
         },
         {
             id: "copy-text",
-            label: copiedText ? "Copied!" : "Copy Result",
+            label: copiedText
+                ? t("actions.copiedLink")
+                : t("actions.copyResult"),
             icon: copiedText ? (
                 <FaCheck className='w-4 h-4 text-white' />
             ) : (
@@ -468,7 +439,7 @@ Output:
                 ? "linear-gradient(135deg, #22C55E, #16A34A)"
                 : "linear-gradient(135deg, #10B981, #059669)",
             description: copiedText
-                ? "Text copied to clipboard"
+                ? t("actions.textCopiedDesc")
                 : "Copy interpretation",
             onClick: async () => {
                 const text = interpretation ? String(interpretation) : ""
@@ -516,35 +487,35 @@ Output:
         },
         {
             id: "download",
-            label: "Download",
+            label: t("actions.download"),
             icon: <FaDownload className='w-4 h-4 text-white' />,
             bg: "linear-gradient(135deg, #0EA5E9, #0284C7)",
-            description: "Save image or video",
+            description: t("actions.downloadDesc"),
             onClick: async () => {}, // handled by Popover wrapper
         },
         {
             id: "versions",
-            label: "Versions",
+            label: t("actions.versions"),
             icon: <FaRegFileLines className='w-4 h-4 text-white' />,
             bg: "linear-gradient(135deg, #9333EA, #7E22CE)",
-            description: "View versions",
+            description: t("actions.versionsDesc"),
             onClick: async () => {},
         },
         {
             id: "report",
-            label: "Report",
+            label: t("actions.report"),
             icon: <FaFlag className='w-4 h-4 text-white' />,
             bg: "linear-gradient(135deg, #EF4444, #DC2626)",
-            description: "Report issue",
+            description: t("actions.reportDesc"),
             onClick: async () => setShowReport(true),
         },
         voteState !== "up"
             ? {
                   id: "vote-up",
-                  label: "Vote Up",
+                  label: t("actions.voteUp"),
                   icon: <FaThumbsUp className='w-4 h-4 text-white' />,
                   bg: "linear-gradient(135deg, #22C55E, #16A34A)",
-                  description: "Like this reading",
+                  description: t("actions.voteUpDesc"),
                   onClick: async () => {
                       setVoteState("up")
                       // TODO: call /api/feedbacks to upsert vote_up=true
@@ -552,10 +523,10 @@ Output:
               }
             : {
                   id: "vote-up-cancel",
-                  label: "Vote Up",
+                  label: t("actions.voteUp"),
                   icon: <FaXmark className='w-4 h-4 text-white' />,
                   bg: "linear-gradient(135deg, #6B7280, #4B5563)",
-                  description: "Remove vote up",
+                  description: t("actions.removeVoteUpDesc"),
                   onClick: async () => {
                       setVoteState(null)
                       // TODO: call /api/feedbacks to remove vote
@@ -564,10 +535,10 @@ Output:
         voteState !== "down"
             ? {
                   id: "vote-down",
-                  label: "Vote Down",
+                  label: t("actions.voteDown"),
                   icon: <FaThumbsDown className='w-4 h-4 text-white' />,
                   bg: "linear-gradient(135deg, #F59E0B, #D97706)",
-                  description: "Dislike this reading",
+                  description: t("actions.voteDownDesc"),
                   onClick: async () => {
                       setVoteState("down")
                       // TODO: call /api/feedbacks to upsert vote_down=true
@@ -575,10 +546,10 @@ Output:
               }
             : {
                   id: "vote-down-cancel",
-                  label: "Vote Down",
+                  label: t("actions.voteDown"),
                   icon: <FaXmark className='w-4 h-4 text-white' />,
                   bg: "linear-gradient(135deg, #6B7280, #4B5563)",
-                  description: "Remove vote down",
+                  description: t("actions.removeVoteDownDesc"),
                   onClick: async () => {
                       setVoteState(null)
                       // TODO: call /api/feedbacks to remove vote
@@ -586,10 +557,10 @@ Output:
               },
         {
             id: "feedback",
-            label: "Feedback",
+            label: t("actions.feedback"),
             icon: <FaComment className='w-4 h-4 text-white' />,
             bg: "linear-gradient(135deg, #8B5CF6, #7C3AED)",
-            description: "Share feedback",
+            description: t("actions.feedbackDesc"),
             onClick: async () => setShowFeedback(true),
         },
     ]
@@ -618,10 +589,10 @@ Output:
                         </div>
                         <div>
                             <h3 className='font-serif font-semibold text-lg text-foreground group-hover:text-primary/90 transition-colors duration-300'>
-                                Actions
+                                {t("actionsHeader")}
                             </h3>
                             <p className='text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300'>
-                                Manage and interact with your reading
+                                {t("actionsDesc")}
                             </p>
                         </div>
                     </div>
@@ -942,9 +913,11 @@ Output:
             <AlertDialog open={showReport}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Report this reading</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {t("dialogs.report.title")}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Select a reason and optionally add details.
+                            {t("dialogs.report.desc")}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <div className='space-y-2'>
@@ -953,21 +926,29 @@ Output:
                             value={reportReason}
                             onChange={(e) => setReportReason(e.target.value)}
                         >
-                            <option value=''>Select a reason</option>
+                            <option value=''>
+                                {t("dialogs.report.reasons.select")}
+                            </option>
                             <option value='inappropriate'>
-                                Inappropriate content
+                                {t("dialogs.report.reasons.inappropriate")}
                             </option>
-                            <option value='spam'>Spam or misleading</option>
+                            <option value='spam'>
+                                {t("dialogs.report.reasons.spam")}
+                            </option>
                             <option value='harassment'>
-                                Harassment or hate
+                                {t("dialogs.report.reasons.harassment")}
                             </option>
-                            <option value='privacy'>Privacy concern</option>
-                            <option value='other'>Other</option>
+                            <option value='privacy'>
+                                {t("dialogs.report.reasons.privacy")}
+                            </option>
+                            <option value='other'>
+                                {t("dialogs.report.reasons.other")}
+                            </option>
                         </select>
                         {reportReason === "other" && (
                             <textarea
                                 className='w-full bg-background border border-border/40 rounded-md p-2'
-                                placeholder='Please describe...'
+                                placeholder={t("dialogs.report.placeholder")}
                                 value={reportDetails}
                                 onChange={(e) =>
                                     setReportDetails(e.target.value)
@@ -977,7 +958,7 @@ Output:
                     </div>
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setShowReport(false)}>
-                            Cancel
+                            {t("dialogs.report.cancel")}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={async () => {
@@ -998,7 +979,7 @@ Output:
                                 } catch {}
                             }}
                         >
-                            Submit
+                            {t("dialogs.report.submit")}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -1008,9 +989,11 @@ Output:
             <AlertDialog open={showFeedback}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Share your feedback</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {t("dialogs.feedback.title")}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            How helpful was this interpretation?
+                            {t("dialogs.feedback.desc")}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <div className='flex items-center justify-center gap-2 py-2'>
@@ -1026,7 +1009,7 @@ Output:
                     </div>
                     <textarea
                         className='w-full bg-background border border-border/40 rounded-md p-2'
-                        placeholder='Optional comments'
+                        placeholder={t("dialogs.feedback.placeholder")}
                         value={reportDetails}
                         onChange={(e) => setReportDetails(e.target.value)}
                     />
@@ -1034,7 +1017,7 @@ Output:
                         <AlertDialogCancel
                             onClick={() => setShowFeedback(false)}
                         >
-                            Cancel
+                            {t("dialogs.feedback.cancel")}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={async () => {
@@ -1054,7 +1037,7 @@ Output:
                                 } catch {}
                             }}
                         >
-                            Submit
+                            {t("dialogs.feedback.submit")}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

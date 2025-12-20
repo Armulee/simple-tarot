@@ -574,22 +574,35 @@ export default function ReadingHistory() {
         // Build grouped threads across all filtered readings
         // Prefer exact database linkage via parent_id when present
         const groupsByKey = new Map<string, ReadingRow[]>()
-        const withParent = filteredReadings.filter((r) => r.parent_id)
-        const withoutParent = filteredReadings.filter((r) => !r.parent_id)
+        
+        // Build lineage map from ALL readings to ensure we can trace back to root
+        // even if intermediate steps are filtered out or if we are deep in a chain
+        const parentMap = new Map<string, string | null>()
+        readings.forEach((r) => {
+            parentMap.set(r.id, r.parent_id || null)
+        })
 
-        // Group those with explicit parent linkage
-        for (const r of withParent) {
-            const key = (r.parent_id as string) || r.id
-            const list = groupsByKey.get(key) || []
-            list.push(r)
-            groupsByKey.set(key, list)
+        const findRootId = (startId: string) => {
+            let current = startId
+            const visited = new Set<string>()
+            while (true) {
+                if (visited.has(current)) return current
+                visited.add(current)
+                const pid = parentMap.get(current)
+                if (!pid) return current
+                // If parent exists but is not in our loaded list, we treat the PID as the root
+                // (assuming the chain continues even if we don't have the object loaded)
+                // However, finding the PID in the map ensures we can keep traversing.
+                if (!parentMap.has(pid)) return pid 
+                current = pid
+            }
         }
-        // Ensure mains exist in map
-        for (const r of withoutParent) {
-            const key = r.id
-            const list = groupsByKey.get(key) || []
+
+        for (const r of filteredReadings) {
+            const rootId = findRootId(r.id)
+            const list = groupsByKey.get(rootId) || []
             list.push(r)
-            groupsByKey.set(key, list)
+            groupsByKey.set(rootId, list)
         }
 
         // If some follow-ups reference a main not in current filter (unlikely), we still create the group

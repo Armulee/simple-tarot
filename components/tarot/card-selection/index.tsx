@@ -56,6 +56,8 @@ export default function CardSelection({
     const [isEditing, setIsEditing] = useState(false)
     const linearShuffleRef = React.useRef<(() => void) | null>(null)
     const circularShuffleRef = React.useRef<(() => void) | null>(null)
+    const linearRandomPickRef = React.useRef<(() => void) | null>(null)
+    const circularRandomPickRef = React.useRef<(() => void) | null>(null)
 
     // Aggregated selection for dual circular spreads
     const [aggSelected, setAggSelected] = useState<
@@ -358,9 +360,7 @@ export default function CardSelection({
                                     className='w-3.5 h-3.5'
                                     fill='currentColor'
                                 />
-                                {
-                                    "Starting the interpretation will consume 1 star."
-                                }
+                                {t("chooseCards.consumeStar")}
                             </p>
                         </div>
 
@@ -443,6 +443,9 @@ export default function CardSelection({
                                         onProvideShuffle={(fn) =>
                                             (linearShuffleRef.current = fn)
                                         }
+                                        onProvideRandomPick={(fn) =>
+                                            (linearRandomPickRef.current = fn)
+                                        }
                                     />
                                 ) : (
                                     <div className='flex justify-center'>
@@ -462,6 +465,10 @@ export default function CardSelection({
                                             }
                                             onProvideShuffle={(fn) =>
                                                 (circularShuffleRef.current =
+                                                    fn)
+                                            }
+                                            onProvideRandomPick={(fn) =>
+                                                (circularRandomPickRef.current =
                                                     fn)
                                             }
                                         />

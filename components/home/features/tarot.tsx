@@ -2,13 +2,20 @@
 
 import { TypewriterText } from "../../typewriter-text"
 import { Suspense, useState } from "react"
-import Question from "../question"
 import { useTranslations } from "next-intl"
+import SuggestionPromptCard from "@/components/suggestion-prompt-card"
+import QuestionInput from "@/components/question-input"
 // Sticky footer removed per request
 
 export default function Tarot() {
     const t = useTranslations("Home")
+    const m = useTranslations("QuestionInput")
+
     const [inputValue, setInputValue] = useState("")
+
+    const handleSuggestionClick = (suggestion: string) => {
+        setInputValue(suggestion)
+    }
     return (
         <>
             {/* Main Heading */}
@@ -32,11 +39,20 @@ export default function Tarot() {
             {/* Question Input */}
             <div className='flex flex-col gap-6 justify-center items-center pt-8'>
                 <Suspense fallback={<div className='h-20' />}>
-                    <div className='w-full space-y-4'>
-                        <Question
-                            inputValue={inputValue}
-                            setInputValue={setInputValue}
+                    <div className='space-y-4'>
+                        <QuestionInput
+                            className='min-w-0 w-screen sm:w-full md:max-w-md mx-auto px-4'
+                            buttonClassName='mr-4'
+                            id='question-input'
+                            value={inputValue}
+                            onChange={setInputValue}
+                            label={m("label")}
                         />
+                        <div className='mx-6'>
+                            <SuggestionPromptCard
+                                onSuggestionClick={handleSuggestionClick}
+                            />
+                        </div>
                     </div>
                 </Suspense>
             </div>
