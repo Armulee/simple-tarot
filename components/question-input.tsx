@@ -138,21 +138,17 @@ export default function QuestionInput({
         router.push("/tarot")
     }
 
-    // Detect small devices
+    // Detect mobile devices (Enter-to-send should NOT apply on iPhone/Android)
     useEffect(() => {
         const checkDevice = () => {
             setIsSmallDevice(
-                window.innerWidth < 768 ||
-                    /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-                        navigator.userAgent
-                    )
+                /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                    navigator.userAgent
+                )
             )
         }
 
         checkDevice()
-        window.addEventListener("resize", checkDevice)
-
-        return () => window.removeEventListener("resize", checkDevice)
     }, [])
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -168,25 +164,20 @@ export default function QuestionInput({
     }
 
     return (
-<<<<<<< HEAD
         <div
             className={`w-full mb-6 ${centered ? "text-center" : "text-left"}`}
         >
-            <Label htmlFor={id} className='block mb-2 text-lg'>
+            <Label
+                htmlFor={id}
+                className={`block mb-2 text-lg ${centered ? "" : "px-4"}`}
+            >
                 {label}
             </Label>
             <div
-                className={`relative group max-w-sm md:max-w-md ${
-                    centered ? "mx-auto" : ""
-                }`}
+                className={`relative group w-full ${
+                    className ?? "max-w-sm md:max-w-md"
+                } ${centered ? "mx-auto" : ""}`}
             >
-=======
-        <div className='w-full mb-6 text-left'>
-            <Label htmlFor={id} className='block mb-2 text-lg px-4'>
-                {label}
-            </Label>
-            <div className={`relative group ${className}`}>
->>>>>>> bbe36e9 (Improve tarot UX, prompts, and home testimonials.)
                 <div className='pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(120%_120%_at_0%_0%,rgba(99,102,241,0.18),rgba(168,85,247,0.12)_35%,rgba(34,211,238,0.10)_70%,transparent_80%)] blur-xl opacity-90 group-focus-within:opacity-0 transition-opacity' />
                 <AutoHeightTextarea
                     id={id}
@@ -206,7 +197,9 @@ export default function QuestionInput({
                     disabled={!question.trim() && !defaultValue}
                     size='lg'
                     variant='ghost'
-                    className={`absolute bottom-0 right-0 z-20 bg-transparent hover:bg-transparent border-0 text-lg disabled:opacity-30 disabled:cursor-not-allowed text-indigo-300 hover:text-white ${buttonClassName}`}
+                    className={`absolute bottom-0 right-0 z-20 bg-transparent hover:bg-transparent border-0 text-lg disabled:opacity-30 disabled:cursor-not-allowed text-indigo-300 hover:text-white ${
+                        buttonClassName ?? ""
+                    }`}
                 >
                     {/* Gradient aura behind icon by default; hides on hover */}
                     <span className='pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-400/50 via-purple-400/50 to-cyan-400/50 opacity-80 hover:opacity-0' />
