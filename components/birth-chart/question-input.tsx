@@ -73,7 +73,8 @@ export default function BirthChartQuestionInput({
                     id={id}
                     name={id}
                     placeholder={
-                        resolvedPlaceholder || "Ask about your love life, career, etc..."
+                        resolvedPlaceholder ||
+                        "Ask about your love life, career, etc..."
                     }
                     className='relative z-10 w-full pl-4 pr-15 py-2 text-white placeholder:text-white/70 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 focus:border-accent/60 focus:ring-2 focus:ring-accent/40 rounded-2xl resize-y shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] resize-none'
                     onChange={(e) => onChange(e.target.value)}

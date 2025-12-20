@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useCompletion } from "@ai-sdk/react"
 import { useTranslations } from "next-intl"
-import BirthChartQuestionInput from "./birth-chart-question-input"
+import BirthChartQuestionInput from "./question-input"
 
 interface BirthChartQuestionProps {
     houses?: Record<string, unknown> | null
@@ -40,16 +40,16 @@ User Question: ${question}
     }
 
     return (
-        <div className="space-y-6">
+        <div className='space-y-6'>
             {(answer || completion) && (
-                <div className="p-4 rounded-lg bg-white/5 border border-white/10 animate-fade-in">
-                    <p className="text-white whitespace-pre-wrap leading-relaxed">
+                <div className='p-4 rounded-lg bg-white/5 border border-white/10 animate-fade-in'>
+                    <p className='text-white whitespace-pre-wrap leading-relaxed'>
                         {completion || answer}
                     </p>
                 </div>
             )}
 
-            <BirthChartQuestionInput 
+            <BirthChartQuestionInput
                 value={question}
                 onChange={setQuestion}
                 onSubmit={handleSubmit}

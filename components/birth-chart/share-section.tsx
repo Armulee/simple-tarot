@@ -184,7 +184,9 @@ interface BirthChartShareSectionProps {
     id?: string
 }
 
-export default function BirthChartShareSection({ id }: BirthChartShareSectionProps = {}) {
+export default function BirthChartShareSection({
+    id,
+}: BirthChartShareSectionProps = {}) {
     const t = useTranslations("BirthChart")
     const navGuardRef = useRef<HTMLDivElement>(null)
     const [unavailableOpen, setUnavailableOpen] = useState(false)

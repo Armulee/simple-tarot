@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { supabaseAdmin } from "@/lib/supabase"
-import BirthChartDisplay from "@/components/birth-chart/birth-chart-display"
+import BirthChartDisplay from "@/components/birth-chart/display"
 import { getTranslations } from "next-intl/server"
 
 export async function generateMetadata({
@@ -53,12 +53,14 @@ export default async function BirthChartPage({
     // Parse JSONB fields if they're strings
     const parsedBirthChart = {
         ...birthChart,
-        houses: typeof birthChart.houses === "string" 
-            ? JSON.parse(birthChart.houses) 
-            : birthChart.houses,
-        planets: typeof birthChart.planets === "string" 
-            ? JSON.parse(birthChart.planets) 
-            : birthChart.planets,
+        houses:
+            typeof birthChart.houses === "string"
+                ? JSON.parse(birthChart.houses)
+                : birthChart.houses,
+        planets:
+            typeof birthChart.planets === "string"
+                ? JSON.parse(birthChart.planets)
+                : birthChart.planets,
     }
 
     return <BirthChartDisplay birthChart={parsedBirthChart} />

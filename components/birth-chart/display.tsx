@@ -3,14 +3,14 @@
 import { Card } from "@/components/ui/card"
 import { Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
-import BirthChartStats from "./birth-chart-stats"
-import BirthChartWheel from "./birth-chart-wheel"
-import BirthChartShareSection from "./birth-chart-share-section"
-import BirthChartQuestion from "./birth-chart-question"
-import BirthChartDebugSection from "./birth-chart-debug-section"
-import BirthChartInfoCard from "./birth-chart-info-card"
-import BirthChartHouses from "./birth-chart-houses"
-import BirthChartPlanets from "./birth-chart-planets"
+import BirthChartStats from "./stats"
+import BirthChartWheel from "./wheel"
+import BirthChartShareSection from "./share-section"
+import BirthChartQuestion from "./question"
+import BirthChartDebugSection from "./debug-section"
+import BirthChartInfoCard from "./info-card"
+import BirthChartHouses from "./houses"
+import BirthChartPlanets from "./planets"
 
 interface BirthChartDisplayProps {
     birthChart: {
@@ -35,15 +35,15 @@ export default function BirthChartDisplay({
     birthChart,
 }: BirthChartDisplayProps) {
     const t = useTranslations("BirthChart")
-    
+
     return (
         <div className='space-y-12 px-4 max-w-6xl mx-auto h-full py-12'>
             {/* Header */}
             <Card className='px-8 pt-12 pb-8 border-0 relative overflow-hidden bg-transparent shadow-2xl'>
                 {/* Animated background elements */}
-                <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute -top-40 -right-40 w-80 h-80 bg-transparent rounded-full blur-3xl animate-pulse" />
-                    <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-transparent rounded-full blur-3xl animate-pulse delay-1000" />
+                <div className='absolute inset-0 overflow-hidden'>
+                    <div className='absolute -top-40 -right-40 w-80 h-80 bg-transparent rounded-full blur-3xl animate-pulse' />
+                    <div className='absolute -bottom-40 -left-40 w-80 h-80 bg-transparent rounded-full blur-3xl animate-pulse delay-1000' />
                 </div>
                 <div className='text-center space-y-6 relative z-10'>
                     <div className='flex items-center justify-center space-x-3 relative'>
@@ -60,25 +60,28 @@ export default function BirthChartDisplay({
             </Card>
 
             {/* Stats Section */}
-            <div className="space-y-6">
+            <div className='space-y-6'>
                 <BirthChartStats planets={birthChart.planets} />
             </div>
 
             {/* Wheel */}
-            <div className="flex justify-center py-12 relative">
-                 {/* Enhanced Background Glow */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-blue-500/10 to-primary/10 blur-3xl rounded-full pointer-events-none animate-pulse" />
-                <div className="absolute inset-0 bg-primary/5.blur-2xl rounded-full pointer-events-none" />
-                <div className="relative z-10 transform hover:scale-105 transition-transform duration-500">
-                    <BirthChartWheel 
-                        houses={birthChart.houses} 
-                        planets={birthChart.planets} 
+            <div className='flex justify-center py-12 relative'>
+                {/* Enhanced Background Glow */}
+                <div className='absolute inset-0 bg-gradient-to-r from-primary/10 via-blue-500/10 to-primary/10 blur-3xl rounded-full pointer-events-none animate-pulse' />
+                <div className='absolute inset-0 bg-primary/5.blur-2xl rounded-full pointer-events-none' />
+                <div className='relative z-10 transform hover:scale-105 transition-transform duration-500'>
+                    <BirthChartWheel
+                        houses={birthChart.houses}
+                        planets={birthChart.planets}
                     />
                 </div>
             </div>
 
             {/* Houses Detail */}
-            <BirthChartHouses houses={birthChart.houses} planets={birthChart.planets} />
+            <BirthChartHouses
+                houses={birthChart.houses}
+                planets={birthChart.planets}
+            />
 
             {/* Planets Detail */}
             <BirthChartPlanets planets={birthChart.planets} />
@@ -87,9 +90,9 @@ export default function BirthChartDisplay({
             <BirthChartShareSection id={birthChart.id} />
 
             {/* Question Section */}
-            <BirthChartQuestion 
-                houses={birthChart.houses} 
-                planets={birthChart.planets} 
+            <BirthChartQuestion
+                houses={birthChart.houses}
+                planets={birthChart.planets}
             />
 
             {/* Disclaimer */}
