@@ -26,7 +26,7 @@ export default function Home() {
     const features = [
         { id: "tarot", component: Tarot, available: true },
         { id: "birthChart", component: BirthChart, available: true },
-        { id: "horoscope", component: Horoscope, available: false },
+        { id: "astrology", component: Horoscope, available: true },
         { id: "namelogy", component: Namelogy, available: false },
         { id: "numelogy", component: Numelogy, available: false },
         { id: "luckyColors", component: LuckyColors, available: false },
@@ -128,6 +128,36 @@ export default function Home() {
                                             window.dispatchEvent(
                                                 new CustomEvent(
                                                     "birth-chart-slide-active"
+                                                )
+                                            )
+                                        } catch {}
+                                    }
+                                    // Notify birth chart when it becomes inactive
+                                    if (realIndex !== 1) {
+                                        try {
+                                            window.dispatchEvent(
+                                                new CustomEvent(
+                                                    "birth-chart-slide-inactive"
+                                                )
+                                            )
+                                        } catch {}
+                                    }
+                                    // Notify horoscope component when it becomes active (index 2)
+                                    if (realIndex === 2) {
+                                        try {
+                                            window.dispatchEvent(
+                                                new CustomEvent(
+                                                    "horoscope-slide-active"
+                                                )
+                                            )
+                                        } catch {}
+                                    }
+                                    // Notify horoscope when it becomes inactive
+                                    if (realIndex !== 2) {
+                                        try {
+                                            window.dispatchEvent(
+                                                new CustomEvent(
+                                                    "horoscope-slide-inactive"
                                                 )
                                             )
                                         } catch {}

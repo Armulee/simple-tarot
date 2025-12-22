@@ -208,6 +208,13 @@
       "line1": "Ask me anything",
       "line2": "about your destiny"
     },
+    "astrologyFeature": {
+      "title1": "Starlit Transit",
+      "title2": "Astrology Reading",
+      "tagline": "A personalized horoscope reading based on your birth details and today’s sky.",
+      "instruction": "Enter your birth details, keep Transit set to now (or choose a date), add an optional question, then tap Start to generate your horoscope.",
+      "cta": "Start your astrology reading"
+    },
     "learnMore": "Learn More"
   },
 
