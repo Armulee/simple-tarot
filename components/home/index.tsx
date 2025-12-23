@@ -117,10 +117,34 @@ export default function Home() {
                                     sensitivity: 1,
                                     releaseOnEdges: false,
                                 }}
+                                onSwiper={(swiper) => {
+                                    const realIndex = swiper.realIndex
+                                    setActiveFeatureIndex(realIndex)
+                                    try {
+                                        const serviceId =
+                                            features[realIndex]?.id ?? "tarot"
+                                        window.dispatchEvent(
+                                            new CustomEvent(
+                                                "active-service-changed",
+                                                { detail: { serviceId } }
+                                            )
+                                        )
+                                    } catch {}
+                                }}
                                 onSlideChange={(swiper) => {
                                     // Calculate real index accounting for loop
                                     const realIndex = swiper.realIndex
                                     setActiveFeatureIndex(realIndex)
+                                    try {
+                                        const serviceId =
+                                            features[realIndex]?.id ?? "tarot"
+                                        window.dispatchEvent(
+                                            new CustomEvent(
+                                                "active-service-changed",
+                                                { detail: { serviceId } }
+                                            )
+                                        )
+                                    } catch {}
 
                                     // Notify birth chart component when it becomes active (index 1)
                                     if (realIndex === 1) {
