@@ -30,7 +30,7 @@ import { UserProfileDropdown } from "@/components/user-profile-dropdown"
 import { useAuth } from "@/hooks/use-auth"
 import { useProfile } from "@/contexts/profile-context"
 import mysticalServices from "./mystical-services"
-import { useHomeActiveServiceId } from "./use-home-active-service"
+import { useActiveServiceId } from "./use-active-service"
 
 interface SidebarSheetProps {
     open: boolean
@@ -42,7 +42,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
     const { profile, loading: profileLoading } = useProfile()
     const [mysticalOpen, setMysticalOpen] = useState(true)
     const pathname = usePathname()
-    const homeActiveServiceId = useHomeActiveServiceId("tarot")
+    const activeServiceId = useActiveServiceId(pathname)
     const t = useTranslations("Sidebar")
     const s = useTranslations("Services")
     const a = useTranslations("Auth.SignIn")
@@ -213,10 +213,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                 const itemPath =
                                                     id === "tarot" ? "/" : href
                                                 const isActive =
-                                                    pathname === "/"
-                                                        ? homeActiveServiceId ===
-                                                          id
-                                                        : pathname === itemPath
+                                                    activeServiceId === id
                                                 return (
                                                     <li key={id}>
                                                         {available ? (

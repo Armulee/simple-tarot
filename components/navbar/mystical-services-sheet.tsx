@@ -13,7 +13,7 @@ import mysticalServices from "./mystical-services"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { usePathname } from "@/i18n/navigation"
-import { useHomeActiveServiceId } from "./use-home-active-service"
+import { useActiveServiceId } from "./use-active-service"
 
 export default function MysticalServicesSheet({
     mysticalOpen,
@@ -25,7 +25,7 @@ export default function MysticalServicesSheet({
     const pathname = usePathname()
     const t = useTranslations("Sidebar")
     const s = useTranslations("Services")
-    const homeActiveServiceId = useHomeActiveServiceId("tarot")
+    const activeServiceId = useActiveServiceId(pathname)
     return (
         <Sheet open={mysticalOpen} onOpenChange={setMysticalOpen}>
             <SheetTrigger asChild>
@@ -36,7 +36,7 @@ export default function MysticalServicesSheet({
                 >
                     <Sparkles className='h-4 w-4' />
                     <span>
-                        {pathname === "/" ? s(homeActiveServiceId) : s("tarot")}
+                        {s(activeServiceId)}
                     </span>
                     <ChevronDown className='h-4 w-4' />
                 </Button>
@@ -57,10 +57,7 @@ export default function MysticalServicesSheet({
                     {mysticalServices.map(
                         ({ href, label, Icon, available, id }) => {
                             const itemPath = id === "tarot" ? "/" : href
-                            const isActive =
-                                pathname === "/"
-                                    ? homeActiveServiceId === id
-                                    : pathname === itemPath
+                            const isActive = activeServiceId === id
                             return (
                                 <div key={label}>
                                     {available ? (
