@@ -28,7 +28,7 @@ export default function Home() {
         { id: "birthChart", component: BirthChart, available: true },
         { id: "astrology", component: Horoscope, available: true },
         { id: "namelogy", component: Namelogy, available: false },
-        { id: "numelogy", component: Numelogy, available: false },
+        { id: "numerology", component: Numelogy, available: false },
         { id: "luckyColors", component: LuckyColors, available: false },
         { id: "palmistry", component: Palmistry, available: false },
     ]
