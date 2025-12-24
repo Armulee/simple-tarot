@@ -34,7 +34,7 @@ export default function NoStarsUpsell() {
     }, [])
 
     return (
-        <div className='mt-4 space-y-4'>
+        <div className='mt-3 space-y-3 text-center'>
             <div className='text-sm text-white/85'>
                 <Link
                     href='/pricing'
@@ -45,8 +45,8 @@ export default function NoStarsUpsell() {
             </div>
 
             {user ? (
-                <div className='space-y-3'>
-                    <div className='text-sm text-white/80'>
+                <div className='space-y-2'>
+                    <div className='text-xs text-white/75'>
                         Quick top up (instant):
                     </div>
 
@@ -128,13 +128,13 @@ export default function NoStarsUpsell() {
                             </Swiper>
                         </div>
                     ) : (
-                        <div className='text-sm text-white/70'>
+                        <div className='text-xs text-white/70'>
                             Top ups are not configured yet.
                         </div>
                     )}
                 </div>
             ) : (
-                <div className='text-sm text-white/80'>
+                <div className='text-sm text-white/80 leading-snug'>
                     To increase stars usage, please{" "}
                     <Link
                         href={`/signin?callbackUrl=${encodeURIComponent(pathname)}`}
