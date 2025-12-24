@@ -73,10 +73,10 @@ export default function MysticalServicesSheet({
                                             }
                                         >
                                             <Icon
-                                                className={`h-5 w-5 ${isActive ? "text-white" : "text-primary"}`}
+                                                className={`h-5 w-5 ${isActive ? "text-white" : "text-white/90"}`}
                                             />
                                             <span
-                                                className={`font-medium ${isActive ? "text-white" : "text-primary"}`}
+                                                className={`font-medium ${isActive ? "text-white" : "text-white/90"}`}
                                             >
                                                 {s(id)}
                                             </span>
