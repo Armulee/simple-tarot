@@ -3,6 +3,7 @@
 import { Swiper, SwiperSlide } from "swiper/react"
 import { useEffect, useRef, useState } from "react"
 import type { SwiperRef } from "swiper/react"
+import { useSearchParams } from "next/navigation"
 import { Mousewheel } from "swiper/modules"
 import Tarot from "./features/tarot"
 import BirthChart from "./features/birth-chart"
@@ -22,6 +23,8 @@ export default function Home() {
     const horizontalSwiperRef = useRef<SwiperRef | null>(null)
     const horizontalSwiperContainerRef = useRef<HTMLDivElement | null>(null)
     const [activeFeatureIndex, setActiveFeatureIndex] = useState(0)
+    const [isHorizontalReady, setIsHorizontalReady] = useState(false)
+    const searchParams = useSearchParams()
 
     const features = [
         { id: "tarot", component: Tarot, available: true },
@@ -32,6 +35,24 @@ export default function Home() {
         { id: "luckyColors", component: LuckyColors, available: false },
         { id: "palmistry", component: Palmistry, available: false },
     ]
+
+    const jumpToService = (serviceId: string | null | undefined) => {
+        if (!serviceId) return
+        const targetIndex = features.findIndex(
+            (f) => f.id.toLowerCase() === serviceId.toLowerCase()
+        )
+        if (targetIndex < 0) return
+        const swiper = horizontalSwiperRef.current?.swiper
+        if (!swiper) return
+        swiper.slideToLoop(targetIndex)
+    }
+
+    // If the user navigates to `/?service=<id>`, jump the horizontal swiper to that service.
+    useEffect(() => {
+        if (!isHorizontalReady) return
+        jumpToService(searchParams.get("service"))
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isHorizontalReady, searchParams])
 
     useEffect(() => {
         const handleScrollToAbout = () => {
@@ -118,6 +139,9 @@ export default function Home() {
                                     releaseOnEdges: false,
                                 }}
                                 onSwiper={(swiper) => {
+                                    setIsHorizontalReady(true)
+                                    // Respect deep-linking to a specific service on mount.
+                                    jumpToService(searchParams.get("service"))
                                     const realIndex = swiper.realIndex
                                     setActiveFeatureIndex(realIndex)
                                     try {
