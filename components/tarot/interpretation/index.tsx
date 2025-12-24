@@ -23,6 +23,7 @@ import ActionSection from "./action"
 //
 import BrandLoader from "@/components/brand-loader"
 import HardStarConsent from "@/components/hard-star-consent"
+import NoStarsUpsell from "@/components/stars/no-stars-upsell"
 
 type ReadingProps = {
     readingId?: string
@@ -287,6 +288,7 @@ export default function Interpretation({
                             more stars.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
+                    <NoStarsUpsell />
                     <AlertDialogFooter>
                         <AlertDialogAction
                             onClick={() => setShowNoStarsDialog(false)}

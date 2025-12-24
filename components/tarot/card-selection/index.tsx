@@ -16,6 +16,7 @@ import { InlineQuestionEdit } from "../inline-question-edit"
 import { useStars } from "@/contexts/stars-context"
 import BrandLoader from "@/components/brand-loader"
 import { useAuth } from "@/hooks/use-auth"
+import NoStarsUpsell from "@/components/stars/no-stars-upsell"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -250,6 +251,7 @@ export default function CardSelection({
                             for refill or purchase more stars.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
+                    <NoStarsUpsell />
                     <AlertDialogFooter>
                         <AlertDialogAction
                             onClick={() => setShowNoStarsDialog(false)}
