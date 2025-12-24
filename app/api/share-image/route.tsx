@@ -2,6 +2,27 @@ import { ImageResponse } from "next/og"
 
 export const runtime = "edge"
 
+function slugifyCardName(raw: string): { slug: string; isReversed: boolean } {
+    const lower = raw.toLowerCase()
+    const isReversed =
+        lower.includes("(reversed)") || /\breversed\b/.test(lower)
+
+    const slug = lower
+        .replace(/\s*\(reversed\)/g, "")
+        .replace(/\s*reversed/g, "")
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "")
+
+    return { slug, isReversed }
+}
+
+function truncate(text: string, maxChars: number): string {
+    const t = String(text ?? "").trim()
+    if (t.length <= maxChars) return t
+    return `${t.slice(0, Math.max(0, maxChars - 1)).trimEnd()}…`
+}
+
 export async function POST(req: Request) {
     try {
         const {
@@ -10,12 +31,29 @@ export async function POST(req: Request) {
             interpretation = "",
             width = 1080,
             height = 1350,
+            branding = "Asking Fate",
         } = await req.json()
 
-        const title = "dooduang.ai"
-        const cardText = Array.isArray(cards) ? cards.join(", ") : String(cards)
         const safeQuestion = String(question)
         const safeInterpretation = String(interpretation)
+
+        const origin = new URL(req.url).origin
+
+        const cardNames = Array.isArray(cards)
+            ? cards.map((c) => String(c))
+            : [String(cards)]
+
+        const parsedCards = cardNames
+            .filter(Boolean)
+            .slice(0, 6)
+            .map((name) => {
+                const { slug, isReversed } = slugifyCardName(name)
+                const src = `${origin}/assets/rider-waite-tarot/${slug}.png`
+                return { name, slug, isReversed, src }
+            })
+
+        const displayQuestion = truncate(safeQuestion, 140)
+        const displayInterpretation = truncate(safeInterpretation, 900)
 
         return new ImageResponse(
             (
@@ -25,138 +63,317 @@ export async function POST(req: Request) {
                         height: "100%",
                         display: "flex",
                         flexDirection: "column",
-                        justifyContent: "space-between",
                         padding: 64,
                         background:
-                            "radial-gradient(ellipse at top, #1b1440 0%, #0f0b24 50%, #0a081a 100%)",
+                            "radial-gradient(1400px 900px at 50% 0%, rgba(99,102,241,0.26) 0%, rgba(168,85,247,0.18) 35%, rgba(10,8,26,1) 72%), radial-gradient(1200px 900px at 50% 100%, rgba(234,179,8,0.18) 0%, rgba(10,8,26,1) 60%)",
                         color: "#ffffff",
                         fontFamily:
                             "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial",
+                        position: "relative",
                     }}
                 >
+                    {/* soft glow blobs */}
                     <div
                         style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 12,
-                        }}
-                    >
-                        <div
-                            style={{
-                                width: 40,
-                                height: 40,
-                                borderRadius: 9999,
-                                background:
-                                    "linear-gradient(135deg,#8b5cf6,#06b6d4)",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontWeight: 800,
-                            }}
-                        >
-                            *
-                        </div>
-                        <div style={{ fontSize: 32, fontWeight: 800 }}>
-                            {title}
-                        </div>
-                    </div>
-
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 28,
-                        }}
-                    >
-                        <div style={{ fontSize: 24, opacity: 0.9 }}>
-                            Question
-                        </div>
-                        <div
-                            style={{
-                                fontSize: 40,
-                                fontWeight: 700,
-                                lineHeight: 1.2,
-                                textShadow: "0 6px 24px rgba(56,189,248,0.25)",
-                            }}
-                        >
-                            {`"${safeQuestion}"`}
-                        </div>
-                        {cardText ? (
-                            <div
-                                style={{
-                                    marginTop: 8,
-                                    fontSize: 24,
-                                    opacity: 0.9,
-                                }}
-                            >
-                                {`Cards: ${cardText}`}
-                            </div>
-                        ) : null}
-                    </div>
-
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 16,
-                            borderRadius: 24,
-                            padding: 32,
+                            position: "absolute",
+                            top: -140,
+                            left: -160,
+                            width: 520,
+                            height: 520,
+                            borderRadius: 9999,
                             background:
-                                "linear-gradient(135deg, rgba(99,102,241,0.18), rgba(168,85,247,0.14) 35%, rgba(34,211,238,0.12) 70%)",
-                            boxShadow:
-                                "0 10px 30px -10px rgba(56,189,248,0.35)",
-                            border: "1px solid rgba(255,255,255,0.12)",
+                                "radial-gradient(circle at 30% 30%, rgba(234,179,8,0.40), rgba(234,179,8,0.00) 60%)",
+                            filter: "blur(24px)",
+                            opacity: 0.6,
                         }}
-                    >
+                    />
+                    <div
+                        style={{
+                            position: "absolute",
+                            bottom: -220,
+                            right: -200,
+                            width: 720,
+                            height: 720,
+                            borderRadius: 9999,
+                            background:
+                                "radial-gradient(circle at 30% 30%, rgba(56,189,248,0.32), rgba(56,189,248,0.00) 60%)",
+                            filter: "blur(30px)",
+                            opacity: 0.55,
+                        }}
+                    />
+
+                    {/* background card aura */}
+                    {parsedCards.slice(0, 4).map((c, idx) => {
+                        const positions = [
+                            { top: 110, left: 40, rotate: -16 },
+                            { top: 150, right: 60, rotate: 18 },
+                            { bottom: 560, left: 60, rotate: -10 },
+                            { bottom: 520, right: 80, rotate: 22 },
+                        ] as const
+                        const p = positions[idx % positions.length]
+                        return (
+                            <img
+                                key={`bg-${c.slug}-${idx}`}
+                                src={c.src}
+                                width={260}
+                                height={420}
+                                style={{
+                                    position: "absolute",
+                                    ...(p.top != null ? { top: p.top } : {}),
+                                    ...(p.bottom != null
+                                        ? { bottom: p.bottom }
+                                        : {}),
+                                    ...(p.left != null ? { left: p.left } : {}),
+                                    ...(p.right != null
+                                        ? { right: p.right }
+                                        : {}),
+                                    transform: `rotate(${p.rotate}deg) scale(0.9)`,
+                                    opacity: 0.14,
+                                }}
+                            />
+                        )
+                    })}
+
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                        {/* Brand */}
                         <div
                             style={{
                                 display: "flex",
                                 alignItems: "center",
                                 gap: 12,
-                                marginBottom: 12,
+                                marginBottom: 26,
+                                position: "relative",
+                                zIndex: 2,
                             }}
                         >
                             <div
                                 style={{
-                                    width: 40,
-                                    height: 40,
+                                    width: 44,
+                                    height: 44,
                                     borderRadius: 9999,
-                                    background: "rgba(99,102,241,0.25)",
+                                    background:
+                                        "linear-gradient(135deg, rgba(234,179,8,0.95), rgba(56,189,248,0.75))",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
+                                    fontWeight: 900,
+                                    color: "#0a081a",
+                                    boxShadow:
+                                        "0 14px 40px rgba(234,179,8,0.22)",
                                 }}
                             >
-                                *
+                                ✦
                             </div>
-                            <div style={{ fontSize: 28, fontWeight: 700 }}>
-                                Cosmic Guidance
+                            <div
+                                style={{
+                                    fontSize: 30,
+                                    fontWeight: 900,
+                                    letterSpacing: -0.4,
+                                }}
+                            >
+                                {String(branding || "Asking Fate")}
                             </div>
                         </div>
+
+                        {/* Question card (mirrors tarot/[id] header vibe) */}
                         <div
                             style={{
-                                display: "block",
-                                fontSize: 28,
-                                lineHeight: 1.5,
-                                whiteSpace: "pre-wrap",
+                                borderRadius: 28,
+                                padding: 34,
+                                border: "1px solid rgba(255,255,255,0.12)",
+                                background:
+                                    "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03) 45%, rgba(56,189,248,0.06) 90%)",
+                                boxShadow:
+                                    "0 18px 70px -30px rgba(56,189,248,0.55)",
+                                position: "relative",
+                                zIndex: 2,
                             }}
                         >
-                            {safeInterpretation}
-                        </div>
-                    </div>
+                            <div
+                                style={{
+                                    fontSize: 20,
+                                    opacity: 0.85,
+                                    marginBottom: 12,
+                                }}
+                            >
+                                Your question
+                            </div>
+                            <div
+                                style={{
+                                    fontFamily:
+                                        "ui-serif, Georgia, Cambria, Times New Roman, Times, serif",
+                                    fontSize: 44,
+                                    fontWeight: 900,
+                                    lineHeight: 1.15,
+                                    textShadow:
+                                        "0 10px 30px rgba(56,189,248,0.22)",
+                                }}
+                            >
+                                {`“${displayQuestion}”`}
+                            </div>
 
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            opacity: 0.9,
-                        }}
-                    >
-                        <div style={{ fontSize: 22 }}>
-                            Generated with dooduang.ai
+                            {/* Selected cards row */}
+                            {parsedCards.length > 0 ? (
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        gap: 18,
+                                        flexWrap: "wrap",
+                                        marginTop: 26,
+                                        alignItems: "flex-start",
+                                    }}
+                                >
+                                    {parsedCards.slice(0, 6).map((c, idx) => (
+                                        <div
+                                            key={`card-${c.slug}-${idx}`}
+                                            style={{
+                                                width: 170,
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: 10,
+                                                alignItems: "center",
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    fontSize: 14,
+                                                    padding: "8px 10px",
+                                                    borderRadius: 9999,
+                                                    background:
+                                                        "rgba(255,255,255,0.12)",
+                                                    border: "1px solid rgba(99,102,241,0.22)",
+                                                    color: "rgba(255,255,255,0.92)",
+                                                    textAlign: "center",
+                                                    maxWidth: 170,
+                                                    overflow: "hidden",
+                                                    whiteSpace: "nowrap",
+                                                    textOverflow: "ellipsis",
+                                                }}
+                                            >
+                                                {c.name}
+                                            </div>
+
+                                            <div
+                                                style={{
+                                                    width: 150,
+                                                    height: 240,
+                                                    borderRadius: 18,
+                                                    position: "relative",
+                                                    overflow: "hidden",
+                                                    boxShadow:
+                                                        "0 20px 60px -35px rgba(234,179,8,0.65)",
+                                                    border: "1px solid rgba(255,255,255,0.12)",
+                                                }}
+                                            >
+                                                <div
+                                                    style={{
+                                                        position: "absolute",
+                                                        inset: -30,
+                                                        background:
+                                                            "radial-gradient(circle at 30% 20%, rgba(99,102,241,0.35), rgba(99,102,241,0.0) 55%), radial-gradient(circle at 70% 80%, rgba(234,179,8,0.25), rgba(234,179,8,0.0) 60%)",
+                                                        filter: "blur(18px)",
+                                                        opacity: 0.9,
+                                                    }}
+                                                />
+                                                <img
+                                                    src={c.src}
+                                                    width={150}
+                                                    height={240}
+                                                    style={{
+                                                        position: "absolute",
+                                                        inset: 0,
+                                                        objectFit: "cover",
+                                                        transform: c.isReversed
+                                                            ? "rotate(180deg)"
+                                                            : "rotate(0deg)",
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : null}
                         </div>
-                        <div style={{ fontSize: 22 }}>dooduang.ai</div>
+
+                        {/* Interpretation card */}
+                        <div
+                            style={{
+                                marginTop: 28,
+                                borderRadius: 28,
+                                padding: 32,
+                                background:
+                                    "linear-gradient(135deg, rgba(99,102,241,0.18), rgba(168,85,247,0.14) 35%, rgba(34,211,238,0.12) 70%)",
+                                boxShadow:
+                                    "0 20px 70px -35px rgba(56,189,248,0.55)",
+                                border: "1px solid rgba(255,255,255,0.12)",
+                                position: "relative",
+                                zIndex: 2,
+                            }}
+                        >
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 12,
+                                    marginBottom: 14,
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        width: 42,
+                                        height: 42,
+                                        borderRadius: 9999,
+                                        background: "rgba(234,179,8,0.18)",
+                                        border: "1px solid rgba(234,179,8,0.25)",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        color: "rgba(255,255,255,0.9)",
+                                        fontWeight: 900,
+                                    }}
+                                >
+                                    ✶
+                                </div>
+                                <div
+                                    style={{
+                                        fontSize: 26,
+                                        fontWeight: 900,
+                                        letterSpacing: -0.2,
+                                    }}
+                                >
+                                    Your reading
+                                </div>
+                            </div>
+
+                            <div
+                                style={{
+                                    display: "block",
+                                    fontSize: 28,
+                                    lineHeight: 1.5,
+                                    whiteSpace: "pre-wrap",
+                                    color: "rgba(255,255,255,0.92)",
+                                }}
+                            >
+                                {displayInterpretation || "—"}
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                marginTop: 28,
+                                opacity: 0.85,
+                                fontSize: 18,
+                                position: "relative",
+                                zIndex: 2,
+                            }}
+                        >
+                            <div>Generated with Asking Fate</div>
+                            <div>askingfate.com</div>
+                        </div>
                     </div>
                 </div>
             ),
