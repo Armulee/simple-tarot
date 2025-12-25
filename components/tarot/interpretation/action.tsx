@@ -674,8 +674,9 @@ export default function ActionSection({
                                                                                 question,
                                                                                 cards: cards,
                                                                                 interpretation,
-                                                                                width: 1170,
-                                                                                height: 2532,
+                                                                                // Safer "story" size (avoids huge/corrupted renders on some devices)
+                                                                                width: 1080,
+                                                                                height: 1920,
                                                                                 branding:
                                                                                     "Asking Fate",
                                                                                 theme: "cosmic",
@@ -715,8 +716,39 @@ export default function ActionSection({
                                                                 )
                                                                 return
                                                             }
+                                                            const buf =
+                                                                await res.arrayBuffer()
+                                                            const bytes = new Uint8Array(
+                                                                buf.slice(0, 8)
+                                                            )
+                                                            const pngMagic = [
+                                                                0x89, 0x50,
+                                                                0x4e, 0x47,
+                                                                0x0d, 0x0a,
+                                                                0x1a, 0x0a,
+                                                            ]
+                                                            const isPng =
+                                                                bytes.length ===
+                                                                    8 &&
+                                                                pngMagic.every(
+                                                                    (b, i) =>
+                                                                        bytes[
+                                                                            i
+                                                                        ] === b
+                                                                )
+                                                            if (!isPng) {
+                                                                toast.error(
+                                                                    "Downloaded file is not a valid PNG. Please try again."
+                                                                )
+                                                                return
+                                                            }
                                                             const blob =
-                                                                await res.blob()
+                                                                new Blob(
+                                                                    [buf],
+                                                                    {
+                                                                        type: "image/png",
+                                                                    }
+                                                                )
                                                             const ts =
                                                                 new Date()
                                                                     .toISOString()
@@ -750,17 +782,6 @@ export default function ActionSection({
                                                     }}
                                                 >
                                                     Download Image
-                                                </button>
-                                                <button
-                                                    type='button'
-                                                    className='w-full px-3 py-2 rounded-md bg-primary/20 hover:bg-primary/30 text-sm'
-                                                    onClick={async () => {
-                                                        toast.info(
-                                                            "Video download is coming soon."
-                                                        )
-                                                    }}
-                                                >
-                                                    Download Video (15s)
                                                 </button>
                                             </div>
                                         </PopoverContent>
