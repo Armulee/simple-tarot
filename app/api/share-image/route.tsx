@@ -2,30 +2,6 @@ import { ImageResponse } from "next/og"
 
 export const runtime = "edge"
 
-function arrayBufferToBase64(buffer: ArrayBuffer): string {
-    let binary = ""
-    const bytes = new Uint8Array(buffer)
-    const chunkSize = 0x8000
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize))
-    }
-    // btoa is available in Edge runtime
-    return btoa(binary)
-}
-
-async function fetchImageAsDataUrl(url: string): Promise<string | null> {
-    try {
-        const res = await fetch(url, { cache: "force-cache" })
-        if (!res.ok) return null
-        const ct = res.headers.get("content-type") || "image/png"
-        const buf = await res.arrayBuffer()
-        const b64 = arrayBufferToBase64(buf)
-        return `data:${ct};base64,${b64}`
-    } catch {
-        return null
-    }
-}
-
 function slugifyCardName(raw: string): { slug: string; isReversed: boolean } {
     const lower = raw.toLowerCase()
     const isReversed =
@@ -67,22 +43,15 @@ export async function POST(req: Request) {
             ? cards.map((c) => String(c))
             : [String(cards)]
 
-        const parsedCardsBase = cardNames
+        // Keep this light for Edge runtime reliability: render up to 3 card images.
+        const parsedCards = cardNames
             .filter(Boolean)
-            .slice(0, 6)
+            .slice(0, 3)
             .map((name) => {
                 const { slug, isReversed } = slugifyCardName(name)
                 const src = `${origin}/assets/rider-waite-tarot/${slug}.png`
                 return { name, slug, isReversed, src }
             })
-
-        // Preload images as data URLs so ImageResponse can't fail mid-stream.
-        const parsedCards = await Promise.all(
-            parsedCardsBase.map(async (c) => {
-                const dataUrl = await fetchImageAsDataUrl(c.src)
-                return { ...c, dataUrl }
-            })
-        )
 
         const displayQuestion = truncate(safeQuestion, 140)
         const displayInterpretation = truncate(safeInterpretation, 900)
@@ -135,7 +104,7 @@ export async function POST(req: Request) {
                     />
 
                     {/* background card aura */}
-                    {parsedCards.slice(0, 4).map((c, idx) => {
+                    {parsedCards.slice(0, 3).map((c, idx) => {
                         const positions: Array<{
                             top?: number
                             bottom?: number
@@ -143,17 +112,15 @@ export async function POST(req: Request) {
                             right?: number
                             rotate: number
                         }> = [
-                            { top: 110, left: 40, rotate: -16 },
-                            { top: 150, right: 60, rotate: 18 },
-                            { bottom: 560, left: 60, rotate: -10 },
-                            { bottom: 520, right: 80, rotate: 22 },
+                            { top: 120, left: 60, rotate: -14 },
+                            { top: 150, right: 80, rotate: 16 },
+                            { bottom: 560, left: 80, rotate: -10 },
                         ]
                         const p = positions[idx % positions.length]
-                        if (!c.dataUrl) return null
                         return (
                             <img
                                 key={`bg-${c.slug}-${idx}`}
-                                src={c.dataUrl}
+                                src={c.src}
                                 width={260}
                                 height={420}
                                 style={{
@@ -262,7 +229,7 @@ export async function POST(req: Request) {
                                         alignItems: "flex-start",
                                     }}
                                 >
-                                    {parsedCards.slice(0, 6).map((c, idx) => (
+                                    {parsedCards.slice(0, 3).map((c, idx) => (
                                         <div
                                             key={`card-${c.slug}-${idx}`}
                                             style={{
@@ -314,39 +281,19 @@ export async function POST(req: Request) {
                                                         opacity: 0.9,
                                                     }}
                                                 />
-                                                {c.dataUrl ? (
-                                                    <img
-                                                        src={c.dataUrl}
-                                                        width={150}
-                                                        height={240}
-                                                        style={{
-                                                            position: "absolute",
-                                                            inset: 0,
-                                                            objectFit: "cover",
-                                                            transform: c.isReversed
-                                                                ? "rotate(180deg)"
-                                                                : "rotate(0deg)",
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <div
-                                                        style={{
-                                                            position: "absolute",
-                                                            inset: 0,
-                                                            display: "flex",
-                                                            alignItems: "center",
-                                                            justifyContent: "center",
-                                                            padding: 14,
-                                                            textAlign: "center",
-                                                            fontSize: 16,
-                                                            color: "rgba(255,255,255,0.85)",
-                                                            background:
-                                                                "linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02))",
-                                                        }}
-                                                    >
-                                                        {c.name}
-                                                    </div>
-                                                )}
+                                                <img
+                                                    src={c.src}
+                                                    width={150}
+                                                    height={240}
+                                                    style={{
+                                                        position: "absolute",
+                                                        inset: 0,
+                                                        objectFit: "cover",
+                                                        transform: c.isReversed
+                                                            ? "rotate(180deg)"
+                                                            : "rotate(0deg)",
+                                                    }}
+                                                />
                                             </div>
                                         </div>
                                     ))}
