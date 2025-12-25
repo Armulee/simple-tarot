@@ -684,6 +684,37 @@ export default function ActionSection({
                                                                         ),
                                                                     }
                                                                 )
+                                                            if (!res.ok) {
+                                                                const msg =
+                                                                    (await res
+                                                                        .text()
+                                                                        .catch(
+                                                                            () =>
+                                                                                ""
+                                                                        )) ||
+                                                                    "Failed to generate image"
+                                                                toast.error(
+                                                                    msg.slice(
+                                                                        0,
+                                                                        180
+                                                                    )
+                                                                )
+                                                                return
+                                                            }
+                                                            const ct =
+                                                                res.headers.get(
+                                                                    "content-type"
+                                                                ) || ""
+                                                            if (
+                                                                !ct.includes(
+                                                                    "image/png"
+                                                                )
+                                                            ) {
+                                                                toast.error(
+                                                                    "Share image returned an unsupported format. Please try again."
+                                                                )
+                                                                return
+                                                            }
                                                             const blob =
                                                                 await res.blob()
                                                             const ts =
@@ -724,68 +755,9 @@ export default function ActionSection({
                                                     type='button'
                                                     className='w-full px-3 py-2 rounded-md bg-primary/20 hover:bg-primary/30 text-sm'
                                                     onClick={async () => {
-                                                        try {
-                                                            setIsDownloading(
-                                                                true
-                                                            )
-                                                            const type = "video"
-                                                            const res =
-                                                                await fetch(
-                                                                    "/api/share-image",
-                                                                    {
-                                                                        method: "POST",
-                                                                        headers:
-                                                                            {
-                                                                                "Content-Type":
-                                                                                    "application/json",
-                                                                            },
-                                                                        body: JSON.stringify(
-                                                                            {
-                                                                                question,
-                                                                                cards: cards,
-                                                                                interpretation,
-                                                                                width: 1170,
-                                                                                height: 2532,
-                                                                                branding:
-                                                                                    "Asking Fate",
-                                                                                theme: "cosmic",
-                                                                                type,
-                                                                            }
-                                                                        ),
-                                                                    }
-                                                                )
-                                                            const blob =
-                                                                await res.blob()
-                                                            const ts =
-                                                                new Date()
-                                                                    .toISOString()
-                                                                    .replace(
-                                                                        /[:.]/g,
-                                                                        "-"
-                                                                    )
-                                                            const url =
-                                                                URL.createObjectURL(
-                                                                    blob
-                                                                )
-                                                            const a =
-                                                                document.createElement(
-                                                                    "a"
-                                                                )
-                                                            a.href = url
-                                                            a.download = `reading-${ts}.mp4`
-                                                            document.body.appendChild(
-                                                                a
-                                                            )
-                                                            a.click()
-                                                            a.remove()
-                                                            URL.revokeObjectURL(
-                                                                url
-                                                            )
-                                                        } finally {
-                                                            setIsDownloading(
-                                                                false
-                                                            )
-                                                        }
+                                                        toast.info(
+                                                            "Video download is coming soon."
+                                                        )
                                                     }}
                                                 >
                                                     Download Video (15s)
