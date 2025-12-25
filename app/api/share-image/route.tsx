@@ -104,12 +104,18 @@ export async function POST(req: Request) {
 
                     {/* background card aura */}
                     {parsedCards.slice(0, 4).map((c, idx) => {
-                        const positions = [
+                        const positions: Array<{
+                            top?: number
+                            bottom?: number
+                            left?: number
+                            right?: number
+                            rotate: number
+                        }> = [
                             { top: 110, left: 40, rotate: -16 },
                             { top: 150, right: 60, rotate: 18 },
                             { bottom: 560, left: 60, rotate: -10 },
                             { bottom: 520, right: 80, rotate: 22 },
-                        ] as const
+                        ]
                         const p = positions[idx % positions.length]
                         return (
                             <img
