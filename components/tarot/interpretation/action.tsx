@@ -673,33 +673,33 @@ export default function ActionSection({
                                 { top: 150, right: 80, rotate: 16 },
                                 { bottom: 560, left: 80, rotate: -10 },
                             ]
-                            const p = positions[idx % positions.length]
-                            return (
-                                <img
-                                    key={`bg-${c.slug}-${idx}`}
-                                    src={c.src}
-                                    width={260}
-                                    height={420}
-                                    style={{
-                                        position: "absolute",
-                                        ...(p.top != null
-                                            ? { top: p.top }
-                                            : {}),
-                                        ...(p.bottom != null
-                                            ? { bottom: p.bottom }
-                                            : {}),
-                                        ...(p.left != null
-                                            ? { left: p.left }
-                                            : {}),
-                                        ...(p.right != null
-                                            ? { right: p.right }
-                                            : {}),
-                                        transform: `rotate(${p.rotate}deg) scale(0.9)`,
-                                        opacity: 0.14,
-                                    }}
-                                />
-                            )
-                        })}
+                                    const p = positions[idx % positions.length]
+                                    return (
+                                        <img
+                                            key={`bg-${c.slug}-${idx}`}
+                                            src={c.src}
+                                            width={260}
+                                            height={420}
+                                            style={{
+                                                position: "absolute",
+                                                ...(p.top != null
+                                                    ? { top: p.top }
+                                                    : {}),
+                                                ...(p.bottom != null
+                                                    ? { bottom: p.bottom }
+                                                    : {}),
+                                                ...(p.left != null
+                                                    ? { left: p.left }
+                                                    : {}),
+                                                ...(p.right != null
+                                                    ? { right: p.right }
+                                                    : {}),
+                                                transform: `rotate(${p.rotate}deg) scale(0.9)`,
+                                                opacity: 0.8,
+                                            }}
+                                        />
+                                    )
+                                })}
 
                     <div
                         style={{
@@ -747,7 +747,7 @@ export default function ActionSection({
                             </div>
                             <div
                                 style={{
-                                    fontSize: 30,
+                                    fontSize: 38,
                                     fontWeight: 900,
                                     letterSpacing: -0.4,
                                 }}
@@ -789,7 +789,7 @@ export default function ActionSection({
                                 >
                                     <div
                                         style={{
-                                            fontSize: 20,
+                                            fontSize: 28,
                                             opacity: 0.85,
                                             marginBottom: 12,
                                         }}
@@ -800,7 +800,7 @@ export default function ActionSection({
                                         style={{
                                             fontFamily:
                                                 "ui-serif, Georgia, Cambria, Times New Roman, Times, serif",
-                                            fontSize: isMobile ? 44 : 36,
+                                            fontSize: isMobile ? 52 : 44,
                                             fontWeight: 900,
                                             lineHeight: 1.15,
                                             textShadow:
@@ -850,22 +850,22 @@ export default function ActionSection({
                                                     alignItems: "center",
                                                 }}
                                             >
-                                                <div
-                                                    style={{
-                                                        fontSize: 14,
-                                                        padding: "8px 10px",
-                                                        borderRadius: 9999,
-                                                        background:
-                                                            "rgba(255,255,255,0.12)",
-                                                        border: "1px solid rgba(99,102,241,0.22)",
-                                                        color: "rgba(255,255,255,0.92)",
-                                                        textAlign: "center",
-                                                        maxWidth: 170,
-                                                        overflow: "hidden",
-                                                        whiteSpace: "nowrap",
-                                                        textOverflow: "ellipsis",
-                                                    }}
-                                                >
+                                            <div
+                                                style={{
+                                                    fontSize: 20,
+                                                    padding: "8px 10px",
+                                                    borderRadius: 9999,
+                                                    background:
+                                                        "rgba(255,255,255,0.12)",
+                                                    border: "1px solid rgba(99,102,241,0.22)",
+                                                    color: "rgba(255,255,255,0.92)",
+                                                    textAlign: "center",
+                                                    maxWidth: 170,
+                                                    overflow: "hidden",
+                                                    whiteSpace: "nowrap",
+                                                    textOverflow: "ellipsis",
+                                                }}
+                                            >
                                                     {c.name}
                                                 </div>
 
@@ -898,12 +898,13 @@ export default function ActionSection({
                                                         style={{
                                                             position: "absolute",
                                                             inset: 0,
-                                                            objectFit: "cover",
-                                                            transform: c.isReversed
-                                                                ? "rotate(180deg)"
-                                                                : "rotate(0deg)",
-                                                        }}
-                                                    />
+                                                    objectFit: "cover",
+                                                    transform: c.isReversed
+                                                        ? "rotate(180deg)"
+                                                        : "rotate(0deg)",
+                                                    opacity: 0.5,
+                                                }}
+                                            />
                                                 </div>
                                             </div>
                                         ))}
@@ -961,7 +962,7 @@ export default function ActionSection({
                                     </div>
                                     <div
                                         style={{
-                                            fontSize: 26,
+                                            fontSize: 34,
                                             fontWeight: 900,
                                             letterSpacing: -0.2,
                                         }}
@@ -973,7 +974,7 @@ export default function ActionSection({
                                 <div
                                     style={{
                                         display: "block",
-                                        fontSize: 28,
+                                        fontSize: 36,
                                         lineHeight: 1.5,
                                         whiteSpace: "pre-wrap",
                                         color: "rgba(255,255,255,0.92)",
@@ -999,7 +1000,7 @@ export default function ActionSection({
                                 alignItems: "center",
                                 marginTop: 28,
                                 opacity: 0.85,
-                                fontSize: 18,
+                                fontSize: 24,
                             }}
                         >
                             <div>Generated with Asking Fate</div>
