@@ -177,6 +177,17 @@ export default function ActionSection({
         }
     }, [])
 
+    const [isMobile, setIsMobile] = useState(false)
+
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.matchMedia("(max-width: 768px)").matches)
+        }
+        checkMobile()
+        window.addEventListener("resize", checkMobile)
+        return () => window.removeEventListener("resize", checkMobile)
+    }, [])
+
     const ensureShareLink = useCallback(async (): Promise<string | null> => {
         try {
             // If we have a readingId, use the new tarot/[id] link
@@ -590,8 +601,8 @@ export default function ActionSection({
                     position: "absolute",
                     top: -9999,
                     left: -9999,
-                    width: 1080,
-                    height: 1350,
+                    width: isMobile ? 1080 : 1920,
+                    height: isMobile ? 1920 : 1080,
                     overflow: "hidden",
                 }}
             >
@@ -696,6 +707,7 @@ export default function ActionSection({
                             flexDirection: "column",
                             position: "relative",
                             zIndex: 10,
+                            height: "100%",
                         }}
                     >
                         {/* Brand */}
@@ -744,214 +756,238 @@ export default function ActionSection({
                             </div>
                         </div>
 
-                        {/* Question card */}
+                        {/* Content Container - Flex row for desktop, Col for mobile */}
                         <div
                             style={{
-                                borderRadius: 28,
-                                padding: 34,
-                                border: "1px solid rgba(255,255,255,0.12)",
-                                background:
-                                    "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03) 45%, rgba(56,189,248,0.06) 90%)",
-                                boxShadow:
-                                    "0 18px 70px -30px rgba(56,189,248,0.55)",
+                                display: "flex",
+                                flexDirection: isMobile ? "column" : "row",
+                                gap: 32,
+                                flex: 1,
+                                alignItems: isMobile ? "stretch" : "flex-start",
                             }}
                         >
-                            <div
-                                style={{
-                                    fontSize: 20,
-                                    opacity: 0.85,
-                                    marginBottom: 12,
-                                }}
-                            >
-                                Your question
-                            </div>
-                            <div
-                                style={{
-                                    fontFamily:
-                                        "ui-serif, Georgia, Cambria, Times New Roman, Times, serif",
-                                    fontSize: 44,
-                                    fontWeight: 900,
-                                    lineHeight: 1.15,
-                                    textShadow:
-                                        "0 10px 30px rgba(56,189,248,0.22)",
-                                }}
-                            >
-                                {`“${
-                                    (question || "").length > 140
-                                        ? (question || "")
-                                              .slice(0, 139)
-                                              .trimEnd() + "…"
-                                        : question || ""
-                                }”`}
-                            </div>
-
-                            {/* Selected cards row */}
+                            {/* Left Side: Question & Cards (Desktop) or Top (Mobile) */}
                             <div
                                 style={{
                                     display: "flex",
-                                    gap: 18,
-                                    flexWrap: "wrap",
-                                    marginTop: 26,
-                                    alignItems: "flex-start",
+                                    flexDirection: "column",
+                                    gap: 24,
+                                    flex: isMobile ? "0 0 auto" : "0 0 40%",
                                 }}
                             >
-                                {(cards || [])
-                                    .slice(0, 3)
-                                    .map((cName) => {
-                                        const { slug, isReversed } =
-                                            slugifyCardName(cName)
-                                        const src = `/assets/rider-waite-tarot/${slug}.png`
-                                        return {
-                                            name: cName,
-                                            slug,
-                                            isReversed,
-                                            src,
-                                        }
-                                    })
-                                    .map((c, idx) => (
-                                        <div
-                                            key={`card-${c.slug}-${idx}`}
-                                            style={{
-                                                width: 170,
-                                                display: "flex",
-                                                flexDirection: "column",
-                                                gap: 10,
-                                                alignItems: "center",
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    fontSize: 14,
-                                                    padding: "8px 10px",
-                                                    borderRadius: 9999,
-                                                    background:
-                                                        "rgba(255,255,255,0.12)",
-                                                    border: "1px solid rgba(99,102,241,0.22)",
-                                                    color: "rgba(255,255,255,0.92)",
-                                                    textAlign: "center",
-                                                    maxWidth: 170,
-                                                    overflow: "hidden",
-                                                    whiteSpace: "nowrap",
-                                                    textOverflow: "ellipsis",
-                                                }}
-                                            >
-                                                {c.name}
-                                            </div>
+                                {/* Question card */}
+                                <div
+                                    style={{
+                                        borderRadius: 28,
+                                        padding: 34,
+                                        border: "1px solid rgba(255,255,255,0.12)",
+                                        background:
+                                            "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03) 45%, rgba(56,189,248,0.06) 90%)",
+                                        boxShadow:
+                                            "0 18px 70px -30px rgba(56,189,248,0.55)",
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            fontSize: 20,
+                                            opacity: 0.85,
+                                            marginBottom: 12,
+                                        }}
+                                    >
+                                        Your question
+                                    </div>
+                                    <div
+                                        style={{
+                                            fontFamily:
+                                                "ui-serif, Georgia, Cambria, Times New Roman, Times, serif",
+                                            fontSize: isMobile ? 44 : 36,
+                                            fontWeight: 900,
+                                            lineHeight: 1.15,
+                                            textShadow:
+                                                "0 10px 30px rgba(56,189,248,0.22)",
+                                        }}
+                                    >
+                                        {`“${
+                                            (question || "").length > 140
+                                                ? (question || "")
+                                                      .slice(0, 139)
+                                                      .trimEnd() + "…"
+                                                : question || ""
+                                        }”`}
+                                    </div>
+                                </div>
 
+                                {/* Selected cards row */}
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        gap: 18,
+                                        flexWrap: "wrap",
+                                        justifyContent: isMobile ? "flex-start" : "center",
+                                    }}
+                                >
+                                    {(cards || [])
+                                        .slice(0, 3)
+                                        .map((cName) => {
+                                            const { slug, isReversed } =
+                                                slugifyCardName(cName)
+                                            const src = `/assets/rider-waite-tarot/${slug}.png`
+                                            return {
+                                                name: cName,
+                                                slug,
+                                                isReversed,
+                                                src,
+                                            }
+                                        })
+                                        .map((c, idx) => (
                                             <div
+                                                key={`card-${c.slug}-${idx}`}
                                                 style={{
-                                                    width: 150,
-                                                    height: 240,
-                                                    borderRadius: 18,
-                                                    position: "relative",
-                                                    overflow: "hidden",
-                                                    boxShadow:
-                                                        "0 20px 60px -35px rgba(234,179,8,0.65)",
-                                                    border: "1px solid rgba(255,255,255,0.12)",
+                                                    width: 170,
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                    gap: 10,
+                                                    alignItems: "center",
                                                 }}
                                             >
                                                 <div
                                                     style={{
-                                                        position: "absolute",
-                                                        inset: -30,
+                                                        fontSize: 14,
+                                                        padding: "8px 10px",
+                                                        borderRadius: 9999,
                                                         background:
-                                                            "radial-gradient(circle at 30% 20%, rgba(99,102,241,0.35), rgba(99,102,241,0.0) 55%), radial-gradient(circle at 70% 80%, rgba(234,179,8,0.25), rgba(234,179,8,0.0) 60%)",
-                                                        filter: "blur(18px)",
-                                                        opacity: 0.9,
+                                                            "rgba(255,255,255,0.12)",
+                                                        border: "1px solid rgba(99,102,241,0.22)",
+                                                        color: "rgba(255,255,255,0.92)",
+                                                        textAlign: "center",
+                                                        maxWidth: 170,
+                                                        overflow: "hidden",
+                                                        whiteSpace: "nowrap",
+                                                        textOverflow: "ellipsis",
                                                     }}
-                                                />
-                                                <img
-                                                    src={c.src}
-                                                    width={150}
-                                                    height={240}
-                                                    style={{
-                                                        position: "absolute",
-                                                        inset: 0,
-                                                        objectFit: "cover",
-                                                        transform: c.isReversed
-                                                            ? "rotate(180deg)"
-                                                            : "rotate(0deg)",
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                    ))}
-                            </div>
-                        </div>
+                                                >
+                                                    {c.name}
+                                                </div>
 
-                        {/* Interpretation card */}
-                        <div
-                            style={{
-                                marginTop: 28,
-                                borderRadius: 28,
-                                padding: 32,
-                                background:
-                                    "linear-gradient(135deg, rgba(99,102,241,0.18), rgba(168,85,247,0.14) 35%, rgba(34,211,238,0.12) 70%)",
-                                boxShadow:
-                                    "0 20px 70px -35px rgba(56,189,248,0.55)",
-                                border: "1px solid rgba(255,255,255,0.12)",
-                                position: "relative",
-                            }}
-                        >
+                                                <div
+                                                    style={{
+                                                        width: 150,
+                                                        height: 240,
+                                                        borderRadius: 18,
+                                                        position: "relative",
+                                                        overflow: "hidden",
+                                                        boxShadow:
+                                                            "0 20px 60px -35px rgba(234,179,8,0.65)",
+                                                        border: "1px solid rgba(255,255,255,0.12)",
+                                                    }}
+                                                >
+                                                    <div
+                                                        style={{
+                                                            position: "absolute",
+                                                            inset: -30,
+                                                            background:
+                                                                "radial-gradient(circle at 30% 20%, rgba(99,102,241,0.35), rgba(99,102,241,0.0) 55%), radial-gradient(circle at 70% 80%, rgba(234,179,8,0.25), rgba(234,179,8,0.0) 60%)",
+                                                            filter: "blur(18px)",
+                                                            opacity: 0.9,
+                                                        }}
+                                                    />
+                                                    <img
+                                                        src={c.src}
+                                                        width={150}
+                                                        height={240}
+                                                        style={{
+                                                            position: "absolute",
+                                                            inset: 0,
+                                                            objectFit: "cover",
+                                                            transform: c.isReversed
+                                                                ? "rotate(180deg)"
+                                                                : "rotate(0deg)",
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                </div>
+                            </div>
+
+                            {/* Right Side: Interpretation (Desktop) or Bottom (Mobile) */}
                             <div
                                 style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 12,
-                                    marginBottom: 14,
+                                    marginTop: isMobile ? 28 : 0,
+                                    borderRadius: 28,
+                                    padding: 32,
+                                    background:
+                                        "linear-gradient(135deg, rgba(99,102,241,0.18), rgba(168,85,247,0.14) 35%, rgba(34,211,238,0.12) 70%)",
+                                    boxShadow:
+                                        "0 20px 70px -35px rgba(56,189,248,0.55)",
+                                    border: "1px solid rgba(255,255,255,0.12)",
+                                    position: "relative",
+                                    flex: isMobile ? "0 0 auto" : "1",
+                                    height: isMobile ? "auto" : "100%",
+                                    overflow: "hidden", // In case text overflows
                                 }}
                             >
                                 <div
                                     style={{
-                                        width: 42,
-                                        height: 42,
-                                        borderRadius: 9999,
-                                        background: "rgba(234,179,8,0.18)",
-                                        border: "1px solid rgba(234,179,8,0.25)",
                                         display: "flex",
                                         alignItems: "center",
-                                        justifyContent: "center",
-                                        color: "rgba(255,255,255,0.9)",
-                                        fontWeight: 900,
+                                        gap: 12,
+                                        marginBottom: 14,
                                     }}
                                 >
-                                    <svg
-                                        width='24'
-                                        height='24'
-                                        viewBox='0 0 24 24'
-                                        fill='currentColor'
-                                        xmlns='http://www.w3.org/2000/svg'
+                                    <div
+                                        style={{
+                                            width: 42,
+                                            height: 42,
+                                            borderRadius: 9999,
+                                            background: "rgba(234,179,8,0.18)",
+                                            border: "1px solid rgba(234,179,8,0.25)",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            color: "rgba(255,255,255,0.9)",
+                                            fontWeight: 900,
+                                        }}
                                     >
-                                        <path d='M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5Z' />
-                                    </svg>
+                                        <svg
+                                            width='24'
+                                            height='24'
+                                            viewBox='0 0 24 24'
+                                            fill='currentColor'
+                                            xmlns='http://www.w3.org/2000/svg'
+                                        >
+                                            <path d='M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5Z' />
+                                        </svg>
+                                    </div>
+                                    <div
+                                        style={{
+                                            fontSize: 26,
+                                            fontWeight: 900,
+                                            letterSpacing: -0.2,
+                                        }}
+                                    >
+                                        Your reading
+                                    </div>
                                 </div>
+
                                 <div
                                     style={{
-                                        fontSize: 26,
-                                        fontWeight: 900,
-                                        letterSpacing: -0.2,
+                                        display: "block",
+                                        fontSize: 28,
+                                        lineHeight: 1.5,
+                                        whiteSpace: "pre-wrap",
+                                        color: "rgba(255,255,255,0.92)",
+                                        // Allow more text on desktop if needed
                                     }}
                                 >
-                                    Your reading
+                                    {`${
+                                        (interpretation || "").length > (isMobile ? 900 : 1500)
+                                            ? (interpretation || "")
+                                                  .slice(0, isMobile ? 899 : 1499)
+                                                  .trimEnd() + "…"
+                                            : interpretation || "—"
+                                    }`}
                                 </div>
-                            </div>
-
-                            <div
-                                style={{
-                                    display: "block",
-                                    fontSize: 28,
-                                    lineHeight: 1.5,
-                                    whiteSpace: "pre-wrap",
-                                    color: "rgba(255,255,255,0.92)",
-                                }}
-                            >
-                                {`${
-                                    (interpretation || "").length > 900
-                                        ? (interpretation || "")
-                                              .slice(0, 899)
-                                              .trimEnd() + "…"
-                                        : interpretation || "—"
-                                }`}
                             </div>
                         </div>
 
