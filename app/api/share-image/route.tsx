@@ -3,8 +3,9 @@
 import { ImageResponse } from "next/og"
 import { Buffer } from "node:buffer"
 
-// // export const runtime = "nodejs" // DISABLED: Using default runtime to allow fetch
-export const maxDuration = 60 // Increase timeout for image generation
+// export const runtime = "nodejs" // DISABLED: Using default runtime to allow fetch
+// export const maxDuration = 60 // Increase timeout for image generation
+export const runtime = "edge" // Explicitly use edge runtime for ImageResponse to avoid nodejs bundling issues
 
 function slugifyCardName(raw: string): { slug: string; isReversed: boolean } {
     if (!raw) return { slug: "", isReversed: false };
@@ -34,9 +35,31 @@ async function readImageAsBase64(slug: string, origin: string) {
     try {
         // Fallback to fetch since we are in Edge runtime (or automatic) and can't use fs
         const url = `${origin}/assets/rider-waite-tarot/${slug}.png`
-        const res = await fetch(url)
-        if (!res.ok) return null
+        
+        // Add timeout and validation to fetch
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+        
+        const res = await fetch(url, { signal: controller.signal })
+        clearTimeout(timeoutId);
+        
+        if (!res.ok) {
+            console.error(`Fetch failed for ${url}: ${res.status} ${res.statusText}`);
+            return null
+        }
+        
+        const contentType = res.headers.get("content-type");
+        if (contentType && !contentType.startsWith("image/")) {
+             console.error(`Invalid content type for ${url}: ${contentType}`);
+             return null;
+        }
+
         const buffer = await res.arrayBuffer()
+        if (buffer.byteLength === 0) {
+            console.error(`Empty buffer for ${url}`);
+            return null;
+        }
+        
         const base64 = Buffer.from(buffer).toString("base64")
         return `data:image/png;base64,${base64}`
     } catch (error) {
@@ -71,7 +94,9 @@ export async function POST(req: Request) {
         let origin = "http://localhost:3000";
         try {
             if (req.headers.get("host")) {
-                origin = `${req.headers.get("x-forwarded-proto") || "https"}://${req.headers.get("host")}`
+                const proto = req.headers.get("x-forwarded-proto") || "https";
+                const host = req.headers.get("host");
+                origin = `${proto}://${host}`
             } else {
                  origin = new URL(req.url).origin
             }
@@ -100,7 +125,10 @@ export async function POST(req: Request) {
                 if (!base64) {
                      console.warn(`Warning: Could not fetch image for slug: ${slug} from ${origin}`);
                 }
-
+                
+                // If src is still just a URL (fetch failed), this might fail in ImageResponse if not reachable.
+                // We'll let it try, but if it fails, ImageResponse might throw "Unsupported image type: unknown".
+                
                 return { name, slug, isReversed, src }
             })
 
