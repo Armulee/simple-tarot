@@ -5,6 +5,7 @@ import { join } from "node:path"
 export const runtime = "nodejs"
 
 function slugifyCardName(raw: string): { slug: string; isReversed: boolean } {
+    if (!raw) return { slug: "", isReversed: false };
     const lower = raw.toLowerCase()
     const isReversed =
         lower.includes("(reversed)") || /\breversed\b/.test(lower)
@@ -20,12 +21,14 @@ function slugifyCardName(raw: string): { slug: string; isReversed: boolean } {
 }
 
 function truncate(text: string, maxChars: number): string {
-    const t = String(text ?? "").trim()
+    if (!text) return "";
+    const t = String(text).trim()
     if (t.length <= maxChars) return t
     return `${t.slice(0, Math.max(0, maxChars - 1)).trimEnd()}…`
 }
 
 async function readImageAsBase64(slug: string) {
+    if (!slug) return null;
     try {
         const filePath = join(
             process.cwd(),
@@ -45,6 +48,14 @@ async function readImageAsBase64(slug: string) {
 
 export async function POST(req: Request) {
     try {
+        let jsonBody;
+        try {
+            jsonBody = await req.json();
+        } catch (e) {
+            console.error("Failed to parse request JSON:", e);
+            return new Response("Invalid JSON body", { status: 400 });
+        }
+
         const {
             question = "",
             cards = [],
@@ -52,17 +63,22 @@ export async function POST(req: Request) {
             width = 1080,
             height = 1350,
             branding = "Asking Fate",
-        } = await req.json()
+        } = jsonBody
 
-        const safeQuestion = String(question)
-        const safeInterpretation = String(interpretation)
+        const safeQuestion = String(question || "")
+        const safeInterpretation = String(interpretation || "")
 
         // origin is less critical now for cards, but might be useful for debugging
-        const origin = new URL(req.url).origin
+        let origin = "http://localhost:3000";
+        try {
+            origin = new URL(req.url).origin
+        } catch {}
 
         const cardNames = Array.isArray(cards)
             ? cards.map((c) => String(c))
-            : [String(cards)]
+            : cards
+              ? [String(cards)]
+              : []
 
         // Pre-load images from disk
         const cardPromises = cardNames
@@ -73,8 +89,14 @@ export async function POST(req: Request) {
                 // Read from disk instead of fetch
                 const base64 = await readImageAsBase64(slug)
                 // Fallback to URL if disk read fails (unlikely if file exists)
+                // Note: fetch within Node runtime might still fail if self-signed cert or other network issues,
+                // but base64 is the primary path now.
                 const src =
                     base64 || `${origin}/assets/rider-waite-tarot/${slug}.png`
+
+                if (!base64) {
+                     console.warn(`Warning: Could not read image from disk for slug: ${slug}`);
+                }
 
                 return { name, slug, isReversed, src }
             })
