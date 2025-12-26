@@ -1,8 +1,10 @@
+// import { readFile } from "node:fs/promises"
+// import { join } from "node:path"
 import { ImageResponse } from "next/og"
-import { readFile } from "node:fs/promises"
-import { join } from "node:path"
+import { Buffer } from "node:buffer"
 
-export const runtime = "nodejs"
+// // export const runtime = "nodejs" // DISABLED: Using default runtime to allow fetch
+export const maxDuration = 60 // Increase timeout for image generation
 
 function slugifyCardName(raw: string): { slug: string; isReversed: boolean } {
     if (!raw) return { slug: "", isReversed: false };
@@ -27,18 +29,15 @@ function truncate(text: string, maxChars: number): string {
     return `${t.slice(0, Math.max(0, maxChars - 1)).trimEnd()}…`
 }
 
-async function readImageAsBase64(slug: string) {
+async function readImageAsBase64(slug: string, origin: string) {
     if (!slug) return null;
     try {
-        const filePath = join(
-            process.cwd(),
-            "public",
-            "assets",
-            "rider-waite-tarot",
-            `${slug}.png`
-        )
-        const buffer = await readFile(filePath)
-        const base64 = buffer.toString("base64")
+        // Fallback to fetch since we are in Edge runtime (or automatic) and can't use fs
+        const url = `${origin}/assets/rider-waite-tarot/${slug}.png`
+        const res = await fetch(url)
+        if (!res.ok) return null
+        const buffer = await res.arrayBuffer()
+        const base64 = Buffer.from(buffer).toString("base64")
         return `data:image/png;base64,${base64}`
     } catch (error) {
         console.error(`Error reading image for slug ${slug}:`, error)
@@ -68,10 +67,14 @@ export async function POST(req: Request) {
         const safeQuestion = String(question || "")
         const safeInterpretation = String(interpretation || "")
 
-        // origin is less critical now for cards, but might be useful for debugging
+// origin is less critical now for cards, but might be useful for debugging
         let origin = "http://localhost:3000";
         try {
-            origin = new URL(req.url).origin
+            if (req.headers.get("host")) {
+                origin = `${req.headers.get("x-forwarded-proto") || "https"}://${req.headers.get("host")}`
+            } else {
+                 origin = new URL(req.url).origin
+            }
         } catch {}
 
         const cardNames = Array.isArray(cards)
@@ -87,7 +90,7 @@ export async function POST(req: Request) {
             .map(async (name) => {
                 const { slug, isReversed } = slugifyCardName(name)
                 // Read from disk instead of fetch
-                const base64 = await readImageAsBase64(slug)
+                const base64 = await readImageAsBase64(slug, origin)
                 // Fallback to URL if disk read fails (unlikely if file exists)
                 // Note: fetch within Node runtime might still fail if self-signed cert or other network issues,
                 // but base64 is the primary path now.
@@ -95,7 +98,7 @@ export async function POST(req: Request) {
                     base64 || `${origin}/assets/rider-waite-tarot/${slug}.png`
 
                 if (!base64) {
-                     console.warn(`Warning: Could not read image from disk for slug: ${slug}`);
+                     console.warn(`Warning: Could not fetch image for slug: ${slug} from ${origin}`);
                 }
 
                 return { name, slug, isReversed, src }
