@@ -1,6 +1,8 @@
 import { ImageResponse } from "next/og"
+import { readFile } from "node:fs/promises"
+import { join } from "node:path"
 
-export const runtime = "edge"
+export const runtime = "nodejs"
 
 function slugifyCardName(raw: string): { slug: string; isReversed: boolean } {
     const lower = raw.toLowerCase()
@@ -23,6 +25,24 @@ function truncate(text: string, maxChars: number): string {
     return `${t.slice(0, Math.max(0, maxChars - 1)).trimEnd()}…`
 }
 
+async function readImageAsBase64(slug: string) {
+    try {
+        const filePath = join(
+            process.cwd(),
+            "public",
+            "assets",
+            "rider-waite-tarot",
+            `${slug}.png`
+        )
+        const buffer = await readFile(filePath)
+        const base64 = buffer.toString("base64")
+        return `data:image/png;base64,${base64}`
+    } catch (error) {
+        console.error(`Error reading image for slug ${slug}:`, error)
+        return null
+    }
+}
+
 export async function POST(req: Request) {
     try {
         const {
@@ -37,21 +57,29 @@ export async function POST(req: Request) {
         const safeQuestion = String(question)
         const safeInterpretation = String(interpretation)
 
+        // origin is less critical now for cards, but might be useful for debugging
         const origin = new URL(req.url).origin
 
         const cardNames = Array.isArray(cards)
             ? cards.map((c) => String(c))
             : [String(cards)]
 
-        // Keep this light for Edge runtime reliability: render up to 3 card images.
-        const parsedCards = cardNames
+        // Pre-load images from disk
+        const cardPromises = cardNames
             .filter(Boolean)
             .slice(0, 3)
-            .map((name) => {
+            .map(async (name) => {
                 const { slug, isReversed } = slugifyCardName(name)
-                const src = `${origin}/assets/rider-waite-tarot/${slug}.png`
+                // Read from disk instead of fetch
+                const base64 = await readImageAsBase64(slug)
+                // Fallback to URL if disk read fails (unlikely if file exists)
+                const src =
+                    base64 || `${origin}/assets/rider-waite-tarot/${slug}.png`
+
                 return { name, slug, isReversed, src }
             })
+
+        const parsedCards = await Promise.all(cardPromises)
 
         const displayQuestion = truncate(safeQuestion, 140)
         const displayInterpretation = truncate(safeInterpretation, 900)
@@ -391,7 +419,11 @@ export async function POST(req: Request) {
                 },
             }
         )
-    } catch {
-        return new Response("Failed to generate image", { status: 500 })
+    } catch (e) {
+        console.error("Share image generation error:", e)
+        return new Response(
+            `Failed to generate image: ${e instanceof Error ? e.message : String(e)}`,
+            { status: 500 }
+        )
     }
 }
