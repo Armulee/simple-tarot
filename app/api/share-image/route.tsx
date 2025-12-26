@@ -218,7 +218,15 @@ export async function POST(req: Request) {
                                         "0 14px 40px rgba(234,179,8,0.22)",
                                 }}
                             >
-                                ✦
+                                <svg
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9Z" />
+                                </svg>
                             </div>
                             <div
                                 style={{
@@ -388,7 +396,16 @@ export async function POST(req: Request) {
                                         fontWeight: 900,
                                     }}
                                 >
-                                    ✶
+                                    <svg
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                        {/* 6-pointed star / spark */}
+                                        <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5Z" />
+                                    </svg>
                                 </div>
                                 <div
                                     style={{
