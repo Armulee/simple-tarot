@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/popover"
 import { getTarotReadingPrompt } from "@/lib/prompts"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 interface ActionSectionProps {
     question?: string
@@ -50,10 +51,6 @@ interface ActionSectionProps {
     onInterpretationChange?: (text: string) => void
     onGeneratingChange?: (loading: boolean) => void
 }
-
-import { useTranslations } from "next-intl"
-
-import { toPng } from "html-to-image"
 
 export default function ActionSection({
     question: propQuestion,
@@ -98,6 +95,7 @@ export default function ActionSection({
             created_at: string
         }>
     >([])
+
     const loadVersions = useCallback(async () => {
         try {
             if (!readingId) return
@@ -109,33 +107,14 @@ export default function ActionSection({
             setVersions(Array.isArray(data.versions) ? data.versions : [])
         } catch {}
     }, [readingId])
+
     useEffect(() => {
         void loadVersions()
     }, [loadVersions])
 
-    const imageRef = useRef<HTMLDivElement>(null)
-
-// Helper to get card image slug
-    function slugifyCardName(raw: string): { slug: string; isReversed: boolean } {
-        if (!raw) return { slug: "", isReversed: false }
-        const lower = raw.toLowerCase()
-        const isReversed =
-            lower.includes("(reversed)") || /\breversed\b/.test(lower)
-
-        const slug = lower
-            .replace(/\s*\(reversed\)/g, "")
-            .replace(/\s*reversed/g, "")
-            .trim()
-            .replace(/\s+/g, "-")
-            .replace(/[^a-z0-9-]/g, "")
-
-        return { slug, isReversed }
-    }
-
     const { complete } = useCompletion({
         api: "/api/interpret-cards/question",
         onFinish: (_, completion) => {
-            // Prefer parent callback when provided (e.g., owner detail page)
             if (typeof onInterpretationChange === "function") {
                 onInterpretationChange(completion)
             } else {
@@ -168,7 +147,6 @@ export default function ActionSection({
         const el = navGuardRef.current
         if (!el) return
         const onWheel: (e: WheelEvent) => void = (e) => {
-            // Stop propagation of horizontal wheel to avoid browser back/forward gestures
             e.stopPropagation()
         }
         el.addEventListener("wheel", onWheel, { passive: true })
@@ -177,20 +155,8 @@ export default function ActionSection({
         }
     }, [])
 
-    const [isMobile, setIsMobile] = useState(false)
-
-    useEffect(() => {
-        const checkMobile = () => {
-            setIsMobile(window.matchMedia("(max-width: 768px)").matches)
-        }
-        checkMobile()
-        window.addEventListener("resize", checkMobile)
-        return () => window.removeEventListener("resize", checkMobile)
-    }, [])
-
     const ensureShareLink = useCallback(async (): Promise<string | null> => {
         try {
-            // If we have a readingId, use the new tarot/[id] link
             if (readingId) {
                 const origin =
                     typeof window !== "undefined"
@@ -199,8 +165,6 @@ export default function ActionSection({
                 return `${origin}/tarot/${readingId}`
             }
 
-            // Fallback to old behavior for backward compatibility
-            // First, check if this interpretation already exists
             const checkRes = await fetch("/api/interpretations/check", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -215,7 +179,6 @@ export default function ActionSection({
             if (checkRes.ok) {
                 const checkData = await checkRes.json()
                 if (checkData.exists && checkData.id) {
-                    // Use existing interpretation
                     const origin =
                         typeof window !== "undefined"
                             ? window.location.origin
@@ -224,7 +187,6 @@ export default function ActionSection({
                 }
             }
 
-            // If not found, create a new one
             const res = await fetch("/api/interpretations/share", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -249,13 +211,10 @@ export default function ActionSection({
 
     const handleRegenerate = useCallback(async () => {
         try {
-            // Check if user has enough stars
             if (!Number.isFinite(stars as number) || (stars as number) < 1) {
-                // Could show a dialog here, but for now just return
                 return
             }
 
-            // Spend a star for regeneration
             const ok = await spendStars(1)
             if (ok) {
                 toast.warning("-1 star for regeneration", {
@@ -267,18 +226,15 @@ export default function ActionSection({
             }
             setPaidForInterpretation(true)
 
-            // Clear current interpretation
             if (typeof onInterpretationChange === "function") {
                 onInterpretationChange("")
             } else {
                 setInterpretation(null)
             }
 
-            // Show generating state in parent if provided
             if (typeof onGeneratingChange === "function")
                 onGeneratingChange(true)
 
-            // Build the prompt (match initial generation logic), including follow-up context when available
             const cardNames = cards.join(", ")
 
             let previousQuestion: string | null = null
@@ -309,7 +265,6 @@ export default function ActionSection({
                 previousInterpretation,
             })
 
-            // Generate new interpretation
             const newText = await complete(prompt)
             if (!newText) {
                 toast.error("Failed to generate a new interpretation")
@@ -318,7 +273,6 @@ export default function ActionSection({
                 return
             }
 
-            // Persist current interpretation to DB and versions if we have a readingId
             try {
                 if (readingId && newText) {
                     await fetch("/api/tarot/update", {
@@ -337,12 +291,10 @@ export default function ActionSection({
                             content: newText,
                         }),
                     })
-                    // Reload versions list
                     await loadVersions()
                 }
             } catch {}
 
-            // Push new interpretation to parent/context
             if (typeof onInterpretationChange === "function") {
                 onInterpretationChange(newText)
             } else {
@@ -416,7 +368,6 @@ export default function ActionSection({
                 if (!link) return
 
                 try {
-                    // Try modern clipboard API first
                     if (navigator.clipboard && window.isSecureContext) {
                         await navigator.clipboard.writeText(link)
                         setCopiedLink(true)
@@ -427,7 +378,6 @@ export default function ActionSection({
                     console.log("Clipboard API failed, trying fallback:", error)
                 }
 
-                // Fallback for Safari and older browsers
                 try {
                     const textArea = document.createElement("textarea")
                     textArea.value = link
@@ -445,12 +395,10 @@ export default function ActionSection({
                         setCopiedLink(true)
                         window.setTimeout(() => setCopiedLink(false), 2000)
                     } else {
-                        // If both methods fail, show the link in an alert
                         alert(`Copy this link: ${link}`)
                     }
                 } catch (fallbackError) {
                     console.error("Fallback copy failed:", fallbackError)
-                    // Last resort: show the link
                     alert(`Copy this link: ${link}`)
                 }
             },
@@ -474,7 +422,6 @@ export default function ActionSection({
                 if (!text) return
 
                 try {
-                    // Try modern clipboard API first
                     if (navigator.clipboard && window.isSecureContext) {
                         await navigator.clipboard.writeText(text)
                         setCopiedText(true)
@@ -485,7 +432,6 @@ export default function ActionSection({
                     console.log("Clipboard API failed, trying fallback:", error)
                 }
 
-                // Fallback for Safari and older browsers
                 try {
                     const textArea = document.createElement("textarea")
                     textArea.value = text
@@ -503,12 +449,10 @@ export default function ActionSection({
                         setCopiedText(true)
                         window.setTimeout(() => setCopiedText(false), 2000)
                     } else {
-                        // If both methods fail, show the text in an alert
                         alert(`Copy this text: ${text}`)
                     }
                 } catch (fallbackError) {
                     console.error("Fallback copy failed:", fallbackError)
-                    // Last resort: show the text
                     alert(`Copy this text: ${text}`)
                 }
             },
@@ -546,7 +490,6 @@ export default function ActionSection({
                   description: t("actions.voteUpDesc"),
                   onClick: async () => {
                       setVoteState("up")
-                      // TODO: call /api/feedbacks to upsert vote_up=true
                   },
               }
             : {
@@ -557,7 +500,6 @@ export default function ActionSection({
                   description: t("actions.removeVoteUpDesc"),
                   onClick: async () => {
                       setVoteState(null)
-                      // TODO: call /api/feedbacks to remove vote
                   },
               },
         voteState !== "down"
@@ -569,7 +511,6 @@ export default function ActionSection({
                   description: t("actions.voteDownDesc"),
                   onClick: async () => {
                       setVoteState("down")
-                      // TODO: call /api/feedbacks to upsert vote_down=true
                   },
               }
             : {
@@ -580,7 +521,6 @@ export default function ActionSection({
                   description: t("actions.removeVoteDownDesc"),
                   onClick: async () => {
                       setVoteState(null)
-                      // TODO: call /api/feedbacks to remove vote
                   },
               },
         {
@@ -595,403 +535,6 @@ export default function ActionSection({
 
     return (
         <div className='relative overflow-hidden group'>
-            {/* Hidden DOM element for image generation - positioned absolute off-screen */}
-            <div
-                style={{
-                    position: "absolute",
-                    top: -9999,
-                    left: -9999,
-                    width: isMobile ? 1080 : 1920,
-                    height: isMobile ? 1920 : 1080,
-                    overflow: "hidden",
-                }}
-            >
-                <div
-                    ref={imageRef}
-                    style={{
-                        width: "100%",
-                        height: "100%",
-                        display: "flex",
-                        flexDirection: "column",
-                        padding: 64,
-                        background:
-                            "radial-gradient(ellipse at top, oklch(0.2 0.1 264) 0%, oklch(0.145 0.02 264) 50%, oklch(0.08 0.02 280) 100%)",
-                        color: "#ffffff",
-                        fontFamily:
-                            "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial",
-                        position: "relative",
-                    }}
-                >
-                    {/* Simplified star pattern background to match CosmicStars */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            inset: 0,
-                            backgroundImage:
-                                "radial-gradient(1px 1px at 25px 5px, white, transparent), radial-gradient(1px 1px at 50px 25px, white, transparent), radial-gradient(1px 1px at 12px 45px, white, transparent), radial-gradient(2px 2px at 85px 15px, white, transparent)",
-                            backgroundSize: "100px 100px",
-                            opacity: 0.3,
-                        }}
-                    />
-
-                    {/* background card aura */}
-                    {(cards || [])
-                        .slice(0, 3)
-                        .map((cName) => {
-                            const { slug, isReversed } = slugifyCardName(cName)
-                            // Use direct path for client side
-                            const src = `/assets/rider-waite-tarot/${slug}.png`
-                            return { name: cName, slug, isReversed, src }
-                        })
-                        .map((c, idx) => {
-                            const positions: Array<{
-                                top?: number
-                                bottom?: number
-                                left?: number
-                                right?: number
-                                rotate: number
-                            }> = [
-                                { top: 120, left: 60, rotate: -14 },
-                                { top: 150, right: 80, rotate: 16 },
-                                { bottom: 560, left: 80, rotate: -10 },
-                            ]
-                                    const p = positions[idx % positions.length]
-                                    return (
-                                        <img
-                                            key={`bg-${c.slug}-${idx}`}
-                                            src={c.src}
-                                            width={260}
-                                            height={420}
-                                            style={{
-                                                position: "absolute",
-                                                ...(p.top != null
-                                                    ? { top: p.top }
-                                                    : {}),
-                                                ...(p.bottom != null
-                                                    ? { bottom: p.bottom }
-                                                    : {}),
-                                                ...(p.left != null
-                                                    ? { left: p.left }
-                                                    : {}),
-                                                ...(p.right != null
-                                                    ? { right: p.right }
-                                                    : {}),
-                                                transform: `rotate(${p.rotate}deg) scale(0.9)`,
-                                                opacity: 0.8,
-                                            }}
-                                        />
-                                    )
-                                })}
-
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            position: "relative",
-                            zIndex: 10,
-                            height: "100%",
-                        }}
-                    >
-                        {/* Brand */}
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 12,
-                                marginBottom: 26,
-                            }}
-                        >
-                            <div
-                                style={{
-                                    width: 44,
-                                    height: 44,
-                                    borderRadius: 9999,
-                                    background:
-                                        "linear-gradient(135deg, rgba(234,179,8,0.95), rgba(56,189,248,0.75))",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    fontWeight: 900,
-                                    color: "#0a081a",
-                                    boxShadow:
-                                        "0 14px 40px rgba(234,179,8,0.22)",
-                                }}
-                            >
-                                <svg
-                                    width='24'
-                                    height='24'
-                                    viewBox='0 0 24 24'
-                                    fill='currentColor'
-                                    xmlns='http://www.w3.org/2000/svg'
-                                >
-                                    <path d='M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9Z' />
-                                </svg>
-                            </div>
-                            <div
-                                style={{
-                                    fontSize: 38,
-                                    fontWeight: 900,
-                                    letterSpacing: -0.4,
-                                }}
-                            >
-                                Asking Fate
-                            </div>
-                        </div>
-
-                        {/* Content Container - Flex row for desktop, Col for mobile */}
-                        <div
-                            style={{
-                                display: "flex",
-                                flexDirection: isMobile ? "column" : "row",
-                                gap: 32,
-                                flex: 1,
-                                alignItems: isMobile ? "stretch" : "flex-start",
-                            }}
-                        >
-                            {/* Left Side: Question & Cards (Desktop) or Top (Mobile) */}
-                            <div
-                                style={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: 24,
-                                    flex: isMobile ? "0 0 auto" : "0 0 40%",
-                                }}
-                            >
-                                {/* Question card */}
-                                <div
-                                    style={{
-                                        borderRadius: 28,
-                                        padding: 34,
-                                        border: "1px solid rgba(255,255,255,0.12)",
-                                        background:
-                                            "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03) 45%, rgba(56,189,248,0.06) 90%)",
-                                        boxShadow:
-                                            "0 18px 70px -30px rgba(56,189,248,0.55)",
-                                    }}
-                                >
-                                    <div
-                                        style={{
-                                            fontSize: 28,
-                                            opacity: 0.85,
-                                            marginBottom: 12,
-                                        }}
-                                    >
-                                        Your question
-                                    </div>
-                                    <div
-                                        style={{
-                                            fontFamily:
-                                                "ui-serif, Georgia, Cambria, Times New Roman, Times, serif",
-                                            fontSize: isMobile ? 52 : 44,
-                                            fontWeight: 900,
-                                            lineHeight: 1.15,
-                                            textShadow:
-                                                "0 10px 30px rgba(56,189,248,0.22)",
-                                        }}
-                                    >
-                                        {`“${
-                                            (question || "").length > 140
-                                                ? (question || "")
-                                                      .slice(0, 139)
-                                                      .trimEnd() + "…"
-                                                : question || ""
-                                        }”`}
-                                    </div>
-                                </div>
-
-                                {/* Selected cards row */}
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        gap: 18,
-                                        flexWrap: "wrap",
-                                        justifyContent: isMobile ? "flex-start" : "center",
-                                    }}
-                                >
-                                    {(cards || [])
-                                        .slice(0, 3)
-                                        .map((cName) => {
-                                            const { slug, isReversed } =
-                                                slugifyCardName(cName)
-                                            const src = `/assets/rider-waite-tarot/${slug}.png`
-                                            return {
-                                                name: cName,
-                                                slug,
-                                                isReversed,
-                                                src,
-                                            }
-                                        })
-                                        .map((c, idx) => (
-                                            <div
-                                                key={`card-${c.slug}-${idx}`}
-                                                style={{
-                                                    width: 170,
-                                                    display: "flex",
-                                                    flexDirection: "column",
-                                                    gap: 10,
-                                                    alignItems: "center",
-                                                }}
-                                            >
-                                            <div
-                                                style={{
-                                                    fontSize: 20,
-                                                    padding: "8px 10px",
-                                                    borderRadius: 9999,
-                                                    background:
-                                                        "rgba(255,255,255,0.12)",
-                                                    border: "1px solid rgba(99,102,241,0.22)",
-                                                    color: "rgba(255,255,255,0.92)",
-                                                    textAlign: "center",
-                                                    maxWidth: 170,
-                                                    overflow: "hidden",
-                                                    whiteSpace: "nowrap",
-                                                    textOverflow: "ellipsis",
-                                                }}
-                                            >
-                                                    {c.name}
-                                                </div>
-
-                                                <div
-                                                    style={{
-                                                        width: 150,
-                                                        height: 240,
-                                                        borderRadius: 18,
-                                                        position: "relative",
-                                                        overflow: "hidden",
-                                                        boxShadow:
-                                                            "0 20px 60px -35px rgba(234,179,8,0.65)",
-                                                        border: "1px solid rgba(255,255,255,0.12)",
-                                                    }}
-                                                >
-                                                    <div
-                                                        style={{
-                                                            position: "absolute",
-                                                            inset: -30,
-                                                            background:
-                                                                "radial-gradient(circle at 30% 20%, rgba(99,102,241,0.35), rgba(99,102,241,0.0) 55%), radial-gradient(circle at 70% 80%, rgba(234,179,8,0.25), rgba(234,179,8,0.0) 60%)",
-                                                            filter: "blur(18px)",
-                                                            opacity: 0.9,
-                                                        }}
-                                                    />
-                                                    <img
-                                                        src={c.src}
-                                                        width={150}
-                                                        height={240}
-                                                        style={{
-                                                            position: "absolute",
-                                                            inset: 0,
-                                                    objectFit: "cover",
-                                                    transform: c.isReversed
-                                                        ? "rotate(180deg)"
-                                                        : "rotate(0deg)",
-                                                    opacity: 0.5,
-                                                }}
-                                            />
-                                                </div>
-                                            </div>
-                                        ))}
-                                </div>
-                            </div>
-
-                            {/* Right Side: Interpretation (Desktop) or Bottom (Mobile) */}
-                            <div
-                                style={{
-                                    marginTop: isMobile ? 28 : 0,
-                                    borderRadius: 28,
-                                    padding: 32,
-                                    background:
-                                        "linear-gradient(135deg, rgba(99,102,241,0.18), rgba(168,85,247,0.14) 35%, rgba(34,211,238,0.12) 70%)",
-                                    boxShadow:
-                                        "0 20px 70px -35px rgba(56,189,248,0.55)",
-                                    border: "1px solid rgba(255,255,255,0.12)",
-                                    position: "relative",
-                                    flex: isMobile ? "0 0 auto" : "1",
-                                    height: isMobile ? "auto" : "100%",
-                                    overflow: "hidden", // In case text overflows
-                                }}
-                            >
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 12,
-                                        marginBottom: 14,
-                                    }}
-                                >
-                                    <div
-                                        style={{
-                                            width: 42,
-                                            height: 42,
-                                            borderRadius: 9999,
-                                            background: "rgba(234,179,8,0.18)",
-                                            border: "1px solid rgba(234,179,8,0.25)",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            color: "rgba(255,255,255,0.9)",
-                                            fontWeight: 900,
-                                        }}
-                                    >
-                                        <svg
-                                            width='24'
-                                            height='24'
-                                            viewBox='0 0 24 24'
-                                            fill='currentColor'
-                                            xmlns='http://www.w3.org/2000/svg'
-                                        >
-                                            <path d='M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5Z' />
-                                        </svg>
-                                    </div>
-                                    <div
-                                        style={{
-                                            fontSize: 34,
-                                            fontWeight: 900,
-                                            letterSpacing: -0.2,
-                                        }}
-                                    >
-                                        Your reading
-                                    </div>
-                                </div>
-
-                                <div
-                                    style={{
-                                        display: "block",
-                                        fontSize: 36,
-                                        lineHeight: 1.5,
-                                        whiteSpace: "pre-wrap",
-                                        color: "rgba(255,255,255,0.92)",
-                                        // Allow more text on desktop if needed
-                                    }}
-                                >
-                                    {`${
-                                        (interpretation || "").length > (isMobile ? 900 : 1500)
-                                            ? (interpretation || "")
-                                                  .slice(0, isMobile ? 899 : 1499)
-                                                  .trimEnd() + "…"
-                                            : interpretation || "—"
-                                    }`}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Footer */}
-                        <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                marginTop: 28,
-                                opacity: 0.85,
-                                fontSize: 24,
-                            }}
-                        >
-                            <div>Generated with Asking Fate</div>
-                            <div>askingfate.com</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {/* Slide-up loader for download */}
             {isDownloading && (
                 <div className='fixed bottom-0 left-0 right-0 z-50 animate-slide-up bg-black/60 backdrop-blur-sm p-4 text-center text-white'>
@@ -1083,17 +626,37 @@ export default function ActionSection({
                                                     type='button'
                                                     className='w-full px-3 py-2 rounded-md bg-primary/20 hover:bg-primary/30 text-sm'
                                                     onClick={async () => {
-                                                        if (!imageRef.current) return
                                                         try {
-                                                            setIsDownloading(true)
-                                                            const dataUrl =
-                                                                await toPng(
-                                                                    imageRef.current,
+                                                            setIsDownloading(
+                                                                true
+                                                            )
+                                                            const type = "image"
+                                                            const res =
+                                                                await fetch(
+                                                                    "/api/share-image",
                                                                     {
-                                                                        cacheBust: true,
-                                                                        pixelRatio: 2,
+                                                                        method: "POST",
+                                                                        headers:
+                                                                            {
+                                                                                "Content-Type":
+                                                                                    "application/json",
+                                                                            },
+                                                                        body: JSON.stringify(
+                                                                            {
+                                                                                question,
+                                                                                cards: cards,
+                                                                                interpretation,
+                                                                                width: 1170,
+                                                                                height: 2532,
+                                                                                branding:
+                                                                                    "Asking Fate",
+                                                                                type,
+                                                                            }
+                                                                        ),
                                                                     }
                                                                 )
+                                                            const blob =
+                                                                await res.blob()
                                                             const ts =
                                                                 new Date()
                                                                     .toISOString()
@@ -1101,27 +664,31 @@ export default function ActionSection({
                                                                         /[:.]/g,
                                                                         "-"
                                                                     )
+                                                            const url =
+                                                                URL.createObjectURL(
+                                                                    blob
+                                                                )
                                                             const a =
                                                                 document.createElement(
                                                                     "a"
                                                                 )
-                                                            a.href = dataUrl
+                                                            a.href = url
                                                             a.download = `reading-${ts}.png`
                                                             document.body.appendChild(
                                                                 a
                                                             )
                                                             a.click()
                                                             a.remove()
-                                                        } catch (err) {
-                                                            console.error(
-                                                                "Failed to generate image client-side:",
-                                                                err
+                                                            URL.revokeObjectURL(
+                                                                url
                                                             )
-                                                            toast.error(
-                                                                "Failed to generate image. Please try again."
-                                                            )
+                                                        } catch (e) {
+                                                            console.error("Download error:", e)
+                                                            toast.error("Failed to generate image.")
                                                         } finally {
-                                                            setIsDownloading(false)
+                                                            setIsDownloading(
+                                                                false
+                                                            )
                                                         }
                                                     }}
                                                 >
