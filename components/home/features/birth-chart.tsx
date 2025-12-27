@@ -94,6 +94,9 @@ export default function BirthChart() {
     const [timezone, setTimezone] = useState<number>(getDeviceTimezone())
     const [lat, setLat] = useState<string>("")
     const [lng, setLng] = useState<string>("")
+    const [locationSource, setLocationSource] = useState<"manual" | "gps">(
+        "manual"
+    )
     const [isGenerating, setIsGenerating] = useState(false)
     const [shouldStartTypewriter, setShouldStartTypewriter] = useState(false)
     const { choice, show } = useStarConsent()
@@ -153,107 +156,19 @@ export default function BirthChart() {
 
     // Resolve location to lat/lng/timezone
     useEffect(() => {
-        if (country) {
-            // If we loaded saved lat/lng, don't re-resolve unless user changes location
-            // But `country` is a dependency, so this runs on load.
-            // We should check if lat/lng match the saved ones if we want to avoid re-fetching,
-            // but resolveLocation is client-side lib function (usually), or lightweight.
-            // Actually `resolveLocationFromCountryState` uses a local lookup library.
-            // However, if we have specific lat/lng saved (e.g. from geolocation), we shouldn't overwrite it with generic country center
-            // unless the country/state actually CHANGED from what was saved.
-            // Since we can't easily know if it "changed" vs "loaded", we can check if lat/lng are empty.
-            // But if user changes country, lat/lng should update.
-            // Let's rely on the fact that if we setCountry from saved data, we also setLat/Lng.
-            // The issue is this effect runs when country is set.
-            // We can add a check: if lat/lng are set, do they match the country?
-            // Simpler: just let it resolve if manual entry.
-            // If we loaded from storage, lat/lng are set.
-            // We can use a ref to track if initial load happened?
-
-            // Actually, the previous implementation overwrote lat/lng whenever country/stateProv changed.
-            // This is fine for manual entry.
-            // For initial load, setCountry triggers this.
-            // If we want to preserve exact geolocation (e.g. GPS), we should perhaps only resolve if lat/lng are empty?
-            // But if user changes country manually, we WANT to resolve.
-
-            // Let's trust the user interaction flow.
-            // If `loadSavedData` sets state, this effect runs.
-            // It will resolve coords for the saved country/state.
-            // If the saved `lat` was from GPS (precise) and `resolve` gives center (approx), we lose precision.
-            // This is a trade-off. To fix, we could check if `lat` is already set.
-
-            if (!lat && !lng) {
-                const resolved = resolveLocationFromCountryState(
-                    country,
-                    stateProv || undefined
-                )
-                if (resolved) {
-                    setLat(resolved.latitude.toFixed(6))
-                    setLng(resolved.longitude.toFixed(6))
-                    setTimezone(resolved.timezone)
-                }
-            } else {
-                // If lat/lng exist, we assume they are correct for the current country/state
-                // But if user changes country, lat/lng might be from OLD country.
-                // We need to know if this is a user change.
-                // For now, let's stick to existing logic but maybe wrap in a check?
-                // Actually, the original code re-resolved every time.
-                // If I load data, I set all states.
-                // React batches updates.
-                // If I setCountry("US") and setLat("40..."), the effect runs.
-                // If I re-resolve "US", I might get different lat/lng.
-
-                // Let's stick to the original logic for consistency,
-                // but maybe `resolveLocationFromCountryState` is fast enough.
-
-                // Wait, if I use "Use my location", I get precise coords and set country/state.
-                // Then this effect runs because country changed.
-                // It overwrites precise coords with country center. That's a bug in original code too?
-                // Let's check original code.
-
-                /* 
-                useEffect(() => {
-                    if (country) {
-                        const resolved = resolveLocationFromCountryState(country, stateProv || undefined)
-                        if (resolved) {
-                            setLat(resolved.latitude.toFixed(6))
-                            setLng(resolved.longitude.toFixed(6))
-                            setTimezone(resolved.timezone)
-                        }
-                    }
-    }, [country, stateProv, lat, lng])
-                */
-
-                // Yes, it seems it would overwrite.
-                // But `handleLocationClick` sets `lat` and `lng` AND `country`/`state`.
-                // If `country` changes, effect runs.
-                // To prevent overwrite, we can check if the current lat/lng roughly matches the resolved one?
-                // Or add a flag `isManualLocation`.
-
-                // For this task (saving to localStorage), I will just restore the state.
-                // If the side effect runs and resets lat/lng to center of region, it's acceptable behavior
-                // matching the previous logic (state restoration mimics user input).
-                // Unless I explicitly want to preserve the "GPS" exactness.
-
-                const resolved = resolveLocationFromCountryState(
-                    country,
-                    stateProv || undefined
-                )
-                if (resolved) {
-                    // Only update if we don't have values or if we think they are stale?
-                    // Actually, let's just update. The saved data includes the country/state.
-                    // If the saved data has specific lat/lng that doesn't match the generic one,
-                    // we might lose it.
-                    // But if the user selected "Use my location", they got specific coords + country/state.
-                    // Re-resolving country/state will give generic coords.
-                    // This IS a regression if we just restore and let effect run.
-                    // Workaround: Check if the current lat/lng are significantly different?
-                    // Or, simpler: Don't run this effect on mount if we have data?
-                    // Use a ref `isLoaded`.
-                }
-            }
+        if (!country) return
+        // If the user used GPS, keep their exact lat/lng (don't overwrite with generic centroids)
+        if (locationSource === "gps" && lat && lng) return
+        const resolved = resolveLocationFromCountryState(
+            country,
+            stateProv || undefined
+        )
+        if (resolved) {
+            setLat(resolved.latitude.toFixed(6))
+            setLng(resolved.longitude.toFixed(6))
+            setTimezone(resolved.timezone)
         }
-    }, [country, stateProv, lat, lng])
+    }, [country, stateProv, locationSource, lat, lng])
 
     // Listen for when this slide becomes active (index 1)
     useEffect(() => {
@@ -298,12 +213,9 @@ export default function BirthChart() {
                     // We need to prevent that effect from overwriting explicit GPS coords.
                     // But the effect is designed to update coords when country changes.
 
-                    if (resolved?.countryName) {
-                        setCountry(resolved.countryName)
-                    }
-                    if (resolved?.stateName) {
-                        setStateProv(resolved.stateName)
-                    }
+                    setLocationSource("gps")
+                    if (resolved?.countryName) setCountry(resolved.countryName)
+                    if (resolved?.stateName) setStateProv(resolved.stateName)
 
                     // We set these AFTER country, but in same event loop.
                     // The effect will run after render.
@@ -975,6 +887,9 @@ export default function BirthChart() {
                                                                 <button
                                                                     key={c.code}
                                                                     onClick={() => {
+                                                                        setLocationSource(
+                                                                            "manual"
+                                                                        )
                                                                         setCountry(
                                                                             c.name
                                                                         )
@@ -1019,6 +934,9 @@ export default function BirthChart() {
                                                                 <button
                                                                     key={s.code}
                                                                     onClick={() => {
+                                                                        setLocationSource(
+                                                                            "manual"
+                                                                        )
                                                                         setStateProv(
                                                                             s.name
                                                                         )

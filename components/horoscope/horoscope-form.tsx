@@ -110,6 +110,9 @@ export default function HoroscopeForm() {
         useState<number>(getDeviceTimezone())
     const [birthLat, setBirthLat] = useState("")
     const [birthLng, setBirthLng] = useState("")
+    const [birthLocationSource, setBirthLocationSource] = useState<
+        "manual" | "gps"
+    >("manual")
 
     // Transit info (defaults: now + current location)
     const now = useMemo(() => new Date(), [])
@@ -127,6 +130,9 @@ export default function HoroscopeForm() {
         useState<number>(getDeviceTimezone())
     const [transitLat, setTransitLat] = useState("")
     const [transitLng, setTransitLng] = useState("")
+    const [transitLocationSource, setTransitLocationSource] = useState<
+        "manual" | "gps"
+    >("manual")
 
     // UI state (Birth)
     const [birthCalendarOpen, setBirthCalendarOpen] = useState(false)
@@ -189,6 +195,7 @@ export default function HoroscopeForm() {
     // Resolve coords when a location is chosen
     useEffect(() => {
         if (!birthCountry) return
+        if (birthLocationSource === "gps" && birthLat && birthLng) return
         const resolved = resolveLocationFromCountryState(
             birthCountry,
             birthStateProv || undefined
@@ -198,10 +205,11 @@ export default function HoroscopeForm() {
             setBirthLng(resolved.longitude.toFixed(6))
             setBirthTimezone(resolved.timezone)
         }
-    }, [birthCountry, birthStateProv])
+    }, [birthCountry, birthStateProv, birthLocationSource, birthLat, birthLng])
 
     useEffect(() => {
         if (!transitCountry) return
+        if (transitLocationSource === "gps" && transitLat && transitLng) return
         const resolved = resolveLocationFromCountryState(
             transitCountry,
             transitStateProv || undefined
@@ -211,7 +219,13 @@ export default function HoroscopeForm() {
             setTransitLng(resolved.longitude.toFixed(6))
             setTransitTimezone(resolved.timezone)
         }
-    }, [transitCountry, transitStateProv])
+    }, [
+        transitCountry,
+        transitStateProv,
+        transitLocationSource,
+        transitLat,
+        transitLng,
+    ])
 
     // Transit defaults: try to use current device location on mount
     useEffect(() => {
@@ -222,6 +236,7 @@ export default function HoroscopeForm() {
                 const latNum = pos.coords.latitude
                 const lngNum = pos.coords.longitude
                 const resolved = await resolveLocationFromCoords(latNum, lngNum)
+                setTransitLocationSource("gps")
                 setTransitLat(latNum.toFixed(6))
                 setTransitLng(lngNum.toFixed(6))
                 if (resolved?.timezone !== undefined)
@@ -315,6 +330,7 @@ export default function HoroscopeForm() {
                 const lngNum = pos.coords.longitude
                 const resolved = await resolveLocationFromCoords(latNum, lngNum)
                 if (target === "birth") {
+                    setBirthLocationSource("gps")
                     if (resolved?.countryName)
                         setBirthCountry(resolved.countryName)
                     if (resolved?.stateName)
@@ -324,6 +340,7 @@ export default function HoroscopeForm() {
                     if (resolved?.timezone !== undefined)
                         setBirthTimezone(resolved.timezone)
                 } else {
+                    setTransitLocationSource("gps")
                     if (resolved?.countryName)
                         setTransitCountry(resolved.countryName)
                     if (resolved?.stateName)
@@ -1060,8 +1077,14 @@ export default function HoroscopeForm() {
                 setSearchState={setBirthSearchState}
                 filteredCountries={filteredCountriesBirth}
                 filteredStates={filteredStatesBirth}
-                onSelectCountry={setBirthCountry}
-                onSelectState={setBirthStateProv}
+                onSelectCountry={(name) => {
+                    setBirthLocationSource("manual")
+                    setBirthCountry(name)
+                }}
+                onSelectState={(name) => {
+                    setBirthLocationSource("manual")
+                    setBirthStateProv(name)
+                }}
                 onUseCurrentLocation={() => void handleLocationClick("birth")}
             />
 
@@ -1095,8 +1118,14 @@ export default function HoroscopeForm() {
                 setSearchState={setTransitSearchState}
                 filteredCountries={filteredCountriesTransit}
                 filteredStates={filteredStatesTransit}
-                onSelectCountry={setTransitCountry}
-                onSelectState={setTransitStateProv}
+                onSelectCountry={(name) => {
+                    setTransitLocationSource("manual")
+                    setTransitCountry(name)
+                }}
+                onSelectState={(name) => {
+                    setTransitLocationSource("manual")
+                    setTransitStateProv(name)
+                }}
                 onUseCurrentLocation={() => void handleLocationClick("transit")}
             />
 

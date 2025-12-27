@@ -31,7 +31,7 @@ const featureIcons: Record<string, LucideIcon> = {
     birthChart: Calendar,
     horoscope: Star,
     namelogy: ArrowUpAZ,
-    numelogy: Hash,
+    numerology: Hash,
     luckyColors: Palette,
     palmistry: Hand,
 }

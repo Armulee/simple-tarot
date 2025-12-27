@@ -67,7 +67,8 @@ export function LocationSelector({
         if (selectedCountry) {
             try {
                 const countryCode = countries.find(
-                    (c) => c.name === selectedCountry
+                    (c) =>
+                        c.name.toLowerCase() === selectedCountry.toLowerCase()
                 )?.shortName
                 if (countryCode) {
                     const statesData = ccs.getStatesByShort(countryCode)

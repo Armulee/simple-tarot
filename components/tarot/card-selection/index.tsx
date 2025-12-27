@@ -16,6 +16,7 @@ import { InlineQuestionEdit } from "../inline-question-edit"
 import { useStars } from "@/contexts/stars-context"
 import BrandLoader from "@/components/brand-loader"
 import { useAuth } from "@/hooks/use-auth"
+import NoStarsUpsell from "@/components/stars/no-stars-upsell"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -242,17 +243,24 @@ export default function CardSelection({
 
             {/* No Stars Dialog */}
             <AlertDialog open={showNoStarsDialog}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>No stars left</AlertDialogTitle>
-                        <AlertDialogDescription>
+                <AlertDialogContent className='max-w-md w-[92vw] border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(234,179,8,0.35)]'>
+                    <div className='pointer-events-none absolute -top-24 -left-24 h-56 w-56 rounded-full bg-gradient-to-br from-yellow-300/25 via-yellow-500/15 to-transparent blur-3xl' />
+                    <div className='pointer-events-none absolute -bottom-28 -right-28 h-72 w-72 rounded-full bg-gradient-to-tl from-yellow-400/20 via-yellow-600/10 to-transparent blur-[100px]' />
+
+                    <AlertDialogHeader className='space-y-1 text-center'>
+                        <AlertDialogTitle className='text-yellow-200 font-serif text-xl'>
+                            No stars left
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className='text-white/80 text-sm leading-snug'>
                             You don’t have enough stars to continue. Please wait
                             for refill or purchase more stars.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter>
+                    <NoStarsUpsell />
+                    <AlertDialogFooter className='sm:justify-center'>
                         <AlertDialogAction
                             onClick={() => setShowNoStarsDialog(false)}
+                            className='min-w-28'
                         >
                             Okay
                         </AlertDialogAction>

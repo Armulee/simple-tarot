@@ -1,3 +1,5 @@
+"use client"
+
 import { ChevronDown, Sparkles } from "lucide-react"
 import { Button } from "../ui/button"
 import {
@@ -11,6 +13,7 @@ import mysticalServices from "./mystical-services"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { usePathname } from "@/i18n/navigation"
+import { useActiveServiceId } from "./use-active-service"
 
 export default function MysticalServicesSheet({
     mysticalOpen,
@@ -22,6 +25,7 @@ export default function MysticalServicesSheet({
     const pathname = usePathname()
     const t = useTranslations("Sidebar")
     const s = useTranslations("Services")
+    const activeServiceId = useActiveServiceId(pathname)
     return (
         <Sheet open={mysticalOpen} onOpenChange={setMysticalOpen}>
             <SheetTrigger asChild>
@@ -31,7 +35,9 @@ export default function MysticalServicesSheet({
                     className='inline-flex items-center space-x-1 text-white hover:bg-white/10 hover:bg-transparent'
                 >
                     <Sparkles className='h-4 w-4' />
-                    <span>{s("tarot")}</span>
+                    <span>
+                        {s(activeServiceId)}
+                    </span>
                     <ChevronDown className='h-4 w-4' />
                 </Button>
             </SheetTrigger>
@@ -51,7 +57,7 @@ export default function MysticalServicesSheet({
                     {mysticalServices.map(
                         ({ href, label, Icon, available, id }) => {
                             const itemPath = id === "tarot" ? "/" : href
-                            const isActive = pathname === itemPath
+                            const isActive = activeServiceId === id
                             return (
                                 <div key={label}>
                                     {available ? (
@@ -67,16 +73,22 @@ export default function MysticalServicesSheet({
                                             }
                                         >
                                             <Icon
-                                                className={`h-5 w-5 ${isActive ? "text-white" : "text-primary"}`}
+                                                className={`h-5 w-5 ${isActive ? "text-white" : "text-white/90"}`}
                                             />
                                             <span
-                                                className={`font-medium ${isActive ? "text-white" : "text-primary"}`}
+                                                className={`font-medium ${isActive ? "text-white" : "text-white/90"}`}
                                             >
                                                 {s(id)}
                                             </span>
                                         </Link>
                                     ) : (
-                                        <div className='flex items-center space-x-3 px-4 py-3 rounded-lg text-white/50 cursor-not-allowed opacity-60'>
+                                        <div
+                                            className={`flex items-center space-x-3 px-4 py-3 rounded-lg cursor-not-allowed ${
+                                                isActive
+                                                    ? "bg-white/10 text-white"
+                                                    : "text-white/50 opacity-60"
+                                            }`}
+                                        >
                                             <Icon className='h-5 w-5' />
                                             <span className='font-medium'>
                                                 {s(id)}

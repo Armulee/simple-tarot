@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/popover"
 import { getTarotReadingPrompt } from "@/lib/prompts"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 interface ActionSectionProps {
     question?: string
@@ -50,8 +51,6 @@ interface ActionSectionProps {
     onInterpretationChange?: (text: string) => void
     onGeneratingChange?: (loading: boolean) => void
 }
-
-import { useTranslations } from "next-intl"
 
 export default function ActionSection({
     question: propQuestion,
@@ -96,6 +95,7 @@ export default function ActionSection({
             created_at: string
         }>
     >([])
+
     const loadVersions = useCallback(async () => {
         try {
             if (!readingId) return
@@ -107,6 +107,7 @@ export default function ActionSection({
             setVersions(Array.isArray(data.versions) ? data.versions : [])
         } catch {}
     }, [readingId])
+
     useEffect(() => {
         void loadVersions()
     }, [loadVersions])
@@ -114,7 +115,6 @@ export default function ActionSection({
     const { complete } = useCompletion({
         api: "/api/interpret-cards/question",
         onFinish: (_, completion) => {
-            // Prefer parent callback when provided (e.g., owner detail page)
             if (typeof onInterpretationChange === "function") {
                 onInterpretationChange(completion)
             } else {
@@ -147,7 +147,6 @@ export default function ActionSection({
         const el = navGuardRef.current
         if (!el) return
         const onWheel: (e: WheelEvent) => void = (e) => {
-            // Stop propagation of horizontal wheel to avoid browser back/forward gestures
             e.stopPropagation()
         }
         el.addEventListener("wheel", onWheel, { passive: true })
@@ -158,7 +157,6 @@ export default function ActionSection({
 
     const ensureShareLink = useCallback(async (): Promise<string | null> => {
         try {
-            // If we have a readingId, use the new tarot/[id] link
             if (readingId) {
                 const origin =
                     typeof window !== "undefined"
@@ -167,8 +165,6 @@ export default function ActionSection({
                 return `${origin}/tarot/${readingId}`
             }
 
-            // Fallback to old behavior for backward compatibility
-            // First, check if this interpretation already exists
             const checkRes = await fetch("/api/interpretations/check", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -183,7 +179,6 @@ export default function ActionSection({
             if (checkRes.ok) {
                 const checkData = await checkRes.json()
                 if (checkData.exists && checkData.id) {
-                    // Use existing interpretation
                     const origin =
                         typeof window !== "undefined"
                             ? window.location.origin
@@ -192,7 +187,6 @@ export default function ActionSection({
                 }
             }
 
-            // If not found, create a new one
             const res = await fetch("/api/interpretations/share", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -217,13 +211,10 @@ export default function ActionSection({
 
     const handleRegenerate = useCallback(async () => {
         try {
-            // Check if user has enough stars
             if (!Number.isFinite(stars as number) || (stars as number) < 1) {
-                // Could show a dialog here, but for now just return
                 return
             }
 
-            // Spend a star for regeneration
             const ok = await spendStars(1)
             if (ok) {
                 toast.warning("-1 star for regeneration", {
@@ -235,18 +226,15 @@ export default function ActionSection({
             }
             setPaidForInterpretation(true)
 
-            // Clear current interpretation
             if (typeof onInterpretationChange === "function") {
                 onInterpretationChange("")
             } else {
                 setInterpretation(null)
             }
 
-            // Show generating state in parent if provided
             if (typeof onGeneratingChange === "function")
                 onGeneratingChange(true)
 
-            // Build the prompt (match initial generation logic), including follow-up context when available
             const cardNames = cards.join(", ")
 
             let previousQuestion: string | null = null
@@ -277,7 +265,6 @@ export default function ActionSection({
                 previousInterpretation,
             })
 
-            // Generate new interpretation
             const newText = await complete(prompt)
             if (!newText) {
                 toast.error("Failed to generate a new interpretation")
@@ -286,7 +273,6 @@ export default function ActionSection({
                 return
             }
 
-            // Persist current interpretation to DB and versions if we have a readingId
             try {
                 if (readingId && newText) {
                     await fetch("/api/tarot/update", {
@@ -305,12 +291,10 @@ export default function ActionSection({
                             content: newText,
                         }),
                     })
-                    // Reload versions list
                     await loadVersions()
                 }
             } catch {}
 
-            // Push new interpretation to parent/context
             if (typeof onInterpretationChange === "function") {
                 onInterpretationChange(newText)
             } else {
@@ -384,7 +368,6 @@ export default function ActionSection({
                 if (!link) return
 
                 try {
-                    // Try modern clipboard API first
                     if (navigator.clipboard && window.isSecureContext) {
                         await navigator.clipboard.writeText(link)
                         setCopiedLink(true)
@@ -395,7 +378,6 @@ export default function ActionSection({
                     console.log("Clipboard API failed, trying fallback:", error)
                 }
 
-                // Fallback for Safari and older browsers
                 try {
                     const textArea = document.createElement("textarea")
                     textArea.value = link
@@ -413,12 +395,10 @@ export default function ActionSection({
                         setCopiedLink(true)
                         window.setTimeout(() => setCopiedLink(false), 2000)
                     } else {
-                        // If both methods fail, show the link in an alert
                         alert(`Copy this link: ${link}`)
                     }
                 } catch (fallbackError) {
                     console.error("Fallback copy failed:", fallbackError)
-                    // Last resort: show the link
                     alert(`Copy this link: ${link}`)
                 }
             },
@@ -442,7 +422,6 @@ export default function ActionSection({
                 if (!text) return
 
                 try {
-                    // Try modern clipboard API first
                     if (navigator.clipboard && window.isSecureContext) {
                         await navigator.clipboard.writeText(text)
                         setCopiedText(true)
@@ -453,7 +432,6 @@ export default function ActionSection({
                     console.log("Clipboard API failed, trying fallback:", error)
                 }
 
-                // Fallback for Safari and older browsers
                 try {
                     const textArea = document.createElement("textarea")
                     textArea.value = text
@@ -471,12 +449,10 @@ export default function ActionSection({
                         setCopiedText(true)
                         window.setTimeout(() => setCopiedText(false), 2000)
                     } else {
-                        // If both methods fail, show the text in an alert
                         alert(`Copy this text: ${text}`)
                     }
                 } catch (fallbackError) {
                     console.error("Fallback copy failed:", fallbackError)
-                    // Last resort: show the text
                     alert(`Copy this text: ${text}`)
                 }
             },
@@ -514,7 +490,6 @@ export default function ActionSection({
                   description: t("actions.voteUpDesc"),
                   onClick: async () => {
                       setVoteState("up")
-                      // TODO: call /api/feedbacks to upsert vote_up=true
                   },
               }
             : {
@@ -525,7 +500,6 @@ export default function ActionSection({
                   description: t("actions.removeVoteUpDesc"),
                   onClick: async () => {
                       setVoteState(null)
-                      // TODO: call /api/feedbacks to remove vote
                   },
               },
         voteState !== "down"
@@ -537,7 +511,6 @@ export default function ActionSection({
                   description: t("actions.voteDownDesc"),
                   onClick: async () => {
                       setVoteState("down")
-                      // TODO: call /api/feedbacks to upsert vote_down=true
                   },
               }
             : {
@@ -548,7 +521,6 @@ export default function ActionSection({
                   description: t("actions.removeVoteDownDesc"),
                   onClick: async () => {
                       setVoteState(null)
-                      // TODO: call /api/feedbacks to remove vote
                   },
               },
         {
@@ -678,7 +650,6 @@ export default function ActionSection({
                                                                                 height: 2532,
                                                                                 branding:
                                                                                     "Asking Fate",
-                                                                                theme: "cosmic",
                                                                                 type,
                                                                             }
                                                                         ),
@@ -711,6 +682,9 @@ export default function ActionSection({
                                                             URL.revokeObjectURL(
                                                                 url
                                                             )
+                                                        } catch (e) {
+                                                            console.error("Download error:", e)
+                                                            toast.error("Failed to generate image.")
                                                         } finally {
                                                             setIsDownloading(
                                                                 false
@@ -719,76 +693,6 @@ export default function ActionSection({
                                                     }}
                                                 >
                                                     Download Image
-                                                </button>
-                                                <button
-                                                    type='button'
-                                                    className='w-full px-3 py-2 rounded-md bg-primary/20 hover:bg-primary/30 text-sm'
-                                                    onClick={async () => {
-                                                        try {
-                                                            setIsDownloading(
-                                                                true
-                                                            )
-                                                            const type = "video"
-                                                            const res =
-                                                                await fetch(
-                                                                    "/api/share-image",
-                                                                    {
-                                                                        method: "POST",
-                                                                        headers:
-                                                                            {
-                                                                                "Content-Type":
-                                                                                    "application/json",
-                                                                            },
-                                                                        body: JSON.stringify(
-                                                                            {
-                                                                                question,
-                                                                                cards: cards,
-                                                                                interpretation,
-                                                                                width: 1170,
-                                                                                height: 2532,
-                                                                                branding:
-                                                                                    "Asking Fate",
-                                                                                theme: "cosmic",
-                                                                                type,
-                                                                            }
-                                                                        ),
-                                                                    }
-                                                                )
-                                                            const blob =
-                                                                await res.blob()
-                                                            const ts =
-                                                                new Date()
-                                                                    .toISOString()
-                                                                    .replace(
-                                                                        /[:.]/g,
-                                                                        "-"
-                                                                    )
-                                                            const url =
-                                                                URL.createObjectURL(
-                                                                    blob
-                                                                )
-                                                            const a =
-                                                                document.createElement(
-                                                                    "a"
-                                                                )
-                                                            a.href = url
-                                                            a.download = `reading-${ts}.mp4`
-                                                            document.body.appendChild(
-                                                                a
-                                                            )
-                                                            a.click()
-                                                            a.remove()
-                                                            URL.revokeObjectURL(
-                                                                url
-                                                            )
-                                                        } finally {
-                                                            setIsDownloading(
-                                                                false
-                                                            )
-                                                        }
-                                                    }}
-                                                >
-                                                    Download Video (15s)
                                                 </button>
                                             </div>
                                         </PopoverContent>

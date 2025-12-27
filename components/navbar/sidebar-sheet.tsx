@@ -30,6 +30,7 @@ import { UserProfileDropdown } from "@/components/user-profile-dropdown"
 import { useAuth } from "@/hooks/use-auth"
 import { useProfile } from "@/contexts/profile-context"
 import mysticalServices from "./mystical-services"
+import { useActiveServiceId } from "./use-active-service"
 
 interface SidebarSheetProps {
     open: boolean
@@ -41,6 +42,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
     const { profile, loading: profileLoading } = useProfile()
     const [mysticalOpen, setMysticalOpen] = useState(true)
     const pathname = usePathname()
+    const activeServiceId = useActiveServiceId(pathname)
     const t = useTranslations("Sidebar")
     const s = useTranslations("Services")
     const a = useTranslations("Auth.SignIn")
@@ -211,7 +213,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                 const itemPath =
                                                     id === "tarot" ? "/" : href
                                                 const isActive =
-                                                    pathname === itemPath
+                                                    activeServiceId === id
                                                 return (
                                                     <li key={id}>
                                                         {available ? (
@@ -234,7 +236,13 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                                 </span>
                                                             </Link>
                                                         ) : (
-                                                            <div className='flex items-center gap-2 px-3 py-2 rounded-md text-cosmic-light/50 cursor-not-allowed opacity-60'>
+                                                            <div
+                                                                className={`flex items-center gap-2 px-3 py-2 rounded-md cursor-not-allowed ${
+                                                                    isActive
+                                                                        ? "bg-white/10 text-white"
+                                                                        : "text-cosmic-light/50 opacity-60"
+                                                                }`}
+                                                            >
                                                                 <Icon className='w-4 h-4' />
                                                                 <span>
                                                                     {s(id)}

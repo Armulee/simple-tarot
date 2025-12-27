@@ -50,6 +50,9 @@ export default function BirthChartForm() {
     // Country/State selection
     const [country, setCountry] = useState<string>("")
     const [stateProv, setStateProv] = useState<string>("")
+    const [locationSource, setLocationSource] = useState<"manual" | "gps">(
+        "manual"
+    )
 
     // Resolved geo fields (computed from selection or device location)
     const [timezone, setTimezone] = useState<number>(getDeviceTimezone())
@@ -105,10 +108,13 @@ export default function BirthChartForm() {
                         latNum,
                         lngNum
                     )
+                    setLocationSource("gps")
                     setLat(latNum.toFixed(6))
                     setLng(lngNum.toFixed(6))
                     if (resolved?.timezone !== undefined)
                         setTimezone(resolved.timezone)
+                    if (resolved?.countryName) setCountry(resolved.countryName)
+                    if (resolved?.stateName) setStateProv(resolved.stateName)
                 },
                 () => {
                     // Ignore geolocation errors
@@ -118,24 +124,10 @@ export default function BirthChartForm() {
         }
     }, [lat, lng])
 
-    // Fallback: if we have country but no lat/lng, try to resolve again
-    useEffect(() => {
-        if (country && (!lat || !lng)) {
-            const resolved = resolveLocationFromCountryState(
-                country,
-                stateProv || undefined
-            )
-            if (resolved) {
-                setTimezone(resolved.timezone)
-                setLat(resolved.latitude.toFixed(6))
-                setLng(resolved.longitude.toFixed(6))
-            }
-        }
-    }, [country, stateProv, lat, lng])
-
-    // When user selects country/state, resolve coordinates and timezone
+    // When user selects country/state, resolve coordinates and timezone (manual only)
     useEffect(() => {
         if (!country) return
+        if (locationSource === "gps" && lat && lng) return
         const resolved = resolveLocationFromCountryState(
             country,
             stateProv || undefined
@@ -145,7 +137,7 @@ export default function BirthChartForm() {
             setLat(resolved.latitude.toFixed(6))
             setLng(resolved.longitude.toFixed(6))
         }
-    }, [country, stateProv])
+    }, [country, stateProv, locationSource, lat, lng])
 
     const isValid = useMemo(() => {
         const d = parseInt(day)
@@ -311,8 +303,14 @@ export default function BirthChartForm() {
                 <LocationSelector
                     selectedCountry={country}
                     selectedState={stateProv}
-                    onCountryChange={setCountry}
-                    onStateChange={setStateProv}
+                    onCountryChange={(c) => {
+                        setLocationSource("manual")
+                        setCountry(c)
+                    }}
+                    onStateChange={(s) => {
+                        setLocationSource("manual")
+                        setStateProv(s)
+                    }}
                 />
             </div>
 
@@ -331,10 +329,15 @@ export default function BirthChartForm() {
                                             latNum,
                                             lngNum
                                         )
+                                    setLocationSource("gps")
                                     setLat(latNum.toFixed(6))
                                     setLng(lngNum.toFixed(6))
                                     if (resolved?.timezone !== undefined)
                                         setTimezone(resolved.timezone)
+                                    if (resolved?.countryName)
+                                        setCountry(resolved.countryName)
+                                    if (resolved?.stateName)
+                                        setStateProv(resolved.stateName)
                                 },
                                 () => {
                                     // Ignore geolocation errors

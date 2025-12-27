@@ -46,6 +46,57 @@ function timezoneToOffset(timezone: string): number {
     }
 }
 
+function haversineKm(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+): number {
+    const toRad = (deg: number) => (deg * Math.PI) / 180
+    const R = 6371 // km
+    const dLat = toRad(lat2 - lat1)
+    const dLon = toRad(lon2 - lon1)
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) *
+            Math.cos(toRad(lat2)) *
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    return R * c
+}
+
+function findNearestCountry(latitude: number, longitude: number): ICountry | null {
+    const countries = Country.getAllCountries()
+    let best: { c: ICountry; d: number } | null = null
+
+    for (const c of countries) {
+        const lat = toNumberOrNull(c.latitude)
+        const lng = toNumberOrNull(c.longitude)
+        if (lat == null || lng == null) continue
+        const d = haversineKm(latitude, longitude, lat, lng)
+        if (!best || d < best.d) best = { c, d }
+    }
+    return best ? best.c : null
+}
+
+function findNearestState(
+    countryCode: string,
+    latitude: number,
+    longitude: number
+): IState | null {
+    const states = State.getStatesOfCountry(countryCode)
+    let best: { s: IState; d: number } | null = null
+    for (const s of states) {
+        const lat = toNumberOrNull(s.latitude)
+        const lng = toNumberOrNull(s.longitude)
+        if (lat == null || lng == null) continue
+        const d = haversineKm(latitude, longitude, lat, lng)
+        if (!best || d < best.d) best = { s, d }
+    }
+    return best ? best.s : null
+}
+
 export function getCountryByName(countryName: string): ICountry | undefined {
     const countries = Country.getAllCountries()
     return countries.find(
@@ -172,14 +223,18 @@ export async function resolveLocationFromCoords(
     // Convert timezone name to numeric offset
     const timezoneOffset = timezoneToOffset(timezone)
 
-    // Best-effort reverse country/state via nearest city search (coarse).
-    // We will simply try to find a country whose bounding by proximity works by scanning cities quickly.
-    // To avoid heavy loops, just return coordinates and timezone.
+    // Best-effort reverse mapping using nearest centroids (fast, offline).
+    // This is not perfect near borders, but good enough to populate UI defaults.
+    const country = findNearestCountry(latitude, longitude)
+    const state = country
+        ? findNearestState(country.isoCode, latitude, longitude)
+        : null
+
     return {
-        countryName: "",
-        countryCode: "",
-        stateName: null,
-        stateCode: null,
+        countryName: country?.name ?? "",
+        countryCode: country?.isoCode ?? "",
+        stateName: state?.name ?? null,
+        stateCode: state?.isoCode ?? null,
         latitude,
         longitude,
         timezone: timezoneOffset,

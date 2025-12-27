@@ -19,17 +19,17 @@ const mysticalServices = [
     },
     {
         id: "birthChart",
-        href: "#",
+        href: "/?service=birthChart",
         label: "Birth Chart",
         Icon: Calendar,
-        available: false,
+        available: true,
     },
     {
         id: "astrology",
-        href: "#",
+        href: "/?service=astrology",
         label: "Astrology",
         Icon: Star,
-        available: false,
+        available: true,
     },
     {
         id: "namelogy",
