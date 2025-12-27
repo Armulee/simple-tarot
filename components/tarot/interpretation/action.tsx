@@ -615,40 +615,22 @@ export default function ActionSection({
                         flexDirection: "column",
                         padding: 64,
                         background:
-                            "radial-gradient(1400px 900px at 50% 0%, rgba(99,102,241,0.26) 0%, rgba(168,85,247,0.18) 35%, rgba(10,8,26,1) 72%), radial-gradient(1200px 900px at 50% 100%, rgba(234,179,8,0.18) 0%, rgba(10,8,26,1) 60%)",
+                            "radial-gradient(ellipse at top, oklch(0.2 0.1 264) 0%, oklch(0.145 0.02 264) 50%, oklch(0.08 0.02 280) 100%)",
                         color: "#ffffff",
                         fontFamily:
                             "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial",
                         position: "relative",
                     }}
                 >
-                    {/* soft glow blobs */}
+                    {/* Simplified star pattern background to match CosmicStars */}
                     <div
                         style={{
                             position: "absolute",
-                            top: -140,
-                            left: -160,
-                            width: 520,
-                            height: 520,
-                            borderRadius: 9999,
-                            background:
-                                "radial-gradient(circle at 30% 30%, rgba(234,179,8,0.40), rgba(234,179,8,0.00) 60%)",
-                            filter: "blur(24px)",
-                            opacity: 0.6,
-                        }}
-                    />
-                    <div
-                        style={{
-                            position: "absolute",
-                            bottom: -220,
-                            right: -200,
-                            width: 720,
-                            height: 720,
-                            borderRadius: 9999,
-                            background:
-                                "radial-gradient(circle at 30% 30%, rgba(56,189,248,0.32), rgba(56,189,248,0.00) 60%)",
-                            filter: "blur(30px)",
-                            opacity: 0.55,
+                            inset: 0,
+                            backgroundImage:
+                                "radial-gradient(1px 1px at 25px 5px, white, transparent), radial-gradient(1px 1px at 50px 25px, white, transparent), radial-gradient(1px 1px at 12px 45px, white, transparent), radial-gradient(2px 2px at 85px 15px, white, transparent)",
+                            backgroundSize: "100px 100px",
+                            opacity: 0.3,
                         }}
                     />
 
