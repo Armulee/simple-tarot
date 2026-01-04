@@ -17,6 +17,7 @@ import { hasLocale } from "next-intl"
 import { routing } from "@/i18n/routing"
 import { notFound } from "next/navigation"
 import { getMessages, getTranslations } from "next-intl/server"
+import { getMetadataBase } from "@/lib/seo"
 // StarConsentProvider and ReferralProvider are composed inside StarsProvider
 
 /* Updated fonts to match mystical design brief */
@@ -42,6 +43,7 @@ export async function generateMetadata({
     const { locale } = await params
     const t = await getTranslations({ locale, namespace: "Meta.Layout" })
     return {
+        metadataBase: getMetadataBase(),
         title: t("title"),
         description: t("description"),
         generator: "v0.app",

@@ -3,10 +3,61 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useCompletion } from "@ai-sdk/react"
 import { Card } from "@/components/ui/card"
-import { Loader2 } from "lucide-react"
+import {
+    Loader2,
+    Sparkles,
+    Copy,
+    Check,
+    Quote,
+    Moon,
+    Sun,
+    Zap,
+    Heart,
+    Target,
+    Flame,
+    Star,
+    Cloud,
+    Compass,
+    Coffee,
+    Gem,
+    GraduationCap,
+    Anchor,
+    Bird,
+    Flower2,
+    MoonStar,
+    Rocket,
+    Wind,
+    type LucideIcon,
+} from "lucide-react"
 import type { AstrologyReading } from "./display"
 import { useLocale } from "next-intl"
 import { ZODIAC_SIGNS } from "@/lib/birth-chart-utils"
+import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
+import CosmicStars from "@/components/cosmic-stars"
+import { SummaryIcon } from "./summary-icon"
+
+const VIBE_ICONS: Record<string, LucideIcon> = {
+    Sparkles,
+    Moon,
+    Sun,
+    Zap,
+    Heart,
+    Target,
+    Flame,
+    Star,
+    Cloud,
+    Compass,
+    Coffee,
+    Gem,
+    GraduationCap,
+    Anchor,
+    Bird,
+    Flower2,
+    MoonStar,
+    Rocket,
+    Wind,
+}
 
 type AstroPointLike = { sign?: unknown; degree?: unknown } & Record<
     string,
@@ -148,39 +199,92 @@ function buildPromptEnglishTemplate(
     const preferredLanguage = localeToLanguageName(preferredLocale)
 
     return `
-Astrology Reading (English template)
+You are an expert astrologer who provides clear, practical, and deeply relatable horoscopes.
+Your task is to provide a reading for the "Transit Date" based on the user's "Birth Details".
 
+CRITICAL INSTRUCTIONS:
+1. USE SIMPLE, UNDERSTANDABLE LANGUAGE. Avoid all technical astrology jargon.
+2. DO NOT MENTION: "houses", "aspects", "conjunctions", "retrograde", "trines", "squares", "sextiles", or specific degrees.
+3. INSTEAD OF JARGON: Explain the *feeling* and the *impact*. If Mars is in a difficult position, talk about "surging energy that needs careful direction" or "a tendency towards frustration in communication".
+4. FOCUS ON THE TRANSIT DAY: Specifically tell the user what is likely to happen, what moods they might experience, and what actions are favored on the transit date provided (${transitDateLine}).
+6. STRUCTURED DATA: At the very end of your response, after a double newline:
+   a) Provide a list of the top 3 most significant transit-to-natal house influences using this EXACT tag format: [TRANSIT: Planet-House]. Example: [TRANSIT: Sun-1] [TRANSIT: Mars-7] [TRANSIT: Jupiter-10]
+   b) Select ONE Lucide icon name that best represents the overall vibe of this reading from this list: [${Object.keys(VIBE_ICONS).join(", ")}]. Provide it using this EXACT tag format: [ICON: IconName]. Example: [ICON: Heart]
+
+DATA FOR THE READING:
 User locale: ${preferredLocale}
 
-Birth details:
+Birth Details (Natal Baseline):
 - Date/time: ${birthDateLine}
 - Location: ${birthLocation || "—"}
-- Ascendant (approx): ${natalAsc || "—"}
-
-Transit details:
-- Date/time: ${transitDateLine}
-- Location: ${transitLocation || "—"}
-- Ascendant (approx): ${transitAsc || "—"}
-
-Natal placements (key points):
+- Ascendant: ${natalAsc || "—"}
+- Natal Placements:
 ${natalLines}
 
-Current transits (describe impact in natal houses):
+Transit Details (The Current Sky):
+- Date/time: ${transitDateLine}
+- Location: ${transitLocation || "—"}
+- Ascendant: ${transitAsc || "—"}
+- Current Placements (relative to natal chart):
 ${transitLines}
 
-User question:
+User Question:
 ${question ? question : "(none)"}
 
 ${question ? "" : `Preferred response language: ${preferredLanguage} (${preferredLocale}).`}
 `.trim()
 }
 
-export default function SummaryTab({ reading }: { reading: AstrologyReading }) {
+export default function SummaryTab({
+    reading,
+    onSummaryGenerated,
+}: {
+    reading: AstrologyReading
+    onSummaryGenerated?: (summary: string) => void
+}) {
     const locale = useLocale()
     const [savedSummary, setSavedSummary] = useState<string | null>(
         reading.summary?.trim() ? reading.summary : null
     )
+    const [copied, setCopied] = useState(false)
+    const [parsedTransits, setParsedTransits] = useState<
+        { planet: string; house: string }[]
+    >([])
+    const [vibeIcon, setVibeIcon] = useState<string | null>(null)
     const hasStartedRef = useRef(false)
+
+    // Function to parse [TRANSIT: Planet-House] tags
+    const parseTransitTags = (text: string) => {
+        const regex = /\[TRANSIT:\s*([A-Za-z]+)-(\d{1,2})\]/g
+        const matches = [...text.matchAll(regex)]
+        return matches.map((m) => ({ planet: m[1], house: m[2] }))
+    }
+
+    // Function to parse [ICON: IconName] tags
+    const parseIconTag = (text: string) => {
+        const regex = /\[ICON:\s*([A-Za-z0-9]+)\]/
+        const match = text.match(regex)
+        return match ? match[1] : null
+    }
+
+    // Function to strip tags for display
+    const cleanTextForDisplay = (text: string) => {
+        return text
+            .replace(/\[TRANSIT:\s*[A-Za-z]+-\d{1,2}\]/g, "")
+            .replace(/\[ICON:\s*[A-Za-z0-9]+\]/g, "")
+            .trim()
+    }
+
+    // Sync savedSummary with reading.summary from props
+    useEffect(() => {
+        if (reading.summary?.trim()) {
+            setSavedSummary(reading.summary)
+            const transits = parseTransitTags(reading.summary)
+            setParsedTransits(transits)
+            const icon = parseIconTag(reading.summary)
+            setVibeIcon(icon)
+        }
+    }, [reading.summary])
 
     const prompt = useMemo(
         () => buildPromptEnglishTemplate(reading, locale),
@@ -192,6 +296,16 @@ export default function SummaryTab({ reading }: { reading: AstrologyReading }) {
         onFinish: async (_p, result) => {
             const finalText = result?.trim() ? result.trim() : ""
             setSavedSummary(finalText || null)
+
+            const transits = parseTransitTags(finalText)
+            setParsedTransits(transits)
+
+            const icon = parseIconTag(finalText)
+            setVibeIcon(icon)
+
+            if (finalText && onSummaryGenerated) {
+                onSummaryGenerated(finalText)
+            }
 
             try {
                 if (finalText) {
@@ -208,6 +322,20 @@ export default function SummaryTab({ reading }: { reading: AstrologyReading }) {
         },
     })
 
+    // Also parse during streaming
+    useEffect(() => {
+        if (completion) {
+            const transits = parseTransitTags(completion)
+            if (transits.length > 0) {
+                setParsedTransits(transits)
+            }
+            const icon = parseIconTag(completion)
+            if (icon) {
+                setVibeIcon(icon)
+            }
+        }
+    }, [completion])
+
     useEffect(() => {
         if (savedSummary) return
         if (hasStartedRef.current) return
@@ -215,29 +343,151 @@ export default function SummaryTab({ reading }: { reading: AstrologyReading }) {
         void complete(prompt)
     }, [complete, prompt, savedSummary])
 
-    const displayText = (completion?.trim() ? completion : savedSummary) || ""
-    return (
-        <Card className='p-6 bg-card/10 border-border/20'>
-            <div className='flex items-center justify-between gap-4 mb-4'>
-                <h2 className='font-serif font-semibold text-xl text-white'>
-                    Your horoscope
-                </h2>
-                {isLoading && (
-                    <span className='inline-flex items-center gap-2 text-white/60 text-sm'>
-                        <Loader2 className='w-4 h-4 animate-spin' />
-                        Generating…
-                    </span>
-                )}
-            </div>
+    const handleCopy = async () => {
+        if (!displayText) return
+        try {
+            await navigator.clipboard.writeText(displayText)
+            setCopied(true)
+            toast.success("Horoscope copied to clipboard")
+            setTimeout(() => setCopied(false), 2000)
+        } catch {
+            toast.error("Failed to copy text")
+        }
+    }
 
-            <p
-                className={`whitespace-pre-wrap leading-relaxed ${
-                    displayText ? "text-white/90" : "text-white/60"
-                }`}
-            >
-                {displayText ||
-                    (isLoading ? "Generating your horoscope…" : "Preparing…")}
-            </p>
-        </Card>
+    const fullText = (completion?.trim() ? completion : savedSummary) || ""
+    const displayText = cleanTextForDisplay(fullText)
+
+    return (
+        <div className='relative group'>
+            {/* Decorative background glow */}
+            <div className='absolute -inset-1 bg-gradient-to-r from-accent/20 via-primary/20 to-accent/20 rounded-[2rem] blur-xl opacity-50 group-hover:opacity-100 transition duration-1000 max-w-lg m-auto' />
+
+            <Card className='relative overflow-hidden p-8 sm:p-10 bg-[#0A0F26]/80 backdrop-blur-xl border-white/10 rounded-[2rem] shadow-2xl shadow-black/50 max-w-lg m-auto'>
+                {/* Background stars animation */}
+                <div className='absolute inset-0 z-0 pointer-events-none opacity-40'>
+                    <CosmicStars />
+                </div>
+
+                {/* Background patterns */}
+                <div className='absolute top-0 right-0 p-8 opacity-10 pointer-events-none transition-all duration-1000'>
+                    {(() => {
+                        const IconComponent =
+                            vibeIcon && VIBE_ICONS[vibeIcon]
+                                ? VIBE_ICONS[vibeIcon]
+                                : Sparkles
+                        return (
+                            <IconComponent className='w-24 h-24 text-accent rotate-12' />
+                        )
+                    })()}
+                </div>
+                <div className='absolute bottom-0 left-0 p-8 opacity-10 pointer-events-none'>
+                    <Quote className='w-16 h-16 text-primary -rotate-12' />
+                </div>
+
+                <div className='relative z-10 space-y-8'>
+                    <div className='flex flex-col sm:items-center justify-between gap-6'>
+                        <div className='w-full flex justify-between items-center gap-3'>
+                            <div className='flex items-center gap-2'>
+                                <div className='p-2.5 rounded-xl bg-accent/20 border border-accent/30 text-accent shadow-lg shadow-accent/10 transition-all duration-500'>
+                                    {(() => {
+                                        const IconComponent =
+                                            vibeIcon && VIBE_ICONS[vibeIcon]
+                                                ? VIBE_ICONS[vibeIcon]
+                                                : Sparkles
+                                        return (
+                                            <IconComponent className='w-5 h-5' />
+                                        )
+                                    })()}
+                                </div>
+                                <div>
+                                    <h2 className='text-3xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/70 tracking-tight'>
+                                        Astrology Reading
+                                    </h2>
+                                    <p className='text-accent/60 text-[10px] font-bold uppercase tracking-[0.3em] mt-1'>
+                                        Celestial Interpretation
+                                    </p>
+                                </div>
+                            </div>
+                            <div className='flex items-center gap-2'>
+                                {displayText && (
+                                    <Button
+                                        variant='ghost'
+                                        size='icon'
+                                        onClick={handleCopy}
+                                        className='h-9 w-9 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all'
+                                        title='Copy horoscope'
+                                    >
+                                        {copied ? (
+                                            <Check className='w-4 h-4 text-green-400' />
+                                        ) : (
+                                            <Copy className='w-4 h-4' />
+                                        )}
+                                    </Button>
+                                )}
+                                {isLoading && (
+                                    <div className='flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-medium animate-pulse'>
+                                        <Loader2 className='w-3 h-3 animate-spin' />
+                                        Revealing...
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Transit Icons */}
+                        <div className='flex flex-wrap gap-2 w-full'>
+                            {parsedTransits.map((transit, i) => (
+                                <SummaryIcon
+                                    key={`${transit.planet}-${transit.house}-${i}`}
+                                    planet={transit.planet}
+                                    house={transit.house}
+                                />
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className='relative'>
+                        {/* Large opening quote decorative element */}
+                        <Quote className='absolute -top-6 -left-6 w-12 h-12 text-accent/5 pointer-events-none' />
+
+                        <div
+                            className={`leading-relaxed font-light ${
+                                displayText ? "text-white/90" : "text-white/40"
+                            }`}
+                        >
+                            {displayText ? (
+                                <div className='space-y-6 whitespace-pre-wrap font-sans relative'>
+                                    {displayText}
+                                    {isLoading && (
+                                        <span className='inline-block w-1.5 h-6 ml-1 bg-accent animate-pulse align-middle' />
+                                    )}
+                                </div>
+                            ) : (
+                                <div className='py-20 flex flex-col items-center justify-center text-center space-y-6'>
+                                    <div className='relative'>
+                                        <Loader2 className='w-12 h-12 text-accent/20 animate-spin' />
+                                        <Sparkles className='absolute inset-0 w-12 h-12 text-accent animate-pulse scale-50' />
+                                    </div>
+                                    <p className='italic font-serif text-xl text-white/60'>
+                                        The stars are aligning for your
+                                        reading...
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {displayText && !isLoading && (
+                        <div className='pt-6 border-t border-white/5 flex items-center justify-center'>
+                            <div className='flex items-center gap-2 text-white/30 text-[10px] uppercase tracking-[0.3em] font-medium'>
+                                <div className='w-8 h-px bg-white/10' />
+                                Asking Fate
+                                <div className='w-8 h-px bg-white/10' />
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </Card>
+        </div>
     )
 }

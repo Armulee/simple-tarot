@@ -1,30 +1,18 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { TypewriterText } from "../../typewriter-text"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Calendar as CalendarComponent } from "@/components/ui/calendar"
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
-import { Calendar, Clock, MapPin, Info, Send, ChevronLeft } from "lucide-react"
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from "@/components/ui/tooltip"
 import {
     resolveLocationFromCountryState,
     resolveLocationFromCoords,
 } from "@/lib/location"
 import { Country, State } from "country-state-city"
-import { Loader2 } from "lucide-react"
-import { useStarConsent } from "@/components/star-consent"
+import { Loader2, Send } from "lucide-react"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
+import Section from "@/components/ui/horoscope-section"
 
 function getDeviceTimezone(): number {
     if (typeof window === "undefined") return 0
@@ -99,7 +87,6 @@ export default function BirthChart() {
     )
     const [isGenerating, setIsGenerating] = useState(false)
     const [shouldStartTypewriter, setShouldStartTypewriter] = useState(false)
-    const { choice, show } = useStarConsent()
 
     // Load saved data on mount
     useEffect(() => {
@@ -239,49 +226,40 @@ export default function BirthChart() {
         }
     }
 
-    const filteredCountries = countries.filter((c) =>
-        c.name.toLowerCase().includes(searchCountry.toLowerCase())
+    const filteredCountries = useMemo(
+        () =>
+            countries.filter((c) =>
+                c.name.toLowerCase().includes(searchCountry.toLowerCase())
+            ),
+        [countries, searchCountry]
     )
 
-    const filteredStates = states.filter((s) =>
-        s.name.toLowerCase().includes(searchState.toLowerCase())
+    const filteredStates = useMemo(
+        () =>
+            states.filter((s) =>
+                s.name.toLowerCase().includes(searchState.toLowerCase())
+            ),
+        [states, searchState]
     )
 
     // Format date as "Month dd, yyyy"
     const formattedDate = selectedDate
-        ? (() => {
-              const months = [
-                  "January",
-                  "February",
-                  "March",
-                  "April",
-                  "May",
-                  "June",
-                  "July",
-                  "August",
-                  "September",
-                  "October",
-                  "November",
-                  "December",
-              ]
-              const month = months[selectedDate.getMonth()]
-              const day = selectedDate.getDate()
-              const year = selectedDate.getFullYear()
-              return `${month} ${day.toString().padStart(2, "0")}, ${year}`
-          })()
+        ? selectedDate.toLocaleDateString("en-US", {
+              month: "long",
+              day: "2-digit",
+              year: "numeric",
+          })
         : t("form.selectDate")
 
     // Format time as "hh:mm am/pm"
-    const formattedTime =
-        selectedTime.hour && selectedTime.minute
-            ? (() => {
-                  const hour = parseInt(selectedTime.hour)
-                  const period = hour >= 12 ? "PM" : "AM"
-                  const displayHour =
-                      hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
-                  return `${displayHour.toString().padStart(2, "0")}:${selectedTime.minute.padStart(2, "0")} ${period}`
-              })()
-            : t("form.selectTime")
+    const formattedTime = useMemo(() => {
+        if (!selectedTime.hour || !selectedTime.minute)
+            return t("form.selectTime")
+        const hour = parseInt(selectedTime.hour)
+        const period = hour >= 12 ? "PM" : "AM"
+        const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
+        return `${String(displayHour).padStart(2, "0")}:${String(selectedTime.minute).padStart(2, "0")} ${period}`
+    }, [selectedTime, t])
 
     const locationDisplay =
         country && stateProv
@@ -402,597 +380,52 @@ export default function BirthChart() {
             </div>
 
             {/* Birth Information Section */}
-            <div className='flex flex-col gap-4 justify-center items-center pt-8 w-full max-w-2xl px-4'>
-                {/* Label - Outside Card */}
-                <div className='w-full flex items-center gap-2'>
-                    <h2 className='font-serif font-semibold text-xl text-white text-left'>
-                        {t("form.birthInformation")}
-                    </h2>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <button
-                                type='button'
-                                className='text-white/60 hover:text-white/80 transition-colors'
-                                aria-label='Information about birth information'
-                            >
-                                <Info className='w-4 h-4' />
-                            </button>
-                        </TooltipTrigger>
-                        <TooltipContent
-                            className='max-w-xs bg-[#0A0F26] border-white/20 text-[#E6EAFF] text-xs p-3'
-                            side='right'
-                        >
-                            <p>{t("form.birthInformationTooltip")}</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </div>
-
-                {/* Input Card */}
-                <div
-                    className='w-full p-4 rounded-[20px] bg-gradient-to-br from-[#0A0F26] to-[#131A3A] border border-white/[0.1] shadow-2xl relative overflow-hidden'
-                    style={{
-                        boxShadow:
-                            "0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
-                    }}
-                >
-                    {/* Ambient glow effect */}
-                    <div className='absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 pointer-events-none' />
-
-                    <div className='relative z-10 space-y-4'>
-                        {/* Date & Time Row */}
-                        <div className='grid grid-cols-2 gap-4'>
-                            {/* Date Input */}
-                            <Popover
-                                open={calendarOpen}
-                                onOpenChange={(open) => {
-                                    if (
-                                        open &&
-                                        (choice === null ||
-                                            choice === "declined")
-                                    ) {
-                                        show()
-                                        return
-                                    }
-                                    setCalendarOpen(open)
-                                }}
-                            >
-                                <PopoverTrigger asChild>
-                                    <button className='w-full px-4 py-1 rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'>
-                                        <div className='flex items-center gap-3'>
-                                            <Calendar className='w-4 h-4 text-[#E6EAFF]/70 group-hover:text-[#E6EAFF] transition-colors' />
-                                            <span
-                                                className={`text-sm font-medium ${selectedDate ? "text-[#E6EAFF]" : "text-[#E6EAFF]/50"}`}
-                                            >
-                                                {formattedDate}
-                                            </span>
-                                        </div>
-                                    </button>
-                                </PopoverTrigger>
-                                <PopoverContent className='w-auto p-3 bg-[#0A0F26]/95 backdrop-blur-xl border-white/10 rounded-xl shadow-2xl'>
-                                    <CalendarComponent
-                                        mode='single'
-                                        selected={selectedDate}
-                                        onSelect={(date) => {
-                                            setSelectedDate(date)
-                                            setCalendarOpen(false)
-                                        }}
-                                        captionLayout='dropdown'
-                                        disabled={(date) =>
-                                            date > new Date() ||
-                                            date < new Date("1900-01-01")
-                                        }
-                                        className='rounded-md border-0 bg-transparent'
-                                    />
-                                </PopoverContent>
-                            </Popover>
-
-                            {/* Time Input */}
-                            <Popover
-                                open={timeOpen}
-                                onOpenChange={(open) => {
-                                    if (!open) {
-                                        setTimeStep("hour")
-                                        setHourInput("")
-                                        setMinuteInput("")
-                                    }
-                                    setTimeOpen(open)
-                                }}
-                            >
-                                <PopoverTrigger asChild>
-                                    <button
-                                        onClick={() => {
-                                            if (
-                                                choice === null ||
-                                                choice === "declined"
-                                            ) {
-                                                show()
-                                                return
-                                            }
-                                            setTimeOpen(true)
-                                        }}
-                                        className='w-full px-4 py-1 rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
-                                    >
-                                        <div className='flex items-center gap-3'>
-                                            <Clock className='w-4 h-4 text-[#E6EAFF]/70 group-hover:text-[#E6EAFF] transition-colors' />
-                                            <span
-                                                className={`text-sm font-medium ${selectedTime.hour && selectedTime.minute ? "text-[#E6EAFF]" : "text-[#E6EAFF]/50"}`}
-                                            >
-                                                {formattedTime}
-                                            </span>
-                                        </div>
-                                        <svg
-                                            className='w-4 h-4 text-[#E6EAFF]/50'
-                                            fill='none'
-                                            stroke='currentColor'
-                                            viewBox='0 0 24 24'
-                                        >
-                                            <path
-                                                strokeLinecap='round'
-                                                strokeLinejoin='round'
-                                                strokeWidth={2}
-                                                d='M9 5l7 7-7 7'
-                                            />
-                                        </svg>
-                                    </button>
-                                </PopoverTrigger>
-                                <PopoverContent className='w-80 p-0 bg-[#0A0F26]/95 backdrop-blur-xl border-white/10 rounded-xl shadow-2xl'>
-                                    <div className='p-4 space-y-4'>
-                                        {timeStep === "minute" && (
-                                            <button
-                                                onClick={() =>
-                                                    setTimeStep("hour")
-                                                }
-                                                className='flex items-center gap-2 text-sm text-[#E6EAFF]/70 hover:text-[#E6EAFF] transition-colors mb-2'
-                                            >
-                                                <ChevronLeft className='w-4 h-4' />
-                                                {t("form.backToHour")}
-                                            </button>
-                                        )}
-                                        {timeStep === "hour" ? (
-                                            <div>
-                                                <input
-                                                    type='text'
-                                                    placeholder={t(
-                                                        "form.enterBirthHour"
-                                                    )}
-                                                    value={hourInput}
-                                                    onChange={(e) => {
-                                                        const val =
-                                                            e.target.value.replace(
-                                                                /\D/g,
-                                                                ""
-                                                            )
-                                                        if (
-                                                            val === "" ||
-                                                            (parseInt(val) >=
-                                                                0 &&
-                                                                parseInt(val) <=
-                                                                    23)
-                                                        ) {
-                                                            setHourInput(val)
-                                                        }
-                                                    }}
-                                                    onKeyDown={(e) => {
-                                                        if (
-                                                            e.key === "Enter" &&
-                                                            hourInput &&
-                                                            parseInt(
-                                                                hourInput
-                                                            ) >= 0 &&
-                                                            parseInt(
-                                                                hourInput
-                                                            ) <= 23
-                                                        ) {
-                                                            setSelectedTime({
-                                                                ...selectedTime,
-                                                                hour: parseInt(
-                                                                    hourInput
-                                                                )
-                                                                    .toString()
-                                                                    .padStart(
-                                                                        2,
-                                                                        "0"
-                                                                    ),
-                                                            })
-                                                            setHourInput("")
-                                                            setTimeStep(
-                                                                "minute"
-                                                            )
-                                                            e.preventDefault()
-                                                        }
-                                                    }}
-                                                    className='w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-[#E6EAFF] placeholder-[#E6EAFF]/50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/30'
-                                                />
-                                                <div className='max-h-40 overflow-y-auto mt-2 space-y-1'>
-                                                    {Array.from(
-                                                        { length: 24 },
-                                                        (_, i) => {
-                                                            const hourStr = i
-                                                                .toString()
-                                                                .padStart(
-                                                                    2,
-                                                                    "0"
-                                                                )
-                                                            const matchesFilter =
-                                                                !hourInput ||
-                                                                hourStr.includes(
-                                                                    hourInput
-                                                                ) ||
-                                                                hourStr.startsWith(
-                                                                    hourInput
-                                                                )
-                                                            if (!matchesFilter)
-                                                                return null
-                                                            return (
-                                                                <button
-                                                                    key={i}
-                                                                    onClick={() => {
-                                                                        setSelectedTime(
-                                                                            {
-                                                                                ...selectedTime,
-                                                                                hour: hourStr,
-                                                                            }
-                                                                        )
-                                                                        setHourInput(
-                                                                            ""
-                                                                        )
-                                                                        setTimeStep(
-                                                                            "minute"
-                                                                        )
-                                                                    }}
-                                                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                                                                        selectedTime.hour ===
-                                                                        hourStr
-                                                                            ? "bg-purple-500/20 text-purple-300"
-                                                                            : "text-[#E6EAFF]/90 hover:bg-white/10 hover:text-[#E6EAFF]"
-                                                                    }`}
-                                                                >
-                                                                    {hourStr}
-                                                                </button>
-                                                            )
-                                                        }
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div>
-                                                <input
-                                                    type='text'
-                                                    placeholder={t(
-                                                        "form.enterBirthMinute"
-                                                    )}
-                                                    value={minuteInput}
-                                                    onChange={(e) => {
-                                                        const val =
-                                                            e.target.value.replace(
-                                                                /\D/g,
-                                                                ""
-                                                            )
-                                                        if (
-                                                            val === "" ||
-                                                            (parseInt(val) >=
-                                                                0 &&
-                                                                parseInt(val) <=
-                                                                    59)
-                                                        ) {
-                                                            setMinuteInput(val)
-                                                        }
-                                                    }}
-                                                    onKeyDown={(e) => {
-                                                        if (
-                                                            e.key === "Enter" &&
-                                                            minuteInput &&
-                                                            parseInt(
-                                                                minuteInput
-                                                            ) >= 0 &&
-                                                            parseInt(
-                                                                minuteInput
-                                                            ) <= 59
-                                                        ) {
-                                                            setSelectedTime({
-                                                                ...selectedTime,
-                                                                minute: parseInt(
-                                                                    minuteInput
-                                                                )
-                                                                    .toString()
-                                                                    .padStart(
-                                                                        2,
-                                                                        "0"
-                                                                    ),
-                                                            })
-                                                            setMinuteInput("")
-                                                            setTimeStep("hour")
-                                                            setTimeOpen(false)
-                                                            e.preventDefault()
-                                                        }
-                                                    }}
-                                                    className='w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-[#E6EAFF] placeholder-[#E6EAFF]/50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/30'
-                                                />
-                                                <div className='max-h-40 overflow-y-auto mt-2 space-y-1'>
-                                                    {Array.from(
-                                                        { length: 60 },
-                                                        (_, i) => {
-                                                            const minuteStr = i
-                                                                .toString()
-                                                                .padStart(
-                                                                    2,
-                                                                    "0"
-                                                                )
-                                                            let matchesFilter = true
-                                                            if (minuteInput) {
-                                                                if (
-                                                                    minuteInput.length ===
-                                                                    1
-                                                                ) {
-                                                                    // Single digit: show that digit (02) and all numbers starting with it (20-29 for "2")
-                                                                    const digit =
-                                                                        minuteInput
-                                                                    matchesFilter =
-                                                                        i ===
-                                                                            parseInt(
-                                                                                digit
-                                                                            ) ||
-                                                                        i
-                                                                            .toString()
-                                                                            .startsWith(
-                                                                                digit
-                                                                            )
-                                                                } else {
-                                                                    // Multiple digits: show exact matches or numbers starting with it
-                                                                    matchesFilter =
-                                                                        minuteStr.startsWith(
-                                                                            minuteInput
-                                                                        )
-                                                                }
-                                                            }
-                                                            if (!matchesFilter)
-                                                                return null
-                                                            return (
-                                                                <button
-                                                                    key={i}
-                                                                    onClick={() => {
-                                                                        setSelectedTime(
-                                                                            {
-                                                                                ...selectedTime,
-                                                                                minute: minuteStr,
-                                                                            }
-                                                                        )
-                                                                        setMinuteInput(
-                                                                            ""
-                                                                        )
-                                                                        setTimeStep(
-                                                                            "hour"
-                                                                        )
-                                                                        setTimeOpen(
-                                                                            false
-                                                                        )
-                                                                    }}
-                                                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                                                                        selectedTime.minute ===
-                                                                        minuteStr
-                                                                            ? "bg-purple-500/20 text-purple-300"
-                                                                            : "text-[#E6EAFF]/90 hover:bg-white/10 hover:text-[#E6EAFF]"
-                                                                    }`}
-                                                                >
-                                                                    {minuteStr}
-                                                                </button>
-                                                            )
-                                                        }
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
-                        </div>
-
-                        {/* Location Input */}
-                        <div className='space-y-2'>
-                            <div className='flex items-center gap-2'>
-                                <Popover
-                                    open={locationOpen}
-                                    onOpenChange={(open) => {
-                                        if (!open) {
-                                            setLocationStep("country")
-                                            setSearchCountry("")
-                                            setSearchState("")
-                                        }
-                                        setLocationOpen(open)
-                                    }}
-                                >
-                                    <PopoverTrigger asChild>
-                                        <button
-                                            onClick={() => {
-                                                if (
-                                                    choice === null ||
-                                                    choice === "declined"
-                                                ) {
-                                                    show()
-                                                    return
-                                                }
-                                                setLocationOpen(true)
-                                            }}
-                                            className='flex-1 px-4 py-1 rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'
-                                        >
-                                            <div className='flex items-center gap-3'>
-                                                <MapPin className='w-4 h-4 text-[#E6EAFF]/70 group-hover:text-[#E6EAFF] transition-colors' />
-                                                <span
-                                                    className={`text-sm font-medium ${locationDisplay !== t("form.selectLocation") ? "text-[#E6EAFF]" : "text-[#E6EAFF]/50"}`}
-                                                >
-                                                    {locationDisplay}
-                                                </span>
-                                            </div>
-                                            <svg
-                                                className='w-4 h-4 text-[#E6EAFF]/50'
-                                                fill='none'
-                                                stroke='currentColor'
-                                                viewBox='0 0 24 24'
-                                            >
-                                                <path
-                                                    strokeLinecap='round'
-                                                    strokeLinejoin='round'
-                                                    strokeWidth={2}
-                                                    d='M9 5l7 7-7 7'
-                                                />
-                                            </svg>
-                                        </button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className='w-80 p-0 bg-[#0A0F26]/95 backdrop-blur-xl border-white/10 rounded-xl shadow-2xl'>
-                                        <div className='p-4 space-y-4'>
-                                            {locationStep === "state" && (
-                                                <button
-                                                    onClick={() => {
-                                                        setLocationStep(
-                                                            "country"
-                                                        )
-                                                        setSearchState("")
-                                                    }}
-                                                    className='flex items-center gap-2 text-sm text-[#E6EAFF]/70 hover:text-[#E6EAFF] transition-colors mb-2'
-                                                >
-                                                    <ChevronLeft className='w-4 h-4' />
-                                                    {t("form.backToCountry")}
-                                                </button>
-                                            )}
-                                            {locationStep === "country" ? (
-                                                <div>
-                                                    <input
-                                                        type='text'
-                                                        placeholder={t(
-                                                            "form.searchCountries"
-                                                        )}
-                                                        value={searchCountry}
-                                                        onChange={(e) =>
-                                                            setSearchCountry(
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                        className='w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-[#E6EAFF] placeholder-[#E6EAFF]/50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/30'
-                                                    />
-                                                    <div className='max-h-40 overflow-y-auto mt-2 space-y-1'>
-                                                        {/* Use current location option */}
-                                                        <button
-                                                            onClick={
-                                                                handleLocationClick
-                                                            }
-                                                            className='w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 text-[#E6EAFF]/90 hover:bg-white/10 hover:text-[#E6EAFF]'
-                                                        >
-                                                            <MapPin className='w-4 h-4' />
-                                                            {t(
-                                                                "form.useCurrentLocation"
-                                                            )}
-                                                        </button>
-                                                        {filteredCountries.map(
-                                                            (c) => (
-                                                                <button
-                                                                    key={c.code}
-                                                                    onClick={() => {
-                                                                        setLocationSource(
-                                                                            "manual"
-                                                                        )
-                                                                        setCountry(
-                                                                            c.name
-                                                                        )
-                                                                        setSearchCountry(
-                                                                            ""
-                                                                        )
-                                                                        setLocationStep(
-                                                                            "state"
-                                                                        )
-                                                                    }}
-                                                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                                                                        country ===
-                                                                        c.name
-                                                                            ? "bg-purple-500/20 text-purple-300"
-                                                                            : "text-[#E6EAFF]/90 hover:bg-white/10 hover:text-[#E6EAFF]"
-                                                                    }`}
-                                                                >
-                                                                    {c.name}
-                                                                </button>
-                                                            )
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div>
-                                                    <input
-                                                        type='text'
-                                                        placeholder={t(
-                                                            "form.searchStatesProvinces"
-                                                        )}
-                                                        value={searchState}
-                                                        onChange={(e) =>
-                                                            setSearchState(
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                        className='w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-[#E6EAFF] placeholder-[#E6EAFF]/50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/30'
-                                                    />
-                                                    <div className='max-h-40 overflow-y-auto mt-2 space-y-1'>
-                                                        {filteredStates.map(
-                                                            (s) => (
-                                                                <button
-                                                                    key={s.code}
-                                                                    onClick={() => {
-                                                                        setLocationSource(
-                                                                            "manual"
-                                                                        )
-                                                                        setStateProv(
-                                                                            s.name
-                                                                        )
-                                                                        setSearchState(
-                                                                            ""
-                                                                        )
-                                                                        setLocationOpen(
-                                                                            false
-                                                                        )
-                                                                        setLocationStep(
-                                                                            "country"
-                                                                        )
-                                                                    }}
-                                                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                                                                        stateProv ===
-                                                                        s.name
-                                                                            ? "bg-purple-500/20 text-purple-300"
-                                                                            : "text-[#E6EAFF]/90 hover:bg-white/10 hover:text-[#E6EAFF]"
-                                                                    }`}
-                                                                >
-                                                                    {s.name}
-                                                                </button>
-                                                            )
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </PopoverContent>
-                                </Popover>
-                                <Button
-                                    onClick={handleGenerate}
-                                    disabled={!isValid || isGenerating}
-                                    className='py-1 px-4 md:px-6 rounded-md bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 hover:border-primary/60 text-white font-medium text-sm shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] hover:shadow-[0_10px_30px_-10px_rgba(56,189,248,0.5)] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0'
-                                >
-                                    {isGenerating ? (
-                                        <>
-                                            <Loader2 className='w-5 h-5 animate-spin' />
-                                            <span className='hidden md:inline'>
-                                                {t("form.generating")}
-                                            </span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Send className='w-5 h-5' />
-                                            <span className='hidden md:inline'>
-                                                {t("form.generateChart")}
-                                            </span>
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <Section
+                title={t("form.birthInformation")}
+                tooltip={t("form.birthInformationTooltip")}
+                selectedDate={selectedDate}
+                onSelectDate={(d) => setSelectedDate(d)}
+                dateValue={formattedDate}
+                currentTime={selectedTime}
+                timeValue={formattedTime}
+                locationValue={locationDisplay}
+                calendarOpen={calendarOpen}
+                setCalendarOpen={setCalendarOpen}
+                timeOpen={timeOpen}
+                setTimeOpen={setTimeOpen}
+                locationOpen={locationOpen}
+                setLocationOpen={setLocationOpen}
+                timeStep={timeStep}
+                setTimeStep={setTimeStep}
+                hourInput={hourInput}
+                setHourInput={setHourInput}
+                minuteInput={minuteInput}
+                setMinuteInput={setMinuteInput}
+                setTime={(v) => setSelectedTime(v)}
+                locationStep={locationStep}
+                setLocationStep={setLocationStep}
+                searchCountry={searchCountry}
+                setSearchCountry={setSearchCountry}
+                searchState={searchState}
+                setSearchState={setSearchState}
+                filteredCountries={filteredCountries}
+                filteredStates={filteredStates}
+                onSelectCountry={(name) => {
+                    setLocationSource("manual")
+                    setCountry(name)
+                }}
+                onSelectState={(name) => {
+                    setLocationSource("manual")
+                    setStateProv(name)
+                }}
+                onUseCurrentLocation={handleLocationClick}
+                type="birth"
+                onButtonClick={handleGenerate}
+                buttonDisabled={!isValid || isGenerating}
+                buttonLoading={isGenerating}
+                buttonLabel={t("form.generateChart")}
+                buttonLoadingLabel={t("form.generating")}
+            />
         </>
     )
 }

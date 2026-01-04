@@ -49,6 +49,19 @@ export const seoConfig = {
     },
 }
 
+export function getMetadataBase(): URL {
+    const envUrl =
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "") ||
+        seoConfig.siteUrl
+
+    try {
+        return new URL(envUrl)
+    } catch {
+        return new URL(seoConfig.siteUrl)
+    }
+}
+
 // Generate metadata for different pages
 export function generatePageMetadata({
     title,

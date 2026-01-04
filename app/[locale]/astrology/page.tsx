@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import HoroscopeForm from "@/components/horoscope/horoscope-form"
+import HoroscopeForm from "@/components/astrology/form"
 
 export const metadata: Metadata = {
     title: "Astrology",
@@ -14,5 +14,3 @@ export default function AstrologyPage() {
         </div>
     )
 }
-
-

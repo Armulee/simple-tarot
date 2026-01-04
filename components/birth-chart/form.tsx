@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -9,6 +9,7 @@ import { CustomTimePicker } from "@/components/ui/custom-time-picker"
 import { Loader2, Calendar, Clock, MapPin } from "lucide-react"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { TimePicker } from "@/components/ui/time-picker"
+import { useProfile } from "@/contexts/profile-context"
 import {
     Popover,
     PopoverContent,
@@ -19,6 +20,8 @@ import {
     resolveLocationFromCountryState,
     resolveLocationFromCoords,
 } from "@/lib/location"
+
+const STORAGE_KEY = "birth-chart-form-v1"
 
 function getDeviceTimezone(): number {
     if (typeof window === "undefined") return 0 // Server-side fallback
@@ -40,6 +43,7 @@ function getDeviceTimezone(): number {
 }
 
 export default function BirthChartForm() {
+    const { profile } = useProfile()
     const [day, setDay] = useState("")
     const [month, setMonth] = useState("")
     const [year, setYear] = useState("")
@@ -75,6 +79,96 @@ export default function BirthChartForm() {
 
     // Time picker state
     const [timePickerOpen, setTimePickerOpen] = useState(false)
+
+    // Load initial values from localStorage
+    const hasLoadedFromStorage = useRef(false)
+    useEffect(() => {
+        if (hasLoadedFromStorage.current) return
+        const saved = localStorage.getItem(STORAGE_KEY)
+        if (saved) {
+            try {
+                const data = JSON.parse(saved)
+                if (data.day) setDay(data.day)
+                if (data.month) setMonth(data.month)
+                if (data.year) setYear(data.year)
+                if (data.hour) setHour(data.hour)
+                if (data.minute) setMinute(data.minute)
+                if (data.country) setCountry(data.country)
+                if (data.stateProv) setStateProv(data.stateProv)
+                if (data.lat) setLat(data.lat)
+                if (data.lng) setLng(data.lng)
+                if (data.timezone !== undefined) setTimezone(data.timezone)
+                if (data.locationSource) setLocationSource(data.locationSource)
+                if (data.selectedDate) setSelectedDate(new Date(data.selectedDate))
+            } catch (e) {
+                console.error("Failed to parse saved birth chart form data", e)
+            }
+        }
+        hasLoadedFromStorage.current = true
+    }, [])
+
+    // If localStorage is empty, try loading from profile
+    useEffect(() => {
+        if (hasLoadedFromStorage.current && localStorage.getItem(STORAGE_KEY))
+            return
+        if (!profile) return
+
+        if (profile.birth_date) {
+            const date = new Date(profile.birth_date)
+            setSelectedDate(date)
+            setYear(date.getFullYear().toString())
+            setMonth((date.getMonth() + 1).toString().padStart(2, "0"))
+            setDay(date.getDate().toString().padStart(2, "0"))
+        }
+        if (profile.birth_time) {
+            const [h, m] = profile.birth_time.split(":")
+            setHour(h || "")
+            setMinute(m || "")
+        }
+        if (profile.birth_place) {
+            const parts = profile.birth_place.split(",").map((p) => p.trim())
+            if (parts.length > 1) {
+                setStateProv(parts[0] || "")
+                setCountry(parts[1] || "")
+            } else {
+                setCountry(parts[0] || "")
+            }
+        }
+        hasLoadedFromStorage.current = true
+    }, [profile])
+
+    // Save values to localStorage whenever they change
+    useEffect(() => {
+        if (!hasLoadedFromStorage.current) return
+        const data = {
+            day,
+            month,
+            year,
+            hour,
+            minute,
+            country,
+            stateProv,
+            lat,
+            lng,
+            timezone,
+            locationSource,
+            selectedDate,
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    }, [
+        day,
+        month,
+        year,
+        hour,
+        minute,
+        country,
+        stateProv,
+        lat,
+        lng,
+        timezone,
+        locationSource,
+        selectedDate,
+    ])
 
     function onCalendarSelect(date: Date | undefined) {
         if (!date) return

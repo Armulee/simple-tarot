@@ -6,6 +6,7 @@ import React, {
     useContext,
     useEffect,
     useMemo,
+    useRef,
     useState,
     type ReactNode,
 } from "react"
@@ -55,6 +56,9 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     // Refill cap: anonymous 5 (no hourly refill), signed-in 12 (refill every 2 hours)
     const refillCap = user ? 12 : 5
 
+    // Track previous user ID to detect login/logout and reset state
+    const prevUserIdRef = useRef<string | undefined>(user?.id)
+
     // Compute next Bangkok midnight (UTC+7) as an absolute timestamp in ms
     const getNextBangkokMidnightMs = useCallback((baseMs?: number): number => {
         const nowMs = Number.isFinite(baseMs as number)
@@ -89,10 +93,24 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     // Initial fetch and whenever auth state changes, load state from Supabase
     useEffect(() => {
         let cancelled = false
+
+        // Check if user changed (login/logout)
+        if (user?.id !== prevUserIdRef.current) {
+            prevUserIdRef.current = user?.id
+            setInitialized(false)
+            setStars(null)
+            setIsInfinity(false)
+            setInfinityExpiresAt(null)
+            setNextRefillAt(null)
+            // The state updates above will trigger a re-render,
+            // but we can also proceed if !initialized is checked below
+        }
+
         if (!hasCookieConsent()) {
             setInitialized(false)
             return
         }
+
         // Skip API call if already initialized to prevent duplicate calls
         if (!initialized) {
             ;(async () => {
@@ -186,7 +204,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
 
     // Reconcile periodically and on visibility change / cross-tab events
     useEffect(() => {
-        if (!initialized) return
+        // if (!initialized) return
         if (!hasCookieConsent()) return
         let cancelled = false
         const reconcile = async () => {

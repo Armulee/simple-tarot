@@ -1,10 +1,26 @@
 "use client"
 
-import { Card } from "@/components/ui/card"
-import { Sparkles } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import SummaryTab from "./summary-tab"
 import InfoTab from "./info-tab"
+import SideWheel from "./side-wheel"
+import { useState, useEffect } from "react"
+import { useTranslations } from "next-intl"
+import { Card } from "@/components/ui/card"
+
+function getOrdinalSuffix(day: number): string {
+    if (day > 3 && day < 21) return "th"
+    switch (day % 10) {
+        case 1:
+            return "st"
+        case 2:
+            return "nd"
+        case 3:
+            return "rd"
+        default:
+            return "th"
+    }
+}
 
 export type AstrologyReading = {
     id: string
@@ -45,32 +61,70 @@ export type AstrologyReading = {
 }
 
 export default function AstrologyDisplay({
-    reading,
+    reading: initialReading,
 }: {
     reading: AstrologyReading
 }) {
+    const [reading, setReading] = useState(initialReading)
+
+    // Sync state with initialReading prop if it changes externally
+    useEffect(() => {
+        setReading(initialReading)
+    }, [initialReading])
+
+    const handleSummaryGenerated = (summary: string) => {
+        setReading((prev) => ({ ...prev, summary }))
+    }
+
+    const tReading = useTranslations("ReadingPage")
+
     return (
-        <div className='space-y-10 px-4 max-w-5xl mx-auto h-full py-12'>
-            <Card className='px-8 pt-12 pb-8 border-0 relative overflow-hidden bg-transparent shadow-2xl'>
-                <div className='absolute inset-0 overflow-hidden'>
-                    <div className='absolute -top-40 -right-40 w-80 h-80 bg-transparent rounded-full blur-3xl animate-pulse' />
-                    <div className='absolute -bottom-40 -left-40 w-80 h-80 bg-transparent rounded-full blur-3xl animate-pulse delay-1000' />
+        <div className='relative space-y-10 px-4 max-w-5xl mx-auto h-full pb-2 pt-12'>
+            <SideWheel
+                side='left'
+                planets={reading.birth_planets}
+                houses={reading.birth_houses}
+                title='Birth Chart'
+                subtitle='Natal'
+            />
+            <SideWheel
+                side='right'
+                planets={reading.transit_planets}
+                houses={reading.transit_houses}
+                title='Transit Sky'
+                subtitle='Current'
+            />
+            <div className='text-center space-y-1 mb-4'>
+                <p className='text-white/50 text-xs font-medium uppercase tracking-[0.2em]'>
+                    Birth Chart Baseline
+                </p>
+                <div className='text-white text-3xl font-serif font-bold flex items-center justify-center'>
+                    <span>{reading.birth_year}</span>
+                    <span className='mx-2 opacity-30'>,</span>
+                    <span>
+                        {
+                            [
+                                "Jan",
+                                "Feb",
+                                "Mar",
+                                "Apr",
+                                "May",
+                                "Jun",
+                                "Jul",
+                                "Aug",
+                                "Sep",
+                                "Oct",
+                                "Nov",
+                                "Dec",
+                            ][reading.birth_month - 1]
+                        }
+                    </span>
+                    <span className='ml-2'>{reading.birth_day}</span>
+                    <span className='text-base self-start mt-1 opacity-70'>
+                        {getOrdinalSuffix(reading.birth_day)}
+                    </span>
                 </div>
-                <div className='text-center space-y-6 relative z-10'>
-                    <div className='flex items-center justify-center space-x-3 relative'>
-                        <Sparkles className='w-7 h-7 text-accent animate-pulse' />
-                        <h1 className='font-serif font-bold text-3xl sm:text-4xl text-white'>
-                            Astrology Reading
-                        </h1>
-                        <Sparkles className='w-7 h-7 text-accent animate-pulse' />
-                    </div>
-                    {reading.question ? (
-                        <p className='text-white/70 italic max-w-2xl mx-auto'>
-                            &ldquo;{reading.question}&rdquo;
-                        </p>
-                    ) : null}
-                </div>
-            </Card>
+            </div>
 
             <Tabs defaultValue='summary' className='space-y-6'>
                 <div className='flex justify-center'>
@@ -86,7 +140,10 @@ export default function AstrologyDisplay({
                 </div>
 
                 <TabsContent value='summary' className='space-y-4'>
-                    <SummaryTab reading={reading} />
+                    <SummaryTab
+                        reading={reading}
+                        onSummaryGenerated={handleSummaryGenerated}
+                    />
                 </TabsContent>
 
                 <TabsContent value='birth' className='space-y-4'>
@@ -133,6 +190,13 @@ export default function AstrologyDisplay({
                     />
                 </TabsContent>
             </Tabs>
+
+            {/* Disclaimer */}
+            <Card className='p-6 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-sm border-white/10 shadow-lg'>
+                <p className='text-xs text-muted-foreground text-center leading-relaxed'>
+                    {tReading("disclaimer")}
+                </p>
+            </Card>
         </div>
     )
 }
