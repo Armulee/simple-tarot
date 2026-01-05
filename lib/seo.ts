@@ -150,7 +150,7 @@ export function generatePageMetadata({
 // Pre-defined metadata for common pages
 export const pageMetadata = {
     home: generatePageMetadata({
-        title: "AI Tarot Reading - Ask Questions About Your Destiny",
+        title: "AI Fortune Reading - AskingFate",
         description:
             "Get free AI-powered tarot card readings and spiritual guidance. Ask any question about your destiny and receive personalized insights from our advanced AI tarot system.",
         keywords: [

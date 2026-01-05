@@ -3,13 +3,11 @@
 import { useState, useEffect, useMemo } from "react"
 import { TypewriterText } from "../../typewriter-text"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
 import {
     resolveLocationFromCountryState,
     resolveLocationFromCoords,
 } from "@/lib/location"
 import { Country, State } from "country-state-city"
-import { Loader2, Send } from "lucide-react"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 import Section from "@/components/ui/horoscope-section"
@@ -419,7 +417,7 @@ export default function BirthChart() {
                     setStateProv(name)
                 }}
                 onUseCurrentLocation={handleLocationClick}
-                type="birth"
+                type='birth'
                 onButtonClick={handleGenerate}
                 buttonDisabled={!isValid || isGenerating}
                 buttonLoading={isGenerating}

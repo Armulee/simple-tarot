@@ -1348,20 +1348,20 @@
       "url": "https://askingfate.com"
     },
     "Layout": {
-      "title": "Asking Fate — AI-Powered Fortune Reading",
+      "title": "AI Fortune Reading - Asking Fate",
       "description": "Discover AI-powered fortune reading across tarot, astrology, numerology, namelogy and more. Personalized insights to help you navigate your destiny. Tarot is featured on the homepage for now."
     },
     "Home": {
-      "title": "AI Tarot Reading - Ask Questions About Your Destiny | Asking Fate",
+      "title": "AI Fortune Reading - Asking Fate",
       "description": "Get free AI-powered tarot card readings and spiritual guidance. Ask any question about your destiny and receive personalized insights from our advanced AI tarot system.",
       "keywords": "AI tarot reading, free tarot cards, spiritual guidance, destiny questions, tarot card interpretation, AI-powered divination",
-      "ogTitle": "AI Tarot Reading - Ask Questions About Your Destiny",
+      "ogTitle": "AI Fortune Reading - Asking Fate",
       "ogDescription": "Get free AI-powered tarot card readings and spiritual guidance. Ask any question about your destiny.",
-      "twitterTitle": "AI Tarot Reading - Ask Questions About Your Destiny",
+      "twitterTitle": "AI Fortune Reading - Asking Fate",
       "twitterDescription": "Get free AI-powered tarot card readings and spiritual guidance. Ask any question about your destiny."
     },
     "About": {
-      "title": "About - AI Tarot Reading Technology | Asking Fate",
+      "title": "About AI Fortune Reading - Asking Fate",
       "description": "Discover how Asking Fate blends centuries-old tarot traditions with cutting-edge AI technology to provide personalized cosmic guidance and spiritual insights.",
       "keywords": "AI tarot technology, tarot reading history, spiritual guidance AI, mystical traditions, tarot card interpretation technology",
       "ogTitle": "About - AI Tarot Reading Technology",
@@ -1370,7 +1370,7 @@
       "twitterDescription": "Discover how we blend ancient tarot wisdom with modern AI technology for personalized spiritual guidance."
     },
     "Reading": {
-      "title": "AI Tarot Card Reading - Get Your Free Reading | Asking Fate",
+      "title": "AI Tarot Card Reading - Asking Fate",
       "description": "Get a personalized AI tarot card reading for free. Ask your question and receive detailed interpretations with spiritual guidance from our advanced AI system.",
       "keywords": "tarot card reading, AI tarot reading, free tarot reading, tarot card interpretation, spiritual guidance, tarot reading online",
       "ogTitle": "AI Tarot Card Reading - Get Your Free Reading",
@@ -1379,7 +1379,7 @@
       "twitterDescription": "Get a personalized AI tarot card reading for free. Ask your question and receive detailed interpretations."
     },
     "BirthChart": {
-      "title": "Birth Chart - Decode Your Cosmic Blueprint | Asking Fate",
+      "title": "Birth Chart - Asking Fate",
       "description": "Generate your personalized astrological birth chart by entering your birth date, time, and location. Discover your cosmic blueprint with detailed planetary positions and houses.",
       "keywords": "birth chart, natal chart, astrological chart, cosmic blueprint, planetary positions, astrology, horoscope",
       "ogTitle": "Birth Chart - Decode Your Cosmic Blueprint",
@@ -1388,7 +1388,7 @@
       "twitterDescription": "Generate your personalized astrological birth chart by entering your birth date, time, and location."
     },
     "Contact": {
-      "title": "Contact Us - Get Help with Your AI Tarot Reading | Asking Fate",
+      "title": "Contact Us - Asking Fate",
       "description": "Have questions about your AI tarot reading experience? Contact our support team for assistance with your cosmic journey and spiritual guidance.",
       "keywords": "tarot reading support, AI tarot help, spiritual guidance contact, tarot reading questions, customer support",
       "ogTitle": "Contact Us - Get Help with Your AI Tarot Reading",
@@ -1397,7 +1397,7 @@
       "twitterDescription": "Have questions about your AI tarot reading experience? Contact our support team for assistance."
     },
     "PrivacyPolicy": {
-      "title": "Privacy Policy - Your Data Protection & Privacy Rights | Asking Fate",
+      "title": "Privacy Policy - Asking Fate",
       "description": "Learn how Asking Fate protects your privacy and personal information when using our AI tarot reading service. Read our comprehensive privacy policy.",
       "keywords": "privacy policy, data protection, AI tarot privacy, personal information security, tarot reading privacy, user data protection",
       "ogTitle": "Privacy Policy - Your Data Protection & Privacy Rights",
@@ -1406,7 +1406,7 @@
       "twitterDescription": "Learn how Asking Fate protects your privacy and personal information when using our AI tarot reading service."
     },
     "TermsOfService": {
-      "title": "Terms of Service - AI Tarot Reading Terms & Conditions | Asking Fate",
+      "title": "Terms of Service - Asking Fate",
       "description": "Read the terms of service for Asking Fate's AI-powered tarot reading platform. Understand your rights and responsibilities when using our spiritual guidance service.",
       "keywords": "terms of service, terms and conditions, AI tarot terms, tarot reading terms, service agreement, user agreement",
       "ogTitle": "Terms of Service - AI Tarot Reading Terms & Conditions",
@@ -1415,11 +1415,11 @@
       "twitterDescription": "Read the terms of service for Asking Fate's AI-powered tarot reading platform and understand your rights and responsibilities."
     },
     "Demo": {
-      "title": "Request a Demo | Asking Fate",
+      "title": "Request a Demo - Asking Fate",
       "description": "See Asking Fate in action. Request a short live walkthrough and try an interactive preview."
     },
     "Articles": {
-      "title": "Articles & Guides | Asking Fate",
+      "title": "Articles & Guides - Asking Fate",
       "description": "Documentation-style guides: how to play, share readings, refer friends, create content, help & FAQ."
     }
   },

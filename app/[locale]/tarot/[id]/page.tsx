@@ -65,7 +65,7 @@ export default async function TarotReadingPage({
     return (
         <div className='space-y-8 px-4 max-w-xl mx-auto h-full'>
             {/* Header */}
-            <Card className='gap-0 m-0 px-6 pt-10 pb-6 border-0 relative overflow-hidden'>
+            <Card className='bg-transparent gap-0 m-0 px-6 pt-10 pb-6 border-0 relative overflow-hidden'>
                 {/* Background card images with aura */}
                 <div className='absolute inset-0 pointer-events-none'>
                     {selectedCards.map((card, index) => {

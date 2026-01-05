@@ -76,24 +76,47 @@ export default function Home() {
 
     // Prevent browser back/forward gestures on horizontal wheel scroll
     useEffect(() => {
-        const el = horizontalSwiperContainerRef.current
-        if (!el) return
-
         const onWheel = (e: WheelEvent) => {
-            // Stop propagation of horizontal wheel to avoid browser back/forward gestures
-            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-                e.stopPropagation()
+            const el = horizontalSwiperContainerRef.current
+            if (!el) return
+
+            // If the wheel event is happening inside the horizontal swiper area
+            if (el.contains(e.target as Node)) {
+                // Block primarily horizontal wheel events to prevent browser back/forward gestures.
+                // We ONLY preventDefault to stop browser navigation, but DON'T stopPropagation
+                // so that Swiper can still receive the event and handle the slide.
+                if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+                    if (e.cancelable) {
+                        e.preventDefault()
+                    }
+                }
             }
         }
 
-        el.addEventListener("wheel", onWheel, { passive: true })
+        // Add to document with passive: false to allow preventDefault()
+        // Use capture: true to intercept before anything else
+        document.addEventListener("wheel", onWheel, {
+            passive: false,
+            capture: true,
+        })
         return () => {
-            el.removeEventListener("wheel", onWheel)
+            document.removeEventListener("wheel", onWheel, { capture: true })
         }
     }, [])
 
     return (
         <div className='w-full max-h-[calc(100dvh-65px)] overflow-hidden relative'>
+            <style jsx global>{`
+                html,
+                body {
+                    /* Prevent horizontal bounce/swipe on the whole page when on home */
+                    overscroll-behavior-x: none;
+                }
+                .swiper-horizontal {
+                    overscroll-behavior-x: none;
+                    touch-action: pan-y;
+                }
+            `}</style>
             <Swiper
                 ref={mainSwiperRef}
                 className='w-full h-full max-h-[calc(100dvh-65px)]'
@@ -122,7 +145,7 @@ export default function Home() {
                         {/* Feature Content Area - Expands to fill available space */}
                         <div
                             ref={horizontalSwiperContainerRef}
-                            className='flex-1 min-h-0 relative'
+                            className='flex-1 min-h-0 relative overscroll-x-none touch-pan-y'
                         >
                             <Swiper
                                 ref={horizontalSwiperRef}
@@ -219,7 +242,7 @@ export default function Home() {
                                             key={feature.id}
                                             className='w-full h-full'
                                         >
-                                            <div className='w-full h-full flex flex-col items-center justify-end pb-18 overflow-hidden'>
+                                            <div className='w-full h-full flex flex-col items-center justify-end pb-14 overflow-hidden'>
                                                 <FeatureComponent />
                                             </div>
                                         </SwiperSlide>

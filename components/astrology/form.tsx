@@ -659,55 +659,111 @@ export default function HoroscopeForm() {
                 }}
                 onUseCurrentLocation={() => void handleLocationClick("birth")}
                 type='birth'
+                containerClassName='lg:max-w-none lg:px-0 lg:pt-0 lg:items-stretch lg:justify-start'
             />
-            <BirthDateSaveCheckbox
-                saveBirthDate={saveBirthDate}
-                setSaveBirthDate={setSaveBirthDate}
-            />
+            <div className='w-full max-w-6xl mx-auto px-4 lg:px-8 pt-8 lg:pt-10'>
+                <div className='flex flex-col gap-8 lg:flex-row lg:items-start'>
+                    <div className='flex-1 flex flex-col gap-2'>
+                        <Section
+                            title='Birth information'
+                            tooltip='Used as your natal baseline (your birth chart). Time and location improve accuracy.'
+                            selectedDate={birthDate}
+                            onSelectDate={setBirthDate}
+                            dateValue={formattedBirthDate}
+                            currentTime={birthTime}
+                            timeValue={formattedTime(birthTime)}
+                            locationValue={birthLocationDisplay}
+                            calendarOpen={birthCalendarOpen}
+                            setCalendarOpen={setBirthCalendarOpen}
+                            timeOpen={birthTimeOpen}
+                            setTimeOpen={setBirthTimeOpen}
+                            locationOpen={birthLocationOpen}
+                            setLocationOpen={setBirthLocationOpen}
+                            timeStep={birthTimeStep}
+                            setTimeStep={setBirthTimeStep}
+                            hourInput={birthHourInput}
+                            setHourInput={setBirthHourInput}
+                            minuteInput={birthMinuteInput}
+                            setMinuteInput={setBirthMinuteInput}
+                            setTime={setBirthTime}
+                            locationStep={birthLocationStep}
+                            setLocationStep={setBirthLocationStep}
+                            searchCountry={birthSearchCountry}
+                            setSearchCountry={setBirthSearchCountry}
+                            searchState={birthSearchState}
+                            setSearchState={setBirthSearchState}
+                            filteredCountries={filteredCountriesBirth}
+                            filteredStates={filteredStatesBirth}
+                            onSelectCountry={(name) => {
+                                setBirthLocationSource("manual")
+                                setBirthCountry(name)
+                            }}
+                            onSelectState={(name) => {
+                                setBirthLocationSource("manual")
+                                setBirthStateProv(name)
+                            }}
+                            onUseCurrentLocation={() =>
+                                void handleLocationClick("birth")
+                            }
+                            type='birth'
+                            containerClassName='max-w-none px-0 pt-0 items-stretch justify-start'
+                        />
+                        <BirthDateSaveCheckbox
+                            saveBirthDate={saveBirthDate}
+                            setSaveBirthDate={setSaveBirthDate}
+                        />
+                    </div>
 
-            <Section
-                title='Transit information'
-                tooltip='Defaults to now + your current location. This is the “sky today” snapshot.'
-                selectedDate={transitDate}
-                onSelectDate={setTransitDate}
-                dateValue={formattedTransitDate}
-                currentTime={transitTime}
-                timeValue={formattedTime(transitTime)}
-                locationValue={transitLocationDisplay}
-                calendarOpen={transitCalendarOpen}
-                setCalendarOpen={setTransitCalendarOpen}
-                timeOpen={transitTimeOpen}
-                setTimeOpen={setTransitTimeOpen}
-                locationOpen={transitLocationOpen}
-                setLocationOpen={setTransitLocationOpen}
-                timeStep={transitTimeStep}
-                setTimeStep={setTransitTimeStep}
-                hourInput={transitHourInput}
-                setHourInput={setTransitHourInput}
-                minuteInput={transitMinuteInput}
-                setMinuteInput={setTransitMinuteInput}
-                setTime={setTransitTime}
-                locationStep={transitLocationStep}
-                setLocationStep={setTransitLocationStep}
-                searchCountry={transitSearchCountry}
-                setSearchCountry={setTransitSearchCountry}
-                searchState={transitSearchState}
-                setSearchState={setTransitSearchState}
-                filteredCountries={filteredCountriesTransit}
-                filteredStates={filteredStatesTransit}
-                onSelectCountry={(name) => {
-                    setTransitLocationSource("manual")
-                    setTransitCountry(name)
-                }}
-                onSelectState={(name) => {
-                    setTransitLocationSource("manual")
-                    setTransitStateProv(name)
-                }}
-                onUseCurrentLocation={() => void handleLocationClick("transit")}
-                type='transit'
-            />
+                    <div className='flex-1'>
+                        <Section
+                            title='Transit information'
+                            tooltip='Defaults to now + your current location. This is the “sky today” snapshot.'
+                            selectedDate={transitDate}
+                            onSelectDate={setTransitDate}
+                            dateValue={formattedTransitDate}
+                            currentTime={transitTime}
+                            timeValue={formattedTime(transitTime)}
+                            locationValue={transitLocationDisplay}
+                            calendarOpen={transitCalendarOpen}
+                            setCalendarOpen={setTransitCalendarOpen}
+                            timeOpen={transitTimeOpen}
+                            setTimeOpen={setTransitTimeOpen}
+                            locationOpen={transitLocationOpen}
+                            setLocationOpen={setTransitLocationOpen}
+                            timeStep={transitTimeStep}
+                            setTimeStep={setTransitTimeStep}
+                            hourInput={transitHourInput}
+                            setHourInput={setTransitHourInput}
+                            minuteInput={transitMinuteInput}
+                            setMinuteInput={setTransitMinuteInput}
+                            setTime={setTransitTime}
+                            locationStep={transitLocationStep}
+                            setLocationStep={setTransitLocationStep}
+                            searchCountry={transitSearchCountry}
+                            setSearchCountry={setTransitSearchCountry}
+                            searchState={transitSearchState}
+                            setSearchState={setTransitSearchState}
+                            filteredCountries={filteredCountriesTransit}
+                            filteredStates={filteredStatesTransit}
+                            onSelectCountry={(name) => {
+                                setTransitLocationSource("manual")
+                                setTransitCountry(name)
+                            }}
+                            onSelectState={(name) => {
+                                setTransitLocationSource("manual")
+                                setTransitStateProv(name)
+                            }}
+                            onUseCurrentLocation={() =>
+                                void handleLocationClick("transit")
+                            }
+                            type='transit'
+                            containerClassName='max-w-none px-0 pt-0 items-stretch justify-start'
+                        />
+                    </div>
+                </div>
+            </div>
 
-            <div className='flex flex-col gap-4 justify-center items-center pt-8 w-full max-w-2xl px-4'>
+            <div className='flex flex-col gap-4 justify-center items-center pt-8 w-full max-w-md px-4'>
                 <div className='w-full flex items-center justify-between gap-3'>
                     <h2 className='font-serif font-semibold text-xl text-white text-left'>
                         Question (optional)
@@ -760,7 +816,7 @@ const BirthDateSaveCheckbox = ({
     if (!user) return null
 
     return (
-        <div className='w-full max-w-2xl px-8 flex items-center gap-2 pt-2'>
+        <div className='w-full max-w-2xl px-8 flex items-center gap-2 pt-2 lg:max-w-none lg:px-0'>
             <Checkbox
                 id='save-birth-date'
                 checked={saveBirthDate}

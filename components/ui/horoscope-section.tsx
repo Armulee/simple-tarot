@@ -59,6 +59,7 @@ const Section = ({
     onSelectState,
     onUseCurrentLocation,
     type,
+    containerClassName,
     // Optional button props
     buttonLabel,
     buttonLoadingLabel,
@@ -99,6 +100,7 @@ const Section = ({
     onSelectState: (name: string) => void
     onUseCurrentLocation: () => void
     type: "birth" | "transit"
+    containerClassName?: string
     // Optional button props
     buttonLabel?: string
     buttonLoadingLabel?: string
@@ -386,7 +388,9 @@ const Section = ({
         }
     }
     return (
-        <div className='flex flex-col gap-4 justify-center items-center pt-8 w-full max-w-2xl px-4'>
+        <div
+            className={`flex flex-col gap-4 justify-center items-center pt-8 w-full max-w-md px-4 ${containerClassName ?? ""}`}
+        >
             <div className='w-full flex items-center gap-2'>
                 <h2 className='font-serif font-semibold text-xl text-white text-left'>
                     {title}
@@ -1292,37 +1296,34 @@ const Section = ({
                                     </div>
                                 </PopoverContent>
                             </Popover>
+                            {onButtonClick && (
+                                <Button
+                                    onClick={onButtonClick}
+                                    disabled={buttonDisabled || buttonLoading}
+                                    className='py-1.5 px-3 md:px-5 rounded-md bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 hover:border-primary/60 text-white font-medium text-sm shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] hover:shadow-[0_10px_30px_-10px_rgba(56,189,248,0.5)] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0 h-auto'
+                                >
+                                    {buttonLoading ? (
+                                        <>
+                                            <Loader2 className='w-4 h-4 animate-spin' />
+                                            <span className='hidden md:inline'>
+                                                {buttonLoadingLabel ||
+                                                    "Generating..."}
+                                            </span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Send className='w-2 h-2' />
+                                            <span className='hidden md:inline'>
+                                                {buttonLabel || "Generate"}
+                                            </span>
+                                        </>
+                                    )}
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
-
-            {/* Optional Button */}
-            {onButtonClick && (
-                <div className='w-full flex justify-end pt-4'>
-                    <Button
-                        onClick={onButtonClick}
-                        disabled={buttonDisabled || buttonLoading}
-                        className='py-2 px-5 md:px-6 rounded-md bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 hover:border-primary/60 text-white font-medium text-sm shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] hover:shadow-[0_10px_30px_-10px_rgba(56,189,248,0.5)] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0'
-                    >
-                        {buttonLoading ? (
-                            <>
-                                <Loader2 className='w-5 h-5 animate-spin' />
-                                <span className='hidden md:inline'>
-                                    {buttonLoadingLabel || "Generating..."}
-                                </span>
-                            </>
-                        ) : (
-                            <>
-                                <Send className='w-5 h-5' />
-                                <span className='hidden md:inline'>
-                                    {buttonLabel || "Generate"}
-                                </span>
-                            </>
-                        )}
-                    </Button>
-                </div>
-            )}
         </div>
     )
 }

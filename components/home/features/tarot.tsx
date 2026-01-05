@@ -41,7 +41,7 @@ export default function Tarot() {
                 <Suspense fallback={<div className='h-20' />}>
                     <div className='space-y-4'>
                         <QuestionInput
-                            className='min-w-0 w-screen sm:w-full md:max-w-md mx-auto px-4'
+                            className='min-w-0 w-full max-w-md mx-auto px-4'
                             buttonClassName='mr-4'
                             id='question-input'
                             value={inputValue}
