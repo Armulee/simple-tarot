@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             parent_id: parentReadingId,
-            reading_type: readingType,
+            reading_type: readingType || 'simple', // Provide default if null
         })
 
         if (error) {
