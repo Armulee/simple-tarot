@@ -68,6 +68,7 @@ export default function ActionSection({
         setInterpretation,
         setPaidForInterpretation,
         isFollowUp,
+        readingType,
     } = useTarot()
     const question = propQuestion || contextQuestion
     const cards = propCards || selectedCards.map((c) => c.meaning)
@@ -260,6 +261,7 @@ export default function ActionSection({
             const prompt = getTarotReadingPrompt({
                 question: question || "",
                 cards: cardNames,
+                readingType: readingType || null,
                 isFollowUp,
                 previousQuestion,
                 previousInterpretation,

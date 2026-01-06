@@ -16,7 +16,7 @@ async function getTarotReading(id: string) {
     const { data } = await supabase
         .from("tarot_readings")
         .select(
-            "id, question, cards, interpretation, created_at, did, owner_user_id, parent_id"
+            "id, question, cards, interpretation, created_at, did, owner_user_id, parent_id, reading_type"
         )
         .eq("id", id)
         .maybeSingle()
@@ -196,6 +196,7 @@ export default async function TarotReadingPage({
                 initialInterpretation={data.interpretation}
                 ownerDid={data.did}
                 ownerUserId={data.owner_user_id}
+                readingType={data.reading_type}
             />
 
             {/* Disclaimer */}

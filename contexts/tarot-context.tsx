@@ -11,7 +11,7 @@ import {
 } from "react"
 import { usePathname } from "next/navigation"
 
-export type ReadingType = "simple" | "intermediate" | "advanced"
+export type ReadingType = "simple" | "general" | "detailed" | "expanded" | "celtic"
 
 export interface TarotCard {
     id: number

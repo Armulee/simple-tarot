@@ -700,15 +700,23 @@
     "types": {
       "simple": {
         "title": "Simple Reading",
-        "description": "One card for focused guidance"
+        "description": "Instant clarity, daily energy, simple answer"
       },
-      "intermediate": {
-        "title": "Intermediate Reading",
-        "description": "Two cards for deeper insight"
+      "general": {
+        "title": "General Reading",
+        "description": "Understanding flow and movement"
       },
-      "advanced": {
-        "title": "Advanced Reading",
-        "description": "Three cards for comprehensive guidance"
+      "detailed": {
+        "title": "Detailed Question",
+        "description": "Decision-making, problem-solving"
+      },
+      "expanded": {
+        "title": "Expanded Detail",
+        "description": "Relationships, career paths, layered influence"
+      },
+      "celtic": {
+        "title": "Celtic Cross",
+        "description": "Deep life situation, unavoidable patterns"
       }
     }
   },

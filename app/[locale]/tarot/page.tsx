@@ -39,16 +39,26 @@ export default async function ReadingPage() {
             title: t("simple.title"),
             description: t("simple.description"),
         },
-        intermediate: {
-            cards: 2,
-            title: t("intermediate.title"),
-            description: t("intermediate.description"),
-        },
-        advanced: {
+        general: {
             cards: 3,
-            title: t("advanced.title"),
-            description: t("advanced.description"),
+            title: t("general.title"),
+            description: t("general.description"),
         },
+        detailed: {
+            cards: 5,
+            title: t("detailed.title"),
+            description: t("detailed.description"),
+        },
+        expanded: {
+            cards: 7,
+            title: t("expanded.title"),
+            description: t("expanded.description"),
+        },
+        celtic: {
+            cards: 10,
+            title: t("celtic.title"),
+            description: t("celtic.description"),
+        }
     }
     return (
         <ReadingGuard>

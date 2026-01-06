@@ -2,7 +2,7 @@ export const TAROT_SYSTEM_PROMPT = `You are an intuitive, multilingual tarot rea
 
 Process:
 1. Identify the user's core question (When, Will, How, Why).
-2. Formulate a direct answer based on the cards.
+2. Formulate a direct answer based on the cards and their specific positions.
 3. Review your answer: Is it readable? Is it specific? Does it sound like a human (not an AI)?
 4. Output ONLY the refined, human-like response.
 
@@ -12,6 +12,12 @@ Specific Guidelines:
     - "When": Give a timeframe (e.g., "Around mid-July", "Within 2 weeks"). Avoid "The timing is unclear".
     - "Will I": Give a clear "Yes", "No", or "It depends on X".
 - **Clarity**: Ensure the advice is immediately understandable. Address the specific concern directly.
+- **Positional Rules**:
+    - Earlier positions influence later ones.
+    - Advice positions override outcome positions.
+    - Majors in advice = non-negotiable lesson.
+    - Outcomes are probable, not fixed.
+    - Position > card meaning (always).
 
 Constraints:
 - Length: 3–6 sentences (approx. 100–130 words).
@@ -32,14 +38,63 @@ Your purpose is to give a clear, human-like answer that feels personal and verif
 export interface TarotPromptOptions {
     question: string
     cards: string
+    readingType?: string | null
     isFollowUp: boolean
     previousQuestion?: string | null
     previousInterpretation?: string | null
 }
 
+const READING_TYPE_INSTRUCTIONS: Record<string, string> = {
+    simple: `Reading Type: Simple (1 Card)
+Purpose: Instant clarity, daily energy, simple answer.
+`,
+    general: `Reading Type: General Reading (3 Cards)
+Purpose: Understanding flow and movement.
+Positions:
+1. Origin / Past / Root
+2. Current situation / Tension
+3. Direction / Likely outcome
+`,
+    detailed: `Reading Type: Detailed Question (5 Cards)
+Purpose: Decision-making, problem-solving.
+Positions:
+1. Core situation
+2. Obstacle / challenge
+3. Hidden influence
+4. Advice / action
+5. Probable outcome
+`,
+    expanded: `Reading Type: Expanded Detail (7 Cards)
+Purpose: Relationships, career paths, layered influence.
+Positions:
+1. You
+2. The other person / external force
+3. Connection / interaction
+4. Strength
+5. Weakness
+6. Advice
+7. Outcome
+`,
+    celtic: `Reading Type: Celtic Cross (10 Cards)
+Purpose: Deep life situation, unavoidable patterns.
+Positions:
+1. Present situation
+2. Immediate challenge
+3. Root cause (subconscious)
+4. Past foundation
+5. Conscious goal
+6. Near future
+7. Self-perception
+8. External environment
+9. Hopes & fears
+10. Final outcome
+`
+}
+
 export function getTarotReadingPrompt({
     question,
     cards,
+    readingType,
     isFollowUp,
     previousQuestion,
     previousInterpretation,
@@ -49,6 +104,10 @@ export function getTarotReadingPrompt({
         !!previousQuestion &&
         !!previousInterpretation &&
         previousQuestion !== question
+
+    const typeInstructions = readingType && READING_TYPE_INSTRUCTIONS[readingType] 
+        ? READING_TYPE_INSTRUCTIONS[readingType] 
+        : "Interpret the cards based on their order and the question."
 
     if (hasFollowUpContext) {
         return `Main question: "${previousQuestion}"
@@ -82,13 +141,16 @@ Answer`
 
 Cards: ${cards}
 
-Goal: Provide a direct, human-like answer to the question with keywords.
+${typeInstructions}
+
+Goal: Provide a direct, human-like answer to the question with keywords, respecting positional meanings.
 
 Instructions:
 1) Check the question type (Timing, Outcome, etc.) and answer it explicitly.
-2) Ensure the response sounds like a real person talking, not an AI.
-3) Verify the text is readable and directly addresses the specific concern.
-4) Provide 3 keywords summarizing the answer at the top.
+2) Follow the specific positional meanings for the reading type.
+3) Ensure the response sounds like a real person talking, not an AI.
+4) Verify the text is readable and directly addresses the specific concern.
+5) Provide 3 keywords summarizing the answer at the top.
 
 Output:
 - 3 keywords (comma-separated) in the same language as the answer.

@@ -938,9 +938,11 @@
 
   "Reading": {
     "types": {
-      "simple": {"title": "การอ่านแบบง่าย", "description": "ไพ่หนึ่งใบสำหรับคำแนะนำที่ชัดเจน"},
-      "intermediate": {"title": "การอ่านระดับกลาง", "description": "ไพ่สองใบเพื่อมุมมองลึกซึ้งยิ่งขึ้น"},
-      "advanced": {"title": "การอ่านขั้นสูง", "description": "ไพ่สามใบสำหรับคำแนะนำที่ครอบคลุม"}
+      "simple": {"title": "Simple Reading", "description": "Instant clarity, daily energy, simple answer"},
+      "general": {"title": "General Reading", "description": "Understanding flow and movement"},
+      "detailed": {"title": "Detailed Question", "description": "Decision-making, problem-solving"},
+      "expanded": {"title": "Expanded Detail", "description": "Relationships, career paths, layered influence"},
+      "celtic": {"title": "Celtic Cross", "description": "Deep life situation, unavoidable patterns"}
     }
   },
 

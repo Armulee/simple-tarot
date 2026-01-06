@@ -179,6 +179,7 @@ export default function CardSelection({
                     cards: cardNames,
                     parent_reading_id: isFollowUp ? parentReadingId : null,
                     user_id: user?.id || null,
+                    reading_type: readingType || null,
                 }),
             })
 

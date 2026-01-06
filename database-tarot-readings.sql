@@ -10,12 +10,15 @@ CREATE TABLE IF NOT EXISTS tarot_readings (
     interpretation TEXT, -- null until first visit
     parent_id TEXT NULL, -- when set, this reading is a follow-up to the main reading
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    reading_type TEXT
 );
 
 -- Ensure new columns exist even if table was created previously
 ALTER TABLE tarot_readings
     ADD COLUMN IF NOT EXISTS parent_id TEXT NULL;
+ALTER TABLE tarot_readings
+    ADD COLUMN IF NOT EXISTS reading_type TEXT NULL;
 
 -- Add indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_tarot_readings_did ON tarot_readings(did);

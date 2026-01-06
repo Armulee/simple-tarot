@@ -3,7 +3,7 @@ import { Pencil } from "lucide-react"
 import { Button } from "../ui/button"
 import { Card } from "../ui/card"
 import { Badge } from "../ui/badge"
-import { useTarot } from "@/contexts/tarot-context"
+import { useTarot, type ReadingType } from "@/contexts/tarot-context"
 import { ReadingConfig } from "../../app/[locale]/tarot/page"
 import { isFollowUpQuestion, getCleanQuestionText } from "@/lib/question-utils"
 import { useEffect, useState } from "react"
@@ -41,7 +41,7 @@ export default function ReadingType({
     }
 
     const handleReadingTypeSelect = (
-        type: "simple" | "intermediate" | "advanced"
+        type: ReadingType
     ) => {
         setReadingType(type)
         setCurrentStep("card-selection")
@@ -139,10 +139,7 @@ export default function ReadingType({
                                             className='p-6 bg-card/10 backdrop-blur-sm border-border/20 hover:border-primary/50 cursor-pointer transition-all duration-300 hover:scale-105 animate-glow-pulse'
                                             onClick={() =>
                                                 handleReadingTypeSelect(
-                                                    key as
-                                                        | "simple"
-                                                        | "intermediate"
-                                                        | "advanced"
+                                                    key as ReadingType
                                                 )
                                             }
                                         >

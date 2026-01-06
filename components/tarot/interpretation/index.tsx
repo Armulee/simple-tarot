@@ -33,6 +33,7 @@ type ReadingProps = {
     ownerDid?: string | null
     ownerUserId?: string | null
     isLargeScreen?: boolean
+    readingType?: string | null
     onInterpretationChange?: (text: string | null) => void
 }
 
@@ -44,6 +45,7 @@ export default function Interpretation({
     ownerDid,
     ownerUserId,
     isLargeScreen = false,
+    readingType: propReadingType,
     onInterpretationChange,
 }: ReadingProps) {
     const t = useTranslations("ReadingPage.interpretation")
@@ -52,6 +54,7 @@ export default function Interpretation({
         isFollowUp,
         setInterpretation: setContextInterpretation,
         setQuestion: setContextQuestion,
+        readingType,
     } = useTarot()
     const [interpretation, setInterpretationState] = useState<string | null>(
         initialInterpretation ?? null
@@ -231,6 +234,7 @@ export default function Interpretation({
             const prompt = getTarotReadingPrompt({
                 question: question ?? "",
                 cards: cardNames,
+                readingType: propReadingType || readingType || null,
                 isFollowUp,
                 previousQuestion,
                 previousInterpretation,
