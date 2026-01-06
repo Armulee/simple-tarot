@@ -65,7 +65,7 @@ export default function CardSelection({
         { name: string; isReversed: boolean }[]
     >([])
     const [spreadResetKey, setSpreadResetKey] = useState(0)
-    const cardsToSelect = readingType ? readingConfig[readingType].cards : 1
+    const cardsToSelect = readingType && readingConfig[readingType] ? readingConfig[readingType].cards : 1
 
     // Dialog state
     const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
@@ -373,7 +373,7 @@ export default function CardSelection({
                             </p>
                         </div>
 
-                        {readingType && (
+                        {readingType && readingConfig[readingType] && (
                             <>
                                 {/* Spread type selector - desktop only */}
                                 {!isMobile &&
