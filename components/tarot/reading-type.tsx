@@ -144,8 +144,8 @@ export default function ReadingType({
                                             }
                                         >
                                             <div className='text-center space-y-4'>
-                                                <div className='w-16 h-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center'>
-                                                    <span className='text-primary text-2xl font-bold'>
+                                                <div className='w-14 h-20 mx-auto rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center shadow-[0_0_15px_-3px_rgba(var(--primary),0.3)] transition-all duration-300 group-hover:shadow-[0_0_20px_-3px_rgba(var(--primary),0.5)] group-hover:bg-primary/20'>
+                                                    <span className='text-primary text-2xl font-serif font-bold'>
                                                         {config.cards}
                                                     </span>
                                                 </div>
