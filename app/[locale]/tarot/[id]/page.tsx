@@ -1,11 +1,7 @@
 import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { getTranslations } from "next-intl/server"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { ArrowRight } from "lucide-react"
 import { Sparkles } from "lucide-react"
 import { CardImage } from "@/components/card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
@@ -135,7 +131,10 @@ export default async function TarotReadingPage({
                     </div>
 
                     {/* Spread Layout based on reading type */}
-                    <SpreadLayout cards={selectedCards} readingType={data.reading_type} />
+                    <SpreadLayout
+                        cards={selectedCards}
+                        readingType={data.reading_type}
+                    />
                 </div>
             </Card>
 

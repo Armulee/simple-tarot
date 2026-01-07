@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
-import { useTranslations } from "next-intl"
 
 export interface SpreadCard {
     id: number
@@ -65,54 +64,47 @@ function CardWithLabel({
     className = "",
     style = {},
     rotate = false,
+    cardsLength,
 }: {
     card: SpreadCard
     positionLabel: string
     className?: string
     style?: React.CSSProperties
     rotate?: boolean
+    cardsLength: number
 }) {
-    // We can't use hooks here easily if we want to be pure, but we need translations for "View Details"
-    // We'll just hardcode "View Details" or pass it down? 
-    // The parent component is client-side, so we can use hooks?
-    // Yes, "use client" is at top.
-    
-    // We'll skip the translation hook for the button text to avoid complexity if this is used in a server component,
-    // but this file is marked use client. So we can use useTranslations.
-    const t = useTranslations("ReadingPage")
-
     return (
         <div
             className={`flex flex-col items-center gap-2 relative group ${className}`}
             style={style}
         >
-            <Badge
-                variant='outline'
-                className='bg-black/50 text-white border-primary/50 backdrop-blur-md whitespace-nowrap z-20 shadow-sm'
-            >
-                {positionLabel}
-            </Badge>
+            {cardsLength > 1 && (
+                <Badge
+                    variant='outline'
+                    className='bg-black/50 text-white border-primary/50 backdrop-blur-md whitespace-nowrap z-20 shadow-sm'
+                >
+                    {positionLabel}
+                </Badge>
+            )}
 
             {/* Badge for card name on top of image */}
             <div className={`relative ${rotate ? "rotate-90" : ""}`}>
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 w-max max-w-[120px]">
-                     <Badge
-                        variant='secondary'
-                        className='bg-white/20 text-white/90 border-primary/30 text-[10px] truncate block max-w-full'
-                    >
-                        {card.meaning}
-                    </Badge>
-                </div>
+                <Badge
+                    variant='secondary'
+                    className='mx-auto bg-white/20 text-white/90 border-primary/30 text-[10px] truncate block max-w-full'
+                >
+                    {card.meaning}
+                </Badge>
 
                 <CardImage
                     card={card}
                     size='md'
                     showAura={true}
                     showLabel={false}
-                    className='hover:scale-105 transition-transform duration-200 z-10'
+                    className='hover:scale-105 transition-transform duration-200 z-10 mx-auto mt-4'
                 />
             </div>
-            
+
             <Button
                 asChild
                 size='sm'
@@ -149,7 +141,12 @@ export default function SpreadLayout({
 
     const meanings = POSITION_MEANINGS[type] || []
 
-    const renderCard = (index: number, extraClass = "", style = {}, rotate = false) => {
+    const renderCard = (
+        index: number,
+        extraClass = "",
+        style = {},
+        rotate = false
+    ) => {
         const card = cards[index]
         if (!card) return null
         return (
@@ -160,6 +157,7 @@ export default function SpreadLayout({
                 className={extraClass}
                 style={style}
                 rotate={rotate}
+                cardsLength={cards.length}
             />
         )
     }
@@ -189,7 +187,7 @@ export default function SpreadLayout({
             <div className='flex flex-col items-center gap-4 py-8 animate-fade-in'>
                 {/* Top: 5 */}
                 <div className='mb-4'>{renderCard(4)}</div>
-                
+
                 {/* Middle Row: 2, 1, 3 */}
                 <div className='flex gap-8 items-center'>
                     {renderCard(1)} {/* 2: Obstacle/Challenge (Left) */}
@@ -214,34 +212,46 @@ export default function SpreadLayout({
             <div className='relative w-full max-w-3xl mx-auto h-[500px] py-8 animate-fade-in hidden md:block'>
                 {/* Using absolute positioning for precise horseshoe shape on desktop */}
                 {/* Center point is 50% */}
-                
+
                 {/* 1: Top Left */}
                 <div className='absolute top-0 left-[10%]'>{renderCard(0)}</div>
-                
+
                 {/* 7: Top Right */}
-                <div className='absolute top-0 right-[10%]'>{renderCard(6)}</div>
+                <div className='absolute top-0 right-[10%]'>
+                    {renderCard(6)}
+                </div>
 
                 {/* 2: Mid Left */}
-                <div className='absolute top-[120px] left-[20%]'>{renderCard(1)}</div>
-                
+                <div className='absolute top-[120px] left-[20%]'>
+                    {renderCard(1)}
+                </div>
+
                 {/* 6: Mid Right */}
-                <div className='absolute top-[120px] right-[20%]'>{renderCard(5)}</div>
+                <div className='absolute top-[120px] right-[20%]'>
+                    {renderCard(5)}
+                </div>
 
                 {/* 3: Low Left */}
-                <div className='absolute top-[240px] left-[30%]'>{renderCard(2)}</div>
-                
+                <div className='absolute top-[240px] left-[30%]'>
+                    {renderCard(2)}
+                </div>
+
                 {/* 5: Low Right */}
-                <div className='absolute top-[240px] right-[30%]'>{renderCard(4)}</div>
+                <div className='absolute top-[240px] right-[30%]'>
+                    {renderCard(4)}
+                </div>
 
                 {/* 4: Center Bottom */}
-                <div className='absolute top-[340px] left-1/2 -translate-x-1/2'>{renderCard(3)}</div>
+                <div className='absolute top-[340px] left-1/2 -translate-x-1/2'>
+                    {renderCard(3)}
+                </div>
             </div>
         )
     }
-    
+
     // Mobile fallback for expanded or just regular flex for safety
     if (type === "expanded") {
-         return (
+        return (
             <div className='flex flex-wrap justify-center gap-6 py-8 animate-fade-in md:hidden'>
                 {cards.map((_, i) => renderCard(i))}
             </div>
@@ -255,40 +265,41 @@ export default function SpreadLayout({
             <div className='flex flex-col lg:flex-row items-center lg:items-start justify-center gap-16 py-8 animate-fade-in'>
                 {/* Cross Section */}
                 <div className='relative w-[300px] h-[450px] flex items-center justify-center'>
-                     {/* 1: Center */}
-                     <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10'>
+                    {/* 1: Center */}
+                    <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10'>
                         {renderCard(0)}
-                     </div>
-                     
-                     {/* 2: Crossing (Rotated) */}
-                     <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 opacity-90 pointer-events-none'>
+                    </div>
+
+                    {/* 2: Crossing (Rotated) */}
+                    <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 opacity-90 pointer-events-none'>
                         {/* We render card 2 rotated. Note: pointer-events-none because it overlaps 1. 
                             We might want to allow clicking, so maybe offset it slightly or z-index it higher? 
                             Let's keep z-index higher. */}
-                        <div className="rotate-90 scale-105 pointer-events-auto">
-                            {renderCard(1, "", {}, false)} {/* Pass false to rotate prop, assume wrapper rotates. Actually let's use the prop */}
+                        <div className='rotate-90 scale-105 pointer-events-auto'>
+                            {renderCard(1, "", {}, false)}{" "}
+                            {/* Pass false to rotate prop, assume wrapper rotates. Actually let's use the prop */}
                         </div>
-                     </div>
+                    </div>
 
-                     {/* 5: Above */}
-                     <div className='absolute top-0 left-1/2 -translate-x-1/2'>
+                    {/* 5: Above */}
+                    <div className='absolute top-0 left-1/2 -translate-x-1/2'>
                         {renderCard(4)}
-                     </div>
+                    </div>
 
-                     {/* 3: Below */}
-                     <div className='absolute bottom-0 left-1/2 -translate-x-1/2'>
+                    {/* 3: Below */}
+                    <div className='absolute bottom-0 left-1/2 -translate-x-1/2'>
                         {renderCard(2)}
-                     </div>
+                    </div>
 
-                     {/* 4: Left */}
-                     <div className='absolute top-1/2 left-0 -translate-y-1/2'>
+                    {/* 4: Left */}
+                    <div className='absolute top-1/2 left-0 -translate-y-1/2'>
                         {renderCard(3)}
-                     </div>
+                    </div>
 
-                     {/* 6: Right */}
-                     <div className='absolute top-1/2 right-0 -translate-y-1/2'>
+                    {/* 6: Right */}
+                    <div className='absolute top-1/2 right-0 -translate-y-1/2'>
                         {renderCard(5)}
-                     </div>
+                    </div>
                 </div>
 
                 {/* Staff Section (Cards 7-10 from bottom to top) */}
