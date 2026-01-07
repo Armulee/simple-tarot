@@ -11,6 +11,7 @@ import { CardImage } from "@/components/card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
 import SpreadLayout from "@/components/tarot/spread-layout"
 import Interpretation from "@/components/tarot/interpretation"
+import FollowUpBadge from "@/components/tarot/follow-up-badge"
 
 async function getTarotReading(id: string) {
     const { data } = await supabase
