@@ -9,8 +9,8 @@ import { ArrowRight } from "lucide-react"
 import { Sparkles } from "lucide-react"
 import { CardImage } from "@/components/card-image"
 import { getCleanQuestionText } from "@/lib/question-utils"
+import SpreadLayout from "@/components/tarot/spread-layout"
 import Interpretation from "@/components/tarot/interpretation"
-import FollowUpBadge from "@/components/tarot/follow-up-badge"
 
 async function getTarotReading(id: string) {
     const { data } = await supabase
@@ -133,58 +133,8 @@ export default async function TarotReadingPage({
                         <Sparkles className='w-6 h-6 text-primary' />
                     </div>
 
-                    {/* Card Images with Badges on Top */}
-                    <div className='flex flex-wrap gap-6 justify-center'>
-                        {selectedCards.map((card, index) => (
-                            <div
-                                key={index}
-                                className='flex flex-col items-center gap-3 relative animate-slide-up'
-                                style={{
-                                    animationDelay: `${index * 150}ms`,
-                                    animationFillMode: "both",
-                                }}
-                            >
-                                {/* Glow effect behind card */}
-                                <div
-                                    className='absolute inset-0 -z-10 bg-gradient-to-br from-primary/30 via-sky-500/30 to-primary/30 blur-xl opacity-50 scale-110 animate-pulse'
-                                    style={{
-                                        animationDelay: `${index * 150 + 500}ms`,
-                                    }}
-                                />
-
-                                {/* Badge on top */}
-                                <Badge
-                                    variant='secondary'
-                                    className='bg-white/20 text-white/80 border-primary/30'
-                                >
-                                    {card.meaning}
-                                </Badge>
-
-                                {/* Card Image */}
-                                <CardImage
-                                    card={card}
-                                    size='md'
-                                    showAura={true}
-                                    showLabel={false}
-                                    className='hover:scale-105 transition-transform duration-200'
-                                />
-                                {/* Deep meaning link */}
-                                <Button
-                                    asChild
-                                    size='sm'
-                                    variant='ghost'
-                                    className='mt-2 shadow-md text-xs underline underline-offset-2 text-white/80 opacity-60 hover:opacity-100 hover:bg-transparent ease duration-300'
-                                >
-                                    <Link
-                                        href={`/articles/tarot/${card.slug}${card.isReversed ? "#reversed-overview" : ""}`}
-                                    >
-                                        {t("viewDetails")}
-                                        <ArrowRight className='ml-0.5' />
-                                    </Link>
-                                </Button>
-                            </div>
-                        ))}
-                    </div>
+                    {/* Spread Layout based on reading type */}
+                    <SpreadLayout cards={selectedCards} readingType={data.reading_type} />
                 </div>
             </Card>
 
