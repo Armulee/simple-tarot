@@ -619,48 +619,6 @@ export default function HoroscopeForm() {
                 </div>
             </div>
 
-            <Section
-                title='Birth information'
-                tooltip='Used as your natal baseline (your birth chart). Time and location improve accuracy.'
-                selectedDate={birthDate}
-                onSelectDate={setBirthDate}
-                dateValue={formattedBirthDate}
-                currentTime={birthTime}
-                timeValue={formattedTime(birthTime)}
-                locationValue={birthLocationDisplay}
-                calendarOpen={birthCalendarOpen}
-                setCalendarOpen={setBirthCalendarOpen}
-                timeOpen={birthTimeOpen}
-                setTimeOpen={setBirthTimeOpen}
-                locationOpen={birthLocationOpen}
-                setLocationOpen={setBirthLocationOpen}
-                timeStep={birthTimeStep}
-                setTimeStep={setBirthTimeStep}
-                hourInput={birthHourInput}
-                setHourInput={setBirthHourInput}
-                minuteInput={birthMinuteInput}
-                setMinuteInput={setBirthMinuteInput}
-                setTime={setBirthTime}
-                locationStep={birthLocationStep}
-                setLocationStep={setBirthLocationStep}
-                searchCountry={birthSearchCountry}
-                setSearchCountry={setBirthSearchCountry}
-                searchState={birthSearchState}
-                setSearchState={setBirthSearchState}
-                filteredCountries={filteredCountriesBirth}
-                filteredStates={filteredStatesBirth}
-                onSelectCountry={(name) => {
-                    setBirthLocationSource("manual")
-                    setBirthCountry(name)
-                }}
-                onSelectState={(name) => {
-                    setBirthLocationSource("manual")
-                    setBirthStateProv(name)
-                }}
-                onUseCurrentLocation={() => void handleLocationClick("birth")}
-                type='birth'
-                containerClassName='lg:max-w-none lg:px-0 lg:pt-0 lg:items-stretch lg:justify-start'
-            />
             <div className='w-full max-w-6xl mx-auto px-4 lg:px-8 pt-8 lg:pt-10'>
                 <div className='flex flex-col gap-8 lg:flex-row lg:items-start'>
                     <div className='flex-1 flex flex-col gap-2'>
@@ -706,7 +664,7 @@ export default function HoroscopeForm() {
                                 void handleLocationClick("birth")
                             }
                             type='birth'
-                            containerClassName='max-w-none px-0 pt-0 items-stretch justify-start'
+                            containerClassName='max-w-md px-0 pt-0 items-stretch justify-start'
                         />
                         <BirthDateSaveCheckbox
                             saveBirthDate={saveBirthDate}
@@ -757,7 +715,7 @@ export default function HoroscopeForm() {
                                 void handleLocationClick("transit")
                             }
                             type='transit'
-                            containerClassName='max-w-none px-0 pt-0 items-stretch justify-start'
+                            containerClassName='max-w-md px-0 pt-0 items-stretch justify-start'
                         />
                     </div>
                 </div>
