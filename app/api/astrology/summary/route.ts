@@ -1,4 +1,5 @@
-import { streamText } from "ai"
+import { streamObject } from "ai"
+import { astrologySummarySchema } from "@/lib/astrology/schema"
 
 const MODEL = "openai/gpt-4.1-mini"
 
@@ -10,8 +11,9 @@ export async function POST(req: Request) {
             return new Response("User prompt is required", { status: 400 })
         }
 
-        const result = streamText({
-            model: MODEL,
+        const result = await streamObject({
+            model: MODEL as any,
+            schema: astrologySummarySchema,
             system: `You are an astrology interpretation engine.
 
 Your role is NOT to predict fate or fixed outcomes.
@@ -43,26 +45,7 @@ IMPORTANT: Please respond in the dominant language of this message.
 `,
         })
 
-        // Log usage async (best-effort)
-        result.usage
-            .then((usage) => {
-                const inputTokens = usage?.inputTokens
-                const outputTokens = usage?.outputTokens
-                const estimatedCost = costPerUsage(
-                    inputTokens,
-                    outputTokens,
-                    MODEL
-                )
-                console.log("AI usage (Astrology Summary)", {
-                    model: MODEL,
-                    inputTokens,
-                    outputTokens,
-                    estimatedCostUSD: estimatedCost,
-                })
-            })
-            .catch(() => {})
-
-        return result.toUIMessageStreamResponse()
+        return result.toTextStreamResponse()
     } catch (error) {
         console.error("Error generating astrology summary:", error)
         return new Response("Failed to generate summary", { status: 500 })

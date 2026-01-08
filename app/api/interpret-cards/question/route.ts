@@ -1,5 +1,6 @@
-import { streamText } from "ai"
+import { streamObject, type LanguageModel } from "ai"
 import { TAROT_SYSTEM_PROMPT } from "@/lib/prompts"
+import { tarotInterpretationSchema } from "@/lib/tarot/schema"
 
 const MODEL = "openai/gpt-4.1-mini"
 
@@ -13,17 +14,16 @@ export async function POST(req: Request) {
             })
         }
 
-        const result = streamText({
-            model: MODEL,
+        const result = await streamObject({
+            model: MODEL as unknown as LanguageModel,
+            schema: tarotInterpretationSchema,
             system: TAROT_SYSTEM_PROMPT,
             prompt: `${prompt}
 
-        IMPORTANT: Please respond in the dominant language of this message.
-        Note: Return ONLY a valid JSON object. Do not include any markdown formatting like \`\`\`json or \`\`\` around the response.`,
+        IMPORTANT: Please respond in the dominant language of this message.`,
         })
-        
 
-        return result.toUIMessageStreamResponse()
+        return result.toTextStreamResponse()
     } catch (error) {
         console.error("Error generating interpretation:", error)
         return new Response("Failed to generate interpretation", {

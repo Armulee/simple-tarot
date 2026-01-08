@@ -68,6 +68,7 @@ function CardWithLabel({
     cardsLength,
     index,
     question,
+    size = "md",
 }: {
     index: number
     card: SpreadCard
@@ -77,6 +78,7 @@ function CardWithLabel({
     rotate?: boolean
     cardsLength: number
     question?: string | null
+    size?: "sm" | "md" | "lg"
 }) {
     return (
         <div
@@ -85,43 +87,84 @@ function CardWithLabel({
         >
             {cardsLength > 1 && (
                 <div className='flex flex-col items-center gap-1.5 z-20 animate-fade-in'>
-                    <div className='flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-950/40 backdrop-blur-xl border border-white/10 shadow-[0_0_15px_rgba(99,102,241,0.2)] group-hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] transition-all duration-500'>
-                        <div className='flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-tr from-primary to-secondary text-[10px] font-bold text-white shadow-inner'>
+                    <div
+                        className={`flex items-center gap-2 rounded-full bg-indigo-950/40 backdrop-blur-xl border border-white/10 shadow-[0_0_15px_rgba(99,102,241,0.2)] group-hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] transition-all duration-500 ${
+                            size === "sm" ? "px-2 py-0.5" : "px-3 py-1"
+                        }`}
+                    >
+                        <div
+                            className={`flex items-center justify-center rounded-full bg-gradient-to-tr from-primary to-secondary font-bold text-white shadow-inner ${
+                                size === "sm"
+                                    ? "w-4 h-4 text-[9px]"
+                                    : "w-5 h-5 text-[10px]"
+                            }`}
+                        >
                             {index + 1}
                         </div>
-                        <span className='text-[11px] font-medium tracking-wide text-indigo-100 uppercase'>
+                        <span
+                            className={`font-medium tracking-wide text-indigo-100 uppercase ${
+                                size === "sm" ? "text-[10px]" : "text-[11px]"
+                            }`}
+                        >
                             {positionLabel}
                         </span>
-                        <Sparkles className='w-3 h-3 text-secondary animate-pulse' />
+                        <Sparkles
+                            className={
+                                size === "sm"
+                                    ? "w-2.5 h-2.5 text-secondary animate-pulse"
+                                    : "w-3 h-3 text-secondary animate-pulse"
+                            }
+                        />
                     </div>
                 </div>
             )}
 
-            {/* Badge for card name on top of image */}
-            <div className={`relative ${rotate ? "rotate-90" : ""}`}>
-                <Badge
-                    variant='secondary'
-                    className='mx-auto bg-white/20 text-white/90 border-primary/30 text-[10px] truncate block max-w-full'
-                >
-                    {card.meaning}
-                </Badge>
+            {/* Badge for card name on top of image and QuickInsight side-by-side */}
+            <div className='flex flex-row items-center gap-4 z-10'>
+                <div className={`relative ${rotate ? "rotate-90" : ""}`}>
+                    <Badge
+                        variant='secondary'
+                        className={`mx-auto bg-white/20 text-white/90 border-primary/30 truncate block max-w-full ${
+                            size === "sm"
+                                ? "text-[9px] px-1.5 py-0"
+                                : "text-[10px]"
+                        }`}
+                    >
+                        {card.meaning}
+                    </Badge>
 
-                <CardImage
-                    card={card}
-                    size='md'
-                    showAura={true}
-                    showLabel={false}
-                    className='hover:scale-105 transition-transform duration-200 z-10 mx-auto mt-4'
-                />
+                    <CardImage
+                        card={card}
+                        size={size}
+                        showAura={true}
+                        showLabel={false}
+                        className={`hover:scale-105 transition-transform duration-200 z-10 mx-auto ${
+                            size === "sm" ? "mt-2" : "mt-4"
+                        }`}
+                    />
+                </div>
+
+                {question && (
+                    <div className='hidden sm:block'>
+                        <QuickInsight
+                            cardName={card.name}
+                            positionMeaning={positionLabel}
+                            question={question}
+                            index={index}
+                        />
+                    </div>
+                )}
             </div>
 
             {question && (
-                <QuickInsight
-                    cardName={card.name}
-                    positionMeaning={positionLabel}
-                    question={question}
-                    index={index}
-                />
+                <div className='sm:hidden'>
+                    <QuickInsight
+                        cardName={card.name}
+                        positionMeaning={positionLabel}
+                        question={question}
+                        index={index}
+                    />
+                </div>
             )}
 
             <Button
@@ -165,7 +208,8 @@ export default function SpreadLayout({
         index: number,
         extraClass = "",
         style = {},
-        rotate = false
+        rotate = false,
+        size: "sm" | "md" | "lg" = "md"
     ) => {
         const card = cards[index]
         if (!card) return null
@@ -180,6 +224,7 @@ export default function SpreadLayout({
                 cardsLength={cards.length}
                 index={index}
                 question={question}
+                size={size}
             />
         )
     }
@@ -284,56 +329,53 @@ export default function SpreadLayout({
         // Celtic Cross
         // Left Section (Cross) + Right Section (Staff)
         return (
-            <div className='flex flex-col lg:flex-row items-center lg:items-start justify-center gap-16 py-8 animate-fade-in'>
+            <div className='flex flex-row items-start justify-center gap-2 sm:gap-8 lg:gap-12 py-8 animate-fade-in overflow-x-hidden'>
                 {/* Cross Section */}
-                <div className='relative w-[300px] h-[450px] flex items-center justify-center'>
+                <div className='relative w-[240px] h-[340px] flex items-center justify-center shrink-0 scale-[0.7] sm:scale-100 -mx-10 sm:mx-0'>
                     {/* 1: Center */}
                     <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10'>
-                        {renderCard(0)}
+                        {renderCard(0, "", {}, false, "sm")}
                     </div>
 
                     {/* 2: Crossing (Rotated) */}
                     <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 opacity-90 pointer-events-none'>
-                        {/* We render card 2 rotated. Note: pointer-events-none because it overlaps 1. 
-                            We might want to allow clicking, so maybe offset it slightly or z-index it higher? 
-                            Let's keep z-index higher. */}
                         <div className='rotate-90 scale-105 pointer-events-auto'>
-                            {renderCard(1, "", {}, false)}{" "}
-                            {/* Pass false to rotate prop, assume wrapper rotates. Actually let's use the prop */}
+                            {renderCard(1, "", {}, false, "sm")}
                         </div>
                     </div>
 
                     {/* 5: Above */}
                     <div className='absolute top-0 left-1/2 -translate-x-1/2'>
-                        {renderCard(4)}
+                        {renderCard(4, "", {}, false, "sm")}
                     </div>
 
                     {/* 3: Below */}
                     <div className='absolute bottom-0 left-1/2 -translate-x-1/2'>
-                        {renderCard(2)}
+                        {renderCard(2, "", {}, false, "sm")}
                     </div>
 
                     {/* 4: Left */}
                     <div className='absolute top-1/2 left-0 -translate-y-1/2'>
-                        {renderCard(3)}
+                        {renderCard(3, "", {}, false, "sm")}
                     </div>
 
                     {/* 6: Right */}
                     <div className='absolute top-1/2 right-0 -translate-y-1/2'>
-                        {renderCard(5)}
+                        {renderCard(5, "", {}, false, "sm")}
                     </div>
                 </div>
 
-                {/* Staff Section (Cards 7-10 from bottom to top) */}
-                <div className='flex flex-col-reverse gap-4'>
-                    {/* 7: Bottom (Self) */}
-                    {renderCard(6)}
+                {/* Staff Section (Cards 7-10) */}
+                {/* Arranged vertically (downwards) in the traditional Celtic Cross style */}
+                <div className='flex flex-col-reverse gap-3 sm:gap-4 shrink-0 scale-[0.8] sm:scale-100'>
+                    {/* 7: Self */}
+                    {renderCard(6, "", {}, false, "sm")}
                     {/* 8: Environment */}
-                    {renderCard(7)}
+                    {renderCard(7, "", {}, false, "sm")}
                     {/* 9: Hopes/Fears */}
-                    {renderCard(8)}
-                    {/* 10: Outcome (Top) */}
-                    {renderCard(9)}
+                    {renderCard(8, "", {}, false, "sm")}
+                    {/* 10: Outcome */}
+                    {renderCard(9, "", {}, false, "sm")}
                 </div>
             </div>
         )

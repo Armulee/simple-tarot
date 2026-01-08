@@ -3,7 +3,11 @@
 import { Card } from "@/components/ui/card"
 import { Sparkles } from "lucide-react"
 import { useEffect, useState, useCallback } from "react"
-import { useCompletion } from "@ai-sdk/react"
+import { experimental_useObject as useObject } from "@ai-sdk/react"
+import {
+    tarotInterpretationSchema,
+    type TarotInterpretation,
+} from "@/lib/tarot/schema"
 import QuestionInput from "../../question-input"
 import { useTranslations } from "next-intl"
 import { getTarotReadingPrompt } from "@/lib/prompts"
@@ -79,39 +83,46 @@ export default function Interpretation({
     const [hasAwardedStars, setHasAwardedStars] = useState(false)
     const [hasAttemptedGeneration, setHasAttemptedGeneration] = useState(false)
 
-    const { completion, complete } = useCompletion({
+    const { object, submit } = useObject({
         api: "/api/interpret-cards/question",
-        onFinish: async (_, completion) => {
-            try {
-                const parsed = JSON.parse(completion)
-                const mainText = `${parsed.keywords}\n\n${parsed.interpretation}`
-                setInterpretationState(mainText)
-                setContextCardInsights(parsed.cardInsights)
-                setIsGenerating(false)
+        schema: tarotInterpretationSchema,
+        onFinish: async ({
+            object,
+        }: {
+            object: TarotInterpretation | undefined
+        }) => {
+            if (object) {
+                try {
+                    const mainText = `${object.keywords}\n\n${object.interpretation}`
+                    setInterpretationState(mainText)
+                    if (object.cardInsights) {
+                        setContextCardInsights(object.cardInsights as string[])
+                    }
+                    setIsGenerating(false)
 
-                const saveKey =
-                    typeof window !== "undefined"
-                        ? `reading:${readingId}:saved`
-                        : null
-                if (saveKey && sessionStorage.getItem(saveKey)) {
-                } else {
-                    if (saveKey) sessionStorage.setItem(saveKey, "1")
-                    await fetch("/api/tarot/update", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            id: readingId,
-                            interpretation: mainText,
-                        }),
-                    })
+                    const saveKey =
+                        typeof window !== "undefined"
+                            ? `reading:${readingId}:saved`
+                            : null
+                    if (saveKey && sessionStorage.getItem(saveKey)) {
+                    } else {
+                        if (saveKey) sessionStorage.setItem(saveKey, "1")
+                        await fetch("/api/tarot/update", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                id: readingId,
+                                interpretation: mainText,
+                            }),
+                        })
+                    }
+                } catch (err) {
+                    console.error("Failed to process interpretation:", err)
+                    setIsGenerating(false)
                 }
-            } catch (err) {
-                console.error("Failed to parse interpretation JSON:", err)
-                setInterpretationState(completion)
-                setIsGenerating(false)
             }
         },
-        onError: (e) => {
+        onError: (e: Error) => {
             setError(e.message)
             setIsGenerating(false)
             try {
@@ -123,6 +134,19 @@ export default function Interpretation({
             } catch {}
         },
     })
+
+    // Sync card insights to context while streaming
+    useEffect(() => {
+        if (object?.cardInsights) {
+            // Filter out null/undefined values and ensure it's a string array
+            const insights = object.cardInsights.filter(
+                (insight): insight is string => typeof insight === "string"
+            )
+            if (insights.length > 0) {
+                setContextCardInsights(insights)
+            }
+        }
+    }, [object?.cardInsights, setContextCardInsights])
 
     useEffect(() => {
         if (typeof question === "string") {
@@ -249,17 +273,7 @@ export default function Interpretation({
                 previousInterpretation,
             })
 
-            complete(prompt).catch((e) => {
-                setError(e.message)
-                setIsGenerating(false)
-                try {
-                    const k =
-                        typeof window !== "undefined"
-                            ? `reading:${readingId}:gen`
-                            : null
-                    if (k) sessionStorage.removeItem(k)
-                } catch {}
-            })
+            submit({ prompt })
         }
     }, [
         interpretation,
@@ -268,9 +282,11 @@ export default function Interpretation({
         hasAttemptedGeneration,
         cards,
         question,
-        complete,
+        submit,
         readingId,
         isFollowUp,
+        propReadingType,
+        readingType,
     ])
 
     useEffect(() => {
@@ -377,7 +393,7 @@ export default function Interpretation({
                                     Try Again
                                 </button>
                             </div>
-                        ) : isGenerating ? (
+                        ) : isGenerating && !object?.interpretation ? (
                             <div className='text-center space-y-4 py-8'>
                                 <div className='flex items-center justify-center space-x-3'>
                                     <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-primary'></div>
@@ -396,94 +412,104 @@ export default function Interpretation({
                                 }}
                             >
                                 {(() => {
-                                    const text =
-                                        interpretation || completion || ""
-
-                                    let displayKeywords: string | null = null
-                                    let displayContent: string = text
-
-                                    // Try to parse if it looks like JSON
-                                    if (text.trim().startsWith("{")) {
-                                        try {
-                                            // Handle potential partial JSON during streaming
-                                            const normalized = text
-                                                .trim()
-                                                .endsWith("}")
-                                                ? text
-                                                : text + '"}'
-                                            const parsed =
-                                                JSON.parse(normalized)
-                                            if (parsed.keywords)
-                                                displayKeywords =
-                                                    parsed.keywords
-                                            if (parsed.interpretation)
-                                                displayContent =
-                                                    parsed.interpretation
-                                        } catch {
-                                            // If it's a JSON stream but not yet parseable,
-                                            // we could try to extract using regex for better streaming experience
-                                            const interpMatch = text.match(
-                                                /"interpretation"\s*:\s*"([^"]*)"?/
-                                            )
-                                            if (interpMatch)
-                                                displayContent = interpMatch[1]
-
-                                            const keywordMatch = text.match(
-                                                /"keywords"\s*:\s*"([^"]*)"?/
-                                            )
-                                            if (keywordMatch)
-                                                displayKeywords =
-                                                    keywordMatch[1]
-                                        }
-                                    }
-
-                                    // Original logic for non-JSON or parsed results
-                                    if (
-                                        displayKeywords ||
-                                        displayContent.includes("\n\n")
-                                    ) {
-                                        const keywords =
-                                            displayKeywords ||
-                                            displayContent.split(/\n\n/)[0]
-                                        const content = displayKeywords
-                                            ? displayContent
-                                            : displayContent
-                                                  .split(/\n\n/)
-                                                  .slice(1)
-                                                  .join("\n\n")
+                                    // If we have a saved interpretation, display it
+                                    if (interpretation) {
+                                        const parts =
+                                            interpretation.split("\n\n")
+                                        const keywords = parts[0] || ""
+                                        const content = parts
+                                            .slice(1)
+                                            .join("\n\n")
 
                                         return (
                                             <>
-                                                <div className='flex flex-wrap gap-2 mb-4'>
-                                                    {keywords
-                                                        .split(",")
-                                                        .map((k, i) => {
-                                                            const trimmed =
-                                                                k.trim()
-                                                            if (!trimmed)
-                                                                return null
-                                                            const capitalized =
-                                                                trimmed
-                                                                    .charAt(0)
-                                                                    .toUpperCase() +
-                                                                trimmed.slice(1)
-                                                            return (
-                                                                <span
-                                                                    key={i}
-                                                                    className='px-3 py-1 text-xs font-medium rounded-full bg-white/10 text-white border border-white/20'
-                                                                >
-                                                                    {
-                                                                        capitalized
-                                                                    }
-                                                                </span>
-                                                            )
-                                                        })}
-                                                </div>
+                                                {keywords && (
+                                                    <div className='flex flex-wrap gap-2 mb-4'>
+                                                        {keywords
+                                                            .split(",")
+                                                            .map(
+                                                                (
+                                                                    k: string,
+                                                                    i: number
+                                                                ) => {
+                                                                    const trimmed =
+                                                                        k.trim()
+                                                                    if (
+                                                                        !trimmed
+                                                                    )
+                                                                        return null
+                                                                    return (
+                                                                        <span
+                                                                            key={
+                                                                                i
+                                                                            }
+                                                                            className='px-3 py-1 text-xs font-medium rounded-full bg-white/10 text-white border border-white/20'
+                                                                        >
+                                                                            {trimmed
+                                                                                .charAt(
+                                                                                    0
+                                                                                )
+                                                                                .toUpperCase() +
+                                                                                trimmed.slice(
+                                                                                    1
+                                                                                )}
+                                                                        </span>
+                                                                    )
+                                                                }
+                                                            )}
+                                                    </div>
+                                                )}
                                                 {content}
                                             </>
                                         )
                                     }
-                                    return text
+
+                                    // If we are currently generating, display the streaming object
+                                    if (object) {
+                                        return (
+                                            <>
+                                                {object.keywords && (
+                                                    <div className='flex flex-wrap gap-2 mb-4'>
+                                                        {object.keywords
+                                                            .split(",")
+                                                            .map(
+                                                                (
+                                                                    k: string,
+                                                                    i: number
+                                                                ) => {
+                                                                    const trimmed =
+                                                                        k.trim()
+                                                                    if (
+                                                                        !trimmed
+                                                                    )
+                                                                        return null
+                                                                    return (
+                                                                        <span
+                                                                            key={
+                                                                                i
+                                                                            }
+                                                                            className='px-3 py-1 text-xs font-medium rounded-full bg-white/10 text-white border border-white/20'
+                                                                        >
+                                                                            {trimmed
+                                                                                .charAt(
+                                                                                    0
+                                                                                )
+                                                                                .toUpperCase() +
+                                                                                trimmed.slice(
+                                                                                    1
+                                                                                )}
+                                                                        </span>
+                                                                    )
+                                                                }
+                                                            )}
+                                                    </div>
+                                                )}
+                                                {object.interpretation}
+                                            </>
+                                        )
+                                    }
+
+                                    return null
                                 })()}
                             </div>
                         )}

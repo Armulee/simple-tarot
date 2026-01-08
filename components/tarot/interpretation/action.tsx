@@ -23,7 +23,8 @@ import { Settings } from "lucide-react"
 import { useTarot } from "@/contexts/tarot-context"
 import { useRouter } from "next/navigation"
 import { useStars } from "@/contexts/stars-context"
-import { useCompletion } from "@ai-sdk/react"
+import { experimental_useObject as useObject } from "@ai-sdk/react"
+import { tarotInterpretationSchema, type TarotInterpretation } from "@/lib/tarot/schema"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -113,16 +114,68 @@ export default function ActionSection({
         void loadVersions()
     }, [loadVersions])
 
-    const { complete } = useCompletion({
+    const { submit, object } = useObject({
         api: "/api/interpret-cards/question",
-        onFinish: (_, completion) => {
-            if (typeof onInterpretationChange === "function") {
-                onInterpretationChange(completion)
-            } else {
-                setInterpretation(completion)
+        schema: tarotInterpretationSchema,
+        onFinish: async ({
+            object,
+        }: {
+            object: TarotInterpretation | undefined
+        }) => {
+            if (object) {
+                const completion = `${object.keywords}\n\n${object.interpretation}`
+                if (typeof onInterpretationChange === "function") {
+                    onInterpretationChange(completion)
+                } else {
+                    setInterpretation(completion)
+                }
+
+                try {
+                    if (readingId && completion) {
+                        await fetch("/api/tarot/update", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                id: readingId,
+                                interpretation: completion,
+                            }),
+                        })
+                        await fetch("/api/tarot/versions", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                reading_id: readingId,
+                                content: completion,
+                            }),
+                        })
+                        await loadVersions()
+                    }
+                } catch {}
+
+                if (typeof onGeneratingChange === "function")
+                    onGeneratingChange(false)
             }
         },
+        onError: (e: Error) => {
+            toast.error("Failed to generate a new interpretation")
+            if (typeof onGeneratingChange === "function")
+                onGeneratingChange(false)
+        },
     })
+
+    const { setCardInsights } = useTarot()
+
+    // Sync card insights to context while streaming
+    useEffect(() => {
+        if (object?.cardInsights) {
+            const insights = object.cardInsights.filter(
+                (insight): insight is string => typeof insight === "string"
+            )
+            if (insights.length > 0) {
+                setCardInsights(insights)
+            }
+        }
+    }, [object?.cardInsights, setCardInsights])
 
     useEffect(() => {
         const el = navGuardRef.current
@@ -267,44 +320,9 @@ export default function ActionSection({
                 previousInterpretation,
             })
 
-            const newText = await complete(prompt)
-            if (!newText) {
-                toast.error("Failed to generate a new interpretation")
-                if (typeof onGeneratingChange === "function")
-                    onGeneratingChange(false)
-                return
-            }
-
-            try {
-                if (readingId && newText) {
-                    await fetch("/api/tarot/update", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            id: readingId,
-                            interpretation: newText,
-                        }),
-                    })
-                    await fetch("/api/tarot/versions", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            reading_id: readingId,
-                            content: newText,
-                        }),
-                    })
-                    await loadVersions()
-                }
-            } catch {}
-
-            if (typeof onInterpretationChange === "function") {
-                onInterpretationChange(newText)
-            } else {
-                setInterpretation(newText)
-            }
+            submit({ prompt })
         } catch (error) {
             console.error("Error regenerating interpretation:", error)
-        } finally {
             if (typeof onGeneratingChange === "function")
                 onGeneratingChange(false)
         }
@@ -317,10 +335,11 @@ export default function ActionSection({
         setInterpretation,
         onInterpretationChange,
         onGeneratingChange,
-        complete,
+        submit,
         loadVersions,
         readingId,
         isFollowUp,
+        readingType,
     ])
 
     const actionOptions = [

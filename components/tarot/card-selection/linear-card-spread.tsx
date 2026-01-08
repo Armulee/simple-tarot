@@ -112,11 +112,19 @@ function shuffle<T>(array: T[]): T[] {
 export function LinearCardSpread({
     cardsToSelect,
     onCardsSelected,
+    onPartialSelect,
+    externalSelectedNames = [],
     onProvideShuffle,
     onProvideRandomPick,
 }: {
     cardsToSelect: number
     onCardsSelected: (cards: BasicCard[]) => void
+    onPartialSelect?: (
+        card: BasicCard,
+        action: "add" | "remove",
+        newSelectedCount: number
+    ) => void
+    externalSelectedNames?: string[]
     onProvideShuffle?: (fn: () => void) => void
     onProvideRandomPick?: (fn: () => void) => void
 }) {
@@ -125,6 +133,11 @@ export function LinearCardSpread({
     const [deckList, setDeckList] = useState<string[]>(initialDeck)
     const [selected, setSelected] = useState<BasicCard[]>([])
     const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set())
+    const pendingPartialRef = useRef<{
+        card: BasicCard
+        action: "add" | "remove"
+        count: number
+    } | null>(null)
     const [showSwipeOverlay, setShowSwipeOverlay] = useState(false)
     const [reversalByName, setReversalByName] = useState<Map<string, boolean>>(
         () => new Map()
@@ -149,6 +162,13 @@ export function LinearCardSpread({
     const startTranslateYRef = useRef<number>(0)
     const suppressClickRef = useRef<boolean>(false)
     const suppressClickTimeoutRef = useRef<number | null>(null)
+    useEffect(() => {
+        if (pendingPartialRef.current && onPartialSelect) {
+            const { card, action, count } = pendingPartialRef.current
+            onPartialSelect(card, action, count)
+            pendingPartialRef.current = null
+        }
+    }, [selected, onPartialSelect])
 
     const finalizeIfDone = (next: BasicCard[], delay = 0) => {
         if (next.length === cardsToSelect) {
@@ -163,7 +183,7 @@ export function LinearCardSpread({
     }
 
     const randomPick = async () => {
-        if (isRandomPicking) return
+        if (isRandomPicking || selected.length >= cardsToSelect) return
 
         // Find unselected cards
         const unselectedNames = deckList.filter(
@@ -219,9 +239,15 @@ export function LinearCardSpread({
         const isReversed = mapped != null ? mapped : Math.random() < 0.5
 
         // Update state
-        const next = [...selected, { name: randomName, isReversed }]
+        const nextCard = { name: randomName, isReversed }
+        const next = [...selected, nextCard]
         setSelected(next)
         setSelectedNames((prev) => new Set(prev).add(randomName))
+        pendingPartialRef.current = {
+            card: nextCard,
+            action: "add",
+            count: next.length,
+        }
 
         // Finalize with delay to allow animation
         finalizeIfDone(next)
@@ -395,12 +421,23 @@ export function LinearCardSpread({
         const threshold = 0.5 * height
         const wasSelected = (startTranslateYRef.current || 0) < -0.8 * height
 
-        if (!wasSelected && elapsed >= MIN_HOLD_MS && draggedUp >= threshold) {
+        if (
+            !wasSelected &&
+            elapsed >= MIN_HOLD_MS &&
+            draggedUp >= threshold &&
+            selected.length < cardsToSelect
+        ) {
             const mapped = reversalByName.get(name)
             const isReversed = mapped != null ? mapped : Math.random() < 0.5
-            const next = [...selected, { name, isReversed }]
+            const nextCard = { name, isReversed }
+            const next = [...selected, nextCard]
             setSelected(next)
             setSelectedNames((prev) => new Set(prev).add(name))
+            pendingPartialRef.current = {
+                card: nextCard,
+                action: "add",
+                count: next.length,
+            }
             finalizeIfDone(next)
             // Hide/restore element
             el.style.transition = "transform 180ms ease"
@@ -409,12 +446,21 @@ export function LinearCardSpread({
             // Allow cancel selection by dragging back down close to deck
             if (translateY > -0.25 * height) {
                 // Cancel selection
-                setSelected((prev) => prev.filter((c) => c.name !== name))
+                const removedCard = selected.find((c) => c.name === name)
+                const next = selected.filter((c) => c.name !== name)
+                setSelected(next)
                 setSelectedNames((prev) => {
-                    const next = new Set(prev)
-                    next.delete(name)
-                    return next
+                    const nextSet = new Set(prev)
+                    nextSet.delete(name)
+                    return nextSet
                 })
+                if (removedCard) {
+                    pendingPartialRef.current = {
+                        card: removedCard,
+                        action: "remove",
+                        count: next.length,
+                    }
+                }
                 el.style.transition = "transform 180ms ease"
                 el.style.transform = "translateY(0) rotate(0deg)"
             } else {

@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { useCompletion } from "@ai-sdk/react"
+import { experimental_useObject as useObject } from "@ai-sdk/react"
+import { astrologySummarySchema, type AstrologySummary } from "@/lib/astrology/schema"
 import { Card } from "@/components/ui/card"
 import {
     Loader2,
@@ -291,57 +292,73 @@ export default function SummaryTab({
         [reading, locale]
     )
 
-    const { complete, completion, isLoading } = useCompletion({
+    const { submit, object, isLoading } = useObject({
         api: "/api/astrology/summary",
-        onFinish: async (_p, result) => {
-            const finalText = result?.trim() ? result.trim() : ""
-            setSavedSummary(finalText || null)
+        schema: astrologySummarySchema,
+        onFinish: async ({ object }: { object: AstrologySummary | undefined }) => {
+            if (object) {
+                const transitsTags =
+                    object.transits
+                        ?.map((t) => `[TRANSIT: ${t?.planet}-${t?.house}]`)
+                        .join(" ") || ""
+                const iconTag = object.vibeIcon ? `[ICON: ${object.vibeIcon}]` : ""
+                const finalText =
+                    `${object.interpretation}\n\n${transitsTags}\n${iconTag}`.trim()
 
-            const transits = parseTransitTags(finalText)
-            setParsedTransits(transits)
+                setSavedSummary(finalText || null)
 
-            const icon = parseIconTag(finalText)
-            setVibeIcon(icon)
-
-            if (finalText && onSummaryGenerated) {
-                onSummaryGenerated(finalText)
-            }
-
-            try {
-                if (finalText) {
-                    await fetch("/api/astrology/update", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            id: reading.id,
-                            summary: finalText,
-                        }),
-                    })
+                if (object.transits) {
+                    setParsedTransits(
+                        object.transits as { planet: string; house: string }[]
+                    )
                 }
-            } catch {}
+                if (object.vibeIcon) {
+                    setVibeIcon(object.vibeIcon)
+                }
+
+                if (finalText && onSummaryGenerated) {
+                    onSummaryGenerated(finalText)
+                }
+
+                try {
+                    if (finalText) {
+                        await fetch("/api/astrology/update", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                id: reading.id,
+                                summary: finalText,
+                            }),
+                        })
+                    }
+                } catch {}
+            }
         },
     })
 
     // Also parse during streaming
     useEffect(() => {
-        if (completion) {
-            const transits = parseTransitTags(completion)
-            if (transits.length > 0) {
-                setParsedTransits(transits)
+        if (object) {
+            if (object.transits) {
+                setParsedTransits(
+                    object.transits.filter(Boolean) as {
+                        planet: string
+                        house: string
+                    }[]
+                )
             }
-            const icon = parseIconTag(completion)
-            if (icon) {
-                setVibeIcon(icon)
+            if (object.vibeIcon) {
+                setVibeIcon(object.vibeIcon)
             }
         }
-    }, [completion])
+    }, [object])
 
     useEffect(() => {
         if (savedSummary) return
         if (hasStartedRef.current) return
         hasStartedRef.current = true
-        void complete(prompt)
-    }, [complete, prompt, savedSummary])
+        void submit({ prompt })
+    }, [submit, prompt, savedSummary])
 
     const handleCopy = async () => {
         if (!displayText) return
@@ -355,8 +372,10 @@ export default function SummaryTab({
         }
     }
 
-    const fullText = (completion?.trim() ? completion : savedSummary) || ""
-    const displayText = cleanTextForDisplay(fullText)
+    const displayText = useMemo(() => {
+        if (savedSummary) return cleanTextForDisplay(savedSummary)
+        return object?.interpretation || ""
+    }, [savedSummary, object?.interpretation])
 
     return (
         <div className='relative group'>

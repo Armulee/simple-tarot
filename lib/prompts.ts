@@ -30,7 +30,7 @@ Return a JSON object with the following structure:
 {
   "keywords": "three, comma, separated, keywords",
   "interpretation": "The main 3-6 sentence reading based on the question and spread.",
-  "cardInsights": ["A very short, punchy 1-sentence insight for card 1 based on its position", "A very short, punchy 1-sentence insight for card 2 based on its position", ...]
+  "cardInsights": ["A direct, punchy 1-sentence insight. Jump straight to the meaning. Never mention 'this card', 'the card', its name, or the position label. Example: 'Trust your gut right now.'", ...]
 }
 
 Important: The JSON must be valid. All text must be in the same language as the answer.
@@ -132,7 +132,7 @@ Output Format: JSON
 {
   "keywords": "3 keywords",
   "interpretation": "Approx 120 words answer",
-  "cardInsights": ["Optional: Short insights for cards if they change in context of follow-up, otherwise empty array"]
+  "cardInsights": ["Direct, punchy insights for the cards. Never mention 'this card', 'the card', its name, or position labels."]
 }`
     }
 
@@ -150,6 +150,8 @@ Instructions:
 3) Ensure the response sounds like a real person talking, not an AI.
 4) Verify the text is readable and directly addresses the specific concern.
 5) Provide a short 1-sentence insight for EACH card in its position in the "cardInsights" array.
+    - **CRITICAL**: Do NOT include the position label (e.g., "Advice:"), the card's name, or phrases like "this card", "the card", or "represents".
+    - **Jump straight to the point**: Write the insight as a direct, human-like observation or advice related to that specific position.
 
 Output Format: JSON
 {
@@ -158,4 +160,3 @@ Output Format: JSON
   "cardInsights": ["Insight for card 1", "Insight for card 2", ...]
 }`
 }
-

@@ -445,10 +445,15 @@ export default function CardSelection({
                                 {/* Mobile: force linear */}
                                 {isMobile || spreadMode === "linear" ? (
                                     <LinearCardSpread
+                                        key={spreadResetKey}
                                         cardsToSelect={
                                             readingConfig[readingType].cards
                                         }
                                         onCardsSelected={handleCardsSelected}
+                                        onPartialSelect={(c, action) =>
+                                            handlePartialSelect(c, action)
+                                        }
+                                        externalSelectedNames={externalNames}
                                         onProvideShuffle={(fn) =>
                                             (linearShuffleRef.current = fn)
                                         }
