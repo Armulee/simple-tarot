@@ -20,19 +20,20 @@ Specific Guidelines:
     - Position > card meaning (always).
 
 Constraints:
-- Length: 3–6 sentences (approx. 100–130 words).
+- Length: 3–6 sentences (approx. 100–130 words) for the main interpretation.
 - Language: Match the user's language, slang, and vibe perfectly.
 - Cards: Mention them naturally only if they add value to the answer.
 - No fluff, no "I sense", no "The cards indicate". Just say it.
 
 Format:
-Start with 3 short keywords summing up the answer (comma-separated) in the same language as the answer, then a double newline, then the answer.
-Example:
-Hope, Patience, Success
+Return a JSON object with the following structure:
+{
+  "keywords": "three, comma, separated, keywords",
+  "interpretation": "The main 3-6 sentence reading based on the question and spread.",
+  "cardInsights": ["A very short, punchy 1-sentence insight for card 1 based on its position", "A very short, punchy 1-sentence insight for card 2 based on its position", ...]
+}
 
-Your answer here...
-
-Your purpose is to give a clear, human-like answer that feels personal and verified.
+Important: The JSON must be valid. All text must be in the same language as the answer.
 `
 
 export interface TarotPromptOptions {
@@ -88,7 +89,7 @@ Positions:
 8. External environment
 9. Hopes & fears
 10. Final outcome
-`
+`,
 }
 
 export function getTarotReadingPrompt({
@@ -105,9 +106,10 @@ export function getTarotReadingPrompt({
         !!previousInterpretation &&
         previousQuestion !== question
 
-    const typeInstructions = readingType && READING_TYPE_INSTRUCTIONS[readingType] 
-        ? READING_TYPE_INSTRUCTIONS[readingType] 
-        : "Interpret the cards based on their order and the question."
+    const typeInstructions =
+        readingType && READING_TYPE_INSTRUCTIONS[readingType]
+            ? READING_TYPE_INSTRUCTIONS[readingType]
+            : "Interpret the cards based on their order and the question."
 
     if (hasFollowUpContext) {
         return `Main question: "${previousQuestion}"
@@ -119,22 +121,19 @@ Follow-up question: "${question}"
 
 Cards: ${cards}
 
-Goal: Provide a direct, human-like answer to the follow-up.
+Goal: Provide a direct, human-like answer to the follow-up in JSON format.
 
 Instructions:
 1) Answer the specific follow-up question directly.
 2) Sound like a real person (conversational, warm).
 3) Double-check that the answer is readable and not robotic.
 
-Output:
-- 3 keywords (comma-separated) in the same language as the answer.
-- One paragraph, approx. 120 words.
-- Natural and grounded.
-
-Format:
-Keywords
-[Empty Line]
-Answer`
+Output Format: JSON
+{
+  "keywords": "3 keywords",
+  "interpretation": "Approx 120 words answer",
+  "cardInsights": ["Optional: Short insights for cards if they change in context of follow-up, otherwise empty array"]
+}`
     }
 
     return `Question: "${question}"
@@ -143,23 +142,20 @@ Cards: ${cards}
 
 ${typeInstructions}
 
-Goal: Provide a direct, human-like answer to the question with keywords, respecting positional meanings.
+Goal: Provide a direct, human-like answer to the question with keywords and card-specific insights in JSON format.
 
 Instructions:
 1) Check the question type (Timing, Outcome, etc.) and answer it explicitly.
 2) Follow the specific positional meanings for the reading type.
 3) Ensure the response sounds like a real person talking, not an AI.
 4) Verify the text is readable and directly addresses the specific concern.
-5) Provide 3 keywords summarizing the answer at the top.
+5) Provide a short 1-sentence insight for EACH card in its position in the "cardInsights" array.
 
-Output:
-- 3 keywords (comma-separated) in the same language as the answer.
-- Natural, conversational tone.
-- One paragraph, approx. 120 words.
-- Direct and specific.
-
-Format:
-Keywords
-[Empty Line]
-Answer`
+Output Format: JSON
+{
+  "keywords": "3 keywords",
+  "interpretation": "Main reading paragraph",
+  "cardInsights": ["Insight for card 1", "Insight for card 2", ...]
+}`
 }
+

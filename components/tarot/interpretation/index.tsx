@@ -53,6 +53,7 @@ export default function Interpretation({
     const {
         isFollowUp,
         setInterpretation: setContextInterpretation,
+        setCardInsights: setContextCardInsights,
         setQuestion: setContextQuestion,
         readingType,
     } = useTarot()
@@ -81,9 +82,13 @@ export default function Interpretation({
     const { completion, complete } = useCompletion({
         api: "/api/interpret-cards/question",
         onFinish: async (_, completion) => {
-            setInterpretationState(completion)
-            setIsGenerating(false)
             try {
+                const parsed = JSON.parse(completion)
+                const mainText = `${parsed.keywords}\n\n${parsed.interpretation}`
+                setInterpretationState(mainText)
+                setContextCardInsights(parsed.cardInsights)
+                setIsGenerating(false)
+
                 const saveKey =
                     typeof window !== "undefined"
                         ? `reading:${readingId}:saved`
@@ -96,11 +101,15 @@ export default function Interpretation({
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             id: readingId,
-                            interpretation: completion,
+                            interpretation: mainText,
                         }),
                     })
                 }
-            } catch {}
+            } catch (err) {
+                console.error("Failed to parse interpretation JSON:", err)
+                setInterpretationState(completion)
+                setIsGenerating(false)
+            }
         },
         onError: (e) => {
             setError(e.message)
@@ -389,13 +398,60 @@ export default function Interpretation({
                                 {(() => {
                                     const text =
                                         interpretation || completion || ""
-                                    // Split by double newline to find keywords
-                                    const parts = text.split(/\n\n/)
-                                    if (parts.length > 1) {
-                                        const keywords = parts[0]
-                                        const content = parts
-                                            .slice(1)
-                                            .join("\n\n")
+
+                                    let displayKeywords: string | null = null
+                                    let displayContent: string = text
+
+                                    // Try to parse if it looks like JSON
+                                    if (text.trim().startsWith("{")) {
+                                        try {
+                                            // Handle potential partial JSON during streaming
+                                            const normalized = text
+                                                .trim()
+                                                .endsWith("}")
+                                                ? text
+                                                : text + '"}'
+                                            const parsed =
+                                                JSON.parse(normalized)
+                                            if (parsed.keywords)
+                                                displayKeywords =
+                                                    parsed.keywords
+                                            if (parsed.interpretation)
+                                                displayContent =
+                                                    parsed.interpretation
+                                        } catch {
+                                            // If it's a JSON stream but not yet parseable,
+                                            // we could try to extract using regex for better streaming experience
+                                            const interpMatch = text.match(
+                                                /"interpretation"\s*:\s*"([^"]*)"?/
+                                            )
+                                            if (interpMatch)
+                                                displayContent = interpMatch[1]
+
+                                            const keywordMatch = text.match(
+                                                /"keywords"\s*:\s*"([^"]*)"?/
+                                            )
+                                            if (keywordMatch)
+                                                displayKeywords =
+                                                    keywordMatch[1]
+                                        }
+                                    }
+
+                                    // Original logic for non-JSON or parsed results
+                                    if (
+                                        displayKeywords ||
+                                        displayContent.includes("\n\n")
+                                    ) {
+                                        const keywords =
+                                            displayKeywords ||
+                                            displayContent.split(/\n\n/)[0]
+                                        const content = displayKeywords
+                                            ? displayContent
+                                            : displayContent
+                                                  .split(/\n\n/)
+                                                  .slice(1)
+                                                  .join("\n\n")
+
                                         return (
                                             <>
                                                 <div className='flex flex-wrap gap-2 mb-4'>

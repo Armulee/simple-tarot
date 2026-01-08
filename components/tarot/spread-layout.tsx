@@ -5,8 +5,8 @@ import { CardImage } from "@/components/card-image"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowRight } from "lucide-react"
-
+import { ArrowRight, Sparkles } from "lucide-react"
+import QuickInsight from "./quick-insight"
 export interface SpreadCard {
     id: number
     name: string
@@ -19,6 +19,7 @@ export interface SpreadCard {
 interface SpreadLayoutProps {
     cards: SpreadCard[]
     readingType?: string | null
+    question?: string | null
 }
 
 const POSITION_MEANINGS: Record<string, string[]> = {
@@ -65,13 +66,17 @@ function CardWithLabel({
     style = {},
     rotate = false,
     cardsLength,
+    index,
+    question,
 }: {
+    index: number
     card: SpreadCard
     positionLabel: string
     className?: string
     style?: React.CSSProperties
     rotate?: boolean
     cardsLength: number
+    question?: string | null
 }) {
     return (
         <div
@@ -79,12 +84,17 @@ function CardWithLabel({
             style={style}
         >
             {cardsLength > 1 && (
-                <Badge
-                    variant='outline'
-                    className='bg-black/50 text-white border-primary/50 backdrop-blur-md whitespace-nowrap z-20 shadow-sm'
-                >
-                    {positionLabel}
-                </Badge>
+                <div className='flex flex-col items-center gap-1.5 z-20 animate-fade-in'>
+                    <div className='flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-950/40 backdrop-blur-xl border border-white/10 shadow-[0_0_15px_rgba(99,102,241,0.2)] group-hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] transition-all duration-500'>
+                        <div className='flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-tr from-primary to-secondary text-[10px] font-bold text-white shadow-inner'>
+                            {index + 1}
+                        </div>
+                        <span className='text-[11px] font-medium tracking-wide text-indigo-100 uppercase'>
+                            {positionLabel}
+                        </span>
+                        <Sparkles className='w-3 h-3 text-secondary animate-pulse' />
+                    </div>
+                </div>
             )}
 
             {/* Badge for card name on top of image */}
@@ -104,6 +114,15 @@ function CardWithLabel({
                     className='hover:scale-105 transition-transform duration-200 z-10 mx-auto mt-4'
                 />
             </div>
+
+            {question && (
+                <QuickInsight
+                    cardName={card.name}
+                    positionMeaning={positionLabel}
+                    question={question}
+                    index={index}
+                />
+            )}
 
             <Button
                 asChild
@@ -127,6 +146,7 @@ function CardWithLabel({
 export default function SpreadLayout({
     cards,
     readingType: propReadingType,
+    question,
 }: SpreadLayoutProps) {
     // Determine reading type fallback based on card count if not provided
     let type = propReadingType
@@ -158,6 +178,8 @@ export default function SpreadLayout({
                 style={style}
                 rotate={rotate}
                 cardsLength={cards.length}
+                index={index}
+                question={question}
             />
         )
     }

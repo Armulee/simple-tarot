@@ -134,6 +134,7 @@ export default async function TarotReadingPage({
                     <SpreadLayout
                         cards={selectedCards}
                         readingType={data.reading_type}
+                        question={data.question}
                     />
                 </div>
             </Card>

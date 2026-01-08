@@ -19,8 +19,9 @@ export async function POST(req: Request) {
             prompt: `${prompt}
 
         IMPORTANT: Please respond in the dominant language of this message.
-        Note: Only include card symbolism, spread mechanics, or detailed card meanings if the user's message explicitly asks for them. Otherwise, answer directly without those details.`,
+        Note: Return ONLY a valid JSON object. Do not include any markdown formatting like \`\`\`json or \`\`\` around the response.`,
         })
+        
 
         return result.toUIMessageStreamResponse()
     } catch (error) {

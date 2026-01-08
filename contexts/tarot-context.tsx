@@ -50,6 +50,10 @@ export interface TarotContextType {
     interpretation: string | null
     setInterpretation: (interpretation: string | null) => void
 
+    // Card-specific insights
+    cardInsights: string[] | null
+    setCardInsights: (insights: string[] | null) => void
+
     // Star payment status for current interpretation run
     paidForInterpretation: boolean
     setPaidForInterpretation: (value: boolean) => void
@@ -80,6 +84,7 @@ export function TarotProvider({ children }: { children: ReactNode }) {
         "reading-type" | "card-selection" | "interpretation"
     >("reading-type")
     const [interpretation, setInterpretation] = useState<string | null>(null)
+    const [cardInsights, setCardInsights] = useState<string[] | null>(null)
     const [paidForInterpretation, setPaidForInterpretation] = useState(false)
     const [isFollowUp, setIsFollowUp] = useState(false)
     const [followUpQuestion, setFollowUpQuestion] = useState<string | null>(
@@ -96,6 +101,7 @@ export function TarotProvider({ children }: { children: ReactNode }) {
         setSelectedCards([])
         setCurrentStep("reading-type")
         setInterpretation(null)
+        setCardInsights(null)
         setPaidForInterpretation(false)
         setIsFollowUp(false)
         setFollowUpQuestion(null)
@@ -111,6 +117,7 @@ export function TarotProvider({ children }: { children: ReactNode }) {
         setIsClearing(true)
         // Only clear interpretation-related state so follow-up context remains intact
         setInterpretation(null)
+        setCardInsights(null)
         setPaidForInterpretation(false)
         setTimeout(() => setIsClearing(false), 50)
     }
@@ -128,6 +135,7 @@ export function TarotProvider({ children }: { children: ReactNode }) {
                     selectedCards?: TarotCard[]
                     currentStep?: TarotContextType["currentStep"]
                     interpretation?: string | null
+                    cardInsights?: string[] | null
                     isFollowUp?: boolean
                     followUpQuestion?: string | null
                     paidForInterpretation?: boolean
@@ -140,6 +148,8 @@ export function TarotProvider({ children }: { children: ReactNode }) {
                 if (data.currentStep) setCurrentStep(data.currentStep)
                 if (data.interpretation !== undefined)
                     setInterpretation(data.interpretation ?? null)
+                if (Array.isArray(data.cardInsights))
+                    setCardInsights(data.cardInsights)
                 if (data.isFollowUp !== undefined)
                     setIsFollowUp(!!data.isFollowUp)
                 if (data.followUpQuestion !== undefined)
@@ -167,6 +177,7 @@ export function TarotProvider({ children }: { children: ReactNode }) {
                 selectedCards,
                 currentStep,
                 interpretation,
+                cardInsights,
                 isFollowUp,
                 followUpQuestion,
                 paidForInterpretation,
@@ -181,6 +192,7 @@ export function TarotProvider({ children }: { children: ReactNode }) {
         selectedCards,
         currentStep,
         interpretation,
+        cardInsights,
         paidForInterpretation,
         isFollowUp,
         followUpQuestion,
@@ -204,6 +216,8 @@ export function TarotProvider({ children }: { children: ReactNode }) {
                 setCurrentStep,
                 interpretation,
                 setInterpretation,
+                cardInsights,
+                setCardInsights,
                 paidForInterpretation,
                 setPaidForInterpretation,
                 isFollowUp,
