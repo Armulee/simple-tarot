@@ -41,7 +41,7 @@ Help the user understand how to USE this life pattern wisely.
 `,
             prompt: `${prompt}
 
-IMPORTANT: Please respond in the dominant language of this message.
+IMPORTANT: Respond in the language of the user's question, ignoring the English template text.
 `,
         })
 
