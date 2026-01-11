@@ -20,7 +20,7 @@ export async function POST(req: Request) {
             system: TAROT_SYSTEM_PROMPT,
             prompt: `${prompt}
 
-        IMPORTANT: Please respond in the dominant language of this message.`,
+        IMPORTANT: Respond in the language of the user's question, ignoring the English template text.`,
         })
 
         return result.toTextStreamResponse()
