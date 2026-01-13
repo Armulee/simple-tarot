@@ -83,7 +83,7 @@ export default function SubscriptionSection({
                     {/* Monthly colored background overlay */}
                     <div className='pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-violet-500/5 via-fuchsia-500/5 to-purple-500/5' />
                     <div className='grid md:grid-cols-3 gap-6 items-center mt-4 relative z-10'>
-                        <div className='order-1 md:order-1 text-center md:text-left'>
+                        <div className='text-center md:text-left'>
                             <div className='flex items-center justify-center md:justify-start gap-4'>
                                 <div className='w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/20 to-purple-600/20 border border-violet-500/30 flex items-center justify-center shadow-lg shadow-violet-500/10'>
                                     <Crown className='w-8 h-8 text-violet-300' />
@@ -94,7 +94,7 @@ export default function SubscriptionSection({
                                 </div>
                             </div>
                         </div>
-                        <div className='order-2 md:order-2 flex flex-col items-center md:items-end justify-center space-y-2 bg-black/20 p-4 rounded-xl border border-white/5'>
+                        <div className='flex flex-col items-center md:items-end justify-center space-y-2 bg-black/20 p-4 rounded-xl border border-white/5'>
                             <div className='flex items-baseline gap-2'>
                                 <span className='text-3xl font-bold bg-gradient-to-r from-violet-200 to-fuchsia-200 bg-clip-text text-transparent'>
                                     {formatAmount(monthlyPrice)}
@@ -110,7 +110,7 @@ export default function SubscriptionSection({
                                 onCurrencyChange={onCurrencyChange}
                             />
                         </div>
-                        <div className='order-3 md:col-span-3 grid md:grid-cols-2 gap-6 pt-6 border-t border-white/10'>
+                        <div className='md:col-span-3 grid md:grid-cols-2 gap-6 pt-6 border-t border-white/10'>
                             <ul className='space-y-3'>
                                 <li className='flex items-center gap-3 text-sm text-white/90'>
                                     <CheckCircle2 className='w-5 h-5 text-violet-400 flex-shrink-0' />
@@ -141,7 +141,7 @@ export default function SubscriptionSection({
                     {/* Annual colored background overlay (indigo) */}
                     <div className='pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-500/10 via-indigo-600/5 to-indigo-700/10 border-2 border-indigo-500/20' />
                     <div className='grid md:grid-cols-3 gap-6 items-center mt-4 relative z-10'>
-                        <div className='order-1 md:order-1 text-center md:text-left'>
+                        <div className='text-center md:text-left'>
                             <div className='flex items-center justify-center md:justify-start gap-4'>
                                 <div className='w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-blue-600/20 border border-indigo-500/30 flex items-center justify-center shadow-lg shadow-indigo-500/10'>
                                     <Crown className='w-8 h-8 text-indigo-300' />
@@ -157,7 +157,7 @@ export default function SubscriptionSection({
                                 </div>
                             </div>
                         </div>
-                        <div className='order-2 md:order-2 flex flex-col items-center md:items-end justify-center space-y-2 bg-indigo-500/10 p-4 rounded-xl border border-indigo-500/20'>
+                        <div className='flex flex-col items-center md:items-end justify-center space-y-2 bg-indigo-500/10 p-4 rounded-xl border border-indigo-500/20'>
                             <div className='flex items-baseline gap-2'>
                                 <span className='text-3xl font-bold bg-gradient-to-r from-indigo-200 to-blue-200 bg-clip-text text-transparent'>
                                     {formatAmount(annualMonthlyEquivalent)}
@@ -176,7 +176,7 @@ export default function SubscriptionSection({
                                 onCurrencyChange={onCurrencyChange}
                             />
                         </div>
-                        <div className='order-3 md:col-span-3 grid md:grid-cols-2 gap-6 pt-6 border-t border-indigo-500/20'>
+                        <div className='md:col-span-3 grid md:grid-cols-2 gap-6 pt-6 border-t border-indigo-500/20'>
                             <ul className='space-y-3'>
                                 <li className='flex items-center gap-3 text-sm text-white/90'>
                                     <CheckCircle2 className='w-5 h-5 text-indigo-400 flex-shrink-0' />
