@@ -29,6 +29,7 @@ type CheckoutProps = {
     infinityTerm?: "month" | "year"
     customTrigger?: ReactNode
     currency?: CurrencyCode
+    className?: string
 }
 
 export function Checkout({
@@ -38,6 +39,7 @@ export function Checkout({
     infinityTerm,
     customTrigger,
     currency,
+    className,
 }: CheckoutProps) {
     const { user } = useAuth()
     const t = useTranslations("Checkout")
@@ -169,7 +171,7 @@ export function Checkout({
         triggerContent = (
             <Button
                 onClick={handleCheckout}
-                className='w-full rounded-full bg-white text-black hover:brightness-90'
+                className={`w-full rounded-full bg-white text-black hover:brightness-90 ${className || ''}`}
                 disabled={processing || !packId}
             >
                 {processing
