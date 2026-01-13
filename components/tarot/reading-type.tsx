@@ -111,7 +111,7 @@ export default function ReadingType({
                                 <div className='flex justify-center'>
                                     <Badge
                                         variant='secondary'
-                                        className='bg-primary/20 text-primary border-primary/30 px-4 py-2'
+                                        className='bg-white/20 text-white/80 border-primary/30 px-4 py-2'
                                     >
                                         {t("followUp.simple")}
                                     </Badge>

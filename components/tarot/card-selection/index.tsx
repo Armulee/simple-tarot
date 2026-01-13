@@ -319,10 +319,11 @@ export default function CardSelection({
                                         &rdquo;
                                     </p>
                                     <Badge
-                                        className={`text-sm text-primary bg-transparent border-primary/50 ${
+                                        variant="secondary"
+                                        className={`text-sm bg-white/20 text-white/80 border-primary/30 ${
                                             isFollowUp
                                                 ? "cursor-default"
-                                                : "cursor-pointer hover:bg-primary/10 transition-colors"
+                                                : "cursor-pointer hover:bg-white/30 transition-colors"
                                         }`}
                                         onClick={
                                             isFollowUp
