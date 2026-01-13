@@ -62,74 +62,76 @@ export default async function PricingPage({ params }: PricingPageProps) {
             <PricingContent locale={locale} defaultCurrency={defaultCurrency} />
 
             {/* How it works */}
-            <h4 className='text-2xl font-bold mb-4'>
-                Steps to pay for your stars
-            </h4>
-            <div className='grid md:grid-cols-4 gap-4'>
-                {howItWorks.map((step) => (
-                    <Card
-                        key={step.title}
-                        className='p-4 bg-primary/30 border-border/20 backdrop-blur-sm'
-                    >
-                        <div className='flex items-start gap-3'>
-                            <div className='w-9 h-9 flex-shrink-0 rounded-full bg-accent flex items-center justify-center'>
-                                {step.icon}
-                            </div>
-                            <div>
-                                <div className='font-semibold'>
-                                    {step.title}
+            <div className='space-y-6'>
+                <h4 className='text-2xl font-bold text-center md:text-left'>
+                    Steps to pay for your stars
+                </h4>
+                <div className='grid sm:grid-cols-2 lg:grid-cols-4 gap-4'>
+                    {howItWorks.map((step) => (
+                        <Card
+                            key={step.title}
+                            className='p-5 bg-primary/10 border-border/20 backdrop-blur-sm hover:bg-primary/20 transition-colors h-full'
+                        >
+                            <div className='flex flex-col items-center text-center md:items-start md:text-left gap-4 h-full'>
+                                <div className='w-12 h-12 flex-shrink-0 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30'>
+                                    {step.icon}
                                 </div>
-                                <div className='text-sm text-muted-foreground'>
-                                    {step.desc}
+                                <div className='space-y-2'>
+                                    <div className='font-semibold text-lg'>
+                                        {step.title}
+                                    </div>
+                                    <div className='text-sm text-muted-foreground leading-relaxed'>
+                                        {step.desc}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </Card>
-                ))}
+                        </Card>
+                    ))}
+                </div>
             </div>
 
             {/* Trust & Guarantee */}
-            <div className='grid md:grid-cols-3 gap-4'>
-                <Card className='p-5 bg-card/10 border-border/20'>
-                    <div className='flex items-start gap-3'>
-                        <div className='w-10 h-10 flex-shrink-0 rounded-full bg-white/10 flex items-center justify-center'>
-                            <Shield className='w-5 h-5 text-white/90' />
+            <div className='grid sm:grid-cols-2 lg:grid-cols-3 gap-6'>
+                <Card className='p-6 bg-card/10 border-border/20 hover:bg-card/20 transition-colors'>
+                    <div className='flex flex-col items-center text-center md:items-start md:text-left gap-4'>
+                        <div className='w-12 h-12 flex-shrink-0 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center'>
+                            <Shield className='w-6 h-6 text-blue-400' />
                         </div>
-                        <div>
-                            <div className='font-semibold'>
+                        <div className='space-y-1'>
+                            <div className='font-semibold text-lg'>
                                 {t("trustedTransparent")}
                             </div>
-                            <div className='text-sm text-muted-foreground'>
+                            <div className='text-sm text-muted-foreground leading-relaxed'>
                                 {t("trustedTransparentDesc")}
                             </div>
                         </div>
                     </div>
                 </Card>
-                <Card className='p-5 bg-card/10 border-border/20'>
-                    <div className='flex items-start gap-3'>
-                        <div className='w-10 h-10 flex-shrink-0 rounded-full bg-white/10 flex items-center justify-center'>
-                            <Lock className='w-5 h-5 text-white/90' />
+                <Card className='p-6 bg-card/10 border-border/20 hover:bg-card/20 transition-colors'>
+                    <div className='flex flex-col items-center text-center md:items-start md:text-left gap-4'>
+                        <div className='w-12 h-12 flex-shrink-0 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center'>
+                            <Lock className='w-6 h-6 text-emerald-400' />
                         </div>
-                        <div>
-                            <div className='font-semibold'>
+                        <div className='space-y-1'>
+                            <div className='font-semibold text-lg'>
                                 {t("secureCheckout")}
                             </div>
-                            <div className='text-sm text-muted-foreground'>
+                            <div className='text-sm text-muted-foreground leading-relaxed'>
                                 {t("secureCheckoutDesc")}
                             </div>
                         </div>
                     </div>
                 </Card>
-                <Card className='p-5 bg-card/10 border-border/20'>
-                    <div className='flex items-start gap-3'>
-                        <div className='w-10 h-10 flex-shrink-0 rounded-full bg-white/10 flex items-center justify-center'>
-                            <Sparkles className='w-5 h-5 text-white/90' />
+                <Card className='p-6 bg-card/10 border-border/20 hover:bg-card/20 transition-colors sm:col-span-2 lg:col-span-1'>
+                    <div className='flex flex-col items-center text-center md:items-start md:text-left gap-4'>
+                        <div className='w-12 h-12 flex-shrink-0 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center'>
+                            <Sparkles className='w-6 h-6 text-purple-400' />
                         </div>
-                        <div>
-                            <div className='font-semibold'>
+                        <div className='space-y-1'>
+                            <div className='font-semibold text-lg'>
                                 {t("ongoingImprovements")}
                             </div>
-                            <div className='text-sm text-muted-foreground'>
+                            <div className='text-sm text-muted-foreground leading-relaxed'>
                                 {t("ongoingImprovementsDesc")}
                             </div>
                         </div>
