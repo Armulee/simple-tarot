@@ -53,7 +53,7 @@ export default function Interpretation({
     onInterpretationChange,
 }: ReadingProps) {
     const t = useTranslations("ReadingPage.interpretation")
-    const { user } = useAuth()
+    const { user, session } = useAuth()
     const {
         isFollowUp,
         setInterpretation: setContextInterpretation,
@@ -107,12 +107,31 @@ export default function Interpretation({
                     if (saveKey && sessionStorage.getItem(saveKey)) {
                     } else {
                         if (saveKey) sessionStorage.setItem(saveKey, "1")
+
+                        const headers: Record<string, string> = {
+                            "Content-Type": "application/json",
+                        }
+                        if (session?.access_token) {
+                            headers[
+                                "Authorization"
+                            ] = `Bearer ${session.access_token}`
+                        }
+
                         await fetch("/api/tarot/update", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
                                 id: readingId,
                                 interpretation: mainText,
+                            }),
+                        })
+
+                        await fetch("/api/tarot/versions", {
+                            method: "POST",
+                            headers,
+                            body: JSON.stringify({
+                                reading_id: readingId,
+                                content: mainText,
                             }),
                         })
                     }

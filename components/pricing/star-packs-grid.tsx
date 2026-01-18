@@ -1,7 +1,14 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { Star, Infinity as InfinityIcon, CheckCircle2 } from "lucide-react"
+import {
+    Star,
+    Infinity as InfinityIcon,
+    CheckCircle2,
+    Sparkles,
+    Zap,
+    ShieldCheck,
+} from "lucide-react"
 import { Checkout } from "@/components/checkout"
 import { useTranslations } from "next-intl"
 import {
@@ -14,6 +21,7 @@ import {
     type CurrencyCode,
 } from "@/lib/payments/currency-utils"
 import CurrencySelector from "./currency-selector"
+import { Badge } from "@/components/ui/badge"
 
 type StarPacksGridProps = {
     locale: string
@@ -33,64 +41,85 @@ export default function StarPacksGrid({
     const formatAmount = (amount?: number | null) =>
         amount != null ? formatCurrency(amount, currency, locale) : "--"
 
-    const packIconColor = () => "text-yellow-300"
-
-    const packBadgeClasses = () => "border-yellow-400/30 text-yellow-300"
-
-    const packOverlay = () =>
-        "from-amber-500/12 via-amber-600/10 to-orange-600/12"
-
     return (
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-            {STAR_PACKS.map((p, index) => (
-                <Card
-                    key={p.id ?? `star-pack-${index}`}
-                    className={`relative overflow-visible border-0 p-6 rounded-xl bg-card/10 hover:brightness-110 transition`}
-                >
-                    <div
-                        className={`pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br ${packOverlay()}`}
-                    />
-                    <div className='grid grid-cols-1 gap-6 items-center'>
-                        <div className='space-y-2 text-left'>
-                            <div
-                                className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border ${packBadgeClasses()} absolute -top-3 left-2`}
-                            >
-                                <Star
-                                    className={`w-4 h-4 ${packIconColor()}`}
-                                />
-                                <span>
-                                    {p.labelKey ? t(p.labelKey) : t("oneTime")}
-                                </span>
-                            </div>
-                            <div className='inline-flex items-center gap-2 justify-center w-full mt-2'>
-                                <span
-                                    className={`relative inline-flex items-center gap-3 px-5 py-2 rounded-full border ${packBadgeClasses()}`}
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
+            {STAR_PACKS.map((p, index) => {
+                const isPopular = p.labelKey === "popular"
+                const isBestValue = p.labelKey === "bestValue"
+
+                return (
+                    <Card
+                        key={p.id ?? `star-pack-${index}`}
+                        className={`group relative overflow-hidden border-white/5 bg-white/[0.03] backdrop-blur-xl rounded-[2rem] p-8 transition-all duration-500 hover:border-yellow-500/30 hover:shadow-2xl hover:shadow-yellow-500/10 hover:-translate-y-1 ${
+                            isPopular || isBestValue
+                                ? "ring-1 ring-yellow-500/20"
+                                : ""
+                        }`}
+                    >
+                        {/* Background Glow */}
+                        <div className='absolute -top-24 -right-24 w-48 h-48 bg-yellow-500/5 rounded-full blur-[80px] group-hover:bg-yellow-500/10 transition-colors duration-500' />
+
+                        <div className='relative z-10 space-y-8 h-full flex flex-col'>
+                            {/* Header: Label & Icon */}
+                            <div className='flex items-start justify-between'>
+                                <div className='space-y-1'>
+                                    <div className='flex items-center gap-2'>
+                                        <Badge
+                                            variant='outline'
+                                            className={`text-[10px] font-bold uppercase tracking-widest px-3 py-0.5 rounded-full ${
+                                                isPopular
+                                                    ? "bg-yellow-400/20 border-yellow-400/30 text-yellow-400"
+                                                    : isBestValue
+                                                      ? "bg-emerald-400/20 border-emerald-400/30 text-emerald-400"
+                                                      : "bg-white/5 border-white/10 text-gray-400"
+                                            }`}
+                                        >
+                                            {p.labelKey
+                                                ? t(p.labelKey)
+                                                : t("oneTime")}
+                                        </Badge>
+                                    </div>
+                                    <h3 className='text-2xl font-bold text-white font-serif tracking-tight'>
+                                        {p.name}
+                                    </h3>
+                                </div>
+                                <div
+                                    className={`w-14 h-14 rounded-2xl flex items-center justify-center border transition-transform duration-500 group-hover:scale-110 shadow-inner ${
+                                        isBestValue
+                                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 shadow-emerald-500/5"
+                                            : "bg-yellow-500/10 border-yellow-500/20 text-yellow-400 shadow-yellow-500/5"
+                                    }`}
                                 >
                                     <Star
-                                        className={`w-7 h-7 ${packIconColor()}`}
+                                        className='w-7 h-7'
                                         fill='currentColor'
                                     />
-                                    <span
-                                        className={`text-3xl font-extrabold leading-none ${packIconColor()}`}
-                                    >
+                                </div>
+                            </div>
+
+                            {/* Center Piece: Stars Amount */}
+                            <div className='flex flex-col items-center justify-center py-4 relative'>
+                                <div className='flex items-baseline gap-2'>
+                                    <span className='text-6xl font-black bg-gradient-to-br from-white via-white to-gray-500 bg-clip-text text-transparent tracking-tighter'>
                                         {p.stars}
                                     </span>
-                                    <span
-                                        className={`text-3xl font-extrabold leading-none ${packIconColor()}`}
-                                    >
+                                    <span className='text-xl font-bold text-gray-500 uppercase tracking-widest'>
                                         {t("stars")}
                                     </span>
-                                    {p.bonus > 0 && (
-                                        <span className='absolute -top-3 -right-3 rotate-6 text-xs px-2 py-0.5 rounded border bg-emerald-400 border-emerald-500 text-emerald-950 font-semibold'>
-                                            +{p.bonus} bonus
-                                        </span>
-                                    )}
-                                </span>
+                                </div>
+                                {p.bonus > 0 && (
+                                    <div className='absolute -bottom-2 translate-y-1/2'>
+                                        <Badge className='bg-emerald-500 text-black border-none font-bold px-3 py-1 rounded-full shadow-lg shadow-emerald-500/20 animate-bounce-slow'>
+                                            +{p.bonus} {t("bonus")}
+                                        </Badge>
+                                    </div>
+                                )}
                             </div>
-                            {/* Dynamic Price Box */}
-                            <div className='bg-white/10 backdrop-blur-sm border border-yellow-400/30 rounded-lg px-4 py-3'>
-                                <div className='flex items-center justify-between gap-2'>
-                                    <div className='text-2xl font-bold text-yellow-200'>
+
+                            {/* Pricing Area */}
+                            <div className='space-y-4 pt-4 mt-auto'>
+                                <div className='flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/5 group-hover:border-white/10 transition-colors'>
+                                    <div className='text-2xl font-bold text-white tracking-tight'>
                                         {formatAmount(
                                             p.id
                                                 ? getPackPrice(p.id, currency)
@@ -104,125 +133,106 @@ export default function StarPacksGrid({
                                         onCurrencyChange={onCurrencyChange}
                                     />
                                 </div>
-                            </div>
-                            <div className='text-sm text-muted-foreground'>
-                                {t("oneTime")} · {t("instantDelivery")}
-                            </div>
-                        </div>
-                        <div className='space-y-3 text-left'>
-                            <ul className='text-sm text-white/80 space-y-1'>
-                                <li className='flex items-center gap-2'>
-                                    <CheckCircle2
-                                        className={`w-4 h-4 ${packIconColor()}`}
-                                    />{" "}
-                                    {t("instantDelivery")}
-                                </li>
-                                <li className='flex items-center gap-2'>
-                                    <CheckCircle2
-                                        className={`w-4 h-4 ${packIconColor()}`}
-                                    />{" "}
-                                    {t("secureCheckout")}
-                                </li>
-                                {p.bonus > 0 && (
-                                    <li className='flex items-center gap-2'>
-                                        <CheckCircle2
-                                            className={`w-4 h-4 ${packIconColor()}`}
-                                        />{" "}
-                                        {t("includesBonus")}
+
+                                <ul className='space-y-3 px-1'>
+                                    <li className='flex items-center gap-3 text-xs text-gray-400'>
+                                        <CheckCircle2 className='w-4 h-4 text-emerald-400/70' />
+                                        {t("instantDelivery")}
                                     </li>
-                                )}
-                            </ul>
-                            <div>
+                                    <li className='flex items-center gap-3 text-xs text-gray-400'>
+                                        <ShieldCheck className='w-4 h-4 text-blue-400/70' />
+                                        {t("secureCheckout")}
+                                    </li>
+                                </ul>
+
                                 <Checkout
                                     mode='pack'
                                     packId={p.id}
                                     currency={currency}
+                                    className='w-full'
                                 />
                             </div>
                         </div>
-                    </div>
-                </Card>
-            ))}
-            {/* Infinity one-time pack */}
-            <Card className='relative p-6 rounded-xl bg-card/10 border-border/20 hover:brightness-110 transition'>
-                <div className='pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-amber-500/12 via-amber-600/10 to-orange-600/12' />
-                <div className='z-10 grid grid-cols-1 gap-6 items-center'>
-                    <div className='space-y-2 text-left'>
-                        <div
-                            className={`inline-flex items-center gap-2 text-sm px-2 py-1 rounded-full border ${packBadgeClasses()} absolute -top-3 left-2`}
-                        >
-                            <InfinityIcon className='w-4 h-4' />
-                            <span>{t("oneTime")}</span>
+                    </Card>
+                )
+            })}
+
+            {/* Infinity One-Time Pack - Highly Stylized */}
+            <Card className='group relative overflow-hidden border-indigo-500/30 bg-indigo-950/20 backdrop-blur-xl rounded-[2rem] p-8 transition-all duration-500 hover:border-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/20 hover:-translate-y-1'>
+                {/* Background Cosmic Effects */}
+                <div className='absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent' />
+                <div className='absolute -top-24 -right-24 w-64 h-64 bg-indigo-500/20 rounded-full blur-[100px] group-hover:bg-indigo-500/30 transition-colors duration-500' />
+                <div className='absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500/10 rounded-full blur-[100px]' />
+
+                <div className='relative z-10 space-y-8 h-full flex flex-col'>
+                    <div className='flex items-start justify-between'>
+                        <div className='space-y-1'>
+                            <Badge className='bg-indigo-500/20 text-indigo-300 border-indigo-500/30 text-[10px] font-bold tracking-widest uppercase px-3 py-0.5 rounded-full'>
+                                {t("limitedOffer") || "LIMITED"}
+                            </Badge>
+                            <h3 className='text-2xl font-bold text-white font-serif tracking-tight'>
+                                {t("infinityPack") || "Infinity Pass"}
+                            </h3>
                         </div>
-                        <div className='inline-flex items-center gap-2 justify-center w-full mt-2'>
-                            <span
-                                className={`relative inline-flex items-center gap-3 px-5 py-2 rounded-full border ${packBadgeClasses()}`}
-                            >
-                                <InfinityIcon
-                                    className={`w-7 h-7 ${packIconColor()}`}
-                                />
-                                <span
-                                    className={`text-3xl font-extrabold leading-none ${packIconColor()}`}
-                                >
-                                    Infinity
-                                </span>
+                        <div className='w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 border border-indigo-500/30 text-indigo-300 flex items-center justify-center shadow-lg shadow-indigo-500/10 group-hover:scale-110 transition-transform duration-500'>
+                            <InfinityIcon className='w-8 h-8' />
+                        </div>
+                    </div>
+
+                    <div className='flex flex-col items-center justify-center py-4'>
+                        <div className='flex items-baseline gap-2'>
+                            <span className='text-6xl font-black bg-gradient-to-br from-indigo-200 via-purple-200 to-indigo-400 bg-clip-text text-transparent tracking-tighter'>
+                                ∞
+                            </span>
+                            <span className='text-xl font-bold text-indigo-300 uppercase tracking-widest'>
+                                {t("stars")}
                             </span>
                         </div>
-                        {/* Dynamic Price Box */}
-                        <div className='bg-white/10 backdrop-blur-sm border border-yellow-400/30 rounded-lg px-4 py-3'>
-                            <div className='flex items-center justify-between gap-2'>
-                                <div className='text-2xl font-bold text-yellow-200'>
-                                    {formatAmount(
-                                        INFINITY_PACK.id
-                                            ? getPackPrice(
-                                                  INFINITY_PACK.id,
-                                                  currency
-                                              )
-                                            : null
-                                    )}
-                                </div>
-                                <CurrencySelector
-                                    locale={locale}
-                                    defaultCurrency={defaultCurrency}
-                                    currency={currency}
-                                    onCurrencyChange={onCurrencyChange}
-                                />
-                            </div>
-                        </div>
-                        <div className='text-sm text-muted-foreground'>
-                            {t("oneTime")} · 30 {t("days")} ·{" "}
-                            {t("instantDelivery")}
+                        <div className='text-indigo-300/60 text-xs font-medium uppercase tracking-widest mt-2'>
+                            Valid for 30 Days
                         </div>
                     </div>
-                    <div className='space-y-3 text-left'>
-                        <ul className='text-sm text-white/80 space-y-1'>
-                            <li className='flex items-center gap-2'>
-                                <CheckCircle2
-                                    className={`w-4 h-4 ${packIconColor()}`}
-                                />{" "}
-                                {t("infinityStars")}
-                            </li>
-                            <li className='flex items-center gap-2'>
-                                <CheckCircle2
-                                    className={`w-4 h-4 ${packIconColor()}`}
-                                />{" "}
-                                {t("instantDelivery")}
-                            </li>
-                            <li className='flex items-center gap-2'>
-                                <CheckCircle2
-                                    className={`w-4 h-4 ${packIconColor()}`}
-                                />{" "}
-                                {t("oneTimePayment")}
-                            </li>
-                        </ul>
-                        <div>
-                            <Checkout
-                                mode='pack'
-                                packId={INFINITY_PACK.id}
-                                infinityTerm={INFINITY_PACK.infinityTerm}
+
+                    <div className='space-y-4 pt-4 mt-auto'>
+                        <div className='flex items-center justify-between p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 group-hover:border-indigo-500/40 transition-colors'>
+                            <div className='text-2xl font-bold text-indigo-200 tracking-tight'>
+                                {formatAmount(
+                                    INFINITY_PACK.id
+                                        ? getPackPrice(
+                                              INFINITY_PACK.id,
+                                              currency
+                                          )
+                                        : null
+                                )}
+                            </div>
+                            <CurrencySelector
+                                locale={locale}
+                                defaultCurrency={defaultCurrency}
                                 currency={currency}
+                                onCurrencyChange={onCurrencyChange}
                             />
                         </div>
+
+                        <ul className='space-y-3 px-1'>
+                            <li className='flex items-center gap-3 text-xs text-indigo-200/70'>
+                                <Sparkles className='w-4 h-4 text-indigo-400' />
+                                {t("unlimitedReadings") ||
+                                    "Unlimited Cosmic Readings"}
+                            </li>
+                            <li className='flex items-center gap-3 text-xs text-indigo-200/70'>
+                                <Zap className='w-4 h-4 text-indigo-400' />
+                                {t("noRenewalNeeded") ||
+                                    "One-time purchase, no sub"}
+                            </li>
+                        </ul>
+
+                        <Checkout
+                            mode='pack'
+                            packId={INFINITY_PACK.id}
+                            infinityTerm={INFINITY_PACK.infinityTerm}
+                            currency={currency}
+                            className='w-full bg-white text-black hover:bg-white/90 shadow-xl shadow-indigo-500/10'
+                        />
                     </div>
                 </div>
             </Card>

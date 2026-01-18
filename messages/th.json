@@ -1073,7 +1073,7 @@
 
   "Notifications": {"title": "การแจ้งเตือน", "noNotifications": "ไม่มีการแจ้งเตือน", "noNotificationsDescription": "คุณทันสมัยแล้ว! เราจะแจ้งเตือนคุณเกี่ยวกับการอัปเดตที่สำคัญ"},
 
-  "Billing": {"title": "ประวัติการทำธุรกรรม", "subtitle": "ดูบันทึกการซื้อและข้อมูลการเรียกเก็บเงินของคุณ", "authRequired": "กรุณาเข้าสู่ระบบเพื่อเข้าถึงการเรียกเก็บเงิน", "loading": "กำลังโหลดประวัติการเรียกเก็บเงิน...", "currentPlan": "แพ็กเกจปัจจุบัน", "planDetails": "รายละเอียดแพ็กเกจ", "billingHistory": "ประวัติการเรียกเก็บเงิน", "paymentMethod": "วิธีการชำระเงิน", "nextBilling": "การเรียกเก็บเงินครั้งถัดไป", "manageSubscription": "จัดการการสมัครสมาชิก", "upgradePlan": "อัปเกรดแพ็กเกจ", "viewInvoices": "ดูใบแจ้งหนี้", "noTransactions": "ไม่พบธุรกรรม", "transactionId": "รหัสธุรกรรม", "amount": "จำนวนเงิน", "status": "สถานะ", "date": "วันที่", "viewDetails": "ดูรายละเอียด", "filterByDate": "กรองตามวันที่", "pickDate": "เลือกวันที่", "clearFilters": "ล้างตัวกรอง", "loadingHistory": "กำลังโหลดประวัติเวทมนตร์ของคุณ...", "noPurchases": "ยังไม่มีการซื้อ", "noPurchasesDescription": "การเดินทางเวทมนตร์ของคุณเริ่มต้นด้วยการซื้อดวงดาวครั้งแรก", "stars": "ดวงดาว", "purchase": "การซื้อ", "subscription": "การสมัครสมาชิก", "digitalWallet": "กระเป๋าเงินดิจิทัล", "payment": "การชำระเงิน"},
+  "Billing": {"title": "ประวัติการทำธุรกรรม", "subtitle": "ดูบันทึกการซื้อและข้อมูลการเรียกเก็บเงินของคุณ", "authRequired": "กรุณาเข้าสู่ระบบเพื่อเข้าถึงการเรียกเก็บเงิน", "loading": "กำลังโหลดประวัติการเรียกเก็บเงิน...", "currentPlan": "แพ็กเกจปัจจุบัน", "planDetails": "รายละเอียดแพ็กเกจ", "billingHistory": "ประวัติการเรียกเก็บเงิน", "paymentMethod": "วิธีการชำระเงิน", "nextBilling": "การเรียกเก็บเงินครั้งถัดไป", "manageSubscription": "จัดการการสมัครสมาชิก", "upgradePlan": "อัปเกรดแพ็กเกจ", "viewInvoices": "ดูใบแจ้งหนี้", "noTransactions": "ไม่พบธุรกรรม", "transactionId": "รหัสธุรกรรม", "amount": "จำนวนเงิน", "status": "สถานะ", "date": "วันที่", "viewDetails": "ดูรายละเอียด", "filterByDate": "กรองตามวันที่", "pickDate": "เลือกวันที่", "clearFilters": "ล้างตัวกรอง", "loadingHistory": "กำลังโหลดประวัติเวทมนตร์ของคุณ...", "noPurchases": "ยังไม่มีการซื้อ", "noPurchasesDescription": "การเดินทางเวทมนตร์ของคุณเริ่มต้นด้วยการซื้อดวงดาวครั้งแรก", "stars": "ดวงดาว", "purchase": "การซื้อ", "subscription": "การสมัครสมาชิก", "digitalWallet": "กระเป๋าเงินดิจิทัล", "payment": "การชำระเงิน", "cancelSubscription": "ยกเลิกการสมัครสมาชิก", "cancelling": "กำลังยกเลิก...", "subscriptionCancelled": "ยกเลิกการสมัครสมาชิกสำเร็จ", "confirmCancel": "ยกเลิกการสมัครสมาชิก?", "cancelWarning": "การสมัครสมาชิกของคุณจะยังคงใช้งานได้จนกว่าจะสิ้นสุดรอบบิลปัจจุบัน หลังจากนั้นคุณจะไม่สามารถใช้งานดวงดาวแบบไม่จำกัดได้อีก", "back": "ย้อนกลับ", "receipt": "ใบเสร็จ", "totalAmount": "ยอดรวมทั้งหมด", "subscriptionAccessDesc": "เข้าถึงคำแนะนำจากดวงดาวและข้อมูลเชิงลึกพรีเมียมแบบไม่จำกัด", "transactionDetails": "รายละเอียดธุรกรรม", "reference": "ข้อมูลอ้างอิง", "currency": "สกุลเงิน", "identifiers": "ตัวระบุ", "providerId": "รหัสผู้ให้บริการ", "needHelp": "ต้องการความช่วยเหลือ?", "supportDesc": "หากคุณมีคำถามใดๆ เกี่ยวกับธุรกรรมนี้ ทีมสนับสนุนที่ยอดเยี่ยมของเราพร้อมช่วยเหลือคุณ", "contactSupport": "ติดต่อฝ่ายสนับสนุน", "transactionNotFound": "ไม่พบธุรกรรม", "starPurchase": "การซื้อดวงดาว", "starPackDesc": "สกุลเงินจักรวาลสำหรับการอ่านดวงดาว"},
 
   "Contact": {
     "title": "ติดต่อ & สนับสนุน",
@@ -1119,11 +1119,13 @@
     "subscriptionPlans": "แผนการสมัครสมาชิก",
     "oneTimePacks": "แพ็กดวงดาวครั้งเดียว",
     "monthly": "รายเดือน",
-    "yearly": "รายปี",
+    "yearly": "รายปี (Annual)",
     "mostPopular": "ยอดนิยม",
     "getStarted": "เริ่มต้น",
     "currentPlan": "แพ็กเกจปัจจุบัน",
     "monthlySubscription": "การสมัครสมาชิกรายเดือน",
+    "firstMonthOffer": "ข้อเสนอพิเศษสำหรับเดือนแรกเท่านั้น",
+    "thenRegularPrice": "จากนั้น {price}/เดือน",
     "annualSubscription": "การสมัครสมาชิกรายปี",
     "perMonth": "ต่อเดือน",
     "autoRenew": "ต่ออายุอัตโนมัติ",
@@ -1146,6 +1148,11 @@
     "secureCheckout": "ชำระเงินอย่างปลอดภัย",
     "infinityStars": "ดวงดาวอนันต์ (30 วัน)",
     "oneTimePayment": "ชำระเงินครั้งเดียว ไม่ต่ออายุอัตโนมัติ",
+    "bonus": "โบนัส",
+    "limitedOffer": "ข้อเสนอจำกัด",
+    "infinityPack": "อินฟินิตี้พาส",
+    "unlimitedReadings": "อ่านดวงได้ไม่จำกัด",
+    "noRenewalNeeded": "ซื้อครั้งเดียว ไม่มีการต่ออายุ",
     "howItWorks": "วิธีการทำงาน",
     "signIn": "เข้าสู่ระบบ",
     "signInDesc": "สร้างหรือเข้าสู่ระบบบัญชีของคุณ",
@@ -1289,6 +1296,7 @@
       "emailLabel": "ส่งใบเสร็จรับเงินถูกส่งไปยังที่อยู่อีเมลของคุณแล้ว:",
       "emailNote": "อีเมลยืนยันพร้อมใบเสร็จรับเงินถูกส่งไปยังที่อยู่อีเมลของคุณแล้ว",
       "viewStars": "ดูดวงดาวของฉัน",
+      "viewBilling": "ประวัติการเรียกเก็บเงิน",
       "backToPricing": "กลับไปหน้าราคา",
       "backToStars": "กลับไปหน้าดวงดาว",
       "supportText": "หากคุณมีคำถามใดๆ กรุณาส่งอีเมล"

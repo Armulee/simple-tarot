@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/hooks/use-auth"
@@ -15,11 +15,36 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import { CalendarIcon, Star } from "lucide-react"
+import {
+    CalendarIcon,
+    Star,
+    Clock,
+    CheckCircle2,
+    AlertCircle,
+    ArrowRight,
+    ShieldCheck,
+    Zap,
+    History,
+    Filter,
+    XCircle,
+    Loader2,
+} from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 import { DateRange } from "react-day-picker"
 import { format } from "date-fns"
 import { useRouter } from "next/navigation"
 import BrandLoader from "@/components/brand-loader"
+import { useStars } from "@/contexts/stars-context"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 type Tx = {
     id: string
@@ -29,22 +54,33 @@ type Tx = {
     reference: string | null
     provider: string
     created_at: string
-    provider_payment_id?: string
     stars_amount?: number | null
     pack_name?: string | null
-    payment_method?: {
-        type: string
-        last_four?: string
-        brand?: string
-    }
+    subscription_id?: string | null
+}
+
+type Subscription = {
+    id: string
+    status: string
+    current_period_end: string
+    cancel_at_period_end: boolean
+    plan: string
 }
 
 export default function BillingPage() {
     const { user, loading: authLoading } = useAuth()
+    const {
+        isInfinity,
+        infinityExpiresAt,
+        initialized: starsInitialized,
+    } = useStars()
     const router = useRouter()
     const t = useTranslations("Billing")
     const [txs, setTxs] = useState<Tx[]>([])
+    const [subscription, setSubscription] = useState<Subscription | null>(null)
     const [loading, setLoading] = useState(false)
+    const [cancelling, setCancelling] = useState(false)
+    const [showCancelDialog, setShowCancelDialog] = useState(false)
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
 
     // Auth guard: redirect to signin if not logged in
@@ -55,31 +91,88 @@ export default function BillingPage() {
         }
     }, [user, authLoading, router, t])
 
-    // Fetch billing transactions
-    useEffect(() => {
-        if (!user || authLoading) return
+    const fetchBillingData = useCallback(async () => {
+        if (!user) return
+        setLoading(true)
 
-        let mounted = true
-        ;(async () => {
-            setLoading(true)
-            const { data } = await supabase
+        try {
+            // Fetch transactions
+            const txResult = await supabase
                 .from("billing_transactions")
                 .select(
-                    "id,type,amount_cents,currency,reference,provider,created_at,stars_amount,pack_name"
+                    "id,type,amount_cents,currency,reference,provider,created_at,stars_amount,pack_name,subscription_id"
                 )
                 .eq("user_id", user.id)
                 .order("created_at", { ascending: false })
-            if (!mounted) return
-            setTxs((data as Tx[]) || [])
-            setLoading(false)
-        })()
-        return () => {
-            mounted = false
-        }
-    }, [user, authLoading])
 
-    // Show loading state
-    if (authLoading || loading) {
+            setTxs((txResult.data as Tx[]) || [])
+
+            // Fetch active subscription
+            const { data: subData } = await supabase
+                .from("billing_subscriptions")
+                .select(
+                    "id, status, current_period_end, cancel_at_period_end, plan"
+                )
+                .eq("user_id", user.id)
+                .eq("status", "active")
+                .maybeSingle()
+
+            if (subData) {
+                setSubscription(subData as Subscription)
+            } else {
+                setSubscription(null)
+            }
+        } catch (error) {
+            console.error("Error fetching billing data:", error)
+        } finally {
+            setLoading(false)
+        }
+    }, [user])
+
+    const handleCancelSubscription = async () => {
+        if (!user || !subscription) return
+
+        setCancelling(true)
+        try {
+            const response = await fetch("/api/billing/subscription/cancel", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    subscriptionId: subscription.id,
+                    userId: user.id,
+                }),
+            })
+
+            const result = await response.json()
+
+            if (result.ok) {
+                toast.success(
+                    t("subscriptionCancelled") ||
+                        "Subscription cancelled successfully"
+                )
+                fetchBillingData() // Refresh data
+            } else {
+                toast.error(result.error || "Failed to cancel subscription")
+            }
+        } catch (error) {
+            console.error("Error cancelling subscription:", error)
+            toast.error("An unexpected error occurred")
+        } finally {
+            setCancelling(false)
+            setShowCancelDialog(false)
+        }
+    }
+
+    // Fetch billing data
+    useEffect(() => {
+        if (!user || authLoading) return
+        fetchBillingData()
+    }, [user, authLoading, fetchBillingData])
+
+    // Show loading state for initial auth
+    if (authLoading) {
         return <BrandLoader />
     }
 
@@ -88,15 +181,17 @@ export default function BillingPage() {
         return null
     }
 
-    // Helper function to extract stars from reference
+    // Show loader while billing data is fetching
+    if (loading) {
+        return <BrandLoader />
+    }
+
+    // Helper function to extract stars from reference (fallback)
     const getStarsFromReference = (
         reference: string | null
     ): number | "infinity" | null => {
         if (!reference) return null
-        // Check for infinity
-        if (reference.toLowerCase().includes("infinity")) {
-            return "infinity"
-        }
+        if (reference.toLowerCase().includes("infinity")) return "infinity"
         const match = reference.match(/(\d+)\s*stars?/i)
         return match ? parseInt(match[1]) : null
     }
@@ -115,16 +210,15 @@ export default function BillingPage() {
                 minute: "2-digit",
                 hour12: true,
             }),
+            full: format(date, "MMM dd, yyyy"),
         }
     }
 
-    // Group transactions by month/year
+    // Group transactions by period
     const groupTransactionsByPeriod = () => {
         const currentYear = new Date().getFullYear()
         const filteredTxs = txs.filter((tx) => {
             const txDate = new Date(tx.created_at)
-
-            // Apply date range filter
             if (dateRange?.from && dateRange?.to) {
                 return txDate >= dateRange.from && txDate <= dateRange.to
             } else if (dateRange?.from) {
@@ -132,33 +226,19 @@ export default function BillingPage() {
             } else if (dateRange?.to) {
                 return txDate <= dateRange.to
             }
-
             return true
         })
 
         const grouped: { [key: string]: Tx[] } = {}
-
         filteredTxs.forEach((tx) => {
             const date = new Date(tx.created_at)
             const year = date.getFullYear()
             const month = date.getMonth()
-
-            let key: string
-            if (year === currentYear) {
-                // Current year: group by month
-                key = `${year}-${month}`
-            } else {
-                // Previous years: group by year only
-                key = `${year}`
-            }
-
-            if (!grouped[key]) {
-                grouped[key] = []
-            }
+            const key = year === currentYear ? `${year}-${month}` : `${year}`
+            if (!grouped[key]) grouped[key] = []
             grouped[key].push(tx)
         })
 
-        // Sort groups by date (most recent first)
         return Object.entries(grouped).sort(([a], [b]) => {
             const aDate = new Date(a.includes("-") ? `${a}-01` : `${a}-01-01`)
             const bDate = new Date(b.includes("-") ? `${b}-01` : `${b}-01-01`)
@@ -166,272 +246,504 @@ export default function BillingPage() {
         })
     }
 
-    // Format period header
     const formatPeriodHeader = (key: string) => {
         const currentYear = new Date().getFullYear()
         const [year, month] = key.split("-").map(Number)
-
         if (year === currentYear && month !== undefined) {
-            // Current year month
-            const monthNames = [
-                "January",
-                "February",
-                "March",
-                "April",
-                "May",
-                "June",
-                "July",
-                "August",
-                "September",
-                "October",
-                "November",
-                "December",
-            ]
-            return monthNames[month] + " " + year
-        } else {
-            // Previous year
-            return year.toString()
+            return format(new Date(year, month), "MMMM yyyy")
         }
+        return year.toString()
     }
 
+    // Use the actual subscription data from billing_subscriptions
+    const hasSubscription = Boolean(
+        subscription &&
+            (subscription.status === "active" ||
+                subscription.status === "trialing")
+    )
+
+    // For display purposes, use the latest subscription transaction if it exists
+    const latestSubscriptionTx =
+        txs.find((tx) => tx.type?.startsWith("subscription")) ?? null
+
     return (
-        <div className='min-h-screen p-6 relative'>
+        <div className='min-h-screen pb-20 relative bg-transparent text-white selection:bg-yellow-400/30'>
             {/* Background decorative elements */}
             <div className='absolute inset-0 overflow-hidden pointer-events-none'>
-                <div className='absolute -top-40 -right-40 w-80 h-80 bg-yellow-400/5 rounded-full blur-3xl'></div>
-                <div className='absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400/5 rounded-full blur-3xl'></div>
-                <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-400/3 rounded-full blur-3xl'></div>
+                <div className='absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-yellow-500/10 rounded-full blur-[120px] animate-pulse' />
+                <div className='absolute bottom-[10%] left-[-5%] w-[30%] h-[30%] bg-purple-600/10 rounded-full blur-[100px]' />
+                <div className='absolute top-[40%] left-[20%] w-[20%] h-[20%] bg-indigo-500/5 rounded-full blur-[80px]' />
             </div>
 
-            <div className='max-w-4xl mx-auto space-y-8 pt-10 relative z-10'>
-                {/* Header */}
-                <div className='text-center'>
-                    <h1 className='text-4xl font-serif font-bold drop-shadow-lg'>
-                        {t("title")}
-                    </h1>
-                    <p className='text-gray-300 font-light text-sm mt-2'>
-                        {t("subtitle")}
-                    </p>
+            <div className='max-w-5xl mx-auto px-6 pt-10 relative z-10 space-y-12'>
+                {/* Header Section */}
+                <div className='flex flex-col md:flex-row md:items-end justify-between gap-6'>
+                    <div className='space-y-2'>
+                        <div className='inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 text-xs font-medium mb-2'>
+                            <Zap className='w-3 h-3 fill-yellow-400' />
+                            <span>{t("billingHistory")}</span>
+                        </div>
+                        <h1 className='text-5xl font-serif font-bold tracking-tight text-white'>
+                            {t("title")}
+                        </h1>
+                        <p className='text-gray-400 text-lg font-light max-w-md'>
+                            {t("subtitle")}
+                        </p>
+                    </div>
+
+                    <div className='flex items-center gap-3'>
+                        <Button
+                            variant='outline'
+                            className='rounded-full bg-white/5 border-white/10 hover:bg-white/10 text-white'
+                            onClick={() => router.push("/stars")}
+                        >
+                            {t("upgradePlan") || "Get More Stars"}
+                            <ArrowRight className='w-4 h-4 ml-2' />
+                        </Button>
+                    </div>
                 </div>
 
-                {/* Date Filter */}
-                {txs.length > 0 && (
-                    <div className='flex justify-center'>
-                        <div className='flex items-center space-x-6'>
-                            {/* Date Range Filter */}
-                            <div className='flex items-center space-x-3'>
-                                <span className='font-semibold'>
-                                    {t("filterByDate")}:
-                                </span>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant='outline'
-                                            className='w-64 bg-black/50 border-yellow-400/30 text-yellow-300 hover:border-yellow-400/50 hover:bg-black/70 transition-all duration-300 justify-start text-left font-normal'
+                {/* Current Plan Card */}
+                {(!starsInitialized || isInfinity || subscription) && (
+                    <Card className='col-span-1 md:col-span-2 relative overflow-hidden bg-gradient-to-br from-white/[0.08] to-transparent border-white/10 p-8 backdrop-blur-md rounded-2xl group transition-all duration-500 hover:border-white/20'>
+                        <div className='absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity'>
+                            <ShieldCheck className='w-32 h-32 text-white' />
+                        </div>
+
+                        <div className='relative z-10 h-full flex flex-col justify-between space-y-6'>
+                            <div className='space-y-1'>
+                                <p className='text-sm font-medium text-gray-400 uppercase tracking-wider'>
+                                    {t("currentPlan")}
+                                </p>
+                                <div className='flex items-center gap-3'>
+                                    <h2 className='text-3xl font-bold text-white'>
+                                        {!starsInitialized ? (
+                                            <Skeleton className='h-9 w-48 bg-white/10 rounded-lg' />
+                                        ) : isInfinity ? (
+                                            <span className='flex items-center gap-2 bg-gradient-to-r from-yellow-200 to-yellow-500 bg-clip-text text-transparent'>
+                                                {hasSubscription
+                                                    ? latestSubscriptionTx?.pack_name ||
+                                                      "Infinity Subscription"
+                                                    : "Infinity Stars"}
+                                            </span>
+                                        ) : (
+                                            "Starter Plan"
+                                        )}
+                                    </h2>
+                                    {starsInitialized && isInfinity && (
+                                        <Badge
+                                            className={`${
+                                                hasSubscription
+                                                    ? "bg-yellow-400/20 text-yellow-300 border-yellow-400/30"
+                                                    : "bg-indigo-400/20 text-indigo-300 border-indigo-400/30"
+                                            } animate-pulse`}
                                         >
-                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                            {dateRange?.from ? (
-                                                dateRange.to ? (
-                                                    <>
-                                                        {format(
-                                                            dateRange.from,
-                                                            "LLL dd, y"
-                                                        )}{" "}
-                                                        -{" "}
-                                                        {format(
-                                                            dateRange.to,
-                                                            "LLL dd, y"
-                                                        )}
-                                                    </>
-                                                ) : (
-                                                    format(
-                                                        dateRange.from,
-                                                        "LLL dd, y"
-                                                    )
-                                                )
-                                            ) : (
-                                                <span>{t("pickDate")}</span>
-                                            )}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent
-                                        className='w-auto p-0 bg-black/95 border-yellow-400/30 backdrop-blur-md'
-                                        align='start'
-                                    >
-                                        <Calendar
-                                            mode='range'
-                                            defaultMonth={dateRange?.from}
-                                            selected={dateRange}
-                                            onSelect={setDateRange}
-                                            className='bg-transparent'
-                                        />
-                                    </PopoverContent>
-                                </Popover>
+                                            {hasSubscription
+                                                ? "ACTIVE"
+                                                : "ONE-TIME"}
+                                        </Badge>
+                                    )}
+                                </div>
                             </div>
 
-                            {/* Clear Filters */}
+                            <div className='grid grid-cols-2 gap-8'>
+                                {(!starsInitialized || isInfinity) && (
+                                    <div className='space-y-1'>
+                                        <div className='text-xs text-gray-500 flex items-center gap-1.5'>
+                                            <Clock
+                                                className={`w-3 h-3 ${!starsInitialized ? "text-gray-600" : hasSubscription ? "text-indigo-400" : "text-indigo-400"}`}
+                                            />
+                                            {!starsInitialized ? (
+                                                <Skeleton className='h-3 w-20 bg-white/5' />
+                                            ) : hasSubscription ? (
+                                                t("nextBilling") ||
+                                                "Next Billing"
+                                            ) : (
+                                                "Expires On"
+                                            )}
+                                        </div>
+                                        <div className='text-xl font-semibold text-white'>
+                                            {!starsInitialized ? (
+                                                <Skeleton className='h-7 w-32 bg-white/10 rounded-md' />
+                                            ) : infinityExpiresAt ? (
+                                                formatDate(
+                                                    new Date(
+                                                        infinityExpiresAt!
+                                                    ).toISOString()
+                                                ).full
+                                            ) : (
+                                                "Never"
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Subscription Management */}
+                            {!starsInitialized ? (
+                                <div className='pt-4 border-t border-white/5 flex items-center justify-between'>
+                                    <Skeleton className='h-4 w-40 bg-white/5 rounded' />
+                                    <Skeleton className='h-8 w-32 bg-white/5 rounded-full' />
+                                </div>
+                            ) : isInfinity && subscription ? (
+                                <div className='text-left pt-4 border-t border-white/5 flex items-center justify-between'>
+                                    <div className='flex items-center gap-2 text-xs text-gray-500'>
+                                        {subscription.cancel_at_period_end ? (
+                                            <>
+                                                <AlertCircle className='w-3 h-3 text-yellow-400/70' />
+                                                <span>
+                                                    Cancels on{" "}
+                                                    {
+                                                        formatDate(
+                                                            subscription.current_period_end
+                                                        ).full
+                                                    }
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <CheckCircle2 className='w-3 h-3 text-green-400/70' />
+                                                <span>Subscription active</span>
+                                            </>
+                                        )}
+                                    </div>
+                                    {!subscription.cancel_at_period_end && (
+                                        <Button
+                                            variant='ghost'
+                                            size='sm'
+                                            className='w-fit h-8 text-[10px] uppercase tracking-widest font-bold text-red-400/60 hover:text-red-400 hover:bg-red-400/10 rounded-full'
+                                            onClick={() =>
+                                                setShowCancelDialog(true)
+                                            }
+                                            disabled={cancelling}
+                                        >
+                                            {cancelling ? (
+                                                <Loader2 className='w-3 h-3 animate-spin mr-2' />
+                                            ) : (
+                                                <XCircle className='w-3 h-3 mr-2' />
+                                            )}
+                                            {t("cancelSubscription") ||
+                                                "Cancel Subscription"}
+                                        </Button>
+                                    )}
+                                </div>
+                            ) : isInfinity ? (
+                                <div className='pt-4 border-t border-white/5'>
+                                    <div className='flex items-center gap-2 text-xs text-gray-500'>
+                                        <ShieldCheck className='w-3 h-3 text-yellow-400/50' />
+                                        <span>
+                                            This is a one-time pack. No
+                                            recurring charges.
+                                        </span>
+                                    </div>
+                                </div>
+                            ) : null}
+                        </div>
+                    </Card>
+                )}
+
+                {/* Transactions Section */}
+                <div className='space-y-8 pt-8'>
+                    <div className='flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-white/10 pb-6'>
+                        <div className='flex items-center gap-3'>
+                            <History className='w-5 h-5 text-yellow-400' />
+                            <h2 className='text-2xl font-serif font-semibold'>
+                                {t("billingHistory")}
+                            </h2>
+                            <Badge
+                                variant='outline'
+                                className='bg-white/5 border-white/10 text-gray-400'
+                            >
+                                {txs.length} total
+                            </Badge>
+                        </div>
+
+                        {/* Date Filter */}
+                        <div className='flex items-center gap-3'>
+                            <div className='flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10'>
+                                <Filter className='w-3 h-3 text-gray-400' />
+                                <span className='text-xs font-medium text-gray-400 uppercase tracking-tight'>
+                                    {t("filterByDate")}:
+                                </span>
+                            </div>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant='outline'
+                                        className='min-w-[240px] h-10 bg-black/40 border-white/10 text-gray-300 hover:border-yellow-400/50 hover:bg-black/60 transition-all rounded-full justify-start text-left font-normal'
+                                    >
+                                        <CalendarIcon className='mr-2 h-4 w-4 text-yellow-400' />
+                                        {dateRange?.from ? (
+                                            dateRange.to ? (
+                                                <span className='text-xs'>
+                                                    {format(
+                                                        dateRange.from,
+                                                        "LLL dd, y"
+                                                    )}{" "}
+                                                    -{" "}
+                                                    {format(
+                                                        dateRange.to,
+                                                        "LLL dd, y"
+                                                    )}
+                                                </span>
+                                            ) : (
+                                                <span className='text-xs'>
+                                                    {format(
+                                                        dateRange.from,
+                                                        "LLL dd, y"
+                                                    )}
+                                                </span>
+                                            )
+                                        ) : (
+                                            <span className='text-xs'>
+                                                {t("pickDate")}
+                                            </span>
+                                        )}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent
+                                    className='w-auto p-0 bg-popover/95 border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl'
+                                    align='end'
+                                >
+                                    <Calendar
+                                        mode='range'
+                                        defaultMonth={dateRange?.from}
+                                        selected={dateRange}
+                                        onSelect={setDateRange}
+                                        className='rounded-xl border-none'
+                                    />
+                                </PopoverContent>
+                            </Popover>
                             {(dateRange?.from || dateRange?.to) && (
                                 <Button
-                                    variant='outline'
-                                    onClick={() => {
-                                        setDateRange(undefined)
-                                    }}
-                                    className='bg-red-500/20 border-red-400/30 text-red-300 hover:bg-red-500/30 hover:border-red-400/50 transition-all duration-300'
+                                    variant='ghost'
+                                    size='sm'
+                                    onClick={() => setDateRange(undefined)}
+                                    className='text-red-400 hover:text-red-300 hover:bg-red-400/10 h-10 px-4 rounded-full'
                                 >
                                     {t("clearFilters")}
                                 </Button>
                             )}
                         </div>
                     </div>
-                )}
 
-                {/* Transactions List */}
-                <div className='space-y-6 mt-6'>
-                    {!loading && txs.length === 0 && (
-                        <Card className='bg-gradient-to-r from-black/40 to-black/20 border-yellow-400/20 p-16 text-center shadow-xl shadow-black/20 backdrop-blur-sm'>
-                            <div className='text-8xl mb-6 drop-shadow-lg'>
-                                ✨
+                    {loading ? (
+                        <div className='space-y-6'>
+                            {[1, 2, 3].map((i) => (
+                                <Card
+                                    key={i}
+                                    className='bg-white/[0.03] border-white/5 p-6 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-6'
+                                >
+                                    <div className='flex items-center gap-6'>
+                                        <Skeleton className='w-14 h-14 rounded-2xl bg-white/5' />
+                                        <div className='space-y-2'>
+                                            <Skeleton className='h-5 w-40 bg-white/10' />
+                                            <Skeleton className='h-4 w-24 bg-white/5' />
+                                        </div>
+                                    </div>
+                                    <div className='flex items-center justify-end gap-8'>
+                                        <div className='text-right space-y-2'>
+                                            <Skeleton className='h-3 w-12 bg-white/5 ml-auto' />
+                                            <Skeleton className='h-6 w-20 bg-white/10' />
+                                        </div>
+                                        <Skeleton className='w-10 h-10 rounded-full bg-white/5' />
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    ) : txs.length === 0 ? (
+                        <Card className='bg-white/[0.03] border-dashed border-white/10 p-20 text-center rounded-3xl backdrop-blur-sm'>
+                            <div className='w-20 h-20 bg-yellow-400/10 rounded-full flex items-center justify-center mx-auto mb-6'>
+                                <Star className='w-10 h-10 text-yellow-400/40' />
                             </div>
-                            <h3 className='text-2xl font-bold text-yellow-300 mb-3'>
+                            <h3 className='text-2xl font-bold text-white mb-2'>
                                 {t("noPurchases")}
                             </h3>
-                            <p className='text-gray-300 text-lg font-light'>
+                            <p className='text-gray-400 max-w-sm mx-auto'>
                                 {t("noPurchasesDescription")}
                             </p>
+                            <Button
+                                className='mt-8 rounded-full bg-yellow-400 text-black hover:bg-yellow-300 font-semibold'
+                                onClick={() => router.push("/stars")}
+                            >
+                                Browse Star Packs
+                            </Button>
                         </Card>
-                    )}
-
-                    {!loading &&
-                        groupTransactionsByPeriod().map(
-                            ([periodKey, periodTxs]) => (
-                                <div key={periodKey} className='space-y-4'>
-                                    {/* Period Header */}
-                                    <div className='flex items-center space-x-4'>
-                                        <div className='relative'>
-                                            <h2 className='font-bold text-yellow-300 px-6 py-1 bg-gradient-to-r from-black/50 to-black/30 rounded-full border border-yellow-400/40 shadow-lg shadow-yellow-400/20 backdrop-blur-sm'>
+                    ) : (
+                        <div className='space-y-10'>
+                            {groupTransactionsByPeriod().map(
+                                ([periodKey, periodTxs]) => (
+                                    <div key={periodKey} className='space-y-6'>
+                                        <div className='flex items-center gap-4'>
+                                            <h3 className='text-sm font-semibold text-yellow-400 uppercase tracking-widest bg-yellow-400/5 px-4 py-1 rounded-full border border-yellow-400/10'>
                                                 {formatPeriodHeader(periodKey)}
-                                            </h2>
-                                            <div className='absolute inset-0 bg-gradient-to-r from-yellow-400/10 to-orange-500/10 rounded-full blur-md' />
+                                            </h3>
+                                            <div className='h-px bg-gradient-to-r from-yellow-400/20 to-transparent flex-1' />
                                         </div>
-                                        <div className='h-px bg-gradient-to-r from-transparent via-yellow-400/30 to-transparent flex-1' />
-                                    </div>
 
-                                    {/* Transactions for this period */}
-                                    <div className='space-y-3'>
-                                        {periodTxs.map((transaction) => {
-                                            const amount =
-                                                (transaction.amount_cents ??
-                                                    0) / 100
-                                            const { date, time } = formatDate(
-                                                transaction.created_at
-                                            )
-                                            const stars = getStarsFromReference(
-                                                transaction.reference
-                                            )
-                                            const isSubscription =
-                                                transaction.type.startsWith(
-                                                    "subscription"
-                                                )
+                                        <div className='grid grid-cols-1 gap-4'>
+                                            {periodTxs.map((transaction) => {
+                                                const amount =
+                                                    (transaction.amount_cents ??
+                                                        0) / 100
+                                                const { date, time } =
+                                                    formatDate(
+                                                        transaction.created_at
+                                                    )
+                                                const stars =
+                                                    transaction.stars_amount ||
+                                                    getStarsFromReference(
+                                                        transaction.reference
+                                                    )
+                                                const isSubscription =
+                                                    transaction.type.startsWith(
+                                                        "subscription"
+                                                    )
+                                                const title = (() => {
+                                                    const name =
+                                                        transaction.pack_name ??
+                                                        null
+                                                    if (name) {
+                                                        // For subscription products, show the name as-is (no "Pack" suffix)
+                                                        if (isSubscription)
+                                                            return name
+                                                        // For one-time packs, keep the existing "Pack" suffix convention
+                                                        return name
+                                                            .toLowerCase()
+                                                            .includes("pack")
+                                                            ? name
+                                                            : `${name} Pack`
+                                                    }
+                                                    if (
+                                                        stars === "infinity" ||
+                                                        transaction.stars_amount ===
+                                                            null
+                                                    )
+                                                        return "Infinity Stars Pack"
+                                                    return `${stars} Stars Pack`
+                                                })()
 
-                                            return (
-                                                <Link
-                                                    href={`/billing/transactions/${transaction.id}`}
-                                                    key={transaction.id}
-                                                >
-                                                    <Card className='bg-gradient-to-r from-black/40 to-black/20 border-yellow-400/20 hover:border-yellow-400/50 transition-all duration-500 hover:shadow-2xl hover:shadow-yellow-400/20 relative pt-6 pb-0 backdrop-blur-sm group cursor-pointer'>
-                                                        {/* Date and Time badges positioned at top left */}
-                                                        <div className='absolute top-3 left-3 flex space-x-2'>
-                                                            <Badge
-                                                                variant='outline'
-                                                                className='bg-gradient-to-r from-yellow-400/20 to-orange-500/20 text-yellow-200 border-yellow-400/40 text-xs font-medium shadow-lg shadow-yellow-400/20 backdrop-blur-sm hover:from-yellow-400/30 hover:to-orange-500/30 transition-all duration-300'
-                                                            >
-                                                                {date}
-                                                            </Badge>
-                                                            <Badge
-                                                                variant='outline'
-                                                                className='bg-gradient-to-r from-purple-400/20 to-pink-500/20 text-purple-200 border-purple-400/40 text-xs font-medium shadow-lg shadow-purple-400/20 backdrop-blur-sm hover:from-purple-400/30 hover:to-pink-500/30 transition-all duration-300'
-                                                            >
-                                                                {time}
-                                                            </Badge>
-                                                        </div>
+                                                return (
+                                                    <Link
+                                                        href={`/billing/transactions/${transaction.id}`}
+                                                        key={transaction.id}
+                                                        className='group'
+                                                    >
+                                                        <Card className='relative overflow-hidden bg-white/[0.03] border-white/5 hover:bg-white/[0.06] hover:border-white/20 transition-all duration-300 p-6 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 cursor-pointer group-hover:shadow-xl group-hover:shadow-black/40'>
+                                                            <div className='flex items-center gap-6'>
+                                                                <div
+                                                                    className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-transform duration-500 group-hover:scale-110 shadow-inner ${
+                                                                        isSubscription
+                                                                            ? "bg-gradient-to-br from-purple-500/20 to-indigo-500/20 text-purple-400 border border-purple-500/20"
+                                                                            : "bg-gradient-to-br from-yellow-500/20 to-orange-500/20 text-yellow-400 border border-yellow-500/20"
+                                                                    }`}
+                                                                >
+                                                                    {isSubscription ? (
+                                                                        <Zap className='w-6 h-6 fill-current' />
+                                                                    ) : (
+                                                                        <Star className='w-6 h-6 fill-current' />
+                                                                    )}
+                                                                </div>
 
-                                                        <div className='p-6'>
-                                                            <div className='flex items-center justify-between'>
-                                                                <div className='flex items-center space-x-4'>
-                                                                    {/* Icon */}
-                                                                    <div className='flex items-center justify-center'>
-                                                                        {isSubscription ? (
-                                                                            <div className='w-14 h-14 rounded-full flex items-center justify-center bg-gradient-to-r from-purple-500 via-purple-600 to-pink-500 shadow-lg shadow-purple-500/30 group-hover:shadow-purple-500/50 transition-all duration-300'>
-                                                                                <span className='text-2xl'>
-                                                                                    🔄
-                                                                                </span>
-                                                                            </div>
-                                                                        ) : (
-                                                                            <Star className='w-8 h-8 fill-yellow-400 text-yellow-400 group-hover:text-yellow-300 transition-colors duration-300' />
-                                                                        )}
-                                                                    </div>
-
-                                                                    {/* Details */}
-                                                                    <div className='flex items-center space-x-3'>
-                                                                        <div>
-                                                                            <h3 className='text-xl font-bold text-white group-hover:text-yellow-300 transition-colors duration-300'>
-                                                                                {transaction.stars_amount ===
-                                                                                null
-                                                                                    ? "Infinity"
-                                                                                    : transaction.stars_amount
-                                                                                      ? `${transaction.stars_amount} ${t("stars")}`
-                                                                                      : stars ===
-                                                                                          "infinity"
-                                                                                        ? "Infinity"
-                                                                                        : stars
-                                                                                          ? `${stars} ${t("stars")}`
-                                                                                          : t(
-                                                                                                "purchase"
-                                                                                            )}
-                                                                            </h3>
-                                                                            {transaction.pack_name && (
-                                                                                <p className='text-sm text-gray-400 mt-1'>
-                                                                                    {
-                                                                                        transaction.pack_name
-                                                                                    }{" "}
-                                                                                    Pack
-                                                                                </p>
-                                                                            )}
-                                                                        </div>
+                                                                <div className='space-y-1'>
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <h4 className='text-lg font-bold text-white group-hover:text-yellow-400 transition-colors'>
+                                                                            {
+                                                                                title
+                                                                            }
+                                                                        </h4>
                                                                         {isSubscription && (
-                                                                            <Badge
-                                                                                variant='secondary'
-                                                                                className='bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-purple-200 border-purple-400/50 shadow-lg shadow-purple-500/20 backdrop-blur-sm'
-                                                                            >
+                                                                            <Badge className='bg-purple-500/20 text-purple-300 border-purple-500/20 text-[10px] font-bold'>
                                                                                 {t(
                                                                                     "subscription"
-                                                                                )}
+                                                                                ).toUpperCase()}
                                                                             </Badge>
                                                                         )}
                                                                     </div>
-                                                                </div>
-
-                                                                {/* Amount */}
-                                                                <div className='text-right'>
-                                                                    <div className='text-xl font-bold bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent group-hover:from-yellow-200 group-hover:to-orange-300 transition-all duration-300'>
-                                                                        $
-                                                                        {amount.toFixed(
-                                                                            2
-                                                                        )}
+                                                                    <div className='flex items-center gap-3 text-sm text-gray-500'>
+                                                                        <span className='flex items-center gap-1'>
+                                                                            <CalendarIcon className='w-3 h-3' />
+                                                                            {
+                                                                                date
+                                                                            }
+                                                                        </span>
+                                                                        <span className='w-1 h-1 rounded-full bg-gray-700' />
+                                                                        <span className='flex items-center gap-1'>
+                                                                            <Clock className='w-3 h-3' />
+                                                                            {
+                                                                                time
+                                                                            }
+                                                                        </span>
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    </Card>
-                                                </Link>
-                                            )
-                                        })}
+
+                                                            <div className='flex items-center justify-between md:justify-end gap-8 border-t md:border-t-0 border-white/5 pt-4 md:pt-0'>
+                                                                <div className='text-right'>
+                                                                    <p className='text-xs text-gray-500 font-medium uppercase tracking-wider mb-1'>
+                                                                        Amount
+                                                                    </p>
+                                                                    <p className='text-2xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent group-hover:from-yellow-200 group-hover:to-yellow-500 transition-all'>
+                                                                        {transaction.currency ===
+                                                                        "THB"
+                                                                            ? "฿"
+                                                                            : "$"}
+                                                                        {amount.toFixed(
+                                                                            2
+                                                                        )}
+                                                                    </p>
+                                                                </div>
+                                                                <div className='w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-yellow-400 group-hover:text-black transition-all duration-300'>
+                                                                    <ArrowRight className='w-5 h-5' />
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Animated Hover Stripe */}
+                                                            <div className='absolute left-0 top-0 bottom-0 w-1 bg-yellow-400 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300' />
+                                                        </Card>
+                                                    </Link>
+                                                )
+                                            })}
+                                        </div>
                                     </div>
-                                </div>
-                            )
-                        )}
+                                )
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
+
+            {/* Cancel Subscription Confirmation */}
+            <AlertDialog
+                open={showCancelDialog}
+                onOpenChange={setShowCancelDialog}
+            >
+                <AlertDialogContent className='bg-zinc-900 border-white/10 text-white rounded-[2rem] p-8'>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className='text-2xl font-serif'>
+                            {t("confirmCancel") || "Cancel Subscription?"}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className='text-zinc-400'>
+                            {t("cancelWarning") ||
+                                "Your subscription will remain active until the end of your current billing period. After that, you will lose your unlimited stars access."}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className='gap-3 mt-6'>
+                        <AlertDialogCancel className='rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white'>
+                            No, keep it
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleCancelSubscription}
+                            className='rounded-full bg-red-500 hover:bg-red-600 text-white border-none'
+                        >
+                            {cancelling ? (
+                                <Loader2 className='w-4 h-4 animate-spin mr-2' />
+                            ) : null}
+                            Yes, cancel subscription
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }

@@ -221,6 +221,10 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                         Boolean(user)
                     )
                 )
+                setIsInfinity(state.isInfinity ?? false)
+                setInfinityExpiresAt(state.infinityExpiresAt ?? null)
+                setFirstLoginBonusGranted(state.firstLoginBonusGranted)
+                setFirstTimeLoginGrant(state.firstTimeLoginGrant)
             } catch {}
         }
 

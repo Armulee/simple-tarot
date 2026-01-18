@@ -139,6 +139,7 @@ export function generatePageMetadata({
         // Additional tags
         other: {
             "apple-mobile-web-app-capable": "yes",
+            "mobile-web-app-capable": "yes",
             "apple-mobile-web-app-status-bar-style": "black-translucent",
             "apple-mobile-web-app-title": seoConfig.siteName,
             "msapplication-TileColor": "#6366f1",

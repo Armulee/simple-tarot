@@ -13,8 +13,17 @@ export async function GET(req: NextRequest) {
             p_anon_device_id: did,
             p_user_id: userId,
         })
-        if (error)
+        if (error) {
+            console.error("star_get_or_create(user) error", {
+                message: error.message,
+                code: error.code,
+                details: error.details,
+                hint: error.hint,
+                userId,
+                hasDid: Boolean(did),
+            })
             return NextResponse.json({ error: error.message }, { status: 400 })
+        }
         return NextResponse.json({ data })
     }
 
@@ -28,7 +37,15 @@ export async function GET(req: NextRequest) {
         p_anon_device_id: did,
         p_user_id: null,
     })
-    if (error)
+    if (error) {
+        console.error("star_get_or_create(anon) error", {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint,
+            hasDid: Boolean(did),
+        })
         return NextResponse.json({ error: error.message }, { status: 400 })
+    }
     return NextResponse.json({ data })
 }

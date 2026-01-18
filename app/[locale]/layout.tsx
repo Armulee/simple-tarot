@@ -83,6 +83,7 @@ export async function generateMetadata({
         },
         other: {
             "apple-mobile-web-app-capable": "yes",
+            "mobile-web-app-capable": "yes",
             "apple-mobile-web-app-status-bar-style": "black-translucent",
             "apple-mobile-web-app-title": "Asking Fate",
         },
@@ -120,7 +121,7 @@ export default async function RootLayout({
                     <AuthProvider>
                         <StarsProvider>
                             <TarotProvider>
-                                <div className='min-h-screen flex flex-col home-gradient -z-10'>
+                                <div className='min-h-screen flex flex-col home-gradient relative'>
                                     <Navbar locale={locale} />
                                     <main className='pt-16 min-h-[calc(100dvh-64px)] h-full relative'>
                                         <Suspense fallback={null}>

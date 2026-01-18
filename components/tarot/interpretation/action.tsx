@@ -78,7 +78,7 @@ export default function ActionSection({
 
     const [copiedLink, setCopiedLink] = useState(false)
     const [copiedText, setCopiedText] = useState(false)
-    const { user } = useAuth()
+    const { user, session } = useAuth()
     const router = useRouter()
     const { spendStars, stars } = useStars()
     const [isDownloading, setIsDownloading] = useState(false)
@@ -101,14 +101,20 @@ export default function ActionSection({
     const loadVersions = useCallback(async () => {
         try {
             if (!readingId) return
+            const headers: Record<string, string> = {}
+            if (session?.access_token) {
+                headers["Authorization"] = `Bearer ${session.access_token}`
+            }
+
             const res = await fetch(
-                `/api/tarot/versions?readingId=${readingId}`
+                `/api/tarot/versions?readingId=${readingId}`,
+                { headers }
             )
             if (!res.ok) return
             const data = await res.json()
             setVersions(Array.isArray(data.versions) ? data.versions : [])
         } catch {}
-    }, [readingId])
+    }, [readingId, session?.access_token])
 
     useEffect(() => {
         void loadVersions()
@@ -132,6 +138,15 @@ export default function ActionSection({
 
                 try {
                     if (readingId && completion) {
+                        const headers: Record<string, string> = {
+                            "Content-Type": "application/json",
+                        }
+                        if (session?.access_token) {
+                            headers[
+                                "Authorization"
+                            ] = `Bearer ${session.access_token}`
+                        }
+
                         await fetch("/api/tarot/update", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -142,7 +157,7 @@ export default function ActionSection({
                         })
                         await fetch("/api/tarot/versions", {
                             method: "POST",
-                            headers: { "Content-Type": "application/json" },
+                            headers,
                             body: JSON.stringify({
                                 reading_id: readingId,
                                 content: completion,
@@ -751,7 +766,7 @@ export default function ActionSection({
                                             </PopoverTrigger>
                                             <PopoverContent className='w-72'>
                                                 <div className='max-h-64 overflow-auto space-y-2'>
-                                                    {versions.map((v) => (
+                                                    {versions.map((v, index) => (
                                                         <button
                                                             key={v.id}
                                                             type='button'
@@ -770,9 +785,10 @@ export default function ActionSection({
                                                                     )
                                                             }}
                                                         >
-                                                            {new Date(
-                                                                v.created_at
-                                                            ).toLocaleString()}
+                                                            {`Version ${
+                                                                versions.length -
+                                                                index
+                                                            } • ${new Date(v.created_at).toLocaleString()}`}
                                                         </button>
                                                     ))}
                                                 </div>

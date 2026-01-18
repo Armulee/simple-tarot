@@ -28,7 +28,6 @@ export default function PricingContent({
     )
 
     const monthlyPrice = getSubscriptionPrice("monthly", currency)
-    const annualPrice = getSubscriptionPrice("annual", currency)
     const annualMonthlyEquivalent = getAnnualMonthlyEquivalent(currency)
 
     return (
@@ -46,7 +45,6 @@ export default function PricingContent({
                 locale={locale}
                 currency={currency}
                 monthlyPrice={monthlyPrice}
-                annualPrice={annualPrice}
                 annualMonthlyEquivalent={annualMonthlyEquivalent}
                 defaultCurrency={defaultCurrency}
                 onCurrencyChange={setCurrency}

@@ -29,6 +29,7 @@ type CheckoutProps = {
     infinityTerm?: "month" | "year"
     customTrigger?: ReactNode
     currency?: CurrencyCode
+    couponId?: string
     className?: string
 }
 
@@ -39,6 +40,7 @@ export function Checkout({
     infinityTerm,
     customTrigger,
     currency,
+    couponId,
     className,
 }: CheckoutProps) {
     const { user } = useAuth()
@@ -98,6 +100,7 @@ export function Checkout({
                 currency: effectiveCurrency,
                 userId: user.id,
                 priceId: packId,
+                couponId: couponId,
             }
             if (plan) payload.plan = plan
             if (infinityTerm) payload.infinityTerm = infinityTerm

@@ -7,10 +7,10 @@ import {
 export type SubscriptionPlanId = "monthly" | "annual"
 
 const SUBSCRIPTION_BASE_PRICES_USD = {
-    monthly: 9.99,
-    annual: 99.99,
-    annualMonthlyEquivalent: 8.34,
-    infinity: 9.99,
+    monthly: 14.99,
+    annual: 99.0,
+    annualMonthlyEquivalent: 8.25,
+    infinity: 14.99,
 } as const
 
 export type LabelTranslationKey = "popular" | "bestValue"

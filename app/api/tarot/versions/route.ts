@@ -1,5 +1,22 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabase, supabaseAdmin } from "@/lib/supabase"
+import { supabaseAdmin } from "@/lib/supabase"
+import { readAndVerifyDid } from "@/lib/server/did"
+
+async function getRequesterIdentity(req: NextRequest) {
+    const did = await readAndVerifyDid()
+    let userId: string | null = null
+
+    const authHeader = req.headers.get("authorization")
+    if (authHeader?.startsWith("Bearer ") && supabaseAdmin) {
+        const token = authHeader.split(" ")[1]
+        const {
+            data: { user },
+        } = await supabaseAdmin.auth.getUser(token)
+        if (user) userId = user.id
+    }
+
+    return { did, userId }
+}
 
 // GET /api/tarot/versions?readingId={id}
 export async function GET(req: NextRequest) {
@@ -14,10 +31,19 @@ export async function GET(req: NextRequest) {
             )
         }
 
+        if (!supabaseAdmin) {
+            return NextResponse.json(
+                { error: "Supabase not configured" },
+                { status: 500 }
+            )
+        }
+
+        const { did, userId } = await getRequesterIdentity(req)
+
         // Get the reading to verify ownership
-        const { data: reading, error: readingError } = await supabase
+        const { data: reading, error: readingError } = await supabaseAdmin
             .from("tarot_readings")
-            .select("id, owner_user_id")
+            .select("id, owner_user_id, did")
             .eq("id", readingId)
             .single()
 
@@ -28,8 +54,20 @@ export async function GET(req: NextRequest) {
             )
         }
 
+        // Verify ownership
+        const isOwner =
+            (userId && reading.owner_user_id === userId) ||
+            (did && reading.did === did)
+
+        if (!isOwner) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            )
+        }
+
         // Get versions for this reading, ordered by creation time (newest first)
-        const { data: versions, error: versionsError } = await supabase
+        const { data: versions, error: versionsError } = await supabaseAdmin
             .from("tarot_versions")
             .select("id, reading_id, content, created_at")
             .eq("reading_id", readingId)
@@ -71,10 +109,19 @@ export async function POST(req: NextRequest) {
             )
         }
 
+        if (!supabaseAdmin) {
+            return NextResponse.json(
+                { error: "Supabase not configured" },
+                { status: 500 }
+            )
+        }
+
+        const { did, userId } = await getRequesterIdentity(req)
+
         // Get the reading to verify ownership
-        const { data: reading, error: readingError } = await supabase
+        const { data: reading, error: readingError } = await supabaseAdmin
             .from("tarot_readings")
-            .select("id, owner_user_id")
+            .select("id, owner_user_id, did")
             .eq("id", reading_id)
             .single()
 
@@ -85,9 +132,20 @@ export async function POST(req: NextRequest) {
             )
         }
 
-        // Insert new version using service role to bypass RLS
-        const client = supabaseAdmin ?? supabase
-        const { data: version, error: insertError } = await client
+        // Verify ownership
+        const isOwner =
+            (userId && reading.owner_user_id === userId) ||
+            (did && reading.did === did)
+
+        if (!isOwner) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            )
+        }
+
+        // Insert new version using service role
+        const { data: version, error: insertError } = await supabaseAdmin
             .from("tarot_versions")
             .insert({ reading_id, content })
             .select("id, reading_id, content, created_at")
