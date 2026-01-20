@@ -412,14 +412,9 @@ export default function Interpretation({
                                     Try Again
                                 </button>
                             </div>
-                        ) : isGenerating && !object?.interpretation ? (
-                            <div className='text-center space-y-4 py-8'>
-                                <div className='flex items-center justify-center space-x-3'>
-                                    <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-primary'></div>
-                                    <span className='text-muted-foreground'>
-                                        Generating interpretation...
-                                    </span>
-                                </div>
+                        ) : isGenerating && !interpretation && !object ? (
+                            <div className='flex justify-center py-6 text-sm text-muted-foreground'>
+                                Generating interpretation...
                             </div>
                         ) : (
                             <div

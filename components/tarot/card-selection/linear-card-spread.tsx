@@ -2,8 +2,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
-import { Button } from "@/components/ui/button"
-import { Sparkles } from "lucide-react"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { Swiper as SwiperType } from "swiper"
 import { FreeMode, Mousewheel } from "swiper/modules"
@@ -113,7 +111,6 @@ export function LinearCardSpread({
     cardsToSelect,
     onCardsSelected,
     onPartialSelect,
-    externalSelectedNames = [],
     onProvideShuffle,
     onProvideRandomPick,
 }: {
@@ -124,7 +121,6 @@ export function LinearCardSpread({
         action: "add" | "remove",
         newSelectedCount: number
     ) => void
-    externalSelectedNames?: string[]
     onProvideShuffle?: (fn: () => void) => void
     onProvideRandomPick?: (fn: () => void) => void
 }) {
@@ -496,21 +492,11 @@ export function LinearCardSpread({
 
     return (
         <>
-            <div className='flex justify-center mb-6'>
-                <Button
-                    onClick={randomPick}
-                    disabled={isRandomPicking}
-                    className='gap-2 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 hover:from-indigo-500/30 hover:to-purple-500/30 border border-white/10 text-white backdrop-blur-sm transition-all duration-300 shadow-lg hover:shadow-primary/20 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed'
-                >
-                    <Sparkles className='w-4 h-4 text-yellow-300 animate-pulse' />
-                    {t("random", { default: "Pick For Me" })}
-                </Button>
-            </div>
             <p className='text-xs text-muted-foreground w-full text-center smx-auto'>
                 {t("swipeUpToSelect")}
             </p>
             <div className='w-full relative' ref={deckRef}>
-                {/* Shuffle control moved to parent header */}
+                {/* Controls are rendered by the parent */}
                 <Swiper
                     onSwiper={setSwiper}
                     modules={[FreeMode, Mousewheel]}
@@ -540,7 +526,7 @@ export function LinearCardSpread({
                                 key={`${name}-${idx}`}
                                 className='!w-28'
                             >
-                                <div className='flex items-center justify-center h-[320px]'>
+                                <div className='flex items-end justify-center h-52'>
                                     <div
                                         className={`w-24 h-36 rounded-[16px] bg-gradient-to-br from-[#15a6ff] via-[#b56cff] to-[#15a6ff] p-px shadow-2xl select-none touch-none ${
                                             isSelected

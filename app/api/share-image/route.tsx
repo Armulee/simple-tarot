@@ -22,7 +22,7 @@ function slugifyCardName(raw: string): { slug: string; isReversed: boolean } {
 function truncate(text: string, maxChars: number): string {
     const t = String(text ?? "").trim()
     if (t.length <= maxChars) return t
-    return `${t.slice(0, Math.max(0, maxChars - 1)).trimEnd()}…`
+    return `${t.slice(0, Math.max(0, maxChars - 3)).trimEnd()}...`
 }
 
 function extractKeywordsAndContent(text: string): {
@@ -60,12 +60,12 @@ function generateStars(count: number, width: number, height: number) {
         const left = Math.random() * width
         const top = Math.random() * height
 
-        // Random size (1-3px)
-        const size = 1 + Math.random() * 2
+        // Random size (2-3px)
+        const size = 2 + Math.random()
 
         // Varying opacity - some stars are more faded (0.3-1.0)
         // 30% chance for faded stars (0.3-0.6), 70% for brighter (0.6-1.0)
-        const isFaded = Math.random() < 0.1
+        const isFaded = Math.random() < 0.15
         const opacity = isFaded
             ? 0.3 + Math.random() * 0.3 // 0.3-0.6 for faded
             : 0.6 + Math.random() * 0.4 // 0.6-1.0 for brighter
@@ -153,7 +153,7 @@ export async function POST(req: Request) {
         const logoSrc = logoBase64 || `${origin}/assets/logo.png`
 
         const displayQuestion = truncate(safeQuestion, 140)
-        const displayInterpretation = truncate(safeInterpretation, 900)
+        const displayInterpretation = truncate(safeInterpretation, 780)
 
         // Extract keywords and content from interpretation
         const { keywords, content } = extractKeywordsAndContent(
@@ -161,14 +161,16 @@ export async function POST(req: Request) {
         )
         const finalInterpretation = content || displayInterpretation || "—"
 
-        // Generate stars for background (50 stars for good coverage but fast rendering)
-        const stars = generateStars(
-            50,
-            Number(width) || 1080,
-            Number(height) || 1920
-        )
+        const imageWidth = Number(width) || 1080
+        const imageHeight = Number(height) || 1920
+        const basePadding = 72
+        const isWideLayout = imageWidth >= imageHeight
+        const paddingBottom = basePadding + (isWideLayout ? 140 : 0)
 
-        return new ImageResponse(
+        // Generate stars for background (denser for richer texture)
+        const stars = generateStars(140, imageWidth, imageHeight)
+
+        const imageResponse = new ImageResponse(
             (
                 <div
                     style={{
@@ -176,7 +178,11 @@ export async function POST(req: Request) {
                         height: "100%",
                         display: "flex",
                         flexDirection: "column",
-                        padding: 72,
+                        paddingTop: basePadding,
+                        paddingRight: basePadding,
+                        paddingLeft: basePadding,
+                        paddingBottom,
+                        boxSizing: "border-box",
                         background:
                             "radial-gradient(1600px 1000px at 20% 0%, rgba(30, 58, 138, 0.4) 0%, rgba(25, 45, 112, 0.3) 25%, rgba(15, 23, 42, 0.2) 40%, rgba(2, 6, 23, 1) 70%), radial-gradient(1400px 1000px at 80% 100%, rgba(30, 64, 175, 0.3) 0%, rgba(20, 40, 100, 0.2) 30%, rgba(2, 6, 23, 1) 65%), radial-gradient(1000px 800px at 50% 50%, rgba(37, 99, 235, 0.15) 0%, rgba(2, 6, 23, 0.9) 50%)",
                         color: "#ffffff",
@@ -247,6 +253,76 @@ export async function POST(req: Request) {
                             }}
                         />
                     ))}
+                    {/* Vignette to frame content */}
+                    <div
+                        style={{
+                            position: "absolute",
+                            inset: 0,
+                            background:
+                                "radial-gradient(1200px 900px at 50% 10%, rgba(2,6,23,0) 0%, rgba(2,6,23,0.35) 60%, rgba(2,6,23,0.75) 100%)",
+                            pointerEvents: "none",
+                        }}
+                    />
+                    {/* Larger glow stars */}
+                    {stars.slice(0, 36).map((star, idx) => (
+                        <div
+                            key={`glow-${idx}`}
+                            style={{
+                                position: "absolute",
+                                left: star.left,
+                                top: star.top,
+                                width: star.size * 5,
+                                height: star.size * 5,
+                                borderRadius: "50%",
+                                background:
+                                    "radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0))",
+                                opacity: 0.35,
+                                filter: "blur(1.2px)",
+                                transform: "translate(-50%, -50%)",
+                            }}
+                        />
+                    ))}
+                    {/* Signature star glyphs */}
+                    <svg
+                        width='200'
+                        height='200'
+                        viewBox='0 0 24 24'
+                        fill='none'
+                        stroke='rgba(255,255,255,0.5)'
+                        strokeWidth='1.2'
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        xmlns='http://www.w3.org/2000/svg'
+                        style={{
+                            position: "absolute",
+                            top: 120,
+                            right: 120,
+                            opacity: 0.35,
+                            filter: "blur(0.4px)",
+                        }}
+                    >
+                        <path d='M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z' />
+                    </svg>
+                    <svg
+                        width='260'
+                        height='260'
+                        viewBox='0 0 24 24'
+                        fill='none'
+                        stroke='rgba(56,189,248,0.35)'
+                        strokeWidth='0.8'
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        xmlns='http://www.w3.org/2000/svg'
+                        style={{
+                            position: "absolute",
+                            bottom: 220,
+                            left: 140,
+                            opacity: 0.3,
+                            filter: "blur(0.6px)",
+                        }}
+                    >
+                        <path d='M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z' />
+                    </svg>
 
                     {/* background card aura */}
                     {parsedCards.slice(0, 3).map((c, idx) => {
@@ -287,21 +363,32 @@ export async function POST(req: Request) {
 
                     <div
                         style={{
+                            position: "relative",
                             display: "flex",
                             flexDirection: "column",
-                            gap: 32,
+                            gap: 36,
+                            maxWidth: 980,
+                            width: "100%",
+                            margin: "0 auto",
                         }}
                     >
                         {/* Enhanced Brand */}
                         <div
                             style={{
-                                textAlign: "center",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "flex-end",
                                 gap: 16,
                                 marginBottom: 8,
                                 position: "relative",
+                                alignSelf: "flex-end",
+                                padding: "10px 16px",
+                                borderRadius: 999,
+                                background:
+                                    "linear-gradient(135deg, rgba(15,23,42,0.6), rgba(30,41,59,0.35))",
+                                border: "1px solid rgba(255,255,255,0.12)",
+                                boxShadow:
+                                    "0 10px 30px -15px rgba(56,189,248,0.5)",
                             }}
                         >
                             <img
@@ -330,10 +417,11 @@ export async function POST(req: Request) {
                                 display: "flex",
                                 flexDirection: "column",
                                 borderRadius: 32,
-                                padding: 40,
+                                padding: "20px 0",
                                 alignItems: "center",
                                 textAlign: "center",
                                 position: "relative",
+                                maxWidth: "100%",
                             }}
                         >
                             {/* Decorative corner accent */}
@@ -374,8 +462,11 @@ export async function POST(req: Request) {
                                     textShadow:
                                         "0 4px 20px rgba(56,189,248,0.3), 0 2px 8px rgba(139,92,246,0.2)",
                                     color: "rgba(255,255,255,0.98)",
-                                    letterSpacing: -0.5,
+                                    letterSpacing: 0,
                                     textAlign: "center",
+                                    maxWidth: "100%",
+                                    wordBreak: "break-word",
+                                    overflowWrap: "break-word",
                                 }}
                             >
                                 {`"${displayQuestion}"`}
@@ -387,13 +478,31 @@ export async function POST(req: Request) {
                             <div
                                 style={{
                                     display: "flex",
-                                    gap: 24,
-                                    flexWrap: "wrap",
-                                    marginTop: 32,
-                                    alignItems: "flex-start",
-                                    justifyContent: "center",
+                                    flexDirection: "column",
+                                    gap: 18,
+                                    marginTop: 8,
+                                    alignItems: "center",
                                 }}
                             >
+                                <div
+                                    style={{
+                                        fontSize: 24,
+                                        letterSpacing: 1.2,
+                                        textTransform: "uppercase",
+                                        color: "rgba(255,255,255,0.7)",
+                                    }}
+                                >
+                                    Your cards
+                                </div>
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        gap: 24,
+                                        flexWrap: "wrap",
+                                        alignItems: "flex-start",
+                                        justifyContent: "center",
+                                    }}
+                                >
                                 {parsedCards.slice(0, 3).map((c, idx) => (
                                     <div
                                         key={`card-${c.slug}-${idx}`}
@@ -466,6 +575,7 @@ export async function POST(req: Request) {
                                         </div>
                                     </div>
                                 ))}
+                                </div>
                             </div>
                         ) : null}
 
@@ -479,11 +589,12 @@ export async function POST(req: Request) {
                                 borderRadius: 32,
                                 padding: 60,
                                 background:
-                                    "linear-gradient(135deg, rgba(99,102,241,0.22) 0%, rgba(168,85,247,0.18) 30%, rgba(139,92,246,0.15) 50%, rgba(34,211,238,0.12) 80%, rgba(56,189,248,0.10) 100%)",
+                                    "linear-gradient(135deg, rgba(30,41,59,0.6) 0%, rgba(99,102,241,0.25) 35%, rgba(34,211,238,0.16) 80%)",
                                 boxShadow:
-                                    "0 24px 80px -25px rgba(56,189,248,0.65), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2)",
-                                border: "1px solid rgba(255,255,255,0.18)",
+                                    "0 30px 90px -35px rgba(56,189,248,0.65), 0 0 0 1px rgba(255,255,255,0.12), inset 0 1px 0 rgba(255,255,255,0.2)",
+                                border: "1px solid rgba(255,255,255,0.16)",
                                 position: "relative",
+                                maxWidth: "100%",
                             }}
                         >
                             {/* Decorative corner accent */}
@@ -513,28 +624,31 @@ export async function POST(req: Request) {
                                 {/* Sparkles icon container */}
                                 <div
                                     style={{
-                                        width: 100,
-                                        height: 100,
+                                        width: 88,
+                                        height: 88,
                                         borderRadius: 9999,
-                                        marginRight: 30,
-                                        background: "rgba(59, 130, 246, 0.2)",
+                                        marginRight: 24,
+                                        background:
+                                            "radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.28), rgba(99, 102, 241, 0.1))",
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "center",
+                                        boxShadow:
+                                            "0 10px 30px rgba(56,189,248,0.25)",
                                     }}
                                 >
                                     <svg
-                                        width='78'
-                                        height='78'
+                                        width='64'
+                                        height='64'
                                         viewBox='0 0 24 24'
                                         fill='none'
-                                        stroke='rgb(255, 255, 255)'
-                                        strokeWidth='2'
+                                        stroke='rgba(255, 255, 255, 0.95)'
+                                        strokeWidth='1.6'
                                         strokeLinecap='round'
                                         strokeLinejoin='round'
                                         xmlns='http://www.w3.org/2000/svg'
                                     >
-                                        <path d='M12 2L13.09 8.26L19 9L13.09 9.74L12 16L10.91 9.74L5 9L10.91 8.26L12 2Z' />
+                                        <path d='M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z' />
                                     </svg>
                                 </div>
                                 <div
@@ -551,6 +665,7 @@ export async function POST(req: Request) {
                                             fontWeight: 600,
                                             color: "rgba(255,255,255,1)",
                                             lineHeight: 1.2,
+                                            letterSpacing: 0,
                                         }}
                                     >
                                         Interpretation
@@ -561,6 +676,7 @@ export async function POST(req: Request) {
                                             color: "rgba(255,255,255,0.7)",
                                             marginTop: 4,
                                             lineHeight: 1.3,
+                                            letterSpacing: 0,
                                         }}
                                     >
                                         AI-powered analysis of your cards
@@ -604,12 +720,15 @@ export async function POST(req: Request) {
                                     display: "block",
                                     fontSize: 40,
                                     lineHeight: 1.6,
-                                    whiteSpace: "pre-wrap",
+                                    whiteSpace: "pre-line",
                                     color: "rgba(255,255,255,0.95)",
                                     fontWeight: 400,
-                                    letterSpacing: -0.2,
+                                    letterSpacing: 0,
                                     marginTop: 40,
                                     textShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                                    maxWidth: "100%",
+                                    wordBreak: "break-word",
+                                    overflowWrap: "break-word",
                                 }}
                             >
                                 {finalInterpretation}
@@ -617,63 +736,22 @@ export async function POST(req: Request) {
                         </div>
                     </div>
 
-                    {/* Enhanced Footer - Absolutely positioned at bottom */}
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            padding: "24px 72px",
-                            borderTop: "1px solid rgba(255,255,255,0.1)",
-                            opacity: 0.9,
-                            fontSize: 36,
-                            position: "absolute",
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                        }}
-                    >
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 8,
-                                color: "rgba(255,255,255,0.85)",
-                                fontWeight: 500,
-                            }}
-                        >
-                            <svg
-                                width='35'
-                                height='35'
-                                viewBox='0 0 24 24'
-                                fill='currentColor'
-                                xmlns='http://www.w3.org/2000/svg'
-                                style={{ opacity: 0.7 }}
-                            >
-                                <path d='M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9Z' />
-                            </svg>
-                            Generated with Asking Fate
-                        </div>
-                        <div
-                            style={{
-                                color: "rgba(255, 255, 255, 0.95)",
-                                fontWeight: 600,
-                                letterSpacing: 0.5,
-                            }}
-                        >
-                            askingfate.com
-                        </div>
-                    </div>
+                    {/* Footer removed per branding */}
                 </div>
             ),
             {
-                width: Number(width) || 1080,
-                height: Number(height) || 1920,
-                headers: {
-                    "Content-Type": "image/png",
-                },
+                width: imageWidth,
+                height: imageHeight,
             }
         )
+
+        const arrayBuffer = await imageResponse.arrayBuffer()
+        return new Response(arrayBuffer, {
+            headers: {
+                "Content-Type": "image/png",
+                "Content-Length": arrayBuffer.byteLength.toString(),
+            },
+        })
     } catch (e) {
         console.error("Share image generation error:", e)
         return new Response(

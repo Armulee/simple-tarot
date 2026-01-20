@@ -2,7 +2,7 @@ import { streamObject, type LanguageModel } from "ai"
 import { TAROT_SYSTEM_PROMPT } from "@/lib/prompts"
 import { tarotInterpretationSchema } from "@/lib/tarot/schema"
 
-const MODEL = "openai/gpt-4.1-mini"
+const MODEL = "google/gemini-3-flash"
 
 export async function POST(req: Request) {
     try {
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
             system: TAROT_SYSTEM_PROMPT,
             prompt: `${prompt}
 
-        IMPORTANT: Respond in the language of the user's question, ignoring the English template text.`,
+        IMPORTANT: Respond in the language of the user's question`,
         })
 
         return result.toTextStreamResponse()

@@ -1,6 +1,6 @@
 import { streamText } from "ai"
 
-const MODEL = "openai/gpt-4.1-mini"
+const MODEL = "google/gemini-3-flash"
 
 export async function POST(req: Request) {
     try {

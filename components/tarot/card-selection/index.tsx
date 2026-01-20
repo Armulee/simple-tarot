@@ -4,7 +4,7 @@ import { TarotCard, useTarot } from "@/contexts/tarot-context"
 import { Button } from "../../ui/button"
 import { Card } from "../../ui/card"
 import { Badge } from "../../ui/badge"
-import { Pencil, RotateCw, Star } from "lucide-react"
+import { Pencil, RotateCw, Sparkles, Star } from "lucide-react"
 import { ReadingConfig } from "../../../app/[locale]/reading/page"
 import { CircularCardSpread } from "./circular-card-spread"
 import LinearCardSpread from "./linear-card-spread"
@@ -164,7 +164,7 @@ export default function CardSelection({
             } catch {}
 
             // Deduct star before creating the reading
-            const starSuccess = spendStars(1)
+            const starSuccess = spendStars(5)
             if (!starSuccess) {
                 setShowNoStarsDialog(true)
                 setIsCreatingReading(false)
@@ -232,6 +232,14 @@ export default function CardSelection({
             linearShuffleRef.current?.()
         } else {
             circularShuffleRef.current?.()
+        }
+    }
+    const handleRandomPick = () => {
+        const useLinear = isMobile || spreadMode === "linear"
+        if (useLinear) {
+            linearRandomPickRef.current?.()
+        } else {
+            circularRandomPickRef.current?.()
         }
     }
 
@@ -340,24 +348,11 @@ export default function CardSelection({
 
                     <div className='space-y-6'>
                         <div className='text-center space-y-2'>
-                            <div className='flex items-center justify-center gap-4'>
-                                <h2 className='font-serif font-bold text-2xl'>
-                                    {t("chooseCards.title", {
-                                        default: "Choose Your Cards",
-                                    })}
-                                </h2>
-                                <Button
-                                    variant='outline'
-                                    size='sm'
-                                    className='gap-2'
-                                    onClick={handleShuffle}
-                                >
-                                    <RotateCw className='w-4 h-4' />{" "}
-                                    {t("chooseCards.shuffle", {
-                                        default: "Shuffle",
-                                    })}
-                                </Button>
-                            </div>
+                            <h2 className='font-serif font-bold text-xl'>
+                                {t("chooseCards.title", {
+                                    default: "Choose Your Cards",
+                                })}
+                            </h2>
                             <p className='text-muted-foreground'>
                                 {t("chooseCards.desc", {
                                     amount: `(${aggSelected.length}/${cardsToSelect})`,
@@ -453,7 +448,6 @@ export default function CardSelection({
                                         onPartialSelect={(c, action) =>
                                             handlePartialSelect(c, action)
                                         }
-                                        externalSelectedNames={externalNames}
                                         onProvideShuffle={(fn) =>
                                             (linearShuffleRef.current = fn)
                                         }
@@ -488,6 +482,29 @@ export default function CardSelection({
                                         />
                                     </div>
                                 )}
+                                <div className='mt-4 flex flex-wrap items-center justify-center gap-3'>
+                                    <Button
+                                        variant='outline'
+                                        size='sm'
+                                        className='gap-2 bg-transparent'
+                                        onClick={handleShuffle}
+                                    >
+                                        <RotateCw className='w-4 h-4' />
+                                        {t("chooseCards.shuffle", {
+                                            default: "Shuffle",
+                                        })}
+                                    </Button>
+                                    <Button
+                                        size='sm'
+                                        onClick={handleRandomPick}
+                                        className='gap-2 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 hover:from-indigo-500/30 hover:to-purple-500/30 border border-white/10 text-white backdrop-blur-sm transition-all duration-300 shadow-lg hover:shadow-primary/20 hover:scale-105'
+                                    >
+                                        <Sparkles className='w-4 h-4 text-yellow-300 animate-pulse' />
+                                        {t("chooseCards.random", {
+                                            default: "Pick For Me",
+                                        })}
+                                    </Button>
+                                </div>
                             </>
                         )}
                     </div>

@@ -1,7 +1,7 @@
-import { streamObject } from "ai"
+import { LanguageModel, streamObject } from "ai"
 import { astrologySummarySchema } from "@/lib/astrology/schema"
 
-const MODEL = "openai/gpt-4.1-mini"
+const MODEL = "google/gemini-3-flash"
 
 export async function POST(req: Request) {
     try {
@@ -11,8 +11,8 @@ export async function POST(req: Request) {
             return new Response("User prompt is required", { status: 400 })
         }
 
-        const result = await streamObject({
-            model: MODEL as any,
+        const result = streamObject({
+            model: MODEL as unknown as LanguageModel,
             schema: astrologySummarySchema,
             system: `You are an astrology interpretation engine.
 
@@ -52,13 +52,4 @@ IMPORTANT: Respond in the language of the user's question, ignoring the English 
     }
 }
 
-function costPerUsage(
-    input: number | undefined,
-    output: number | undefined,
-    model: string = MODEL
-) {
-    if (model === "openai/gpt-4.1-mini" && input && output) {
-        return input * (0.4 / 1000000) + output * (1.6 / 1000000)
-    }
-    return 0
-}
+

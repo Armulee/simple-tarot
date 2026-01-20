@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect, useRef } from "react"
+import { useState, useCallback, useEffect, useMemo, useRef } from "react"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { FreeMode, Mousewheel } from "swiper/modules"
 import "swiper/css"
@@ -17,11 +17,12 @@ import {
     FaCheck,
     FaXmark,
 } from "react-icons/fa6"
-import { Sparkles, Star } from "lucide-react"
+import { Sparkle, Sparkles, Star } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { Settings } from "lucide-react"
 import { useTarot } from "@/contexts/tarot-context"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { useStars } from "@/contexts/stars-context"
 import { experimental_useObject as useObject } from "@ai-sdk/react"
 import { tarotInterpretationSchema, type TarotInterpretation } from "@/lib/tarot/schema"
@@ -40,6 +41,15 @@ import {
     PopoverTrigger,
     PopoverContent,
 } from "@/components/ui/popover"
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/components/ui/sheet"
 import { getTarotReadingPrompt } from "@/lib/prompts"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
@@ -82,6 +92,24 @@ export default function ActionSection({
     const router = useRouter()
     const { spendStars, stars } = useStars()
     const [isDownloading, setIsDownloading] = useState(false)
+    const [downloadOpen, setDownloadOpen] = useState(false)
+    const [downloadFormat, setDownloadFormat] = useState<"image" | "video">(
+        "image"
+    )
+    const [downloadStyleId, setDownloadStyleId] = useState("story")
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+    const [previewError, setPreviewError] = useState<string | null>(null)
+    const [isPreviewLoading, setIsPreviewLoading] = useState(false)
+    const [previewProgress, setPreviewProgress] = useState<number | null>(null)
+    const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null)
+    const [isVideoGenerating, setIsVideoGenerating] = useState(false)
+    const [videoProgress, setVideoProgress] = useState<number | null>(null)
+    const previewBlobRef = useRef<{ styleId: string; blob: Blob } | null>(null)
+    const previewCacheRef = useRef<Map<string, Blob>>(new Map())
+    const videoCacheRef = useRef<Map<string, Blob>>(new Map())
+    const [thumbnailUrls, setThumbnailUrls] = useState<Record<string, string>>(
+        {}
+    )
     const [showReport, setShowReport] = useState(false)
     const [reportReason, setReportReason] = useState("")
     const [reportDetails, setReportDetails] = useState("")
@@ -97,6 +125,281 @@ export default function ActionSection({
             created_at: string
         }>
     >([])
+
+    const downloadStyles = useMemo(
+        () => [
+            {
+                id: "story",
+                label: t("actions.downloadStyleStory"),
+                size: "1170 × 2532",
+                width: 1170,
+                height: 2532,
+            },
+            {
+                id: "square",
+                label: t("actions.downloadStyleSquare"),
+                size: "1080 × 1080",
+                width: 1080,
+                height: 1080,
+            },
+            {
+                id: "landscape",
+                label: t("actions.downloadStyleLandscape"),
+                size: "1920 × 1080",
+                width: 1920,
+                height: 1080,
+            },
+        ],
+        [t]
+    )
+    const selectedStyle =
+        downloadStyles.find((style) => style.id === downloadStyleId) ||
+        downloadStyles[0]
+    const activePreviewProgress =
+        downloadFormat === "video" ? videoProgress : previewProgress
+    const isActivePreviewLoading =
+        downloadFormat === "video" ? isVideoGenerating : isPreviewLoading
+
+    const fetchShareImage = useCallback(
+        async ({
+            width,
+            height,
+            signal,
+            onProgress,
+        }: {
+            width: number
+            height: number
+            signal?: AbortSignal
+            onProgress?: (progress: number | null) => void
+        }) => {
+            const res = await fetch("/api/share-image", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    question,
+                    cards,
+                    interpretation,
+                    width,
+                    height,
+                    branding: "Asking Fate",
+                    type: "image",
+                }),
+                signal,
+            })
+            if (!res.ok) throw new Error("Preview failed")
+
+            const contentLength = res.headers.get("Content-Length")
+            if (!res.body || !contentLength) {
+                onProgress?.(null)
+                return await res.blob()
+            }
+
+            const total = Number(contentLength)
+            if (!Number.isFinite(total) || total <= 0) {
+                onProgress?.(null)
+                return await res.blob()
+            }
+
+            const reader = res.body.getReader()
+            const chunks: BlobPart[] = []
+            let received = 0
+
+            while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
+                if (value) {
+                    chunks.push(value as BlobPart)
+                    received += value.length
+                    onProgress?.(Math.min(received / total, 1))
+                }
+            }
+
+            onProgress?.(1)
+            return new Blob(chunks, {
+                type: res.headers.get("Content-Type") || "image/png",
+            })
+        },
+        [question, cards, interpretation]
+    )
+
+    const createShareVideo = useCallback(
+        async ({
+            style,
+            signal,
+            onProgress,
+        }: {
+            style: { id: string; width: number; height: number }
+            signal?: AbortSignal
+            onProgress?: (progress: number) => void
+        }) => {
+            const cachedImage =
+                previewCacheRef.current.get(style.id) || null
+            const baseBlob =
+                cachedImage ||
+                (await fetchShareImage({
+                    width: style.width,
+                    height: style.height,
+                    signal,
+                }))
+
+            const baseImage =
+                typeof createImageBitmap === "function"
+                    ? await createImageBitmap(baseBlob)
+                    : await new Promise<HTMLImageElement>((resolve, reject) => {
+                      const img = new window.Image()
+                          img.onload = () => resolve(img)
+                          img.onerror = () =>
+                              reject(new Error("Failed to load image"))
+                          img.src = URL.createObjectURL(baseBlob)
+                      })
+
+            const canvas = document.createElement("canvas")
+            canvas.width = style.width
+            canvas.height = style.height
+            const ctx = canvas.getContext("2d")
+            if (!ctx) throw new Error("Canvas not supported")
+
+            const starCount = Math.round(
+                Math.max(120, (style.width * style.height) / 20000)
+            )
+            const stars = Array.from({ length: starCount }, () => ({
+                x: Math.random() * style.width,
+                y: Math.random() * style.height,
+                size: 1.4 + Math.random() * 1.6,
+                alpha: 0.35 + Math.random() * 0.6,
+                twinkleSpeed: 0.6 + Math.random() * 1.8,
+                twinkleOffset: Math.random() * Math.PI * 2,
+            }))
+            const glowOrbs = [
+                {
+                    x: style.width * 0.2,
+                    y: style.height * 0.2,
+                    radius: Math.min(style.width, style.height) * 0.35,
+                    color: "rgba(56,189,248,0.15)",
+                    speed: 0.6,
+                    phase: 0,
+                },
+                {
+                    x: style.width * 0.8,
+                    y: style.height * 0.7,
+                    radius: Math.min(style.width, style.height) * 0.4,
+                    color: "rgba(234,179,8,0.12)",
+                    speed: 0.4,
+                    phase: 2,
+                },
+            ]
+
+            const stream = canvas.captureStream(30)
+            const mimeType = MediaRecorder.isTypeSupported(
+                "video/webm;codecs=vp9"
+            )
+                ? "video/webm;codecs=vp9"
+                : "video/webm"
+            const recorder = new MediaRecorder(stream, {
+                mimeType,
+                videoBitsPerSecond: 4_000_000,
+            })
+            const chunks: BlobPart[] = []
+
+            const durationMs = 6000
+            const start = performance.now()
+
+            const donePromise = new Promise<Blob>((resolve, reject) => {
+                recorder.ondataavailable = (event) => {
+                    if (event.data && event.data.size > 0) {
+                        chunks.push(event.data)
+                    }
+                }
+                recorder.onerror = () => {
+                    reject(new Error("Video recording failed"))
+                }
+                recorder.onstop = () => {
+                    resolve(
+                        new Blob(chunks, {
+                            type: recorder.mimeType || "video/webm",
+                        })
+                    )
+                }
+
+                const render = (now: number) => {
+                    if (signal?.aborted) {
+                        recorder.stop()
+                        reject(new Error("Video generation aborted"))
+                        return
+                    }
+
+                    const elapsed = now - start
+                    const t = Math.min(elapsed / durationMs, 1)
+
+                    ctx.clearRect(0, 0, style.width, style.height)
+                    ctx.drawImage(baseImage as CanvasImageSource, 0, 0)
+
+                    glowOrbs.forEach((orb) => {
+                        const drift =
+                            Math.sin(t * Math.PI * 2 * orb.speed + orb.phase) *
+                            30
+                        const gx = orb.x + drift
+                        const gy = orb.y - drift * 0.6
+                        const gradient = ctx.createRadialGradient(
+                            gx,
+                            gy,
+                            0,
+                            gx,
+                            gy,
+                            orb.radius
+                        )
+                        gradient.addColorStop(0, orb.color)
+                        gradient.addColorStop(1, "rgba(0,0,0,0)")
+                        ctx.fillStyle = gradient
+                        ctx.beginPath()
+                        ctx.arc(gx, gy, orb.radius, 0, Math.PI * 2)
+                        ctx.fill()
+                    })
+
+                    ctx.save()
+                    ctx.globalCompositeOperation = "screen"
+                    stars.forEach((star) => {
+                        const twinkle =
+                            0.5 +
+                            0.5 *
+                                Math.sin(
+                                    t * Math.PI * 2 * star.twinkleSpeed +
+                                        star.twinkleOffset
+                                )
+                        const alpha = star.alpha * twinkle
+                        ctx.fillStyle = `rgba(255,255,255,${alpha})`
+                        ctx.beginPath()
+                        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
+                        ctx.fill()
+                        ctx.fillStyle = `rgba(255,255,255,${alpha * 0.5})`
+                        ctx.beginPath()
+                        ctx.arc(star.x, star.y, star.size * 2.4, 0, Math.PI * 2)
+                        ctx.fill()
+                    })
+                    ctx.restore()
+
+                    onProgress?.(t)
+                    if (t < 1) {
+                        requestAnimationFrame(render)
+                    } else {
+                        recorder.stop()
+                    }
+                }
+
+                recorder.start()
+                requestAnimationFrame(render)
+            })
+
+            const blob = await donePromise
+            if (baseImage instanceof HTMLImageElement) {
+                URL.revokeObjectURL(baseImage.src)
+            } else if (typeof (baseImage as ImageBitmap).close === "function") {
+                ;(baseImage as ImageBitmap).close()
+            }
+            return blob
+        },
+        [fetchShareImage]
+    )
 
     const loadVersions = useCallback(async () => {
         try {
@@ -119,6 +422,331 @@ export default function ActionSection({
     useEffect(() => {
         void loadVersions()
     }, [loadVersions])
+
+    useEffect(() => {
+        if (!downloadOpen) {
+            setPreviewError(null)
+            setIsPreviewLoading(false)
+            setPreviewProgress(null)
+            setIsVideoGenerating(false)
+            setVideoProgress(null)
+            setPreviewUrl((current) => {
+                if (current) URL.revokeObjectURL(current)
+                return null
+            })
+            setVideoPreviewUrl((current) => {
+                if (current) URL.revokeObjectURL(current)
+                return null
+            })
+            previewBlobRef.current = null
+            setThumbnailUrls((current) => {
+                Object.values(current).forEach((url) =>
+                    URL.revokeObjectURL(url)
+                )
+                return {}
+            })
+        }
+    }, [downloadOpen])
+
+    useEffect(() => {
+        if (!downloadOpen) return
+        setPreviewUrl((current) => {
+            if (current) URL.revokeObjectURL(current)
+            return null
+        })
+        setVideoPreviewUrl((current) => {
+            if (current) URL.revokeObjectURL(current)
+            return null
+        })
+        previewBlobRef.current = null
+        setPreviewProgress(null)
+        setVideoProgress(null)
+        setThumbnailUrls((current) => {
+            Object.values(current).forEach((url) => URL.revokeObjectURL(url))
+            return {}
+        })
+        previewCacheRef.current.clear()
+        videoCacheRef.current.clear()
+    }, [downloadOpen, question, cards, interpretation])
+
+    useEffect(() => {
+        if (!downloadOpen) return
+
+        const controller = new AbortController()
+        let isActive = true
+
+        const fetchPreview = async () => {
+            setIsPreviewLoading(true)
+            setPreviewError(null)
+            setPreviewProgress(0)
+            try {
+                const cachedBlob = previewCacheRef.current.get(
+                    selectedStyle.id
+                )
+                if (cachedBlob) {
+                    const nextUrl = URL.createObjectURL(cachedBlob)
+                    setPreviewUrl((current) => {
+                        if (current) URL.revokeObjectURL(current)
+                        return nextUrl
+                    })
+                    previewBlobRef.current = {
+                        styleId: selectedStyle.id,
+                        blob: cachedBlob,
+                    }
+                    setPreviewProgress(1)
+                    return
+                }
+                const blob = await fetchShareImage({
+                    width: selectedStyle.width,
+                    height: selectedStyle.height,
+                    signal: controller.signal,
+                    onProgress: (progress) => {
+                        if (!isActive) return
+                        setPreviewProgress(progress)
+                    },
+                })
+                if (!isActive) return
+                previewCacheRef.current.set(selectedStyle.id, blob)
+                const nextUrl = URL.createObjectURL(blob)
+                setPreviewUrl((current) => {
+                    if (current) URL.revokeObjectURL(current)
+                    return nextUrl
+                })
+                previewBlobRef.current = {
+                    styleId: selectedStyle.id,
+                    blob,
+                }
+            } catch (error) {
+                if (!isActive || controller.signal.aborted) return
+                console.error("Preview error:", error)
+                setPreviewError(t("actions.downloadPreviewError"))
+                setPreviewProgress(null)
+            } finally {
+                if (isActive) setIsPreviewLoading(false)
+            }
+        }
+
+        void fetchPreview()
+
+        return () => {
+            isActive = false
+            controller.abort()
+        }
+    }, [
+        downloadOpen,
+        downloadStyleId,
+        question,
+        cards,
+        interpretation,
+        selectedStyle.height,
+        selectedStyle.width,
+        selectedStyle.id,
+        fetchShareImage,
+        t,
+    ])
+
+    useEffect(() => {
+        if (!downloadOpen) return
+
+        const controller = new AbortController()
+        let cancelled = false
+
+        const loadThumbnails = async () => {
+            await Promise.all(
+                downloadStyles.map(async (style) => {
+                    if (cancelled) return
+                    let blob = previewCacheRef.current.get(style.id) || null
+                    if (!blob) {
+                        try {
+                            blob = await fetchShareImage({
+                                width: style.width,
+                                height: style.height,
+                                signal: controller.signal,
+                            })
+                            if (cancelled) return
+                            previewCacheRef.current.set(style.id, blob)
+                        } catch (error) {
+                            if (controller.signal.aborted) return
+                            console.error("Thumbnail error:", error)
+                            return
+                        }
+                    }
+
+                    const url = URL.createObjectURL(blob)
+                    setThumbnailUrls((current) => {
+                        const next = { ...current }
+                        if (next[style.id]) {
+                            URL.revokeObjectURL(next[style.id])
+                        }
+                        next[style.id] = url
+                        return next
+                    })
+                })
+            )
+        }
+
+        void loadThumbnails()
+
+        return () => {
+            cancelled = true
+            controller.abort()
+        }
+    }, [
+        downloadOpen,
+        question,
+        cards,
+        interpretation,
+        downloadStyles,
+        fetchShareImage,
+    ])
+
+    useEffect(() => {
+        if (!downloadOpen || downloadFormat !== "video") return
+
+        const controller = new AbortController()
+        let active = true
+
+        const ensureVideoPreview = async () => {
+            const cached = videoCacheRef.current.get(selectedStyle.id)
+            if (cached) {
+                const nextUrl = URL.createObjectURL(cached)
+                setVideoPreviewUrl((current) => {
+                    if (current) URL.revokeObjectURL(current)
+                    return nextUrl
+                })
+                return
+            }
+
+            try {
+                setIsVideoGenerating(true)
+                setVideoProgress(0)
+                const blob = await createShareVideo({
+                    style: {
+                        id: selectedStyle.id,
+                        width: selectedStyle.width,
+                        height: selectedStyle.height,
+                    },
+                    signal: controller.signal,
+                    onProgress: (progress) => {
+                        if (!active) return
+                        setVideoProgress(progress)
+                    },
+                })
+                if (!active) return
+                videoCacheRef.current.set(selectedStyle.id, blob)
+                const nextUrl = URL.createObjectURL(blob)
+                setVideoPreviewUrl((current) => {
+                    if (current) URL.revokeObjectURL(current)
+                    return nextUrl
+                })
+            } catch (error) {
+                if (!active || controller.signal.aborted) return
+                console.error("Video preview error:", error)
+                toast.error(t("actions.downloadVideoError"))
+                setVideoProgress(null)
+            } finally {
+                if (active) setIsVideoGenerating(false)
+            }
+        }
+
+        void ensureVideoPreview()
+
+        return () => {
+            active = false
+            controller.abort()
+        }
+    }, [
+        downloadOpen,
+        downloadFormat,
+        selectedStyle.id,
+        selectedStyle.width,
+        selectedStyle.height,
+        createShareVideo,
+        t,
+    ])
+
+    const handleDownload = useCallback(async () => {
+        try {
+            setIsDownloading(true)
+            const cachedPreview = previewBlobRef.current
+            let blob: Blob | null = null
+            if (cachedPreview?.styleId === selectedStyle.id) {
+                blob = cachedPreview.blob
+            } else {
+                blob =
+                    previewCacheRef.current.get(selectedStyle.id) || null
+            }
+
+            if (!blob) {
+                blob = await fetchShareImage({
+                    width: selectedStyle.width,
+                    height: selectedStyle.height,
+                })
+            }
+
+            const ts = new Date().toISOString().replace(/[:.]/g, "-")
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement("a")
+            a.href = url
+            a.download = `reading-${selectedStyle.id}-${ts}.png`
+            document.body.appendChild(a)
+            a.click()
+            a.remove()
+            URL.revokeObjectURL(url)
+        } catch (e) {
+            console.error("Download error:", e)
+            toast.error(t("actions.downloadError"))
+        } finally {
+            setIsDownloading(false)
+        }
+    }, [
+        selectedStyle.height,
+        selectedStyle.id,
+        selectedStyle.width,
+        t,
+        fetchShareImage,
+    ])
+
+    const handleVideoDownload = useCallback(async () => {
+        try {
+            setIsVideoGenerating(true)
+            setVideoProgress(0)
+            let blob = videoCacheRef.current.get(selectedStyle.id) || null
+            if (!blob) {
+                blob = await createShareVideo({
+                    style: {
+                        id: selectedStyle.id,
+                        width: selectedStyle.width,
+                        height: selectedStyle.height,
+                    },
+                    onProgress: (progress) => setVideoProgress(progress),
+                })
+                videoCacheRef.current.set(selectedStyle.id, blob)
+            }
+
+            const ts = new Date().toISOString().replace(/[:.]/g, "-")
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement("a")
+            a.href = url
+            a.download = `reading-${selectedStyle.id}-${ts}.webm`
+            document.body.appendChild(a)
+            a.click()
+            a.remove()
+            URL.revokeObjectURL(url)
+        } catch (error) {
+            console.error("Video download error:", error)
+            toast.error(t("actions.downloadVideoError"))
+        } finally {
+            setIsVideoGenerating(false)
+            setVideoProgress(null)
+        }
+    }, [
+        selectedStyle.id,
+        selectedStyle.width,
+        selectedStyle.height,
+        createShareVideo,
+        t,
+    ])
 
     const { submit, object } = useObject({
         api: "/api/interpret-cards/question",
@@ -280,13 +908,13 @@ export default function ActionSection({
 
     const handleRegenerate = useCallback(async () => {
         try {
-            if (!Number.isFinite(stars as number) || (stars as number) < 1) {
+            if (!Number.isFinite(stars as number) || (stars as number) < 5) {
                 return
             }
 
-            const ok = await spendStars(1)
+            const ok = await spendStars(5)
             if (ok) {
-                toast.warning("-1 star for regeneration", {
+                toast.warning("-5 stars for regeneration", {
                     position: "bottom-center",
                 })
             } else {
@@ -372,7 +1000,7 @@ export default function ActionSection({
                 <span className='leading-tight text-center'>
                     <span className='block'>{t("buttons.regenerate")}</span>
                     <span className='block text-[10px] text-yellow-300'>
-                        -1{" "}
+                        -5{" "}
                         <Star
                             className='inline w-3 h-3 text-yellow-300'
                             fill='currentColor'
@@ -632,8 +1260,11 @@ export default function ActionSection({
                         {actionOptions.map((action, index) => (
                             <SwiperSlide key={action.id}>
                                 {action.id === "download" ? (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
+                                    <Sheet
+                                        open={downloadOpen}
+                                        onOpenChange={setDownloadOpen}
+                                    >
+                                        <SheetTrigger asChild>
                                             <button
                                                 type='button'
                                                 className='group relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg w-full'
@@ -655,84 +1286,310 @@ export default function ActionSection({
                                                     {action.label}
                                                 </span>
                                             </button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className='w-56'>
-                                            <div className='space-y-2'>
+                                        </SheetTrigger>
+                                        <SheetContent
+                                            side='bottom'
+                                            className='max-h-[85vh] overflow-auto border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 shadow-[0_12px_40px_-12px_rgba(234,179,8,0.35)] backdrop-blur-xl'
+                                        >
+                                            <Sparkle
+                                                className='absolute top-10 left-10 w-3 h-3 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                                                style={{
+                                                    animationDelay: "0.6s",
+                                                }}
+                                            />
+                                            <Sparkle
+                                                className='absolute top-20 right-16 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                                                style={{
+                                                    animationDelay: "1.4s",
+                                                }}
+                                            />
+                                            <Sparkle
+                                                className='absolute bottom-14 left-16 w-3.5 h-3.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                                                style={{
+                                                    animationDelay: "2.3s",
+                                                }}
+                                            />
+                                            <Sparkle
+                                                className='absolute bottom-20 right-20 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                                                style={{
+                                                    animationDelay: "3.1s",
+                                                }}
+                                            />
+                                            <div className='pointer-events-none absolute inset-0 opacity-40'>
+                                                <div className='cosmic-stars-layer-3' />
+                                                <div className='cosmic-stars-layer-4' />
+                                                <div className='cosmic-stars-layer-5' />
+                                            </div>
+                                            <div className='pointer-events-none absolute -top-20 -left-20 h-64 w-64 rounded-full bg-gradient-to-br from-yellow-300/20 via-yellow-500/10 to-transparent blur-3xl animate-pulse' />
+                                            <div
+                                                className='pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-gradient-to-tl from-yellow-400/20 via-yellow-600/10 to-transparent blur-[90px] animate-pulse'
+                                                style={{
+                                                    animationDelay: "0.8s",
+                                                }}
+                                            />
+                                            <SheetHeader>
+                                                <SheetTitle>
+                                                    {t(
+                                                        downloadFormat ===
+                                                            "video"
+                                                            ? "actions.downloadSheetTitleVideo"
+                                                            : "actions.downloadSheetTitleImage"
+                                                    )}
+                                                </SheetTitle>
+                                                <SheetDescription>
+                                                    {t(
+                                                        "actions.downloadSheetDesc"
+                                                    )}
+                                                </SheetDescription>
+                                                <div className='mt-4 flex justify-center'>
+                                                    <div className='inline-flex h-10 items-center justify-center rounded-full bg-white/5 border border-white/10 p-1 text-white'>
+                                                        <button
+                                                            type='button'
+                                                            onClick={() =>
+                                                                setDownloadFormat(
+                                                                    "image"
+                                                                )
+                                                            }
+                                                            className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                                                                downloadFormat ===
+                                                                "image"
+                                                                    ? "bg-white/15 text-white shadow"
+                                                                    : "text-white/70"
+                                                            }`}
+                                                        >
+                                                            {t(
+                                                                "actions.downloadTabImage"
+                                                            )}
+                                                        </button>
+                                                        <button
+                                                            type='button'
+                                                            onClick={() =>
+                                                                setDownloadFormat(
+                                                                    "video"
+                                                                )
+                                                            }
+                                                            className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                                                                downloadFormat ===
+                                                                "video"
+                                                                    ? "bg-white/15 text-white shadow"
+                                                                    : "text-white/70"
+                                                            }`}
+                                                        >
+                                                            {t(
+                                                                "actions.downloadTabVideo"
+                                                            )}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </SheetHeader>
+                                            <div className='px-4 pb-4 space-y-5'>
+                                                <div className='space-y-2'>
+                                                    <div className='flex items-center justify-between text-sm'>
+                                                        <span className='font-medium'>
+                                                            {t(
+                                                                "actions.downloadStylesTitle"
+                                                            )}
+                                                        </span>
+                                                        <span className='text-xs text-muted-foreground'>
+                                                            {t(
+                                                                "actions.downloadStylesHint"
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                    <div className='grid grid-cols-3 gap-2'>
+                                                        {downloadStyles.map(
+                                                            (style) => (
+                                                                <button
+                                                                    key={
+                                                                        style.id
+                                                                    }
+                                                                    type='button'
+                                                                    onClick={() =>
+                                                                        setDownloadStyleId(
+                                                                            style.id
+                                                                        )
+                                                                    }
+                                                                    className={`flex h-36 flex-col rounded-lg border p-2 text-left transition ${
+                                                                        downloadStyleId ===
+                                                                        style.id
+                                                                            ? "border-primary bg-primary/10"
+                                                                            : "border-border/60 bg-muted/30 hover:bg-muted/50"
+                                                                    }`}
+                                                                >
+                                                                    <div className='h-16 w-full overflow-hidden rounded-md border border-border/40 bg-muted/40'>
+                                                                        {thumbnailUrls[
+                                                                            style
+                                                                                .id
+                                                                        ] ? (
+                                                                            <div className='relative h-full w-full'>
+                                                                                <Image
+                                                                                    src={
+                                                                                        thumbnailUrls[
+                                                                                            style
+                                                                                                .id
+                                                                                        ]
+                                                                                    }
+                                                                                    alt={`${style.label} preview`}
+                                                                                    fill
+                                                                                    unoptimized
+                                                                                    className='object-contain'
+                                                                                />
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div className='flex h-full w-full items-center justify-center'>
+                                                                                <div
+                                                                                    className='h-full rounded-sm bg-muted/60'
+                                                                                    style={{
+                                                                                        aspectRatio: `${style.width}/${style.height}`,
+                                                                                        maxWidth:
+                                                                                            "100%",
+                                                                                    }}
+                                                                                />
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className='mt-2 text-xs font-medium text-foreground'>
+                                                                        {
+                                                                            style.label
+                                                                        }
+                                                                    </div>
+                                                                    <div className='text-[11px] text-muted-foreground'>
+                                                                        {
+                                                                            style.size
+                                                                        }
+                                                                    </div>
+                                                                </button>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className='space-y-2'>
+                                                    <div className='flex items-center justify-between text-sm'>
+                                                        <span className='font-medium'>
+                                                            {t(
+                                                                "actions.downloadPreviewTitle"
+                                                            )}
+                                                        </span>
+                                                        <span className='text-xs text-muted-foreground'>
+                                                            {selectedStyle.size}
+                                                        </span>
+                                                    </div>
+                                                    <div
+                                                        className='relative w-full max-w-[430px] mx-auto overflow-hidden rounded-lg border bg-muted/20'
+                                                        style={{
+                                                            aspectRatio: `${selectedStyle.width}/${selectedStyle.height}`,
+                                                        }}
+                                                    >
+                                                        {isActivePreviewLoading && (
+                                                            <div className='absolute left-3 right-3 top-3 z-10 h-2 overflow-hidden rounded-full bg-black/40'>
+                                                                <div
+                                                                    className={`h-full rounded-full bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 transition-all ${
+                                                                        activePreviewProgress ==
+                                                                        null
+                                                                            ? "animate-pulse w-2/3"
+                                                                            : ""
+                                                                    }`}
+                                                                    style={
+                                                                        activePreviewProgress ==
+                                                                        null
+                                                                            ? undefined
+                                                                            : {
+                                                                                  width: `${Math.max(
+                                                                                      6,
+                                                                                      Math.round(
+                                                                                          activePreviewProgress *
+                                                                                              100
+                                                                                      )
+                                                                                  )}%`,
+                                                                              }
+                                                                    }
+                                                                />
+                                                            </div>
+                                                        )}
+                                                        {downloadFormat ===
+                                                        "video" ? (
+                                                            isVideoGenerating ? (
+                                                                <div className='absolute inset-0 animate-pulse bg-muted/40' />
+                                                            ) : videoPreviewUrl ? (
+                                                                <video
+                                                                    src={
+                                                                        videoPreviewUrl
+                                                                    }
+                                                                    className='h-full w-full object-cover'
+                                                                    autoPlay
+                                                                    loop
+                                                                    muted
+                                                                    playsInline
+                                                                />
+                                                            ) : (
+                                                                <div className='absolute inset-0 flex items-center justify-center text-xs text-muted-foreground'>
+                                                                    {t(
+                                                                        "actions.downloadVideoPreviewFallback"
+                                                                    )}
+                                                                </div>
+                                                            )
+                                                        ) : isPreviewLoading ? (
+                                                            <div className='absolute inset-0 animate-pulse bg-muted/40' />
+                                                        ) : previewUrl ? (
+                                                            <Image
+                                                                src={previewUrl}
+                                                                alt={t(
+                                                                    "actions.downloadPreviewAlt"
+                                                                )}
+                                                                fill
+                                                                unoptimized
+                                                                className='object-cover'
+                                                            />
+                                                        ) : (
+                                                            <div className='absolute inset-0 flex items-center justify-center text-xs text-muted-foreground'>
+                                                                {previewError ||
+                                                                    t(
+                                                                        "actions.downloadPreviewFallback"
+                                                                    )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <SheetFooter className='sticky bottom-0 z-10 gap-2 border-t border-white/10 bg-gradient-to-t from-[#0a0a1a]/95 via-[#0a0a1a]/90 to-transparent px-4 pb-4 pt-3 sm:flex-row sm:justify-end'>
                                                 <button
                                                     type='button'
-                                                    className='w-full px-3 py-2 rounded-md bg-primary/20 hover:bg-primary/30 text-sm'
-                                                    onClick={async () => {
-                                                        try {
-                                                            setIsDownloading(
-                                                                true
-                                                            )
-                                                            const type = "image"
-                                                            const res =
-                                                                await fetch(
-                                                                    "/api/share-image",
-                                                                    {
-                                                                        method: "POST",
-                                                                        headers:
-                                                                            {
-                                                                                "Content-Type":
-                                                                                    "application/json",
-                                                                            },
-                                                                        body: JSON.stringify(
-                                                                            {
-                                                                                question,
-                                                                                cards: cards,
-                                                                                interpretation,
-                                                                                width: 1170,
-                                                                                height: 2532,
-                                                                                branding:
-                                                                                    "Asking Fate",
-                                                                                type,
-                                                                            }
-                                                                        ),
-                                                                    }
-                                                                )
-                                                            const blob =
-                                                                await res.blob()
-                                                            const ts =
-                                                                new Date()
-                                                                    .toISOString()
-                                                                    .replace(
-                                                                        /[:.]/g,
-                                                                        "-"
-                                                                    )
-                                                            const url =
-                                                                URL.createObjectURL(
-                                                                    blob
-                                                                )
-                                                            const a =
-                                                                document.createElement(
-                                                                    "a"
-                                                                )
-                                                            a.href = url
-                                                            a.download = `reading-${ts}.png`
-                                                            document.body.appendChild(
-                                                                a
-                                                            )
-                                                            a.click()
-                                                            a.remove()
-                                                            URL.revokeObjectURL(
-                                                                url
-                                                            )
-                                                        } catch (e) {
-                                                            console.error("Download error:", e)
-                                                            toast.error("Failed to generate image.")
-                                                        } finally {
-                                                            setIsDownloading(
-                                                                false
-                                                            )
-                                                        }
-                                                    }}
+                                                    className='w-full rounded-md border border-border/60 bg-background px-4 py-2 text-sm hover:bg-muted/40 sm:w-auto'
+                                                    onClick={() =>
+                                                        setDownloadOpen(false)
+                                                    }
                                                 >
-                                                    Download Image
+                                                    {t(
+                                                        "actions.downloadCancel"
+                                                    )}
                                                 </button>
-                                            </div>
-                                        </PopoverContent>
-                                    </Popover>
+                                                <button
+                                                    type='button'
+                                                    className='w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
+                                                    onClick={() =>
+                                                        downloadFormat ===
+                                                        "video"
+                                                            ? handleVideoDownload()
+                                                            : handleDownload()
+                                                    }
+                                                    disabled={
+                                                        downloadFormat ===
+                                                        "video"
+                                                            ? isVideoGenerating
+                                                            : isDownloading ||
+                                                              isPreviewLoading
+                                                    }
+                                                >
+                                                    {t(
+                                                        downloadFormat ===
+                                                            "video"
+                                                            ? "actions.downloadVideoButton"
+                                                            : "actions.downloadButton"
+                                                    )}
+                                                </button>
+                                            </SheetFooter>
+                                        </SheetContent>
+                                    </Sheet>
                                 ) : action.id === "versions" ? (
                                     versions.length > 0 ? (
                                         <Popover>
