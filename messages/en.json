@@ -1201,7 +1201,7 @@
         },
         "unavailable": {
           "title": "Sharing unavailable",
-          "desc": "{label} sharing is currently unavailable and still in work.",
+          "desc": "{label} sharing is currently unavailable. Download the media and upload it manually instead.",
           "ok": "OK"
         }
       },

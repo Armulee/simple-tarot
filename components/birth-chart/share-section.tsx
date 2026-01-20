@@ -372,7 +372,8 @@ export default function BirthChartShareSection({
                             </AlertDialogTitle>
                             <AlertDialogDescription>
                                 {unavailableLabel} sharing is currently
-                                unavailable.
+                                unavailable. Download the media and upload it
+                                manually instead.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
