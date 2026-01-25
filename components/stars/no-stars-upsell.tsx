@@ -6,7 +6,7 @@ import { Star, Sparkles } from "lucide-react"
 import { useLocale } from "next-intl"
 import { usePathname } from "@/i18n/navigation"
 import { Swiper, SwiperSlide } from "swiper/react"
-import { FreeMode } from "swiper/modules"
+import { FreeMode, Mousewheel } from "swiper/modules"
 import "swiper/css"
 import "swiper/css/free-mode"
 
@@ -45,7 +45,7 @@ export default function NoStarsUpsell() {
             </div>
 
             {user ? (
-                <div className='space-y-2'>
+                <div className='space-y-2 grid grid-cols-1 md:grid-cols-2 gap-2'>
                     <div className='text-xs text-white/75'>
                         Quick top up (instant):
                     </div>
@@ -53,8 +53,13 @@ export default function NoStarsUpsell() {
                     {packs.length > 0 ? (
                         <div className='-mx-1'>
                             <Swiper
-                                modules={[FreeMode]}
+                                modules={[FreeMode, Mousewheel]}
                                 freeMode
+                                mousewheel={{
+                                    forceToAxis: false,
+                                    releaseOnEdges: true,
+                                    sensitivity: 1,
+                                }}
                                 slidesPerView='auto'
                                 spaceBetween={10}
                                 className='w-full'

@@ -142,7 +142,7 @@ export function LinearCardSpread({
         x: number
         y: number
     }>({ x: 0, y: 0 })
-    const [swiper, setSwiper] = useState<SwiperType | null>(null)
+    const swiperRef = useRef<SwiperType | null>(null)
     const [isRandomPicking, setIsRandomPicking] = useState(false)
     const deckRef = useRef<HTMLDivElement | null>(null)
 
@@ -208,6 +208,7 @@ export function LinearCardSpread({
 
         // 1. Scroll to card
         const index = deckList.indexOf(randomName)
+        const swiper = swiperRef.current
         if (swiper) {
             swiper.slideTo(index, 600) // 600ms scroll
             await new Promise((r) => setTimeout(r, 700)) // wait for scroll + buffer
@@ -498,7 +499,9 @@ export function LinearCardSpread({
             <div className='w-full relative' ref={deckRef}>
                 {/* Controls are rendered by the parent */}
                 <Swiper
-                    onSwiper={setSwiper}
+                    onSwiper={(instance) => {
+                        swiperRef.current = instance
+                    }}
                     modules={[FreeMode, Mousewheel]}
                     freeMode={{
                         enabled: true,

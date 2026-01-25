@@ -17,7 +17,7 @@ export default function QuickInsight({
     if (insight) {
         return (
             <div
-                className={`px-3 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 backdrop-blur-md relative group/insight animate-fade-in max-w-[140px] shadow-lg ${className}`}
+                className={`px-3 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 backdrop-blur-md relative group/insight animate-fade-in shadow-lg ${className}`}
             >
                 {/* Decorative corner accents */}
                 <div className='absolute -top-1 -left-1 w-2 h-2 border-t border-l border-primary/40 rounded-tl-sm' />
@@ -26,7 +26,7 @@ export default function QuickInsight({
                 {/* Left arrow/tail for side-by-side layout (only on md+) */}
                 <div className='hidden md:block absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-indigo-500/10 border-l border-b border-indigo-500/20 rotate-45 -translate-x-1/2 backdrop-blur-md' />
 
-                <p className='text-[10px] font-serif italic text-indigo-100 text-center leading-relaxed tracking-tight relative z-10'>
+                <p className='text-[10px] font-serif italic text-indigo-100 text-left leading-relaxed tracking-tight relative z-10'>
                     &ldquo;{insight}&rdquo;
                 </p>
 

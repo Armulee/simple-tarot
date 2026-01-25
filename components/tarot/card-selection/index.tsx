@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { TarotCard, useTarot } from "@/contexts/tarot-context"
 import { Button } from "../../ui/button"
 import { Card } from "../../ui/card"
@@ -48,7 +48,7 @@ export default function CardSelection({
     } = useTarot()
     const { user } = useAuth()
     const isMobile = useIsMobile()
-    const { stars, spendStars } = useStars()
+    const { stars, spendStars, initialized } = useStars()
 
     // Desktop-only spread mode selection; mobile is forced to linear
     const [spreadMode, setSpreadMode] = useState<"circular" | "linear">(
@@ -70,6 +70,9 @@ export default function CardSelection({
     // Dialog state
     const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
     const [isCreatingReading, setIsCreatingReading] = useState(false)
+    const [pendingSelection, setPendingSelection] = useState<
+        { name: string; isReversed: boolean }[] | null
+    >(null)
 
     // Clear previous selections whenever we enter the card selection step (including follow-up)
     useEffect(() => {
@@ -102,11 +105,23 @@ export default function CardSelection({
         setSelectedCards([])
     }
 
-    const handleCardsSelected = async (
+    // Clear interpretation cache for new readings - no-op
+    const clearInterpretationCache = useCallback(() => {}, [])
+
+    const handleCardsSelected = useCallback(async (
         cards: { name: string; isReversed: boolean }[]
     ) => {
+        if (!initialized) {
+            setPendingSelection(cards)
+            setIsCreatingReading(true)
+            return
+        }
         // If not enough stars, block and show dialog; do not mutate state
-        if (!Number.isFinite(stars as number) || (stars as number) < 1) {
+        if (
+            initialized &&
+            Number.isFinite(stars as number) &&
+            (stars as number) < 5
+        ) {
             setShowNoStarsDialog(true)
             return
         }
@@ -166,7 +181,9 @@ export default function CardSelection({
             // Deduct star before creating the reading
             const starSuccess = spendStars(5)
             if (!starSuccess) {
-                setShowNoStarsDialog(true)
+                if (initialized) {
+                    setShowNoStarsDialog(true)
+                }
                 setIsCreatingReading(false)
                 return
             }
@@ -199,10 +216,28 @@ export default function CardSelection({
             // Fallback to old flow
             setCurrentStep("interpretation")
         }
-    }
+    }, [
+        initialized,
+        stars,
+        spendStars,
+        clearInterpretationState,
+        setSelectedCards,
+        isFollowUp,
+        question,
+        followUpQuestion,
+        user?.id,
+        readingType,
+        setCurrentStep,
+        clearInterpretationCache,
+    ])
 
-    // Clear interpretation cache for new readings - no-op
-    const clearInterpretationCache = () => {}
+    useEffect(() => {
+        if (initialized && pendingSelection) {
+            const next = pendingSelection
+            setPendingSelection(null)
+            void handleCardsSelected(next)
+        }
+    }, [initialized, pendingSelection, handleCardsSelected])
 
     const externalNames = useMemo(
         () => aggSelected.map((c) => c.name),
@@ -252,7 +287,7 @@ export default function CardSelection({
 
             {/* No Stars Dialog */}
             <AlertDialog open={showNoStarsDialog}>
-                <AlertDialogContent className='max-w-md w-[92vw] border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(234,179,8,0.35)]'>
+            <AlertDialogContent className='overflow-x-hidden max-h-[85vh] overflow-y-auto overscroll-contain border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(234,179,8,0.35)]'>
                     <div className='pointer-events-none absolute -top-24 -left-24 h-56 w-56 rounded-full bg-gradient-to-br from-yellow-300/25 via-yellow-500/15 to-transparent blur-3xl' />
                     <div className='pointer-events-none absolute -bottom-28 -right-28 h-72 w-72 rounded-full bg-gradient-to-tl from-yellow-400/20 via-yellow-600/10 to-transparent blur-[100px]' />
 
@@ -279,7 +314,7 @@ export default function CardSelection({
 
             {currentStep === "card-selection" && (
                 <div className='space-y-8 animate-fade-in'>
-                    <Card className='px-6 pt-12 border-0'>
+                    <Card className='px-6 pt-0 border-0'>
                         <div className='text-center space-y-2'>
                             <div className='flex items-center justify-center gap-2 relative'>
                                 <h2 className='font-serif font-semibold text-xl relative'>

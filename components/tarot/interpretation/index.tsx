@@ -29,6 +29,8 @@ import BrandLoader from "@/components/brand-loader"
 import HardStarConsent from "@/components/hard-star-consent"
 import NoStarsUpsell from "@/components/stars/no-stars-upsell"
 
+import { supabase } from "@/lib/supabase"
+
 type ReadingProps = {
     readingId?: string
     question?: string
@@ -61,20 +63,12 @@ export default function Interpretation({
         setQuestion: setContextQuestion,
         readingType,
     } = useTarot()
+
+    // --- State Declarations ---
     const [interpretation, setInterpretationState] = useState<string | null>(
         initialInterpretation ?? null
     )
     const [isGenerating, setIsGenerating] = useState(false)
-
-    useEffect(() => {
-        if (typeof onInterpretationChange === "function") {
-            const normalized =
-                interpretation && interpretation.trim().length > 0
-                    ? interpretation
-                    : null
-            onInterpretationChange(normalized)
-        }
-    }, [interpretation, onInterpretationChange])
     const [error, setError] = useState<string | null>(null)
     const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
     const [isAuthLoading, setIsAuthLoading] = useState(true)
@@ -82,6 +76,51 @@ export default function Interpretation({
     const [, setHasDID] = useState<boolean | null>(null)
     const [hasAwardedStars, setHasAwardedStars] = useState(false)
     const [hasAttemptedGeneration, setHasAttemptedGeneration] = useState(false)
+    const [hasCheckedDB, setHasCheckedDB] = useState(false)
+
+    // Sync local state with prop if prop changes (important for navigation/history)
+    useEffect(() => {
+        if (initialInterpretation && interpretation !== initialInterpretation) {
+            setInterpretationState(initialInterpretation)
+        }
+    }, [initialInterpretation, interpretation])
+
+    // Handle back navigation / stale cache: if interpretation is missing, check DB on client
+    useEffect(() => {
+        const checkInterpretation = async () => {
+            if (
+                !interpretation &&
+                !isGenerating &&
+                readingId &&
+                !hasCheckedDB
+            ) {
+                setHasCheckedDB(true)
+                try {
+                    const { data, error } = await supabase
+                        .from("tarot_readings")
+                        .select("interpretation")
+                        .eq("id", readingId)
+                        .maybeSingle()
+
+                    if (!error && data?.interpretation) {
+                        setInterpretationState(data.interpretation)
+                    }
+                } catch (err) {
+                    console.error("Error checking interpretation:", err)
+                }
+            }
+        }
+
+        if (readingId && !initialInterpretation && !interpretation && !hasCheckedDB) {
+            checkInterpretation()
+        }
+    }, [
+        interpretation,
+        isGenerating,
+        readingId,
+        initialInterpretation,
+        hasCheckedDB,
+    ])
 
     const { object, submit } = useObject({
         api: "/api/interpret-cards/question",
@@ -153,6 +192,16 @@ export default function Interpretation({
             } catch {}
         },
     })
+
+    useEffect(() => {
+        if (typeof onInterpretationChange === "function") {
+            const normalized =
+                interpretation && interpretation.trim().length > 0
+                    ? interpretation
+                    : null
+            onInterpretationChange(normalized)
+        }
+    }, [interpretation, onInterpretationChange])
 
     // Sync card insights to context while streaming
     useEffect(() => {
@@ -248,7 +297,8 @@ export default function Interpretation({
             !interpretation &&
             !isGenerating &&
             !error &&
-            !hasAttemptedGeneration
+            !hasAttemptedGeneration &&
+            (hasCheckedDB || initialInterpretation)
         ) {
             const genKey =
                 typeof window !== "undefined"
@@ -306,6 +356,8 @@ export default function Interpretation({
         isFollowUp,
         propReadingType,
         readingType,
+        hasCheckedDB,
+        initialInterpretation,
     ])
 
     useEffect(() => {
@@ -353,7 +405,7 @@ export default function Interpretation({
                 </AlertDialogContent>
             </AlertDialog>
 
-            <Card className='p-8 bg-card/10 backdrop-blur-sm border-border/20 card-glow overflow-hidden'>
+            <Card className='bg-white/[0.03] backdrop-blur-sm rounded-2xl p-8 border border-white/5 group hover:bg-white/[0.06] hover:border-primary/20 transition-all duration-300 overflow-hidden relative'>
                 <div className='space-y-6'>
                     <div className='flex items-center space-x-3'>
                         <div

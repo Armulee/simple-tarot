@@ -200,7 +200,8 @@ export function CircularCardSpread({
         })
     }
 
-    const randomPick = () => {
+    const randomPick = async () => {
+        if (selectedCards.length >= cardsToSelect) return
         const selectedNames = new Set(selectedCards.map((c) => c.name))
         // Consider external selection too
         const taken = new Set([...selectedNames, ...externalSelectedNames])
@@ -208,14 +209,37 @@ export function CircularCardSpread({
         
         if (unselected.length === 0) return
 
-        const randomCard = unselected[Math.floor(Math.random() * unselected.length)]
+        const randomCard =
+            unselected[Math.floor(Math.random() * unselected.length)]
         
-        // Circular spread logic
-        // We select it directly.
-        // Animation? We can flash it or scale it.
-        // But the main thing is adding it to state.
-        
+        const container = document.querySelector(
+            '[data-circular-spread="true"]'
+        )
+        const cardEl = container?.querySelector(
+            `[data-card-name="${randomCard.name}"]`
+        ) as HTMLElement | null
+
+        if (cardEl) {
+            cardEl.style.transition =
+                "transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 300ms ease, filter 300ms ease"
+            cardEl.style.boxShadow =
+                "0 0 0 2px rgba(59,130,246,0.8), 0 0 18px 6px rgba(124,58,237,0.7), 0 0 42px 16px rgba(59,130,246,0.45)"
+            cardEl.style.filter = "saturate(1.2) brightness(1.05)"
+            cardEl.style.transform = "translateY(-12px) scale(1.08)"
+        }
+
+        await new Promise((r) => setTimeout(r, 380))
+
         handleCardClick(randomCard)
+
+        if (cardEl) {
+            setTimeout(() => {
+                cardEl.style.transform = ""
+                cardEl.style.boxShadow = ""
+                cardEl.style.filter = ""
+                cardEl.style.transition = ""
+            }, 450)
+        }
         // handleCardClick updates selectedCards and calls onPartialSelect via effect.
         // The parent (CardSelection) handles "Confirm" logic for circular spread usually.
         // But for random pick, user might expect instant action?
@@ -356,6 +380,7 @@ export function CircularCardSpread({
                     <div className='relative'>
                         <div
                             data-circular-card='true'
+                            data-card-name={card.name}
                             className={`w-16 h-24 rounded-[16px] bg-gradient-to-br from-[#15a6ff] via-[#b56cff] to-[#15a6ff] p-px shadow-2xl select-none ${
                                 isExternallyTaken
                                     ? "pointer-events-none"

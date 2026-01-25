@@ -1198,18 +1198,13 @@ export default function ActionSection({
     ]
 
     return (
-        <div className='relative overflow-hidden group'>
+        <div className='relative overflow-hidden group bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/5 hover:bg-white/[0.06] hover:border-primary/20 transition-all duration-300'>
             {/* Slide-up loader for download */}
             {isDownloading && (
                 <div className='fixed bottom-0 left-0 right-0 z-50 animate-slide-up bg-black/60 backdrop-blur-sm p-4 text-center text-white'>
                     Preparing your {"content"}...
                 </div>
             )}
-            {/* Background gradient with animation */}
-            <div className='absolute inset-0 bg-gradient-to-br from-primary/5 via-sky-500/5 to-primary/5 rounded-xl transition-all duration-500 group-hover:from-primary/10 group-hover:via-sky-500/10 group-hover:to-primary/10' />
-
-            {/* Animated border */}
-            <div className='absolute inset-0 rounded-xl border border-primary/20 group-hover:border-primary/40 transition-all duration-500' />
 
             {/* Content */}
             <div className='relative'>

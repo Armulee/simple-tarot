@@ -471,13 +471,7 @@ export default function ShareSection({
     )
 
     return (
-        <div className='relative overflow-hidden group'>
-            {/* Background gradient with animation */}
-            <div className='absolute inset-0 bg-gradient-to-br from-primary/5 via-sky-500/5 to-primary/5 rounded-xl transition-all duration-500 group-hover:from-primary/10 group-hover:via-sky-500/10 group-hover:to-primary/10' />
-
-            {/* Animated border */}
-            <div className='absolute inset-0 rounded-xl border border-primary/20 group-hover:border-primary/40 transition-all duration-500' />
-
+        <div className='relative overflow-hidden group bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/5 hover:bg-white/[0.06] hover:border-primary/20 transition-all duration-300'>
             {/* Content */}
             <div className='relative'>
                 {/* Header with padding */}
