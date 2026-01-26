@@ -132,6 +132,7 @@ function SpreadBreakdown({
     meanings: string[]
     question?: string | null
 }) {
+    const isSingle = cards.length === 1
     return (
         <div className='mt-6 pt-10 border-t border-white/5 space-y-8 w-full max-w-3xl mx-auto'>
             <div className='text-center space-y-1'>
@@ -141,20 +142,26 @@ function SpreadBreakdown({
                 <div className='h-px w-8 bg-primary/30 mx-auto' />
             </div>
 
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4 px-2 w-fit mx-auto'>
+            <div
+                className={`gap-4 px-2 w-fit mx-auto ${
+                    isSingle ? "" : "grid grid-cols-1 md:grid-cols-2"
+                }`}
+            >
                 {cards.map((card, i) => (
                     <div
                         key={card.id}
-                        className='w-full flex items-center bg-white/[0.03] backdrop-blur-sm rounded-2xl p-4 border border-white/5 group hover:bg-white/[0.06] hover:border-primary/20 transition-all duration-300'
+                        className={`w-full flex flex-row items-start gap-4 p-4 bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/5 group hover:bg-white/[0.06] hover:border-primary/20 transition-all duration-300`}
                     >
                         <div className='shrink-0 flex flex-col items-center relative'>
                             <div className='absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-[10px] font-bold text-white z-10 shadow-lg border border-white/10'>
                                 {i + 1}
                             </div>
-                            <div className='w-16 h-28 rounded-xl overflow-hidden border border-white/10 shadow-inner group-hover:scale-105 transition-transform duration-500'>
+                            <div
+                                className={`w-16 h-28 shrink-0 rounded-xl overflow-hidden border border-white/10 shadow-inner group-hover:scale-105 transition-transform duration-500`}
+                            >
                                 <CardImage
                                     card={card}
-                                    size='sm'
+                                    size={"sm"}
                                     showAura={false}
                                     showLabel={false}
                                 />
@@ -164,7 +171,7 @@ function SpreadBreakdown({
                                 asChild
                                 size='sm'
                                 variant='ghost'
-                                className='h-6 p-0 text-[10px] font-medium text-white/40 hover:text-primary hover:bg-transparent'
+                                className='h-6 p-0 text-[10px] font-medium text-white/40 hover:text-primary hover:bg-transparent mt-2'
                             >
                                 <Link
                                     href={`/articles/tarot/${card.slug}${
@@ -179,24 +186,38 @@ function SpreadBreakdown({
                             </Button>
                         </div>
 
-                        <div className='flex-1 min-w-0 flex flex-col h-full py-0.5'>
-                            <div className='text-left mb-2'>
+                        <div
+                            className={`flex-1 min-w-0 flex flex-col h-full py-0.5`}
+                        >
+                            <div
+                                className={`text-left mb-2`}
+                            >
                                 <p className='text-[10px] text-white/50 font-bold uppercase tracking-wider mb-0.5 opacity-80'>
                                     {meanings[i]}
                                 </p>
-                                <h4 className='text-white font-serif font-medium text-sm leading-tight group-hover:text-primary transition-colors'>
+                                <h4
+                                    className={`${
+                                        isSingle ? "text-xl" : "text-sm"
+                                    } text-white font-serif font-medium leading-tight group-hover:text-primary transition-colors`}
+                                >
                                     {card.meaning}
                                 </h4>
                             </div>
 
-                            <div className='flex items-center justify-start'>
+                            <div
+                                className={`flex items-center ${
+                                    isSingle ? "justify-center" : "justify-start"
+                                }`}
+                            >
                                 {question && (
                                     <QuickInsight
                                         cardName={card.name}
                                         positionMeaning={meanings[i]}
                                         question={question}
                                         index={i}
-                                        className='w-[140px] transition-transform duration-500'
+                                        className={`${
+                                            isSingle ? "w-full max-w-[200px]" : "w-[140px]"
+                                        } transition-transform duration-500`}
                                     />
                                 )}
                             </div>

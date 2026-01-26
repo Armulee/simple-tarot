@@ -42,11 +42,37 @@ export async function generateMetadata({
 }): Promise<Metadata> {
     const { locale } = await params
     const t = await getTranslations({ locale, namespace: "Meta.Layout" })
+    const baseUrl = getMetadataBase().toString().replace(/\/$/, "")
+    const ogImage = `${baseUrl}/${locale}/opengraph-image`
+    const twitterImage = `${baseUrl}/${locale}/twitter-image`
+
     return {
         metadataBase: getMetadataBase(),
         title: t("title"),
         description: t("description"),
         generator: "v0.app",
+        openGraph: {
+            type: "website",
+            locale,
+            url: baseUrl,
+            siteName: "Asking Fate",
+            title: t("title"),
+            description: t("description"),
+            images: [
+                {
+                    url: ogImage,
+                    width: 1200,
+                    height: 630,
+                    alt: t("title"),
+                },
+            ],
+        },
+        twitter: {
+            card: "summary_large_image",
+            title: t("title"),
+            description: t("description"),
+            images: [twitterImage],
+        },
         icons: {
             icon: [
                 {

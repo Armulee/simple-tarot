@@ -3,11 +3,7 @@ import {
     Pencil,
     Sparkles,
     Layers,
-    LayoutGrid,
-    Compass,
-    Globe,
     ArrowRight,
-    LucideIcon,
 } from "lucide-react"
 import { Button } from "../ui/button"
 import { Card } from "../ui/card"
@@ -18,14 +14,6 @@ import { isFollowUpQuestion, getCleanQuestionText } from "@/lib/question-utils"
 import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
 import { InlineQuestionEdit } from "./inline-question-edit"
-
-const TYPE_ICONS: Record<string, LucideIcon> = {
-    simple: Sparkles,
-    general: Layers,
-    detailed: LayoutGrid,
-    expanded: Compass,
-    celtic: Globe,
-}
 
 const MiniCard = ({ 
     className = "", 

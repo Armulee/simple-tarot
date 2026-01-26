@@ -9,6 +9,9 @@ import SpreadLayout from "@/components/tarot/spread-layout"
 import Interpretation from "@/components/tarot/interpretation"
 import FollowUpBadge from "@/components/tarot/follow-up-badge"
 
+import { getMetadataBase } from "@/lib/seo"
+import type { Metadata } from "next"
+
 async function getTarotReading(id: string) {
     const { data } = await supabase
         .from("tarot_readings")
@@ -20,6 +23,52 @@ async function getTarotReading(id: string) {
     return data as typeof data & {
         did?: string | null
         owner_user_id?: string | null
+    }
+}
+
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ id: string; locale: string }>
+}): Promise<Metadata> {
+    const { id, locale } = await params
+    const data = await getTarotReading(id)
+    const baseUrl = getMetadataBase().toString().replace(/\/$/, "")
+    const ogImage = `${baseUrl}/${locale}/opengraph-image`
+    const twitterImage = `${baseUrl}/${locale}/twitter-image`
+
+    if (!data) {
+        return {
+            title: "Reading Not Found | Asking Fate",
+        }
+    }
+
+    const question = getCleanQuestionText(data.question || "Tarot Reading")
+    const title = `"${question}" - My Tarot Reading | Asking Fate`
+    const description = `Discover the cosmic insights from this AI-powered tarot reading about "${question}".`
+
+    return {
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            type: "article",
+            images: [
+                {
+                    url: ogImage,
+                    width: 1200,
+                    height: 630,
+                    alt: title,
+                },
+            ],
+        },
+        twitter: {
+            card: "summary_large_image",
+            title,
+            description,
+            images: [twitterImage],
+        },
     }
 }
 
