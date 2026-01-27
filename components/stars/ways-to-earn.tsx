@@ -157,136 +157,6 @@ export default function WaysToEarn() {
                         </AccordionContent>
                     </AccordionItem>
 
-                    {/* Create Content */}
-                    <AccordionItem className='group relative overflow-hidden rounded-2xl border border-purple-500/30 bg-gradient-to-r from-purple-400/15 via-pink-500/15 to-purple-600/15 px-4 py-2 hover:from-purple-400/20 hover:via-pink-500/20 hover:to-purple-600/20 transition-all duration-300'>
-                        <AccordionTrigger className='px-2 py-4 hover:no-underline'>
-                            <div className='flex items-center gap-4 w-full'>
-                                <div className='relative'>
-                                    <span className='h-12 w-12 rounded-full bg-gradient-to-r from-purple-400/30 to-pink-500/30 border border-purple-500/40 text-purple-300 flex items-center justify-center group-hover:scale-110 transition-transform duration-300'>
-                                        <Megaphone className='w-6 h-6' />
-                                    </span>
-                                    <div className='absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center'>
-                                        <Star
-                                            className='w-2.5 h-2.5 text-white'
-                                            fill='currentColor'
-                                        />
-                                    </div>
-                                </div>
-                                <div className='flex-1 text-left'>
-                                    <h3 className='text-lg font-semibold text-white group-hover:text-purple-100 transition-colors'>
-                                        {t("earn.content.title")}
-                                    </h3>
-                                    <p className='text-sm text-gray-300'>
-                                        {t("earn.content.subtitle")}
-                                    </p>
-                                </div>
-                                <span className='text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-400/30 to-pink-500/30 border border-purple-500/40 text-purple-200 flex items-center gap-1.5 font-medium'>
-                                    <Star
-                                        className='w-3.5 h-3.5'
-                                        fill='currentColor'
-                                    />
-                                    15–50
-                                </span>
-                            </div>
-                        </AccordionTrigger>
-                        <AccordionContent className='px-2 pb-4'>
-                            <div className='space-y-4 p-6 rounded-xl bg-gradient-to-br from-purple-400/10 via-pink-500/10 to-purple-600/10 border border-purple-500/30 relative overflow-hidden'>
-                                <div className='pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-purple-400/20 blur-3xl animate-pulse' />
-                                <div className='pointer-events-none absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-pink-400/15 blur-3xl animate-pulse delay-1000' />
-
-                                <div className='relative z-10'>
-                                    <p className='text-gray-300 leading-relaxed mb-4'>
-                                        {t("earn.content.body")}
-                                    </p>
-
-                                    <div className='grid gap-3 mb-4'>
-                                        <div className='flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10'>
-                                            <div className='w-8 h-8 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center'>
-                                                <span className='text-blue-300 text-sm font-bold'>
-                                                    15
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <p className='text-white font-medium'>
-                                                    {t(
-                                                        "earn.content.items.textTitle"
-                                                    )}
-                                                </p>
-                                                <p className='text-gray-400 text-sm'>
-                                                    {t(
-                                                        "earn.content.items.textSubtitle"
-                                                    )}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className='flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10'>
-                                            <div className='w-8 h-8 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center'>
-                                                <span className='text-green-300 text-sm font-bold'>
-                                                    25
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <p className='text-white font-medium'>
-                                                    {t(
-                                                        "earn.content.items.imageTitle"
-                                                    )}
-                                                </p>
-                                                <p className='text-gray-400 text-sm'>
-                                                    {t(
-                                                        "earn.content.items.imageSubtitle"
-                                                    )}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className='flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10'>
-                                            <div className='w-8 h-8 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center justify-center'>
-                                                <span className='text-purple-300 text-sm font-bold'>
-                                                    50
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <p className='text-white font-medium'>
-                                                    {t(
-                                                        "earn.content.items.videoTitle"
-                                                    )}
-                                                </p>
-                                                <p className='text-gray-400 text-sm'>
-                                                    {t(
-                                                        "earn.content.items.videoSubtitle"
-                                                    )}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <p className='text-xs text-gray-400 mb-4 p-3 rounded-lg bg-white/5 border border-white/10'>
-                                        {t("earn.content.note")}
-                                    </p>
-
-                                    <div className='flex flex-col gap-3'>
-                                        <Link href='/articles/create-content-about-us'>
-                                            <Button
-                                                variant='outline'
-                                                className='w-full rounded-full border-purple-500/40 text-purple-300 hover:bg-purple-500/10 hover:border-purple-400/60 py-3 transition-all duration-300'
-                                            >
-                                                {t("earn.content.learnMore")}
-                                            </Button>
-                                        </Link>
-                                        <Link href='/content/submit'>
-                                            <Button
-                                                variant='outline'
-                                                className='w-full rounded-full border-purple-500/40 text-purple-300 hover:bg-purple-500/10 hover:border-purple-400/60 py-3 transition-all duration-300'
-                                            >
-                                                {t(
-                                                    "earn.content.submitContent"
-                                                )}
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                </div>
-                            </div>
-                        </AccordionContent>
-                    </AccordionItem>
 
                     {/* Share Reading */}
                     <AccordionItem className='group relative overflow-hidden rounded-2xl border border-blue-500/30 bg-gradient-to-r from-blue-400/15 via-cyan-500/15 to-blue-600/15 px-4 py-2 hover:from-blue-400/20 hover:via-cyan-500/20 hover:to-blue-600/20 transition-all duration-300'>
@@ -342,6 +212,28 @@ export default function WaysToEarn() {
                             </div>
                         </AccordionContent>
                     </AccordionItem>
+
+                    {/* Create Content */}
+                    <div className='group relative overflow-hidden rounded-2xl border border-purple-500/30 bg-gradient-to-r from-purple-400/15 via-pink-500/15 to-purple-600/15 px-6 py-6 transition-all duration-300 opacity-70'>
+                        <div className='flex items-center gap-4 w-full'>
+                            <div className='relative'>
+                                <span className='h-12 w-12 rounded-full bg-gradient-to-r from-purple-400/30 to-pink-500/30 border border-purple-500/40 text-purple-300 flex items-center justify-center'>
+                                    <Megaphone className='w-6 h-6' />
+                                </span>
+                            </div>
+                            <div className='flex-1 text-left'>
+                                <h3 className='text-lg font-semibold text-white'>
+                                    {t("earn.content.title")}
+                                </h3>
+                                <p className='text-sm text-gray-300'>
+                                    {t("earn.content.subtitle")}
+                                </p>
+                            </div>
+                            <span className='text-xs px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-white/60 flex items-center gap-1.5 font-medium'>
+                                {t("earn.comingSoon")}
+                            </span>
+                        </div>
+                    </div>
 
                     {/* Refer Friend */}
                     <AccordionItem className='group relative overflow-hidden rounded-2xl border border-green-500/30 bg-gradient-to-r from-green-400/15 via-emerald-500/15 to-green-600/15 px-4 py-2 hover:from-green-400/20 hover:via-emerald-500/20 hover:to-green-600/20 transition-all duration-300'>

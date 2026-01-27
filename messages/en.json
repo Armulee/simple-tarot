@@ -1862,6 +1862,7 @@
     "monthlyPrice": "$9.99/month"
   },
   "StarsPage": {
+    "comingSoon": "Coming Soon",
     "hero": {
       "badge": "Stars System"
     },
@@ -1876,6 +1877,7 @@
       "button": "Subscribe (Unlimited)"
     },
     "earn": {
+      "comingSoon": "Coming Soon",
       "title": "Ways to Earn Stars",
       "subtitle": "Explore multiple paths to accumulate cosmic energy and unlock deeper mystical experiences",
       "purchase": {
@@ -1887,14 +1889,14 @@
       },
       "social": {
         "title": "Follow us on social",
-        "subtitle": "Earn +1 star per platform (up to 5 total).",
+        "subtitle": "Earn +5 stars per platform (up to 25 total).",
         "description": "Tap a platform, follow Asking Fate, and we'll add your bonus instantly. Each platform can be claimed once.",
-        "rewardLabel": "+1 star reward",
+        "rewardLabel": "+5 star reward",
         "followCta": "Follow us",
         "openCta": "Open link",
         "claimed": "Claimed",
         "signIn": "Sign in to claim these social rewards.",
-        "success": "Thanks for following us on {platform}! +1 star added.",
+        "success": "Thanks for following us on {platform}! +5 stars added.",
         "alreadyClaimed": "You already claimed {platform}.",
         "error": "We couldn't grant stars right now. Please try again.",
         "progress": "{claimed}/{total} claimed"

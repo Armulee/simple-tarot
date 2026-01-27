@@ -303,7 +303,7 @@ export function SocialFollowRewards({ onProgress }: SocialFollowRewardsProps) {
                                             className='w-3 h-3'
                                             fill='currentColor'
                                         />
-                                        1
+                                        5
                                     </span>
                                 </>
                             )}
