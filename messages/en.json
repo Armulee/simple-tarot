@@ -17,7 +17,6 @@
     "decline": "Decline",
     "accept": "Accept"
   },
-
   "Sidebar": {
     "services": "Services",
     "comingSoon": "Coming Soon",
@@ -29,7 +28,6 @@
     "articles": "Articles & Guides",
     "contactSupport": "Contact & Support"
   },
-
   "Services": {
     "tarot": "Tarot",
     "birthChart": "Birth Chart",
@@ -40,12 +38,10 @@
     "palmistry": "Palmistry",
     "fatedRelations": "Fated Relations"
   },
-
   "Languages": {
     "en": "English",
     "th": "ไทย"
   },
-
   "Profile": {
     "title": "Profile Settings",
     "subtitle": "Customize your profile information and reading preferences to enhance your mystical journey",
@@ -77,7 +73,6 @@
     "updateFailed": "Failed to update profile",
     "signInRequired": "Please sign in to update your profile"
   },
-
   "Account": {
     "title": "Account Settings",
     "subtitle": "Manage your account information, security settings, and preferences",
@@ -202,7 +197,6 @@
       "cancel": "Cancel"
     }
   },
-
   "Home": {
     "hero": {
       "line1": "Ask me anything",
@@ -217,7 +211,6 @@
     },
     "learnMore": "Learn More"
   },
-
   "HomeDiscover": {
     "whatIs": "What is",
     "brand": "Asking Fate?",
@@ -268,178 +261,199 @@
         }
       }
     },
-      "Roadmap": {
-        "title": "Roadmap",
-        "label": "Development Roadmap",
-        "description": "Our journey to bring you the most comprehensive mystical experience",
-        "progress": "Progress",
-        "status": {
-          "completed": "Completed",
-          "inDevelopment": "In Development",
-          "planned": "Planned"
-        },
-        "phases": {
-          "completed": "Completed",
-          "dec_2025": "December 12, 2025",
-          "jan_2026": "January 2026",
-          "q1_2026": "Q1 2026",
-          "mar_2026": "March 2026"
-        },
-        "tarot": {
-          "title": "AI Tarot Reading",
-          "eta": "Available Now",
-          "features": [
-            "Get personalized tarot card readings powered by advanced AI",
-            "Ask follow-up questions for deeper insights",
-            "Save and revisit your readings anytime"
-          ]
-        },
-        "birthChart": {
-          "title": "Birth Chart",
-          "eta": "December 12, 2025",
-          "features": [
-            "Snapshot stats from your personal birth chart",
-            "Planet positions and aspect angles mapped to strengths",
-            "Ask follow-up questions about traits and life stats"
-          ]
-        },
-        "astrology": {
-          "title": "Astrology",
-          "eta": "December 12, 2025",
-          "features": [
-            "Transit forecasts from your birth data and target dates",
-            "Possible energies and events explained for each transit",
-            "Chat with AI for deeper transit guidance"
-          ]
-        },
-        "namelogy": {
-          "title": "Namelogy",
-          "eta": "January 2026",
-          "features": [
-            "Transform desired names (optional birth date) into numerology",
-            "Reveal spiritual alignment, strengths, and cautions",
-            "Ask AI how the name may shape your path"
-          ]
-        },
-        "numerology": {
-          "title": "Numerology",
-          "eta": "January 2026",
-          "features": [
-            "Decode phone numbers or key digits into spiritual meanings",
-            "Highlight supportive and challenging number patterns",
-            "Ask AI about outcomes tied to each number"
-          ]
-        },
-        "luckyColors": {
-          "title": "Lucky Colors",
-          "eta": "January 2026",
-          "features": [
-            "Daily palette matched to planetary rulers",
-            "Wardrobe and workspace recommendations",
-            "Seasonal color rituals you can try at home"
-          ]
-        },
-        "mobileApp": {
-          "title": "Mobile Application",
-          "eta": "Q1 2026",
-          "features": [
-            "Native iOS and Android launch experience",
-            "Offline vault for saved readings and notes",
-            "Widgets with daily cards and astrology snippets"
-          ]
-        },
-        "fatedRelations": {
-          "title": "Fated Relations",
-          "eta": "Q1 2026",
-          "features": [
-            "Compare two birth dates and times for soulful compatibility",
-            "Unpack relationship dynamics and shared potentials",
-            "Ask AI for deeper guidance on the connection"
-          ]
-        },
-        "palmistry": {
-          "title": "Palmistry",
-          "eta": "March 2026",
-          "features": [
-            "Live webcam palm scanning for instant readings",
-            "Interpret lines on luck, life, and destiny",
-            "Ask targeted questions about what your palm reveals"
-          ]
-        },
-        "eta": "ETA"
+    "Roadmap": {
+      "title": "Roadmap",
+      "label": "Development Roadmap",
+      "description": "Our journey to bring you the most comprehensive mystical experience",
+      "progress": "Progress",
+      "status": {
+        "completed": "Completed",
+        "inDevelopment": "In Development",
+        "planned": "Planned"
       },
-      "Technology": {
-        "title": "Technology & Innovation",
-        "label": "Cutting-Edge Technology",
-        "description": "Powered by the latest technology to deliver accurate and meaningful insights",
-        "aiPowered": {
-          "title": "AI-Powered",
-          "desc": "Advanced machine learning algorithms provide personalized and accurate readings",
-          "features": ["Advanced AI", "Machine Learning", "Natural Language Processing"]
+      "phases": {
+        "completed": "Completed",
+        "dec_2025": "December 2025",
+        "feb_2026": "February 2026",
+        "q1_2026": "Q1 2026",
+        "q2_2026": "Q2 2026"
+      },
+      "tarot": {
+        "title": "AI Tarot Reading",
+        "eta": "Available Now",
+        "features": [
+          "Get personalized tarot card readings powered by advanced AI",
+          "Ask follow-up questions for deeper insights",
+          "Save and revisit your readings anytime"
+        ]
+      },
+      "birthChart": {
+        "title": "Birth Chart",
+        "eta": "December 2025",
+        "features": [
+          "Snapshot stats from your personal birth chart",
+          "Planet positions and aspect angles mapped to strengths",
+          "Deep dive into your cosmic blueprint"
+        ]
+      },
+      "astrology": {
+        "title": "Astrology",
+        "eta": "December 2025",
+        "features": [
+          "Transit forecasts from your birth data and target dates",
+          "Personalized transit readings",
+          "Chat with AI for deeper transit guidance"
+        ]
+      },
+      "namelogy": {
+        "title": "Namelogy",
+        "eta": "February 2026",
+        "features": [
+          "Decode vibrations in names",
+          "Reveal spiritual alignment, strengths, and cautions",
+          "Ask AI how the name may shape your path"
+        ]
+      },
+      "numerology": {
+        "title": "Numerology",
+        "eta": "February 2026",
+        "features": [
+          "Decode vibrations in numbers",
+          "Highlight supportive and challenging number patterns",
+          "Ask AI about outcomes tied to each number"
+        ]
+      },
+      "luckyColors": {
+        "title": "Lucky Colors",
+        "eta": "Q1 2026",
+        "features": [
+          "Daily palette matched to planetary rulers",
+          "Wardrobe and workspace recommendations",
+          "Seasonal color rituals you can try at home"
+        ]
+      },
+      "mobileApp": {
+        "title": "Mobile Application",
+        "eta": "Q2 2026",
+        "features": [
+          "Native iOS and Android launch experience",
+          "Take your readings anywhere with offline access",
+          "Widgets with daily cards and astrology snippets"
+        ]
+      },
+      "fatedRelations": {
+        "title": "Fated Relations",
+        "eta": "Q1 2026",
+        "features": [
+          "Explore compatibility and relationship dynamics",
+          "Unpack relationship dynamics and shared potentials",
+          "Ask AI for deeper guidance on the connection"
+        ]
+      },
+      "palmistry": {
+        "title": "Palmistry",
+        "eta": "Q2 2026",
+        "features": [
+          "Webcam-based palm readings",
+          "Interpret lines on luck, life, and destiny",
+          "Ask targeted questions about what your palm reveals"
+        ]
+      },
+      "eta": "ETA"
+    },
+    "Technology": {
+      "title": "Technology & Innovation",
+      "label": "Cutting-Edge Technology",
+      "description": "Powered by the latest technology to deliver accurate and meaningful insights",
+      "aiPowered": {
+        "title": "AI-Powered",
+        "desc": "Advanced machine learning algorithms provide personalized and accurate readings",
+        "features": [
+          "Advanced AI",
+          "Machine Learning",
+          "Natural Language Processing"
+        ]
+      },
+      "securePrivate": {
+        "title": "Secure & Private",
+        "desc": "End-to-end encryption ensures your personal data and readings remain confidential",
+        "features": [
+          "End-to-End Encryption",
+          "Privacy First",
+          "Secure Storage"
+        ]
+      },
+      "globalAccess": {
+        "title": "Global Access",
+        "desc": "Available worldwide with multi-language support and cultural adaptations",
+        "features": [
+          "Worldwide Access",
+          "Multi-Language",
+          "Cloud Infrastructure"
+        ]
+      }
+    },
+    "Testimonials": {
+      "title": "What Our Users Say",
+      "label": "User Testimonials",
+      "description": "Hear what our users have to say about their mystical journey",
+      "autoPlay": {
+        "autoPlaying": "Auto-playing",
+        "clickToAutoPlay": "Click to auto-play"
+      },
+      "items": [
+        {
+          "quote": "I use it most mornings to set an intention. It helps me start the day feeling more grounded.",
+          "author": "Yui",
+          "role": "Early user",
+          "initial": "Y"
         },
-        "securePrivate": {
-          "title": "Secure & Private",
-          "desc": "End-to-end encryption ensures your personal data and readings remain confidential",
-          "features": ["End-to-End Encryption", "Privacy First", "Secure Storage"]
+        {
+          "quote": "The reflections feel balanced—helpful without being pushy. It’s become a quiet ritual that helps me think more clearly.",
+          "author": "Daniel",
+          "role": "Early user",
+          "initial": "D"
         },
-        "globalAccess": {
-          "title": "Global Access",
-          "desc": "Available worldwide with multi-language support and cultural adaptations",
-          "features": ["Worldwide Access", "Multi-Language", "Cloud Infrastructure"]
+        {
+          "quote": "I like how it gets straight to the point. The keywords make it easy to remember what to focus on.",
+          "author": "Mina",
+          "role": "Daily reader",
+          "initial": "M"
+        },
+        {
+          "quote": "Surprisingly calming. Even when I don’t agree with everything, it still helps me pause and reflect before I act.",
+          "author": "Chris",
+          "role": "Skeptical-but-curious",
+          "initial": "C"
+        },
+        {
+          "quote": "The follow-up questions are my favorite. It feels like a real conversation that helps me untangle my thoughts.",
+          "author": "Nok",
+          "role": "Returning user",
+          "initial": "N"
         }
-      },
-      "Testimonials": {
-        "title": "What Our Users Say",
-        "label": "User Testimonials",
-        "description": "Hear what our users have to say about their mystical journey",
-        "autoPlay": {
-          "autoPlaying": "Auto-playing",
-          "clickToAutoPlay": "Click to auto-play"
+      ]
+    },
+    "Statistics": {
+      "title": "Quick stats",
+      "label": "Our Impact",
+      "description": "Numbers that reflect our commitment to mystical excellence",
+      "growing": "Realtime data",
+      "items": [
+        {
+          "key": "totalUsers",
+          "label": "Total players"
         },
-        "items": [
-          {
-            "quote": "I use it most mornings to set an intention. It helps me start the day feeling more grounded.",
-            "author": "Yui",
-            "role": "Early user",
-            "initial": "Y"
-          },
-          {
-            "quote": "The reflections feel balanced—helpful without being pushy. It’s become a quiet ritual that helps me think more clearly.",
-            "author": "Daniel",
-            "role": "Early user",
-            "initial": "D"
-          },
-          {
-            "quote": "I like how it gets straight to the point. The keywords make it easy to remember what to focus on.",
-            "author": "Mina",
-            "role": "Daily reader",
-            "initial": "M"
-          },
-          {
-            "quote": "Surprisingly calming. Even when I don’t agree with everything, it still helps me pause and reflect before I act.",
-            "author": "Chris",
-            "role": "Skeptical-but-curious",
-            "initial": "C"
-          },
-          {
-            "quote": "The follow-up questions are my favorite. It feels like a real conversation that helps me untangle my thoughts.",
-            "author": "Nok",
-            "role": "Returning user",
-            "initial": "N"
-          }
-        ]
-      },
-      "Statistics": {
-        "title": "Quick stats",
-        "label": "Our Impact",
-        "description": "Numbers that reflect our commitment to mystical excellence",
-        "growing": "Realtime data",
-        "items": [
-          { "key": "totalUsers", "label": "Total players" },
-          { "key": "profiles", "label": "Registered users" },
-          { "key": "interpretations", "label": "AI interpretations" }
-        ]
-      },
+        {
+          "key": "profiles",
+          "label": "Registered users"
+        },
+        {
+          "key": "interpretations",
+          "label": "AI interpretations"
+        }
+      ]
+    },
     "CTA": {
       "title": "Ready to Begin Your Journey?",
       "label": "Ready to Begin?",
@@ -454,12 +468,10 @@
       }
     }
   },
-
   "QuestionInput": {
     "label": "Your question",
     "placeholder": "Type your question..."
   },
-
   "Prompts": {
     "title": "An inspiring prompts",
     "show": "Show",
@@ -559,7 +571,6 @@
       }
     }
   },
-
   "Footer": {
     "copyright": "AskingFate, LLC. All rights reserved."
   },
@@ -650,7 +661,6 @@
       "secondary": "Learn more"
     }
   },
-
   "Demo": {
     "hero": {
       "title": "Request a demo",
@@ -684,18 +694,15 @@
       "footer": "We’ll reach out by email within 1–2 business days."
     }
   },
-
   "PrivacyPolicy": {
     "title": "Privacy Policy",
     "lastUpdated": "Last updated"
   },
-
   "TermsOfService": {
     "title": "Terms of Service",
     "backToHome": "Back to Home",
     "lastUpdated": "Last updated"
   },
-  
   "Reading": {
     "types": {
       "simple": {
@@ -720,7 +727,6 @@
       }
     }
   },
-
   "BirthChart": {
     "title": "Decode your",
     "subtitle": "Cosmic Blueprint",
@@ -733,7 +739,7 @@
     "shareDescription": "Share your cosmic blueprint with friends",
     "questionLabel": "Ask about your Chart",
     "questionPlaceholder": "Ask about love, career, personality...",
-    "disclaimer": "Birth chart readings are for entertainment purposes only. The interpretations provided are generated by AI and should not be considered as professional advice. Always consult with qualified professionals for important life decisions.",
+    "disclaimer": "Birth chart readings are for entertainment purposes only. The interpretations provided are generated by AI and should not be considered as professional advice. Do not trust or rely on this blindly. Use it as one perspective and keep in mind that interpretations may be inaccurate. Always consult with qualified professionals for important life decisions.",
     "stats": {
       "archetypes": {
         "Sun": "Leadership",
@@ -1126,9 +1132,8 @@
       }
     }
   },
-
   "ReadingPage": {
-    "disclaimer": "This interpretation is generated by AI for informational and reflective purposes. AI interpretations may contain mistakes. Use it as one perspective to inform your decisions and personal growth. Always consult with a professional for important decisions; do not rely solely on this interpretation.",
+    "disclaimer": "This interpretation is generated by AI for informational and reflective purposes. AI interpretations may contain mistakes. Use it as one perspective and keep in mind that predictions may be inaccurate. Do not trust or rely on this interpretation blindly. Always consult with a professional for important decisions; do not rely solely on this interpretation.",
     "questionHeading": "Question",
     "viewDetails": "View full details",
     "followUp": {
@@ -1279,7 +1284,7 @@
         "label": "Ask a follow up question",
         "placeholder": "Type your follow up question here..."
       },
-      "disclaimer": "This interpretation is generated by AI for informational and reflective purposes. Use it as one perspective to inform your decisions and personal growth.",
+      "disclaimer": "Do not trust or rely on this interpretation blindly. This interpretation is generated by AI for informational purposes. Use it as one perspective and keep in mind that interpretations may be inaccurate. Always consult with qualified professionals for important life decisions.",
       "adViewing": {
         "title": "Watch Ad to Unlock Your Reading",
         "description": "Please watch this short ad to unlock your personalized tarot interpretation. Your support helps us provide free readings."
@@ -1369,20 +1374,19 @@
       }
     }
   },
-
   "Meta": {
     "Site": {
       "siteName": "Asking Fate",
       "url": "https://askingfate.com"
     },
     "Layout": {
-      "title": "AI Fortune Reading - Asking Fate",
+      "title": "AI Fortune Reading - AskingFate",
       "description": "Discover AI-powered fortune reading across tarot, astrology, numerology, namelogy and more. Personalized insights to help you navigate your destiny. Tarot is featured on the homepage for now."
     },
     "Home": {
-      "title": "AI Fortune Reading - Asking Fate",
+      "title": "AI Fortune Reading - AskingFate",
       "description": "Get free AI-powered tarot card readings and spiritual guidance. Ask any question about your destiny and receive personalized insights from our advanced AI tarot system.",
-      "keywords": "AI tarot reading, free tarot cards, spiritual guidance, destiny questions, tarot card interpretation, AI-powered divination",
+      "keywords": "AskingFate, Asking Fate, AI tarot reading, free tarot cards, spiritual guidance, destiny questions, tarot card interpretation, AI-powered divination",
       "ogTitle": "AI Fortune Reading - Asking Fate",
       "ogDescription": "Get free AI-powered tarot card readings and spiritual guidance. Ask any question about your destiny.",
       "twitterTitle": "AI Fortune Reading - Asking Fate",
@@ -1546,7 +1550,6 @@
       "signinLink": "Sign in"
     }
   },
-
   "UserProfile": {
     "notifications": "Notifications",
     "yourReading": "Your Reading",
@@ -1566,13 +1569,11 @@
       "mystic": "Mystic"
     }
   },
-
   "Notifications": {
     "title": "Notifications",
     "noNotifications": "No notifications",
     "noNotificationsDescription": "You're all caught up! We'll notify you about important updates."
   },
-
   "Billing": {
     "title": "Transaction History",
     "subtitle": "View your purchase records and billing information",
@@ -1624,7 +1625,6 @@
     "starPurchase": "Star Purchase",
     "starPackDesc": "Celestial currency for cosmic readings."
   },
-
   "Contact": {
     "title": "Contact & Support",
     "subtitle": "Need help? Have questions? We're here to assist you on your mystical journey.",
@@ -1668,7 +1668,6 @@
       "error": "Failed to send message. Please try again."
     }
   },
-
   "Pricing": {
     "title": "Pricing Plans",
     "subtitle": "Choose the perfect plan for your mystical journey",
@@ -1741,7 +1740,6 @@
       "advancedAnalytics": "Advanced Analytics"
     }
   },
-
   "Stars": {
     "title": "Star Balance",
     "subtitle": "Manage your cosmic currency",
@@ -1762,7 +1760,6 @@
       "bonus": "Bonus"
     }
   },
-
   "Checkout": {
     "purchase": "Purchase",
     "subscribe": "Subscribe",
@@ -1781,7 +1778,6 @@
     "stripeMissing": "Available when {countdown}",
     "countdownUnknown": "the next release is ready"
   },
-
   "StarsPurchase": {
     "badge": "Coming soon",
     "title": "Star purchases are coming soon",
@@ -1791,7 +1787,6 @@
     "ctaBackToStars": "Go to stars dashboard",
     "ctaEarnFree": "Earn free stars"
   },
-
   "ReadingHistory": {
     "title": "Your Reading History",
     "authRequired": "Please sign in to access your reading history",
@@ -1822,11 +1817,10 @@
     "noQuestion": "(No question)",
     "readingTypes": {
       "simple": "Simple",
-      "intermediate": "Intermediate", 
+      "intermediate": "Intermediate",
       "advanced": "Advanced"
     }
-  }
-  ,
+  },
   "StarsBalance": {
     "available": "Stars available",
     "nextRefill": "Next refill",
@@ -1956,7 +1950,6 @@
     "backToStars": "Back to Stars",
     "supportText": "If you have any questions, please email"
   },
-
   "Settings": {
     "title": "Settings",
     "subtitle": "Manage your account preferences and email marketing settings",

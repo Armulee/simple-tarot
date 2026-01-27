@@ -199,13 +199,6 @@ export default async function TarotReadingPage({
                 ownerUserId={data.owner_user_id}
                 readingType={data.reading_type}
             />
-
-            {/* Disclaimer */}
-            <Card className='p-4 bg-card/5 backdrop-blur-sm border-border/10'>
-                <p className='text-xs text-muted-foreground text-center'>
-                    {t("disclaimer")}
-                </p>
-            </Card>
         </div>
     )
 }

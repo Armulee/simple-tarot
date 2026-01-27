@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
     const t = await getTranslations("Articles")
     const title = t("items.createContent.title")
     const desc = t("subtitle")
-    return { title: `${title} | Asking Fate`, description: desc }
+    return { title: `${title} | AskingFate`, description: desc }
 }
 
 export default async function CreateContentArticlePage() {
@@ -25,7 +25,7 @@ export default async function CreateContentArticlePage() {
             content: (
                 <div className='space-y-3'>
                     <p>
-                        Creating content about Asking Fate helps curious people
+                        Creating content about AskingFate helps curious people
                         discover mindful reflection while you earn stars for
                         your effort. The most valuable posts share a real
                         experience—what you tried, what you noticed, and how
@@ -77,7 +77,7 @@ export default async function CreateContentArticlePage() {
                             possible.
                         </li>
                         <li>
-                            Add a link to Asking Fate and tag us where relevant.
+                            Add a link to AskingFate and tag us where relevant.
                         </li>
                     </ul>
                 </div>

@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
     const desc =
         "Learn tarot fundamentals with a concise guide: history, Major Arcana meanings, Minor Arcana by suits, and links to all 78 cards."
     return {
-        title: `${title} | Asking Fate`,
+        title: `${title} | AskingFate`,
         description: desc,
         openGraph: { title, description: desc },
         twitter: { card: "summary_large_image", title, description: desc },

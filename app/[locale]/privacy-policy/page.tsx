@@ -41,7 +41,7 @@ export default function PrivacyPage() {
                                 1. Introduction
                             </h2>
                             <p className='text-muted-foreground leading-relaxed'>
-                                Asking Fate (&quot;we,&quot; &quot;our,&quot; or
+                                AskingFate (&quot;we,&quot; &quot;our,&quot; or
                                 &quot;us&quot;) is committed to protecting your
                                 privacy and personal information. This Privacy
                                 Policy explains how we collect, use, disclose,

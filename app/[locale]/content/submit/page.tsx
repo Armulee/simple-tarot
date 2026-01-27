@@ -207,11 +207,11 @@ const inspirationPrompts = [
     },
     {
         title: "Success stories",
-        body: "Tell the story of someone whose Asking Fate reading sparked a breakthrough.",
+        body: "Tell the story of someone whose AskingFate reading sparked a breakthrough.",
     },
     {
         title: "Platform walkthroughs",
-        body: "Create a screen guide showing your favorite Asking Fate features in action.",
+        body: "Create a screen guide showing your favorite AskingFate features in action.",
     },
     {
         title: "Cosmic collaborations",
@@ -620,7 +620,7 @@ export default function SubmitContentPage() {
                     : "Loading verification code..."
             case "profile_bio":
                 return verificationToken
-                    ? `Bio snippet: “Partnered with Asking Fate ${verificationToken}”`
+                    ? `Bio snippet: “Partnered with AskingFate ${verificationToken}”`
                     : "Loading verification code..."
             default:
                 return verificationToken
@@ -721,7 +721,7 @@ export default function SubmitContentPage() {
                         <span className="text-white/90">Prove It&apos;s Yours</span>
                     </h1>
                     <p className="text-muted-foreground max-w-2xl mx-auto text-base sm:text-lg leading-relaxed">
-                        Submit social posts, videos, or articles that feature Asking Fate.
+                        Submit social posts, videos, or articles that feature AskingFate.
                         We verify that you control the content before rewarding your effort.
                     </p>
                     <div className="flex flex-col md:flex-row md:flex-wrap gap-5 max-w-5xl mx-auto pt-4">
@@ -766,7 +766,7 @@ export default function SubmitContentPage() {
                                               AI Promo Studio
                                           </p>
                                           <h2 className="text-2xl sm:text-3xl font-semibold text-white">
-                                              Generate a ready-to-post idea in Asking Fate’s voice
+                                              Generate a ready-to-post idea in AskingFate’s voice
                                           </h2>
                                             {aiContent ? (
                                                 <div className="text-sm text-white/80 leading-relaxed max-w-xl whitespace-pre-wrap">
@@ -774,7 +774,7 @@ export default function SubmitContentPage() {
                                                 </div>
                                             ) : (
                                                 <p className="text-sm text-white/70 leading-relaxed max-w-xl">
-                                                    Pick a platform and format, then let our AI craft mystical copy that sparks curiosity about Asking Fate. We’ll tailor tone, length, and CTA automatically.
+                                                    Pick a platform and format, then let our AI craft mystical copy that sparks curiosity about AskingFate. We’ll tailor tone, length, and CTA automatically.
                                                 </p>
                                             )}
                                   </div>
@@ -1017,7 +1017,7 @@ export default function SubmitContentPage() {
                                             </div>
                                         </div>
                                         <p className="text-xs text-purple-200/70 leading-relaxed">
-                                            Add this code to your public content whenever you promote Asking Fate. It never expires.
+                                            Add this code to your public content whenever you promote AskingFate. It never expires.
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -1055,7 +1055,7 @@ export default function SubmitContentPage() {
                                             onChange={(event) =>
                                                 handleChange("title", event.target.value)
                                             }
-                                            placeholder="E.g. Instagram Reel showcasing Asking Fate"
+                                            placeholder="E.g. Instagram Reel showcasing AskingFate"
                                             className="bg-background/60 border-border/50 text-white placeholder:text-muted-foreground/60 hover:border-purple-500/30 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300 hover:bg-background/70"
                                         />
                                     </div>

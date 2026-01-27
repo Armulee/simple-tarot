@@ -45,13 +45,13 @@ export const CONTENT_TYPE_CATALOG = {
         label: "Short Text",
         cost: 1,
         guidance:
-            "Keep it concise and scroll-stopping. Include a clear call-to-action that invites followers to experience Asking Fate.",
+            "Keep it concise and scroll-stopping. Include a clear call-to-action that invites followers to experience AskingFate.",
     },
     blog: {
         label: "Blog Story",
         cost: 5,
         guidance:
-            "Outline a rich narrative with intro, body, and conclusion. Highlight a personal or community story that spotlights Asking Fate’s value.",
+            "Outline a rich narrative with intro, body, and conclusion. Highlight a personal or community story that spotlights AskingFate’s value.",
     },
     image: {
         label: "Image + Caption",
@@ -75,7 +75,7 @@ export const CONTENT_TYPE_CATALOG = {
         label: "Creative Concept",
         cost: 2,
         guidance:
-            "Suggest an innovative idea tailored to the chosen platform while remaining true to Asking Fate’s brand.",
+            "Suggest an innovative idea tailored to the chosen platform while remaining true to AskingFate’s brand.",
     },
 } as const
 
@@ -97,18 +97,18 @@ export const CONTENT_TYPE_OPTIONS_BY_MEDIA: Record<
 
 export const PLATFORM_PROMPT_HINTS: Record<MediaPlatform, string> = {
     instagram:
-        "Reference Reels or Stories when relevant. Encourage viewers to explore the link in bio for a mystical Asking Fate experience.",
+        "Reference Reels or Stories when relevant. Encourage viewers to explore the link in bio for a mystical AskingFate experience.",
     x: "Stay within 260 characters. Use at most two purposeful hashtags. Sound sharp and timely.",
     facebook:
-        "Craft a friendly, community-oriented tone. Encourage sharing and comments from friends discovering Asking Fate together.",
+        "Craft a friendly, community-oriented tone. Encourage sharing and comments from friends discovering AskingFate together.",
     tiktok:
         "Prioritize energetic hooks and quick, cinematic beats. Mention visual transitions or on-screen text where useful.",
     youtube:
-        "Design for short-form clips or video intros. Highlight storytelling arcs and calls to subscribe or click through to Asking Fate.",
+        "Design for short-form clips or video intros. Highlight storytelling arcs and calls to subscribe or click through to AskingFate.",
     blog:
         "Offer a structured outline or ready-to-publish draft that balances storytelling with clear takeaways and CTAs.",
     linkedin:
-        "Adopt a professional yet warm voice. Tie Asking Fate’s guidance to personal growth, leadership, or workplace wellbeing.",
+        "Adopt a professional yet warm voice. Tie AskingFate’s guidance to personal growth, leadership, or workplace wellbeing.",
     other:
-        "Stay adaptable but always highlight Asking Fate’s promise of insightful, mystical guidance and reward opportunities.",
+        "Stay adaptable but always highlight AskingFate’s promise of insightful, mystical guidance and reward opportunities.",
 }

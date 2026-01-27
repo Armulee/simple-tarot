@@ -118,7 +118,7 @@ export async function POST(req: Request) {
             interpretation = "",
             width = 1080,
             height = 1920,
-            branding = "Asking Fate",
+            branding = "AskingFate",
         } = await req.json()
 
         const safeQuestion = String(question)
@@ -393,7 +393,7 @@ export async function POST(req: Request) {
                         >
                             <img
                                 src={logoSrc}
-                                alt='Asking Fate logo'
+                                alt='AskingFate logo'
                                 width={56}
                                 height={56}
                             />
@@ -407,7 +407,7 @@ export async function POST(req: Request) {
                                         "0 2px 20px rgba(234,179,8,0.4), 0 0 30px rgba(56,189,248,0.3), 0 4px 8px rgba(0,0,0,0.3)",
                                 }}
                             >
-                                {String(branding || "Asking Fate")}
+                                {String(branding || "AskingFate")}
                             </div>
                         </div>
 

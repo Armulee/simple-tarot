@@ -4,7 +4,7 @@ export const ARTICLES: ArticleItem[] = [
   {
     href: "/articles/create-content",
     title: "Create Content About Us",
-    description: "Write, post, or film about Asking Fate and earn stars.",
+    description: "Write, post, or film about AskingFate and earn stars.",
     tags: ["content", "earn", "stars", "share", "blog", "video"],
   },
   {

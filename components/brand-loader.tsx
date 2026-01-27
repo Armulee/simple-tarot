@@ -5,7 +5,7 @@ import Image from "next/image"
 
 export default function BrandLoader({
     className,
-    label = "Asking Fate",
+    label = "AskingFate",
 }: {
     className?: string
     label?: string
@@ -24,7 +24,7 @@ export default function BrandLoader({
                 <div className='w-14 h-14 relative rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 shadow-[0_10px_30px_-10px_rgba(99,102,241,0.35)] overflow-hidden'>
                     <Image
                         src='/assets/logo.png'
-                        alt='Asking Fate logo'
+                        alt='AskingFate logo'
                         width={40}
                         height={40}
                         className='animate-pulse object-contain'

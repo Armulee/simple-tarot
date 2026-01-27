@@ -67,7 +67,7 @@ export function Navbar({ locale }: { locale: string }) {
                         >
                             <Image
                                 src='/assets/logo.png'
-                                alt='Asking Fate logo'
+                                alt='AskingFate logo'
                                 width={32}
                                 height={32}
                                 className='rounded-md object-contain group-hover:scale-110 transition-transform'

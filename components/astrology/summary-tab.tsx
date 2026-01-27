@@ -244,6 +244,7 @@ export default function SummaryTab({
     onSummaryGenerated?: (summary: string) => void
 }) {
     const locale = useLocale()
+    const t = useTranslations("ReadingPage")
     const [savedSummary, setSavedSummary] = useState<string | null>(
         reading.summary?.trim() ? reading.summary : null
     )
@@ -479,6 +480,15 @@ export default function SummaryTab({
                                     {displayText}
                                     {isLoading && (
                                         <span className='inline-block w-1.5 h-6 ml-1 bg-accent animate-pulse align-middle' />
+                                    )}
+
+                                    {/* Disclaimer at the bottom */}
+                                    {displayText && !isLoading && (
+                                        <div className='mt-8 pt-6 border-t border-white/5'>
+                                            <p className='text-[10px] leading-relaxed text-center italic font-light tracking-wide animate-disclaimer-pulse'>
+                                                {t("disclaimer")}
+                                            </p>
+                                        </div>
                                     )}
                                 </div>
                             ) : (

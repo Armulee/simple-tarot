@@ -95,13 +95,6 @@ export default function BirthChartDisplay({
                 planets={birthChart.planets}
             />
 
-            {/* Disclaimer */}
-            <Card className='p-6 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-sm border-white/10 shadow-lg'>
-                <p className='text-xs text-muted-foreground text-center leading-relaxed'>
-                    {t("disclaimer")}
-                </p>
-            </Card>
-
             {/* Debug Section */}
             <BirthChartDebugSection data={birthChart} />
         </div>

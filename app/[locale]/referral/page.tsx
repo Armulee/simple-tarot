@@ -71,7 +71,7 @@ export default function ReferralPage() {
         if (!referralLink) return
 
         const shareData = {
-            title: "Join me on Asking Fate!",
+            title: "Join me on AskingFate!",
             text: "Discover your destiny with mystical tarot readings and cosmic insights. Use my referral link to get started!",
             url: referralLink,
         }
@@ -244,7 +244,7 @@ export default function ReferralPage() {
                                 </div>
                                 <h3 className="text-lg font-semibold text-white mb-2">Friend Signs Up</h3>
                                 <p className="text-gray-300 text-sm">
-                                    Your friend clicks your link and creates an account on Asking Fate to start their mystical journey.
+                                    Your friend clicks your link and creates an account on AskingFate to start their mystical journey.
                                 </p>
                             </CardContent>
                         </Card>
@@ -272,7 +272,7 @@ export default function ReferralPage() {
                             Referral Rewards
                         </h2>
                         <p className="text-gray-300 max-w-2xl mx-auto">
-                            Earn stars for every friend you bring to Asking Fate
+                            Earn stars for every friend you bring to AskingFate
                         </p>
                     </div>
 

@@ -526,6 +526,13 @@ export default function Interpretation({
                                                     </div>
                                                 )}
                                                 {content}
+
+                                                {/* Disclaimer at the bottom */}
+                                                <div className='mt-8 pt-6 border-t border-white/5'>
+                                                    <p className='text-[11px] leading-relaxed text-yellow-300 italic font-light tracking-wide'>
+                                                        {t("disclaimer")}
+                                                    </p>
+                                                </div>
                                             </>
                                         )
                                     }
@@ -571,6 +578,13 @@ export default function Interpretation({
                                                     </div>
                                                 )}
                                                 {object.interpretation}
+
+                                                {/* Disclaimer at the bottom (while generating) */}
+                                                <div className='mt-8 pt-6 border-t border-white/5 opacity-50'>
+                                                    <p className='text-[10px] leading-relaxed text-muted-foreground/50 text-center italic font-light tracking-wide animate-disclaimer-pulse'>
+                                                        {t("disclaimer")}
+                                                    </p>
+                                                </div>
                                             </>
                                         )
                                     }

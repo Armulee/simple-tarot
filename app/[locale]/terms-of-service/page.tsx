@@ -43,7 +43,7 @@ export default function TermsPage() {
                             <p className='text-muted-foreground leading-relaxed'>
                                 These Terms of Service (&quot;Terms&quot;)
                                 constitute a legally binding agreement between
-                                you and Asking Fate (&quot;Company,&quot;
+                                you and AskingFate (&quot;Company,&quot;
                                 &quot;we,&quot; &quot;our,&quot; or
                                 &quot;us&quot;) regarding your use of our
                                 AI-powered tarot reading service, including our
@@ -74,7 +74,7 @@ export default function TermsPage() {
                                 2. Service Description
                             </h2>
                             <p className='text-muted-foreground leading-relaxed'>
-                                Asking Fate provides an AI-powered tarot card
+                                AskingFate provides an AI-powered tarot card
                                 reading service that combines traditional tarot
                                 symbolism with modern artificial intelligence
                                 technology. Our Service includes:
@@ -269,7 +269,7 @@ export default function TermsPage() {
                             <p className='text-muted-foreground leading-relaxed'>
                                 The Service and its original content, features,
                                 and functionality are and will remain the
-                                exclusive property of Asking Fate and its
+                                exclusive property of AskingFate and its
                                 licensors. The Service is protected by
                                 copyright, trademark, and other laws. Our
                                 trademarks and trade dress may not be used in
@@ -414,7 +414,7 @@ export default function TermsPage() {
                             </h2>
                             <p className='text-muted-foreground leading-relaxed'>
                                 You agree to defend, indemnify, and hold
-                                harmless Asking Fate and its officers,
+                                harmless AskingFate and its officers,
                                 directors, employees, and agents from and
                                 against any claims, damages, obligations,
                                 losses, liabilities, costs, or debt, and
@@ -501,7 +501,7 @@ export default function TermsPage() {
                             <p className='text-muted-foreground leading-relaxed'>
                                 These Terms, together with our Privacy Policy,
                                 constitute the entire agreement between you and
-                                Asking Fate regarding the use of the Service and
+                                AskingFate regarding the use of the Service and
                                 supersede all prior and contemporaneous
                                 understandings, agreements, representations, and
                                 warranties.

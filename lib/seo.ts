@@ -8,6 +8,8 @@ export const seoConfig = {
     description:
         "Get free AI-powered tarot card readings and spiritual guidance. Ask questions about your destiny and receive personalized insights from our advanced AI tarot system.",
     keywords: [
+        "AskingFate",
+        "Asking Fate",
         "AI tarot reading",
         "free tarot cards",
         "spiritual guidance",

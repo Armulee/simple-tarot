@@ -12,7 +12,7 @@ export default function ContactNavigation() {
                     </span>
                 </div>
                 <h1 className='font-serif font-bold text-xl text-foreground'>
-                    Asking Fate
+                    AskingFate
                 </h1>
             </Link>
 

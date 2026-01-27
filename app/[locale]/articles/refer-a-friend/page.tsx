@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
     const t = await getTranslations("Articles")
     const title = t("items.referFriend.title")
     const desc = t("subtitle")
-    return { title: `${title} | Asking Fate`, description: desc }
+    return { title: `${title} | AskingFate`, description: desc }
 }
 
 export default async function ReferFriendArticlePage() {
@@ -27,7 +27,7 @@ export default async function ReferFriendArticlePage() {
                         Referring friends is the fastest way to introduce
                         mindful reflection to people you care about—while
                         earning stars together. Share your link with a short
-                        note about why you use Asking Fate and how it helps you
+                        note about why you use AskingFate and how it helps you
                         decide thoughtfully.
                     </p>
                     <p>

@@ -181,7 +181,7 @@ export default function ActionSection({
                     interpretation,
                     width,
                     height,
-                    branding: "Asking Fate",
+                    branding: "AskingFate",
                     type: "image",
                 }),
                 signal,

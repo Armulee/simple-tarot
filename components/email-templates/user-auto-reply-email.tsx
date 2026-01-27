@@ -26,7 +26,7 @@ export const UserAutoReplyEmail: React.FC<UserAutoReplyEmailProps> = ({
         >
             <Head>
                 <meta charSet='UTF-8' />
-                <title>Thank you for contacting Asking Fate</title>
+                <title>Thank you for contacting AskingFate</title>
             </Head>
             <body
                 style={{

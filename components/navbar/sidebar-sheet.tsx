@@ -68,14 +68,14 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                             >
                                 <Image
                                     src='/assets/logo.png'
-                                    alt='Asking Fate logo'
+                                    alt='AskingFate logo'
                                     width={28}
                                     height={28}
                                     className='rounded-md object-contain group-hover:scale-110 transition-transform'
                                     priority
                                 />
                                 <span className='font-playfair text-lg font-bold text-white group-hover:text-cosmic-purple transition-colors'>
-                                    Asking Fate
+                                    AskingFate
                                 </span>
                             </Link>
                         </SheetTitle>

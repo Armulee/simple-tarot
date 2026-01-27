@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
         // Send auto-reply to user
         const userEmailResult = await resend.emails.send({
-            from: "Asking Fate Support <support@no-reply.askingfate.com>",
+            from: "AskingFate Support <support@no-reply.askingfate.com>",
             to: [email],
             subject: `Thank you for your message - ${subject}`,
             react: React.createElement(UserAutoReplyEmail, {

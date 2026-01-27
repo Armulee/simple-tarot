@@ -3,7 +3,7 @@ export const websiteStructuredData = {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "Asking Fate",
-    alternateName: "Asking Fate AI Tarot",
+    alternateName: ["AskingFate", "Asking Fate AI Tarot"],
     url: "https://askingfate.com",
     description:
         "Get free AI-powered tarot card readings and spiritual guidance. Ask questions about your destiny and receive personalized insights from our advanced AI tarot system.",

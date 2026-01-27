@@ -17,7 +17,7 @@ const OUTPUT_DIRECTIVES: Record<ContentTypeKey, string> = {
     shortText:
         "Return one punchy paragraph under 260 characters. Include at most two meaningful hashtags and a direct CTA.",
     blog: "Provide a markdown outline with Introduction, 2-3 body sections, and a Conclusion. After the outline, add a short teaser paragraph that could serve as the opening.",
-    image: "Return two parts: 1) Visual Idea (one sentence). 2) Caption (2-3 sentences) with emojis only if they feel natural and one CTA inviting readers to try Asking Fate.",
+    image: "Return two parts: 1) Visual Idea (one sentence). 2) Caption (2-3 sentences) with emojis only if they feel natural and one CTA inviting readers to try AskingFate.",
     carousel:
         "Return a numbered list of slides. For each slide, provide a headline (all caps) and one supporting sentence. Close with a CTA slide.",
     shortVideo:
@@ -100,14 +100,14 @@ export async function POST(request: Request) {
         const notesBlock =
             creatorNotes.length > 0
                 ? creatorNotes.join("\n")
-                : "Creator notes: none provided. Highlight Asking Fate’s star rewards and mystical guidance."
+                : "Creator notes: none provided. Highlight AskingFate’s star rewards and mystical guidance."
 
-        const systemPrompt = `You are a senior marketing copywriter for Asking Fate, a mystical guidance platform that rewards users with stars for sharing authentic promotions.
+        const systemPrompt = `You are a senior marketing copywriter for AskingFate, a mystical guidance platform that rewards users with stars for sharing authentic promotions.
 
 Voice: Warm, inviting, and cosmically curious. You celebrate personal transformation, community, and the thrill of uncovering fate.
 
 Rules:
-- Mention “Asking Fate” by name and invite the audience to try it.
+- Mention “AskingFate” by name and invite the audience to try it.
 - Encourage sharing or sign-ups when it feels natural.
 - ${languageInstruction}
 - Sound like a real human creator. Vary sentence length, add subtle personality, and avoid repetitive phrasing, stiff transitions, or obvious AI giveaways.

@@ -42,10 +42,17 @@ User Question: ${question}
     return (
         <div className='space-y-6'>
             {(answer || completion) && (
-                <div className='p-4 rounded-lg bg-white/5 border border-white/10 animate-fade-in'>
+                <div className='p-6 rounded-2xl bg-white/5 border border-white/10 animate-fade-in space-y-6'>
                     <p className='text-white whitespace-pre-wrap leading-relaxed'>
                         {completion || answer}
                     </p>
+
+                    {/* Disclaimer at the bottom of the interpretation */}
+                    <div className='pt-6 border-t border-white/5'>
+                        <p className='text-[10px] leading-relaxed text-center italic font-light tracking-wide animate-disclaimer-pulse'>
+                            {t("disclaimer")}
+                        </p>
+                    </div>
                 </div>
             )}
 

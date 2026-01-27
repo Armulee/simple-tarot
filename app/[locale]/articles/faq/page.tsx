@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
     const t = await getTranslations("Articles")
     const title = t("items.faq.title")
     const desc = t("subtitle")
-    return { title: `${title} | Asking Fate`, description: desc }
+    return { title: `${title} | AskingFate`, description: desc }
 }
 
 export default async function FAQArticlePage() {
