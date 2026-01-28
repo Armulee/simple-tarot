@@ -31,7 +31,7 @@ import {
     type LucideIcon,
 } from "lucide-react"
 import type { AstrologyReading } from "./display"
-import { useLocale } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { ZODIAC_SIGNS } from "@/lib/birth-chart-utils"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
