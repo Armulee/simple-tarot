@@ -144,6 +144,7 @@ export function LinearCardSpread({
     }>({ x: 0, y: 0 })
     const swiperRef = useRef<SwiperType | null>(null)
     const [isRandomPicking, setIsRandomPicking] = useState(false)
+    const navGuardRef = useRef<HTMLDivElement | null>(null)
     const deckRef = useRef<HTMLDivElement | null>(null)
 
     // Active drag state for a slide
@@ -286,6 +287,41 @@ export function LinearCardSpread({
         onProvideRandomPick?.(randomPick)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [deckList, reversalByName, selected])
+
+    // Prevent macOS trackpad horizontal swipe from triggering browser back/forward
+    // when interacting with this horizontal deck.
+    useEffect(() => {
+        const el = navGuardRef.current
+        if (!el) return
+        const onEnter = () => {
+            document.body.style.overscrollBehaviorX = "none"
+            document.documentElement.style.overscrollBehaviorX = "none"
+        }
+        const onLeave = () => {
+            document.body.style.overscrollBehaviorX = "auto"
+            document.documentElement.style.overscrollBehaviorX = "auto"
+        }
+        el.addEventListener("pointerenter", onEnter)
+        el.addEventListener("pointerleave", onLeave)
+        return () => {
+            el.removeEventListener("pointerenter", onEnter)
+            el.removeEventListener("pointerleave", onLeave)
+            onLeave()
+        }
+    }, [])
+
+    useEffect(() => {
+        const el = navGuardRef.current
+        if (!el) return
+        const onWheel: (e: WheelEvent) => void = (e) => {
+            // Stop propagation of horizontal wheel to avoid browser back/forward gestures
+            e.stopPropagation()
+        }
+        el.addEventListener("wheel", onWheel, { passive: true })
+        return () => {
+            el.removeEventListener("wheel", onWheel)
+        }
+    }, [])
 
     const handleCardClick = (name: string) => {
         if (selectedNames.has(name)) return
@@ -493,10 +529,15 @@ export function LinearCardSpread({
 
     return (
         <>
-            <p className='text-xs text-muted-foreground w-full text-center smx-auto'>
-                {t("swipeUpToSelect")}
-            </p>
-            <div className='w-full relative' ref={deckRef}>
+            <div
+                className='w-full relative'
+                ref={navGuardRef}
+                style={{
+                    overscrollBehaviorX: "none",
+                    touchAction: "pan-y pinch-zoom",
+                }}
+            >
+                <div className='w-full relative' ref={deckRef}>
                 {/* Controls are rendered by the parent */}
                 <Swiper
                     onSwiper={(instance) => {
@@ -515,7 +556,7 @@ export function LinearCardSpread({
                         enabled: true,
                         forceToAxis: true,
                         sensitivity: 1,
-                        releaseOnEdges: true,
+                        releaseOnEdges: false,
                     }}
                     scrollbar={{
                         enabled: false,
@@ -639,7 +680,11 @@ export function LinearCardSpread({
                     })()}
                     onRecenter={(c) => setOverlayCenter(c)}
                 />
+                </div>
             </div>
+            <p className='mt-4 text-xs text-muted-foreground w-full text-center'>
+                {t("swipeUpToSelect")}
+            </p>
         </>
     )
 }

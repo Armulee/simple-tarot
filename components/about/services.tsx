@@ -1,21 +1,11 @@
 "use client"
 
-import {
-    BookOpen,
-    Calendar,
-    Star,
-    ArrowUpAZ,
-    Hash,
-    Palette,
-    Hand,
-    Heart,
-    Sparkles,
-} from "lucide-react"
+import { BookOpen, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useState, useEffect } from "react"
 
 export default function ServicesSection() {
-    const t = useTranslations("HomeDiscover.Services")
+    const t = useTranslations("About.Services")
     const [hoveredCard, setHoveredCard] = useState<string | null>(null)
     const [isVisible, setIsVisible] = useState(false)
 
@@ -33,74 +23,10 @@ export default function ServicesSection() {
             color: "from-primary to-secondary",
             glowColor: "shadow-primary/20",
         },
-        {
-            id: "birthChart",
-            name: t("items.birthChart.name"),
-            description: t("items.birthChart.description"),
-            icon: Calendar,
-            status: t("status.available"),
-            color: "from-purple-400 to-indigo-500",
-            glowColor: "shadow-purple-500/20",
-        },
-        {
-            id: "astrology",
-            name: t("items.astrology.name"),
-            description: t("items.astrology.description"),
-            icon: Star,
-            status: t("status.comingSoon"),
-            color: "from-yellow-400 to-orange-500",
-            glowColor: "shadow-yellow-500/20",
-        },
-        {
-            id: "fatedRelations",
-            name: t("items.fatedRelations.name"),
-            description: t("items.fatedRelations.description"),
-            icon: Heart,
-            status: t("status.comingSoon"),
-            color: "from-pink-400 to-rose-500",
-            glowColor: "shadow-pink-500/20",
-        },
-        {
-            id: "namelogy",
-            name: t("items.namelogy.name"),
-            description: t("items.namelogy.description"),
-            icon: ArrowUpAZ,
-            status: t("status.comingSoon"),
-            color: "from-emerald-400 to-teal-500",
-            glowColor: "shadow-emerald-500/20",
-        },
-        {
-            id: "numerology",
-            name: t("items.numerology.name"),
-            description: t("items.numerology.description"),
-            icon: Hash,
-            status: t("status.comingSoon"),
-            color: "from-rose-400 to-pink-500",
-            glowColor: "shadow-rose-500/20",
-        },
-        {
-            id: "luckyColors",
-            name: t("items.luckyColors.name"),
-            description: t("items.luckyColors.description"),
-            icon: Palette,
-            status: t("status.comingSoon"),
-            color: "from-violet-400 to-purple-500",
-            glowColor: "shadow-violet-500/20",
-        },
-        {
-            id: "palmistry",
-            name: t("items.palmistry.name"),
-            description: t("items.palmistry.description"),
-            icon: Hand,
-            status: t("status.comingSoon"),
-            color: "from-amber-400 to-yellow-500",
-            glowColor: "shadow-amber-500/20",
-        },
     ]
 
     return (
         <div className='space-y-12'>
-            {/* Enhanced section header */}
             <div
                 className={`text-center transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
             >
@@ -119,7 +45,6 @@ export default function ServicesSection() {
                 </p>
             </div>
 
-            {/* Enhanced services grid */}
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
                 {services.map((service, index) => {
                     const IconComponent = service.icon
@@ -138,7 +63,6 @@ export default function ServicesSection() {
                             onMouseEnter={() => setHoveredCard(service.id)}
                             onMouseLeave={() => setHoveredCard(null)}
                         >
-                            {/* Card background with enhanced effects */}
                             <div
                                 className={`
                                 relative bg-gradient-to-br from-gray-800/40 to-gray-900/60 
@@ -148,12 +72,10 @@ export default function ServicesSection() {
                                 ${isAvailable ? "ring-2 ring-primary/20" : ""}
                             `}
                             >
-                                {/* Animated background gradient */}
                                 <div
                                     className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${service.color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}
                                 ></div>
 
-                                {/* Floating particles effect */}
                                 <div className='absolute inset-0 overflow-hidden rounded-2xl'>
                                     <div
                                         className={`absolute top-2 right-2 w-1 h-1 bg-gradient-to-r ${service.color} rounded-full animate-ping delay-${index * 200}`}
@@ -163,7 +85,6 @@ export default function ServicesSection() {
                                     ></div>
                                 </div>
 
-                                {/* Icon with enhanced animation */}
                                 <div className='flex items-start justify-between mb-6'>
                                     <div
                                         className={`
@@ -173,13 +94,11 @@ export default function ServicesSection() {
                                     `}
                                     >
                                         <IconComponent className='w-8 h-8 text-white' />
-                                        {/* Glow effect */}
                                         <div
                                             className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${service.color} opacity-0 group-hover:opacity-20 blur-md transition-opacity duration-300`}
                                         ></div>
                                     </div>
 
-                                    {/* Status badge with animation - only show for coming soon */}
                                     {isComingSoon && (
                                         <div
                                             className={`
@@ -192,7 +111,6 @@ export default function ServicesSection() {
                                     )}
                                 </div>
 
-                                {/* Content */}
                                 <div className='space-y-4'>
                                     <h3 className='text-xl font-bold text-white group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-gray-300 group-hover:bg-clip-text transition-all duration-300'>
                                         {service.name}
@@ -202,10 +120,8 @@ export default function ServicesSection() {
                                     </p>
                                 </div>
 
-                                {/* Hover effect overlay */}
                                 <div className='absolute inset-0 rounded-2xl bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none'></div>
 
-                                {/* Bottom accent line */}
                                 <div
                                     className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${service.color} rounded-b-2xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left`}
                                 ></div>

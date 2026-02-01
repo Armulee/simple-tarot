@@ -9,7 +9,7 @@ import type { Swiper as SwiperType } from "swiper"
 import "swiper/css"
 
 export default function TestimonialsSection() {
-    const t = useTranslations("HomeDiscover.Testimonials")
+    const t = useTranslations("About.Testimonials")
     const [currentIndex, setCurrentIndex] = useState(0)
     const [isAutoPlaying, setIsAutoPlaying] = useState(true)
     const swiperRef = useRef<SwiperType | null>(null)
@@ -47,7 +47,6 @@ export default function TestimonialsSection() {
 
     return (
         <div className='space-y-12'>
-            {/* Enhanced section header */}
             <div className={`text-center transition-all duration-1000`}>
                 <div className='inline-flex items-center gap-2 mb-4'>
                     <Star className='w-6 h-6 text-accent animate-pulse' />
@@ -64,9 +63,7 @@ export default function TestimonialsSection() {
                 </p>
             </div>
 
-            {/* Carousel container */}
             <div className='relative max-w-4xl mx-auto'>
-                {/* Main testimonial display */}
                 <div className='relative overflow-hidden rounded-2xl'>
                     <Swiper
                         modules={[Autoplay]}
@@ -92,13 +89,11 @@ export default function TestimonialsSection() {
                         {items.map((item, index) => (
                             <SwiperSlide key={index}>
                                 <div className='bg-transparent rounded-2xl px-6 py-8 mx-4'>
-                                    {/* Quote text */}
                                     <blockquote className='text-center mb-8'>
                                         <p className='text-xl text-gray-300 italic leading-relaxed mb-4'>
                                             &quot;{item.quote}&quot;
                                         </p>
 
-                                        {/* Star rating */}
                                         <div className='flex justify-center space-x-1 mb-4'>
                                             {[...Array(5)].map((_, i) => (
                                                 <Star
@@ -109,7 +104,6 @@ export default function TestimonialsSection() {
                                         </div>
                                     </blockquote>
 
-                                    {/* Author info */}
                                     <div className='flex items-center justify-center space-x-4'>
                                         <div className='w-16 h-16 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center shadow-lg'>
                                             <span className='text-white font-bold text-lg'>
@@ -131,7 +125,6 @@ export default function TestimonialsSection() {
                     </Swiper>
                 </div>
 
-                {/* Navigation controls */}
                 <div className='flex items-center justify-center space-x-4 mt-8'>
                     <button
                         onClick={prevTestimonial}
@@ -140,7 +133,6 @@ export default function TestimonialsSection() {
                         <ChevronLeft className='w-6 h-6 text-white' />
                     </button>
 
-                    {/* Dots indicator */}
                     <div className='flex space-x-2'>
                         {items.map((_, index) => (
                             <button
@@ -163,7 +155,6 @@ export default function TestimonialsSection() {
                     </button>
                 </div>
 
-                {/* Auto-play indicator */}
                 <div className='text-center mt-4'>
                     <button
                         onClick={() => setIsAutoPlaying(!isAutoPlaying)}
@@ -180,7 +171,6 @@ export default function TestimonialsSection() {
                 </div>
             </div>
 
-            {/* Additional testimonials grid (for smaller screens) */}
             <div className='hidden md:grid grid-cols-1 lg:grid-cols-2 gap-6 mt-12'>
                 {items.slice(0, 4).map((item, index) => (
                     <div

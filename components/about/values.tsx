@@ -2,7 +2,7 @@
 
 import { Shield, Heart, Globe, Zap } from "lucide-react"
 
-export default function ValuesSection() {
+export default function AboutValues() {
     const values = [
         {
             icon: Shield,

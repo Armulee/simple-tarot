@@ -1,6 +1,6 @@
 "use client"
 
-import { Star, Infinity } from "lucide-react"
+import { Star, Infinity, LogIn } from "lucide-react"
 import { Clock } from "lucide-react"
 import { useStars } from "@/contexts/stars-context"
 import { useEffect, useMemo, useState } from "react"
@@ -153,6 +153,27 @@ export default function StarsBalance() {
                                 )}
                             </p>
                         </div>
+
+                        {!user && (
+                            <Link href='/signin' className='block group'>
+                                <div className='p-4 rounded-xl bg-gradient-to-r from-primary/20 via-primary/10 to-transparent border border-primary/30 backdrop-blur-sm transition-all duration-300 group-hover:border-primary/50 group-hover:from-primary/30'>
+                                    <div className='flex items-center gap-4'>
+                                        <div className='p-2 rounded-full bg-primary/20 text-primary group-hover:scale-110 transition-transform'>
+                                            <LogIn className='w-5 h-5' />
+                                        </div>
+                                        <div className='text-left'>
+                                            <p className='text-sm font-bold text-white group-hover:text-primary transition-colors'>
+                                                Increase your star limit!
+                                            </p>
+                                            <p className='text-xs text-gray-400'>
+                                                Sign in to increase your maximum
+                                                stars from 5 to 12.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Link>
+                        )}
                     </div>
                 )}
 

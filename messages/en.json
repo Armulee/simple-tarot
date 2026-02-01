@@ -4,6 +4,7 @@
     "home": "Home",
     "about": "About",
     "pricing": "Pricing",
+    "newReading": "New Reading",
     "signIn": "Sign In"
   },
   "Beta": {
@@ -202,6 +203,13 @@
       "line1": "Ask me anything",
       "line2": "about your destiny"
     },
+    "prompts": [
+      "What is the message I need to hear today?",
+      "How can I find clarity in my career path?",
+      "What should I focus on in love this month?",
+      "What is blocking my next step forward?",
+      "How can I align with my true purpose?"
+    ],
     "astrologyFeature": {
       "title1": "Starlit Transit",
       "title2": "Astrology Reading",
@@ -209,9 +217,11 @@
       "instruction": "Enter your birth details, keep Transit set to now (or choose a date), add an optional question, then tap Start to generate your horoscope.",
       "cta": "Start your astrology reading"
     },
-    "learnMore": "Learn More"
+    "learnMore": "Learn More",
+    "selectedCards": "You have selected {selectedCount}/{cardsToSelect} cards",
+    "disclaimer": "Do not trust or rely on this interpretation blindly. AskingFate uses AI and may make mistakes. For important decisions, please consult a qualified professional."
   },
-  "HomeDiscover": {
+  "About": {
     "whatIs": "What is",
     "brand": "Asking Fate?",
     "tagline": "We’re combining time‑tested symbolism with modern AI to offer calm, useful guidance you can use today.",
@@ -273,10 +283,13 @@
       },
       "phases": {
         "completed": "Completed",
-        "dec_2025": "December 2025",
-        "feb_2026": "February 2026",
-        "q1_2026": "Q1 2026",
-        "q2_2026": "Q2 2026"
+        "may_2026": "May 2026",
+        "jul_2026": "July 2026",
+        "aug_2026": "August 2026",
+        "sep_2026": "September 2026",
+        "oct_2026": "October 2026",
+        "nov_2026": "November 2026",
+        "dec_2026": "December 2026"
       },
       "tarot": {
         "title": "AI Tarot Reading",
@@ -289,7 +302,7 @@
       },
       "birthChart": {
         "title": "Birth Chart",
-        "eta": "December 2025",
+        "eta": "May 2026",
         "features": [
           "Snapshot stats from your personal birth chart",
           "Planet positions and aspect angles mapped to strengths",
@@ -298,7 +311,7 @@
       },
       "astrology": {
         "title": "Astrology",
-        "eta": "December 2025",
+        "eta": "May 2026",
         "features": [
           "Transit forecasts from your birth data and target dates",
           "Personalized transit readings",
@@ -307,7 +320,7 @@
       },
       "namelogy": {
         "title": "Namelogy",
-        "eta": "February 2026",
+        "eta": "July 2026",
         "features": [
           "Decode vibrations in names",
           "Reveal spiritual alignment, strengths, and cautions",
@@ -316,7 +329,7 @@
       },
       "numerology": {
         "title": "Numerology",
-        "eta": "February 2026",
+        "eta": "August 2026",
         "features": [
           "Decode vibrations in numbers",
           "Highlight supportive and challenging number patterns",
@@ -325,7 +338,7 @@
       },
       "luckyColors": {
         "title": "Lucky Colors",
-        "eta": "Q1 2026",
+        "eta": "September 2026",
         "features": [
           "Daily palette matched to planetary rulers",
           "Wardrobe and workspace recommendations",
@@ -334,7 +347,7 @@
       },
       "mobileApp": {
         "title": "Mobile Application",
-        "eta": "Q2 2026",
+        "eta": "November 2026",
         "features": [
           "Native iOS and Android launch experience",
           "Take your readings anywhere with offline access",
@@ -343,7 +356,7 @@
       },
       "fatedRelations": {
         "title": "Fated Relations",
-        "eta": "Q1 2026",
+        "eta": "October 2026",
         "features": [
           "Explore compatibility and relationship dynamics",
           "Unpack relationship dynamics and shared potentials",
@@ -352,7 +365,7 @@
       },
       "palmistry": {
         "title": "Palmistry",
-        "eta": "Q2 2026",
+        "eta": "December 2026",
         "features": [
           "Webcam-based palm readings",
           "Interpret lines on luck, life, and destiny",
@@ -574,7 +587,7 @@
   "Footer": {
     "copyright": "AskingFate, LLC. All rights reserved."
   },
-  "About": {
+  "AboutLegacy": {
     "hero": {
       "title1": "Ancient wisdom",
       "title2": "meets modern AI",
@@ -1255,6 +1268,8 @@
         "downloadPreviewError": "Couldn't load preview",
         "downloadStylesTitle": "Styles",
         "downloadStylesHint": "Tap to select",
+        "downloadBrandingTitle": "Branding",
+        "downloadBrandingHint": "Preview includes branding",
         "downloadStyleStory": "Story",
         "downloadStyleSquare": "Square",
         "downloadStyleLandscape": "Landscape",
@@ -1264,6 +1279,7 @@
         "downloadVideoError": "Failed to generate video.",
         "downloadVideoPreviewFallback": "Video preview will appear here",
         "downloadCancel": "Cancel",
+        "cancel": "Cancel",
         "downloadButton": "Download",
         "downloadError": "Failed to generate image.",
         "versions": "Versions",

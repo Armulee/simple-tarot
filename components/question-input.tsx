@@ -11,13 +11,14 @@ import { useStarConsent } from "@/components/star-consent"
 
 export default function QuestionInput({
     id = "question-input",
-    label = "Your question",
+    label = "",
     className,
     buttonClassName,
     placeholder,
     defaultValue,
     value,
     onChange,
+    onSubmit,
     followUp = false,
     followUpParentId,
     centered = false,
@@ -30,6 +31,7 @@ export default function QuestionInput({
     defaultValue?: string
     value?: string
     onChange?: (value: string) => void
+    onSubmit?: (value: string) => void | Promise<void>
     followUp?: boolean
     followUpParentId?: string
     centered?: boolean
@@ -62,6 +64,10 @@ export default function QuestionInput({
         const currentValue =
             (question || "").trim() || (defaultValue || "").trim()
         if (currentValue) {
+            if (onSubmit) {
+                void onSubmit(currentValue)
+                return
+            }
             if (followUp) {
                 handleFollowUpQuestion(currentValue)
             } else {

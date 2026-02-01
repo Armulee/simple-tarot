@@ -55,6 +55,25 @@
 
 @custom-variant dark (&:is(.dark *));
 
+.font-playfair {
+  font-family: var(--font-playfair);
+}
+
+.animate-fade-swap {
+  animation: fade-swap 400ms ease-in-out;
+}
+
+@keyframes fade-swap {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 :root {
   --background: oklch(0.02 0.01 275);
   /* Deep midnight background */

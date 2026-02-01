@@ -1,6 +1,16 @@
 "use client"
 
-import { useState, useCallback, useEffect, useMemo, useRef } from "react"
+import {
+    useState,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    cloneElement,
+    isValidElement,
+    type ReactElement,
+    type ReactNode,
+} from "react"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { FreeMode, Mousewheel } from "swiper/modules"
 import "swiper/css"
@@ -17,11 +27,10 @@ import {
     FaCheck,
     FaXmark,
 } from "react-icons/fa6"
-import { Sparkle, Sparkles, Star } from "lucide-react"
+import { Sparkle, Star } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { Settings } from "lucide-react"
 import { useTarot } from "@/contexts/tarot-context"
-import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { useStars } from "@/contexts/stars-context"
 import { experimental_useObject as useObject } from "@ai-sdk/react"
@@ -61,6 +70,7 @@ interface ActionSectionProps {
     readingId?: string
     onInterpretationChange?: (text: string) => void
     onGeneratingChange?: (loading: boolean) => void
+    variant?: "full" | "compact" | "embedded"
 }
 
 export default function ActionSection({
@@ -70,6 +80,7 @@ export default function ActionSection({
     readingId: propReadingId,
     onInterpretationChange,
     onGeneratingChange,
+    variant = "full",
 }: ActionSectionProps = {}) {
     const t = useTranslations("ReadingPage.interpretation")
     const {
@@ -89,7 +100,6 @@ export default function ActionSection({
     const [copiedLink, setCopiedLink] = useState(false)
     const [copiedText, setCopiedText] = useState(false)
     const { user, session } = useAuth()
-    const router = useRouter()
     const { spendStars, stars } = useStars()
     const [isDownloading, setIsDownloading] = useState(false)
     const [downloadOpen, setDownloadOpen] = useState(false)
@@ -799,7 +809,7 @@ export default function ActionSection({
                     onGeneratingChange(false)
             }
         },
-        onError: (e: Error) => {
+        onError: () => {
             toast.error("Failed to generate a new interpretation")
             if (typeof onGeneratingChange === "function")
                 onGeneratingChange(false)
@@ -979,21 +989,11 @@ export default function ActionSection({
         onInterpretationChange,
         onGeneratingChange,
         submit,
-        loadVersions,
-        readingId,
         isFollowUp,
         readingType,
     ])
 
     const actionOptions = [
-        {
-            id: "new",
-            label: t("buttons.newReading"),
-            icon: <Sparkles className='w-6 h-6 text-white' />,
-            bg: "linear-gradient(135deg, var(--primary), var(--accent))",
-            description: "Start fresh",
-            onClick: async () => router.push("/"),
-        },
         {
             id: "regen",
             label: (
@@ -1197,6 +1197,472 @@ export default function ActionSection({
         },
     ]
 
+    const renderIcon = (icon: ReactNode) =>
+        isValidElement(icon)
+            ? cloneElement(
+                  icon as ReactElement<{ className?: string }>,
+                  { className: "w-3 h-3 text-white" }
+              )
+            : icon
+
+    const [expandedActionId, setExpandedActionId] = useState<string | null>(
+        null
+    )
+
+    if (variant === "compact") {
+        return (
+            <div className='flex flex-wrap items-center gap-2'>
+                {actionOptions.map((action) => (
+                    <button
+                        key={action.id}
+                        type='button'
+                        onClick={() => action.onClick?.()}
+                        className='flex items-center justify-center h-6 w-6 rounded-full border border-white/10 bg-white/5 text-white/80 hover:text-white hover:border-white/30 transition-colors'
+                        title={
+                            typeof action.label === "string"
+                                ? action.label
+                                : undefined
+                        }
+                        aria-label={
+                            typeof action.label === "string"
+                                ? action.label
+                                : action.id
+                        }
+                    >
+                        {renderIcon(action.icon)}
+                    </button>
+                ))}
+            </div>
+        )
+    }
+
+    if (variant === "embedded") {
+        return (
+            <div className='relative'>
+                {isDownloading && (
+                    <div className='fixed bottom-0 left-0 right-0 z-50 animate-slide-up bg-black/60 backdrop-blur-sm p-4 text-center text-white'>
+                        Preparing your {"content"}...
+                    </div>
+                )}
+                <div
+                    ref={navGuardRef}
+                    style={{
+                        overscrollBehaviorX: "none",
+                        touchAction: "pan-y pinch-zoom",
+                    }}
+                >
+                    <Swiper
+                        modules={[FreeMode, Mousewheel]}
+                        freeMode
+                        mousewheel={{
+                            forceToAxis: true,
+                            sensitivity: 1,
+                            releaseOnEdges: true,
+                        }}
+                        slidesPerView={5.5}
+                        breakpoints={{
+                            640: { slidesPerView: 6.5 },
+                            768: { slidesPerView: 6.5 },
+                            1024: { slidesPerView: 8 },
+                            1280: { slidesPerView: 9.5 },
+                            1536: { slidesPerView: 10.5 },
+                        }}
+                        spaceBetween={4}
+                        className='py-1'
+                    >
+                        {actionOptions.map((action, index) => {
+                            const isExpanded =
+                                expandedActionId === action.id &&
+                                action.id !== "versions"
+                            const labelText =
+                                typeof action.label === "string"
+                                    ? action.label
+                                    : action.id === "regen"
+                                      ? t("buttons.regenerate")
+                                      : action.id
+                            return (
+                                <SwiperSlide key={action.id}>
+                                    {action.id === "download" ? (
+                                        <Sheet
+                                            open={downloadOpen}
+                                            onOpenChange={setDownloadOpen}
+                                        >
+                                            <SheetTrigger asChild>
+                                                <button
+                                                    type='button'
+                                                    className={`group flex items-center gap-2 py-2 pr-2 pl-0 transition-all duration-300 hover:shadow-lg w-full ${
+                                                        isExpanded
+                                                            ? "rounded-xl pr-3 pl-0"
+                                                            : "rounded-full"
+                                                    }`}
+                                                    onClick={() =>
+                                                        setExpandedActionId(
+                                                            (prev) =>
+                                                                prev ===
+                                                                action.id
+                                                                    ? null
+                                                                    : action.id
+                                                        )
+                                                    }
+                                                    style={{
+                                                        animationDelay: `${index * 50}ms`,
+                                                        animationFillMode:
+                                                            "both",
+                                                    }}
+                                                >
+                                                    <div
+                                                        className='relative w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
+                                                        style={{
+                                                            background: action.bg,
+                                                        }}
+                                                    >
+                                                        {renderIcon(
+                                                            action.icon
+                                                        )}
+                                                        <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                                                    </div>
+                                                    {isExpanded && (
+                                                        <span className='text-xs text-white/80'>
+                                                            {labelText}
+                                                        </span>
+                                                    )}
+                                                </button>
+                                            </SheetTrigger>
+                                            <SheetContent
+                                                side='bottom'
+                                                className='max-h-[85vh] overflow-auto border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 shadow-[0_12px_40px_-12px_rgba(234,179,8,0.35)] backdrop-blur-xl'
+                                            >
+                                                <Sparkle
+                                                    className='absolute top-10 left-10 w-3 h-3 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                                                    style={{
+                                                        animationDelay: "0.6s",
+                                                    }}
+                                                />
+                                                <Sparkle
+                                                    className='absolute top-20 right-16 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                                                    style={{
+                                                        animationDelay: "1.4s",
+                                                    }}
+                                                />
+                                                <Sparkle
+                                                    className='absolute bottom-14 left-16 w-3.5 h-3.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                                                    style={{
+                                                        animationDelay: "2.3s",
+                                                    }}
+                                                />
+                                                <Sparkle
+                                                    className='absolute bottom-20 right-20 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                                                    style={{
+                                                        animationDelay: "3.1s",
+                                                    }}
+                                                />
+                                                <div className='pointer-events-none absolute inset-0 opacity-40'>
+                                                    <div className='cosmic-stars-layer-3' />
+                                                    <div className='cosmic-stars-layer-4' />
+                                                    <div className='cosmic-stars-layer-5' />
+                                                </div>
+                                                <div className='pointer-events-none absolute -top-20 -left-20 h-64 w-64 rounded-full bg-gradient-to-br from-yellow-300/20 via-yellow-500/10 to-transparent blur-3xl animate-pulse' />
+                                                <div
+                                                    className='pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-gradient-to-tl from-yellow-400/20 via-yellow-600/10 to-transparent blur-[90px] animate-pulse'
+                                                    style={{
+                                                        animationDelay: "0.8s",
+                                                    }}
+                                                />
+                                                <SheetHeader>
+                                                    <SheetTitle>
+                                                        {t(
+                                                            downloadFormat ===
+                                                                "video"
+                                                                ? "actions.downloadSheetTitleVideo"
+                                                                : "actions.downloadSheetTitleImage"
+                                                        )}
+                                                    </SheetTitle>
+                                                    <SheetDescription>
+                                                        {t(
+                                                            "actions.downloadSheetDesc"
+                                                        )}
+                                                    </SheetDescription>
+                                                    <div className='mt-4 flex justify-center'>
+                                                        <div className='inline-flex h-10 items-center justify-center rounded-full bg-white/5 border border-white/10 p-1 text-white'>
+                                                            <button
+                                                                type='button'
+                                                                onClick={() =>
+                                                                    setDownloadFormat(
+                                                                        "image"
+                                                                    )
+                                                                }
+                                                                className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                                                                    downloadFormat ===
+                                                                    "image"
+                                                                        ? "bg-white/15 text-white shadow"
+                                                                        : "text-white/70"
+                                                                }`}
+                                                            >
+                                                                {t(
+                                                                    "actions.downloadTabImage"
+                                                                )}
+                                                            </button>
+                                                            <button
+                                                                type='button'
+                                                                onClick={() =>
+                                                                    setDownloadFormat(
+                                                                        "video"
+                                                                    )
+                                                                }
+                                                                className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                                                                    downloadFormat ===
+                                                                    "video"
+                                                                        ? "bg-white/15 text-white shadow"
+                                                                        : "text-white/70"
+                                                                }`}
+                                                            >
+                                                                {t(
+                                                                    "actions.downloadTabVideo"
+                                                                )}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </SheetHeader>
+                                                <div className='px-4 pb-4 space-y-5'>
+                                                    <div className='space-y-2'>
+                                                        <div className='flex items-center justify-between text-sm'>
+                                                            <span className='font-medium'>
+                                                                {t(
+                                                                    "actions.downloadStylesTitle"
+                                                                )}
+                                                            </span>
+                                                            <span className='text-xs text-muted-foreground'>
+                                                                {t(
+                                                                    "actions.downloadStylesHint"
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                        <div className='grid grid-cols-3 gap-2'>
+                                                            {downloadStyles.map(
+                                                                (style) => (
+                                                                    <button
+                                                                        key={
+                                                                            style.id
+                                                                        }
+                                                                        type='button'
+                                                                        onClick={() =>
+                                                                            setDownloadStyleId(
+                                                                                style.id
+                                                                            )
+                                                                        }
+                                                                        className={`flex h-36 flex-col rounded-lg border p-2 text-left transition ${
+                                                                            downloadStyleId ===
+                                                                            style.id
+                                                                                ? "border-primary/60 bg-white/10"
+                                                                                : "border-white/10 bg-white/5 hover:border-primary/40"
+                                                                        }`}
+                                                                    >
+                                                                        <div className='h-16 w-full overflow-hidden rounded-md border border-border/40 bg-muted/40'>
+                                                                            {thumbnailUrls[
+                                                                                style.id
+                                                                            ] ? (
+                                                                                <div className='relative h-full w-full'>
+                                                                                    <img
+                                                                                        src={
+                                                                                            thumbnailUrls[
+                                                                                                style.id
+                                                                                            ]
+                                                                                        }
+                                                                                        alt={style.label}
+                                                                                        className='object-contain'
+                                                                                    />
+                                                                                </div>
+                                                                            ) : (
+                                                                                <div className='flex h-full w-full items-center justify-center'>
+                                                                                    <div className='h-full rounded-sm bg-muted/60' />
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                        <div className='mt-2 text-xs font-medium text-foreground'>
+                                                                            {
+                                                                                style.label
+                                                                            }
+                                                                        </div>
+                                                                        <div className='text-[11px] text-muted-foreground'>
+                                                                            {
+                                                                                style.size
+                                                                            }
+                                                                        </div>
+                                                                    </button>
+                                                                )
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className='space-y-2'>
+                                                        <div className='flex items-center justify-between text-sm'>
+                                                            <span className='font-medium'>
+                                                                {t(
+                                                                    "actions.downloadBrandingTitle"
+                                                                )}
+                                                            </span>
+                                                            <span className='text-xs text-muted-foreground'>
+                                                                {t(
+                                                                    "actions.downloadBrandingHint"
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                        <div className='relative w-full max-w-[430px] mx-auto overflow-hidden rounded-lg border bg-muted/20'>
+                                                            {isActivePreviewLoading ? (
+                                                                <div className='absolute inset-0 animate-pulse bg-muted/40' />
+                                                            ) : null}
+                                                            {previewUrl ? (
+                                                                <div className='relative h-full w-full'>
+                                                                    <img
+                                                                        src={
+                                                                            previewUrl
+                                                                        }
+                                                                        alt='Preview'
+                                                                        className='object-cover'
+                                                                    />
+                                                                </div>
+                                                            ) : (
+                                                                <div className='absolute inset-0 animate-pulse bg-muted/40' />
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <SheetFooter className='sticky bottom-0 z-10 gap-2 border-t border-white/10 bg-gradient-to-t from-[#0a0a1a]/95 via-[#0a0a1a]/90 to-transparent px-4 pb-4 pt-3 sm:flex-row sm:justify-end'>
+                                                        <button
+                                                            type='button'
+                                                            onClick={() =>
+                                                                setDownloadOpen(
+                                                                    false
+                                                                )
+                                                            }
+                                                            className='w-full rounded-md border border-border/60 bg-background px-4 py-2 text-sm hover:bg-muted/40 sm:w-auto'
+                                                        >
+                                                            {t("actions.cancel")}
+                                                        </button>
+                                                        <button
+                                                            type='button'
+                                                            onClick={handleDownload}
+                                                            disabled={isDownloading}
+                                                            className='w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
+                                                        >
+                                                            {t(
+                                                                "actions.downloadButton"
+                                                            )}
+                                                        </button>
+                                                    </SheetFooter>
+                                                </div>
+                                            </SheetContent>
+                                        </Sheet>
+                                ) : action.id === "versions" ? (
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <button
+                                                type='button'
+                                                className={`group flex items-center gap-2 py-2 pr-2 pl-0 transition-all duration-300 hover:shadow-lg w-full ${
+                                                    isExpanded
+                                                        ? "rounded-xl pr-3 pl-0"
+                                                        : "rounded-full"
+                                                }`}
+                                                onClick={() =>
+                                                    setExpandedActionId(
+                                                        (prev) =>
+                                                            prev ===
+                                                            action.id
+                                                                ? null
+                                                                : action.id
+                                                    )
+                                                }
+                                                style={{
+                                                    animationDelay: `${index * 50}ms`,
+                                                    animationFillMode: "both",
+                                                }}
+                                            >
+                                                <div
+                                                    className='relative w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
+                                                    style={{
+                                                        background: action.bg,
+                                                    }}
+                                                >
+                                                    {renderIcon(action.icon)}
+                                                    <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                                                </div>
+                                            </button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className='w-72'>
+                                            <div className='max-h-64 overflow-auto space-y-2'>
+                                                {versions.map((v) => (
+                                                    <button
+                                                        key={v.id}
+                                                        type='button'
+                                                        onClick={() => {
+                                                            if (typeof onInterpretationChange === "function") {
+                                                                onInterpretationChange(v.content)
+                                                            }
+                                                        }}
+                                                        className='w-full text-left px-2 py-1 rounded hover:bg-white/10 text-sm'
+                                                    >
+                                                        {new Date(
+                                                            v.created_at
+                                                        ).toLocaleString()}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
+                                ) : (
+                                    <button
+                                        type='button'
+                                        className={`group flex items-center gap-2 py-2 pr-2 pl-0 transition-all duration-300 hover:shadow-lg w-full ${
+                                            isExpanded
+                                                ? "rounded-xl pr-3 pl-0"
+                                                : "rounded-full"
+                                        }`}
+                                        onClick={() => {
+                                            setExpandedActionId((prev) =>
+                                                prev === action.id
+                                                    ? null
+                                                    : action.id
+                                            )
+                                            void action.onClick?.()
+                                        }}
+                                        style={{
+                                            animationDelay: `${index * 50}ms`,
+                                            animationFillMode: "both",
+                                        }}
+                                    >
+                                        <div
+                                            className='relative w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
+                                            style={{ background: action.bg }}
+                                        >
+                                            {renderIcon(action.icon)}
+                                            <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                                        </div>
+                                        {isExpanded && action.id !== "versions" && (
+                                            <div className='text-left'>
+                                                <div className='text-xs text-white/80'>
+                                                    {labelText}
+                                                </div>
+                                                {action.id === "regen" && (
+                                                    <div className='text-[10px] text-yellow-300 flex items-center gap-1'>
+                                                        -5{" "}
+                                                        <Star
+                                                            className='w-3 h-3 text-yellow-300'
+                                                            fill='currentColor'
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </button>
+                                )}
+                            </SwiperSlide>
+                        )
+                    })}
+                </Swiper>
+            </div>
+        </div>
+    )
+}
+
+
     return (
         <div className='relative overflow-hidden group bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/5 hover:bg-white/[0.06] hover:border-primary/20 transition-all duration-300'>
             {/* Slide-up loader for download */}
@@ -1208,22 +1674,23 @@ export default function ActionSection({
 
             {/* Content */}
             <div className='relative'>
-                {/* Header with padding */}
-                <div className='px-6 pt-6 pb-4'>
-                    <div className='flex items-center gap-3 mb-6 animate-fade-up'>
-                        <div className='p-2 rounded-full bg-primary/20 backdrop-blur-sm group-hover:bg-primary/30 transition-all duration-300'>
-                            <Settings className='w-5 h-5 text-primary group-hover:scale-110 transition-transform duration-300' />
-                        </div>
-                        <div>
-                            <h3 className='font-serif font-semibold text-lg text-foreground group-hover:text-primary/90 transition-colors duration-300'>
-                                {t("actionsHeader")}
-                            </h3>
-                            <p className='text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300'>
-                                {t("actionsDesc")}
-                            </p>
+                {variant === "full" && (
+                    <div className='px-6 pt-6 pb-4'>
+                        <div className='flex items-center gap-3 mb-6 animate-fade-up'>
+                            <div className='p-2 rounded-full bg-primary/20 backdrop-blur-sm group-hover:bg-primary/30 transition-all duration-300'>
+                                <Settings className='w-5 h-5 text-primary group-hover:scale-110 transition-transform duration-300' />
+                            </div>
+                            <div>
+                                <h3 className='font-serif font-semibold text-lg text-foreground group-hover:text-primary/90 transition-colors duration-300'>
+                                    {t("actionsHeader")}
+                                </h3>
+                                <p className='text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300'>
+                                    {t("actionsDesc")}
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
 
                 {/* Action Options - Full width swiper */}
                 <div
@@ -1249,7 +1716,7 @@ export default function ActionSection({
                             1280: { slidesPerView: 9.5 },
                             1536: { slidesPerView: 10.5 },
                         }}
-                        spaceBetween={8}
+                        spaceBetween={4}
                         className='py-2 px-6'
                     >
                         {actionOptions.map((action, index) => (
@@ -1277,9 +1744,11 @@ export default function ActionSection({
                                                     {action.icon}
                                                     <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
                                                 </div>
-                                                <span className='text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-300 text-center leading-tight'>
-                                                    {action.label}
-                                                </span>
+                                                {variant === "full" && (
+                                                    <span className='text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-300 text-center leading-tight'>
+                                                        {action.label}
+                                                    </span>
+                                                )}
                                             </button>
                                         </SheetTrigger>
                                         <SheetContent
@@ -1608,12 +2077,14 @@ export default function ActionSection({
                                                         {action.icon}
                                                         <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
                                                     </div>
-                                                    <span className='text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-300 text-center leading-tight'>
-                                                        {typeof action.label ===
-                                                        "string"
-                                                            ? action.label
-                                                            : "Versions"}
-                                                    </span>
+                                                    {variant === "full" && (
+                                                        <span className='text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-300 text-center leading-tight'>
+                                                            {typeof action.label ===
+                                                            "string"
+                                                                ? action.label
+                                                                : "Versions"}
+                                                        </span>
+                                                    )}
                                                 </button>
                                             </PopoverTrigger>
                                             <PopoverContent className='w-72'>
@@ -1686,9 +2157,11 @@ export default function ActionSection({
                                             {action.icon}
                                             <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
                                         </div>
-                                        <span className='text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-300 text-center leading-tight'>
-                                            {action.label}
-                                        </span>
+                                        {variant === "full" && (
+                                            <span className='text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-300 text-center leading-tight'>
+                                                {action.label}
+                                            </span>
+                                        )}
                                     </button>
                                 )}
                             </SwiperSlide>
