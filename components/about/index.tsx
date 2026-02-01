@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import type { SwiperRef } from "swiper/react"
-import NormalFooter from "../footer/normal-footer"
+import NormalFooter from "@/components/footer/normal-footer"
 import AboutHeader from "./header"
 import ServicesSection from "./services"
 import RoadmapSection from "./roadmap"
