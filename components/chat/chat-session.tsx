@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
+import { useStars } from "@/contexts/stars-context"
 import NormalFooter from "../footer/normal-footer"
 import { TypewriterText } from "../typewriter-text"
 import QuestionInput from "../question-input"
@@ -13,6 +14,7 @@ import type { TarotCard } from "@/contexts/tarot-context"
 import { Badge } from "@/components/ui/badge"
 import ActionSection from "@/components/tarot/interpretation/action"
 import ShareSection from "@/components/tarot/interpretation/share"
+import InsufficientStarsBlock from "@/components/stars/insufficient-stars-block"
 import {
     Flag,
     Loader2,
@@ -21,6 +23,7 @@ import {
     Send,
     Share2,
     Sparkles,
+    Star,
     ThumbsDown,
     ThumbsUp,
     X,
@@ -108,6 +111,7 @@ export default function ChatSession({
     const locale = useLocale()
     const router = useRouter()
     const { user } = useAuth()
+    const { stars, spendStars, initialized: starsInitialized, isInfinity } = useStars()
     const [question, setQuestion] = useState("")
     const promptsRaw = t.raw("prompts")
     const prompts = Array.isArray(promptsRaw)
@@ -181,6 +185,14 @@ export default function ChatSession({
     )
     const cardsToSelect = useMemo(() => decision?.cardCount ?? 0, [decision])
     const isChatLoading = consulting || isInterpreting
+    
+    // Check if user has enough stars (at least 5) for card draw
+    const hasEnoughStars = useMemo(() => {
+        if (isInfinity) return true
+        if (!starsInitialized) return true // Don't block while loading
+        if (!Number.isFinite(stars as number)) return true
+        return (stars as number) >= 5
+    }, [stars, starsInitialized, isInfinity])
     const shortQuestion =
         lastQuestion.trim().length > 80
             ? `${lastQuestion.trim().slice(0, 77)}...`
@@ -672,6 +684,17 @@ export default function ChatSession({
         cards: { name: string; isReversed: boolean }[]
     ) => {
         if (!lastQuestion) return
+        
+        // Deduct 5 stars before proceeding to interpretation
+        if (!isInfinity) {
+            const starSuccess = spendStars(5)
+            if (!starSuccess) {
+                // Not enough stars - this shouldn't happen if UI is correct
+                // but handle gracefully
+                return
+            }
+        }
+        
         setShowCardDraw(false)
         setIsInterpreting(true)
 
@@ -872,56 +895,70 @@ export default function ChatSession({
         <>
             {showCardDraw && cardsToSelect > 0 && (
                 <>
-                    <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-2 text-center'>
-                        <div className='space-y-1'>
-                            {shortQuestion && (
-                                <p className='text-xs text-white/60'>
-                                    {shortQuestion}
-                                </p>
-                            )}
-                            <p className='text-sm text-white'>
-                                {t("selectedCards", {
-                                    selectedCount,
-                                    cardsToSelect,
-                                })}
-                            </p>
-                        </div>
-                        <div className='flex items-center gap-2 justify-center'>
-                            <button
-                                type='button'
-                                onClick={() => shuffleFn?.()}
-                                className='flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors disabled:opacity-40'
-                                disabled={!shuffleFn}
-                            >
-                                <RotateCw className='w-3.5 h-3.5' />
-                                Shuffle
-                            </button>
-                            <button
-                                type='button'
-                                onClick={() => pickFn?.()}
-                                className='flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors disabled:opacity-40'
-                                disabled={!pickFn}
-                            >
-                                <Sparkles className='w-3.5 h-3.5' />
-                                Pick me
-                            </button>
-                        </div>
-                    </div>
-                    <div className='rounded-2xl border border-white/10 bg-white/5 p-4'>
-                        <LinearCardSpread
-                            cardsToSelect={cardsToSelect}
-                            onCardsSelected={handleCardsSelected}
-                            onPartialSelect={(_, __, count) =>
-                                setSelectedCount(count)
-                            }
-                            onProvideShuffle={(fn) =>
-                                setShuffleFn(() => fn)
-                            }
-                            onProvideRandomPick={(fn) =>
-                                setPickFn(() => fn)
-                            }
-                        />
-                    </div>
+                    {/* Check if user has enough stars before showing card spread */}
+                    {!hasEnoughStars ? (
+                        <InsufficientStarsBlock />
+                    ) : (
+                        <>
+                            <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-2 text-center'>
+                                <div className='space-y-1'>
+                                    {shortQuestion && (
+                                        <p className='text-xs text-white/60'>
+                                            {shortQuestion}
+                                        </p>
+                                    )}
+                                    <p className='text-sm text-white'>
+                                        {t("selectedCards", {
+                                            selectedCount,
+                                            cardsToSelect,
+                                        })}
+                                    </p>
+                                    <p className='text-xs text-yellow-300 flex items-center justify-center gap-1'>
+                                        <Star
+                                            className='w-3.5 h-3.5'
+                                            fill='currentColor'
+                                        />
+                                        Drawing cards will consume 5 stars
+                                    </p>
+                                </div>
+                                <div className='flex items-center gap-2 justify-center'>
+                                    <button
+                                        type='button'
+                                        onClick={() => shuffleFn?.()}
+                                        className='flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors disabled:opacity-40'
+                                        disabled={!shuffleFn}
+                                    >
+                                        <RotateCw className='w-3.5 h-3.5' />
+                                        Shuffle
+                                    </button>
+                                    <button
+                                        type='button'
+                                        onClick={() => pickFn?.()}
+                                        className='flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors disabled:opacity-40'
+                                        disabled={!pickFn}
+                                    >
+                                        <Sparkles className='w-3.5 h-3.5' />
+                                        Pick me
+                                    </button>
+                                </div>
+                            </div>
+                            <div className='rounded-2xl border border-white/10 bg-white/5 p-4'>
+                                <LinearCardSpread
+                                    cardsToSelect={cardsToSelect}
+                                    onCardsSelected={handleCardsSelected}
+                                    onPartialSelect={(_, __, count) =>
+                                        setSelectedCount(count)
+                                    }
+                                    onProvideShuffle={(fn) =>
+                                        setShuffleFn(() => fn)
+                                    }
+                                    onProvideRandomPick={(fn) =>
+                                        setPickFn(() => fn)
+                                    }
+                                />
+                            </div>
+                        </>
+                    )}
                 </>
             )}
 
