@@ -108,6 +108,7 @@ export default function ChatSession({
     initialSession?: ChatSessionPayload | null
 }) {
     const t = useTranslations("Home")
+    const tInsufficientStars = useTranslations("InsufficientStars")
     const locale = useLocale()
     const router = useRouter()
     const { user } = useAuth()
@@ -1478,8 +1479,8 @@ export default function ChatSession({
                                         <div className='space-y-2'>
                                             <p className='text-white leading-relaxed'>
                                                 {user 
-                                                    ? "It looks like you don't have enough stars to draw cards right now. You need at least 5 stars to continue with your reading. You can top up your stars instantly using one of the options below, or wait for your stars to refill automatically."
-                                                    : "It looks like you don't have enough stars to draw cards right now. Sign in to unlock 12 free stars with automatic refills every 2 hours, or create an account to get started on your mystical journey!"
+                                                    ? tInsufficientStars("chatMessageLoggedIn")
+                                                    : tInsufficientStars("chatMessageAnonymous")
                                                 }
                                             </p>
                                         </div>

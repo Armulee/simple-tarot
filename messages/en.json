@@ -1980,7 +1980,9 @@
     "benefit2Title": "Auto Refill",
     "benefit2Desc": "Get stars every 2 hours",
     "signInButton": "Sign In to Continue",
-    "signInNote": "Create a free account and get 12 stars to start your tarot journey"
+    "signInNote": "Create a free account and get 12 stars to start your tarot journey",
+    "chatMessageLoggedIn": "It looks like you don't have enough stars to draw cards right now. You need at least 5 stars to continue with your reading. You can top up your stars instantly using one of the options below, or wait for your stars to refill automatically.",
+    "chatMessageAnonymous": "It looks like you don't have enough stars to draw cards right now. Sign in to unlock 12 free stars with automatic refills every 2 hours, or create an account to get started on your mystical journey!"
   },
   "Settings": {
     "title": "Settings",
