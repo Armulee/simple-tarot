@@ -8,12 +8,13 @@ import { useAuth } from "@/hooks/use-auth"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
-import { Search, Calendar, X, Star, Sparkles } from "lucide-react"
+import { Search, Calendar, X, Star, Sparkles, Trash2, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useTranslations, useLocale } from 'next-intl'
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 type ChatMessage = {
     id: string
@@ -145,17 +146,27 @@ const CardStack = ({ cards }: { cards: CardData[] }) => {
     )
 }
 
-// ReadingCard component - moved outside functional component
+// ReadingCard component with swipe-to-delete functionality
 const ReadingCard = ({
     reading,
     t,
     locale,
+    onDelete,
+    session,
 }: {
     reading: ReadingRow
     t: (key: string) => string
     locale: string
+    onDelete: (id: string) => void
+    session: { access_token: string } | null
 }) => {
     const { date, time } = formatDateForDisplay(reading.created_at)
+    const [swipeX, setSwipeX] = useState(0)
+    const [isDragging, setIsDragging] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
+    const startXRef = useRef(0)
+    const currentXRef = useRef(0)
+    const cardRef = useRef<HTMLDivElement>(null)
     
     // Extract latest cards from messages
     const latestCardsMessage = [...reading.messages].reverse().find(m => m.cards && m.cards.length > 0)
@@ -165,73 +176,215 @@ const ReadingCard = ({
     const lastUserMessage = [...reading.messages].reverse().find(m => m.role === "user")
     const lastQuestion = lastUserMessage?.text || reading.question
 
+    const DELETE_THRESHOLD = -80 // How far to swipe to reveal delete button
+    const MAX_SWIPE = -100 // Maximum swipe distance
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        startXRef.current = e.touches[0].clientX
+        currentXRef.current = swipeX
+        setIsDragging(true)
+    }
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (!isDragging) return
+        const deltaX = e.touches[0].clientX - startXRef.current
+        const newX = Math.max(MAX_SWIPE, Math.min(0, currentXRef.current + deltaX))
+        setSwipeX(newX)
+    }
+
+    const handleTouchEnd = () => {
+        setIsDragging(false)
+        // Snap to either open or closed position
+        if (swipeX < DELETE_THRESHOLD / 2) {
+            setSwipeX(DELETE_THRESHOLD)
+        } else {
+            setSwipeX(0)
+        }
+    }
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+        startXRef.current = e.clientX
+        currentXRef.current = swipeX
+        setIsDragging(true)
+    }
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (!isDragging) return
+        const deltaX = e.clientX - startXRef.current
+        const newX = Math.max(MAX_SWIPE, Math.min(0, currentXRef.current + deltaX))
+        setSwipeX(newX)
+    }
+
+    const handleMouseUp = () => {
+        if (!isDragging) return
+        setIsDragging(false)
+        if (swipeX < DELETE_THRESHOLD / 2) {
+            setSwipeX(DELETE_THRESHOLD)
+        } else {
+            setSwipeX(0)
+        }
+    }
+
+    const handleMouseLeave = () => {
+        if (isDragging) {
+            handleMouseUp()
+        }
+    }
+
+    const handleDelete = async (e: React.MouseEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        
+        if (isDeleting) return
+        setIsDeleting(true)
+
+        try {
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+            }
+            if (session?.access_token) {
+                headers["Authorization"] = `Bearer ${session.access_token}`
+            }
+
+            const response = await fetch(`/api/chat-sessions/${reading.id}`, {
+                method: "DELETE",
+                headers,
+            })
+
+            if (response.ok) {
+                toast.success(t("deleteSuccess") || "Reading deleted successfully")
+                onDelete(reading.id)
+            } else {
+                const data = await response.json()
+                toast.error(data.error || t("deleteError") || "Failed to delete reading")
+                setIsDeleting(false)
+                setSwipeX(0)
+            }
+        } catch {
+            toast.error(t("deleteError") || "Failed to delete reading")
+            setIsDeleting(false)
+            setSwipeX(0)
+        }
+    }
+
+    const resetSwipe = () => {
+        setSwipeX(0)
+    }
+
     return (
-        <Link
-            href={`/${locale}/${reading.id}`}
-            className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-xl"
+        <div 
+            className="relative overflow-hidden rounded-xl"
+            ref={cardRef}
+            onMouseLeave={handleMouseLeave}
         >
-            <Card
-                className={cn(
-                    "group/card relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/10 bg-gradient-to-br from-slate-900/30 to-slate-800/20 z-10",
-                    "bg-gradient-to-br from-card/60 to-card/30 backdrop-blur-sm border-border/30",
-                    "cursor-pointer"
-                )}
+            {/* Delete button background */}
+            <div className="absolute inset-y-0 right-0 flex items-center bg-gradient-to-l from-red-600 to-red-500 rounded-r-xl">
+                <button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="flex flex-col items-center justify-center w-20 h-full text-white hover:bg-red-700 transition-colors"
+                >
+                    {isDeleting ? (
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                    ) : (
+                        <>
+                            <Trash2 className="w-6 h-6 mb-1" />
+                            <span className="text-xs font-medium">{t("delete") || "Delete"}</span>
+                        </>
+                    )}
+                </button>
+            </div>
+
+            {/* Swipeable card content */}
+            <div
+                className="relative transition-transform duration-200 ease-out"
+                style={{ 
+                    transform: `translateX(${swipeX}px)`,
+                    transition: isDragging ? 'none' : 'transform 0.2s ease-out'
+                }}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
             >
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
-
-                {/* Date and Time badges */}
-                <div className="absolute top-3 left-3 flex space-x-2">
-                    <Badge
-                        variant="outline"
-                        className={"bg-gradient-to-r from-yellow-400/20 to-orange-500/20 text-yellow-200 border-yellow-400/40 text-xs font-medium shadow-lg shadow-yellow-400/20 backdrop-blur-sm hover:from-yellow-400/30 hover:to-orange-500/30 transition-all duration-300"}
+                <Link
+                    href={`/${locale}/${reading.id}`}
+                    className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-xl"
+                    onClick={(e) => {
+                        // Prevent navigation if swiped
+                        if (swipeX < -10) {
+                            e.preventDefault()
+                            resetSwipe()
+                        }
+                    }}
+                >
+                    <Card
+                        className={cn(
+                            "group/card relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/10 bg-gradient-to-br from-slate-900/30 to-slate-800/20 z-10",
+                            "bg-gradient-to-br from-card/60 to-card/30 backdrop-blur-sm border-border/30",
+                            "cursor-pointer",
+                            swipeX < 0 && "hover:scale-100" // Disable hover scale when swiped
+                        )}
                     >
-                        {date}
-                    </Badge>
-                    <Badge
-                        variant="outline"
-                        className={"bg-gradient-to-r from-purple-400/20 to-pink-500/20 text-purple-200 border-purple-400/40 text-xs font-medium shadow-lg shadow-purple-400/20 backdrop-blur-sm hover:from-purple-400/30 hover:to-pink-500/30 transition-all duration-300"}
-                    >
-                        {time}
-                    </Badge>
-                </div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
 
-                <CardContent className="relative px-4 pt-12 pb-4">
-                    <div className="flex items-start gap-4">
-                        {/* Card Stack */}
-                        <div className="flex-shrink-0 pt-1">
-                            <CardStack cards={latestCards} />
+                        {/* Date and Time badges */}
+                        <div className="absolute top-3 left-3 flex space-x-2">
+                            <Badge
+                                variant="outline"
+                                className={"bg-gradient-to-r from-yellow-400/20 to-orange-500/20 text-yellow-200 border-yellow-400/40 text-xs font-medium shadow-lg shadow-yellow-400/20 backdrop-blur-sm hover:from-yellow-400/30 hover:to-orange-500/30 transition-all duration-300"}
+                            >
+                                {date}
+                            </Badge>
+                            <Badge
+                                variant="outline"
+                                className={"bg-gradient-to-r from-purple-400/20 to-pink-500/20 text-purple-200 border-purple-400/40 text-xs font-medium shadow-lg shadow-purple-400/20 backdrop-blur-sm hover:from-purple-400/30 hover:to-pink-500/30 transition-all duration-300"}
+                            >
+                                {time}
+                            </Badge>
                         </div>
 
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-4 mb-2">
-                                <div className="flex flex-col gap-1 min-w-0">
-                                    <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300 line-clamp-1">
-                                        {reading.topic || reading.question || t("noQuestion")}
-                                    </h3>
-                                    {lastQuestion && lastQuestion !== (reading.topic || reading.question) && (
-                                        <p className="text-muted-foreground/60 text-xs line-clamp-1 italic">
-                                            Last: {lastQuestion}
+                        <CardContent className="relative px-4 pt-12 pb-4">
+                            <div className="flex items-start gap-4">
+                                {/* Card Stack */}
+                                <div className="flex-shrink-0 pt-1">
+                                    <CardStack cards={latestCards} />
+                                </div>
+
+                                {/* Content */}
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-start justify-between gap-4 mb-2">
+                                        <div className="flex flex-col gap-1 min-w-0">
+                                            <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300 line-clamp-1">
+                                                {reading.topic || reading.question || t("noQuestion")}
+                                            </h3>
+                                            {lastQuestion && lastQuestion !== (reading.topic || reading.question) && (
+                                                <p className="text-muted-foreground/60 text-xs line-clamp-1 italic">
+                                                    Last: {lastQuestion}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {latestCardsMessage?.text && (
+                                        <p className="text-muted-foreground/80 text-sm line-clamp-2 leading-relaxed">
+                                            {latestCardsMessage.text}
                                         </p>
                                     )}
                                 </div>
                             </div>
-
-                            {latestCardsMessage?.text && (
-                                <p className="text-muted-foreground/80 text-sm line-clamp-2 leading-relaxed">
-                                    {latestCardsMessage.text}
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-        </Link>
+                        </CardContent>
+                    </Card>
+                </Link>
+            </div>
+        </div>
     )
 }
 
 export default function ReadingHistory() {
-    const { user } = useAuth()
+    const { user, session } = useAuth()
     const t = useTranslations('ReadingHistory')
     const locale = useLocale()
     const [loading, setLoading] = useState(true)
@@ -246,6 +399,11 @@ export default function ReadingHistory() {
     const [dateTo, setDateTo] = useState("")
     const [filterType, setFilterType] = useState<"all" | "today" | "week" | "month" | "custom">("all")
     const observerRef = useRef<HTMLDivElement>(null)
+
+    // Handle delete reading
+    const handleDeleteReading = useCallback((id: string) => {
+        setReadings(prev => prev.filter(r => r.id !== id))
+    }, [])
 
     useEffect(() => {
         let isMounted = true
@@ -462,11 +620,13 @@ export default function ReadingHistory() {
                         reading={reading}
                         t={t}
                         locale={locale}
+                        onDelete={handleDeleteReading}
+                        session={session}
                     />
                 ))}
             </div>
         )
-    }, [user, loading, filteredReadings, displayedCount, error, searchQuery, t, locale])
+    }, [user, loading, filteredReadings, displayedCount, error, searchQuery, t, locale, handleDeleteReading, session])
 
     return (
         <div className='max-w-4xl mx-auto w-full px-4 py-8'>

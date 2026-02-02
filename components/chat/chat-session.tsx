@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
+import { useStars } from "@/contexts/stars-context"
 import NormalFooter from "../footer/normal-footer"
 import { TypewriterText } from "../typewriter-text"
 import QuestionInput from "../question-input"
@@ -13,6 +14,7 @@ import type { TarotCard } from "@/contexts/tarot-context"
 import { Badge } from "@/components/ui/badge"
 import ActionSection from "@/components/tarot/interpretation/action"
 import ShareSection from "@/components/tarot/interpretation/share"
+import InsufficientStarsBlock from "@/components/stars/insufficient-stars-block"
 import {
     Flag,
     Loader2,
@@ -21,6 +23,7 @@ import {
     Send,
     Share2,
     Sparkles,
+    Star,
     ThumbsDown,
     ThumbsUp,
     X,
@@ -105,9 +108,11 @@ export default function ChatSession({
     initialSession?: ChatSessionPayload | null
 }) {
     const t = useTranslations("Home")
+    const tInsufficientStars = useTranslations("InsufficientStars")
     const locale = useLocale()
     const router = useRouter()
     const { user } = useAuth()
+    const { stars, spendStars, initialized: starsInitialized, isInfinity } = useStars()
     const [question, setQuestion] = useState("")
     const promptsRaw = t.raw("prompts")
     const prompts = Array.isArray(promptsRaw)
@@ -181,6 +186,18 @@ export default function ChatSession({
     )
     const cardsToSelect = useMemo(() => decision?.cardCount ?? 0, [decision])
     const isChatLoading = consulting || isInterpreting
+    
+    // Check if user has enough stars (at least 5) for card draw
+    // Returns null while loading, true/false once initialized
+    const hasEnoughStars = useMemo(() => {
+        if (isInfinity) return true
+        if (!starsInitialized) return null // Return null while loading to show loading state
+        if (!Number.isFinite(stars as number)) return true
+        return (stars as number) >= 5
+    }, [stars, starsInitialized, isInfinity])
+    
+    // Track if we need to show star checking state
+    const isCheckingStars = showCardDraw && cardsToSelect > 0 && hasEnoughStars === null
     const shortQuestion =
         lastQuestion.trim().length > 80
             ? `${lastQuestion.trim().slice(0, 77)}...`
@@ -672,6 +689,17 @@ export default function ChatSession({
         cards: { name: string; isReversed: boolean }[]
     ) => {
         if (!lastQuestion) return
+        
+        // Deduct 5 stars before proceeding to interpretation
+        if (!isInfinity) {
+            const starSuccess = spendStars(5)
+            if (!starSuccess) {
+                // Not enough stars - this shouldn't happen if UI is correct
+                // but handle gracefully
+                return
+            }
+        }
+        
         setShowCardDraw(false)
         setIsInterpreting(true)
 
@@ -870,7 +898,8 @@ export default function ChatSession({
 
     const inputSection = (
         <>
-            {showCardDraw && cardsToSelect > 0 && (
+            {/* Only show card spread when user has enough stars (explicitly true, not null/loading) */}
+            {showCardDraw && cardsToSelect > 0 && hasEnoughStars === true && (
                 <>
                     <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-2 text-center'>
                         <div className='space-y-1'>
@@ -884,6 +913,13 @@ export default function ChatSession({
                                     selectedCount,
                                     cardsToSelect,
                                 })}
+                            </p>
+                            <p className='text-xs text-yellow-300 flex items-center justify-center gap-1'>
+                                <Star
+                                    className='w-3.5 h-3.5'
+                                    fill='currentColor'
+                                />
+                                Drawing cards will consume 5 stars
                             </p>
                         </div>
                         <div className='flex items-center gap-2 justify-center'>
@@ -1435,6 +1471,45 @@ export default function ChatSession({
                                 Consulting...
                             </div>
                         )}
+                        
+                        {/* Star checking state - shown while verifying star balance on page load/refresh */}
+                        {isCheckingStars && (
+                            <div className='flex flex-col items-start gap-4 animate-fade-in'>
+                                <div className='w-full md:max-w-[85%] text-white/90'>
+                                    <div className='flex items-center gap-3'>
+                                        <div className='w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0'>
+                                            <Loader2 className='w-4 h-4 text-yellow-300 animate-spin' />
+                                        </div>
+                                        <p className='text-white/70'>
+                                            {t("checkingStars")}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* Insufficient stars message - shown below AI response when card draw is requested but user lacks stars */}
+                        {showCardDraw && cardsToSelect > 0 && hasEnoughStars === false && (
+                            <div className='flex flex-col items-start gap-4 animate-fade-in'>
+                                <div className='w-full md:max-w-[85%] text-white/90 space-y-4'>
+                                    <div className='flex items-start gap-3'>
+                                        <div className='w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-1'>
+                                            <Star className='w-4 h-4 text-yellow-300' fill='currentColor' />
+                                        </div>
+                                        <div className='space-y-2'>
+                                            <p className='text-white leading-relaxed'>
+                                                {user 
+                                                    ? tInsufficientStars("chatMessageLoggedIn")
+                                                    : tInsufficientStars("chatMessageAnonymous")
+                                                }
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <InsufficientStarsBlock />
+                                </div>
+                            </div>
+                        )}
+                        
                         {!isChatLoading && hasAssistantResponse && (
                             <p className='text-[11px] leading-relaxed text-white/40 text-center animate-fade-in py-4 text-left'>
                                 {disclaimerText}

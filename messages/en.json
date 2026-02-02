@@ -219,6 +219,7 @@
     },
     "learnMore": "Learn More",
     "selectedCards": "You have selected {selectedCount}/{cardsToSelect} cards",
+    "checkingStars": "Checking your star balance...",
     "disclaimer": "Do not trust or rely on this interpretation blindly. AskingFate uses AI and may make mistakes. For important decisions, please consult a qualified professional."
   },
   "About": {
@@ -1835,7 +1836,11 @@
       "simple": "Simple",
       "intermediate": "Intermediate",
       "advanced": "Advanced"
-    }
+    },
+    "delete": "Delete",
+    "deleteSuccess": "Reading deleted successfully",
+    "deleteError": "Failed to delete reading",
+    "swipeToDelete": "Swipe left to delete"
   },
   "StarsBalance": {
     "available": "Stars available",
@@ -1967,6 +1972,22 @@
     "backToPricing": "Back to Pricing",
     "backToStars": "Back to Stars",
     "supportText": "If you have any questions, please email"
+  },
+  "InsufficientStars": {
+    "title": "Not Enough Stars",
+    "descriptionLoggedIn": "You need at least 5 stars to draw cards and get your reading. Top up your stars to continue your mystical journey.",
+    "descriptionAnonymous": "You need at least 5 stars to draw cards. Sign in to unlock 12 free stars with automatic 2-hourly refills!",
+    "quickTopUp": "Quick Top Up",
+    "packsNotConfigured": "Star packs are not configured yet.",
+    "viewAllOptions": "View all pricing options",
+    "benefit1Title": "12 Free Stars",
+    "benefit1Desc": "Start with 12 stars instantly",
+    "benefit2Title": "Auto Refill",
+    "benefit2Desc": "Get stars every 2 hours",
+    "signInButton": "Sign In to Continue",
+    "signInNote": "Create a free account and get 12 stars to start your tarot journey",
+    "chatMessageLoggedIn": "It looks like you don't have enough stars to draw cards right now. You need at least 5 stars to continue with your reading. You can top up your stars instantly using one of the options below, or wait for your stars to refill automatically.",
+    "chatMessageAnonymous": "It looks like you don't have enough stars to draw cards right now. Sign in to unlock 12 free stars with automatic refills every 2 hours, or create an account to get started on your mystical journey!"
   },
   "Settings": {
     "title": "Settings",

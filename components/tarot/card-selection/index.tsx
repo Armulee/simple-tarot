@@ -4,7 +4,7 @@ import { TarotCard, useTarot } from "@/contexts/tarot-context"
 import { Button } from "../../ui/button"
 import { Card } from "../../ui/card"
 import { Badge } from "../../ui/badge"
-import { Pencil, RotateCw, Sparkles, Star } from "lucide-react"
+import { Pencil, RotateCw, Sparkles, Star, LogIn } from "lucide-react"
 import { ReadingConfig } from "../../../app/[locale]/reading/page"
 import { CircularCardSpread } from "./circular-card-spread"
 import LinearCardSpread from "./linear-card-spread"
@@ -17,6 +17,7 @@ import { useStars } from "@/contexts/stars-context"
 import BrandLoader from "@/components/brand-loader"
 import { useAuth } from "@/hooks/use-auth"
 import NoStarsUpsell from "@/components/stars/no-stars-upsell"
+import InsufficientStarsBlock from "@/components/stars/insufficient-stars-block"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -48,7 +49,7 @@ export default function CardSelection({
     } = useTarot()
     const { user } = useAuth()
     const isMobile = useIsMobile()
-    const { stars, spendStars, initialized } = useStars()
+    const { stars, spendStars, initialized, isInfinity } = useStars()
 
     // Desktop-only spread mode selection; mobile is forced to linear
     const [spreadMode, setSpreadMode] = useState<"circular" | "linear">(
@@ -116,9 +117,10 @@ export default function CardSelection({
             setIsCreatingReading(true)
             return
         }
-        // If not enough stars, block and show dialog; do not mutate state
+        // If not enough stars (and not infinity), block and show dialog; do not mutate state
         if (
             initialized &&
+            !isInfinity &&
             Number.isFinite(stars as number) &&
             (stars as number) < 5
         ) {
@@ -219,6 +221,7 @@ export default function CardSelection({
     }, [
         initialized,
         stars,
+        isInfinity,
         spendStars,
         clearInterpretationState,
         setSelectedCards,
@@ -403,7 +406,14 @@ export default function CardSelection({
                             </p>
                         </div>
 
-                        {readingType && readingConfig[readingType] && (
+                        {/* Check if user has enough stars before showing card spread */}
+                        {initialized &&
+                        !isInfinity &&
+                        Number.isFinite(stars as number) &&
+                        (stars as number) < 5 ? (
+                            /* User doesn't have enough stars - show upsell block */
+                            <InsufficientStarsBlock />
+                        ) : readingType && readingConfig[readingType] ? (
                             <>
                                 {/* Spread type selector - desktop only */}
                                 {!isMobile &&
@@ -541,7 +551,7 @@ export default function CardSelection({
                                     </Button>
                                 </div>
                             </>
-                        )}
+                        ) : null}
                     </div>
                 </div>
             )}
