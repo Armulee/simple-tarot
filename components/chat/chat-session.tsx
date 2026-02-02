@@ -188,12 +188,16 @@ export default function ChatSession({
     const isChatLoading = consulting || isInterpreting
     
     // Check if user has enough stars (at least 5) for card draw
+    // Returns null while loading, true/false once initialized
     const hasEnoughStars = useMemo(() => {
         if (isInfinity) return true
-        if (!starsInitialized) return true // Don't block while loading
+        if (!starsInitialized) return null // Return null while loading to show loading state
         if (!Number.isFinite(stars as number)) return true
         return (stars as number) >= 5
     }, [stars, starsInitialized, isInfinity])
+    
+    // Track if we need to show star checking state
+    const isCheckingStars = showCardDraw && cardsToSelect > 0 && hasEnoughStars === null
     const shortQuestion =
         lastQuestion.trim().length > 80
             ? `${lastQuestion.trim().slice(0, 77)}...`
@@ -894,8 +898,8 @@ export default function ChatSession({
 
     const inputSection = (
         <>
-            {/* Only show card spread when user has enough stars */}
-            {showCardDraw && cardsToSelect > 0 && hasEnoughStars && (
+            {/* Only show card spread when user has enough stars (explicitly true, not null/loading) */}
+            {showCardDraw && cardsToSelect > 0 && hasEnoughStars === true && (
                 <>
                     <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-2 text-center'>
                         <div className='space-y-1'>
@@ -1468,8 +1472,24 @@ export default function ChatSession({
                             </div>
                         )}
                         
+                        {/* Star checking state - shown while verifying star balance on page load/refresh */}
+                        {isCheckingStars && (
+                            <div className='flex flex-col items-start gap-4 animate-fade-in'>
+                                <div className='w-full md:max-w-[85%] text-white/90'>
+                                    <div className='flex items-center gap-3'>
+                                        <div className='w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0'>
+                                            <Loader2 className='w-4 h-4 text-yellow-300 animate-spin' />
+                                        </div>
+                                        <p className='text-white/70'>
+                                            {t("checkingStars")}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
                         {/* Insufficient stars message - shown below AI response when card draw is requested but user lacks stars */}
-                        {showCardDraw && cardsToSelect > 0 && !hasEnoughStars && starsInitialized && (
+                        {showCardDraw && cardsToSelect > 0 && hasEnoughStars === false && (
                             <div className='flex flex-col items-start gap-4 animate-fade-in'>
                                 <div className='w-full md:max-w-[85%] text-white/90 space-y-4'>
                                     <div className='flex items-start gap-3'>
