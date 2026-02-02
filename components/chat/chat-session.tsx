@@ -61,43 +61,8 @@ type ChatSessionPayload = {
     messages: ChatMessage[]
     decision: ChatDecision | null
     owner_user_id?: string | null
-}
-
-const POSITION_MEANINGS: Record<string, string[]> = {
-    simple: ["Quick Insight"],
-    general: [
-        "Origin / Past / Root",
-        "Current situation / Tension",
-        "Direction / Likely outcome",
-    ],
-    detailed: [
-        "Core situation",
-        "Obstacle / challenge",
-        "Hidden influence",
-        "Advice / action",
-        "Probable outcome",
-    ],
-    expanded: [
-        "You",
-        "The other person / external force",
-        "Connection / interaction",
-        "Strength",
-        "Weakness",
-        "Advice",
-        "Outcome",
-    ],
-    celtic: [
-        "Present situation",
-        "Immediate challenge",
-        "Root cause (subconscious)",
-        "Past foundation",
-        "Conscious goal",
-        "Near future",
-        "Self-perception",
-        "External environment",
-        "Hopes & fears",
-        "Final outcome",
-    ],
+    showInsufficientStars?: boolean
+    showCardDraw?: boolean
 }
 
 export default function ChatSession({
@@ -107,14 +72,52 @@ export default function ChatSession({
     mode: ChatSessionMode
     initialSession?: ChatSessionPayload | null
 }) {
-    const t = useTranslations("Home")
-    const tInsufficientStars = useTranslations("InsufficientStars")
+    const tHome = useTranslations("Home")
+    const tReadingTypes = useTranslations("Reading.types")
+
+    const POSITION_MEANINGS: Record<string, string[]> = {
+        simple: [tReadingTypes("simple.title")],
+        general: [
+            "Origin / Past / Root",
+            "Current situation / Tension",
+            "Direction / Likely outcome",
+        ],
+        detailed: [
+            "Core situation",
+            "Obstacle / challenge",
+            "Hidden influence",
+            "Advice / action",
+            "Probable outcome",
+        ],
+        expanded: [
+            "You",
+            "The other person / external force",
+            "Connection / interaction",
+            "Strength",
+            "Weakness",
+            "Advice",
+            "Outcome",
+        ],
+        celtic: [
+            "Present situation",
+            "Immediate challenge",
+            "Root cause (subconscious)",
+            "Past foundation",
+            "Conscious goal",
+            "Near future",
+            "Self-perception",
+            "External environment",
+            "Hopes & fears",
+            "Final outcome",
+        ],
+    }
+
     const locale = useLocale()
     const router = useRouter()
     const { user } = useAuth()
     const { stars, spendStars, initialized: starsInitialized, isInfinity } = useStars()
     const [question, setQuestion] = useState("")
-    const promptsRaw = t.raw("prompts")
+    const promptsRaw = tHome.raw("prompts")
     const prompts = Array.isArray(promptsRaw)
         ? promptsRaw.filter((p): p is string => typeof p === "string")
         : []
@@ -128,7 +131,6 @@ export default function ChatSession({
     const [decision, setDecision] = useState<ChatDecision | null>(
         initialSession?.decision ?? null
     )
-    const [showCardDraw, setShowCardDraw] = useState(false)
     const [isInterpreting, setIsInterpreting] = useState(false)
     const [lastQuestion, setLastQuestion] = useState(
         initialSession?.question ?? ""
@@ -146,6 +148,13 @@ export default function ChatSession({
     const [sessionId, setSessionId] = useState<string | null>(
         initialSession?.id ?? null
     )
+    const abortControllerRef = useRef<AbortController | null>(null)
+    const [showInsufficientStars, setShowInsufficientStars] = useState<boolean>(
+        initialSession?.showInsufficientStars ?? false
+    )
+    const [showCardDraw, setShowCardDraw] = useState(
+        initialSession?.showCardDraw ?? false
+    )
     const [isLinking, setIsLinking] = useState(false)
     const [editingMessageId, setEditingMessageId] = useState<string | null>(null)
     const [editingDraft, setEditingDraft] = useState("")
@@ -157,15 +166,27 @@ export default function ChatSession({
     const hasBootstrapped = useRef(false)
     const persistTimeoutRef = useRef<number | null>(null)
 
+    useEffect(() => {
+        return () => {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort()
+            }
+        }
+    }, [])
+
     const persistSession = useCallback(
         async ({
             question: currentQuestion,
             messages: currentMessages,
             decision: currentDecision,
+            showInsufficientStars: currentShowInsufficientStars,
+            showCardDraw: currentShowCardDraw,
         }: {
             question: string
             messages: ChatMessage[]
             decision: ChatDecision | null
+            showInsufficientStars: boolean
+            showCardDraw: boolean
         }) => {
             if (!sessionId) return
             await fetch(`/api/chat-sessions/${sessionId}`, {
@@ -175,6 +196,8 @@ export default function ChatSession({
                     question: currentQuestion,
                     messages: currentMessages,
                     decision: currentDecision,
+                    showInsufficientStars: currentShowInsufficientStars,
+                    showCardDraw: currentShowCardDraw,
                 }),
             })
         },
@@ -278,6 +301,16 @@ export default function ChatSession({
         }
     }, [showCardDraw, cardsToSelect])
 
+    // Update showInsufficientStars based on star balance
+    useEffect(() => {
+        if (hasEnoughStars === true) {
+            setShowInsufficientStars(false)
+        } else if (showCardDraw && cardsToSelect > 0 && hasEnoughStars === false) {
+            console.log('not sufficient stars')
+            setShowInsufficientStars(true)
+        }
+    }, [hasEnoughStars, showCardDraw, cardsToSelect])
+
     useEffect(() => {
         if (mode !== "session") return
         if (decision?.type !== "draw") return
@@ -299,6 +332,8 @@ export default function ChatSession({
                 question: lastQuestion,
                 messages,
                 decision,
+                showInsufficientStars,
+                showCardDraw,
             })
         }, 400)
         return () => {
@@ -306,9 +341,9 @@ export default function ChatSession({
                 window.clearTimeout(persistTimeoutRef.current)
             }
         }
-    }, [mode, sessionId, lastQuestion, messages, decision, persistSession])
+    }, [mode, sessionId, lastQuestion, messages, decision, persistSession, showInsufficientStars, showCardDraw])
 
-    const heroText = consulting ? "Consulting..." : t("hero.line1")
+    const heroText = consulting ? "Consulting..." : tHome("hero.line1")
 
     const parseDecision = useCallback((raw: string): ChatDecision | null => {
         const start = raw.indexOf("{")
@@ -326,6 +361,11 @@ export default function ChatSession({
         value: string,
         historyOverride?: { role: string; text: string }[]
     ) => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort()
+        }
+        abortControllerRef.current = new AbortController()
+
         const history =
             historyOverride ??
             messages.map((m) => ({
@@ -339,6 +379,7 @@ export default function ChatSession({
                 question: value,
                 history,
             }),
+            signal: abortControllerRef.current.signal,
         })
 
         if (!response.ok || !response.body) {
@@ -349,17 +390,30 @@ export default function ChatSession({
         const decoder = new TextDecoder()
         let buffer = ""
 
-        while (true) {
-            const { done, value: chunk } = await reader.read()
-            if (done) break
-            buffer += decoder.decode(chunk, { stream: true })
+        try {
+            while (true) {
+                const { done, value: chunk } = await reader.read()
+                if (done) break
+                buffer += decoder.decode(chunk, { stream: true })
+            }
+            buffer += decoder.decode()
+        } finally {
+            reader.releaseLock()
         }
-        buffer += decoder.decode()
 
         const parsed = parseDecision(buffer)
         if (!parsed) throw new Error("Invalid decision payload")
         return parsed
     }, [messages, parseDecision])
+
+    const handleStopConsulting = useCallback(() => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort()
+            abortControllerRef.current = null
+        }
+        setConsulting(false)
+        setIsInterpreting(false)
+    }, [])
 
     const setNotice = (id: string, text: string) => {
         setMessageNotices((prev) => ({ ...prev, [id]: text }))
@@ -388,6 +442,7 @@ export default function ChatSession({
         setSelectedCount(0)
         setShuffleFn(null)
         setPickFn(null)
+        setShowInsufficientStars(false)
     }
 
     const runDecisionFlowFromMessages = useCallback(
@@ -413,45 +468,47 @@ export default function ChatSession({
 
             setMessages(baseMessages)
 
-            try {
-                const history = baseMessages.slice(0, -1).map((m) => ({
-                    role: m.role,
-                    text: m.text,
-                }))
-                const nextDecision = await fetchDecision(trimmed, history)
-                setDecision(nextDecision)
-                setConsulting(false)
+        try {
+            const history = baseMessages.slice(0, -1).map((m) => ({
+                role: m.role,
+                text: m.text,
+            }))
+            const nextDecision = await fetchDecision(trimmed, history)
+            setDecision(nextDecision)
+            setConsulting(false)
 
-                if (nextDecision.assistantText) {
-                    setMessages((prev) => [
-                        ...prev,
-                        {
-                            id: `assistant-${Date.now()}`,
-                            role: "assistant",
-                            text: nextDecision.assistantText,
-                            variant: "plain",
-                        },
-                    ])
-                }
-
-                if (nextDecision.type === "draw") {
-                    setShowCardDraw(true)
-                }
-            } catch {
-                setConsulting(false)
+            if (nextDecision.assistantText) {
                 setMessages((prev) => [
                     ...prev,
                     {
-                        id: `assistant-error-${Date.now()}`,
+                        id: `assistant-${Date.now()}`,
                         role: "assistant",
-                        text: "Sorry, something went wrong. Please try again.",
+                        text: nextDecision.assistantText,
                         variant: "plain",
                     },
                 ])
             }
-        },
-        [consulting, fetchDecision, isInterpreting]
-    )
+
+            if (nextDecision.type === "draw") {
+                setShowCardDraw(true)
+            }
+        } catch (err) {
+            setConsulting(false)
+            if (err instanceof Error && err.name === "AbortError") return
+
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: `assistant-error-${Date.now()}`,
+                    role: "assistant",
+                    text: "Sorry, something went wrong. Please try again.",
+                    variant: "plain",
+                },
+            ])
+        }
+    },
+    [consulting, fetchDecision, isInterpreting]
+)
 
     const handleRegenerateAt = (messageIndex: number) => {
         if (mode === "home") return
@@ -647,8 +704,10 @@ export default function ChatSession({
             if (nextDecision.type === "draw") {
                 setShowCardDraw(true)
             }
-        } catch {
+        } catch (err) {
             setConsulting(false)
+            if (err instanceof Error && err.name === "AbortError") return
+
             setMessages((prev) => [
                 ...prev,
                 {
@@ -740,84 +799,17 @@ export default function ChatSession({
             isFollowUp: false,
         })
 
-        const generateFollowUpsForMessage = async (
-            messageId: string,
-            args: { question: string; cards: string[]; interpretation: string }
-        ) => {
-            setMessages((prev) =>
-                prev.map((m) =>
-                    m.id === messageId ? { ...m, followUpLoading: true } : m
-                )
-            )
-            try {
-                const response = await fetch("/api/chat/followups", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        question: args.question,
-                        cards: args.cards,
-                        interpretation: args.interpretation,
-                    }),
-                })
-
-                if (!response.ok || !response.body) {
-                    throw new Error("Failed to generate follow-ups")
-                }
-
-                const reader = response.body.getReader()
-                const decoder = new TextDecoder()
-                let buffer = ""
-                while (true) {
-                    const { done, value: chunk } = await reader.read()
-                    if (done) break
-                    buffer += decoder.decode(chunk, { stream: true })
-                }
-                buffer += decoder.decode()
-
-                const parsed = JSON.parse(buffer) as {
-                    conclusion?: unknown
-                    suggestions?: unknown
-                }
-                const conclusion =
-                    typeof parsed.conclusion === "string"
-                        ? parsed.conclusion.trim()
-                        : ""
-                const suggestions = Array.isArray(parsed.suggestions)
-                    ? parsed.suggestions
-                          .map((s) => (typeof s === "string" ? s.trim() : ""))
-                          .filter(Boolean)
-                          .slice(0, 5)
-                    : []
-
-                setMessages((prev) =>
-                    prev.map((m) =>
-                        m.id === messageId
-                            ? {
-                                  ...m,
-                                  followUpConclusion: conclusion || undefined,
-                                  followUpSuggestions:
-                                      suggestions.length > 0
-                                          ? suggestions
-                                          : undefined,
-                                  followUpLoading: false,
-                              }
-                            : m
-                    )
-                )
-            } catch {
-                setMessages((prev) =>
-                    prev.map((m) =>
-                        m.id === messageId ? { ...m, followUpLoading: false } : m
-                    )
-                )
-            }
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort()
         }
+        abortControllerRef.current = new AbortController()
 
         try {
             const response = await fetch("/api/interpret-cards/question", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ prompt }),
+                signal: abortControllerRef.current.signal,
             })
 
             if (!response.ok || !response.body) {
@@ -828,20 +820,36 @@ export default function ChatSession({
             const decoder = new TextDecoder()
             let buffer = ""
 
-            while (true) {
-                const { done, value: chunk } = await reader.read()
-                if (done) break
-                buffer += decoder.decode(chunk, { stream: true })
+            try {
+                while (true) {
+                    const { done, value: chunk } = await reader.read()
+                    if (done) break
+                    buffer += decoder.decode(chunk, { stream: true })
+                }
+                buffer += decoder.decode()
+            } finally {
+                reader.releaseLock()
             }
-            buffer += decoder.decode()
 
             let interpretationText = buffer
             let parsedInsights: string[] = []
+            let followUpConclusion: string | undefined
+            let followUpSuggestions: string[] | undefined
+
             try {
                 const parsed = JSON.parse(buffer)
                 interpretationText = parsed.interpretation || buffer
                 if (Array.isArray(parsed.cardInsights)) {
                     parsedInsights = parsed.cardInsights
+                }
+                if (typeof parsed.conclusion === "string") {
+                    followUpConclusion = parsed.conclusion.trim()
+                }
+                if (Array.isArray(parsed.suggestions)) {
+                    followUpSuggestions = parsed.suggestions
+                        .map((s: unknown) => (typeof s === "string" ? s.trim() : ""))
+                        .filter(Boolean)
+                        .slice(0, 5)
                 }
             } catch {}
 
@@ -853,20 +861,18 @@ export default function ChatSession({
                               text: interpretationText,
                               insights: parsedInsights,
                               isLoading: false,
-                              followUpConclusion: undefined,
-                              followUpSuggestions: undefined,
-                              followUpLoading: true,
+                              followUpConclusion,
+                              followUpSuggestions,
+                              followUpLoading: false,
                           }
                         : message
                 )
             )
-
-            void generateFollowUpsForMessage(loadingId, {
-                question: lastQuestion,
-                cards: cardNames,
-                interpretation: interpretationText,
-            })
-        } catch {
+        } catch (err) {
+            if (err instanceof Error && err.name === "AbortError") {
+                setMessages((prev) => prev.filter((m) => m.id !== loadingId))
+                return
+            }
             setMessages((prev) =>
                 prev.map((message) =>
                     message.id === loadingId
@@ -893,13 +899,13 @@ export default function ChatSession({
     const shouldShowLearnMore =
         showLearnMore && !hasMessages && !consulting
 
-    const disclaimerText = t("disclaimer")
+    const disclaimerText = tHome("disclaimer")
     const isInputFixed = mode === "session"
 
     const inputSection = (
         <>
             {/* Only show card spread when user has enough stars (explicitly true, not null/loading) */}
-            {showCardDraw && cardsToSelect > 0 && hasEnoughStars === true && (
+            {showCardDraw && cardsToSelect > 0 && !showInsufficientStars && hasEnoughStars === true && (
                 <>
                     <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-2 text-center'>
                         <div className='space-y-1'>
@@ -909,7 +915,7 @@ export default function ChatSession({
                                 </p>
                             )}
                             <p className='text-sm text-white'>
-                                {t("selectedCards", {
+                                {tHome("selectedCards", {
                                     selectedCount,
                                     cardsToSelect,
                                 })}
@@ -966,6 +972,8 @@ export default function ChatSession({
                 value={question}
                 onChange={setQuestion}
                 onSubmit={handleSubmit}
+                onStop={handleStopConsulting}
+                isLoading={isChatLoading}
                 centered
                 className={`transition-[max-width] duration-500 ease-in-out ${
                     isInputFixed || isLinking
@@ -1008,7 +1016,7 @@ export default function ChatSession({
                         {!consulting && (
                             <h1 className='font-playfair font-bold text-4xl sm:text-5xl md:text-6xl text-white'>
                                 <TypewriterText
-                                    text={t("hero.line2")}
+                                    text={tHome("hero.line2")}
                                     speed={50}
                                     delay={1000}
                                     className='font-playfair text-transparent bg-gradient-to-r from-primary via-accent to-primary bg-clip-text'
@@ -1025,7 +1033,7 @@ export default function ChatSession({
                             >
                                 <span className='flex items-center gap-4'>
                                     <span className='h-px w-10 bg-white/30' />
-                                    {t("learnMore")}
+                                    {tHome("learnMore")}
                                     <span className='h-px w-10 bg-white/30' />
                                 </span>
                             </button>
@@ -1159,7 +1167,9 @@ export default function ChatSession({
                             }
 
                             const shouldPadBottomForCardDraw =
-                                showCardDraw &&
+                                showCardDraw && 
+                                !showInsufficientStars &&
+                                hasEnoughStars &&
                                 cardsToSelect > 0 &&
                                 messageIndex === messages.length - 1 &&
                                 message.variant !== "box"
@@ -1177,27 +1187,32 @@ export default function ChatSession({
                                             : undefined
                                     }
                                     className={`flex flex-col items-start gap-4 ${
-                                        shouldPadBottomForCardDraw ? "pb-36" : ""
+                                        shouldPadBottomForCardDraw ? "pb-[270px]" : ""
                                     }`}
                                 >
                                     {message.cards &&
                                         message.cards.length > 0 && (
                                             <div className='flex flex-wrap gap-6 w-full md:max-w-[85%]'>
-                                                {message.cards.map(
-                                                    (card, index) => {
-                                                        const spreadKey =
-                                                            message.spreadType ||
-                                                            "simple"
-                                                        const label =
-                                                            POSITION_MEANINGS[
-                                                                spreadKey
-                                                            ]?.[index] ||
-                                                            `Position ${index + 1}`
-                                                        return (
-                                                            <div
-                                                                key={`${message.id}-card-${card.id}`}
-                                                                className='flex flex-row items-start gap-4 p-4 bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/5 group hover:bg-white/[0.06] hover:border-primary/20 transition-all duration-300 w-full md:max-w-sm'
-                                                            >
+                                                {message.cards.map((card, index) => {
+                                                    const cardCount = message.cards?.length || 0
+                                                    let spreadKey: string = "simple"
+                                                    if (cardCount === 1) spreadKey = "simple"
+                                                    else if (cardCount === 3) spreadKey = "general"
+                                                    else if (cardCount === 5) spreadKey = "detailed"
+                                                    else if (cardCount === 7) spreadKey = "expanded"
+                                                    else if (cardCount === 10) spreadKey = "celtic"
+                                                    else spreadKey = "unknown"
+
+                                                    const label =
+                                                        spreadKey !== "unknown"
+                                                            ? POSITION_MEANINGS[spreadKey]?.[index]
+                                                            : `Position ${index + 1}`
+
+                                                    return (
+                                                        <div
+                                                            key={`${message.id}-card-${card.id}`}
+                                                            className='flex flex-row items-start gap-4 p-4 bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/5 group hover:bg-white/[0.06] hover:border-primary/20 transition-all duration-300 w-full md:max-w-sm'
+                                                        >
                                                                 <div className='shrink-0 flex flex-col items-center relative'>
                                                                     <div className='absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-[10px] font-bold text-white z-10 shadow-lg border border-white/10'>
                                                                         {index +
@@ -1481,7 +1496,7 @@ export default function ChatSession({
                                             <Loader2 className='w-4 h-4 text-yellow-300 animate-spin' />
                                         </div>
                                         <p className='text-white/70'>
-                                            {t("checkingStars")}
+                                            {tHome("checkingStars")}
                                         </p>
                                     </div>
                                 </div>
@@ -1489,22 +1504,9 @@ export default function ChatSession({
                         )}
                         
                         {/* Insufficient stars message - shown below AI response when card draw is requested but user lacks stars */}
-                        {showCardDraw && cardsToSelect > 0 && hasEnoughStars === false && (
+                        {showInsufficientStars && (
                             <div className='flex flex-col items-start gap-4 animate-fade-in'>
                                 <div className='w-full md:max-w-[85%] text-white/90 space-y-4'>
-                                    <div className='flex items-start gap-3'>
-                                        <div className='w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-1'>
-                                            <Star className='w-4 h-4 text-yellow-300' fill='currentColor' />
-                                        </div>
-                                        <div className='space-y-2'>
-                                            <p className='text-white leading-relaxed'>
-                                                {user 
-                                                    ? tInsufficientStars("chatMessageLoggedIn")
-                                                    : tInsufficientStars("chatMessageAnonymous")
-                                                }
-                                            </p>
-                                        </div>
-                                    </div>
                                     <InsufficientStarsBlock />
                                 </div>
                             </div>

@@ -8,10 +8,11 @@ import { useAuth } from "@/hooks/use-auth"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
-import { Search, Calendar, X, Star, Sparkles, Trash2, Loader2 } from "lucide-react"
+import { Search, Calendar, X, Star, Sparkles, Trash2, Loader2, MoreHorizontal } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useTranslations, useLocale } from 'next-intl'
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -322,8 +323,7 @@ const ReadingCard = ({
                 >
                     <Card
                         className={cn(
-                            "group/card relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/10 bg-gradient-to-br from-slate-900/30 to-slate-800/20 z-10",
-                            "bg-gradient-to-br from-card/60 to-card/30 backdrop-blur-sm border-border/30",
+                            "group/card relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/10 bg-slate-950 border-yellow-400/20 z-10",
                             "cursor-pointer",
                             swipeX < 0 && "hover:scale-100" // Disable hover scale when swiped
                         )}
@@ -378,6 +378,51 @@ const ReadingCard = ({
                         </CardContent>
                     </Card>
                 </Link>
+
+                {/* More options button */}
+                <div className="absolute top-3 right-3 z-20">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 rounded-full hover:bg-white/10 text-muted-foreground hover:text-white transition-colors"
+                                onPointerDown={(e) => {
+                                    e.stopPropagation()
+                                }}
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                }}
+                            >
+                                <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent 
+                            className="w-32 p-1 bg-slate-900 border-slate-800 shadow-xl" 
+                            align="end"
+                            onPointerDown={(e) => {
+                                e.stopPropagation()
+                            }}
+                            onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                            }}
+                        >
+                            <button
+                                onClick={handleDelete}
+                                disabled={isDeleting}
+                                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-md transition-colors text-left"
+                            >
+                                {isDeleting ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Trash2 className="w-4 h-4" />
+                                )}
+                                <span>{t("delete") || "Delete"}</span>
+                            </button>
+                        </PopoverContent>
+                    </Popover>
+                </div>
             </div>
         </div>
     )

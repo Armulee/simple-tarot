@@ -121,8 +121,8 @@ export function LinearCardSpread({
         action: "add" | "remove",
         newSelectedCount: number
     ) => void
-    onProvideShuffle?: (fn: () => void) => void
-    onProvideRandomPick?: (fn: () => void) => void
+    onProvideShuffle?: (fn: () => void, isShuffling?: boolean) => void
+    onProvideRandomPick?: (fn: () => void, isPicking?: boolean) => void
 }) {
     const t = useTranslations("ReadingPage.chooseCards")
     const initialDeck = useMemo(() => shuffle(TAROT_DECK), [])
@@ -144,6 +144,7 @@ export function LinearCardSpread({
     }>({ x: 0, y: 0 })
     const swiperRef = useRef<SwiperType | null>(null)
     const [isRandomPicking, setIsRandomPicking] = useState(false)
+    const [isShuffling, setIsShuffling] = useState(false)
     const navGuardRef = useRef<HTMLDivElement | null>(null)
     const deckRef = useRef<HTMLDivElement | null>(null)
 
@@ -253,6 +254,8 @@ export function LinearCardSpread({
     }
 
     const shuffleUnselected = () => {
+        if (isShuffling) return
+        setIsShuffling(true)
         const selectedSet = new Set(selected.map((s) => s.name))
         const unselected = deckList.filter((n) => !selectedSet.has(n))
         const shuffledUnselected = shuffle(unselected)
@@ -280,13 +283,17 @@ export function LinearCardSpread({
                 el.classList.add("animate-shuffle")
             })
         })
+        // Delay for shuffle animation (approx 800ms)
+        setTimeout(() => {
+            setIsShuffling(false)
+        }, 800)
     }
 
     useEffect(() => {
-        onProvideShuffle?.(shuffleUnselected)
-        onProvideRandomPick?.(randomPick)
+        onProvideShuffle?.(shuffleUnselected, isShuffling)
+        onProvideRandomPick?.(randomPick, isRandomPicking)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [deckList, reversalByName, selected])
+    }, [deckList, reversalByName, selected, isShuffling, isRandomPicking])
 
     // Prevent macOS trackpad horizontal swipe from triggering browser back/forward
     // when interacting with this horizontal deck.

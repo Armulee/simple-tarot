@@ -38,7 +38,7 @@ export async function GET(
 
         const { data, error } = await supabase
             .from("chat_sessions")
-            .select("id, question, topic, messages, decision, created_at, updated_at")
+            .select("id, question, topic, messages, decision, show_insufficient_stars, show_card_draw, created_at, updated_at")
             .eq("id", id)
             .maybeSingle()
 
@@ -87,6 +87,12 @@ export async function PATCH(
         }
         if (body?.decision && typeof body.decision === "object") {
             update.decision = body.decision
+        }
+        if (typeof body?.showInsufficientStars === "boolean") {
+            update.show_insufficient_stars = body.showInsufficientStars
+        }
+        if (typeof body?.showCardDraw === "boolean") {
+            update.show_card_draw = body.showCardDraw
         }
 
         const { error } = await supabaseAdmin

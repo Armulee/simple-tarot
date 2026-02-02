@@ -5,7 +5,7 @@ import {
     getChatDecisionPrompt,
 } from "@/lib/prompts"
 
-const MODEL = "openai/gpt-4.1-mini"
+const MODEL = "google/gemini-3-flash"
 
 export async function POST(req: Request) {
     try {
@@ -17,6 +17,7 @@ export async function POST(req: Request) {
 
         const result = streamText({
             model: MODEL,
+            maxOutputTokens: 2000,
             system: CHAT_DECISION_SYSTEM_PROMPT,
             prompt: getChatDecisionPrompt({ question, history }),
         })

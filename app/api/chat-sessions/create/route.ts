@@ -7,7 +7,7 @@ import { generateText } from "ai"
 const MAX_QUESTION_LENGTH = 500
 const MAX_MESSAGE_COUNT = 100
 const MAX_TOPIC_LENGTH = 80
-const TOPIC_MODEL = "google/gemini-3-flash"
+const TOPIC_MODEL = "openai/gpt-4.1-mini"
 
 function cleanTopic(raw: string): string {
     return (
@@ -22,19 +22,20 @@ function cleanTopic(raw: string): string {
 }
 
 async function generateTopicFromQuestion(question: string): Promise<string> {
-    const system = `You create a short session topic from the user's first message.
+    const system = `You create a descriptive session topic from the user's first message.
 
 Rules:
 - Output ONLY the topic phrase. No quotes. No markdown. No punctuation at the end.
-- 3–8 words (or an equivalent short phrase if the language doesn’t use spaces).
+- Length: 3–12 words (or equivalent length in non-spaced languages like Thai).
+- Be descriptive enough that the user can distinguish this session from others.
 - Match the user's language.
 - Be specific and calm (not clickbait).
 `
 
-    const prompt = `User first message:
+    const prompt = `User's first message:
 ${question}
 
-Return the session topic now.`
+Return a clear, descriptive session topic now.`
 
     const result = await generateText({
         model: TOPIC_MODEL,
@@ -120,6 +121,8 @@ export async function POST(req: NextRequest) {
             topic,
             messages,
             decision,
+            show_insufficient_stars: body?.showInsufficientStars ?? false,
+            show_card_draw: body?.showCardDraw ?? false,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         })

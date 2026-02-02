@@ -19,6 +19,10 @@ Specific Guidelines:
     - Outcomes are probable, not fixed.
     - Position > card meaning (always).
 
+Follow-up & Wrap-up:
+- **Conclusion**: Write a short (1-2 sentences) wrap-up that gently closes the reading and invites a next question.
+- **Suggestions**: Provide 3-5 specific follow-up questions the user might want to ask next, based on the context of their reading.
+
 Constraints:
 - Length: 3–6 sentences (approx. 100–130 words) for the main interpretation.
 - Language: Match the user's language, slang, and vibe perfectly.
@@ -30,7 +34,9 @@ Return a JSON object with the following structure:
 {
   "keywords": "three, comma, separated, keywords",
   "interpretation": "The main 3-6 sentence reading based on the question and spread.",
-  "cardInsights": ["A direct, punchy 1-sentence insight. Jump straight to the meaning. Never mention 'this card', 'the card', its name, or the position label. Example: 'Trust your gut right now.'", ...]
+  "cardInsights": ["A direct, punchy 1-sentence insight. Jump straight to the meaning. Never mention 'this card', 'the card', its name, or the position label. Example: 'Trust your gut right now.'", ...],
+  "conclusion": "A short, human, calming wrap-up.",
+  "suggestions": ["Follow-up question 1", "Follow-up question 2", "Follow-up question 3"]
 }
 
 Important: The JSON must be valid. All text must be in the same language as the answer.
@@ -132,7 +138,9 @@ Output Format: JSON
 {
   "keywords": "3 keywords",
   "interpretation": "Approx 120 words answer",
-  "cardInsights": ["Direct, punchy insights for the cards. Never mention 'this card', 'the card', its name, or position labels."]
+  "cardInsights": ["Direct, punchy insights for the cards. Never mention 'this card', 'the card', its name, or position labels."],
+  "conclusion": "A short, human, calming wrap-up.",
+  "suggestions": ["Follow-up question 1", "Follow-up question 2", "Follow-up question 3"]
 }`
     }
 
@@ -157,7 +165,9 @@ Output Format: JSON
 {
   "keywords": "3 keywords",
   "interpretation": "Main reading paragraph",
-  "cardInsights": ["Insight for card 1", "Insight for card 2", ...]
+  "cardInsights": ["Insight for card 1", "Insight for card 2", ...],
+  "conclusion": "A short, human, calming wrap-up.",
+  "suggestions": ["Follow-up question 1", "Follow-up question 2", "Follow-up question 3"]
 }`
 }
 

@@ -12,6 +12,8 @@ type ChatSessionData = {
     messages: unknown
     decision: unknown
     owner_user_id: string | null
+    show_insufficient_stars?: boolean
+    show_card_draw?: boolean
 }
 
 function isChatDecision(value: unknown): value is ChatDecision {
@@ -28,7 +30,7 @@ function isChatDecision(value: unknown): value is ChatDecision {
 async function getChatSession(id: string) {
     const { data } = await supabase
         .from("chat_sessions")
-        .select("id, question, messages, decision, owner_user_id")
+        .select("id, question, messages, decision, owner_user_id, show_insufficient_stars, show_card_draw")
         .eq("id", id)
         .maybeSingle()
     return data as ChatSessionData | null
@@ -98,6 +100,8 @@ export default async function ChatSessionPage({
                 messages: Array.isArray(data.messages) ? data.messages : [],
                 decision: isChatDecision(data.decision) ? data.decision : null,
                 owner_user_id: data.owner_user_id,
+                showInsufficientStars: data.show_insufficient_stars,
+                showCardDraw: data.show_card_draw,
             }}
         />
     )

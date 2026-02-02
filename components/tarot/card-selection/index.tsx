@@ -4,7 +4,7 @@ import { TarotCard, useTarot } from "@/contexts/tarot-context"
 import { Button } from "../../ui/button"
 import { Card } from "../../ui/card"
 import { Badge } from "../../ui/badge"
-import { Pencil, RotateCw, Sparkles, Star, LogIn } from "lucide-react"
+import { Pencil, RotateCw, Sparkles, Star } from "lucide-react"
 import { ReadingConfig } from "../../../app/[locale]/reading/page"
 import { CircularCardSpread } from "./circular-card-spread"
 import LinearCardSpread from "./linear-card-spread"
@@ -56,6 +56,8 @@ export default function CardSelection({
         "circular"
     )
     const [isEditing, setIsEditing] = useState(false)
+    const [isShuffling, setIsShuffling] = useState(false)
+    const [isRandomPicking, setIsRandomPicking] = useState(false)
     const linearShuffleRef = React.useRef<(() => void) | null>(null)
     const circularShuffleRef = React.useRef<(() => void) | null>(null)
     const linearRandomPickRef = React.useRef<(() => void) | null>(null)
@@ -493,12 +495,14 @@ export default function CardSelection({
                                         onPartialSelect={(c, action) =>
                                             handlePartialSelect(c, action)
                                         }
-                                        onProvideShuffle={(fn) =>
-                                            (linearShuffleRef.current = fn)
-                                        }
-                                        onProvideRandomPick={(fn) =>
-                                            (linearRandomPickRef.current = fn)
-                                        }
+                                        onProvideShuffle={(fn, shuffling) => {
+                                            linearShuffleRef.current = fn
+                                            setIsShuffling(!!shuffling)
+                                        }}
+                                        onProvideRandomPick={(fn, picking) => {
+                                            linearRandomPickRef.current = fn
+                                            setIsRandomPicking(!!picking)
+                                        }}
                                     />
                                 ) : (
                                     <div className='flex justify-center'>
@@ -516,14 +520,14 @@ export default function CardSelection({
                                             externalSelectedNames={
                                                 externalNames
                                             }
-                                            onProvideShuffle={(fn) =>
-                                                (circularShuffleRef.current =
-                                                    fn)
-                                            }
-                                            onProvideRandomPick={(fn) =>
-                                                (circularRandomPickRef.current =
-                                                    fn)
-                                            }
+                                            onProvideShuffle={(fn, shuffling) => {
+                                                circularShuffleRef.current = fn
+                                                setIsShuffling(!!shuffling)
+                                            }}
+                                            onProvideRandomPick={(fn, picking) => {
+                                                circularRandomPickRef.current = fn
+                                                setIsRandomPicking(!!picking)
+                                            }}
                                         />
                                     </div>
                                 )}
@@ -533,8 +537,9 @@ export default function CardSelection({
                                         size='sm'
                                         className='gap-2 bg-transparent'
                                         onClick={handleShuffle}
+                                        disabled={isShuffling}
                                     >
-                                        <RotateCw className='w-4 h-4' />
+                                        <RotateCw className={`w-4 h-4 ${isShuffling ? "animate-spin" : ""}`} />
                                         {t("chooseCards.shuffle", {
                                             default: "Shuffle",
                                         })}
@@ -542,9 +547,14 @@ export default function CardSelection({
                                     <Button
                                         size='sm'
                                         onClick={handleRandomPick}
+                                        disabled={isRandomPicking}
                                         className='gap-2 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 hover:from-indigo-500/30 hover:to-purple-500/30 border border-white/10 text-white backdrop-blur-sm transition-all duration-300 shadow-lg hover:shadow-primary/20 hover:scale-105'
                                     >
-                                        <Sparkles className='w-4 h-4 text-yellow-300 animate-pulse' />
+                                        {isRandomPicking ? (
+                                            <RotateCw className='w-4 h-4 animate-spin' />
+                                        ) : (
+                                            <Sparkles className='w-4 h-4 text-yellow-300 animate-pulse' />
+                                        )}
                                         {t("chooseCards.random", {
                                             default: "Pick For Me",
                                         })}
