@@ -1797,7 +1797,11 @@
       "simple": "ง่าย",
       "intermediate": "ปานกลาง",
       "advanced": "ขั้นสูง"
-    }
+    },
+    "delete": "ลบ",
+    "deleteSuccess": "ลบการอ่านสำเร็จ",
+    "deleteError": "ไม่สามารถลบการอ่านได้",
+    "swipeToDelete": "ปัดซ้ายเพื่อลบ"
   },
   "StarsBalance": {
     "available": "ดวงดาวที่ใช้ได้",

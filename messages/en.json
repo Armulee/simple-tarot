@@ -1836,7 +1836,11 @@
       "simple": "Simple",
       "intermediate": "Intermediate",
       "advanced": "Advanced"
-    }
+    },
+    "delete": "Delete",
+    "deleteSuccess": "Reading deleted successfully",
+    "deleteError": "Failed to delete reading",
+    "swipeToDelete": "Swipe left to delete"
   },
   "StarsBalance": {
     "available": "Stars available",
