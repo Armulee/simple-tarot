@@ -1968,6 +1968,20 @@
     "backToStars": "Back to Stars",
     "supportText": "If you have any questions, please email"
   },
+  "InsufficientStars": {
+    "title": "Not Enough Stars",
+    "descriptionLoggedIn": "You need at least 5 stars to draw cards and get your reading. Top up your stars to continue your mystical journey.",
+    "descriptionAnonymous": "You need at least 5 stars to draw cards. Sign in to unlock 12 free stars with automatic 2-hourly refills!",
+    "quickTopUp": "Quick Top Up",
+    "packsNotConfigured": "Star packs are not configured yet.",
+    "viewAllOptions": "View all pricing options",
+    "benefit1Title": "12 Free Stars",
+    "benefit1Desc": "Start with 12 stars instantly",
+    "benefit2Title": "Auto Refill",
+    "benefit2Desc": "Get stars every 2 hours",
+    "signInButton": "Sign In to Continue",
+    "signInNote": "Create a free account and get 12 stars to start your tarot journey"
+  },
   "Settings": {
     "title": "Settings",
     "subtitle": "Manage your account preferences and email marketing settings",
