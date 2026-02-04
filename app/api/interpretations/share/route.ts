@@ -37,11 +37,10 @@ export async function POST(req: NextRequest) {
         }
 
         // Generate a random short ID
-        const shortId = nanoid(7) // 7 characters should be sufficient
+        const sessionId = nanoid(12)
 
-        // Check if ID already exists and generate a new one if needed
         let attempts = 0
-        let finalId = shortId
+        let finalId = sessionId
         while (attempts < 5) {
             const { data: existing } = await supabaseAdmin
                 .from("shared_tarot")
@@ -50,9 +49,7 @@ export async function POST(req: NextRequest) {
                 .maybeSingle()
 
             if (!existing) break
-
-            // Generate a new random ID if it exists
-            finalId = nanoid(7)
+            finalId = nanoid(12)
             attempts++
         }
 

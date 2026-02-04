@@ -1,6 +1,6 @@
 "use client"
 
-export default function DiscoverHeader() {
+export default function AboutOverview() {
     return (
         <div className='text-center space-y-6'>
             <h1 className='text-4xl sm:text-5xl md:text-6xl font-serif font-bold text-white'>

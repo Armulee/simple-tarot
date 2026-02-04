@@ -2,7 +2,7 @@
 
 import { Target } from "lucide-react"
 
-export default function MissionStatement() {
+export default function AboutMission() {
     return (
         <div className='bg-gradient-to-r from-primary/10 to-secondary/10 backdrop-blur-sm border border-primary/20 rounded-2xl p-8'>
             <div className='text-center space-y-4'>

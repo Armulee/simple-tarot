@@ -18,7 +18,6 @@ import {
     Mail,
     Bell,
     Lock,
-    Eye,
     BookOpen,
     Globe,
     Accessibility,

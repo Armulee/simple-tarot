@@ -55,10 +55,10 @@ export async function POST(req: NextRequest) {
                 )
         }
 
-        const shortId = nanoid(7)
+        const sessionId = nanoid(12)
 
         let attempts = 0
-        let finalId = shortId
+        let finalId = sessionId
         while (attempts < 5) {
             const { data: existing } = await supabaseAdmin
                 .from("astrology_readings")
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
                 .maybeSingle()
 
             if (!existing) break
-            finalId = nanoid(7)
+            finalId = nanoid(12)
             attempts++
         }
 

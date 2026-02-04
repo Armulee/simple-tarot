@@ -17,6 +17,7 @@ import { useStars } from "@/contexts/stars-context"
 import BrandLoader from "@/components/brand-loader"
 import { useAuth } from "@/hooks/use-auth"
 import NoStarsUpsell from "@/components/stars/no-stars-upsell"
+import InsufficientStarsBlock from "@/components/stars/insufficient-stars-block"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -48,13 +49,15 @@ export default function CardSelection({
     } = useTarot()
     const { user } = useAuth()
     const isMobile = useIsMobile()
-    const { stars, spendStars, initialized } = useStars()
+    const { stars, spendStars, initialized, isInfinity } = useStars()
 
     // Desktop-only spread mode selection; mobile is forced to linear
     const [spreadMode, setSpreadMode] = useState<"circular" | "linear">(
         "circular"
     )
     const [isEditing, setIsEditing] = useState(false)
+    const [isShuffling, setIsShuffling] = useState(false)
+    const [isRandomPicking, setIsRandomPicking] = useState(false)
     const linearShuffleRef = React.useRef<(() => void) | null>(null)
     const circularShuffleRef = React.useRef<(() => void) | null>(null)
     const linearRandomPickRef = React.useRef<(() => void) | null>(null)
@@ -116,9 +119,10 @@ export default function CardSelection({
             setIsCreatingReading(true)
             return
         }
-        // If not enough stars, block and show dialog; do not mutate state
+        // If not enough stars (and not infinity), block and show dialog; do not mutate state
         if (
             initialized &&
+            !isInfinity &&
             Number.isFinite(stars as number) &&
             (stars as number) < 5
         ) {
@@ -219,6 +223,7 @@ export default function CardSelection({
     }, [
         initialized,
         stars,
+        isInfinity,
         spendStars,
         clearInterpretationState,
         setSelectedCards,
@@ -403,7 +408,14 @@ export default function CardSelection({
                             </p>
                         </div>
 
-                        {readingType && readingConfig[readingType] && (
+                        {/* Check if user has enough stars before showing card spread */}
+                        {initialized &&
+                        !isInfinity &&
+                        Number.isFinite(stars as number) &&
+                        (stars as number) < 5 ? (
+                            /* User doesn't have enough stars - show upsell block */
+                            <InsufficientStarsBlock />
+                        ) : readingType && readingConfig[readingType] ? (
                             <>
                                 {/* Spread type selector - desktop only */}
                                 {!isMobile &&
@@ -483,12 +495,14 @@ export default function CardSelection({
                                         onPartialSelect={(c, action) =>
                                             handlePartialSelect(c, action)
                                         }
-                                        onProvideShuffle={(fn) =>
-                                            (linearShuffleRef.current = fn)
-                                        }
-                                        onProvideRandomPick={(fn) =>
-                                            (linearRandomPickRef.current = fn)
-                                        }
+                                        onProvideShuffle={(fn, shuffling) => {
+                                            linearShuffleRef.current = fn
+                                            setIsShuffling(!!shuffling)
+                                        }}
+                                        onProvideRandomPick={(fn, picking) => {
+                                            linearRandomPickRef.current = fn
+                                            setIsRandomPicking(!!picking)
+                                        }}
                                     />
                                 ) : (
                                     <div className='flex justify-center'>
@@ -506,14 +520,14 @@ export default function CardSelection({
                                             externalSelectedNames={
                                                 externalNames
                                             }
-                                            onProvideShuffle={(fn) =>
-                                                (circularShuffleRef.current =
-                                                    fn)
-                                            }
-                                            onProvideRandomPick={(fn) =>
-                                                (circularRandomPickRef.current =
-                                                    fn)
-                                            }
+                                            onProvideShuffle={(fn, shuffling) => {
+                                                circularShuffleRef.current = fn
+                                                setIsShuffling(!!shuffling)
+                                            }}
+                                            onProvideRandomPick={(fn, picking) => {
+                                                circularRandomPickRef.current = fn
+                                                setIsRandomPicking(!!picking)
+                                            }}
                                         />
                                     </div>
                                 )}
@@ -523,8 +537,9 @@ export default function CardSelection({
                                         size='sm'
                                         className='gap-2 bg-transparent'
                                         onClick={handleShuffle}
+                                        disabled={isShuffling}
                                     >
-                                        <RotateCw className='w-4 h-4' />
+                                        <RotateCw className={`w-4 h-4 ${isShuffling ? "animate-spin" : ""}`} />
                                         {t("chooseCards.shuffle", {
                                             default: "Shuffle",
                                         })}
@@ -532,16 +547,21 @@ export default function CardSelection({
                                     <Button
                                         size='sm'
                                         onClick={handleRandomPick}
+                                        disabled={isRandomPicking}
                                         className='gap-2 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 hover:from-indigo-500/30 hover:to-purple-500/30 border border-white/10 text-white backdrop-blur-sm transition-all duration-300 shadow-lg hover:shadow-primary/20 hover:scale-105'
                                     >
-                                        <Sparkles className='w-4 h-4 text-yellow-300 animate-pulse' />
+                                        {isRandomPicking ? (
+                                            <RotateCw className='w-4 h-4 animate-spin' />
+                                        ) : (
+                                            <Sparkles className='w-4 h-4 text-yellow-300 animate-pulse' />
+                                        )}
                                         {t("chooseCards.random", {
                                             default: "Pick For Me",
                                         })}
                                     </Button>
                                 </div>
                             </>
-                        )}
+                        ) : null}
                     </div>
                 </div>
             )}

@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl"
 import { useState, useEffect } from "react"
 
 export default function TechnologySection() {
-    const t = useTranslations("HomeDiscover.Technology")
+    const t = useTranslations("About.Technology")
     const [isVisible, setIsVisible] = useState(false)
     const [hoveredCard, setHoveredCard] = useState<number | null>(null)
 
@@ -45,7 +45,6 @@ export default function TechnologySection() {
 
     return (
         <div className='space-y-12'>
-            {/* Enhanced section header */}
             <div
                 className={`text-center transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
             >
@@ -64,7 +63,6 @@ export default function TechnologySection() {
                 </p>
             </div>
 
-            {/* Technology cards */}
             <div className='grid grid-cols-1 md:grid-cols-3 gap-8'>
                 {technologies.map((tech, index) => {
                     const IconComponent = tech.icon
@@ -80,7 +78,6 @@ export default function TechnologySection() {
                             onMouseEnter={() => setHoveredCard(index)}
                             onMouseLeave={() => setHoveredCard(null)}
                         >
-                            {/* Card background with enhanced effects */}
                             <div
                                 className={`
                                 relative bg-gradient-to-br from-gray-800/40 to-gray-900/60 
@@ -89,12 +86,10 @@ export default function TechnologySection() {
                                 ${hoveredCard === index ? `shadow-2xl ${tech.glowColor}` : "shadow-lg"}
                             `}
                             >
-                                {/* Animated background gradient */}
                                 <div
                                     className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${tech.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
                                 ></div>
 
-                                {/* Floating particles */}
                                 <div className='absolute inset-0 overflow-hidden rounded-2xl'>
                                     <div
                                         className={`absolute top-4 right-4 w-2 h-2 bg-gradient-to-r ${tech.color} rounded-full animate-ping delay-${index * 300}`}
@@ -104,7 +99,6 @@ export default function TechnologySection() {
                                     ></div>
                                 </div>
 
-                                {/* Icon with enhanced animation */}
                                 <div className='text-center mb-6'>
                                     <div
                                         className={`
@@ -114,19 +108,16 @@ export default function TechnologySection() {
                                     `}
                                     >
                                         <IconComponent className='w-10 h-10 text-white' />
-                                        {/* Glow effect */}
                                         <div
                                             className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${tech.color} opacity-0 group-hover:opacity-30 blur-lg transition-opacity duration-300`}
                                         ></div>
 
-                                        {/* Rotating ring */}
                                         <div
                                             className={`absolute inset-0 rounded-2xl border-2 border-transparent bg-gradient-to-r ${tech.color} opacity-0 group-hover:opacity-50 animate-spin-slow`}
                                         ></div>
                                     </div>
                                 </div>
 
-                                {/* Content */}
                                 <div className='text-center space-y-4'>
                                     <h3 className='text-2xl font-bold text-white group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-gray-300 group-hover:bg-clip-text transition-all duration-300'>
                                         {tech.title}
@@ -135,7 +126,6 @@ export default function TechnologySection() {
                                         {tech.description}
                                     </p>
 
-                                    {/* Features list */}
                                     <div className='space-y-2 pt-4'>
                                         {tech.features.map(
                                             (feature, featureIndex) => (
@@ -153,10 +143,8 @@ export default function TechnologySection() {
                                     </div>
                                 </div>
 
-                                {/* Hover effect overlay */}
                                 <div className='absolute inset-0 rounded-2xl bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none'></div>
 
-                                {/* Bottom accent line */}
                                 <div
                                     className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${tech.color} rounded-b-2xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-center`}
                                 ></div>

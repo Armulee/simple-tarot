@@ -1,11 +1,9 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { useTranslations } from "next-intl"
-import { ChevronUp } from "lucide-react"
 import type { SwiperRef } from "swiper/react"
-import NormalFooter from "../../footer/normal-footer"
-import DiscoverHeader from "./header"
+import NormalFooter from "@/components/footer/normal-footer"
+import AboutHeader from "./header"
 import ServicesSection from "./services"
 import RoadmapSection from "./roadmap"
 import TechnologySection from "./technology"
@@ -13,12 +11,11 @@ import TestimonialsSection from "./testimonials"
 import StatisticsSection from "./statistics"
 import CallToActionSection from "./call-to-action"
 
-type DiscoverMore = {
+type AboutSections = {
     mainSwiperRef: React.RefObject<SwiperRef | null>
 }
 
-export default function DiscoverMore({ mainSwiperRef }: DiscoverMore) {
-    const t = useTranslations("HomeDiscover")
+export default function AboutSections({ mainSwiperRef }: AboutSections) {
     const scrollRef = useRef<HTMLDivElement | null>(null)
     const lockUntilRef = useRef<number>(0)
     // Require a release before allowing swipe to previous slide when at top
@@ -162,11 +159,11 @@ export default function DiscoverMore({ mainSwiperRef }: DiscoverMore) {
             passive: true,
         })
         container.addEventListener("touchmove", onTouchMove, { passive: true })
-        // Listen for discover-entered event to lock scroll briefly
-        const onDiscoverEntered = () => {
+        // Listen for about-entered event to lock scroll briefly
+        const onAboutEntered = () => {
             lockUntilRef.current = Date.now() + 500
         }
-        window.addEventListener("discover-entered", onDiscoverEntered)
+        window.addEventListener("about-entered", onAboutEntered)
 
         return () => {
             if (swiper) swiper.allowTouchMove = true
@@ -180,7 +177,7 @@ export default function DiscoverMore({ mainSwiperRef }: DiscoverMore) {
                 "touchmove",
                 onTouchMove as EventListener
             )
-            window.removeEventListener("discover-entered", onDiscoverEntered)
+            window.removeEventListener("about-entered", onAboutEntered)
             if (wheelEndTimerRef.current)
                 window.clearTimeout(wheelEndTimerRef.current)
             // no mouseenter/leave listeners to remove
@@ -190,29 +187,7 @@ export default function DiscoverMore({ mainSwiperRef }: DiscoverMore) {
     return (
         <div ref={scrollRef} className='w-full h-full overflow-y-auto'>
             <div className='max-w-6xl mx-auto px-6 py-10 space-y-8'>
-                <div className='flex justify-center pb-6'>
-                    <button
-                        type='button'
-                        className='flex flex-col items-center gap-2 text-white/80 hover:text-white transition-colors'
-                        onClick={() => {
-                            try {
-                                window.dispatchEvent(
-                                    new CustomEvent("scrollToHero")
-                                )
-                            } catch {}
-                        }}
-                    >
-                        <div className='flex items-center gap-4'>
-                            <div className='h-px w-12 bg-white/30' />
-                            <span className='text-xs uppercase tracking-wide'>
-                                {t("askYourFate")}
-                            </span>
-                            <div className='h-px w-12 bg-white/30' />
-                        </div>
-                        <ChevronUp className='w-5 h-5 animate-bounce' />
-                    </button>
-                </div>
-                <DiscoverHeader />
+                <AboutHeader />
                 <ServicesSection />
                 <RoadmapSection />
                 <TechnologySection />

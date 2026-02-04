@@ -25,7 +25,7 @@ const colorByKey: Record<string, string> = {
 }
 
 export default function StatisticsSection() {
-    const t = useTranslations("HomeDiscover.Statistics")
+    const t = useTranslations("About.Statistics")
     const statsConfig = useMemo(() => t.raw("items") as StatConfig[], [t])
 
     const [isVisible, setIsVisible] = useState(false)

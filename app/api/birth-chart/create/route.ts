@@ -41,11 +41,10 @@ export async function POST(req: NextRequest) {
         }
 
         // Generate a random short ID
-        const shortId = nanoid(7)
+        const sessionId = nanoid(12)
 
-        // Check if ID already exists and generate a new one if needed
         let attempts = 0
-        let finalId = shortId
+        let finalId = sessionId
         while (attempts < 5) {
             const { data: existing } = await supabaseAdmin
                 .from("birth_charts")
@@ -55,7 +54,7 @@ export async function POST(req: NextRequest) {
 
             if (!existing) break
 
-            finalId = nanoid(7)
+            finalId = nanoid(12)
             attempts++
         }
 

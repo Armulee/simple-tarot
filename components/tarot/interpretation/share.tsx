@@ -1,6 +1,16 @@
 "use client"
 
-import { useState, useCallback, useEffect, useRef, useMemo } from "react"
+import {
+    useState,
+    useCallback,
+    useEffect,
+    useRef,
+    useMemo,
+    cloneElement,
+    isValidElement,
+    type ReactElement,
+    type ReactNode,
+} from "react"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { FreeMode, Mousewheel } from "swiper/modules"
 import "swiper/css"
@@ -48,6 +58,7 @@ interface ShareSectionProps {
     cards?: string[]
     interpretation?: string
     readingId?: string
+    variant?: "full" | "compact" | "embedded"
 }
 
 export default function ShareSection({
@@ -55,6 +66,7 @@ export default function ShareSection({
     cards: propCards,
     interpretation: propInterpretation,
     readingId: propReadingId,
+    variant = "full",
 }: ShareSectionProps = {}) {
     const t = useTranslations("ReadingPage.interpretation.share")
     const tCommon = useTranslations(
@@ -470,6 +482,195 @@ export default function ShareSection({
         [t]
     )
 
+    const renderIcon = (icon: ReactNode) =>
+        isValidElement(icon)
+            ? cloneElement(
+                  icon as ReactElement<{ className?: string }>,
+                  { className: "w-3 h-3 text-white" }
+              )
+            : icon
+
+    const [expandedShareId, setExpandedShareId] = useState<string | null>(null)
+
+    if (variant === "compact") {
+        return (
+            <div className='flex flex-wrap items-center gap-2'>
+                {shareOptions.map((option) => (
+                    <button
+                        key={option.id}
+                        type='button'
+                        onClick={async () => {
+                            const link = await ensureShareLink()
+                            if (!link) return
+                            const text = question
+                                ? `"${question}" — AI tarot interpretation`
+                                : undefined
+                            const href = option.href(link, text)
+                            if (
+                                option.id === "more" &&
+                                typeof navigator !== "undefined" &&
+                                typeof (
+                                    navigator as unknown as {
+                                        share?: (data: {
+                                            title?: string
+                                            text?: string
+                                            url?: string
+                                        }) => Promise<void>
+                                    }
+                                ).share === "function"
+                            ) {
+                                await (
+                                    navigator as unknown as {
+                                        share: (data: {
+                                            title?: string
+                                            text?: string
+                                            url?: string
+                                        }) => Promise<void>
+                                    }
+                                ).share({
+                                    title: "AskingFate",
+                                    text,
+                                    url: link,
+                                })
+                                return
+                            }
+                            if (href) {
+                                window.open(href, "_blank", "noopener,noreferrer")
+                            }
+                        }}
+                        className='flex items-center justify-center h-6 w-6 rounded-full border border-white/10 bg-white/5 text-white/80 hover:text-white hover:border-white/30 transition-colors'
+                        title={option.label}
+                        aria-label={option.label}
+                    >
+                        {renderIcon(option.icon)}
+                    </button>
+                ))}
+            </div>
+        )
+    }
+
+    if (variant === "embedded") {
+        return (
+            <div className='space-y-2'>
+                <p className='flex flex-wrap items-center gap-2 text-xs text-white/50'>
+                    <span className='uppercase tracking-[0.2em]'>Shares</span>
+                    <span>
+                        {t("desc", {
+                            earned: earnedStars,
+                            max: maxStars,
+                        })}
+                    </span>
+                </p>
+                <div
+                    ref={navGuardRef}
+                    style={{
+                        overscrollBehaviorX: "none",
+                        touchAction: "pan-y pinch-zoom",
+                    }}
+                >
+                    <Swiper
+                        modules={[FreeMode, Mousewheel]}
+                        freeMode
+                        mousewheel={{
+                            forceToAxis: true,
+                            sensitivity: 1,
+                            releaseOnEdges: true,
+                        }}
+                        slidesPerView={5.5}
+                        breakpoints={{
+                            640: { slidesPerView: 5.5 },
+                            768: { slidesPerView: 6.5 },
+                            1024: { slidesPerView: 8 },
+                            1280: { slidesPerView: 9.5 },
+                            1536: { slidesPerView: 10.5 },
+                        }}
+                        spaceBetween={4}
+                        className='py-1'
+                    >
+                        {shareOptions.map((option) => {
+                            const isExpanded = expandedShareId === option.id
+                            return (
+                                <SwiperSlide key={option.id}>
+                                    <button
+                                        type='button'
+                                        onClick={async () => {
+                                            setExpandedShareId((prev) =>
+                                                prev === option.id
+                                                    ? null
+                                                    : option.id
+                                            )
+                                            const link = await ensureShareLink()
+                                            if (!link) return
+                                            const text = question
+                                                ? `"${question}" — AI tarot interpretation`
+                                                : undefined
+                                            const href = option.href(link, text)
+                                            if (
+                                                option.id === "more" &&
+                                                typeof navigator !== "undefined" &&
+                                                typeof (
+                                                    navigator as unknown as {
+                                                        share?: (data: {
+                                                            title?: string
+                                                            text?: string
+                                                            url?: string
+                                                        }) => Promise<void>
+                                                    }
+                                                ).share === "function"
+                                            ) {
+                                                await (
+                                                    navigator as unknown as {
+                                                        share: (data: {
+                                                            title?: string
+                                                            text?: string
+                                                            url?: string
+                                                        }) => Promise<void>
+                                                    }
+                                                ).share({
+                                                    title: "AskingFate",
+                                                    text,
+                                                    url: link,
+                                                })
+                                                return
+                                            }
+                                            if (href) {
+                                                window.open(
+                                                    href,
+                                                    "_blank",
+                                                    "noopener,noreferrer"
+                                                )
+                                            }
+                                        }}
+                                        className={`group flex items-center gap-2 py-2 pr-2 pl-0 transition-all duration-300 hover:shadow-lg w-full ${
+                                            isExpanded
+                                                ? "rounded-xl pr-3 pl-0"
+                                                : "rounded-full"
+                                        }`}
+                                        title={option.label}
+                                        aria-label={option.label}
+                                    >
+                                        <div
+                                            className='relative w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
+                                            style={{ background: option.bg }}
+                                        >
+                                            {renderIcon(option.icon)}
+                                            <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                                        </div>
+                                        {isExpanded && (
+                                            <span className='text-xs text-white/80'>
+                                                {option.label}
+                                            </span>
+                                        )}
+                                    </button>
+                                </SwiperSlide>
+                            )
+                        })}
+                    </Swiper>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className='relative overflow-hidden group bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/5 hover:bg-white/[0.06] hover:border-primary/20 transition-all duration-300'>
             {/* Content */}
@@ -524,7 +725,7 @@ export default function ShareSection({
                             1280: { slidesPerView: 9.5 },
                             1536: { slidesPerView: 10.5 },
                         }}
-                        spaceBetween={8}
+                        spaceBetween={4}
                         className='py-2 px-6'
                     >
                         {shareOptions.map((option, index) => (

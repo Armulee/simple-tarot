@@ -1,5 +1,5 @@
 "use client"
-import { Send } from "lucide-react"
+import { Send, Square } from "lucide-react"
 import { Button } from "./ui/button"
 import { Label } from "./ui/label"
 import { useEffect, useState } from "react"
@@ -11,13 +11,16 @@ import { useStarConsent } from "@/components/star-consent"
 
 export default function QuestionInput({
     id = "question-input",
-    label = "Your question",
+    label = "",
     className,
     buttonClassName,
     placeholder,
     defaultValue,
     value,
     onChange,
+    onSubmit,
+    onStop,
+    isLoading = false,
     followUp = false,
     followUpParentId,
     centered = false,
@@ -30,6 +33,9 @@ export default function QuestionInput({
     defaultValue?: string
     value?: string
     onChange?: (value: string) => void
+    onSubmit?: (value: string) => void | Promise<void>
+    onStop?: () => void
+    isLoading?: boolean
     followUp?: boolean
     followUpParentId?: string
     centered?: boolean
@@ -62,6 +68,10 @@ export default function QuestionInput({
         const currentValue =
             (question || "").trim() || (defaultValue || "").trim()
         if (currentValue) {
+            if (onSubmit) {
+                void onSubmit(currentValue)
+                return
+            }
             if (followUp) {
                 handleFollowUpQuestion(currentValue)
             } else {
@@ -193,8 +203,8 @@ export default function QuestionInput({
                     onKeyDown={handleKeyDown}
                 />
                 <Button
-                    onClick={handleStartReading}
-                    disabled={!question.trim() && !defaultValue}
+                    onClick={isLoading ? onStop : handleStartReading}
+                    disabled={!isLoading && !question.trim() && !defaultValue}
                     size='lg'
                     variant='ghost'
                     className={`absolute bottom-0 right-0 z-20 bg-transparent hover:bg-transparent border-0 text-lg disabled:opacity-30 disabled:cursor-not-allowed text-indigo-300 hover:text-white ${
@@ -203,7 +213,11 @@ export default function QuestionInput({
                 >
                     {/* Gradient aura behind icon by default; hides on hover */}
                     <span className='pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-400/50 via-purple-400/50 to-cyan-400/50 opacity-80 hover:opacity-0' />
-                    <Send className='relative z-10 w-5 h-5 drop-shadow-sm' />
+                    {isLoading ? (
+                        <Square className='relative z-10 w-5 h-5 drop-shadow-sm fill-current' />
+                    ) : (
+                        <Send className='relative z-10 w-5 h-5 drop-shadow-sm' />
+                    )}
                 </Button>
             </div>
         </div>

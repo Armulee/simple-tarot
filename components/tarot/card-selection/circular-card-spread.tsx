@@ -111,8 +111,8 @@ interface CircularCardSpreadProps {
     ) => void
     externalSelectedNames?: string[]
     deckId?: string // Add deck ID to ensure unique decks
-    onProvideShuffle?: (fn: () => void) => void
-    onProvideRandomPick?: (fn: () => void) => void
+    onProvideShuffle?: (fn: () => void, isShuffling?: boolean) => void
+    onProvideRandomPick?: (fn: () => void, isPicking?: boolean) => void
 }
 
 export function CircularCardSpread({
@@ -125,6 +125,8 @@ export function CircularCardSpread({
 }: CircularCardSpreadProps) {
     const [selectedCards, setSelectedCards] = useState<TarotCard[]>([])
     const [shuffledDeck, setShuffledDeck] = useState<TarotCard[]>([])
+    const [isShuffling, setIsShuffling] = useState(false)
+    const [isRandomPicking, setIsRandomPicking] = useState(false)
     const pendingPartialRef = useRef<{
         card: { name: string; isReversed: boolean }
         action: "add" | "remove"
@@ -164,6 +166,8 @@ export function CircularCardSpread({
     }, [deckId])
 
     const shuffleUnselected = () => {
+        if (isShuffling) return
+        setIsShuffling(true)
         const selectedSet = new Set(selectedCards.map((s) => s.name))
         const unselected = shuffledDeck.filter((c) => !selectedSet.has(c.name))
         for (let i = unselected.length - 1; i > 0; i--) {
@@ -198,16 +202,24 @@ export function CircularCardSpread({
                 el.classList.add("animate-shuffle")
             })
         })
+        // Delay for shuffle animation
+        setTimeout(() => {
+            setIsShuffling(false)
+        }, 800)
     }
 
     const randomPick = async () => {
-        if (selectedCards.length >= cardsToSelect) return
+        if (isRandomPicking || selectedCards.length >= cardsToSelect) return
+        setIsRandomPicking(true)
         const selectedNames = new Set(selectedCards.map((c) => c.name))
         // Consider external selection too
         const taken = new Set([...selectedNames, ...externalSelectedNames])
         const unselected = shuffledDeck.filter((c) => !taken.has(c.name))
         
-        if (unselected.length === 0) return
+        if (unselected.length === 0) {
+            setIsRandomPicking(false)
+            return
+        }
 
         const randomCard =
             unselected[Math.floor(Math.random() * unselected.length)]
@@ -240,26 +252,18 @@ export function CircularCardSpread({
                 cardEl.style.transition = ""
             }, 450)
         }
-        // handleCardClick updates selectedCards and calls onPartialSelect via effect.
-        // The parent (CardSelection) handles "Confirm" logic for circular spread usually.
-        // But for random pick, user might expect instant action?
-        // But circular spread usually waits for manual confirm.
-        // Let's stick to just selecting it for now, unless we want to auto-confirm if full.
-        // The Linear spread auto-confirms. Circular is manual.
-        // Let's keep Circular manual consistent with manual selection behavior for now, 
-        // OR auto-confirm if random pick fills the last slot?
-        // But "CardSelection" handles the confirm button.
-        // We can't easily auto-confirm from here without onCardsSelected prop being wired up to navigate.
-        // But onCardsSelected is passed! It just wasn't used.
-        // If I update handleCardClick to use onCardsSelected? No, handleCardClick is used for manual too.
-        // Let's just select it.
+        
+        // Delay to allow animation to finish before allowing another pick
+        setTimeout(() => {
+            setIsRandomPicking(false)
+        }, 500)
     }
 
     useEffect(() => {
-        onProvideShuffle?.(shuffleUnselected)
-        onProvideRandomPick?.(randomPick)
+        onProvideShuffle?.(shuffleUnselected, isShuffling)
+        onProvideRandomPick?.(randomPick, isRandomPicking)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [shuffledDeck, selectedCards])
+    }, [shuffledDeck, selectedCards, isShuffling, isRandomPicking])
 
     // Memoize card positions to prevent recalculation on every render
     const cardPositions = useMemo(() => {

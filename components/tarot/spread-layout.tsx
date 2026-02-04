@@ -1,12 +1,13 @@
 "use client"
 
-import React from "react"
+import React, { useMemo } from "react"
 import { CardImage } from "@/components/card-image"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 import QuickInsight from "./quick-insight"
+import { useTranslations } from "next-intl"
 export interface SpreadCard {
     id: number
     name: string
@@ -20,43 +21,6 @@ interface SpreadLayoutProps {
     cards: SpreadCard[]
     readingType?: string | null
     question?: string | null
-}
-
-const POSITION_MEANINGS: Record<string, string[]> = {
-    simple: ["Quick Insight"],
-    general: [
-        "Origin / Past / Root",
-        "Current situation / Tension",
-        "Direction / Likely outcome",
-    ],
-    detailed: [
-        "Core situation",
-        "Obstacle / challenge",
-        "Hidden influence",
-        "Advice / action",
-        "Probable outcome",
-    ],
-    expanded: [
-        "You",
-        "The other person / external force",
-        "Connection / interaction",
-        "Strength",
-        "Weakness",
-        "Advice",
-        "Outcome",
-    ],
-    celtic: [
-        "Present situation",
-        "Immediate challenge",
-        "Root cause (subconscious)",
-        "Past foundation",
-        "Conscious goal",
-        "Near future",
-        "Self-perception",
-        "External environment",
-        "Hopes & fears",
-        "Final outcome",
-    ],
 }
 
 function CardWithLabel({
@@ -234,6 +198,45 @@ export default function SpreadLayout({
     readingType: propReadingType,
     question,
 }: SpreadLayoutProps) {
+    const tReadingTypes = useTranslations("Reading.types")
+
+    const POSITION_MEANINGS: Record<string, string[]> = useMemo(() => ({
+        simple: [tReadingTypes("simple.title")],
+        general: [
+            "Origin / Past / Root",
+            "Current situation / Tension",
+            "Direction / Likely outcome",
+        ],
+        detailed: [
+            "Core situation",
+            "Obstacle / challenge",
+            "Hidden influence",
+            "Advice / action",
+            "Probable outcome",
+        ],
+        expanded: [
+            "You",
+            "The other person / external force",
+            "Connection / interaction",
+            "Strength",
+            "Weakness",
+            "Advice",
+            "Outcome",
+        ],
+        celtic: [
+            "Present situation",
+            "Immediate challenge",
+            "Root cause (subconscious)",
+            "Past foundation",
+            "Conscious goal",
+            "Near future",
+            "Self-perception",
+            "External environment",
+            "Hopes & fears",
+            "Final outcome",
+        ],
+    }), [tReadingTypes])
+
     // Determine reading type fallback based on card count if not provided
     let type = propReadingType
     if (!type) {

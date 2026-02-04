@@ -55,7 +55,7 @@ const featureIconMap: Record<string, FeatureIconComponent> = {
 }
 
 export default function RoadmapSection() {
-    const t = useTranslations("HomeDiscover.Roadmap")
+    const t = useTranslations("About.Roadmap")
     const [hoveredItem, setHoveredItem] = useState<number | null>(null)
     const [currentDate] = useState(() => new Date())
 
@@ -74,7 +74,6 @@ export default function RoadmapSection() {
 
     return (
         <div className='space-y-8 md:space-y-12'>
-            {/* Enhanced section header */}
             <div
                 className={`text-center transition-all duration-1000 opacity-100 translate-y-0`}
             >
@@ -93,12 +92,9 @@ export default function RoadmapSection() {
                 </p>
             </div>
 
-            {/* Timeline container */}
             <div className='relative'>
-                {/* Timeline line - hidden on mobile and md+ (grid layout) */}
                 <div className='hidden'></div>
 
-                {/* Timeline items - grid layout: 2 columns on md, 3 columns on lg */}
                 <div className='space-y-6 md:grid md:grid-cols-2 md:gap-6 md:space-y-0 lg:grid-cols-3 lg:gap-6 xl:gap-8'>
                     {roadmap.map((phase, index) => {
                         const isCompleted =
@@ -144,13 +140,9 @@ export default function RoadmapSection() {
                                 onMouseEnter={() => setHoveredItem(index)}
                                 onMouseLeave={() => setHoveredItem(null)}
                             >
-                                {/* Timeline connector - hidden (grid layout on md+) */}
+                                <div className='hidden'></div>
                                 <div className='hidden'></div>
 
-                                {/* Timeline dot with status - hidden (grid layout on md+) */}
-                                <div className='hidden'></div>
-
-                                {/* Content card */}
                                 <div
                                     className={`
                                     bg-gradient-to-br from-gray-800/40 to-gray-900/60 
@@ -159,7 +151,6 @@ export default function RoadmapSection() {
                                     ${hoveredItem === index ? `shadow-2xl ${phase.glowColor}` : "shadow-lg"}
                                 `}
                                 >
-                                    {/* Status badge - positioned differently on mobile */}
                                     <div className='absolute -top-3 left-4 md:left-6'>
                                         <span
                                             className={`inline-flex items-center px-2 py-1 md:px-3 md:py-1 rounded-full text-xs font-semibold tracking-wide uppercase ${statusStyle}`}
@@ -168,12 +159,10 @@ export default function RoadmapSection() {
                                         </span>
                                     </div>
 
-                                    {/* Animated background gradient */}
                                     <div
                                         className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${phase.color} opacity-0 hover:opacity-5 transition-opacity duration-500`}
                                     ></div>
 
-                                    {/* Header */}
                                     <div className='relative flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 md:mb-6'>
                                         <div className='flex-1'>
                                             <div className='flex items-center gap-2 md:gap-3 mb-2'>
@@ -193,7 +182,6 @@ export default function RoadmapSection() {
                                         </div>
                                     </div>
 
-                                    {/* Features grid */}
                                     <div className='space-y-2 md:space-y-3'>
                                         {phase.features.map(
                                             (feature, featureIndex) => {
@@ -214,7 +202,6 @@ export default function RoadmapSection() {
                                         )}
                                     </div>
 
-                                    {/* Progress indicator */}
                                     <div className='mt-4 md:mt-6'>
                                         <div className='flex items-center justify-between text-xs md:text-sm text-gray-400 mb-2'>
                                             <span>{t("progress")}</span>
@@ -230,7 +217,6 @@ export default function RoadmapSection() {
                                         </div>
                                     </div>
 
-                                    {/* Hover effect overlay */}
                                     <div className='absolute inset-0 rounded-2xl bg-gradient-to-br from-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none'></div>
                                 </div>
                             </div>

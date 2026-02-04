@@ -6,15 +6,14 @@ import { useTranslations } from "next-intl"
 import { usePathname, useRouter } from "@/i18n/navigation"
 import { routing } from "@/i18n/routing"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
-import { Menu, LogIn, Check, Star, Infinity } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { Menu, LogIn, Check, Star, Infinity, Plus } from "lucide-react"
 import { SidebarSheet } from "./sidebar-sheet"
 import { UserProfile } from "@/components/user-profile"
 // Avatar imports removed (unused)
 import { useAuth } from "@/hooks/use-auth"
 import { useStars } from "@/contexts/stars-context"
 import { useStarConsent } from "@/components/star-consent"
-import MysticalServicesSheet from "./mystical-services-sheet"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -28,10 +27,93 @@ export function Navbar({ locale }: { locale: string }) {
     const [open, setOpen] = useState(false)
     const router = useRouter()
     const pathname = usePathname()
-    const [mysticalOpen, setMysticalOpen] = useState(false)
     const { user, loading } = useAuth()
     const { stars, initialized, isInfinity, infinityExpiresAt } = useStars()
     const { choice, show } = useStarConsent()
+
+    // Chat sessions live at `app/[locale]/[id]` where `id` is a NanoID(7).
+    // `usePathname()` from next-intl returns the locale-less pathname (e.g. "/a1B2c3D").
+    const sessionId = useMemo(() => {
+        const parts = pathname.split("/").filter(Boolean)
+        if (parts.length !== 1) return null
+        const id = parts[0]
+        return /^[A-Za-z0-9_-]{12}$/.test(id) ? id : null
+    }, [pathname])
+    const isChatSessionPage = !!sessionId
+
+    const [sessionTopic, setSessionTopic] = useState<string>("")
+    const [isEditingTopic, setIsEditingTopic] = useState(false)
+    const [topicDraft, setTopicDraft] = useState("")
+    const [topicSaving, setTopicSaving] = useState(false)
+
+    const cleanTopic = (raw: string) =>
+        raw
+            .replace(/\s+/g, " ")
+            .trim()
+            .replace(/^["'“”‘’]+/, "")
+            .replace(/["'“”‘’]+$/, "")
+            .replace(/[.。!?！？:：;；]+$/g, "")
+            .slice(0, 80)
+
+    const saveTopic = async () => {
+        if (!sessionId || topicSaving) return
+        const next = cleanTopic(topicDraft)
+        setTopicSaving(true)
+        try {
+            const res = await fetch(`/api/chat-sessions/${sessionId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ topic: next }),
+            })
+            if (!res.ok) throw new Error("Failed to save topic")
+            setSessionTopic(next)
+            setIsEditingTopic(false)
+        } catch {
+            // best-effort only
+        } finally {
+            setTopicSaving(false)
+        }
+    }
+
+    const cancelEditTopic = () => {
+        setIsEditingTopic(false)
+        setTopicDraft(sessionTopic)
+    }
+
+    useEffect(() => {
+        if (!sessionId) {
+            setSessionTopic("")
+            setIsEditingTopic(false)
+            setTopicDraft("")
+            return
+        }
+        const controller = new AbortController()
+        ;(async () => {
+            try {
+                const res = await fetch(`/api/chat-sessions/${sessionId}`, {
+                    signal: controller.signal,
+                })
+                const json = await res.json()
+                const data = json?.data
+                const topic =
+                    typeof data?.topic === "string" && data.topic.trim()
+                        ? data.topic.trim()
+                        : typeof data?.question === "string"
+                          ? data.question.trim()
+                          : ""
+                const cleaned = cleanTopic(topic)
+                setSessionTopic(cleaned)
+                setTopicDraft(cleaned)
+                setIsEditingTopic(false)
+            } catch {
+                // best-effort only
+                setSessionTopic("")
+                setTopicDraft("")
+                setIsEditingTopic(false)
+            }
+        })()
+        return () => controller.abort()
+    }, [sessionId])
 
     const hasActiveInfinity =
         isInfinity &&
@@ -48,7 +130,7 @@ export function Navbar({ locale }: { locale: string }) {
             <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
                 <div className='flex justify-between items-center h-16'>
                     {/* Left: Mobile menu button / Desktop brand */}
-                    <div className='flex items-center'>
+                    <div className='flex items-center min-w-0'>
                         {/* Mobile: menu button (always bars) */}
                         <Button
                             variant='ghost'
@@ -77,6 +159,56 @@ export function Navbar({ locale }: { locale: string }) {
                                 {t("brand")}
                             </span>
                         </Link>
+
+                        {isChatSessionPage && (
+                            <div className='flex items-center min-w-0 ml-2'>
+                                {isEditingTopic ? (
+                                    <div className='flex items-center gap-2 min-w-0 max-w-[70vw] sm:max-w-[72vw] md:max-w-[34rem]'>
+                                        <input
+                                            value={topicDraft}
+                                            onChange={(e) =>
+                                                setTopicDraft(e.target.value)
+                                            }
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter") {
+                                                    e.preventDefault()
+                                                    void saveTopic()
+                                                }
+                                                if (e.key === "Escape") {
+                                                    e.preventDefault()
+                                                    cancelEditTopic()
+                                                }
+                                            }}
+                                            onBlur={() => void saveTopic()}
+                                            disabled={topicSaving}
+                                            className='h-8 w-full min-w-0 rounded-md border border-white/15 bg-white/5 px-2 text-sm text-white placeholder:text-white/40 outline-none focus:border-white/30'
+                                            maxLength={80}
+                                            aria-label='Edit session topic'
+                                            autoFocus
+                                        />
+                                    </div>
+                                ) : (
+                                    <button
+                                        type='button'
+                                        className='text-white/90 text-sm font-medium truncate max-w-[46vw] sm:max-w-[52vw] md:max-w-[28rem] text-left hover:text-white transition-colors'
+                                        title={
+                                            sessionTopic
+                                                ? `${sessionTopic} (click to edit)`
+                                                : undefined
+                                        }
+                                        onClick={() => {
+                                            setTopicDraft(sessionTopic)
+                                            setIsEditingTopic(true)
+                                        }}
+                                        aria-label='Edit session topic'
+                                    >
+                                        {sessionTopic || t("newReading")}
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
+                        
                     </div>
 
                     {/* Right side: Navigation links, Language dropdown, and Auth */}
@@ -113,10 +245,21 @@ export function Navbar({ locale }: { locale: string }) {
                                 {t("pricing")}
                             </Link>
                         </div>
-                        <MysticalServicesSheet
-                            mysticalOpen={mysticalOpen}
-                            setMysticalOpen={setMysticalOpen}
-                        />
+
+                        {isChatSessionPage && (
+                            <Link href='/' aria-label='New reading'>
+                                <Button
+                                    variant='ghost'
+                                    size='sm'
+                                    className='text-white hover:bg-white/10 border border-white/10 bg-white/5'
+                                >
+                                    <Plus className='h-4 w-4 sm:mr-2 mr-0' />
+                                    <span className='hidden sm:inline'>
+                                        {t("newReading")}
+                                    </span>
+                                </Button>
+                            </Link>
+                        )}
 
                         {/* Language Dropdown */}
                         <DropdownMenu>
@@ -245,47 +388,23 @@ export function Navbar({ locale }: { locale: string }) {
                         </div>
 
                         {/* Desktop: User Profile / Sign In button */}
-                        <div className='hidden lg:block'>
-                            {!loading && user ? (
-                                <UserProfile variant='desktop' />
-                            ) : (
-                                <Link
-                                    href={`/signin?callbackUrl=${encodeURIComponent(
-                                        pathname
-                                    )}`}
+                        {!loading && user ? (
+                            <UserProfile variant={'mobile'} />
+                        ) : (
+                            <Link
+                                href={`/signin?callbackUrl=${encodeURIComponent(
+                                    pathname
+                                )}`}
+                            >
+                                <Button
+                                    variant='outline'
+                                    className='flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-white/10 text-white/90 border border-white/10 hover:bg-white/15 transition'
                                 >
-                                    <Button
-                                        variant='outline'
-                                        className='flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-white/10 text-white/90 border border-white/10 hover:bg-white/15 transition'
-                                    >
-                                        <LogIn className='w-4 h-4' />
-                                        {t("signIn")}
-                                    </Button>
-                                </Link>
-                            )}
-                        </div>
-
-                        {/* Mobile: User profile when logged-in, else sign-in icon */}
-                        <div className='lg:hidden'>
-                            {!loading && user ? (
-                                <UserProfile variant='mobile' />
-                            ) : (
-                                <Link
-                                    href={`/signin?callbackUrl=${encodeURIComponent(
-                                        pathname
-                                    )}`}
-                                >
-                                    <Button
-                                        variant='outline'
-                                        size='icon'
-                                        className='text-white border-white/30 hover:bg-white/10 rounded-full'
-                                        aria-label='Sign in'
-                                    >
-                                        <LogIn className='w-4 h-4' />
-                                    </Button>
-                                </Link>
-                            )}
-                        </div>
+                                    <LogIn className='w-4 h-4' />
+                                    {t("signIn")}
+                                </Button>
+                            </Link>
+                        )}
                     </div>
                 </div>
             </div>

@@ -1,0 +1,139 @@
+import { NextRequest, NextResponse } from "next/server"
+import { nanoid } from "nanoid"
+import { supabaseAdmin } from "@/lib/supabase"
+import { readAndVerifyDid } from "@/lib/server/did"
+import { generateText } from "ai"
+
+const MAX_QUESTION_LENGTH = 500
+const MAX_MESSAGE_COUNT = 100
+const MAX_TOPIC_LENGTH = 80
+const TOPIC_MODEL = "openai/gpt-4.1-mini"
+
+function cleanTopic(raw: string): string {
+    return (
+        raw
+            .replace(/^["'“”‘’]+/, "")
+            .replace(/["'“”‘’]+$/, "")
+            .replace(/[.。!?！？:：;；]+$/g, "")
+            .replace(/\s+/g, " ")
+            .trim()
+            .slice(0, MAX_TOPIC_LENGTH)
+    )
+}
+
+async function generateTopicFromQuestion(question: string): Promise<string> {
+    const system = `You create a descriptive session topic from the user's first message.
+
+Rules:
+- Output ONLY the topic phrase. No quotes. No markdown. No punctuation at the end.
+- Length: 3–12 words (or equivalent length in non-spaced languages like Thai).
+- Be descriptive enough that the user can distinguish this session from others.
+- Match the user's language.
+- Be specific and calm (not clickbait).
+`
+
+    const prompt = `User's first message:
+${question}
+
+Return a clear, descriptive session topic now.`
+
+    const result = await generateText({
+        model: TOPIC_MODEL,
+        temperature: 0.2,
+        maxOutputTokens: 30,
+        system,
+        prompt,
+    })
+
+    const topic = cleanTopic(result.text ?? "")
+    return topic || cleanTopic(question)
+}
+
+export async function POST(req: NextRequest) {
+    try {
+        if (!supabaseAdmin) {
+            return NextResponse.json(
+                { error: "SUPABASE_NOT_CONFIGURED" },
+                { status: 500 }
+            )
+        }
+
+        const did = await readAndVerifyDid()
+        if (!did) return NextResponse.json({ error: "NO_DID" }, { status: 400 })
+
+        const body = await req.json()
+        const question = (body?.question ?? "").toString().slice(0, MAX_QUESTION_LENGTH)
+        const ownerUserId: string | null =
+            typeof body?.user_id === "string" && body.user_id
+                ? body.user_id
+                : null
+        const rawMessages = Array.isArray(body?.messages)
+            ? body.messages.slice(0, MAX_MESSAGE_COUNT)
+            : []
+        const messages =
+            rawMessages.length > 0
+                ? rawMessages
+                : question
+                  ? [
+                        {
+                            id: `user-${Date.now()}`,
+                            role: "user",
+                            text: question,
+                        },
+                    ]
+                  : []
+        const decision = typeof body?.decision === "object" ? body.decision : null
+
+        if (!question || messages.length === 0) {
+            return NextResponse.json(
+                { error: "MISSING_FIELDS" },
+                { status: 400 }
+            )
+        }
+
+        let topic = question
+        try {
+            topic = await generateTopicFromQuestion(question)
+        } catch {
+            topic = cleanTopic(question)
+        }
+
+        const sessionId = nanoid(12)
+        let attempts = 0
+        let finalId = sessionId
+        while (attempts < 5) {
+            const { data: existing } = await supabaseAdmin
+                .from("chat_sessions")
+                .select("id")
+                .eq("id", finalId)
+                .maybeSingle()
+
+            if (!existing) break
+            finalId = nanoid(12)
+            attempts++
+        }
+
+        const { error } = await supabaseAdmin.from("chat_sessions").insert({
+            id: finalId,
+            did,
+            owner_user_id: ownerUserId,
+            question,
+            topic,
+            messages,
+            decision,
+            show_insufficient_stars: body?.showInsufficientStars ?? false,
+            show_card_draw: body?.showCardDraw ?? false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        })
+
+        if (error) {
+            return NextResponse.json({ error: error.message }, { status: 400 })
+        }
+
+        return NextResponse.json({ id: finalId })
+    } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : "INTERNAL_ERROR"
+        return NextResponse.json({ error: message }, { status: 500 })
+    }
+}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState, useCallback, useRef, type ReactNode, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from "react"
+import { useEffect, useMemo, useState, useCallback, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { supabase } from "@/lib/supabase"
@@ -8,31 +8,40 @@ import { useAuth } from "@/hooks/use-auth"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
-import { getCleanQuestionText } from "@/lib/question-utils"
-import { ChevronDown, Star, Sparkles, Search, Calendar, X } from "lucide-react"
+import { Search, Calendar, X, Star, Sparkles, Trash2, Loader2, MoreHorizontal } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Swiper, SwiperSlide } from 'swiper/react'
-import { FreeMode } from 'swiper/modules'
-import 'swiper/css'
-import 'swiper/css/free-mode'
-import { useTranslations } from 'next-intl'
-import { useRouter } from "next/navigation"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { useTranslations, useLocale } from 'next-intl'
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
+
+type ChatMessage = {
+    id: string
+    role: "user" | "assistant"
+    text: string
+    cards?: { name: string; isReversed: boolean }[]
+}
+
+type ChatDecision = {
+    type: "chat" | "draw"
+    spreadType: string
+    cardCount: number
+    assistantText: string
+}
 
 type ReadingRow = {
     id: string
-    question: string | null
+    question: string
+    topic: string | null
+    messages: ChatMessage[]
+    decision: ChatDecision | null
     created_at: string
-    interpretation: string | null
-    cards: string[] | null
-    parent_id?: string | null
+    updated_at: string
 }
 
-type ReadingType = "simple" | "intermediate" | "advanced"
-
-// Helper functions moved outside component to avoid dependency issues
+type CardData = { name: string; isReversed: boolean }
 
 // Helper function to clean card name for image path
 const cleanCardName = (cardName: string) => {
@@ -42,25 +51,6 @@ const cleanCardName = (cardName: string) => {
         .replace(/\s*reversed/g, "")
         .replace(/\s+/g, "-")
         .replace(/[^a-z0-9-]/g, "")
-}
-
-// Helper function to determine reading type from number of cards
-const getReadingType = (cards: string[] | null): ReadingType => {
-    if (!cards) return "simple"
-    const cardCount = cards.length
-    if (cardCount === 1) return "simple"
-    if (cardCount === 2) return "intermediate"
-    return "advanced"
-}
-
-// Helper function to get reading type display info
-const getReadingTypeInfo = (readingType: ReadingType) => {
-    const typeInfo = {
-        simple: { label: "Simple", color: "from-green-400/20 to-emerald-500/20", textColor: "text-green-200", borderColor: "border-green-400/40" },
-        intermediate: { label: "Intermediate", color: "from-blue-400/20 to-cyan-500/20", textColor: "text-blue-200", borderColor: "border-blue-400/40" },
-        advanced: { label: "Advanced", color: "from-purple-400/20 to-pink-500/20", textColor: "text-purple-200", borderColor: "border-purple-400/40" }
-    }
-    return typeInfo[readingType]
 }
 
 // Helper function to format date like billing page
@@ -87,239 +77,392 @@ const getTodayString = () => {
 }
 
 
-// ReadingCard component - moved outside functional component
-const ReadingCard = ({
-    reading,
-    question,
-    isMain,
-    hasFollowUps,
-    t,
-    clickableHref,
-    onCardClick,
-    onToggleFollowUps,
-    isFollowUpsOpen = false,
-}: {
-    reading: ReadingRow
-    question: string
-    isMain: boolean
-    hasFollowUps: boolean
-    t: (key: string) => string
-    clickableHref?: string | null
-    onCardClick?: () => void
-    onToggleFollowUps?: () => void
-    isFollowUpsOpen?: boolean
-}) => {
-    const { date, time } = formatDateForDisplay(reading.created_at)
-    const readingType = getReadingType(reading.cards)
-    const typeInfo = getReadingTypeInfo(readingType)
-    const showChevronControl = hasFollowUps && typeof onToggleFollowUps === "function"
+// CardStack component for visual spreading of cards
+const CardStack = ({ cards }: { cards: CardData[] }) => {
+    if (!cards || cards.length === 0) return null
 
-    const handleKeyboardActivate = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-        if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault()
-            onCardClick?.()
-        }
+    const cleanName = (card: CardData) => {
+        const name = card.name || ''
+        return cleanCardName(name)
     }
 
-    const Wrapper = ({ children }: { children: ReactNode }) => {
-        if (clickableHref && !onCardClick) {
-            return (
-                <Link
-                    href={clickableHref}
-                    className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-xl"
-                >
-                    {children}
-                </Link>
-            )
-        }
-
-        if (onCardClick) {
-            return (
-                <div
-                    role="link"
-                    tabIndex={0}
-                    onClick={() => onCardClick()}
-                    onKeyDown={handleKeyboardActivate}
-                    className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-xl"
-                >
-                    {children}
-                </div>
-            )
-        }
-
-        return <div className="block">{children}</div>
+    const isReversed = (card: CardData) => {
+        const name = card.name || ''
+        return name.toLowerCase().includes("reversed") || card.isReversed
     }
 
-    const handleToggleClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
-        event.preventDefault()
-        event.stopPropagation()
-        onToggleFollowUps?.()
+    if (cards.length === 1) {
+        const card = cards[0]
+        return (
+            <div className="relative w-12 rounded-lg overflow-hidden border border-border/30 shadow-lg group-hover/card:scale-110 transition-transform duration-300">
+                <Image
+                    src={`/assets/rider-waite-tarot/${cleanName(card)}.png`}
+                    alt="Tarot Card"
+                    width={48}
+                    height={0}
+                    className={cn(
+                        "w-full h-auto object-cover transition-transform duration-300",
+                        isReversed(card) && "rotate-180"
+                    )}
+                />
+            </div>
+        )
     }
 
     return (
-        <Wrapper>
-            <Card
-                className={cn(
-                    "group/card relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/10 bg-gradient-to-br from-slate-900/30 to-slate-800/20 z-10",
-                    isMain
-                        ? "bg-gradient-to-br from-card/60 to-card/30 backdrop-blur-sm border-border/30"
-                        : "bg-card/40 backdrop-blur-sm border-border/20",
-                    (hasFollowUps || clickableHref || onCardClick) && "cursor-pointer",
-                    isFollowUpsOpen && "border-primary/40 shadow-primary/10"
-                )}
+        <div className="relative flex items-center h-16 w-20">
+            {cards.slice(0, 3).map((card, index) => (
+                <div
+                    key={index}
+                    className="absolute top-0 rounded-md overflow-hidden border border-border/40 shadow-md transition-all duration-300 group-hover/card:scale-105"
+                    style={{
+                        width: '36px',
+                        left: `${index * 12}px`,
+                        zIndex: index,
+                        transform: `rotate(${(index - (cards.length - 1) / 2) * 10}deg)`,
+                        transformOrigin: 'bottom center'
+                    }}
+                >
+                    <Image
+                        src={`/assets/rider-waite-tarot/${cleanName(card)}.png`}
+                        alt="Tarot Card"
+                        width={36}
+                        height={0}
+                        className={cn(
+                            "w-full h-auto object-cover",
+                            isReversed(card) && "rotate-180"
+                        )}
+                    />
+                </div>
+            ))}
+            {cards.length > 3 && (
+                <div 
+                    className="absolute right-0 bottom-0 bg-primary/80 text-[10px] text-white px-1 rounded-sm z-10 font-bold"
+                    style={{ transform: 'translate(20%, 20%)' }}
+                >
+                    +{cards.length - 3}
+                </div>
+            )}
+        </div>
+    )
+}
+
+// ReadingCard component with swipe-to-delete functionality
+const ReadingCard = ({
+    reading,
+    t,
+    locale,
+    onDelete,
+    session,
+}: {
+    reading: ReadingRow
+    t: (key: string) => string
+    locale: string
+    onDelete: (id: string) => void
+    session: { access_token: string } | null
+}) => {
+    const { date, time } = formatDateForDisplay(reading.created_at)
+    const [swipeX, setSwipeX] = useState(0)
+    const [isDragging, setIsDragging] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
+    const startXRef = useRef(0)
+    const currentXRef = useRef(0)
+    const cardRef = useRef<HTMLDivElement>(null)
+    
+    // Extract latest cards from messages
+    const latestCardsMessage = [...reading.messages].reverse().find(m => m.cards && m.cards.length > 0)
+    const latestCards = latestCardsMessage?.cards || []
+
+    // Get last user question
+    const lastUserMessage = [...reading.messages].reverse().find(m => m.role === "user")
+    const lastQuestion = lastUserMessage?.text || reading.question
+
+    const DELETE_THRESHOLD = -80 // How far to swipe to reveal delete button
+    const MAX_SWIPE = -100 // Maximum swipe distance
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        startXRef.current = e.touches[0].clientX
+        currentXRef.current = swipeX
+        setIsDragging(true)
+    }
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (!isDragging) return
+        const deltaX = e.touches[0].clientX - startXRef.current
+        const newX = Math.max(MAX_SWIPE, Math.min(0, currentXRef.current + deltaX))
+        setSwipeX(newX)
+    }
+
+    const handleTouchEnd = () => {
+        setIsDragging(false)
+        // Snap to either open or closed position
+        if (swipeX < DELETE_THRESHOLD / 2) {
+            setSwipeX(DELETE_THRESHOLD)
+        } else {
+            setSwipeX(0)
+        }
+    }
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+        startXRef.current = e.clientX
+        currentXRef.current = swipeX
+        setIsDragging(true)
+    }
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (!isDragging) return
+        const deltaX = e.clientX - startXRef.current
+        const newX = Math.max(MAX_SWIPE, Math.min(0, currentXRef.current + deltaX))
+        setSwipeX(newX)
+    }
+
+    const handleMouseUp = () => {
+        if (!isDragging) return
+        setIsDragging(false)
+        if (swipeX < DELETE_THRESHOLD / 2) {
+            setSwipeX(DELETE_THRESHOLD)
+        } else {
+            setSwipeX(0)
+        }
+    }
+
+    const handleMouseLeave = () => {
+        if (isDragging) {
+            handleMouseUp()
+        }
+    }
+
+    const handleDelete = async (e: React.MouseEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        
+        if (isDeleting) return
+        setIsDeleting(true)
+
+        try {
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+            }
+            if (session?.access_token) {
+                headers["Authorization"] = `Bearer ${session.access_token}`
+            }
+
+            const response = await fetch(`/api/chat-sessions/${reading.id}`, {
+                method: "DELETE",
+                headers,
+            })
+
+            if (response.ok) {
+                toast.success(t("deleteSuccess") || "Reading deleted successfully")
+                onDelete(reading.id)
+            } else {
+                const data = await response.json()
+                toast.error(data.error || t("deleteError") || "Failed to delete reading")
+                setIsDeleting(false)
+                setSwipeX(0)
+            }
+        } catch {
+            toast.error(t("deleteError") || "Failed to delete reading")
+            setIsDeleting(false)
+            setSwipeX(0)
+        }
+    }
+
+    const resetSwipe = () => {
+        setSwipeX(0)
+    }
+
+    return (
+        <div 
+            className="relative overflow-hidden rounded-xl"
+            ref={cardRef}
+            onMouseLeave={handleMouseLeave}
+        >
+            {/* Delete button background */}
+            <div className="absolute inset-y-0 right-0 flex items-center bg-gradient-to-l from-red-600 to-red-500 rounded-r-xl">
+                <button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="flex flex-col items-center justify-center w-20 h-full text-white hover:bg-red-700 transition-colors"
+                >
+                    {isDeleting ? (
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                    ) : (
+                        <>
+                            <Trash2 className="w-6 h-6 mb-1" />
+                            <span className="text-xs font-medium">{t("delete") || "Delete"}</span>
+                        </>
+                    )}
+                </button>
+            </div>
+
+            {/* Swipeable card content */}
+            <div
+                className="relative transition-transform duration-200 ease-out"
+                style={{ 
+                    transform: `translateX(${swipeX}px)`,
+                    transition: isDragging ? 'none' : 'transform 0.2s ease-out'
+                }}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
             >
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
-
-                {/* Date and Time badges positioned at top left (billing page style) */}
-                <div className="absolute top-3 left-3 flex space-x-2">
-                    <Badge
-                        variant="outline"
-                        className={"bg-gradient-to-r from-yellow-400/20 to-orange-500/20 text-yellow-200 border-yellow-400/40 text-xs font-medium shadow-lg shadow-yellow-400/20 backdrop-blur-sm hover:from-yellow-400/30 hover:to-orange-500/30 transition-all duration-300"}
+                <Link
+                    href={`/${locale}/${reading.id}`}
+                    className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-xl"
+                    onClick={(e) => {
+                        // Prevent navigation if swiped
+                        if (swipeX < -10) {
+                            e.preventDefault()
+                            resetSwipe()
+                        }
+                    }}
+                >
+                    <Card
+                        className={cn(
+                            "group/card relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/10 bg-slate-950 border-yellow-400/20 z-10",
+                            "cursor-pointer",
+                            swipeX < 0 && "hover:scale-100" // Disable hover scale when swiped
+                        )}
                     >
-                        {date}
-                    </Badge>
-                    <Badge
-                        variant="outline"
-                        className={"bg-gradient-to-r from-purple-400/20 to-pink-500/20 text-purple-200 border-purple-400/40 text-xs font-medium shadow-lg shadow-purple-400/20 backdrop-blur-sm hover:from-purple-400/30 hover:to-pink-500/30 transition-all duration-300"}
-                    >
-                        {time}
-                    </Badge>
-                </div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
 
-                {/* Reading Type badge positioned at top right */}
-                <div className="absolute top-3 right-3">
-                    <Badge
-                        variant="outline"
-                        className={`bg-gradient-to-r ${typeInfo.color} ${typeInfo.textColor} ${typeInfo.borderColor} text-xs font-medium shadow-lg backdrop-blur-sm hover:opacity-80 transition-all duration-300`}
-                    >
-                        {typeInfo.label}
-                    </Badge>
-                </div>
+                        {/* Date and Time badges */}
+                        <div className="absolute top-3 left-3 flex space-x-2">
+                            <Badge
+                                variant="outline"
+                                className={"bg-gradient-to-r from-yellow-400/20 to-orange-500/20 text-yellow-200 border-yellow-400/40 text-xs font-medium shadow-lg shadow-yellow-400/20 backdrop-blur-sm hover:from-yellow-400/30 hover:to-orange-500/30 transition-all duration-300"}
+                            >
+                                {date}
+                            </Badge>
+                            <Badge
+                                variant="outline"
+                                className={"bg-gradient-to-r from-purple-400/20 to-pink-500/20 text-purple-200 border-purple-400/40 text-xs font-medium shadow-lg shadow-purple-400/20 backdrop-blur-sm hover:from-purple-400/30 hover:to-pink-500/30 transition-all duration-300"}
+                            >
+                                {time}
+                            </Badge>
+                        </div>
 
-                <CardContent className="relative px-4 pt-8 pb-2">
-                    <div className="flex items-start gap-4">
-                        {/* Single card image */}
-                        <div className="flex-shrink-0">
-                            {reading.cards && reading.cards.length > 0 && (() => {
-                                const firstCard = reading.cards[0]
-                                const cleanName = cleanCardName(firstCard)
-                                const isReversed = firstCard.toLowerCase().includes("reversed")
+                        <CardContent className="relative px-4 pt-12 pb-4">
+                            <div className="flex items-start gap-4">
+                                {/* Card Stack */}
+                                <div className="flex-shrink-0 pt-1">
+                                    <CardStack cards={latestCards} />
+                                </div>
 
-                                return (
-                                    <div className="relative w-12 rounded-lg overflow-hidden border border-border/30 shadow-lg group-hover/card:scale-110 transition-transform duration-300">
-                                        <Image
-                                            src={`/assets/rider-waite-tarot/${cleanName}.png`}
-                                            alt={firstCard}
-                                            width={48}
-                                            height={0}
-                                            className={cn(
-                                                "w-full h-auto object-cover transition-transform duration-300",
-                                                isReversed && "rotate-180"
+                                {/* Content */}
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-start justify-between gap-4 mb-2">
+                                        <div className="flex flex-col gap-1 min-w-0">
+                                            <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300 line-clamp-1">
+                                                {reading.topic || reading.question || t("noQuestion")}
+                                            </h3>
+                                            {lastQuestion && lastQuestion !== (reading.topic || reading.question) && (
+                                                <p className="text-muted-foreground/60 text-xs line-clamp-1 italic">
+                                                    Last: {lastQuestion}
+                                                </p>
                                             )}
-                                        />
+                                        </div>
                                     </div>
-                                )
-                            })()}
-                        </div>
 
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                            {/* Card badges above the question - Swiper */}
-                            {reading.cards && reading.cards.length > 0 && (
-                                <div className="mb-2 w-full">
-                                    <Swiper modules={[FreeMode]} freeMode={true} slidesPerView="auto" spaceBetween={4} className="w-full">
-                                        {reading.cards.map((card, index) => (
-                                            <SwiperSlide key={index} className="!w-auto">
-                                                <Badge
-                                                    variant="secondary"
-                                                    className="text-xs bg-white/90 text-gray-800 border-white/50 hover:bg-white transition-colors shadow-lg backdrop-blur-sm whitespace-nowrap"
-                                                >
-                                                    {card}
-                                                </Badge>
-                                            </SwiperSlide>
-                                        ))}
-                                    </Swiper>
+                                    {latestCardsMessage?.text && (
+                                        <p className="text-muted-foreground/80 text-sm line-clamp-2 leading-relaxed">
+                                            {latestCardsMessage.text}
+                                        </p>
+                                    )}
                                 </div>
-                            )}
-
-                            <div className="flex items-start justify-between gap-4 mb-2">
-                                <div className="flex items-center gap-2 min-w-0">
-                                    <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300 line-clamp-1">
-                                        {question || t("noQuestion")}
-                                    </h3>
-                                </div>
-                                {showChevronControl && (
-                                    <button
-                                        type="button"
-                                        onClick={handleToggleClick}
-                                        aria-label="Toggle follow-up interpretations"
-                                        aria-expanded={isFollowUpsOpen}
-                                        className="flex-shrink-0 self-center rounded-full p-1 text-muted-foreground transition-colors duration-300 hover:bg-white/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-                                    >
-                                        <ChevronDown
-                                            className={cn(
-                                                "w-5 h-5 transition-transform duration-300",
-                                                isFollowUpsOpen && "rotate-180 text-primary"
-                                            )}
-                                        />
-                                    </button>
-                                )}
                             </div>
+                        </CardContent>
+                    </Card>
+                </Link>
 
-                            {reading.interpretation && (
-                                <p className="text-muted-foreground/80 text-sm line-clamp-2 leading-relaxed">
-                                    {reading.interpretation}
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-        </Wrapper>
+                {/* More options button */}
+                <div className="absolute top-3 right-3 z-20">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 rounded-full hover:bg-white/10 text-muted-foreground hover:text-white transition-colors"
+                                onPointerDown={(e) => {
+                                    e.stopPropagation()
+                                }}
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                }}
+                            >
+                                <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent 
+                            className="w-32 p-1 bg-slate-900 border-slate-800 shadow-xl" 
+                            align="end"
+                            onPointerDown={(e) => {
+                                e.stopPropagation()
+                            }}
+                            onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                            }}
+                        >
+                            <button
+                                onClick={handleDelete}
+                                disabled={isDeleting}
+                                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-md transition-colors text-left"
+                            >
+                                {isDeleting ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Trash2 className="w-4 h-4" />
+                                )}
+                                <span>{t("delete") || "Delete"}</span>
+                            </button>
+                        </PopoverContent>
+                    </Popover>
+                </div>
+            </div>
+        </div>
     )
 }
 
 export default function ReadingHistory() {
-    const { user } = useAuth()
+    const { user, session } = useAuth()
     const t = useTranslations('ReadingHistory')
-    const router = useRouter()
+    const locale = useLocale()
     const [loading, setLoading] = useState(true)
     const [readings, setReadings] = useState<ReadingRow[]>([])
     const [error, setError] = useState<string | null>(null)
     const [searchQuery, setSearchQuery] = useState("")
     const [filteredReadings, setFilteredReadings] = useState<ReadingRow[]>([])
-    const [displayedGroupCount, setDisplayedGroupCount] = useState(10)
+    const [displayedCount, setDisplayedCount] = useState(10)
     const [hasMore, setHasMore] = useState(true)
     const [loadingMore, setLoadingMore] = useState(false)
     const [dateFrom, setDateFrom] = useState("")
     const [dateTo, setDateTo] = useState("")
     const [filterType, setFilterType] = useState<"all" | "today" | "week" | "month" | "custom">("all")
-    const [readingTypeFilter, setReadingTypeFilter] = useState<"all" | "simple" | "intermediate" | "advanced">("all")
     const observerRef = useRef<HTMLDivElement>(null)
-    const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
 
-    const toggleGroup = useCallback((groupKey: string) => {
-        setExpandedGroups((prev) => ({
-            ...prev,
-            [groupKey]: !prev[groupKey],
-        }))
+    // Handle delete reading
+    const handleDeleteReading = useCallback((id: string) => {
+        setReadings(prev => prev.filter(r => r.id !== id))
     }, [])
-
-    const navigateToReading = useCallback((id: string) => {
-        router.push(`/tarot/${id}`)
-    }, [router])
 
     useEffect(() => {
         let isMounted = true
         const load = async () => {
             if (!user) return
+            console.log('test')
             setLoading(true)
             setError(null)
             const { data, error } = await supabase
-                .from("tarot_readings")
-                .select("id, question, created_at, interpretation, cards, parent_id")
+                .from("chat_sessions")
+                .select("id, question, topic, messages, decision, created_at, updated_at")
                 .eq("owner_user_id", user.id)
                 .order("created_at", { ascending: false })
+            console.log(data)
             if (!isMounted) return
             if (error) {
                 setError(error.message)
@@ -343,7 +486,8 @@ export default function ReadingHistory() {
         if (searchQuery.trim()) {
             filtered = filtered.filter(reading => 
                 reading.question?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                reading.cards?.some(card => card.toLowerCase().includes(searchQuery.toLowerCase()))
+                reading.topic?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                reading.messages.some(m => m.text.toLowerCase().includes(searchQuery.toLowerCase()))
             )
         }
 
@@ -384,32 +528,20 @@ export default function ReadingHistory() {
             })
         }
 
-        // Apply reading type filter
-        if (readingTypeFilter !== "all") {
-            filtered = filtered.filter(reading => {
-                const readingType = getReadingType(reading.cards)
-                return readingType === readingTypeFilter
-            })
-        }
-
         setFilteredReadings(filtered)
-    }, [readings, searchQuery, filterType, dateFrom, dateTo, readingTypeFilter])
+    }, [readings, searchQuery, filterType, dateFrom, dateTo])
 
     // Reset pagination when filtered readings change
     useEffect(() => {
-        setDisplayedGroupCount(10)
+        setDisplayedCount(10)
     }, [filteredReadings])
 
-    useEffect(() => {
-        setExpandedGroups({})
-    }, [filteredReadings])
-
-    // Load more groups function
+    // Load more function
     const loadMore = useCallback(() => {
         if (loadingMore || !hasMore) return
         setLoadingMore(true)
         setTimeout(() => {
-            setDisplayedGroupCount((prev) => prev + 10)
+            setDisplayedCount((prev) => prev + 10)
             setLoadingMore(false)
         }, 500)
     }, [loadingMore, hasMore])
@@ -432,58 +564,10 @@ export default function ReadingHistory() {
         return () => observer.disconnect()
     }, [loadMore, hasMore, loadingMore])
 
-    // Compute total group count for pagination state
-    const totalGroupCount = useMemo(() => {
-        if (!filteredReadings.length) return 0
-        const tokenize = (text: string) =>
-            (text || "")
-                .toLowerCase()
-                .replace(/[^a-z0-9\sก-๙]/gi, " ")
-                .split(/\s+/)
-                .filter((w) => w.length >= 3)
-        const jaccard = (a: string, b: string) => {
-            const ta = new Set(tokenize(getCleanQuestionText(a)))
-            const tb = new Set(tokenize(getCleanQuestionText(b)))
-            if (ta.size === 0 && tb.size === 0) return 1
-            const inter = new Set([...ta].filter((x) => tb.has(x)))
-            const union = new Set([...ta, ...tb])
-            return inter.size / union.size
-        }
-        const sortedAll = [...filteredReadings].sort((a, b) =>
-            a.created_at.localeCompare(b.created_at)
-        )
-        const groups: Array<{ main: ReadingRow; latestAt: string }> = []
-        const TIME_WINDOW_MS = 1000 * 60 * 60 * 4
-        for (const r of sortedAll) {
-            const idx = groups.findIndex((g) => {
-                const sim = jaccard(g.main.question || "", r.question || "")
-                const timeDelta = Math.abs(
-                    new Date(r.created_at).getTime() -
-                        new Date(g.latestAt).getTime()
-                )
-                return (
-                    getCleanQuestionText(g.main.question || "") ===
-                        getCleanQuestionText(r.question || "") ||
-                    sim >= 0.65 ||
-                    (sim >= 0.4 && timeDelta <= TIME_WINDOW_MS)
-                )
-            })
-            if (idx >= 0) {
-                const g = groups[idx]
-                if (new Date(r.created_at) > new Date(g.latestAt)) {
-                    g.latestAt = r.created_at
-                }
-            } else {
-                groups.push({ main: r, latestAt: r.created_at })
-            }
-        }
-        return groups.length
-    }, [filteredReadings])
-
-    // Keep hasMore in sync with group count
+    // Keep hasMore in sync
     useEffect(() => {
-        setHasMore(displayedGroupCount < totalGroupCount)
-    }, [displayedGroupCount, totalGroupCount])
+        setHasMore(displayedCount < filteredReadings.length)
+    }, [displayedCount, filteredReadings.length])
 
     const content = useMemo(() => {
         if (!user) {
@@ -571,134 +655,23 @@ export default function ReadingHistory() {
             )
         }
 
-        // Build grouped threads across all filtered readings
-        // Prefer exact database linkage via parent_id when present
-        const groupsByKey = new Map<string, ReadingRow[]>()
-        
-        // Build lineage map from ALL readings to ensure we can trace back to root
-        // even if intermediate steps are filtered out or if we are deep in a chain
-        const parentMap = new Map<string, string | null>()
-        readings.forEach((r) => {
-            parentMap.set(r.id, r.parent_id || null)
-        })
-
-        const findRootId = (startId: string) => {
-            let current = startId
-            const visited = new Set<string>()
-            while (true) {
-                if (visited.has(current)) return current
-                visited.add(current)
-                const pid = parentMap.get(current)
-                if (!pid) return current
-                // If parent exists but is not in our loaded list, we treat the PID as the root
-                // (assuming the chain continues even if we don't have the object loaded)
-                // However, finding the PID in the map ensures we can keep traversing.
-                if (!parentMap.has(pid)) return pid 
-                current = pid
-            }
-        }
-
-        for (const r of filteredReadings) {
-            const rootId = findRootId(r.id)
-            const list = groupsByKey.get(rootId) || []
-            list.push(r)
-            groupsByKey.set(rootId, list)
-        }
-
-        // If some follow-ups reference a main not in current filter (unlikely), we still create the group
-        // Now, heuristically merge remaining unlinked by similarity/time where parent_id is missing
-        type Group = {
-            key: string
-            items: ReadingRow[]
-            main: ReadingRow
-            latestAt: string
-            question: string
-        }
-
-        // Merge groupsByKey values into Group objects
-        const groups: Group[] = []
-        for (const [key, items] of groupsByKey) {
-            const sorted = items.slice().sort((a, b) => a.created_at.localeCompare(b.created_at))
-            // Find main: if any item has id===key, use it; otherwise earliest
-            const main = sorted.find((it) => it.id === key) || sorted[0]
-            groups.push({
-                key,
-                items: sorted,
-                main,
-                latestAt: sorted[sorted.length - 1].created_at,
-                question: getCleanQuestionText(main.question || ""),
-            })
-        }
-
-        // Normalize each group: main is earliest by time, follow-ups are the rest
-        groups.forEach((g) => {
-            g.items.sort((a, b) => a.created_at.localeCompare(b.created_at))
-            // Ensure main stays as the DB main when parent linkage exists
-            const dbMain = g.items.find((it) => it.id === g.key)
-            g.main = dbMain || g.items[0]
-            g.question = getCleanQuestionText(g.main.question || "")
-            g.latestAt = g.items[g.items.length - 1].created_at
-        })
-
-        // Sort groups by most recent activity desc
-        const groupList = groups.sort((a, b) =>
-            b.latestAt.localeCompare(a.latestAt)
-        )
-
-        const entries = groupList
-            .slice(0, displayedGroupCount)
-            .map((g) => ({
-                key: g.key,
-                question: g.question,
-                items: g.items,
-            }))
+        const entries = filteredReadings.slice(0, displayedCount)
 
         return (
             <div className='space-y-6'>
-                {entries.map(({ key: groupKey, question, items }) => {
-                    const sorted = items.slice().sort((a, b) => a.created_at.localeCompare(b.created_at))
-                    const main = sorted[0]
-                    const followUps = sorted.slice(1)
-                    const hasFollowUps = followUps.length > 0
-                    const isExpanded = !!expandedGroups[groupKey]
-
-                    return (
-                        <div key={groupKey} className='group space-y-4'>
-                            <ReadingCard
-                                reading={main}
-                                question={question}
-                                isMain={true}
-                                hasFollowUps={hasFollowUps}
-                                t={t}
-                                clickableHref={hasFollowUps ? null : `/tarot/${main.id}`}
-                                onCardClick={hasFollowUps ? () => navigateToReading(main.id) : undefined}
-                                onToggleFollowUps={hasFollowUps ? () => toggleGroup(groupKey) : undefined}
-                                isFollowUpsOpen={hasFollowUps ? isExpanded : false}
-                            />
-
-                            {hasFollowUps && isExpanded && (
-                                <div className="pt-4">
-                                    <div className='space-y-3 pl-4 border-l-2 border-primary/20'>
-                                        {followUps.map((fu) => (
-                                            <ReadingCard
-                                                key={fu.id}
-                                                reading={fu}
-                                                question={fu.question ? getCleanQuestionText(fu.question) : ""}
-                                                isMain={false}
-                                                hasFollowUps={false}
-                                                t={t}
-                                                clickableHref={`/tarot/${fu.id}`}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )
-                })}
+                {entries.map((reading) => (
+                    <ReadingCard
+                        key={reading.id}
+                        reading={reading}
+                        t={t}
+                        locale={locale}
+                        onDelete={handleDeleteReading}
+                        session={session}
+                    />
+                ))}
             </div>
         )
-    }, [user, loading, filteredReadings, displayedGroupCount, error, searchQuery, t, expandedGroups, navigateToReading, toggleGroup])
+    }, [user, loading, filteredReadings, displayedCount, error, searchQuery, t, locale, handleDeleteReading, session])
 
     return (
         <div className='max-w-4xl mx-auto w-full px-4 py-8'>
@@ -742,18 +715,6 @@ export default function ReadingHistory() {
                             </SelectContent>
                         </Select>
 
-                        <Select value={readingTypeFilter} onValueChange={(value: "all" | "simple" | "intermediate" | "advanced") => setReadingTypeFilter(value)}>
-                            <SelectTrigger className="flex-1 bg-card/40 backdrop-blur-sm border-border/30">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-slate-900 border-slate-700">
-                                <SelectItem value="all" className="text-white hover:bg-slate-800">{t('filters.allTypes')}</SelectItem>
-                                <SelectItem value="simple" className="text-white hover:bg-slate-800">{t('filters.simple')}</SelectItem>
-                                <SelectItem value="intermediate" className="text-white hover:bg-slate-800">{t('filters.intermediate')}</SelectItem>
-                                <SelectItem value="advanced" className="text-white hover:bg-slate-800">{t('filters.advanced')}</SelectItem>
-                            </SelectContent>
-                        </Select>
-
                         {filterType === "custom" && (
                             <div className="flex items-center gap-2">
                                 <div className="flex items-center gap-1">
@@ -783,7 +744,7 @@ export default function ReadingHistory() {
                             </div>
                         )}
 
-                        {(filterType !== "all" || readingTypeFilter !== "all" || searchQuery) && (
+                        {(filterType !== "all" || searchQuery) && (
                             <Button
                                 variant="outline"
                                 size="sm"
@@ -792,7 +753,6 @@ export default function ReadingHistory() {
                                     setFilterType("all")
                                     setDateFrom("")
                                     setDateTo("")
-                                    setReadingTypeFilter("all")
                                 }}
                                 className="bg-card/40 backdrop-blur-sm border-border/30 hover:bg-card/60"
                             >
