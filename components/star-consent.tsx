@@ -149,6 +149,13 @@ export function StarConsentProvider({
                         >
                             {t("StarConsent.privacyLink")}
                         </Link>
+                        {t("StarConsent.termsConnector")}
+                        <Link
+                            href='/terms-of-service'
+                            className='underline text-yellow-300 hover:text-yellow-200'
+                        >
+                            {t("StarConsent.termsLink")}
+                        </Link>
                         .
                     </div>
                     <div className='flex gap-3 justify-end'>
