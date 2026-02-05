@@ -365,6 +365,16 @@ export default function TermsPage() {
                                 based on our readings, and you use our Service
                                 at your own risk.
                             </p>
+                            <p className='text-muted-foreground leading-relaxed'>
+                                To the fullest extent permitted by law, you
+                                acknowledge and agree that you are solely
+                                responsible for your actions and decisions, and
+                                that AskingFate will not be liable for any
+                                injury, loss, damage, or harm to you or any
+                                third party arising from or related to your
+                                reliance on or use of AI-generated interpretations,
+                                tarot readings, or other content from the Service.
+                            </p>
 
                             <h3 className='font-serif font-semibold text-xl text-foreground'>
                                 6.3 Limitation of Liability

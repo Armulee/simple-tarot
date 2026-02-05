@@ -12,9 +12,11 @@
   },
   "StarConsent": {
     "title": "Introducing Star Currency",
-    "description": "Stars let you reveal AI interpretations and unlock features. With your consent, we create an anonymous device ID to securely store and sync your star balance and hourly refills in our database, and remember your preferences.",
+    "description": "Stars let you reveal AI interpretations and unlock features. We use cookies to remember your preferences. Please note that AI interpretations are for entertainment purposes only and may be inaccurate; their value depends on your personal interpretation. We are not responsible for any actions taken based on these interpretations.",
     "privacyPrefix": "Read our ",
     "privacyLink": "Privacy Policy",
+    "termsConnector": " and ",
+    "termsLink": "Terms of Service",
     "decline": "Decline",
     "accept": "Accept"
   },

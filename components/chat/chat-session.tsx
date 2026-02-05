@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from "next-intl"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { useStars } from "@/contexts/stars-context"
-import NormalFooter from "../footer/normal-footer"
+import Footer from "../footer/footer"
 import { TypewriterText } from "../typewriter-text"
 import QuestionInput from "../question-input"
 import { LinearCardSpread } from "@/components/tarot/card-selection/linear-card-spread"
@@ -113,6 +113,7 @@ export default function ChatSession({
     }
 
     const locale = useLocale()
+    const [aiLocale, setAiLocale] = useState<"en" | "th" | null>(null)
     const router = useRouter()
     const { user } = useAuth()
     const { stars, spendStars, initialized: starsInitialized, isInfinity } = useStars()
@@ -139,6 +140,9 @@ export default function ChatSession({
     const [selectedCount, setSelectedCount] = useState(0)
     const [shuffleFn, setShuffleFn] = useState<(() => void) | null>(null)
     const [pickFn, setPickFn] = useState<(() => void) | null>(null)
+    const [selectByIndicesFn, setSelectByIndicesFn] = useState<
+        ((indices: number[]) => void) | null
+    >(null)
     const [assistantReactions, setAssistantReactions] = useState<
         Record<string, "like" | "dislike" | null>
     >({})
@@ -209,7 +213,34 @@ export default function ChatSession({
     )
     const cardsToSelect = useMemo(() => decision?.cardCount ?? 0, [decision])
     const isChatLoading = consulting || isInterpreting
-    
+
+    const normalizeLocale = (value: string | null | undefined): "en" | "th" =>
+        value && value.startsWith("th") ? "th" : "en"
+
+    const CARD_UI_TEXT = useMemo(
+        () => ({
+            en: {
+                selected: (selectedCount: number, cardsToSelect: number) =>
+                    `You have selected ${selectedCount}/${cardsToSelect} cards`,
+                consumeStar: "Drawing cards will consume 5 stars",
+                shuffle: "Shuffle",
+                pick: "Pick me",
+                swipe: "Swipe up on a card to select",
+            },
+            th: {
+                selected: (selectedCount: number, cardsToSelect: number) =>
+                    `คุณเลือกไพ่แล้ว ${selectedCount}/${cardsToSelect} ใบ`,
+                consumeStar: "การจั่วไพ่จะใช้ดวงดาว 5 ดวง",
+                shuffle: "สับไพ่",
+                pick: "เลือกให้หน่อย",
+                swipe: "ปัดขึ้นบนไพ่เพื่อเลือก",
+            },
+        }),
+        []
+    )
+
+    const effectiveLocale = normalizeLocale(aiLocale ?? locale)
+    const cardUi = CARD_UI_TEXT[effectiveLocale]
     // Check if user has enough stars (at least 5) for card draw
     // Returns null while loading, true/false once initialized
     const hasEnoughStars = useMemo(() => {
@@ -281,6 +312,16 @@ export default function ChatSession({
         if (!messagesEndRef.current) return
         messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
     }, [messages, consulting, showCardDraw, isInterpreting])
+
+    useEffect(() => {
+        const lastAssistant = [...messages]
+            .reverse()
+            .find((message) => message.role === "assistant" && message.text)
+        if (!lastAssistant?.text) return
+        const hasThai = /[\u0E00-\u0E7F]/.test(lastAssistant.text)
+        const nextLocale = hasThai ? "th" : "en"
+        setAiLocale((prev) => (prev === nextLocale ? prev : nextLocale))
+    }, [messages])
 
     useEffect(() => {
         if (!isInterpreting) {
@@ -737,6 +778,22 @@ export default function ChatSession({
     }, [mode, sessionId, decision, messages, startDecisionFlow])
 
     const handleSubmit = async (value: string) => {
+        if (
+            mode !== "home" &&
+            showCardDraw &&
+            cardsToSelect > 0 &&
+            hasEnoughStars === true
+        ) {
+            const matches = value.match(/\d+/g) ?? []
+            const indices = matches
+                .map((match) => Number(match))
+                .filter((num) => Number.isFinite(num) && num > 0)
+            if (indices.length > 0 && selectByIndicesFn) {
+                selectByIndicesFn(indices)
+                setQuestion("")
+                return
+            }
+        }
         if (mode === "home") {
             await createSessionAndRedirect(value)
             return
@@ -915,17 +972,14 @@ export default function ChatSession({
                                 </p>
                             )}
                             <p className='text-sm text-white'>
-                                {tHome("selectedCards", {
-                                    selectedCount,
-                                    cardsToSelect,
-                                })}
+                                {cardUi.selected(selectedCount, cardsToSelect)}
                             </p>
                             <p className='text-xs text-yellow-300 flex items-center justify-center gap-1'>
                                 <Star
                                     className='w-3.5 h-3.5'
                                     fill='currentColor'
                                 />
-                                Drawing cards will consume 5 stars
+                                {cardUi.consumeStar}
                             </p>
                         </div>
                         <div className='flex items-center gap-2 justify-center'>
@@ -936,7 +990,7 @@ export default function ChatSession({
                                 disabled={!shuffleFn}
                             >
                                 <RotateCw className='w-3.5 h-3.5' />
-                                Shuffle
+                                {cardUi.shuffle}
                             </button>
                             <button
                                 type='button'
@@ -945,7 +999,7 @@ export default function ChatSession({
                                 disabled={!pickFn}
                             >
                                 <Sparkles className='w-3.5 h-3.5' />
-                                Pick me
+                                {cardUi.pick}
                             </button>
                         </div>
                     </div>
@@ -962,6 +1016,10 @@ export default function ChatSession({
                             onProvideRandomPick={(fn) =>
                                 setPickFn(() => fn)
                             }
+                            onProvideSelectByIndices={(fn) =>
+                                setSelectByIndicesFn(() => fn)
+                            }
+                            swipeLabel={cardUi.swipe}
                         />
                     </div>
                 </>
@@ -1556,7 +1614,7 @@ export default function ChatSession({
                             : "opacity-100"
                     }`}
                 >
-                    <NormalFooter />
+                    <Footer />
                 </div>
             </div>
             {isInputFixed && (

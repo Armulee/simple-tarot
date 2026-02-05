@@ -9,6 +9,7 @@ interface SwipeUpOverlayProps {
     center: { x: number; y: number }
     deckRect: { left: number; top: number; right: number; bottom: number }
     onRecenter: (center: { x: number; y: number }) => void
+    label?: string
 }
 
 export function SwipeUpOverlay({
@@ -17,6 +18,7 @@ export function SwipeUpOverlay({
     center,
     deckRect,
     onRecenter,
+    label,
 }: SwipeUpOverlayProps) {
     const t = useTranslations("ReadingPage.chooseCards")
     const [isAnimating, setIsAnimating] = useState(false)
@@ -119,7 +121,7 @@ export function SwipeUpOverlay({
                     }`}
                 />
                 <div className='mt-2 text-center text-white text-xs bg-black/40 px-2 py-0.5 rounded-full inline-block'>
-                    {t("swipeUpToSelect")}
+                    {label ?? t("swipeUpToSelect")}
                 </div>
             </div>
         </div>

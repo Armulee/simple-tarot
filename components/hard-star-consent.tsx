@@ -150,7 +150,7 @@ export default function HardStarConsent({ open, onAccept }: HardStarConsentProps
                     
                     <div className='space-y-3'>
                         <SheetDescription className='text-white/85 text-sm'>
-                            We use cookies to enhance your experience, analyze site traffic, and personalize content. By continuing to use our site, you consent to our use of cookies.
+                            We use cookies to enhance your experience and remember your preferences. Please note that AI interpretations are for entertainment purposes only and may be inaccurate; their value depends on your personal interpretation. We are not responsible for any actions taken based on these interpretations.
                         </SheetDescription>
                         
                         <div className='flex justify-between items-end'>

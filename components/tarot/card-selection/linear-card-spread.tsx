@@ -113,6 +113,8 @@ export function LinearCardSpread({
     onPartialSelect,
     onProvideShuffle,
     onProvideRandomPick,
+    onProvideSelectByIndices,
+    swipeLabel,
 }: {
     cardsToSelect: number
     onCardsSelected: (cards: BasicCard[]) => void
@@ -123,6 +125,8 @@ export function LinearCardSpread({
     ) => void
     onProvideShuffle?: (fn: () => void, isShuffling?: boolean) => void
     onProvideRandomPick?: (fn: () => void, isPicking?: boolean) => void
+    onProvideSelectByIndices?: (fn: (indices: number[]) => void) => void
+    swipeLabel?: string
 }) {
     const t = useTranslations("ReadingPage.chooseCards")
     const initialDeck = useMemo(() => shuffle(TAROT_DECK), [])
@@ -292,8 +296,49 @@ export function LinearCardSpread({
     useEffect(() => {
         onProvideShuffle?.(shuffleUnselected, isShuffling)
         onProvideRandomPick?.(randomPick, isRandomPicking)
+        onProvideSelectByIndices?.((indices) => {
+            if (!Array.isArray(indices) || indices.length === 0) return
+            if (selected.length >= cardsToSelect) return
+
+            const uniqueIndices = Array.from(
+                new Set(
+                    indices
+                        .map((value) => Math.floor(Number(value)))
+                        .filter((value) => Number.isFinite(value) && value > 0)
+                )
+            )
+
+            if (uniqueIndices.length === 0) return
+
+            const refreshedReversal = new Map(reversalByName)
+            const nextSelected = [...selected]
+            const nextSelectedNames = new Set(selectedNames)
+
+            for (const idx of uniqueIndices) {
+                if (nextSelected.length >= cardsToSelect) break
+                const name = deckList[idx - 1]
+                if (!name || nextSelectedNames.has(name)) continue
+                const mapped = refreshedReversal.get(name)
+                const isReversed = mapped != null ? mapped : Math.random() < 0.5
+                refreshedReversal.set(name, isReversed)
+                const nextCard = { name, isReversed }
+                nextSelected.push(nextCard)
+                nextSelectedNames.add(name)
+                pendingPartialRef.current = {
+                    card: nextCard,
+                    action: "add",
+                    count: nextSelected.length,
+                }
+            }
+
+            if (nextSelected.length === selected.length) return
+            setReversalByName(refreshedReversal)
+            setSelected(nextSelected)
+            setSelectedNames(nextSelectedNames)
+            finalizeIfDone(nextSelected)
+        })
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [deckList, reversalByName, selected, isShuffling, isRandomPicking])
+    }, [deckList, reversalByName, selected, selectedNames, isShuffling, isRandomPicking])
 
     // Prevent macOS trackpad horizontal swipe from triggering browser back/forward
     // when interacting with this horizontal deck.
@@ -641,7 +686,7 @@ export function LinearCardSpread({
                                         onPointerUp={handleUp}
                                         onPointerCancel={handleUp}
                                         role='button'
-                                        aria-label='Swipe up to select card'
+                                        aria-label={swipeLabel ?? t("swipeUpToSelect")}
                                     >
                                         <div className='w-full h-full rounded-[14px] bg-white p-[3px]'>
                                             <div
@@ -686,11 +731,12 @@ export function LinearCardSpread({
                         }
                     })()}
                     onRecenter={(c) => setOverlayCenter(c)}
+                    label={swipeLabel}
                 />
                 </div>
             </div>
             <p className='mt-4 text-xs text-muted-foreground w-full text-center'>
-                {t("swipeUpToSelect")}
+                {swipeLabel ?? t("swipeUpToSelect")}
             </p>
         </>
     )
