@@ -62,10 +62,15 @@ export async function POST(request: Request) {
             )
         }
 
-        const updated = (await stripe.subscriptions.update(subscription.id, {
+        const updated = await stripe.subscriptions.update(subscription.id, {
             items: [{ id: item.id, price: priceId }],
             proration_behavior: "always_invoice",
-        })) as Stripe.Subscription
+        })
+        const updatedSubscription = updated as Stripe.Subscription & {
+            current_period_start?: number | null
+            current_period_end?: number | null
+            cancel_at_period_end?: boolean | null
+        }
 
         const planKey = getPlanKeyFromPriceId(priceId)
         if (planKey) {
@@ -73,18 +78,20 @@ export async function POST(request: Request) {
                 .from("billing_subscriptions")
                 .update({
                     plan: planKey,
-                    status: updated.status ?? "active",
-                    current_period_start: updated.current_period_start
+                    status: updatedSubscription.status ?? "active",
+                    current_period_start:
+                        updatedSubscription.current_period_start
                         ? new Date(
-                              updated.current_period_start * 1000
+                              updatedSubscription.current_period_start * 1000
                           ).toISOString()
                         : null,
-                    current_period_end: updated.current_period_end
+                    current_period_end: updatedSubscription.current_period_end
                         ? new Date(
-                              updated.current_period_end * 1000
+                              updatedSubscription.current_period_end * 1000
                           ).toISOString()
                         : null,
-                    cancel_at_period_end: updated.cancel_at_period_end ?? false,
+                    cancel_at_period_end:
+                        updatedSubscription.cancel_at_period_end ?? false,
                     updated_at: new Date().toISOString(),
                 })
                 .eq("id", subRow.id)
