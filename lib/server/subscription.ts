@@ -10,7 +10,9 @@ export type ActiveSubscriptionInfo = {
     planKey: string
     tier: SubscriptionPlanTier
     cycle: BillingCycle
-    stars: number
+    baseStars: number
+    addonStars: number
+    totalStars: number
     currentPeriodStart: number | null
     currentPeriodEnd: number | null
     cancelAtPeriodEnd: boolean
@@ -24,7 +26,7 @@ export async function getActiveSubscriptionInfo(
     const { data, error } = await supabaseAdmin
         .from("billing_subscriptions")
         .select(
-            "plan, status, current_period_start, current_period_end, cancel_at_period_end"
+            "plan, status, current_period_start, current_period_end, cancel_at_period_end, addon_stars"
         )
         .eq("user_id", userId)
         .in("status", ["active", "trialing", "canceled", "cancelled"])
@@ -45,11 +47,18 @@ export async function getActiveSubscriptionInfo(
         return null
     }
 
+    const baseStars = getPlanStars(planInfo.tier, planInfo.cycle)
+    const addonStars =
+        typeof data.addon_stars === "number" ? data.addon_stars : 0
+    const totalStars = baseStars + addonStars
+
     return {
         planKey: data.plan,
         tier: planInfo.tier,
         cycle: planInfo.cycle,
-        stars: getPlanStars(planInfo.tier, planInfo.cycle),
+        baseStars,
+        addonStars,
+        totalStars,
         currentPeriodStart: data.current_period_start
             ? new Date(data.current_period_start).getTime()
             : null,

@@ -12,7 +12,6 @@ import React, {
 } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { useActiveSubscription } from "@/hooks/use-active-subscription"
-import { getPlanStars } from "@/lib/payments/subscription-plans"
 import { starAdd, starGetOrCreate, starSpend, starSet } from "@/lib/stars"
 import {
     hasCookieConsent,
@@ -36,6 +35,9 @@ interface StarsContextType {
         planKey: string
         tier: "basic" | "pro"
         cycle: "monthly" | "annual"
+        baseStars: number
+        addonStars: number
+        totalStars: number
         currentPeriodStart: number | null
         currentPeriodEnd: number | null
         cancelAtPeriodEnd: boolean
@@ -62,7 +64,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         useActiveSubscription()
 
     const refillCap = subscription
-        ? getPlanStars(subscription.tier, subscription.cycle)
+        ? subscription.totalStars
         : user
           ? 12
           : 5

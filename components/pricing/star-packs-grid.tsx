@@ -142,7 +142,7 @@ export default function StarPacksGrid({
                                 </ul>
 
                                 <Checkout
-                                    mode='pack'
+                                    mode='addon'
                                     packId={p.id}
                                     currency={currency}
                                     className='w-full'

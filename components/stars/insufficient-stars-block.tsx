@@ -98,7 +98,7 @@ export default function InsufficientStarsBlock() {
                                                 className="!w-[180px]"
                                             >
                                                 <Checkout
-                                                    mode="pack"
+                                                    mode="addon"
                                                     packId={p.id ?? ""}
                                                     currency={currency}
                                                     customTrigger={

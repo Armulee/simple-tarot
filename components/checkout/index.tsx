@@ -19,8 +19,9 @@ import {
     type CurrencyCode,
 } from "@/lib/payments/currency-utils"
 import { usePathname } from "@/i18n/navigation"
+import { supabase } from "@/lib/supabase"
 
-type CheckoutMode = "pack" | "subscribe"
+type CheckoutMode = "pack" | "subscribe" | "addon"
 
 type CheckoutProps = {
     mode: CheckoutMode
@@ -92,6 +93,42 @@ export function Checkout({
             setProcessing(true)
             toastId = toast.loading(t("redirecting"))
 
+            if (mode === "addon") {
+                const {
+                    data: { session },
+                } = await supabase.auth.getSession()
+                if (!session?.access_token) {
+                    throw new Error("AUTH_REQUIRED")
+                }
+                const response = await fetch(
+                    "/api/billing/subscription/addon",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${session.access_token}`,
+                        },
+                        body: JSON.stringify({
+                            priceId: packId,
+                            action: "add",
+                        }),
+                    }
+                )
+                const data = await response.json().catch(() => ({}))
+                if (!response.ok) {
+                    throw new Error(
+                        data?.error || data?.message || "ADDON_ERROR"
+                    )
+                }
+                toast.success(t("addonSuccess") || "Add-on added")
+                if (typeof window !== "undefined") {
+                    window.dispatchEvent(
+                        new CustomEvent("stars-balance-updated")
+                    )
+                }
+                return
+            }
+
             const payload: Record<string, unknown> = {
                 mode,
                 locale,
@@ -111,7 +148,8 @@ export function Checkout({
             const data = await response.json()
 
             if (!response.ok) {
-                const errorMessage = data?.error || data?.message || "SESSION_ERROR"
+                const errorMessage =
+                    data?.error || data?.message || "SESSION_ERROR"
                 console.error("Checkout session error:", errorMessage, data)
                 throw new Error(errorMessage)
             }
@@ -122,7 +160,12 @@ export function Checkout({
                 throw new Error("SESSION_URL_MISSING")
             }
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : t("sessionError")
+            const errorMessage =
+                error instanceof Error && error.message === "AUTH_REQUIRED"
+                    ? t("signInToSubscribe")
+                    : error instanceof Error
+                      ? error.message
+                      : t("sessionError")
             toast.error(errorMessage)
             console.error("Checkout error:", error)
         } finally {
@@ -180,7 +223,9 @@ export function Checkout({
                       ? t("unavailable", { defaultValue: "Unavailable" })
                       : mode === "pack"
                         ? t("purchase")
-                        : t("subscribe")}
+                        : mode === "addon"
+                          ? t("addOn")
+                          : t("subscribe")}
             </Button>
         )
     }

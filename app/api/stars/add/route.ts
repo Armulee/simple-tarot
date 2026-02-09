@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
                 !lastRefillMs ||
                 lastRefillMs < subscription.currentPeriodStart
             ) {
-                const nextBalance = Math.max(current, subscription.stars)
+                const nextBalance = Math.max(current, subscription.totalStars)
                 const targetRefillAt = new Date(
                     subscription.currentPeriodStart
                 ).toISOString()
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
                 }
             }
         }
-        const cap = subscription?.stars ?? 12
+        const cap = subscription?.totalStars ?? 12
         const next =
             current >= cap
                 ? current

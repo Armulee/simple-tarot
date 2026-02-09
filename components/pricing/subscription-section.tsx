@@ -7,18 +7,10 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Checkout } from "@/components/checkout"
 import { useAuth } from "@/hooks/use-auth"
+import { useStars } from "@/contexts/stars-context"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+import { PlanChangeDialog } from "@/components/subscription/plan-change-dialog"
 import {
     convertUsdToCurrency,
     formatCurrency,
@@ -27,6 +19,7 @@ import {
 import {
     SUBSCRIPTION_PLANS,
     getPlanPriceUsd,
+    getPlanStars,
     parseSubscriptionPlanKey,
     type BillingCycle,
     type SubscriptionPlanTier,
@@ -40,7 +33,10 @@ type SubscriptionSectionProps = {
 type PlanChangePrompt = {
     priceId: string
     action: "upgrade" | "downgrade"
+    targetTier: SubscriptionPlanTier
+    targetCycle: BillingCycle
     targetPriceUsd: number
+    targetStars: number
 }
 
 export default function SubscriptionSection({
@@ -49,6 +45,7 @@ export default function SubscriptionSection({
 }: SubscriptionSectionProps) {
     const t = useTranslations("Pricing")
     const { user } = useAuth()
+    const { stars, subscription } = useStars()
     const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly")
     const [activePlan, setActivePlan] = useState<{
         tier: SubscriptionPlanTier
@@ -152,6 +149,50 @@ export default function SubscriptionSection({
         setPendingChange(null)
         await handleUpgrade(priceId)
     }
+
+    const formatRefillDate = (timestamp?: number | null) => {
+        if (!timestamp) return "-"
+        return new Intl.DateTimeFormat("en-US", {
+            month: "short",
+            day: "2-digit",
+            year: "numeric",
+        }).format(new Date(timestamp))
+    }
+
+    const currentPlanStars = activePlan
+        ? getPlanStars(activePlan.tier, activePlan.cycle)
+        : 0
+    const currentPlanName = activePlan
+        ? `${t(activePlan.tier === "basic" ? "basicPlan" : "proPlan")} · ${
+              activePlan.cycle === "annual" ? t("yearly") : t("monthly")
+          }`
+        : "-"
+    const targetPlanName = pendingChange
+        ? `${t(pendingChange.targetTier === "basic" ? "basicPlan" : "proPlan")} · ${
+              pendingChange.targetCycle === "annual" ? t("yearly") : t("monthly")
+          }`
+        : "-"
+    const currentPlanPriceLabel = activePlan
+        ? formatFromUsd(getPlanPriceUsd(activePlan.tier, activePlan.cycle))
+        : "-"
+    const targetPlanPriceLabel = pendingChange
+        ? formatFromUsd(pendingChange.targetPriceUsd)
+        : "-"
+    const differenceUsd = pendingChange
+        ? Math.max(0, pendingChange.targetPriceUsd - (currentPlanPrice ?? 0))
+        : 0
+    const differenceLabel = formatFromUsd(differenceUsd)
+    const refillDateLabel = formatRefillDate(subscription?.currentPeriodEnd)
+    const currentStarsValue = typeof stars === "number" ? stars : 0
+    const projectedStarsValue = pendingChange
+        ? pendingChange.action === "upgrade"
+            ? Math.max(
+                  0,
+                  currentStarsValue +
+                      (pendingChange.targetStars - currentPlanStars)
+              )
+            : pendingChange.targetStars
+        : currentStarsValue
 
     return (
         <Card className='relative overflow-hidden p-6 rounded-xl bg-card/10 border-border/20'>
@@ -323,7 +364,11 @@ export default function SubscriptionSection({
                                             action: isDowngrade
                                                 ? "downgrade"
                                                 : "upgrade",
+                                            targetTier:
+                                                plan.id as SubscriptionPlanTier,
+                                            targetCycle: billingCycle,
                                             targetPriceUsd,
+                                            targetStars: billing?.stars ?? 0,
                                         })
                                     }
                                     aria-busy={upgradeTarget === priceId}
@@ -348,56 +393,59 @@ export default function SubscriptionSection({
                 })}
             </div>
 
-            <AlertDialog
+            <PlanChangeDialog
                 open={Boolean(pendingChange)}
                 onOpenChange={(open) => {
                     if (!open) setPendingChange(null)
                 }}
-            >
-                <AlertDialogContent className='bg-background/95 backdrop-blur-sm border border-border/50'>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle className='text-white font-semibold'>
-                            {pendingChange?.action === "downgrade"
-                                ? t("planChange.downgradeTitle")
-                                : t("planChange.upgradeTitle")}
-                        </AlertDialogTitle>
-                        <AlertDialogDescription className='text-muted-foreground'>
-                            {pendingChange?.action === "downgrade"
-                                ? t("planChange.downgradeDescription")
-                                : t("planChange.upgradeDescription", {
-                                      amount: formatFromUsd(
-                                          Math.max(
-                                              0,
-                                              (pendingChange?.targetPriceUsd ??
-                                                  0) -
-                                                  (currentPlanPrice ?? 0)
-                                          )
-                                      ),
-                                  })}
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel className='border-border/40 text-muted-foreground hover:bg-background/20'>
-                            {t("planChange.cancel")}
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={confirmPlanChange}
-                            disabled={
-                                !pendingChange ||
-                                (upgradeTarget != null &&
-                                    upgradeTarget === pendingChange.priceId)
-                            }
-                            className={
-                                pendingChange?.action === "downgrade"
-                                    ? "bg-red-700 hover:bg-red-800 text-white"
-                                    : "bg-indigo-600 hover:bg-indigo-700 text-white"
-                            }
-                        >
-                            {t("planChange.confirm")}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+                onConfirm={confirmPlanChange}
+                confirmDisabled={
+                    !pendingChange ||
+                    (upgradeTarget != null &&
+                        upgradeTarget === pendingChange.priceId)
+                }
+                action={pendingChange?.action ?? "upgrade"}
+                title={
+                    pendingChange?.action === "downgrade"
+                        ? t("planChange.downgradeTitle")
+                        : t("planChange.upgradeTitle")
+                }
+                description={
+                    pendingChange?.action === "downgrade"
+                        ? t("planChange.downgradeDescription")
+                        : t("planChange.upgradeDescription", {
+                              amount: differenceLabel,
+                          })
+                }
+                summaryTitle={t("planChange.summaryTitle")}
+                starsTitle={t("planChange.starsSummaryTitle")}
+                currentPlanLabel={t("planChange.currentPlanLabel")}
+                targetPlanLabel={t("planChange.targetPlanLabel")}
+                differenceLabel={t("planChange.differenceLabel")}
+                refillLabel={t("planChange.refillLabel")}
+                currentStarsLabel={t("planChange.currentStarsLabel")}
+                projectedStarsLabel={t("planChange.projectedStarsLabel")}
+                currentPlan={{
+                    name: currentPlanName,
+                    price: currentPlanPriceLabel,
+                    stars: currentPlanStars,
+                }}
+                targetPlan={{
+                    name: targetPlanName,
+                    price: targetPlanPriceLabel,
+                    stars: pendingChange?.targetStars ?? 0,
+                }}
+                differenceValue={differenceLabel}
+                refillDateValue={refillDateLabel}
+                currentStarsValue={`${currentStarsValue} / ${currentPlanStars}`}
+                projectedStarsValue={
+                    pendingChange
+                        ? `${projectedStarsValue} / ${pendingChange.targetStars}`
+                        : `${currentStarsValue}`
+                }
+                confirmLabel={t("planChange.confirm")}
+                cancelLabel={t("planChange.cancel")}
+            />
         </Card>
     )
 }

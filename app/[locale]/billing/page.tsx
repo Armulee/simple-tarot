@@ -35,7 +35,11 @@ import { format } from "date-fns"
 import { useRouter } from "next/navigation"
 import BrandLoader from "@/components/brand-loader"
 import { useStars } from "@/contexts/stars-context"
-import { getPlanStars, parseSubscriptionPlanKey } from "@/lib/payments/subscription-plans"
+import {
+    getPlanPriceUsd,
+    getPlanStars,
+    parseSubscriptionPlanKey,
+} from "@/lib/payments/subscription-plans"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -60,12 +64,26 @@ type Tx = {
     subscription_id?: string | null
 }
 
+type AddonItem = {
+    priceId: string
+    name: string
+    quantity: number
+    unitPriceUsd: number
+    totalPriceUsd: number
+    starsPerPeriod: number
+    totalStars: number
+}
+
 type Subscription = {
     id: string
     status: string
     current_period_end: string
     cancel_at_period_end: boolean
     plan: string
+    addon_items?: AddonItem[] | null
+    addon_stars?: number | null
+    addon_amount_usd?: number | null
+    provider_customer_id?: string | null
 }
 
 export default function BillingPage() {
@@ -79,6 +97,10 @@ export default function BillingPage() {
     const [cancelling, setCancelling] = useState(false)
     const [showCancelDialog, setShowCancelDialog] = useState(false)
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
+    const [portalLoading, setPortalLoading] = useState(false)
+    const [addonRemoveTarget, setAddonRemoveTarget] =
+        useState<AddonItem | null>(null)
+    const [addonRemoving, setAddonRemoving] = useState(false)
 
     // Auth guard: redirect to signin if not logged in
     useEffect(() => {
@@ -108,7 +130,7 @@ export default function BillingPage() {
             const { data: subData } = await supabase
                 .from("billing_subscriptions")
                 .select(
-                    "id, status, current_period_end, cancel_at_period_end, plan"
+                    "id, status, current_period_end, cancel_at_period_end, plan, addon_items, addon_stars, addon_amount_usd, provider_customer_id"
                 )
                 .eq("user_id", user.id)
                 .eq("status", "active")
@@ -162,6 +184,86 @@ export default function BillingPage() {
         }
     }
 
+    const handleManagePaymentMethod = async () => {
+        if (!user || portalLoading) return
+        setPortalLoading(true)
+        try {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession()
+            if (!session?.access_token) {
+                throw new Error("AUTH_REQUIRED")
+            }
+            const response = await fetch("/api/billing/portal", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${session.access_token}`,
+                },
+            })
+            const data = await response.json().catch(() => ({}))
+            if (!response.ok) {
+                throw new Error(data?.error || "PORTAL_ERROR")
+            }
+            if (data?.url) {
+                window.location.assign(data.url)
+            } else {
+                throw new Error("PORTAL_URL_MISSING")
+            }
+        } catch (error) {
+            const message =
+                error instanceof Error && error.message === "AUTH_REQUIRED"
+                    ? t("authRequired") || "Please sign in"
+                    : error instanceof Error
+                      ? error.message
+                      : "Portal error"
+            toast.error(message)
+        } finally {
+            setPortalLoading(false)
+        }
+    }
+
+    const handleRemoveAddon = async () => {
+        if (!user || !addonRemoveTarget) return
+        setAddonRemoving(true)
+        try {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession()
+            if (!session?.access_token) {
+                throw new Error("AUTH_REQUIRED")
+            }
+            const response = await fetch("/api/billing/subscription/addon", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify({
+                    priceId: addonRemoveTarget.priceId,
+                    action: "remove",
+                }),
+            })
+            const data = await response.json().catch(() => ({}))
+            if (!response.ok) {
+                throw new Error(data?.error || "ADDON_REMOVE_FAILED")
+            }
+            toast.success(t("addonRemoved") || "Add-on removed")
+            fetchBillingData()
+        } catch (error) {
+            const message =
+                error instanceof Error && error.message === "AUTH_REQUIRED"
+                    ? t("authRequired") || "Please sign in"
+                    : error instanceof Error
+                      ? error.message
+                      : t("addonRemoveFailed") || "Failed to remove add-on"
+            toast.error(message)
+        } finally {
+            setAddonRemoving(false)
+            setAddonRemoveTarget(null)
+        }
+    }
+
     // Fetch billing data
     useEffect(() => {
         if (!user || authLoading) return
@@ -207,6 +309,11 @@ export default function BillingPage() {
             full: format(date, "MMM dd, yyyy"),
         }
     }
+    const formatUsd = (amount: number) =>
+        new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+        }).format(amount)
 
     // Group transactions by period
     const groupTransactionsByPeriod = () => {
@@ -259,6 +366,20 @@ export default function BillingPage() {
     const planStars = planInfo
         ? getPlanStars(planInfo.tier, planInfo.cycle)
         : null
+    const planPriceUsd = planInfo
+        ? getPlanPriceUsd(planInfo.tier, planInfo.cycle)
+        : null
+    const addonStars = subscription?.addon_stars ?? 0
+    const totalPlanStars =
+        typeof planStars === "number" ? planStars + addonStars : null
+    const addonAmountUsd = subscription?.addon_amount_usd ?? 0
+    const totalPriceUsd =
+        typeof planPriceUsd === "number"
+            ? planPriceUsd + addonAmountUsd
+            : null
+    const addonItems: AddonItem[] = Array.isArray(subscription?.addon_items)
+        ? subscription?.addon_items ?? []
+        : []
 
     return (
         <div className='min-h-screen pb-20 relative bg-transparent text-white selection:bg-yellow-400/30'>
@@ -353,18 +474,121 @@ export default function BillingPage() {
                                         </div>
                                     </div>
                                 )}
-                                {planStars !== null && (
+                                {totalPlanStars !== null && (
                                     <div className='space-y-1'>
                                         <div className='text-xs text-gray-500 flex items-center gap-1.5'>
                                             <Star className='w-3 h-3 text-yellow-300' />
                                             {t("starsPerPeriod")}
                                         </div>
                                         <div className='text-xl font-semibold text-white'>
-                                            {planStars}
+                                            {totalPlanStars}
                                         </div>
+                                        {addonStars > 0 && (
+                                            <div className='text-[11px] text-emerald-200'>
+                                                +{addonStars} {t("addonStars")}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
+
+                            {subscription && (
+                                <div className='space-y-4'>
+                                    <div className='flex flex-wrap items-center gap-3'>
+                                        <Button
+                                            variant='outline'
+                                            className='rounded-full bg-white/5 border-white/10 hover:bg-white/10 text-white text-xs uppercase tracking-widest'
+                                            onClick={handleManagePaymentMethod}
+                                            disabled={portalLoading}
+                                        >
+                                            {portalLoading ? (
+                                                <Loader2 className='w-3 h-3 animate-spin mr-2' />
+                                            ) : null}
+                                            {t("managePaymentMethod")}
+                                        </Button>
+                                    </div>
+
+                                    <div className='space-y-2'>
+                                        <div className='text-xs text-gray-500 uppercase tracking-wider'>
+                                            {t("addonPacks")}
+                                        </div>
+                                        {addonItems.length > 0 ? (
+                                            <div className='space-y-2'>
+                                                {addonItems.map((item) => (
+                                                    <div
+                                                        key={item.priceId}
+                                                        className='flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/40 px-3 py-2'
+                                                    >
+                                                        <div>
+                                                            <div className='text-sm text-white font-semibold'>
+                                                                {item.name}{" "}
+                                                                <span className='text-xs text-white/60'>
+                                                                    x
+                                                                    {
+                                                                        item.quantity
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                            <div className='text-xs text-gray-400'>
+                                                                +{item.totalStars}{" "}
+                                                                {t("stars")} ·{" "}
+                                                                {formatUsd(
+                                                                    item.totalPriceUsd
+                                                                )}{" "}
+                                                                /
+                                                                {t(
+                                                                    "monthly"
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <Button
+                                                            variant='ghost'
+                                                            size='sm'
+                                                            className='text-[10px] uppercase tracking-widest font-bold text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-full'
+                                                            onClick={() =>
+                                                                setAddonRemoveTarget(
+                                                                    item
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                addonRemoving
+                                                            }
+                                                        >
+                                                            {addonRemoving &&
+                                                            addonRemoveTarget?.priceId ===
+                                                                item.priceId ? (
+                                                                <Loader2 className='w-3 h-3 animate-spin mr-2' />
+                                                            ) : (
+                                                                <XCircle className='w-3 h-3 mr-2' />
+                                                            )}
+                                                            {t("removeAddon")}
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className='text-sm text-white/60'>
+                                                {t("noAddons")}
+                                            </div>
+                                        )}
+                                        {planPriceUsd != null && (
+                                            <div className='pt-2 text-xs text-gray-400'>
+                                                {t("estimatedTotal")}:{" "}
+                                                <span className='text-white'>
+                                                    {formatUsd(
+                                                        totalPriceUsd ??
+                                                            planPriceUsd
+                                                    )}
+                                                </span>{" "}
+                                                /{" "}
+                                                {planInfo?.cycle === "annual"
+                                                    ? t("yearly")
+                                                    : t("monthly")}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Subscription Management */}
                             {!starsInitialized ? (
@@ -717,6 +941,40 @@ export default function BillingPage() {
                                 <Loader2 className='w-4 h-4 animate-spin mr-2' />
                             ) : null}
                             Yes, cancel subscription
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Remove Add-on Confirmation */}
+            <AlertDialog
+                open={Boolean(addonRemoveTarget)}
+                onOpenChange={(open) => {
+                    if (!open) setAddonRemoveTarget(null)
+                }}
+            >
+                <AlertDialogContent className='bg-zinc-900 border-white/10 text-white rounded-[2rem] p-8'>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className='text-2xl font-serif'>
+                            {t("confirmRemoveAddon")}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className='text-zinc-400'>
+                            {t("removeAddonWarning")}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className='gap-3 mt-6'>
+                        <AlertDialogCancel className='rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white'>
+                            {t("keepAddon")}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleRemoveAddon}
+                            className='rounded-full bg-red-500 hover:bg-red-600 text-white border-none'
+                            disabled={addonRemoving}
+                        >
+                            {addonRemoving ? (
+                                <Loader2 className='w-4 h-4 animate-spin mr-2' />
+                            ) : null}
+                            {t("confirmRemoveAddonAction")}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

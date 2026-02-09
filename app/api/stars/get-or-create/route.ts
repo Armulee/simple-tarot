@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
             try {
                 const subscription = await getActiveSubscriptionInfo(userId)
                 if (
-                    subscription?.stars &&
+                    subscription?.totalStars &&
                     subscription.currentPeriodStart &&
                     subscription.currentPeriodStart > 0
                 ) {
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
                     ) {
                         const nextBalance = Math.max(
                             Number(row.current_stars ?? 0),
-                            subscription.stars
+                            subscription.totalStars
                         )
                         const { data: updated } = await supabaseAdmin
                             .from("stars")

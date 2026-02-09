@@ -113,6 +113,7 @@ export default async function Success({
                         current_period_start: number
                         current_period_end: number
                         cancel_at_period_end: boolean
+                        customer?: string | null
                     }
 
                     const isValidSub =
@@ -125,6 +126,14 @@ export default async function Success({
                             typeof subObj.current_period_start === "number"
                                 ? subObj.current_period_start * 1000
                                 : null
+                        const sessionCustomer =
+                            typeof session.customer === "string"
+                                ? session.customer
+                                : null
+                        const subscriptionCustomer =
+                            typeof subObj.customer === "string"
+                                ? subObj.customer
+                                : null
                         const { data: subData, error: subError } =
                             await supabaseAdmin
                                 .from("billing_subscriptions")
@@ -133,6 +142,10 @@ export default async function Success({
                                         user_id: userId,
                                         provider: "stripe",
                                         provider_subscription_id: subObj.id,
+                                        provider_customer_id:
+                                            subscriptionCustomer ??
+                                            sessionCustomer ??
+                                            null,
                                         plan: planKey ?? null,
                                         status: subObj.status || "active",
                                         current_period_start:
@@ -158,6 +171,9 @@ export default async function Success({
                                                   ).toISOString(),
                                         cancel_at_period_end:
                                             subObj.cancel_at_period_end || false,
+                                        addon_stars: 0,
+                                        addon_amount_usd: 0,
+                                        addon_items: [],
                                         updated_at: new Date().toISOString(),
                                     },
                                     {

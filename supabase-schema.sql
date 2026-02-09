@@ -347,11 +347,15 @@ grant execute on function public.star_add(text, integer, uuid) to anon, authenti
   user_id uuid not null references auth.users(id) on delete cascade,
     provider text not null default 'manual',
   provider_subscription_id text unique,
+  provider_customer_id text,
   plan text,
   status text not null default 'active',
   current_period_start timestamptz,
   current_period_end timestamptz,
   cancel_at_period_end boolean not null default false,
+  addon_stars integer not null default 0,
+  addon_amount_usd numeric not null default 0,
+  addon_items jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

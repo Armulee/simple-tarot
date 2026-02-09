@@ -54,8 +54,11 @@ export async function POST(request: Request) {
         const subscription = await stripe.subscriptions.retrieve(
             subRow.provider_subscription_id
         )
-        const item = subscription.items.data[0]
-        if (!item?.id) {
+        const planItem =
+            subscription.items.data.find(
+                (entry) => getPlanKeyFromPriceId(entry.price?.id ?? null)
+            ) ?? subscription.items.data[0]
+        if (!planItem?.id) {
             return NextResponse.json(
                 { error: "Subscription item not found" },
                 { status: 400 }
@@ -63,7 +66,7 @@ export async function POST(request: Request) {
         }
 
         const nextPrice = await stripe.prices.retrieve(priceId)
-        const currentAmount = item.price?.unit_amount ?? null
+        const currentAmount = planItem.price?.unit_amount ?? null
         const nextAmount = nextPrice.unit_amount ?? null
         const isDowngrade =
             typeof currentAmount === "number" &&
@@ -71,14 +74,15 @@ export async function POST(request: Request) {
             nextAmount < currentAmount
 
         const updated = await stripe.subscriptions.update(subscription.id, {
-            items: [{ id: item.id, price: priceId }],
+            items: [{ id: planItem.id, price: priceId }],
             proration_behavior: isDowngrade ? "none" : "always_invoice",
-            billing_cycle_anchor: isDowngrade ? "unchanged" : undefined,
+            billing_cycle_anchor: "unchanged",
         })
         const updatedSubscription = updated as Stripe.Subscription & {
             current_period_start?: number | null
             current_period_end?: number | null
             cancel_at_period_end?: boolean | null
+            customer?: string | null
         }
 
         const planKey = getPlanKeyFromPriceId(priceId)
@@ -101,6 +105,10 @@ export async function POST(request: Request) {
                         : null,
                     cancel_at_period_end:
                         updatedSubscription.cancel_at_period_end ?? false,
+                    provider_customer_id:
+                        typeof updatedSubscription.customer === "string"
+                            ? updatedSubscription.customer
+                            : undefined,
                     updated_at: new Date().toISOString(),
                 })
                 .eq("id", subRow.id)

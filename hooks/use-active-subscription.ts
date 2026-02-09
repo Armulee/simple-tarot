@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/supabase"
 import {
+    getPlanStars,
     parseSubscriptionPlanKey,
     type BillingCycle,
     type SubscriptionPlanTier,
@@ -12,6 +13,9 @@ type ActiveSubscription = {
     planKey: string
     tier: SubscriptionPlanTier
     cycle: BillingCycle
+    baseStars: number
+    addonStars: number
+    totalStars: number
     status: string
     currentPeriodStart: number | null
     currentPeriodEnd: number | null
@@ -35,7 +39,7 @@ export function useActiveSubscription() {
             const { data, error } = await supabase
                 .from("billing_subscriptions")
                 .select(
-                    "id, plan, status, current_period_start, current_period_end, cancel_at_period_end"
+                    "id, plan, status, current_period_start, current_period_end, cancel_at_period_end, addon_stars"
                 )
                 .eq("user_id", user.id)
                 .in("status", ["active", "trialing", "canceled", "cancelled"])
@@ -65,11 +69,19 @@ export function useActiveSubscription() {
                 return
             }
 
+            const baseStars = getPlanStars(planInfo.tier, planInfo.cycle)
+            const addonStars =
+                typeof data.addon_stars === "number" ? data.addon_stars : 0
+            const totalStars = baseStars + addonStars
+
             setSubscription({
                 id: data.id,
                 planKey: data.plan,
                 tier: planInfo.tier,
                 cycle: planInfo.cycle,
+                baseStars,
+                addonStars,
+                totalStars,
                 status: data.status,
                 currentPeriodStart: data.current_period_start
                     ? new Date(data.current_period_start).getTime()

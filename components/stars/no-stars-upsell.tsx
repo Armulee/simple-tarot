@@ -83,7 +83,7 @@ export default function NoStarsUpsell() {
                                             className='!w-[172px]'
                                         >
                                             <Checkout
-                                                mode='pack'
+                                                mode='addon'
                                                 packId={p.id ?? ""}
                                                 currency={currency}
                                                 customTrigger={

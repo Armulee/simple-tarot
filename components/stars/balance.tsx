@@ -1,7 +1,6 @@
 "use client"
 
-import { Star, LogIn } from "lucide-react"
-import { Clock } from "lucide-react"
+import { Clock, LogIn, Star } from "lucide-react"
 import { useStars } from "@/contexts/stars-context"
 import { useEffect, useMemo, useState } from "react"
 import { useAuth } from "@/hooks/use-auth"
@@ -10,8 +9,7 @@ import { useTranslations } from "next-intl"
 import Link from "next/link"
 
 export default function StarsBalance() {
-    const { stars, nextRefillAt, refillCap, refillCycleMs, subscription } =
-        useStars()
+    const { stars, nextRefillAt, refillCap, subscription } = useStars()
     const { user } = useAuth()
     const t = useTranslations()
 
@@ -29,14 +27,22 @@ export default function StarsBalance() {
         return formatRelativeTime(nextRefillAt, now)
     }, [nextRefillAt, now, subscription?.currentPeriodEnd])
 
-    const remainingMs = Math.max(0, (nextRefillAt ?? 0) - now)
-    const stepMs = refillCycleMs ?? (user ? 2 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000)
-    const timeProgress = Math.min(
-        100,
-        Math.max(0, 100 - (remainingMs / Math.max(1, stepMs)) * 100)
-    )
-    const progress =
-        typeof stars === "number" && stars >= refillCap ? 100 : timeProgress
+    const currentStars = typeof stars === "number" ? stars : 0
+    const baseCap = subscription?.baseStars ?? refillCap
+    const addonCap = subscription?.addonStars ?? 0
+    const baseAvailable = Math.min(currentStars, baseCap)
+    const addonAvailable = Math.max(0, currentStars - baseCap)
+    const baseProgress =
+        baseCap > 0 ? Math.min(100, (baseAvailable / baseCap) * 100) : 0
+    const addonProgress =
+        addonCap > 0 ? Math.min(100, (addonAvailable / addonCap) * 100) : 0
+    const planLabel = subscription
+        ? `${t(`Pricing.${subscription.tier}Plan`)} · ${
+              subscription.cycle === "annual"
+                  ? t("Pricing.yearly")
+                  : t("Pricing.monthly")
+          }`
+        : null
     return (
         <StarCard>
             <div className='relative flex flex-col items-center text-center gap-6'>
@@ -60,6 +66,11 @@ export default function StarsBalance() {
                         <p className='text-5xl md:text-6xl font-bold text-white tracking-tight bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 bg-clip-text text-transparent'>
                             {stars}
                         </p>
+                        {planLabel ? (
+                            <p className='mt-2 text-xs text-gray-400'>
+                                {t("StarsBalance.planLabel", { plan: planLabel })}
+                            </p>
+                        ) : null}
                     </div>
                 </div>
 
@@ -76,21 +87,32 @@ export default function StarsBalance() {
                         </div>
                     </div>
 
-                    {/* Enhanced Progress Bar */}
-                    <div className='relative h-3 w-full rounded-full bg-gradient-to-r from-gray-800/50 to-gray-700/50 overflow-hidden border border-gray-600/30'>
-                        <div
-                            className='h-full bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 rounded-full transition-all duration-1000 ease-out relative overflow-hidden'
-                            style={{ width: `${progress}%` }}
-                        >
-                            {/* Animated shine effect */}
-                            <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse' />
-                        </div>
-                        {/* Progress glow */}
-                        <div
-                            className='absolute top-0 h-full bg-gradient-to-r from-yellow-400/50 via-amber-500/50 to-orange-500/50 blur-sm transition-all duration-1000 ease-out'
-                            style={{ width: `${progress}%` }}
+                    {/* Plan Balance Gauge */}
+                    <StarsGauge
+                        label={
+                            subscription
+                                ? t("StarsBalance.planBalance", {
+                                      current: baseAvailable,
+                                      total: baseCap,
+                                  })
+                                : t("StarsBalance.balance", {
+                                      current: baseAvailable,
+                                      total: baseCap,
+                                  })
+                        }
+                        progress={baseProgress}
+                    />
+
+                    {subscription?.tier === "pro" && addonCap > 0 && (
+                        <StarsGauge
+                            label={t("StarsBalance.addonBalance", {
+                                current: addonAvailable,
+                                total: addonCap,
+                            })}
+                            progress={addonProgress}
+                            accent='emerald'
                         />
-                    </div>
+                    )}
 
                     {/* Enhanced Description */}
                     <div className='p-4 rounded-xl bg-gradient-to-r from-white/5 to-white/10 border border-white/10 backdrop-blur-sm'>
@@ -154,10 +176,50 @@ function formatRelativeTime(
 }
 
 function formatRefillDate(timestamp: number): string {
-    const date = new Date(timestamp)
-    const month = String(date.getMonth() + 1).padStart(2, "0")
-    const day = String(date.getDate()).padStart(2, "0")
-    const year = date.getFullYear()
-    return `${month} ${day}, ${year}`
+    const formatter = new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+    })
+    return formatter.format(new Date(timestamp))
+}
+
+function StarsGauge({
+    label,
+    progress,
+    accent = "amber",
+}: {
+    label: string
+    progress: number
+    accent?: "amber" | "emerald"
+}) {
+    const gradient =
+        accent === "emerald"
+            ? "from-emerald-400 via-emerald-500 to-emerald-600"
+            : "from-yellow-400 via-amber-500 to-orange-500"
+    const glow =
+        accent === "emerald"
+            ? "from-emerald-400/50 via-emerald-500/50 to-emerald-600/50"
+            : "from-yellow-400/50 via-amber-500/50 to-orange-500/50"
+
+    return (
+        <div className='space-y-2'>
+            <div className='flex items-center justify-between text-xs text-gray-400'>
+                <span>{label}</span>
+            </div>
+            <div className='relative h-3 w-full rounded-full bg-gradient-to-r from-gray-800/50 to-gray-700/50 overflow-hidden border border-gray-600/30'>
+                <div
+                    className={`h-full bg-gradient-to-r ${gradient} rounded-full transition-all duration-700 ease-out relative overflow-hidden`}
+                    style={{ width: `${progress}%` }}
+                >
+                    <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse' />
+                </div>
+                <div
+                    className={`absolute top-0 h-full bg-gradient-to-r ${glow} blur-sm transition-all duration-700 ease-out`}
+                    style={{ width: `${progress}%` }}
+                />
+            </div>
+        </div>
+    )
 }
 

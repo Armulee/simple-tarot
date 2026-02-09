@@ -31,19 +31,11 @@ import { useProfile } from "@/contexts/profile-context"
 import { useStars } from "@/contexts/stars-context"
 import { Progress } from "@/components/ui/progress"
 import { supabase } from "@/lib/supabase"
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+import { PlanChangeDialog } from "@/components/subscription/plan-change-dialog"
 import {
     SUBSCRIPTION_PLANS,
     getPlanPriceUsd,
+    getPlanStars,
     type BillingCycle,
     type SubscriptionPlanTier,
 } from "@/lib/payments/subscription-plans"
@@ -57,7 +49,10 @@ interface SidebarSheetProps {
 type PlanChangePrompt = {
     priceId: string
     action: "upgrade" | "downgrade"
+    targetTier: SubscriptionPlanTier
+    targetCycle: BillingCycle
     targetPriceUsd: number
+    targetStars: number
 }
 
 export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
@@ -123,6 +118,52 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
             style: "currency",
             currency: "USD",
         }).format(amount)
+    const formatRefillDate = (timestamp?: number | null) => {
+        if (!timestamp) return "-"
+        return new Intl.DateTimeFormat("en-US", {
+            month: "short",
+            day: "2-digit",
+            year: "numeric",
+        }).format(new Date(timestamp))
+    }
+
+    const currentPlanStars = subscription
+        ? getPlanStars(subscription.tier, subscription.cycle)
+        : 0
+    const currentPlanName = subscription
+        ? `${starsT(`subscribe.${subscription.tier}.title`)} · ${
+              subscription.cycle === "annual"
+                  ? starsT("subscribe.annual")
+                  : starsT("subscribe.monthly")
+          }`
+        : "-"
+    const targetPlanName = pendingChange
+        ? `${starsT(`subscribe.${pendingChange.targetTier}.title`)} · ${
+              pendingChange.targetCycle === "annual"
+                  ? starsT("subscribe.annual")
+                  : starsT("subscribe.monthly")
+          }`
+        : "-"
+    const currentPlanPriceLabel =
+        currentPlanPrice != null ? formatUsd(currentPlanPrice) : "-"
+    const targetPlanPriceLabel = pendingChange
+        ? formatUsd(pendingChange.targetPriceUsd)
+        : "-"
+    const differenceUsd = pendingChange
+        ? Math.max(0, pendingChange.targetPriceUsd - (currentPlanPrice ?? 0))
+        : 0
+    const differenceLabel = formatUsd(differenceUsd)
+    const refillDateLabel = formatRefillDate(subscription?.currentPeriodEnd)
+    const currentStarsValue = typeof stars === "number" ? stars : 0
+    const projectedStarsValue = pendingChange
+        ? pendingChange.action === "upgrade"
+            ? Math.max(
+                  0,
+                  currentStarsValue +
+                      (pendingChange.targetStars - currentPlanStars)
+              )
+            : pendingChange.targetStars
+        : currentStarsValue
 
     useEffect(() => {
         if (subscription?.cycle) {
@@ -413,7 +454,16 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                                             action: isDowngrade
                                                                                 ? "downgrade"
                                                                                 : "upgrade",
+                                                                            targetTier:
+                                                                                plan.id as SubscriptionPlanTier,
+                                                                            targetCycle:
+                                                                                billingCycle,
                                                                             targetPriceUsd,
+                                                                            targetStars:
+                                                                                plan
+                                                                                    .billing?.[
+                                                                                    billingCycle
+                                                                                ]?.stars ?? 0,
                                                                         }
                                                                     )
                                                                 }
@@ -464,78 +514,97 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                             </div>
                                         )}
 
-                                        <AlertDialog
+                                        <PlanChangeDialog
                                             open={Boolean(pendingChange)}
                                             onOpenChange={(open) => {
                                                 if (!open)
                                                     setPendingChange(null)
                                             }}
-                                        >
-                                            <AlertDialogContent className='bg-background/95 backdrop-blur-sm border border-border/50'>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle className='text-white font-semibold'>
-                                                        {pendingChange?.action ===
-                                                        "downgrade"
-                                                            ? starsT(
-                                                                  "subscribe.downgradeDialogTitle"
-                                                              )
-                                                            : starsT(
-                                                                  "subscribe.upgradeDialogTitle"
-                                                              )}
-                                                    </AlertDialogTitle>
-                                                    <AlertDialogDescription className='text-muted-foreground'>
-                                                        {pendingChange?.action ===
-                                                        "downgrade"
-                                                            ? starsT(
-                                                                  "subscribe.downgradeDialogDescription"
-                                                              )
-                                                            : starsT(
-                                                                  "subscribe.upgradeDialogDescription",
-                                                                  {
-                                                                      amount: formatUsd(
-                                                                          Math.max(
-                                                                              0,
-                                                                              (pendingChange?.targetPriceUsd ??
-                                                                                  0) -
-                                                                                  (currentPlanPrice ??
-                                                                                      0)
-                                                                          )
-                                                                      ),
-                                                                  }
-                                                              )}
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel className='border-border/40 text-muted-foreground hover:bg-background/20'>
-                                                        {starsT(
-                                                            "subscribe.dialogCancel"
-                                                        )}
-                                                    </AlertDialogCancel>
-                                                    <AlertDialogAction
-                                                        onClick={
-                                                            confirmPlanChange
-                                                        }
-                                                        disabled={
-                                                            !pendingChange ||
-                                                            (planChangeTarget !=
-                                                                null &&
-                                                                planChangeTarget ===
-                                                                    pendingChange.priceId)
-                                                        }
-                                                        className={
-                                                            pendingChange?.action ===
-                                                            "downgrade"
-                                                                ? "bg-red-700 hover:bg-red-800 text-white"
-                                                                : "bg-yellow-500 hover:bg-yellow-600 text-black"
-                                                        }
-                                                    >
-                                                        {starsT(
-                                                            "subscribe.dialogConfirm"
-                                                        )}
-                                                    </AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
+                                            onConfirm={confirmPlanChange}
+                                            confirmDisabled={
+                                                !pendingChange ||
+                                                (planChangeTarget != null &&
+                                                    planChangeTarget ===
+                                                        pendingChange.priceId)
+                                            }
+                                            action={
+                                                pendingChange?.action ??
+                                                "upgrade"
+                                            }
+                                            title={
+                                                pendingChange?.action ===
+                                                "downgrade"
+                                                    ? starsT(
+                                                          "subscribe.downgradeDialogTitle"
+                                                      )
+                                                    : starsT(
+                                                          "subscribe.upgradeDialogTitle"
+                                                      )
+                                            }
+                                            description={
+                                                pendingChange?.action ===
+                                                "downgrade"
+                                                    ? starsT(
+                                                          "subscribe.downgradeDialogDescription"
+                                                      )
+                                                    : starsT(
+                                                          "subscribe.upgradeDialogDescription",
+                                                          {
+                                                              amount: differenceLabel,
+                                                          }
+                                                      )
+                                            }
+                                            summaryTitle={starsT(
+                                                "subscribe.summaryTitle"
+                                            )}
+                                            starsTitle={starsT(
+                                                "subscribe.starsSummaryTitle"
+                                            )}
+                                            currentPlanLabel={starsT(
+                                                "subscribe.currentPlanLabel"
+                                            )}
+                                            targetPlanLabel={starsT(
+                                                "subscribe.targetPlanLabel"
+                                            )}
+                                            differenceLabel={starsT(
+                                                "subscribe.differenceLabel"
+                                            )}
+                                            refillLabel={starsT(
+                                                "subscribe.refillLabel"
+                                            )}
+                                            currentStarsLabel={starsT(
+                                                "subscribe.currentStarsLabel"
+                                            )}
+                                            projectedStarsLabel={starsT(
+                                                "subscribe.projectedStarsLabel"
+                                            )}
+                                            currentPlan={{
+                                                name: currentPlanName,
+                                                price: currentPlanPriceLabel,
+                                                stars: currentPlanStars,
+                                            }}
+                                            targetPlan={{
+                                                name: targetPlanName,
+                                                price: targetPlanPriceLabel,
+                                                stars:
+                                                    pendingChange?.targetStars ??
+                                                    0,
+                                            }}
+                                            differenceValue={differenceLabel}
+                                            refillDateValue={refillDateLabel}
+                                            currentStarsValue={`${currentStarsValue} / ${currentPlanStars}`}
+                                            projectedStarsValue={
+                                                pendingChange
+                                                    ? `${projectedStarsValue} / ${pendingChange.targetStars}`
+                                                    : `${currentStarsValue}`
+                                            }
+                                            confirmLabel={starsT(
+                                                "subscribe.dialogConfirm"
+                                            )}
+                                            cancelLabel={starsT(
+                                                "subscribe.dialogCancel"
+                                            )}
+                                        />
 
                                         {!user && (stars ?? 0) <= 0 && (
                                             <div className='mt-3 rounded-lg border border-yellow-500/20 bg-yellow-500/10 px-3 py-2 text-[11px] text-yellow-100'>
