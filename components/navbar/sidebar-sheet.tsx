@@ -14,6 +14,7 @@ import {
     MessageSquare,
     BookOpen,
     Star,
+    ArrowDownRight,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import {
@@ -31,6 +32,16 @@ import { useStars } from "@/contexts/stars-context"
 import { Progress } from "@/components/ui/progress"
 import { supabase } from "@/lib/supabase"
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
     SUBSCRIPTION_PLANS,
     getPlanPriceUsd,
     type BillingCycle,
@@ -41,6 +52,12 @@ import { toast } from "sonner"
 interface SidebarSheetProps {
     open: boolean
     onOpenChange: (open: boolean) => void
+}
+
+type PlanChangePrompt = {
+    priceId: string
+    action: "upgrade" | "downgrade"
+    targetPriceUsd: number
 }
 
 export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
@@ -62,6 +79,9 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
     const [billingCycle, setBillingCycle] =
         useState<BillingCycle>("monthly")
     const [planChangeTarget, setPlanChangeTarget] = useState<string | null>(
+        null
+    )
+    const [pendingChange, setPendingChange] = useState<PlanChangePrompt | null>(
         null
     )
     useEffect(() => {
@@ -98,6 +118,11 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
     const currentPlanPrice = subscription
         ? getPlanPriceUsd(subscription.tier, subscription.cycle)
         : null
+    const formatUsd = (amount: number) =>
+        new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+        }).format(amount)
 
     useEffect(() => {
         if (subscription?.cycle) {
@@ -159,6 +184,13 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
         } finally {
             setPlanChangeTarget(null)
         }
+    }
+
+    const confirmPlanChange = async () => {
+        if (!pendingChange) return
+        const priceId = pendingChange.priceId
+        setPendingChange(null)
+        await handlePlanChange(priceId)
     }
 
     const getUserName = () => {
@@ -357,14 +389,32 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                                 plan.id as SubscriptionPlanTier,
                                                                 billingCycle
                                                             )
+                                                        const targetPriceUsd =
+                                                            getPlanPriceUsd(
+                                                                plan.id as SubscriptionPlanTier,
+                                                                billingCycle
+                                                            )
+                                                        const isDowngrade =
+                                                            action ===
+                                                            "downgrade"
                                                         return (
                                                             <button
                                                                 key={`${plan.id}-${billingCycle}`}
                                                                 type='button'
-                                                                className='w-full rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-left text-xs text-yellow-100 transition-colors hover:bg-yellow-500/20'
+                                                                className={`rounded-xl border px-4 py-2 text-left text-xs transition-colors ${
+                                                                    isDowngrade
+                                                                        ? "w-fit bg-red-950/60 border-red-900/40 text-red-100 hover:bg-red-950/80"
+                                                                        : "w-full bg-yellow-500/10 border-yellow-500/30 text-yellow-100 hover:bg-yellow-500/20"
+                                                                }`}
                                                                 onClick={() =>
-                                                                    handlePlanChange(
-                                                                        priceId
+                                                                    setPendingChange(
+                                                                        {
+                                                                            priceId,
+                                                                            action: isDowngrade
+                                                                                ? "downgrade"
+                                                                                : "upgrade",
+                                                                            targetPriceUsd,
+                                                                        }
                                                                     )
                                                                 }
                                                                 disabled={
@@ -379,7 +429,13 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                                             `subscribe.${plan.id}.title`
                                                                         )}
                                                                     </span>
-                                                                    <span className='text-[10px] uppercase tracking-widest'>
+                                                                    <span className='text-[10px] uppercase tracking-widest inline-flex items-center gap-1'>
+                                                                        {action ===
+                                                                        "downgrade"
+                                                                            ? (
+                                                                                  <ArrowDownRight className='h-3 w-3 text-red-200' />
+                                                                              )
+                                                                            : null}
                                                                         {action ===
                                                                         "downgrade"
                                                                             ? starsT(
@@ -390,7 +446,13 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                                               )}
                                                                     </span>
                                                                 </div>
-                                                                <div className='text-[10px] text-yellow-200/70'>
+                                                                <div
+                                                                    className={`text-[10px] ${
+                                                                        isDowngrade
+                                                                            ? "text-red-200/70"
+                                                                            : "text-yellow-200/70"
+                                                                    }`}
+                                                                >
                                                                     {starsT(
                                                                         `subscribe.${plan.id}.subtitle`
                                                                     )}
@@ -401,6 +463,79 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                 </div>
                                             </div>
                                         )}
+
+                                        <AlertDialog
+                                            open={Boolean(pendingChange)}
+                                            onOpenChange={(open) => {
+                                                if (!open)
+                                                    setPendingChange(null)
+                                            }}
+                                        >
+                                            <AlertDialogContent className='bg-background/95 backdrop-blur-sm border border-border/50'>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle className='text-white font-semibold'>
+                                                        {pendingChange?.action ===
+                                                        "downgrade"
+                                                            ? starsT(
+                                                                  "subscribe.downgradeDialogTitle"
+                                                              )
+                                                            : starsT(
+                                                                  "subscribe.upgradeDialogTitle"
+                                                              )}
+                                                    </AlertDialogTitle>
+                                                    <AlertDialogDescription className='text-muted-foreground'>
+                                                        {pendingChange?.action ===
+                                                        "downgrade"
+                                                            ? starsT(
+                                                                  "subscribe.downgradeDialogDescription"
+                                                              )
+                                                            : starsT(
+                                                                  "subscribe.upgradeDialogDescription",
+                                                                  {
+                                                                      amount: formatUsd(
+                                                                          Math.max(
+                                                                              0,
+                                                                              (pendingChange?.targetPriceUsd ??
+                                                                                  0) -
+                                                                                  (currentPlanPrice ??
+                                                                                      0)
+                                                                          )
+                                                                      ),
+                                                                  }
+                                                              )}
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel className='border-border/40 text-muted-foreground hover:bg-background/20'>
+                                                        {starsT(
+                                                            "subscribe.dialogCancel"
+                                                        )}
+                                                    </AlertDialogCancel>
+                                                    <AlertDialogAction
+                                                        onClick={
+                                                            confirmPlanChange
+                                                        }
+                                                        disabled={
+                                                            !pendingChange ||
+                                                            (planChangeTarget !=
+                                                                null &&
+                                                                planChangeTarget ===
+                                                                    pendingChange.priceId)
+                                                        }
+                                                        className={
+                                                            pendingChange?.action ===
+                                                            "downgrade"
+                                                                ? "bg-red-700 hover:bg-red-800 text-white"
+                                                                : "bg-yellow-500 hover:bg-yellow-600 text-black"
+                                                        }
+                                                    >
+                                                        {starsT(
+                                                            "subscribe.dialogConfirm"
+                                                        )}
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
 
                                         {!user && (stars ?? 0) <= 0 && (
                                             <div className='mt-3 rounded-lg border border-yellow-500/20 bg-yellow-500/10 px-3 py-2 text-[11px] text-yellow-100'>

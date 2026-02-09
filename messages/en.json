@@ -1761,6 +1761,14 @@
     "proDescription": "599 stars every month for deeper exploration.",
     "subscribeNow": "Subscribe now",
     "downgradePlan": "Downgrade Plan",
+    "planChange": {
+      "upgradeTitle": "Confirm upgrade",
+      "upgradeDescription": "You'll be charged only the difference between your current plan and this plan ({amount}). Your billing period stays the same.",
+      "downgradeTitle": "Confirm downgrade",
+      "downgradeDescription": "Your plan will change on the next billing cycle. You'll be charged the new price then and can keep your current star allowance until that date.",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
     "proOnlyPacks": "Add-on star packs are available for Pro subscribers only.",
     "starsPerMonth": "Stars per month",
     "starsPerYear": "Stars per year",
@@ -1949,6 +1957,12 @@
       "upgradeSuccess": "Upgrade successful",
       "upgradeError": "Upgrade failed",
       "signInToUpgrade": "Please sign in to upgrade",
+      "upgradeDialogTitle": "Confirm upgrade",
+      "upgradeDialogDescription": "You'll be charged only the difference between your current plan and this plan ({amount}). Your billing period stays the same.",
+      "downgradeDialogTitle": "Confirm downgrade",
+      "downgradeDialogDescription": "Your plan will change on the next billing cycle. You'll be charged the new price then and can keep your current star allowance until that date.",
+      "dialogConfirm": "Confirm",
+      "dialogCancel": "Cancel",
       "basic": {
         "title": "Basic",
         "subtitle": "100 stars per month"

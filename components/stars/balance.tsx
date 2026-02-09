@@ -21,10 +21,13 @@ export default function StarsBalance() {
         return () => window.clearInterval(id)
     }, [])
 
-    const nextIn = useMemo(
-        () => formatRelativeTime(nextRefillAt, now),
-        [nextRefillAt, now]
-    )
+    const nextIn = useMemo(() => {
+        if (!nextRefillAt) return "-"
+        if (subscription?.currentPeriodEnd) {
+            return formatRefillDate(nextRefillAt)
+        }
+        return formatRelativeTime(nextRefillAt, now)
+    }, [nextRefillAt, now, subscription?.currentPeriodEnd])
 
     const remainingMs = Math.max(0, (nextRefillAt ?? 0) - now)
     const stepMs = refillCycleMs ?? (user ? 2 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000)
@@ -141,12 +144,20 @@ function formatRelativeTime(
     timestamp: number | null | undefined,
     nowMs: number
 ): string {
-    if (!timestamp) return "—"
+    if (!timestamp) return "-"
     const ms = Math.max(0, timestamp - nowMs)
     const hours = Math.floor(ms / 3600000)
     const minutes = Math.floor((ms % 3600000) / 60000)
     const seconds = Math.floor((ms % 60000) / 1000)
     const pad = (n: number) => n.toString().padStart(2, "0")
     return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+}
+
+function formatRefillDate(timestamp: number): string {
+    const date = new Date(timestamp)
+    const month = String(date.getMonth() + 1).padStart(2, "0")
+    const day = String(date.getDate()).padStart(2, "0")
+    const year = date.getFullYear()
+    return `${month} ${day}, ${year}`
 }
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowUpRight, Star } from "lucide-react"
+import { ArrowDownRight, ArrowUpRight, Star } from "lucide-react"
 import { Checkout } from "@/components/checkout"
 import OneTapTopUp from "@/components/stars/one-tap-top-up"
 import { useTranslations, useLocale } from "next-intl"
@@ -10,6 +10,16 @@ import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 import CurrencySelector from "@/components/pricing/currency-selector"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import {
     convertUsdToCurrency,
     formatCurrency,
@@ -25,6 +35,12 @@ import {
 
 type SubscribeSectionProps = {
     defaultCurrency?: CurrencyCode
+}
+
+type PlanChangePrompt = {
+    priceId: string
+    action: "upgrade" | "downgrade"
+    targetPriceUsd: number
 }
 
 export default function SubscribeSection({
@@ -45,6 +61,9 @@ export default function SubscribeSection({
         cycle: BillingCycle
     } | null>(null)
     const [changeTarget, setChangeTarget] = useState<string | null>(null)
+    const [pendingChange, setPendingChange] = useState<PlanChangePrompt | null>(
+        null
+    )
     const proBaselineMonthlyStars = 599
     const proBaselineAnnualStars = 7188
 
@@ -142,6 +161,13 @@ export default function SubscribeSection({
         }
     }
 
+    const confirmPlanChange = async () => {
+        if (!pendingChange) return
+        const priceId = pendingChange.priceId
+        setPendingChange(null)
+        await handlePlanChange(priceId)
+    }
+
     return (
         <div className='mb-12'>
             <div className='flex flex-wrap items-center justify-between gap-4 mb-6'>
@@ -230,6 +256,11 @@ export default function SubscribeSection({
                                 plan.id as SubscriptionPlanTier,
                                 billingCycle
                             )
+                            const targetPriceUsd = getPlanPriceUsd(
+                                plan.id as SubscriptionPlanTier,
+                                billingCycle
+                            )
+                            const isDowngrade = action === "downgrade"
 
                             return (
                                 <div
@@ -329,16 +360,38 @@ export default function SubscribeSection({
                                     {activePlan ? (
                                         <button
                                             type='button'
-                                            className='h-full min-h-[120px] w-16 rounded-xl border border-yellow-500/30 bg-yellow-500/15 hover:bg-yellow-500/25 transition-colors flex flex-col items-center justify-center gap-2 px-3'
-                                            onClick={() => handlePlanChange(priceId)}
+                                            className={`h-full min-h-[120px] rounded-xl border transition-colors flex flex-col items-center justify-center gap-2 ${
+                                                isDowngrade
+                                                    ? "bg-red-950/60 border-red-900/40 hover:bg-red-950/80 text-red-100 px-4 py-3 w-fit min-w-[96px]"
+                                                    : "bg-yellow-500/15 border-yellow-500/30 hover:bg-yellow-500/25 text-yellow-200 px-3 w-16"
+                                            }`}
+                                            onClick={() =>
+                                                setPendingChange({
+                                                    priceId,
+                                                    action: isDowngrade
+                                                        ? "downgrade"
+                                                        : "upgrade",
+                                                    targetPriceUsd,
+                                                })
+                                            }
                                             disabled={
                                                 !priceId ||
                                                 changeTarget === priceId
                                             }
                                             aria-busy={changeTarget === priceId}
                                         >
-                                            <ArrowUpRight className='w-5 h-5 text-yellow-300' />
-                                            <span className='text-[10px] font-semibold uppercase tracking-widest text-yellow-200 text-center'>
+                                            {isDowngrade ? (
+                                                <ArrowDownRight className='w-5 h-5 text-red-200' />
+                                            ) : (
+                                                <ArrowUpRight className='w-5 h-5 text-yellow-300' />
+                                            )}
+                                            <span
+                                                className={`text-[10px] font-semibold uppercase tracking-widest text-center ${
+                                                    isDowngrade
+                                                        ? "text-red-100"
+                                                        : "text-yellow-200"
+                                                }`}
+                                            >
                                                 {action === "downgrade"
                                                     ? t(
                                                           "subscribe.downgrade"
@@ -371,6 +424,62 @@ export default function SubscribeSection({
                             )
                         })}
             </div>
+
+            <AlertDialog
+                open={Boolean(pendingChange)}
+                onOpenChange={(open) => {
+                    if (!open) setPendingChange(null)
+                }}
+            >
+                <AlertDialogContent className='bg-background/95 backdrop-blur-sm border border-border/50'>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className='text-white font-semibold'>
+                            {pendingChange?.action === "downgrade"
+                                ? t("subscribe.downgradeDialogTitle")
+                                : t("subscribe.upgradeDialogTitle")}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className='text-muted-foreground'>
+                            {pendingChange?.action === "downgrade"
+                                ? t("subscribe.downgradeDialogDescription")
+                                : t("subscribe.upgradeDialogDescription", {
+                                      amount: formatCurrency(
+                                          convertUsdToCurrency(
+                                              Math.max(
+                                                  0,
+                                                  (pendingChange?.targetPriceUsd ??
+                                                      0) -
+                                                      (currentPlanPrice ?? 0)
+                                              ),
+                                              currency
+                                          ),
+                                          currency,
+                                          locale
+                                      ),
+                                  })}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className='border-border/40 text-muted-foreground hover:bg-background/20'>
+                            {t("subscribe.dialogCancel")}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmPlanChange}
+                            disabled={
+                                !pendingChange ||
+                                (changeTarget != null &&
+                                    changeTarget === pendingChange.priceId)
+                            }
+                            className={
+                                pendingChange?.action === "downgrade"
+                                    ? "bg-red-700 hover:bg-red-800 text-white"
+                                    : "bg-yellow-500 hover:bg-yellow-600 text-black"
+                            }
+                        >
+                            {t("subscribe.dialogConfirm")}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             {activePlan?.tier === "pro" && (
                 <>
