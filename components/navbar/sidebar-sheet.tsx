@@ -14,7 +14,6 @@ import {
     MessageSquare,
     BookOpen,
     Star,
-    Infinity,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import {
@@ -30,6 +29,14 @@ import { useAuth } from "@/hooks/use-auth"
 import { useProfile } from "@/contexts/profile-context"
 import { useStars } from "@/contexts/stars-context"
 import { Progress } from "@/components/ui/progress"
+import { supabase } from "@/lib/supabase"
+import {
+    SUBSCRIPTION_PLANS,
+    getPlanPriceUsd,
+    type BillingCycle,
+    type SubscriptionPlanTier,
+} from "@/lib/payments/subscription-plans"
+import { toast } from "sonner"
 
 interface SidebarSheetProps {
     open: boolean
@@ -39,14 +46,24 @@ interface SidebarSheetProps {
 export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
     const { user, loading } = useAuth()
     const { profile, loading: profileLoading } = useProfile()
-    const { stars, initialized, isInfinity, nextRefillAt, refillCap } =
-        useStars()
+    const {
+        stars,
+        initialized,
+        nextRefillAt,
+        refillCap,
+        refillCycleMs,
+        subscription,
+    } = useStars()
     const pathname = usePathname()
     const t = useTranslations("Sidebar")
+    const starsT = useTranslations("StarsPage")
     const a = useTranslations("Auth.SignIn")
     const [timeLeft, setTimeLeft] = useState(0)
-    const refillInterval = 2 * 60 * 60 * 1000
-
+    const [billingCycle, setBillingCycle] =
+        useState<BillingCycle>("monthly")
+    const [planChangeTarget, setPlanChangeTarget] = useState<string | null>(
+        null
+    )
     useEffect(() => {
         if (!nextRefillAt) {
             setTimeLeft(0)
@@ -71,12 +88,78 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
             .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
     }
 
-    const progress = nextRefillAt
-        ? Math.min(
-              100,
-              Math.max(0, (1 - timeLeft / refillInterval) * 100)
-          )
+    const cycleMs = refillCycleMs ?? 2 * 60 * 60 * 1000
+    const timeProgress = nextRefillAt
+        ? Math.min(100, Math.max(0, (1 - timeLeft / cycleMs) * 100))
         : 0
+    const progress =
+        typeof stars === "number" && stars >= refillCap ? 100 : timeProgress
+    const isProSubscriber = subscription?.tier === "pro"
+    const currentPlanPrice = subscription
+        ? getPlanPriceUsd(subscription.tier, subscription.cycle)
+        : null
+
+    useEffect(() => {
+        if (subscription?.cycle) {
+            setBillingCycle(subscription.cycle)
+        }
+    }, [subscription?.cycle])
+
+    const getPlanAction = (
+        tier: SubscriptionPlanTier,
+        cycle: BillingCycle
+    ): "upgrade" | "downgrade" | "subscribe" => {
+        if (!subscription) return "subscribe"
+        if (subscription.tier === tier && subscription.cycle === cycle) {
+            return "subscribe"
+        }
+        if (currentPlanPrice == null) return "upgrade"
+        const targetPrice = getPlanPriceUsd(tier, cycle)
+        return targetPrice >= currentPlanPrice ? "upgrade" : "downgrade"
+    }
+
+    const handlePlanChange = async (priceId: string) => {
+        if (!priceId || planChangeTarget) return
+        setPlanChangeTarget(priceId)
+        try {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession()
+            if (!session?.access_token) {
+                throw new Error("AUTH_REQUIRED")
+            }
+
+            const response = await fetch("/api/billing/subscription/upgrade", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify({ priceId }),
+            })
+
+            if (!response.ok) {
+                const data = await response.json().catch(() => ({}))
+                throw new Error(data?.error || "Plan update failed")
+            }
+
+            toast.success(
+                starsT("subscribe.upgradeSuccess") || "Plan updated"
+            )
+        } catch (error) {
+            const message =
+                error instanceof Error && error.message === "AUTH_REQUIRED"
+                    ? starsT("subscribe.signInToUpgrade") ||
+                      "Please sign in first."
+                    : error instanceof Error
+                      ? error.message
+                      : starsT("subscribe.upgradeError") ||
+                        "Upgrade failed."
+            toast.error(message)
+        } finally {
+            setPlanChangeTarget(null)
+        }
+    }
 
     const getUserName = () => {
         return profile?.name || user?.email?.split("@")[0] || "User"
@@ -186,11 +269,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                             </div>
                                             <div className='text-2xl font-bold text-yellow-400'>
                                                 {initialized ? (
-                                                    isInfinity ? (
-                                                        <Infinity className='w-6 h-6' />
-                                                    ) : (
-                                                        stars ?? 0
-                                                    )
+                                                    stars ?? 0
                                                 ) : (
                                                     <Skeleton className='h-8 w-8 rounded' />
                                                 )}
@@ -221,6 +300,108 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                             </p>
                                         )}
 
+                                        {subscription && (
+                                            <div className='mt-3 space-y-2'>
+                                                <span className='text-[10px] uppercase tracking-wider text-yellow-500/70 font-semibold'>
+                                                    {t("planOptions")}
+                                                </span>
+                                                <div className='flex gap-2'>
+                                                    {(
+                                                        [
+                                                            "monthly",
+                                                            "annual",
+                                                        ] as BillingCycle[]
+                                                    ).map((cycle) => (
+                                                        <button
+                                                            key={cycle}
+                                                            type='button'
+                                                            onClick={() =>
+                                                                setBillingCycle(
+                                                                    cycle
+                                                                )
+                                                            }
+                                                            className={`rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest transition-all duration-300 ${
+                                                                billingCycle ===
+                                                                cycle
+                                                                    ? "bg-yellow-400 text-black"
+                                                                    : "text-white/60 hover:text-white"
+                                                            }`}
+                                                        >
+                                                            {cycle ===
+                                                            "monthly"
+                                                                ? starsT(
+                                                                      "subscribe.monthly"
+                                                                  )
+                                                                : starsT(
+                                                                      "subscribe.annual"
+                                                                  )}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <div className='space-y-2'>
+                                                    {SUBSCRIPTION_PLANS.filter(
+                                                        (plan) =>
+                                                            !(
+                                                                subscription.tier ===
+                                                                    plan.id &&
+                                                                subscription.cycle ===
+                                                                    billingCycle
+                                                            )
+                                                    ).map((plan) => {
+                                                        const priceId =
+                                                            plan.priceIds?.[
+                                                                billingCycle
+                                                            ] ?? ""
+                                                        const action =
+                                                            getPlanAction(
+                                                                plan.id as SubscriptionPlanTier,
+                                                                billingCycle
+                                                            )
+                                                        return (
+                                                            <button
+                                                                key={`${plan.id}-${billingCycle}`}
+                                                                type='button'
+                                                                className='w-full rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-left text-xs text-yellow-100 transition-colors hover:bg-yellow-500/20'
+                                                                onClick={() =>
+                                                                    handlePlanChange(
+                                                                        priceId
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    !priceId ||
+                                                                    planChangeTarget ===
+                                                                        priceId
+                                                                }
+                                                            >
+                                                                <div className='flex items-center justify-between'>
+                                                                    <span className='font-semibold'>
+                                                                        {starsT(
+                                                                            `subscribe.${plan.id}.title`
+                                                                        )}
+                                                                    </span>
+                                                                    <span className='text-[10px] uppercase tracking-widest'>
+                                                                        {action ===
+                                                                        "downgrade"
+                                                                            ? starsT(
+                                                                                  "subscribe.downgrade"
+                                                                              )
+                                                                            : starsT(
+                                                                                  "subscribe.upgrade"
+                                                                              )}
+                                                                    </span>
+                                                                </div>
+                                                                <div className='text-[10px] text-yellow-200/70'>
+                                                                    {starsT(
+                                                                        `subscribe.${plan.id}.subtitle`
+                                                                    )}
+                                                                </div>
+                                                            </button>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+
                                         {!user && (stars ?? 0) <= 0 && (
                                             <div className='mt-3 rounded-lg border border-yellow-500/20 bg-yellow-500/10 px-3 py-2 text-[11px] text-yellow-100'>
                                                 You’re out of stars.{" "}
@@ -237,15 +418,25 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                     Top up
                                                 </span>
                                                 <div className='mt-2'>
-                                                    <Link
-                                                        href='/stars/purchase'
-                                                        onClick={() =>
-                                                            onOpenChange(false)
-                                                        }
-                                                        className='inline-flex items-center justify-center rounded-full border border-yellow-500/30 bg-yellow-500/15 px-3 py-1 text-[11px] font-semibold text-yellow-100 transition-colors hover:bg-yellow-500/25 relative z-20'
-                                                    >
-                                                        Buy stars
-                                                    </Link>
+                                                    {isProSubscriber ? (
+                                                        <Link
+                                                            href='/stars/purchase'
+                                                            onClick={() =>
+                                                                onOpenChange(
+                                                                    false
+                                                                )
+                                                            }
+                                                            className='inline-flex items-center justify-center rounded-full border border-yellow-500/30 bg-yellow-500/15 px-3 py-1 text-[11px] font-semibold text-yellow-100 transition-colors hover:bg-yellow-500/25 relative z-20'
+                                                        >
+                                                            Buy stars
+                                                        </Link>
+                                                    ) : (
+                                                        <span className='text-[10px] text-yellow-200/70'>
+                                                            {t(
+                                                                "proTopUpOnly"
+                                                            )}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                         )}

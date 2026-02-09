@@ -26,7 +26,6 @@ type CheckoutProps = {
     mode: CheckoutMode
     packId?: string
     plan?: "monthly" | "annual"
-    infinityTerm?: "month" | "year"
     customTrigger?: ReactNode
     currency?: CurrencyCode
     couponId?: string
@@ -37,7 +36,6 @@ export function Checkout({
     mode,
     packId,
     plan,
-    infinityTerm,
     customTrigger,
     currency,
     couponId,
@@ -103,7 +101,6 @@ export function Checkout({
                 couponId: couponId,
             }
             if (plan) payload.plan = plan
-            if (infinityTerm) payload.infinityTerm = infinityTerm
             if (user.email) payload.email = user.email
 
             const response = await fetch("/api/checkout/session", {

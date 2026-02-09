@@ -3,12 +3,8 @@ import type { User } from "@supabase/supabase-js"
 export type StarState = {
     currentStars: number
     lastRefillAt: number | null
-    refillCap: number
     firstLoginBonusGranted?: boolean
     firstTimeLoginGrant?: boolean
-    isInfinity?: boolean
-    infinityExpiresAt?: number | null
-    lastCurrencyBeforeInfinity?: string | null
 }
 
 // type GetOrCreateArgs = { p_anon_device_id: string | null; p_user_id: string | null }
@@ -30,16 +26,11 @@ export async function starGetOrCreate(user: User | null): Promise<StarState> {
     const json = await res.json()
     if (!res.ok) throw new Error(json.error || "STAR_INIT_FAILED")
     const row = json.data?.[0]
-    const cap = user ? 12 : 5
     return {
         currentStars: row?.current_stars ?? 5,
         lastRefillAt: tsToMs(row?.last_refill_at),
-        refillCap: cap,
         firstLoginBonusGranted: Boolean(row?.first_login_bonus_granted),
         firstTimeLoginGrant: Boolean(row?.first_time_login_grant),
-        isInfinity: Boolean(row?.is_infinity),
-        infinityExpiresAt: tsToMs(row?.infinity_expires_at),
-        lastCurrencyBeforeInfinity: row?.last_currency_before_infinity ?? null,
     }
 }
 
@@ -57,15 +48,10 @@ export async function starSpend(
     const json = await res.json()
     if (!res.ok) throw new Error(json.error || "STAR_SPEND_FAILED")
     const row = json.data?.[0]
-    const cap = user ? 12 : 5
     const ok = Boolean(row?.ok)
     const state: StarState = {
         currentStars: row?.current_stars ?? 5,
         lastRefillAt: tsToMs(row?.last_refill_at),
-        refillCap: cap,
-        isInfinity: Boolean(row?.is_infinity),
-        infinityExpiresAt: tsToMs(row?.infinity_expires_at),
-        lastCurrencyBeforeInfinity: row?.last_currency_before_infinity ?? null,
     }
     return { ok, state }
 }
@@ -82,14 +68,9 @@ export async function starAdd(
     const json = await res.json()
     if (!res.ok) throw new Error(json.error || "STAR_ADD_FAILED")
     const row = json.data?.[0]
-    const cap = user ? 12 : 5
     return {
         currentStars: row?.current_stars ?? 5,
         lastRefillAt: tsToMs(row?.last_refill_at),
-        refillCap: cap,
-        isInfinity: Boolean(row?.is_infinity),
-        infinityExpiresAt: tsToMs(row?.infinity_expires_at),
-        lastCurrencyBeforeInfinity: row?.last_currency_before_infinity ?? null,
     }
 }
 
@@ -102,14 +83,9 @@ export async function starSet(user: User, balance: number): Promise<StarState> {
     const json = await res.json()
     if (!res.ok) throw new Error(json.error || "STAR_SET_FAILED")
     const row = json.data?.[0]
-    const cap = 12
     return {
         currentStars: row?.current_stars ?? 5,
         lastRefillAt: tsToMs(row?.last_refill_at),
-        refillCap: cap,
-        isInfinity: Boolean(row?.is_infinity),
-        infinityExpiresAt: tsToMs(row?.infinity_expires_at),
-        lastCurrencyBeforeInfinity: row?.last_currency_before_infinity ?? null,
     }
 }
 

@@ -35,6 +35,7 @@ import { format } from "date-fns"
 import { useRouter } from "next/navigation"
 import BrandLoader from "@/components/brand-loader"
 import { useStars } from "@/contexts/stars-context"
+import { getPlanStars, parseSubscriptionPlanKey } from "@/lib/payments/subscription-plans"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -69,11 +70,7 @@ type Subscription = {
 
 export default function BillingPage() {
     const { user, loading: authLoading } = useAuth()
-    const {
-        isInfinity,
-        infinityExpiresAt,
-        initialized: starsInitialized,
-    } = useStars()
+    const { initialized: starsInitialized } = useStars()
     const router = useRouter()
     const t = useTranslations("Billing")
     const [txs, setTxs] = useState<Tx[]>([])
@@ -187,11 +184,8 @@ export default function BillingPage() {
     }
 
     // Helper function to extract stars from reference (fallback)
-    const getStarsFromReference = (
-        reference: string | null
-    ): number | "infinity" | null => {
+    const getStarsFromReference = (reference: string | null): number | null => {
         if (!reference) return null
-        if (reference.toLowerCase().includes("infinity")) return "infinity"
         const match = reference.match(/(\d+)\s*stars?/i)
         return match ? parseInt(match[1]) : null
     }
@@ -256,15 +250,15 @@ export default function BillingPage() {
     }
 
     // Use the actual subscription data from billing_subscriptions
-    const hasSubscription = Boolean(
-        subscription &&
-            (subscription.status === "active" ||
-                subscription.status === "trialing")
-    )
-
-    // For display purposes, use the latest subscription transaction if it exists
-    const latestSubscriptionTx =
-        txs.find((tx) => tx.type?.startsWith("subscription")) ?? null
+    const planInfo = parseSubscriptionPlanKey(subscription?.plan)
+    const planLabel = planInfo
+        ? `${t(planInfo.tier === "basic" ? "basicPlan" : "proPlan")} ${
+              planInfo.cycle === "annual" ? t("yearly") : t("monthly")
+          }`
+        : t("starterPlan")
+    const planStars = planInfo
+        ? getPlanStars(planInfo.tier, planInfo.cycle)
+        : null
 
     return (
         <div className='min-h-screen pb-20 relative bg-transparent text-white selection:bg-yellow-400/30'>
@@ -304,7 +298,7 @@ export default function BillingPage() {
                 </div>
 
                 {/* Current Plan Card */}
-                {(!starsInitialized || isInfinity || subscription) && (
+                {(!starsInitialized || subscription) && (
                     <Card className='col-span-1 md:col-span-2 relative overflow-hidden bg-gradient-to-br from-white/[0.08] to-transparent border-white/10 p-8 backdrop-blur-md rounded-2xl group transition-all duration-500 hover:border-white/20'>
                         <div className='absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity'>
                             <ShieldCheck className='w-32 h-32 text-white' />
@@ -319,61 +313,54 @@ export default function BillingPage() {
                                     <h2 className='text-3xl font-bold text-white'>
                                         {!starsInitialized ? (
                                             <Skeleton className='h-9 w-48 bg-white/10 rounded-lg' />
-                                        ) : isInfinity ? (
-                                            <span className='flex items-center gap-2 bg-gradient-to-r from-yellow-200 to-yellow-500 bg-clip-text text-transparent'>
-                                                {hasSubscription
-                                                    ? latestSubscriptionTx?.pack_name ||
-                                                      "Infinity Subscription"
-                                                    : "Infinity Stars"}
-                                            </span>
                                         ) : (
-                                            "Starter Plan"
+                                            <span className='flex items-center gap-2 bg-gradient-to-r from-yellow-200 to-yellow-500 bg-clip-text text-transparent'>
+                                                {planLabel}
+                                            </span>
                                         )}
                                     </h2>
-                                    {starsInitialized && isInfinity && (
-                                        <Badge
-                                            className={`${
-                                                hasSubscription
-                                                    ? "bg-yellow-400/20 text-yellow-300 border-yellow-400/30"
-                                                    : "bg-indigo-400/20 text-indigo-300 border-indigo-400/30"
-                                            } animate-pulse`}
-                                        >
-                                            {hasSubscription
-                                                ? "ACTIVE"
-                                                : "ONE-TIME"}
+                                    {starsInitialized && subscription && (
+                                        <Badge className='bg-yellow-400/20 text-yellow-300 border-yellow-400/30 animate-pulse'>
+                                            {subscription.cancel_at_period_end
+                                                ? t("ending")
+                                                : t("active")}
                                         </Badge>
                                     )}
                                 </div>
                             </div>
 
                             <div className='grid grid-cols-2 gap-8'>
-                                {(!starsInitialized || isInfinity) && (
+                                {(!starsInitialized || subscription) && (
                                     <div className='space-y-1'>
                                         <div className='text-xs text-gray-500 flex items-center gap-1.5'>
-                                            <Clock
-                                                className={`w-3 h-3 ${!starsInitialized ? "text-gray-600" : hasSubscription ? "text-indigo-400" : "text-indigo-400"}`}
-                                            />
+                                            <Clock className='w-3 h-3 text-indigo-400' />
                                             {!starsInitialized ? (
                                                 <Skeleton className='h-3 w-20 bg-white/5' />
-                                            ) : hasSubscription ? (
-                                                t("nextBilling") ||
-                                                "Next Billing"
                                             ) : (
-                                                "Expires On"
+                                                t("nextBilling") || "Next Billing"
                                             )}
                                         </div>
                                         <div className='text-xl font-semibold text-white'>
                                             {!starsInitialized ? (
                                                 <Skeleton className='h-7 w-32 bg-white/10 rounded-md' />
-                                            ) : infinityExpiresAt ? (
+                                            ) : subscription?.current_period_end ? (
                                                 formatDate(
-                                                    new Date(
-                                                        infinityExpiresAt!
-                                                    ).toISOString()
+                                                    subscription.current_period_end
                                                 ).full
                                             ) : (
-                                                "Never"
+                                                "-"
                                             )}
+                                        </div>
+                                    </div>
+                                )}
+                                {planStars !== null && (
+                                    <div className='space-y-1'>
+                                        <div className='text-xs text-gray-500 flex items-center gap-1.5'>
+                                            <Star className='w-3 h-3 text-yellow-300' />
+                                            {t("starsPerPeriod")}
+                                        </div>
+                                        <div className='text-xl font-semibold text-white'>
+                                            {planStars}
                                         </div>
                                     </div>
                                 )}
@@ -385,7 +372,7 @@ export default function BillingPage() {
                                     <Skeleton className='h-4 w-40 bg-white/5 rounded' />
                                     <Skeleton className='h-8 w-32 bg-white/5 rounded-full' />
                                 </div>
-                            ) : isInfinity && subscription ? (
+                            ) : subscription ? (
                                 <div className='text-left pt-4 border-t border-white/5 flex items-center justify-between'>
                                     <div className='flex items-center gap-2 text-xs text-gray-500'>
                                         {subscription.cancel_at_period_end ? (
@@ -426,16 +413,6 @@ export default function BillingPage() {
                                                 "Cancel Subscription"}
                                         </Button>
                                     )}
-                                </div>
-                            ) : isInfinity ? (
-                                <div className='pt-4 border-t border-white/5'>
-                                    <div className='flex items-center gap-2 text-xs text-gray-500'>
-                                        <ShieldCheck className='w-3 h-3 text-yellow-400/50' />
-                                        <span>
-                                            This is a one-time pack. No
-                                            recurring charges.
-                                        </span>
-                                    </div>
                                 </div>
                             ) : null}
                         </div>
@@ -614,13 +591,13 @@ export default function BillingPage() {
                                                             ? name
                                                             : `${name} Pack`
                                                     }
-                                                    if (
-                                                        stars === "infinity" ||
-                                                        transaction.stars_amount ===
-                                                            null
-                                                    )
-                                                        return "Infinity Stars Pack"
-                                                    return `${stars} Stars Pack`
+                                                    const starCount =
+                                                        typeof stars ===
+                                                        "number"
+                                                            ? stars
+                                                            : transaction.stars_amount ??
+                                                              0
+                                                    return `${starCount} Stars Pack`
                                                 })()
 
                                                 return (

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { readAndVerifyDid } from "@/lib/server/did"
-import { supabase } from "@/lib/supabase"
+import { supabase, supabaseAdmin } from "@/lib/supabase"
+import { getActiveSubscriptionInfo } from "@/lib/server/subscription"
 
 export async function POST(req: NextRequest) {
     const body = await req.json()
@@ -10,7 +11,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "BAD_AMOUNT" }, { status: 400 })
 
     if (userId) {
-        // For authenticated users, regular adds are capped to 12 (refill cap). Purchases should use /api/stars/set.
+        // For authenticated users, regular adds are capped to plan stars (or 12 for free). Purchases should use /api/stars/set.
         const { data: currentData, error: currentErr } = await supabase.rpc(
             "star_get_or_create",
             {
@@ -23,11 +24,54 @@ export async function POST(req: NextRequest) {
                 { error: currentErr.message },
                 { status: 400 }
             )
-        const row = (currentData?.[0] ?? {}) as { current_stars?: number }
-        const current = Number.isFinite(row.current_stars as number)
+        const row = (currentData?.[0] ?? {}) as {
+            current_stars?: number
+            last_refill_at?: string | null
+        }
+        let current = Number.isFinite(row.current_stars as number)
             ? (row.current_stars as number)
             : 0
-        const next = Math.min(12, Math.max(0, current + Number(amount)))
+        let lastRefillAt = row.last_refill_at ?? null
+        const subscription = supabaseAdmin
+            ? await getActiveSubscriptionInfo(userId)
+            : null
+        if (
+            supabaseAdmin &&
+            subscription?.currentPeriodStart &&
+            subscription.currentPeriodStart > 0
+        ) {
+            const lastRefillMs = lastRefillAt
+                ? new Date(lastRefillAt).getTime()
+                : null
+            if (
+                !lastRefillMs ||
+                lastRefillMs < subscription.currentPeriodStart
+            ) {
+                const nextBalance = Math.max(current, subscription.stars)
+                const targetRefillAt = new Date(
+                    subscription.currentPeriodStart
+                ).toISOString()
+                const { data: updated } = await supabaseAdmin
+                    .from("stars")
+                    .update({
+                        current_stars: nextBalance,
+                        last_refill_at: targetRefillAt,
+                        updated_at: new Date().toISOString(),
+                    })
+                    .eq("user_id", userId)
+                    .select("current_stars,last_refill_at")
+                    .maybeSingle()
+                if (updated) {
+                    current = updated.current_stars ?? current
+                    lastRefillAt = updated.last_refill_at ?? lastRefillAt
+                }
+            }
+        }
+        const cap = subscription?.stars ?? 12
+        const next =
+            current >= cap
+                ? current
+                : Math.min(cap, Math.max(0, current + Number(amount)))
         const { data, error } = await supabase.rpc("star_set", {
             p_anon_device_id: null,
             p_new_balance: next,

@@ -1,5 +1,5 @@
 export type BillingCycle = "monthly" | "annual"
-export type SubscriptionPlanId = "basic" | "pro" | "custom"
+export type SubscriptionPlanId = "basic" | "pro"
 export type SubscriptionPlanTier = "basic" | "pro"
 export type SubscriptionPlanKey = `${SubscriptionPlanTier}_${BillingCycle}`
 
@@ -10,16 +10,12 @@ type BillingDetails = {
 
 type SubscriptionPlan = {
     id: SubscriptionPlanId
-    nameKey: "basicPlan" | "proPlan" | "customPlan"
-    descriptionKey:
-        | "basicDescription"
-        | "proDescription"
-        | "customDescription"
+    nameKey: "basicPlan" | "proPlan"
+    descriptionKey: "basicDescription" | "proDescription"
     badgeKey?: "mostPopular"
     billing?: Record<BillingCycle, BillingDetails>
     priceIds?: Record<BillingCycle, string>
-    ctaKey: "subscribeNow" | "requestQuote"
-    link?: string
+    ctaKey: "subscribeNow"
 }
 
 const BASIC_MONTHLY_STARS = 100
@@ -55,13 +51,6 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
         },
         ctaKey: "subscribeNow",
     },
-    {
-        id: "custom",
-        nameKey: "customPlan",
-        descriptionKey: "customDescription",
-        ctaKey: "requestQuote",
-        link: "/custom-plan",
-    },
 ]
 
 const PLAN_PRICE_USD: Record<SubscriptionPlanKey, number> = {
@@ -83,6 +72,14 @@ export function getPlanPriceUsd(
     cycle: BillingCycle
 ): number {
     return PLAN_PRICE_USD[`${tier}_${cycle}`]
+}
+
+export function getPlanStars(
+    tier: SubscriptionPlanTier,
+    cycle: BillingCycle
+): number {
+    const plan = SUBSCRIPTION_PLANS.find((item) => item.id === tier)
+    return plan?.billing?.[cycle]?.stars ?? 0
 }
 
 export function parseSubscriptionPlanKey(

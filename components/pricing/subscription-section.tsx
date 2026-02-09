@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Link from "next/link"
 import { CheckCircle2, Crown, Star } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
@@ -17,6 +16,7 @@ import {
 } from "@/lib/payments/currency-utils"
 import {
     SUBSCRIPTION_PLANS,
+    getPlanPriceUsd,
     parseSubscriptionPlanKey,
     type BillingCycle,
     type SubscriptionPlanTier,
@@ -42,6 +42,23 @@ export default function SubscriptionSection({
 
     const formatFromUsd = (amount: number) =>
         formatCurrency(convertUsdToCurrency(amount, currency), currency, locale)
+
+    const currentPlanPrice = activePlan
+        ? getPlanPriceUsd(activePlan.tier, activePlan.cycle)
+        : null
+
+    const getPlanAction = (
+        tier: SubscriptionPlanTier,
+        cycle: BillingCycle
+    ): "subscribe" | "current" | "upgrade" | "downgrade" => {
+        if (!activePlan) return "subscribe"
+        if (activePlan.tier === tier && activePlan.cycle === cycle) {
+            return "current"
+        }
+        if (currentPlanPrice == null) return "upgrade"
+        const targetPrice = getPlanPriceUsd(tier, cycle)
+        return targetPrice >= currentPlanPrice ? "upgrade" : "downgrade"
+    }
 
     useEffect(() => {
         const fetchActivePlan = async () => {
@@ -135,13 +152,11 @@ export default function SubscriptionSection({
                 {SUBSCRIPTION_PLANS.map((plan) => {
                     const billing = plan.billing?.[billingCycle]
                     const priceId = plan.priceIds?.[billingCycle] ?? ""
-                    const isCustom = plan.id === "custom"
-                    const isOwned =
-                        !isCustom &&
-                        activePlan?.tier === plan.id &&
-                        activePlan?.cycle === billingCycle
-                    const isUpgrade =
-                        !isCustom && activePlan && !isOwned
+                    const action = getPlanAction(
+                        plan.id as SubscriptionPlanTier,
+                        billingCycle
+                    )
+                    const isOwned = action === "current"
                     const monthlyPrice = plan.billing?.monthly?.priceUsd
                     const annualMonthlyPrice = plan.billing?.annual?.priceUsd
                         ? plan.billing.annual.priceUsd / 12
@@ -189,119 +204,98 @@ export default function SubscriptionSection({
                                 </p>
                             </div>
 
-                            {isCustom ? (
-                                <div className='space-y-4'>
-                                    <div className='rounded-xl border border-indigo-500/20 bg-indigo-500/10 p-4 text-sm text-indigo-100'>
-                                        {t("customCalculated")}
+                            <div className='space-y-1'>
+                                <div className='flex items-center gap-2'>
+                                    <Star fill='currentColor' className='w-6 h-6 text-yellow-400' />
+                                    <div className='text-4xl font-bold text-white'>
+                                        {billing?.stars}
                                     </div>
-                                    <Link href={plan.link ?? "/custom-plan"}>
-                                        <Button className='w-full rounded-full bg-white text-black hover:bg-white/90'>
-                                            {t(plan.ctaKey)}
-                                        </Button>
-                                    </Link>
                                 </div>
-                            ) : (
-                                <>
-                                    <div className='space-y-1'>
-                                        <div className='flex items-center gap-2'>
-                                            <Star fill='currentColor' className='w-6 h-6 text-yellow-400' />
-                                            <div className='text-4xl font-bold text-white'>
-                                                {billing?.stars}
-                                            </div>
-                                        </div>
-                                        <div className='text-xs uppercase tracking-widest text-white/60'>
-                                            {billingCycle === "monthly"
-                                                ? t("starsPerMonth")
-                                                : t("starsPerYear")}
-                                        </div>
-                                    </div>
+                                <div className='text-xs uppercase tracking-widest text-white/60'>
+                                    {billingCycle === "monthly"
+                                        ? t("starsPerMonth")
+                                        : t("starsPerYear")}
+                                </div>
+                            </div>
 
-                                    <div className='space-y-1'>
-                                        <div className='flex items-baseline gap-2'>
-                                            <span className='text-3xl font-bold text-white'>
-                                                {displayPrice != null
-                                                    ? formatFromUsd(displayPrice)
-                                                    : "--"}
+                            <div className='space-y-1'>
+                                <div className='flex items-baseline gap-2'>
+                                    <span className='text-3xl font-bold text-white'>
+                                        {displayPrice != null
+                                            ? formatFromUsd(displayPrice)
+                                            : "--"}
+                                    </span>
+                                    <span className='text-sm text-muted-foreground'>
+                                        {t("perMonth")}
+                                    </span>
+                                </div>
+                                {billingCycle === "annual" &&
+                                    monthlyPrice != null && (
+                                        <div className='flex items-center gap-2 text-xs'>
+                                            <span className='text-white/40 line-through'>
+                                                {formatFromUsd(monthlyPrice)}
+                                                /{t("perMonth")}
                                             </span>
-                                            <span className='text-sm text-muted-foreground'>
-                                                {t("perMonth")}
-                                            </span>
-                                        </div>
-                                        {billingCycle === "annual" &&
-                                            monthlyPrice != null && (
-                                                <div className='flex items-center gap-2 text-xs'>
-                                                    <span className='text-white/40 line-through'>
-                                                        {formatFromUsd(monthlyPrice)}
-                                                        /{t("perMonth")}
+                                            {discountPercent !== null &&
+                                                discountPercent > 0 && (
+                                                    <span className='inline-flex rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-200'>
+                                                        {t("savePercent", {
+                                                            percent:
+                                                                discountPercent,
+                                                        })}
                                                     </span>
-                                                    {discountPercent !== null &&
-                                                        discountPercent > 0 && (
-                                                            <span className='inline-flex rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-200'>
-                                                                {t(
-                                                                    "savePercent",
-                                                                    {
-                                                                        percent:
-                                                                            discountPercent,
-                                                                    }
-                                                                )}
-                                                            </span>
-                                                        )}
-                                                </div>
-                                            )}
-                                        {billingCycle === "annual" && (
-                                            <div className='text-xs text-white/50 uppercase tracking-widest'>
-                                                {t("billedYearly")}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <ul className='space-y-2 text-sm text-white/80'>
-                                        <li className='flex items-center gap-2'>
-                                            <CheckCircle2 className='w-4 h-4 text-indigo-300' />
-                                            {t("ongoingSupport")}
-                                        </li>
-                                        <li className='flex items-center gap-2'>
-                                            <CheckCircle2 className='w-4 h-4 text-indigo-300' />
-                                            {t("bonusStars")}
-                                        </li>
-                                        <li className='flex items-center gap-2'>
-                                            <CheckCircle2 className='w-4 h-4 text-indigo-300' />
-                                            {t("cancelFromAccount")}
-                                        </li>
-                                    </ul>
-
-                                    {isOwned ? (
-                                        <Button
-                                            className='w-full rounded-full bg-white/10 text-white/70 cursor-not-allowed'
-                                            disabled
-                                        >
-                                            {t("owned")}
-                                        </Button>
-                                    ) : isUpgrade ? (
-                                        <Button
-                                            className='w-full rounded-full bg-white text-black hover:bg-white/90'
-                                            disabled={
-                                                !priceId ||
-                                                upgradeTarget === priceId
-                                            }
-                                            onClick={() =>
-                                                handleUpgrade(priceId)
-                                            }
-                                            aria-busy={
-                                                upgradeTarget === priceId
-                                            }
-                                        >
-                                            {t("upgradePlan")}
-                                        </Button>
-                                    ) : (
-                                        <Checkout
-                                            mode='subscribe'
-                                            plan={billingCycle}
-                                            packId={priceId}
-                                            className='w-full'
-                                        />
+                                                )}
+                                        </div>
                                     )}
-                                </>
+                                {billingCycle === "annual" && (
+                                    <div className='text-xs text-white/50 uppercase tracking-widest'>
+                                        {t("billedYearly")}
+                                    </div>
+                                )}
+                            </div>
+
+                            <ul className='space-y-2 text-sm text-white/80'>
+                                <li className='flex items-center gap-2'>
+                                    <CheckCircle2 className='w-4 h-4 text-indigo-300' />
+                                    {t("ongoingSupport")}
+                                </li>
+                                <li className='flex items-center gap-2'>
+                                    <CheckCircle2 className='w-4 h-4 text-indigo-300' />
+                                    {t("bonusStars")}
+                                </li>
+                                <li className='flex items-center gap-2'>
+                                    <CheckCircle2 className='w-4 h-4 text-indigo-300' />
+                                    {t("cancelFromAccount")}
+                                </li>
+                            </ul>
+
+                            {isOwned ? (
+                                <Button
+                                    className='w-full rounded-full bg-white/10 text-white/70 cursor-not-allowed'
+                                    disabled
+                                >
+                                    {t("owned")}
+                                </Button>
+                            ) : activePlan ? (
+                                <Button
+                                    className='w-full rounded-full bg-white text-black hover:bg-white/90'
+                                    disabled={
+                                        !priceId || upgradeTarget === priceId
+                                    }
+                                    onClick={() => handleUpgrade(priceId)}
+                                    aria-busy={upgradeTarget === priceId}
+                                >
+                                    {action === "downgrade"
+                                        ? t("downgradePlan")
+                                        : t("upgradePlan")}
+                                </Button>
+                            ) : (
+                                <Checkout
+                                    mode='subscribe'
+                                    plan={billingCycle}
+                                    packId={priceId}
+                                    className='w-full'
+                                />
                             )}
                         </div>
                     )

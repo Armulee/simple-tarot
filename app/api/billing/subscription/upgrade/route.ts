@@ -62,9 +62,18 @@ export async function POST(request: Request) {
             )
         }
 
+        const nextPrice = await stripe.prices.retrieve(priceId)
+        const currentAmount = item.price?.unit_amount ?? null
+        const nextAmount = nextPrice.unit_amount ?? null
+        const isDowngrade =
+            typeof currentAmount === "number" &&
+            typeof nextAmount === "number" &&
+            nextAmount < currentAmount
+
         const updated = await stripe.subscriptions.update(subscription.id, {
             items: [{ id: item.id, price: priceId }],
-            proration_behavior: "always_invoice",
+            proration_behavior: isDowngrade ? "none" : "always_invoice",
+            billing_cycle_anchor: isDowngrade ? "unchanged" : undefined,
         })
         const updatedSubscription = updated as Stripe.Subscription & {
             current_period_start?: number | null

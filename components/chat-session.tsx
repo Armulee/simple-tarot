@@ -116,7 +116,7 @@ export default function ChatSession({
     const [aiLocale, setAiLocale] = useState<"en" | "th" | null>(null)
     const router = useRouter()
     const { user } = useAuth()
-    const { stars, spendStars, initialized: starsInitialized, isInfinity } = useStars()
+    const { stars, spendStars, initialized: starsInitialized } = useStars()
     const [question, setQuestion] = useState("")
     const promptsRaw = tHome.raw("prompts")
     const prompts = Array.isArray(promptsRaw)
@@ -244,11 +244,10 @@ export default function ChatSession({
     // Check if user has enough stars (at least 5) for card draw
     // Returns null while loading, true/false once initialized
     const hasEnoughStars = useMemo(() => {
-        if (isInfinity) return true
         if (!starsInitialized) return null // Return null while loading to show loading state
         if (!Number.isFinite(stars as number)) return true
         return (stars as number) >= 5
-    }, [stars, starsInitialized, isInfinity])
+    }, [stars, starsInitialized])
     
     // Track if we need to show star checking state
     const isCheckingStars = showCardDraw && cardsToSelect > 0 && hasEnoughStars === null
@@ -807,13 +806,11 @@ export default function ChatSession({
         if (!lastQuestion) return
         
         // Deduct 5 stars before proceeding to interpretation
-        if (!isInfinity) {
-            const starSuccess = spendStars(5)
-            if (!starSuccess) {
-                // Not enough stars - this shouldn't happen if UI is correct
-                // but handle gracefully
-                return
-            }
+        const starSuccess = spendStars(5)
+        if (!starSuccess) {
+            // Not enough stars - this shouldn't happen if UI is correct
+            // but handle gracefully
+            return
         }
         
         setShowCardDraw(false)
