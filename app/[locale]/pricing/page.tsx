@@ -177,15 +177,10 @@ export default async function PricingPage({ params }: PricingPageProps) {
                 <h3 className='text-2xl font-bold text-center md:text-left'>
                     {t("pricingFaqTitle")}
                 </h3>
-                <Accordion
-                    type='single'
-                    collapsible
-                    className='rounded-2xl border border-white/10 bg-card/10 p-2'
-                >
+                <Accordion className='rounded-2xl border border-white/10 bg-card/10 p-2'>
                     {pricingFaq.map((item) => (
                         <AccordionItem
                             key={item.id}
-                            value={item.id}
                             className='border-white/10'
                         >
                             <AccordionTrigger className='px-4 py-3 text-left text-white hover:no-underline'>
