@@ -18,7 +18,7 @@ type PricingPageProps = {
 export default async function PricingPage({ params }: PricingPageProps) {
     const { locale } = await params
     const t = await getTranslations("Pricing")
-    const defaultCurrency: CurrencyCode = "USD"
+    const defaultCurrency: CurrencyCode = locale === "th" ? "THB" : "USD"
 
     const howItWorks = [
         {

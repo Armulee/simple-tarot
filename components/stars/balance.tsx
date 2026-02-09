@@ -138,7 +138,7 @@ export default function StarsBalance() {
 
                         {/* Enhanced Description */}
                         <div className='p-4 rounded-xl bg-gradient-to-r from-white/5 to-white/10 border border-white/10 backdrop-blur-sm'>
-                            <p className='text-sm text-gray-300 leading-relaxed'>
+                            <p className='text-sm text-gray-300 leading-relaxed text-left'>
                                 {user ? (
                                     t("StarsBalance.autoRefill", {
                                         cap: refillCap,

@@ -20,6 +20,19 @@
     "decline": "ปฏิเสธ",
     "accept": "ยอมรับ"
   },
+  "Admin": {
+    "title": "แดชบอร์ดผู้ดูแล",
+    "subtitle": "ตัวชี้วัดแบบเรียลไทม์จาก AskingFate",
+    "loading": "กำลังโหลดตัวชี้วัด...",
+    "notFoundTitle": "404",
+    "notFoundDescription": "ไม่พบหน้านี้",
+    "metricsError": "ไม่สามารถโหลดตัวชี้วัดได้",
+    "totalUsers": "ผู้ใช้ทั้งหมด",
+    "anonymousUsers": "ผู้ใช้แบบไม่ลงชื่อเข้าใช้",
+    "authenticatedUsers": "ผู้ใช้ที่ลงชื่อเข้าใช้",
+    "interpretations": "จำนวนคำทำนาย",
+    "paidSubscribers": "ผู้สมัครสมาชิกแบบชำระเงิน"
+  },
   "TarotArticle": {
     "overviewUpright": "ภาพรวม (ไพ่ขึ้น)",
     "overviewReversed": "ภาพรวม (ไพ่กลับหัว)",
@@ -1652,8 +1665,8 @@
     "title": "แพ็กเกจราคา",
     "subtitle": "เลือกแพ็กเกจที่สมบูรณ์แบบสำหรับการเดินทางแห่งความลี้ลับของคุณ",
     "heroTitle": "เลือกดวงดาวของคุณ ปลดล็อกข้อมูลเชิงลึกที่ลึกซึ้งขึ้น",
-    "heroDescription": "แพ็กครั้งเดียวที่ยืดหยุ่นและแผนรายเดือนที่เรียบง่าย การจัดส่งทันที ยกเลิกได้ตลอดเวลา",
-    "priceNote": "ราคาเป็นบาท ดวงดาวจัดส่งทันทีหลังการซื้อ",
+    "heroDescription": "เลือก Basic หรือ Pro สำหรับรายเดือน/รายปี หรือขอแผน Custom ตามจำนวนดาวต่อวัน",
+    "priceNote": "ราคาเป็นบาท แผนรายปีชำระครั้งเดียว",
     "currency": "สกุลเงิน",
     "changeCurrency": "เปลี่ยนสกุลเงิน",
     "currencySearchPlaceholder": "ค้นหารหัสหรือชื่อสกุลเงิน...",
@@ -1665,15 +1678,22 @@
     "mostPopular": "ยอดนิยม",
     "getStarted": "เริ่มต้น",
     "currentPlan": "แพ็กเกจปัจจุบัน",
+    "owned": "เป็นเจ้าของแล้ว",
+    "upgradeSuccess": "อัปเกรดสำเร็จ",
+    "upgradeError": "อัปเกรดไม่สำเร็จ",
+    "signInToUpgrade": "กรุณาเข้าสู่ระบบเพื่ออัปเกรด",
+    "upgradePlan": "อัปเกรดแพ็กเกจ",
     "monthlySubscription": "การสมัครสมาชิกรายเดือน",
     "firstMonthOffer": "ข้อเสนอพิเศษสำหรับเดือนแรกเท่านั้น",
     "thenRegularPrice": "จากนั้น {price}/เดือน",
     "annualSubscription": "การสมัครสมาชิกรายปี",
     "perMonth": "ต่อเดือน",
+    "perYear": "ต่อปี",
     "autoRenew": "ต่ออายุอัตโนมัติ",
     "cancelAnytime": "ยกเลิกได้ตลอดเวลา",
     "billedYearly": "เรียกเก็บรายปี",
     "save17": "ประหยัด 17%",
+    "savePercent": "ประหยัด {percent}%",
     "oneTime": "ครั้งเดียว",
     "instantDelivery": "จัดส่งทันที",
     "days": "วัน",
@@ -1686,6 +1706,17 @@
     "bestValueYearly": "แผนรายปีที่มีมูลค่าดีที่สุด",
     "samePerks": "สิทธิประโยชน์เดียวกับรายเดือน",
     "cancelRenewal": "ยกเลิกการต่ออายุได้ตลอดเวลา",
+    "basicPlan": "Basic",
+    "proPlan": "Pro",
+    "customPlan": "Custom",
+    "basicDescription": "100 ดาวต่อเดือนสำหรับการใช้งานสม่ำเสมอ",
+    "proDescription": "499 ดาวต่อเดือนสำหรับการใช้งานที่ลึกขึ้น",
+    "customDescription": "บอกจำนวนดาวต่อวันและระยะเวลา",
+    "customCalculated": "เราคำนวณราคาตามจำนวนดาวต่อวันและระยะเวลารวม",
+    "subscribeNow": "สมัครตอนนี้",
+    "requestQuote": "ขอใบเสนอราคา",
+    "starsPerMonth": "ดาวต่อเดือน",
+    "starsPerYear": "ดาวต่อปี",
     "includesBonus": "รวมดวงดาวโบนัส",
     "secureCheckout": "ชำระเงินอย่างปลอดภัย",
     "infinityStars": "ดวงดาวอนันต์ (30 วัน)",
@@ -1720,6 +1751,31 @@
       "advancedAnalytics": "การวิเคราะห์ขั้นสูง"
     }
   },
+  "CustomPlan": {
+    "title": "ขอแผนแบบกำหนดเอง",
+    "subtitle": "บอกจำนวนดาวที่ต้องการต่อวันและต้องการให้เป็นแบบต่ออายุหรือไม่ แล้วเราจะคำนวณราคาให้เหมาะกับคุณ",
+    "fields": {
+      "name": "ชื่อ",
+      "email": "อีเมล",
+      "starsPerDay": "ดาวต่อวัน",
+      "recurring": "แผนแบบต่ออายุ",
+      "notes": "หมายเหตุ (ไม่บังคับ)"
+    },
+    "placeholders": {
+      "name": "ชื่อของคุณ",
+      "email": "your@email.com",
+      "starsPerDay": "เช่น 40",
+      "recurring": "เรียกเก็บเงินซ้ำตามรอบสำหรับแผนนี้",
+      "notes": "รายละเอียดเพิ่มเติมเพื่อช่วยประเมินการใช้งาน"
+    },
+    "submit": "ขอราคาพิเศษ",
+    "submitting": "กำลังส่งคำขอ...",
+    "success": "ส่งคำขอแล้ว เราจะติดต่อกลับเร็วๆ นี้",
+    "error": "ไม่สามารถส่งคำขอได้ กรุณาลองใหม่",
+    "validation": {
+      "starsPerDay": "จำนวนดาวต่อวันต้องมากกว่า 0"
+    }
+  },
   "Stars": {
     "title": "ยอดดวงดาว",
     "subtitle": "จัดการสกุลเงินจักรวาลของคุณ",
@@ -1748,6 +1804,7 @@
     "redirecting": "กำลังพาไปยังหน้าชำระเงินที่ปลอดภัย...",
     "done": "เสร็จสิ้น",
     "back": "กลับ",
+    "unavailable": "ไม่พร้อมใช้งาน",
     "signInToSubscribe": "เข้าสู่ระบบเพื่อสมัครสมาชิก",
     "sessionError": "ไม่สามารถเริ่มการชำระเงินได้ กรุณาลองอีกครั้ง",
     "comingSoonTitle": "การซื้อดาวจะเปิดให้ใช้เร็วๆ นี้",
@@ -1851,14 +1908,40 @@
       "badge": "ระบบดวงดาว"
     },
     "subscribe": {
-      "title": "เติมดวงดาวแบบด่วน",
-      "subtitle": "ต้องการดวงดาวทันที? เลือกแพ็กพลังงานจักรวาลของคุณ",
+      "title": "แผนการสมัครสมาชิก",
+      "subtitle": "เลือกดาวรายเดือน/รายปี หรือขอแผนแบบกำหนดเอง",
       "features": {
         "unlimitedReadings": "อ่านไม่จำกัด",
         "premiumFeatures": "ฟีเจอร์พรีเมียม",
         "prioritySupport": "การสนับสนุนลำดับแรก"
       },
-      "button": "สมัครสมาชิก (ไม่จำกัด)"
+      "button": "สมัครสมาชิก (ไม่จำกัด)",
+      "monthly": "รายเดือน",
+      "annual": "รายปี",
+      "starsPerMonth": "ดาวต่อเดือน",
+      "starsPerYear": "ดาวต่อปี",
+      "priceLabel": "{price} ต่อรอบ {cycle}",
+      "notConfigured": "ยังไม่ได้ตั้งค่าราคา",
+      "customCta": "คำนวณแผนแบบกำหนดเอง",
+      "mostPopular": "ยอดนิยมที่สุด",
+      "saveStarsPercent": "ประหยัด {percent}% (จาก {from} เป็น {to} ดาว)",
+      "savePercent": "ประหยัด {percent}%",
+      "upgrade": "อัปเกรด",
+      "upgradeSuccess": "อัปเกรดสำเร็จ",
+      "upgradeError": "อัปเกรดไม่สำเร็จ",
+      "signInToUpgrade": "กรุณาเข้าสู่ระบบเพื่ออัปเกรด",
+      "basic": {
+        "title": "Basic",
+        "subtitle": "100 ดาวต่อเดือน"
+      },
+      "pro": {
+        "title": "Pro",
+        "subtitle": "599 ดาวต่อเดือน"
+      },
+      "custom": {
+        "title": "Custom",
+        "subtitle": "ติดต่อเราผ่านฟอร์มนี้"
+      }
     },
     "earn": {
       "comingSoon": "เร็ว ๆ นี้",

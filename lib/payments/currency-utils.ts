@@ -180,6 +180,15 @@ export function convertUsdToCurrency(amountUsd: number, currency: CurrencyCode):
     return Number(converted.toFixed(decimals > 0 ? Math.min(decimals + 1, 4) : 0))
 }
 
+export function convertThbToCurrency(
+    amountThb: number,
+    currency: CurrencyCode
+): number {
+    const thbRate = EXCHANGE_RATES_TO_USD.THB ?? 35
+    const amountUsd = amountThb / thbRate
+    return convertUsdToCurrency(amountUsd, currency)
+}
+
 export function toMinorUnits(amount: number, currency: CurrencyCode): number {
     const decimals = getCurrencyDecimals(currency)
     const multiplier = Math.pow(10, decimals)

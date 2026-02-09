@@ -20,6 +20,19 @@
     "decline": "Decline",
     "accept": "Accept"
   },
+  "Admin": {
+    "title": "Admin Dashboard",
+    "subtitle": "Live metrics from AskingFate",
+    "loading": "Loading metrics...",
+    "notFoundTitle": "404",
+    "notFoundDescription": "This page could not be found.",
+    "metricsError": "Failed to load metrics.",
+    "totalUsers": "Total users",
+    "anonymousUsers": "Anonymous users",
+    "authenticatedUsers": "Authenticated users",
+    "interpretations": "Interpretations",
+    "paidSubscribers": "Paid subscribers"
+  },
   "Sidebar": {
     "services": "Services",
     "comingSoon": "Coming Soon",
@@ -1691,8 +1704,8 @@
     "title": "Pricing Plans",
     "subtitle": "Choose the perfect plan for your mystical journey",
     "heroTitle": "Choose your stars, unlock deeper insights",
-    "heroDescription": "Flexible one-time packs and a simple monthly plan. Instant delivery. Cancel anytime.",
-    "priceNote": "Prices in THB. Stars deliver instantly after purchase.",
+    "heroDescription": "Pick Basic or Pro for monthly or annual stars, or request a custom plan based on stars per day.",
+    "priceNote": "Prices in THB. Annual plans are billed once.",
     "currency": "Currency",
     "changeCurrency": "Change Currency",
     "currencySearchPlaceholder": "Search currency or code...",
@@ -1704,15 +1717,22 @@
     "mostPopular": "Most Popular",
     "getStarted": "Get Started",
     "currentPlan": "Current Plan",
+    "owned": "Owned",
+    "upgradeSuccess": "Upgrade successful",
+    "upgradeError": "Upgrade failed",
+    "signInToUpgrade": "Please sign in to upgrade",
+    "upgradePlan": "Upgrade Plan",
     "monthlySubscription": "Monthly subscription",
     "firstMonthOffer": "First month offer only",
     "thenRegularPrice": "then {price}/month",
     "annualSubscription": "Annual subscription",
     "perMonth": "per month",
+    "perYear": "per year",
     "autoRenew": "auto-renew",
     "cancelAnytime": "cancel anytime",
     "billedYearly": "billed yearly",
     "save17": "Save 17%",
+    "savePercent": "Save {percent}%",
     "oneTime": "One-time",
     "instantDelivery": "instant delivery",
     "days": "days",
@@ -1725,6 +1745,17 @@
     "bestValueYearly": "Best value yearly plan",
     "samePerks": "Same perks as monthly",
     "cancelRenewal": "Cancel renewal anytime",
+    "basicPlan": "Basic",
+    "proPlan": "Pro",
+    "customPlan": "Custom",
+    "basicDescription": "100 stars every month for steady guidance.",
+    "proDescription": "499 stars every month for deeper exploration.",
+    "customDescription": "Tell us your stars per day and duration.",
+    "customCalculated": "We calculate pricing based on your stars per day and total duration.",
+    "subscribeNow": "Subscribe now",
+    "requestQuote": "Request a quote",
+    "starsPerMonth": "Stars per month",
+    "starsPerYear": "Stars per year",
     "includesBonus": "Includes bonus stars",
     "secureCheckout": "Secure checkout",
     "infinityStars": "Infinity stars (30 days)",
@@ -1759,6 +1790,32 @@
       "advancedAnalytics": "Advanced Analytics"
     }
   },
+  "CustomPlan": {
+    "title": "Request a custom plan",
+    "subtitle": "Tell us how many stars you need per day and whether it's recurring. We'll calculate a tailored price.",
+    "fields": {
+      "name": "Name",
+      "email": "Email",
+      "starsPerMonth": "Stars per month",
+      "starsPerDay": "Stars per day",
+      "recurring": "Recurring plan",
+      "notes": "Notes (optional)"
+    },
+    "placeholders": {
+      "name": "Your name",
+      "email": "your@email.com",
+      "starsPerDay": "e.g. 40",
+      "recurring": "Bill this plan on a recurring basis",
+      "notes": "Share any details that help us estimate usage."
+    },
+    "submit": "Request custom pricing",
+    "submitting": "Sending request...",
+    "success": "Request sent. We'll get back to you soon.",
+    "error": "We couldn't send your request. Please try again.",
+    "validation": {
+      "starsPerDay": "Stars per day must be greater than 0."
+    }
+  },
   "Stars": {
     "title": "Star Balance",
     "subtitle": "Manage your cosmic currency",
@@ -1787,6 +1844,7 @@
     "redirecting": "Redirecting to secure checkout...",
     "done": "Done",
     "back": "Back",
+    "unavailable": "Unavailable",
     "signInToSubscribe": "Sign in to subscribe",
     "sessionError": "We couldn’t start checkout. Please try again.",
     "comingSoonTitle": "Star purchases are coming soon",
@@ -1890,14 +1948,40 @@
       "badge": "Stars System"
     },
     "subscribe": {
-      "title": "Quick stars Top-up",
-      "subtitle": "Need stars instantly? Choose your cosmic energy pack",
+      "title": "Subscription plans",
+      "subtitle": "Choose monthly or annual stars, or request a custom plan",
       "features": {
         "unlimitedReadings": "Unlimited readings",
         "premiumFeatures": "Premium features",
         "prioritySupport": "Priority support"
       },
-      "button": "Subscribe (Unlimited)"
+      "button": "Subscribe (Unlimited)",
+      "monthly": "Monthly",
+      "annual": "Annual",
+      "starsPerMonth": "Stars per month",
+      "starsPerYear": "Stars per year",
+      "priceLabel": "{price} billed {cycle}",
+      "notConfigured": "Price not configured yet.",
+      "customCta": "Calculate custom plan",
+      "mostPopular": "Most popular",
+      "saveStarsPercent": "Save {percent}% (from {from} to {to} stars)",
+      "savePercent": "Save {percent}%",
+      "upgrade": "Upgrade",
+      "upgradeSuccess": "Upgrade successful",
+      "upgradeError": "Upgrade failed",
+      "signInToUpgrade": "Please sign in to upgrade",
+      "basic": {
+        "title": "Basic",
+        "subtitle": "100 stars per month"
+      },
+      "pro": {
+        "title": "Pro",
+        "subtitle": "599 stars per month"
+      },
+      "custom": {
+        "title": "Custom",
+        "subtitle": "Contact us via this form"
+      }
     },
     "earn": {
       "comingSoon": "Coming Soon",

@@ -5,10 +5,6 @@ import { useTranslations } from "next-intl"
 import SubscriptionSection from "./subscription-section"
 import StarPacksGrid from "./star-packs-grid"
 import {
-    getAnnualMonthlyEquivalent,
-    getSubscriptionPrice,
-} from "@/lib/payments/star-products"
-import {
     ensureSupportedCurrency,
     type CurrencyCode,
 } from "@/lib/payments/currency-utils"
@@ -27,9 +23,6 @@ export default function PricingContent({
         ensureSupportedCurrency(defaultCurrency)
     )
 
-    const monthlyPrice = getSubscriptionPrice("monthly", currency)
-    const annualMonthlyEquivalent = getAnnualMonthlyEquivalent(currency)
-
     return (
         <>
             {/* Divider: Subscription plans */}
@@ -44,10 +37,6 @@ export default function PricingContent({
             <SubscriptionSection
                 locale={locale}
                 currency={currency}
-                monthlyPrice={monthlyPrice}
-                annualMonthlyEquivalent={annualMonthlyEquivalent}
-                defaultCurrency={defaultCurrency}
-                onCurrencyChange={setCurrency}
             />
 
             {/* Divider: One-time star packs */}

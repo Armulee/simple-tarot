@@ -31,6 +31,10 @@ export default async function StarsPage() {
                         <StarsBalance />
 
                         {/* Subscribe Section */}
+                        <span className='font-serif text-sm text-gray-400 text-center w-full block mb-2 text-lg font-bold text-zinc-300'>
+                            DON&apos;T WANT TO WAIT FOR REFILLED? <br/>
+                            SUBSCRIBE NOW!
+                        </span>
                         <SubscribeSection />
                     </div>
 

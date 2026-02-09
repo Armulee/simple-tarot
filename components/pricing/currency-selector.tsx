@@ -113,15 +113,9 @@ export default function CurrencySelector({
             >
                 <SelectTrigger className='h-8 px-3 text-xs bg-white/10 hover:bg-white/20 border-border/30 rounded-md'>
                     <SelectValue>
-                        {currency === "USD" ? (
-                            <span>
-                                {t("changeCurrency") || "Change Currency"}
-                            </span>
-                        ) : (
-                            <span>
-                                {getCurrencySymbol(currency)} · {currency}
-                            </span>
-                        )}
+                        <span>
+                            {getCurrencySymbol(currency)} · {currency}
+                        </span>
                     </SelectValue>
                 </SelectTrigger>
                 <SelectContent className='bg-black border-border/30 p-0'>

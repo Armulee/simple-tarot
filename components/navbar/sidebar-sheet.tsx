@@ -234,7 +234,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                         {user && (
                                             <div className='mt-3'>
                                                 <span className='text-[10px] uppercase tracking-wider text-yellow-500/70 font-semibold'>
-                                                    Quick top up
+                                                    Top up
                                                 </span>
                                                 <div className='mt-2'>
                                                     <Link

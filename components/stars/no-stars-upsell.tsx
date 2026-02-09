@@ -47,7 +47,7 @@ export default function NoStarsUpsell() {
             {user ? (
                 <div className='space-y-2 grid grid-cols-1 md:grid-cols-2 gap-2'>
                     <div className='text-xs text-white/75'>
-                        Quick top up (instant):
+                        Top up (instant):
                     </div>
 
                     {packs.length > 0 ? (
