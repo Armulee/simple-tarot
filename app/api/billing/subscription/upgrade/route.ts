@@ -1,3 +1,5 @@
+import type Stripe from "stripe"
+
 import { NextResponse } from "next/server"
 import { stripe } from "@/lib/stripe"
 import { supabaseAdmin } from "@/lib/supabase"
@@ -60,10 +62,10 @@ export async function POST(request: Request) {
             )
         }
 
-        const updated = await stripe.subscriptions.update(subscription.id, {
+        const updated = (await stripe.subscriptions.update(subscription.id, {
             items: [{ id: item.id, price: priceId }],
             proration_behavior: "always_invoice",
-        })
+        })) as Stripe.Subscription
 
         const planKey = getPlanKeyFromPriceId(priceId)
         if (planKey) {
