@@ -1,3 +1,5 @@
+import type Stripe from "stripe"
+
 import { NextResponse } from "next/server"
 import { stripe } from "@/lib/stripe"
 import { supabaseAdmin } from "@/lib/supabase"
@@ -93,10 +95,14 @@ export async function POST(request: Request) {
             paymentIntentId =
                 typeof pi === "string" ? pi : pi?.id ?? null
         } else if (paymentId.startsWith("in_")) {
+            type InvoiceWithPaymentIntent = Stripe.Invoice & {
+                payment_intent?: string | Stripe.PaymentIntent | null
+            }
             const invoice = await stripe.invoices.retrieve(paymentId, {
                 expand: ["payment_intent"],
             })
-            const pi = invoice.payment_intent
+            const invoiceData = invoice as InvoiceWithPaymentIntent
+            const pi = invoiceData.payment_intent
             paymentIntentId =
                 typeof pi === "string" ? pi : pi?.id ?? null
         }

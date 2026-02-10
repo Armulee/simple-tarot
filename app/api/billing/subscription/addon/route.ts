@@ -77,6 +77,9 @@ export async function POST(request: Request) {
         const subscription = await stripe.subscriptions.retrieve(
             subRow.provider_subscription_id
         )
+        const subscriptionData = subscription as Stripe.Subscription & {
+            current_period_start?: number | null
+        }
 
         const existingItem = subscription.items.data.find(
             (item) => item.price?.id === priceId
@@ -163,9 +166,9 @@ export async function POST(request: Request) {
                     currentDaily + currentPlan + nextAddonBalance
                 const addonRefillAt =
                     currentRow.addon_last_refill_at ??
-                    (typeof subscription.current_period_start === "number"
+                    (typeof subscriptionData.current_period_start === "number"
                         ? new Date(
-                              subscription.current_period_start * 1000
+                              subscriptionData.current_period_start * 1000
                           ).toISOString()
                         : null)
                 await supabaseAdmin!
