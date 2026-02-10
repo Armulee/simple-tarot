@@ -43,7 +43,7 @@ export async function POST(req: Request) {
                 plan_last_refill_at?: string | null
                 addon_last_refill_at?: string | null
             }
-            let dailyStars = Number(row.daily_stars ?? 0)
+            const dailyStars = Number(row.daily_stars ?? 0)
             let planStars = Number(row.plan_stars ?? 0)
             let addonStars = Number(row.addon_stars ?? 0)
             let planLastRefillMs = row.plan_last_refill_at
