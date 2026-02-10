@@ -864,15 +864,50 @@ export default function BillingPage() {
                                                     transaction.type.startsWith(
                                                         "subscription"
                                                     )
+                                                const planInfo = isSubscription
+                                                    ? parseSubscriptionPlanKey(
+                                                          transaction.pack_name ??
+                                                              null
+                                                      )
+                                                    : null
+                                                const isPlanChange =
+                                                    transaction.reference
+                                                        ?.toLowerCase()
+                                                        .includes("change") ??
+                                                    false
+                                                const isRenewal =
+                                                    transaction.type ===
+                                                        "subscription_recurring" &&
+                                                    !isPlanChange
+                                                const planName = planInfo
+                                                    ? planInfo.tier === "basic"
+                                                        ? t("basicPlan")
+                                                        : t("proPlan")
+                                                    : null
+                                                const planLabel = planName
+                                                    ? `${planName} ${t(
+                                                          "planSuffix"
+                                                      )}`
+                                                    : null
+                                                const intervalBadge = planInfo
+                                                    ? planInfo.cycle === "annual"
+                                                        ? t("yearly")
+                                                        : t("monthly")
+                                                    : null
                                                 const title = (() => {
+                                                    if (planLabel) {
+                                                        return isRenewal
+                                                            ? `${planLabel} ${t(
+                                                                  "renewalSuffix"
+                                                              )}`
+                                                            : planLabel
+                                                    }
                                                     const name =
                                                         transaction.pack_name ??
                                                         null
                                                     if (name) {
-                                                        // For subscription products, show the name as-is (no "Pack" suffix)
                                                         if (isSubscription)
                                                             return name
-                                                        // For one-time packs, keep the existing "Pack" suffix convention
                                                         return name
                                                             .toLowerCase()
                                                             .includes("pack")
@@ -919,9 +954,10 @@ export default function BillingPage() {
                                                                         </h4>
                                                                         {isSubscription && (
                                                                             <Badge className='bg-purple-500/20 text-purple-300 border-purple-500/20 text-[10px] font-bold'>
-                                                                                {t(
-                                                                                    "subscription"
-                                                                                ).toUpperCase()}
+                                                                                {(intervalBadge ??
+                                                                                    t(
+                                                                                        "subscription"
+                                                                                    )).toUpperCase()}
                                                                             </Badge>
                                                                         )}
                                                                     </div>

@@ -1619,6 +1619,8 @@
     "proPlan": "Pro",
     "monthly": "Monthly",
     "yearly": "Annually",
+    "planSuffix": "Plan",
+    "renewalSuffix": "Renewal",
     "active": "ACTIVE",
     "ending": "ENDING",
     "starsPerPeriod": "Stars per period",

@@ -1580,6 +1580,8 @@
     "proPlan": "Pro",
     "monthly": "รายเดือน",
     "yearly": "รายปี",
+    "planSuffix": "แพ็กเกจ",
+    "renewalSuffix": "ต่ออายุ",
     "active": "กำลังใช้งาน",
     "ending": "ใกล้สิ้นสุด",
     "starsPerPeriod": "ดาวต่อรอบบิล",
