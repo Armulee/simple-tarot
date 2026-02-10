@@ -112,7 +112,7 @@ export async function POST(request: Request) {
             await supabaseAdmin!
                 .from("billing_subscriptions")
                 .update({
-                    plan: planKey,
+                    plan: isDowngrade ? subRow.plan : planKey,
                     status: updatedSubscription.status ?? "active",
                     current_period_start: periodStart,
                     current_period_end: periodEnd,
@@ -122,6 +122,8 @@ export async function POST(request: Request) {
                         typeof updatedSubscription.customer === "string"
                             ? updatedSubscription.customer
                             : undefined,
+                    pending_plan: isDowngrade ? planKey : null,
+                    pending_change_at: isDowngrade ? periodEnd : null,
                     updated_at: new Date().toISOString(),
                 })
                 .eq("id", subRow.id)

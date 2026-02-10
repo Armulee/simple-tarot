@@ -20,6 +20,8 @@ type ActiveSubscription = {
     currentPeriodStart: number | null
     currentPeriodEnd: number | null
     cancelAtPeriodEnd: boolean
+    pendingPlanKey?: string | null
+    pendingChangeAt?: number | null
 }
 
 export function useActiveSubscription() {
@@ -39,7 +41,7 @@ export function useActiveSubscription() {
             const { data, error } = await supabase
                 .from("billing_subscriptions")
                 .select(
-                    "id, plan, status, current_period_start, current_period_end, cancel_at_period_end, addon_stars"
+                    "id, plan, pending_plan, pending_change_at, status, current_period_start, current_period_end, cancel_at_period_end, addon_stars"
                 )
                 .eq("user_id", user.id)
                 .in("status", ["active", "trialing", "canceled", "cancelled"])
@@ -90,6 +92,10 @@ export function useActiveSubscription() {
                     ? new Date(data.current_period_end).getTime()
                     : null,
                 cancelAtPeriodEnd: Boolean(data.cancel_at_period_end),
+                pendingPlanKey: data.pending_plan ?? null,
+                pendingChangeAt: data.pending_change_at
+                    ? new Date(data.pending_change_at).getTime()
+                    : null,
             })
         } catch {
             setSubscription(null)

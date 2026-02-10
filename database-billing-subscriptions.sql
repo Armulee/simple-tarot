@@ -6,6 +6,8 @@ create table if not exists public.billing_subscriptions (
     provider_subscription_id text unique,
     provider_customer_id text,
     plan text,
+    pending_plan text,
+    pending_change_at timestamptz,
     status text not null default 'active',
     current_period_start timestamptz,
     current_period_end timestamptz,

@@ -82,6 +82,8 @@ type Subscription = {
     current_period_end: string
     cancel_at_period_end: boolean
     plan: string
+    pending_plan?: string | null
+    pending_change_at?: string | null
     addon_items?: AddonItem[] | null
     addon_stars?: number | null
     addon_amount_usd?: number | null
@@ -105,6 +107,7 @@ export default function BillingPage() {
     const [addonRemoving, setAddonRemoving] = useState(false)
     const [refundTarget, setRefundTarget] = useState<Tx | null>(null)
     const [refundLoading, setRefundLoading] = useState(false)
+    const [revertingDowngrade, setRevertingDowngrade] = useState(false)
 
     // Auth guard: redirect to signin if not logged in
     useEffect(() => {
@@ -134,7 +137,7 @@ export default function BillingPage() {
             const { data: subData } = await supabase
                 .from("billing_subscriptions")
                 .select(
-                    "id, status, current_period_end, cancel_at_period_end, plan, addon_items, addon_stars, addon_amount_usd, provider_customer_id"
+                    "id, status, current_period_end, cancel_at_period_end, plan, pending_plan, pending_change_at, addon_items, addon_stars, addon_amount_usd, provider_customer_id"
                 )
                 .eq("user_id", user.id)
                 .eq("status", "active")
@@ -265,6 +268,45 @@ export default function BillingPage() {
         } finally {
             setAddonRemoving(false)
             setAddonRemoveTarget(null)
+        }
+    }
+
+    const handleRevertDowngrade = async () => {
+        if (!user || !subscription?.pending_plan) return
+        setRevertingDowngrade(true)
+        try {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession()
+            if (!session?.access_token) {
+                throw new Error("AUTH_REQUIRED")
+            }
+            const response = await fetch(
+                "/api/billing/subscription/revert",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${session.access_token}`,
+                    },
+                }
+            )
+            const data = await response.json().catch(() => ({}))
+            if (!response.ok) {
+                throw new Error(data?.error || "REVERT_FAILED")
+            }
+            toast.success(t("revertDowngradeSuccess"))
+            fetchBillingData()
+        } catch (error) {
+            const message =
+                error instanceof Error && error.message === "AUTH_REQUIRED"
+                    ? t("authRequired") || "Please sign in"
+                    : error instanceof Error
+                      ? error.message
+                      : t("revertDowngradeFailed")
+            toast.error(message)
+        } finally {
+            setRevertingDowngrade(false)
         }
     }
 
@@ -415,6 +457,17 @@ export default function BillingPage() {
               planInfo.cycle === "annual" ? t("yearly") : t("monthly")
           }`
         : t("starterPlan")
+    const pendingPlanInfo = parseSubscriptionPlanKey(
+        subscription?.pending_plan ?? null
+    )
+    const pendingChangeAtMs = subscription?.pending_change_at
+        ? new Date(subscription.pending_change_at).getTime()
+        : null
+    const hasPendingDowngrade = Boolean(
+        pendingPlanInfo &&
+            pendingChangeAtMs &&
+            pendingChangeAtMs > Date.now()
+    )
     const planStars = planInfo
         ? getPlanStars(planInfo.tier, planInfo.cycle)
         : null
@@ -570,6 +623,19 @@ export default function BillingPage() {
                                         >
                                             {primaryActionLabel}
                                         </Button>
+                                        {hasPendingDowngrade && (
+                                            <Button
+                                                variant='outline'
+                                                className='rounded-full bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-200 text-xs uppercase tracking-widest'
+                                                onClick={handleRevertDowngrade}
+                                                disabled={revertingDowngrade}
+                                            >
+                                                {revertingDowngrade ? (
+                                                    <Loader2 className='w-3 h-3 animate-spin mr-2' />
+                                                ) : null}
+                                                {t("revertDowngrade")}
+                                            </Button>
+                                        )}
                                     </div>
 
                                     <div className='space-y-2'>

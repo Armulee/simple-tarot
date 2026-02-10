@@ -17,6 +17,8 @@ export type ActiveSubscriptionInfo = {
     currentPeriodEnd: number | null
     cancelAtPeriodEnd: boolean
     status: string
+    pendingPlanKey?: string | null
+    pendingChangeAt?: number | null
 }
 
 export async function getActiveSubscriptionInfo(
@@ -26,7 +28,7 @@ export async function getActiveSubscriptionInfo(
     const { data, error } = await supabaseAdmin
         .from("billing_subscriptions")
         .select(
-            "plan, status, current_period_start, current_period_end, cancel_at_period_end, addon_stars"
+            "id, plan, pending_plan, pending_change_at, status, current_period_start, current_period_end, cancel_at_period_end, addon_stars"
         )
         .eq("user_id", userId)
         .in("status", ["active", "trialing", "canceled", "cancelled"])
@@ -35,7 +37,7 @@ export async function getActiveSubscriptionInfo(
         .maybeSingle()
 
     if (error || !data?.plan) return null
-    const planInfo = parseSubscriptionPlanKey(data.plan)
+    let planInfo = parseSubscriptionPlanKey(data.plan)
     if (!planInfo) return null
 
     const now = Date.now()
@@ -45,6 +47,45 @@ export async function getActiveSubscriptionInfo(
             new Date(data.current_period_end).getTime() <= now)
     ) {
         return null
+    }
+
+    let pendingPlanKey = data.pending_plan ?? null
+    let pendingChangeAt = data.pending_change_at
+        ? new Date(data.pending_change_at).getTime()
+        : null
+
+    if (
+        pendingPlanKey &&
+        pendingChangeAt &&
+        pendingChangeAt <= now &&
+        supabaseAdmin
+    ) {
+        const nextPlanInfo = parseSubscriptionPlanKey(pendingPlanKey)
+        if (nextPlanInfo) {
+            const { data: updated } = await supabaseAdmin
+                .from("billing_subscriptions")
+                .update({
+                    plan: pendingPlanKey,
+                    pending_plan: null,
+                    pending_change_at: null,
+                    updated_at: new Date().toISOString(),
+                })
+                .eq("id", data.id)
+                .select(
+                    "plan, pending_plan, pending_change_at, status, current_period_start, current_period_end, cancel_at_period_end, addon_stars"
+                )
+                .maybeSingle()
+            if (updated?.plan) {
+                const refreshed = parseSubscriptionPlanKey(updated.plan)
+                if (refreshed) {
+                    planInfo = refreshed
+                }
+                pendingPlanKey = updated.pending_plan ?? null
+                pendingChangeAt = updated.pending_change_at
+                    ? new Date(updated.pending_change_at).getTime()
+                    : null
+            }
+        }
     }
 
     const baseStars = getPlanStars(planInfo.tier, planInfo.cycle)
@@ -67,5 +108,7 @@ export async function getActiveSubscriptionInfo(
             : null,
         cancelAtPeriodEnd: Boolean(data.cancel_at_period_end),
         status: data.status,
+        pendingPlanKey,
+        pendingChangeAt,
     }
 }
