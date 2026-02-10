@@ -36,6 +36,11 @@ import { useRouter } from "next/navigation"
 import BrandLoader from "@/components/brand-loader"
 import { useStars } from "@/contexts/stars-context"
 import {
+    getPlanPriceUsd,
+    getPlanStars,
+    parseSubscriptionPlanKey,
+} from "@/lib/payments/subscription-plans"
+import {
     AlertDialog,
     AlertDialogAction,
     AlertDialogCancel,
@@ -53,10 +58,22 @@ type Tx = {
     currency: string
     reference: string | null
     provider: string
+    provider_payment_id?: string | null
     created_at: string
+    status?: string | null
     stars_amount?: number | null
     pack_name?: string | null
     subscription_id?: string | null
+}
+
+type AddonItem = {
+    priceId: string
+    name: string
+    quantity: number
+    unitPriceUsd: number
+    totalPriceUsd: number
+    starsPerPeriod: number
+    totalStars: number
 }
 
 type Subscription = {
@@ -65,15 +82,17 @@ type Subscription = {
     current_period_end: string
     cancel_at_period_end: boolean
     plan: string
+    pending_plan?: string | null
+    pending_change_at?: string | null
+    addon_items?: AddonItem[] | null
+    addon_stars?: number | null
+    addon_amount_usd?: number | null
+    provider_customer_id?: string | null
 }
 
 export default function BillingPage() {
     const { user, loading: authLoading } = useAuth()
-    const {
-        isInfinity,
-        infinityExpiresAt,
-        initialized: starsInitialized,
-    } = useStars()
+    const { initialized: starsInitialized } = useStars()
     const router = useRouter()
     const t = useTranslations("Billing")
     const [txs, setTxs] = useState<Tx[]>([])
@@ -82,6 +101,13 @@ export default function BillingPage() {
     const [cancelling, setCancelling] = useState(false)
     const [showCancelDialog, setShowCancelDialog] = useState(false)
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
+    const [portalLoading, setPortalLoading] = useState(false)
+    const [addonRemoveTarget, setAddonRemoveTarget] =
+        useState<AddonItem | null>(null)
+    const [addonRemoving, setAddonRemoving] = useState(false)
+    const [refundTarget, setRefundTarget] = useState<Tx | null>(null)
+    const [refundLoading, setRefundLoading] = useState(false)
+    const [revertingDowngrade, setRevertingDowngrade] = useState(false)
 
     // Auth guard: redirect to signin if not logged in
     useEffect(() => {
@@ -100,7 +126,7 @@ export default function BillingPage() {
             const txResult = await supabase
                 .from("billing_transactions")
                 .select(
-                    "id,type,amount_cents,currency,reference,provider,created_at,stars_amount,pack_name,subscription_id"
+                    "id,type,amount_cents,currency,reference,provider,provider_payment_id,status,created_at,stars_amount,pack_name,subscription_id"
                 )
                 .eq("user_id", user.id)
                 .order("created_at", { ascending: false })
@@ -111,7 +137,7 @@ export default function BillingPage() {
             const { data: subData } = await supabase
                 .from("billing_subscriptions")
                 .select(
-                    "id, status, current_period_end, cancel_at_period_end, plan"
+                    "id, status, current_period_end, cancel_at_period_end, plan, pending_plan, pending_change_at, addon_items, addon_stars, addon_amount_usd, provider_customer_id"
                 )
                 .eq("user_id", user.id)
                 .eq("status", "active")
@@ -165,6 +191,163 @@ export default function BillingPage() {
         }
     }
 
+    const handleManagePaymentMethod = async () => {
+        if (!user || portalLoading) return
+        setPortalLoading(true)
+        try {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession()
+            if (!session?.access_token) {
+                throw new Error("AUTH_REQUIRED")
+            }
+            const response = await fetch("/api/billing/portal", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${session.access_token}`,
+                },
+            })
+            const data = await response.json().catch(() => ({}))
+            if (!response.ok) {
+                throw new Error(data?.error || "PORTAL_ERROR")
+            }
+            if (data?.url) {
+                window.location.assign(data.url)
+            } else {
+                throw new Error("PORTAL_URL_MISSING")
+            }
+        } catch (error) {
+            const message =
+                error instanceof Error && error.message === "AUTH_REQUIRED"
+                    ? t("authRequired") || "Please sign in"
+                    : error instanceof Error
+                      ? error.message
+                      : "Portal error"
+            toast.error(message)
+        } finally {
+            setPortalLoading(false)
+        }
+    }
+
+    const handleRemoveAddon = async () => {
+        if (!user || !addonRemoveTarget) return
+        setAddonRemoving(true)
+        try {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession()
+            if (!session?.access_token) {
+                throw new Error("AUTH_REQUIRED")
+            }
+            const response = await fetch("/api/billing/subscription/addon", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify({
+                    priceId: addonRemoveTarget.priceId,
+                    action: "remove",
+                }),
+            })
+            const data = await response.json().catch(() => ({}))
+            if (!response.ok) {
+                throw new Error(data?.error || "ADDON_REMOVE_FAILED")
+            }
+            toast.success(t("addonRemoved") || "Add-on removed")
+            fetchBillingData()
+        } catch (error) {
+            const message =
+                error instanceof Error && error.message === "AUTH_REQUIRED"
+                    ? t("authRequired") || "Please sign in"
+                    : error instanceof Error
+                      ? error.message
+                      : t("addonRemoveFailed") || "Failed to remove add-on"
+            toast.error(message)
+        } finally {
+            setAddonRemoving(false)
+            setAddonRemoveTarget(null)
+        }
+    }
+
+    const handleRevertDowngrade = async () => {
+        if (!user || !subscription?.pending_plan) return
+        setRevertingDowngrade(true)
+        try {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession()
+            if (!session?.access_token) {
+                throw new Error("AUTH_REQUIRED")
+            }
+            const response = await fetch(
+                "/api/billing/subscription/revert",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${session.access_token}`,
+                    },
+                }
+            )
+            const data = await response.json().catch(() => ({}))
+            if (!response.ok) {
+                throw new Error(data?.error || "REVERT_FAILED")
+            }
+            toast.success(t("revertDowngradeSuccess"))
+            fetchBillingData()
+        } catch (error) {
+            const message =
+                error instanceof Error && error.message === "AUTH_REQUIRED"
+                    ? t("authRequired") || "Please sign in"
+                    : error instanceof Error
+                      ? error.message
+                      : t("revertDowngradeFailed")
+            toast.error(message)
+        } finally {
+            setRevertingDowngrade(false)
+        }
+    }
+
+    const handleRefund = async () => {
+        if (!user || !refundTarget) return
+        setRefundLoading(true)
+        try {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession()
+            if (!session?.access_token) {
+                throw new Error("AUTH_REQUIRED")
+            }
+            const response = await fetch("/api/billing/refund", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify({ transactionId: refundTarget.id }),
+            })
+            const data = await response.json().catch(() => ({}))
+            if (!response.ok) {
+                throw new Error(data?.error || "REFUND_FAILED")
+            }
+            toast.success(t("refundSuccess"))
+            fetchBillingData()
+        } catch (error) {
+            const message =
+                error instanceof Error && error.message === "AUTH_REQUIRED"
+                    ? t("authRequired") || "Please sign in"
+                    : error instanceof Error
+                      ? error.message
+                      : t("refundFailed")
+            toast.error(message)
+        } finally {
+            setRefundLoading(false)
+            setRefundTarget(null)
+        }
+    }
+
     // Fetch billing data
     useEffect(() => {
         if (!user || authLoading) return
@@ -187,11 +370,8 @@ export default function BillingPage() {
     }
 
     // Helper function to extract stars from reference (fallback)
-    const getStarsFromReference = (
-        reference: string | null
-    ): number | "infinity" | null => {
+    const getStarsFromReference = (reference: string | null): number | null => {
         if (!reference) return null
-        if (reference.toLowerCase().includes("infinity")) return "infinity"
         const match = reference.match(/(\d+)\s*stars?/i)
         return match ? parseInt(match[1]) : null
     }
@@ -212,6 +392,21 @@ export default function BillingPage() {
             }),
             full: format(date, "MMM dd, yyyy"),
         }
+    }
+    const formatUsd = (amount: number) =>
+        new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+        }).format(amount)
+
+    const refundWindowMs = 7 * 24 * 60 * 60 * 1000
+    const isRefundable = (tx: Tx) => {
+        if (!tx?.provider_payment_id) return false
+        if (tx?.status === "refunded") return false
+        if (tx?.provider !== "stripe") return false
+        const createdAt = new Date(tx.created_at).getTime()
+        if (!Number.isFinite(createdAt)) return false
+        return Date.now() - createdAt <= refundWindowMs
     }
 
     // Group transactions by period
@@ -256,15 +451,43 @@ export default function BillingPage() {
     }
 
     // Use the actual subscription data from billing_subscriptions
-    const hasSubscription = Boolean(
-        subscription &&
-            (subscription.status === "active" ||
-                subscription.status === "trialing")
+    const planInfo = parseSubscriptionPlanKey(subscription?.plan)
+    const planLabel = planInfo
+        ? `${t(planInfo.tier === "basic" ? "basicPlan" : "proPlan")} ${
+              planInfo.cycle === "annual" ? t("yearly") : t("monthly")
+          }`
+        : t("starterPlan")
+    const pendingPlanInfo = parseSubscriptionPlanKey(
+        subscription?.pending_plan ?? null
     )
-
-    // For display purposes, use the latest subscription transaction if it exists
-    const latestSubscriptionTx =
-        txs.find((tx) => tx.type?.startsWith("subscription")) ?? null
+    const pendingChangeAtMs = subscription?.pending_change_at
+        ? new Date(subscription.pending_change_at).getTime()
+        : null
+    const hasPendingDowngrade = Boolean(
+        pendingPlanInfo &&
+            pendingChangeAtMs &&
+            pendingChangeAtMs > Date.now()
+    )
+    const planStars = planInfo
+        ? getPlanStars(planInfo.tier, planInfo.cycle)
+        : null
+    const planPriceUsd = planInfo
+        ? getPlanPriceUsd(planInfo.tier, planInfo.cycle)
+        : null
+    const addonStars = subscription?.addon_stars ?? 0
+    const totalPlanStars =
+        typeof planStars === "number" ? planStars + addonStars : null
+    const addonAmountUsd = subscription?.addon_amount_usd ?? 0
+    const totalPriceUsd =
+        typeof planPriceUsd === "number"
+            ? planPriceUsd + addonAmountUsd
+            : null
+    const isMaxPlan = planInfo?.tier === "pro"
+    const primaryActionLabel = isMaxPlan ? t("buyAddons") : t("upgradePlan")
+    const primaryActionHref = isMaxPlan ? "/stars#add-ons" : "/stars"
+    const addonItems: AddonItem[] = Array.isArray(subscription?.addon_items)
+        ? subscription?.addon_items ?? []
+        : []
 
     return (
         <div className='min-h-screen pb-20 relative bg-transparent text-white selection:bg-yellow-400/30'>
@@ -304,7 +527,7 @@ export default function BillingPage() {
                 </div>
 
                 {/* Current Plan Card */}
-                {(!starsInitialized || isInfinity || subscription) && (
+                {(!starsInitialized || subscription) && (
                     <Card className='col-span-1 md:col-span-2 relative overflow-hidden bg-gradient-to-br from-white/[0.08] to-transparent border-white/10 p-8 backdrop-blur-md rounded-2xl group transition-all duration-500 hover:border-white/20'>
                         <div className='absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity'>
                             <ShieldCheck className='w-32 h-32 text-white' />
@@ -319,65 +542,183 @@ export default function BillingPage() {
                                     <h2 className='text-3xl font-bold text-white'>
                                         {!starsInitialized ? (
                                             <Skeleton className='h-9 w-48 bg-white/10 rounded-lg' />
-                                        ) : isInfinity ? (
-                                            <span className='flex items-center gap-2 bg-gradient-to-r from-yellow-200 to-yellow-500 bg-clip-text text-transparent'>
-                                                {hasSubscription
-                                                    ? latestSubscriptionTx?.pack_name ||
-                                                      "Infinity Subscription"
-                                                    : "Infinity Stars"}
-                                            </span>
                                         ) : (
-                                            "Starter Plan"
+                                            <span className='flex items-center gap-2 bg-gradient-to-r from-yellow-200 to-yellow-500 bg-clip-text text-transparent'>
+                                                {planLabel}
+                                            </span>
                                         )}
                                     </h2>
-                                    {starsInitialized && isInfinity && (
-                                        <Badge
-                                            className={`${
-                                                hasSubscription
-                                                    ? "bg-yellow-400/20 text-yellow-300 border-yellow-400/30"
-                                                    : "bg-indigo-400/20 text-indigo-300 border-indigo-400/30"
-                                            } animate-pulse`}
-                                        >
-                                            {hasSubscription
-                                                ? "ACTIVE"
-                                                : "ONE-TIME"}
+                                    {starsInitialized && subscription && (
+                                        <Badge className='bg-yellow-400/20 text-yellow-300 border-yellow-400/30 animate-pulse'>
+                                            {subscription.cancel_at_period_end
+                                                ? t("ending")
+                                                : t("active")}
                                         </Badge>
                                     )}
                                 </div>
                             </div>
 
                             <div className='grid grid-cols-2 gap-8'>
-                                {(!starsInitialized || isInfinity) && (
+                                {(!starsInitialized || subscription) && (
                                     <div className='space-y-1'>
                                         <div className='text-xs text-gray-500 flex items-center gap-1.5'>
-                                            <Clock
-                                                className={`w-3 h-3 ${!starsInitialized ? "text-gray-600" : hasSubscription ? "text-indigo-400" : "text-indigo-400"}`}
-                                            />
+                                            <Clock className='w-3 h-3 text-indigo-400' />
                                             {!starsInitialized ? (
                                                 <Skeleton className='h-3 w-20 bg-white/5' />
-                                            ) : hasSubscription ? (
-                                                t("nextBilling") ||
-                                                "Next Billing"
                                             ) : (
-                                                "Expires On"
+                                                t("nextBilling") || "Next Billing"
                                             )}
                                         </div>
                                         <div className='text-xl font-semibold text-white'>
                                             {!starsInitialized ? (
                                                 <Skeleton className='h-7 w-32 bg-white/10 rounded-md' />
-                                            ) : infinityExpiresAt ? (
+                                            ) : subscription?.current_period_end ? (
                                                 formatDate(
-                                                    new Date(
-                                                        infinityExpiresAt!
-                                                    ).toISOString()
+                                                    subscription.current_period_end
                                                 ).full
                                             ) : (
-                                                "Never"
+                                                "-"
                                             )}
                                         </div>
                                     </div>
                                 )}
+                                {totalPlanStars !== null && (
+                                    <div className='space-y-1'>
+                                        <div className='text-xs text-gray-500 flex items-center gap-1.5'>
+                                            <Star className='w-3 h-3 text-yellow-300' />
+                                            {t("starsPerPeriod")}
+                                        </div>
+                                        <div className='text-xl font-semibold text-white'>
+                                            {totalPlanStars}
+                                        </div>
+                                        {addonStars > 0 && (
+                                            <div className='text-[11px] text-emerald-200'>
+                                                +{addonStars} {t("addonStars")}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
+
+                            {subscription && (
+                                <div className='space-y-4'>
+                                    <div className='flex flex-wrap items-center gap-3'>
+                                        <Button
+                                            variant='outline'
+                                            className='rounded-full bg-white/5 border-white/10 hover:bg-white/10 text-white text-xs uppercase tracking-widest'
+                                            onClick={handleManagePaymentMethod}
+                                            disabled={portalLoading}
+                                        >
+                                            {portalLoading ? (
+                                                <Loader2 className='w-3 h-3 animate-spin mr-2' />
+                                            ) : null}
+                                            {t("managePaymentMethod")}
+                                        </Button>
+                                        <Button
+                                            variant='outline'
+                                            className='rounded-full bg-yellow-400/10 border-yellow-400/30 hover:bg-yellow-400/20 text-yellow-200 text-xs uppercase tracking-widest'
+                                            onClick={() =>
+                                                router.push(primaryActionHref)
+                                            }
+                                        >
+                                            {primaryActionLabel}
+                                        </Button>
+                                        {hasPendingDowngrade && (
+                                            <Button
+                                                variant='outline'
+                                                className='rounded-full bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-200 text-xs uppercase tracking-widest'
+                                                onClick={handleRevertDowngrade}
+                                                disabled={revertingDowngrade}
+                                            >
+                                                {revertingDowngrade ? (
+                                                    <Loader2 className='w-3 h-3 animate-spin mr-2' />
+                                                ) : null}
+                                                {t("revertDowngrade")}
+                                            </Button>
+                                        )}
+                                    </div>
+
+                                    <div className='space-y-2'>
+                                        <div className='text-xs text-gray-500 uppercase tracking-wider'>
+                                            {t("addonPacks")}
+                                        </div>
+                                        {addonItems.length > 0 ? (
+                                            <div className='space-y-2'>
+                                                {addonItems.map((item) => (
+                                                    <div
+                                                        key={item.priceId}
+                                                        className='flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/40 px-3 py-2'
+                                                    >
+                                                        <div>
+                                                            <div className='text-sm text-white font-semibold'>
+                                                                {item.name}{" "}
+                                                                <span className='text-xs text-white/60'>
+                                                                    x
+                                                                    {
+                                                                        item.quantity
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                            <div className='text-xs text-gray-400'>
+                                                                +{item.totalStars}{" "}
+                                                                {t("stars")} ·{" "}
+                                                                {formatUsd(
+                                                                    item.totalPriceUsd
+                                                                )}{" "}
+                                                                /
+                                                                {t(
+                                                                    "monthly"
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <Button
+                                                            variant='ghost'
+                                                            size='sm'
+                                                            className='text-[10px] uppercase tracking-widest font-bold text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-full'
+                                                            onClick={() =>
+                                                                setAddonRemoveTarget(
+                                                                    item
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                addonRemoving
+                                                            }
+                                                        >
+                                                            {addonRemoving &&
+                                                            addonRemoveTarget?.priceId ===
+                                                                item.priceId ? (
+                                                                <Loader2 className='w-3 h-3 animate-spin mr-2' />
+                                                            ) : (
+                                                                <XCircle className='w-3 h-3 mr-2' />
+                                                            )}
+                                                            {t("removeAddon")}
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className='text-sm text-white/60'>
+                                                {t("noAddons")}
+                                            </div>
+                                        )}
+                                        {planPriceUsd != null && (
+                                            <div className='pt-2 text-xs text-gray-400'>
+                                                {t("estimatedTotal")}:{" "}
+                                                <span className='text-white'>
+                                                    {formatUsd(
+                                                        totalPriceUsd ??
+                                                            planPriceUsd
+                                                    )}
+                                                </span>{" "}
+                                                /{" "}
+                                                {planInfo?.cycle === "annual"
+                                                    ? t("yearly")
+                                                    : t("monthly")}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Subscription Management */}
                             {!starsInitialized ? (
@@ -385,7 +726,7 @@ export default function BillingPage() {
                                     <Skeleton className='h-4 w-40 bg-white/5 rounded' />
                                     <Skeleton className='h-8 w-32 bg-white/5 rounded-full' />
                                 </div>
-                            ) : isInfinity && subscription ? (
+                            ) : subscription ? (
                                 <div className='text-left pt-4 border-t border-white/5 flex items-center justify-between'>
                                     <div className='flex items-center gap-2 text-xs text-gray-500'>
                                         {subscription.cancel_at_period_end ? (
@@ -426,16 +767,6 @@ export default function BillingPage() {
                                                 "Cancel Subscription"}
                                         </Button>
                                     )}
-                                </div>
-                            ) : isInfinity ? (
-                                <div className='pt-4 border-t border-white/5'>
-                                    <div className='flex items-center gap-2 text-xs text-gray-500'>
-                                        <ShieldCheck className='w-3 h-3 text-yellow-400/50' />
-                                        <span>
-                                            This is a one-time pack. No
-                                            recurring charges.
-                                        </span>
-                                    </div>
                                 </div>
                             ) : null}
                         </div>
@@ -599,28 +930,63 @@ export default function BillingPage() {
                                                     transaction.type.startsWith(
                                                         "subscription"
                                                     )
+                                                const planInfo = isSubscription
+                                                    ? parseSubscriptionPlanKey(
+                                                          transaction.pack_name ??
+                                                              null
+                                                      )
+                                                    : null
+                                                const isPlanChange =
+                                                    transaction.reference
+                                                        ?.toLowerCase()
+                                                        .includes("change") ??
+                                                    false
+                                                const isRenewal =
+                                                    transaction.type ===
+                                                        "subscription_recurring" &&
+                                                    !isPlanChange
+                                                const planName = planInfo
+                                                    ? planInfo.tier === "basic"
+                                                        ? t("basicPlan")
+                                                        : t("proPlan")
+                                                    : null
+                                                const planLabel = planName
+                                                    ? `${planName} ${t(
+                                                          "planSuffix"
+                                                      )}`
+                                                    : null
+                                                const intervalBadge = planInfo
+                                                    ? planInfo.cycle === "annual"
+                                                        ? t("yearly")
+                                                        : t("monthly")
+                                                    : null
                                                 const title = (() => {
+                                                    if (planLabel) {
+                                                        return isRenewal
+                                                            ? `${planLabel} ${t(
+                                                                  "renewalSuffix"
+                                                              )}`
+                                                            : planLabel
+                                                    }
                                                     const name =
                                                         transaction.pack_name ??
                                                         null
                                                     if (name) {
-                                                        // For subscription products, show the name as-is (no "Pack" suffix)
                                                         if (isSubscription)
                                                             return name
-                                                        // For one-time packs, keep the existing "Pack" suffix convention
                                                         return name
                                                             .toLowerCase()
                                                             .includes("pack")
                                                             ? name
                                                             : `${name} Pack`
                                                     }
-                                                    if (
-                                                        stars === "infinity" ||
-                                                        transaction.stars_amount ===
-                                                            null
-                                                    )
-                                                        return "Infinity Stars Pack"
-                                                    return `${stars} Stars Pack`
+                                                    const starCount =
+                                                        typeof stars ===
+                                                        "number"
+                                                            ? stars
+                                                            : transaction.stars_amount ??
+                                                              0
+                                                    return `${starCount} Stars Pack`
                                                 })()
 
                                                 return (
@@ -654,9 +1020,10 @@ export default function BillingPage() {
                                                                         </h4>
                                                                         {isSubscription && (
                                                                             <Badge className='bg-purple-500/20 text-purple-300 border-purple-500/20 text-[10px] font-bold'>
-                                                                                {t(
-                                                                                    "subscription"
-                                                                                ).toUpperCase()}
+                                                                                {(intervalBadge ??
+                                                                                    t(
+                                                                                        "subscription"
+                                                                                    )).toUpperCase()}
                                                                             </Badge>
                                                                         )}
                                                                     </div>
@@ -679,7 +1046,7 @@ export default function BillingPage() {
                                                             </div>
 
                                                             <div className='flex items-center justify-between md:justify-end gap-8 border-t md:border-t-0 border-white/5 pt-4 md:pt-0'>
-                                                                <div className='text-right'>
+                                                                <div className='text-right space-y-2'>
                                                                     <p className='text-xs text-gray-500 font-medium uppercase tracking-wider mb-1'>
                                                                         Amount
                                                                     </p>
@@ -692,6 +1059,34 @@ export default function BillingPage() {
                                                                             2
                                                                         )}
                                                                     </p>
+                                                                    {transaction.status ===
+                                                                    "refunded" ? (
+                                                                        <span className='inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-200'>
+                                                                            {t(
+                                                                                "refunded"
+                                                                            )}
+                                                                        </span>
+                                                                    ) : isRefundable(
+                                                                          transaction
+                                                                      ) ? (
+                                                                        <button
+                                                                            type='button'
+                                                                            className='inline-flex rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-red-200 hover:bg-red-500/20'
+                                                                            onClick={(
+                                                                                event
+                                                                            ) => {
+                                                                                event.preventDefault()
+                                                                                event.stopPropagation()
+                                                                                setRefundTarget(
+                                                                                    transaction
+                                                                                )
+                                                                            }}
+                                                                        >
+                                                                            {t(
+                                                                                "refund"
+                                                                            )}
+                                                                        </button>
+                                                                    ) : null}
                                                                 </div>
                                                                 <div className='w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-yellow-400 group-hover:text-black transition-all duration-300'>
                                                                     <ArrowRight className='w-5 h-5' />
@@ -740,6 +1135,74 @@ export default function BillingPage() {
                                 <Loader2 className='w-4 h-4 animate-spin mr-2' />
                             ) : null}
                             Yes, cancel subscription
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Remove Add-on Confirmation */}
+            <AlertDialog
+                open={Boolean(addonRemoveTarget)}
+                onOpenChange={(open) => {
+                    if (!open) setAddonRemoveTarget(null)
+                }}
+            >
+                <AlertDialogContent className='bg-zinc-900 border-white/10 text-white rounded-[2rem] p-8'>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className='text-2xl font-serif'>
+                            {t("confirmRemoveAddon")}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className='text-zinc-400'>
+                            {t("removeAddonWarning")}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className='gap-3 mt-6'>
+                        <AlertDialogCancel className='rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white'>
+                            {t("keepAddon")}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleRemoveAddon}
+                            className='rounded-full bg-red-500 hover:bg-red-600 text-white border-none'
+                            disabled={addonRemoving}
+                        >
+                            {addonRemoving ? (
+                                <Loader2 className='w-4 h-4 animate-spin mr-2' />
+                            ) : null}
+                            {t("confirmRemoveAddonAction")}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Refund Confirmation */}
+            <AlertDialog
+                open={Boolean(refundTarget)}
+                onOpenChange={(open) => {
+                    if (!open) setRefundTarget(null)
+                }}
+            >
+                <AlertDialogContent className='bg-zinc-900 border-white/10 text-white rounded-[2rem] p-8'>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className='text-2xl font-serif'>
+                            {t("confirmRefund")}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className='text-zinc-400'>
+                            {t("refundWarning")}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className='gap-3 mt-6'>
+                        <AlertDialogCancel className='rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white'>
+                            {t("keepPurchase")}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleRefund}
+                            className='rounded-full bg-red-500 hover:bg-red-600 text-white border-none'
+                            disabled={refundLoading}
+                        >
+                            {refundLoading ? (
+                                <Loader2 className='w-4 h-4 animate-spin mr-2' />
+                            ) : null}
+                            {t("confirmRefundAction")}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

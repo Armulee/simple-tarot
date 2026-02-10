@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { supabase } from "@/lib/supabase"
-import ChatSession from "@/components/chat/chat-session"
-import type { ChatDecision } from "@/components/chat/chat-session"
+import ChatSession from "@/components/chat-session"
+import type { ChatDecision } from "@/components/chat-session"
 import { getMetadataBase } from "@/lib/seo"
 import { getCleanQuestionText } from "@/lib/question-utils"
 

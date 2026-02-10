@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { readAndVerifyDid } from "@/lib/server/did"
-import { supabase } from "@/lib/supabase"
+import { supabase, supabaseAdmin } from "@/lib/supabase"
+import { getActiveSubscriptionInfo } from "@/lib/server/subscription"
 
 export async function POST(req: NextRequest) {
     const body = await req.json()
@@ -10,7 +11,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "BAD_AMOUNT" }, { status: 400 })
 
     if (userId) {
-        // For authenticated users, regular adds are capped to 12 (refill cap). Purchases should use /api/stars/set.
+        // For authenticated users, regular adds are capped to daily stars (12). Purchases should use subscription add-ons.
         const { data: currentData, error: currentErr } = await supabase.rpc(
             "star_get_or_create",
             {
@@ -23,19 +24,94 @@ export async function POST(req: NextRequest) {
                 { error: currentErr.message },
                 { status: 400 }
             )
-        const row = (currentData?.[0] ?? {}) as { current_stars?: number }
-        const current = Number.isFinite(row.current_stars as number)
-            ? (row.current_stars as number)
-            : 0
-        const next = Math.min(12, Math.max(0, current + Number(amount)))
-        const { data, error } = await supabase.rpc("star_set", {
-            p_anon_device_id: null,
-            p_new_balance: next,
-            p_user_id: userId,
-        })
+        const row = (currentData?.[0] ?? {}) as {
+            daily_stars?: number
+            plan_stars?: number
+            addon_stars?: number
+            daily_last_refill_at?: string | null
+            plan_last_refill_at?: string | null
+            addon_last_refill_at?: string | null
+        }
+        let dailyStars = Number(row.daily_stars ?? 0)
+        let planStars = Number(row.plan_stars ?? 0)
+        let addonStars = Number(row.addon_stars ?? 0)
+        let planLastRefillMs = row.plan_last_refill_at
+            ? new Date(row.plan_last_refill_at).getTime()
+            : null
+        let addonLastRefillMs = row.addon_last_refill_at
+            ? new Date(row.addon_last_refill_at).getTime()
+            : null
+        const subscription = supabaseAdmin
+            ? await getActiveSubscriptionInfo(userId)
+            : null
+        if (
+            supabaseAdmin &&
+            subscription?.currentPeriodStart &&
+            subscription.currentPeriodStart > 0
+        ) {
+            if (
+                !planLastRefillMs ||
+                planLastRefillMs < subscription.currentPeriodStart
+            ) {
+                planStars = subscription.baseStars
+                planLastRefillMs = subscription.currentPeriodStart
+            }
+            if (
+                !addonLastRefillMs ||
+                addonLastRefillMs < subscription.currentPeriodStart
+            ) {
+                addonStars = subscription.addonStars
+                addonLastRefillMs = subscription.currentPeriodStart
+            }
+        } else if (planStars > 0 || addonStars > 0) {
+            planStars = 0
+            addonStars = 0
+            planLastRefillMs = null
+            addonLastRefillMs = null
+        }
+
+        if (!supabaseAdmin) {
+            const { data, error } = await supabase.rpc("star_add", {
+                p_anon_device_id: null,
+                p_amount: amount,
+                p_user_id: userId,
+            })
+            if (error)
+                return NextResponse.json(
+                    { error: error.message },
+                    { status: 400 }
+                )
+            return NextResponse.json({ data })
+        }
+
+        const dailyCap = 12
+        const nextDaily =
+            dailyStars >= dailyCap
+                ? dailyStars
+                : Math.min(dailyCap, Math.max(0, dailyStars + Number(amount)))
+        const { data, error } = await supabaseAdmin
+            .from("stars")
+            .update({
+                daily_stars: nextDaily,
+                plan_stars: planStars,
+                addon_stars: addonStars,
+                plan_last_refill_at: planLastRefillMs
+                    ? new Date(planLastRefillMs).toISOString()
+                    : null,
+                addon_last_refill_at: addonLastRefillMs
+                    ? new Date(addonLastRefillMs).toISOString()
+                    : null,
+                current_stars: nextDaily + planStars + addonStars,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("user_id", userId)
+            .select(
+                "daily_stars,plan_stars,addon_stars,current_stars,daily_last_refill_at,plan_last_refill_at,addon_last_refill_at"
+            )
+            .maybeSingle()
         if (error)
             return NextResponse.json({ error: error.message }, { status: 400 })
-        return NextResponse.json({ data })
+        return NextResponse.json({ data: data ? [data] : [] })
     }
 
     const did = await readAndVerifyDid()

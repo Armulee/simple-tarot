@@ -5,7 +5,7 @@ import { stripe } from "@/lib/stripe"
 
 export async function POST(req: Request) {
     try {
-        const { priceId, userId, mode, couponId } = await req.json()
+        const { priceId, userId, mode, couponId, email } = await req.json()
         
         // Validate required fields
         if (!priceId || (typeof priceId === "string" && priceId.trim() === "")) {
@@ -41,6 +41,9 @@ export async function POST(req: Request) {
             mode: stripeMode,
             discounts: couponId ? [{ coupon: couponId }] : undefined,
             success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+            customer_creation: stripeMode === "payment" ? "always" : undefined,
+            customer_email: typeof email === "string" ? email : undefined,
+            client_reference_id: typeof userId === "string" ? userId : undefined,
             automatic_tax: { enabled: true },
             metadata: {
                 userId: userId || "",

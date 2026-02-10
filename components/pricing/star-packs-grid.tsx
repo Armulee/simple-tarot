@@ -3,16 +3,12 @@
 import { Card } from "@/components/ui/card"
 import {
     Star,
-    Infinity as InfinityIcon,
     CheckCircle2,
-    Sparkles,
-    Zap,
     ShieldCheck,
 } from "lucide-react"
 import { Checkout } from "@/components/checkout"
 import { useTranslations } from "next-intl"
 import {
-    INFINITY_PACK,
     STAR_PACKS,
     getPackPrice,
 } from "@/lib/payments/star-products"
@@ -146,7 +142,7 @@ export default function StarPacksGrid({
                                 </ul>
 
                                 <Checkout
-                                    mode='pack'
+                                    mode='addon'
                                     packId={p.id}
                                     currency={currency}
                                     className='w-full'
@@ -156,86 +152,6 @@ export default function StarPacksGrid({
                     </Card>
                 )
             })}
-
-            {/* Infinity One-Time Pack - Highly Stylized */}
-            <Card className='group relative overflow-hidden border-indigo-500/30 bg-indigo-950/20 backdrop-blur-xl rounded-[2rem] p-8 transition-all duration-500 hover:border-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/20 hover:-translate-y-1'>
-                {/* Background Cosmic Effects */}
-                <div className='absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent' />
-                <div className='absolute -top-24 -right-24 w-64 h-64 bg-indigo-500/20 rounded-full blur-[100px] group-hover:bg-indigo-500/30 transition-colors duration-500' />
-                <div className='absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500/10 rounded-full blur-[100px]' />
-
-                <div className='relative z-10 space-y-8 h-full flex flex-col'>
-                    <div className='flex items-start justify-between'>
-                        <div className='space-y-1'>
-                            <Badge className='bg-indigo-500/20 text-indigo-300 border-indigo-500/30 text-[10px] font-bold tracking-widest uppercase px-3 py-0.5 rounded-full'>
-                                {t("limitedOffer") || "LIMITED"}
-                            </Badge>
-                            <h3 className='text-2xl font-bold text-white font-serif tracking-tight'>
-                                {t("infinityPack") || "Infinity Pass"}
-                            </h3>
-                        </div>
-                        <div className='w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 border border-indigo-500/30 text-indigo-300 flex items-center justify-center shadow-lg shadow-indigo-500/10 group-hover:scale-110 transition-transform duration-500'>
-                            <InfinityIcon className='w-8 h-8' />
-                        </div>
-                    </div>
-
-                    <div className='flex flex-col items-center justify-center py-4'>
-                        <div className='flex items-baseline gap-2'>
-                            <span className='text-6xl font-black bg-gradient-to-br from-indigo-200 via-purple-200 to-indigo-400 bg-clip-text text-transparent tracking-tighter'>
-                                ∞
-                            </span>
-                            <span className='text-xl font-bold text-indigo-300 uppercase tracking-widest'>
-                                {t("stars")}
-                            </span>
-                        </div>
-                        <div className='text-indigo-300/60 text-xs font-medium uppercase tracking-widest mt-2'>
-                            Valid for 30 Days
-                        </div>
-                    </div>
-
-                    <div className='space-y-4 pt-4 mt-auto'>
-                        <div className='flex items-center justify-between p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 group-hover:border-indigo-500/40 transition-colors'>
-                            <div className='text-2xl font-bold text-indigo-200 tracking-tight'>
-                                {formatAmount(
-                                    INFINITY_PACK.id
-                                        ? getPackPrice(
-                                              INFINITY_PACK.id,
-                                              currency
-                                          )
-                                        : null
-                                )}
-                            </div>
-                            <CurrencySelector
-                                locale={locale}
-                                defaultCurrency={defaultCurrency}
-                                currency={currency}
-                                onCurrencyChange={onCurrencyChange}
-                            />
-                        </div>
-
-                        <ul className='space-y-3 px-1'>
-                            <li className='flex items-center gap-3 text-xs text-indigo-200/70'>
-                                <Sparkles className='w-4 h-4 text-indigo-400' />
-                                {t("unlimitedReadings") ||
-                                    "Unlimited Cosmic Readings"}
-                            </li>
-                            <li className='flex items-center gap-3 text-xs text-indigo-200/70'>
-                                <Zap className='w-4 h-4 text-indigo-400' />
-                                {t("noRenewalNeeded") ||
-                                    "One-time purchase, no sub"}
-                            </li>
-                        </ul>
-
-                        <Checkout
-                            mode='pack'
-                            packId={INFINITY_PACK.id}
-                            infinityTerm={INFINITY_PACK.infinityTerm}
-                            currency={currency}
-                            className='w-full bg-white text-black hover:bg-white/90 shadow-xl shadow-indigo-500/10'
-                        />
-                    </div>
-                </div>
-            </Card>
         </div>
     )
 }

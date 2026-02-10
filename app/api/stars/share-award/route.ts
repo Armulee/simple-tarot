@@ -92,26 +92,9 @@ export async function POST(req: NextRequest) {
             }
             // Award to owner (user or DID)
             if (ownerUserId) {
-            const { data: currentData, error: currentErr } = await db
-                .rpc("star_get_or_create", {
+                const { data, error } = await db.rpc("star_add", {
                     p_anon_device_id: null,
-                    p_user_id: ownerUserId,
-                })
-                if (currentErr)
-                    return NextResponse.json(
-                        { error: currentErr.message },
-                        { status: 400 }
-                    )
-                const row = (currentData?.[0] ?? {}) as {
-                    current_stars?: number
-                }
-                const current = Number.isFinite(row.current_stars as number)
-                    ? (row.current_stars as number)
-                    : 0
-                const next = Math.max(0, current + 1)
-                const { data, error } = await db.rpc("star_set", {
-                    p_anon_device_id: null,
-                    p_new_balance: next,
+                    p_amount: 1,
                     p_user_id: ownerUserId,
                 })
                 if (error)

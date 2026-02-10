@@ -1,9 +1,7 @@
 "use client"
 
 import { Checkout } from "../checkout"
-import { Star, Zap, Infinity } from "lucide-react"
-import InfinityPackDropdown from "./infinity-pack-dropdown"
-import { useTranslations } from "next-intl"
+import { Star, Zap } from "lucide-react"
 import type { CurrencyCode } from "@/lib/payments/currency-utils"
 
 type LabelKey =
@@ -14,14 +12,12 @@ type LabelKey =
     | "master"
     | "grandMaster"
     | "ultimate"
-    | "unlimited"
 
 type Pack = {
     id: string
-    stars: number | "infinity"
+    stars: number
     labelKey: LabelKey
     color: string
-    isInfinity?: boolean
 }
 
 const packs: Pack[] = [
@@ -54,13 +50,6 @@ const packs: Pack[] = [
         stars: 250,
         labelKey: "master",
         color: "yellow",
-    },
-    {
-        id: process.env.NEXT_PUBLIC_INFINITY_PACK_ID ?? "",
-        stars: "infinity",
-        labelKey: "unlimited",
-        color: "yellow",
-        isInfinity: true,
     },
 ]
 
@@ -119,8 +108,6 @@ type OneTapTopUpProps = {
 }
 
 export default function OneTapTopUp({ currency }: OneTapTopUpProps) {
-    const t = useTranslations("OneTapTopUp.packs")
-
     return (
         <div className='w-full max-w-5xl mx-auto'>
             {/* Star Packs Grid */}
@@ -131,12 +118,9 @@ export default function OneTapTopUp({ currency }: OneTapTopUpProps) {
                         return (
                             <Checkout
                                 key={p.id}
-                                mode='pack'
+                                mode='addon'
                                 packId={p.id}
                                 currency={currency}
-                                infinityTerm={
-                                    p.isInfinity ? "month" : undefined
-                                }
                                 customTrigger={
                                     <button
                                         type='button'
@@ -169,25 +153,17 @@ export default function OneTapTopUp({ currency }: OneTapTopUpProps) {
                                                 {/* Star sparkle effect */}
                                                 <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse' />
 
-                                                {p.isInfinity ? (
-                                                    <Infinity
-                                                        className={`w-5 h-5 ${colors.icon} drop-shadow-sm`}
-                                                    />
-                                                ) : (
-                                                    <Star
-                                                        className={`w-5 h-5 ${colors.icon} drop-shadow-sm group-hover:animate-spin-slow`}
-                                                        fill='currentColor'
-                                                    />
-                                                )}
+                                        <Star
+                                            className={`w-5 h-5 ${colors.icon} drop-shadow-sm group-hover:animate-spin-slow`}
+                                            fill='currentColor'
+                                        />
                                             </div>
 
                                             <div className='text-center'>
                                                 <p
                                                     className={`text-xl font-bold ${colors.text} drop-shadow-sm`}
                                                 >
-                                                    {p.isInfinity
-                                                        ? t("infinity")
-                                                        : p.stars}
+                                            {p.stars}
                                                 </p>
                                             </div>
                                         </div>
@@ -198,14 +174,6 @@ export default function OneTapTopUp({ currency }: OneTapTopUpProps) {
                                         >
                                             <Zap className='w-2.5 h-2.5 text-white m-0.5 drop-shadow-sm' />
                                         </div>
-
-                                        {/* Infinity pack dropdown */}
-                                        {p.isInfinity && (
-                                            <InfinityPackDropdown
-                                                packId={p.id}
-                                                currency={currency}
-                                            />
-                                        )}
 
                                         {/* Modern border glow effect */}
                                         <div className='absolute inset-0 rounded-2xl border border-amber-400/30 group-hover:border-amber-400/60 transition-colors duration-300' />

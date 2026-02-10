@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "@/i18n/navigation"
 import { routing } from "@/i18n/routing"
 import { Button } from "@/components/ui/button"
 import { useEffect, useMemo, useState } from "react"
-import { Menu, LogIn, Check, Star, Infinity, Plus } from "lucide-react"
+import { Menu, LogIn, Check, Star, Plus } from "lucide-react"
 import { SidebarSheet } from "./sidebar-sheet"
 import { UserProfile } from "@/components/user-profile"
 // Avatar imports removed (unused)
@@ -28,7 +28,7 @@ export function Navbar({ locale }: { locale: string }) {
     const router = useRouter()
     const pathname = usePathname()
     const { user, loading } = useAuth()
-    const { stars, initialized, isInfinity, infinityExpiresAt } = useStars()
+    const { stars, initialized } = useStars()
     const { choice, show } = useStarConsent()
 
     // Chat sessions live at `app/[locale]/[id]` where `id` is a NanoID(7).
@@ -115,11 +115,6 @@ export function Navbar({ locale }: { locale: string }) {
         return () => controller.abort()
     }, [sessionId])
 
-    const hasActiveInfinity =
-        isInfinity &&
-        (infinityExpiresAt === null ||
-            infinityExpiresAt === undefined ||
-            infinityExpiresAt > Date.now())
     // removed unused meta
     // const avatarSrc = meta.avatar_url || meta.picture || undefined
     // removed unused displayName
@@ -321,21 +316,9 @@ export function Navbar({ locale }: { locale: string }) {
                                     />
 
                                     {initialized && (
-                                        <>
-                                            {hasActiveInfinity ? (
-                                                <Infinity
-                                                    className={`w-4 h-4 ${
-                                                        initialized
-                                                            ? ""
-                                                            : "animate-spin-slow"
-                                                    }`}
-                                                />
-                                            ) : (
-                                                <span className='font-semibold'>
-                                                    {stars ?? 0}
-                                                </span>
-                                            )}
-                                        </>
+                                        <span className='font-semibold'>
+                                            {stars ?? 0}
+                                        </span>
                                     )}
                                 </Button>
                             </Link>
@@ -367,21 +350,9 @@ export function Navbar({ locale }: { locale: string }) {
                                     />
 
                                     {initialized && (
-                                        <>
-                                            {hasActiveInfinity ? (
-                                                <Infinity
-                                                    className={`w-4 h-4 ${
-                                                        initialized
-                                                            ? ""
-                                                            : "animate-spin-slow"
-                                                    }`}
-                                                />
-                                            ) : (
-                                                <span className='font-semibold'>
-                                                    {stars ?? 0}
-                                                </span>
-                                            )}
-                                        </>
+                                        <span className='font-semibold'>
+                                            {stars ?? 0}
+                                        </span>
                                     )}
                                 </Button>
                             </Link>

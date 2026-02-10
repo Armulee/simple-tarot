@@ -4,25 +4,15 @@ import {
     type CurrencyCode,
 } from "@/lib/payments/currency-utils"
 
-export type SubscriptionPlanId = "monthly" | "annual"
-
-const SUBSCRIPTION_BASE_PRICES_USD = {
-    monthly: 14.99,
-    annual: 99.0,
-    annualMonthlyEquivalent: 8.25,
-    infinity: 14.99,
-} as const
-
 export type LabelTranslationKey = "popular" | "bestValue"
 
 export type StarPackDefinition = {
     id: string | undefined
     name: string
     baseUsdPrice: number
-    stars: number | "infinity"
+    stars: number
     bonus: number
     labelKey?: LabelTranslationKey
-    infinityTerm?: "month" | "year"
 }
 
 // NEXT_PUBLIC_STARTER_PACK_ID
@@ -30,9 +20,6 @@ export type StarPackDefinition = {
 // NEXT_PUBLIC_SEEKER_PACK_ID
 // NEXT_PUBLIC_MYSTIC_PACK_ID
 // NEXT_PUBLIC_MASTER_PACK_ID
-// NEXT_PUBLIC_INFINITY_PACK_ID
-// NEXT_PUBLIC_MONTHLY_PACK_ID
-// NEXT_PUBLIC_ANNUALLY_PACK_ID
 export const STAR_PACKS: StarPackDefinition[] = [
     {
         id: process.env.NEXT_PUBLIC_STARTER_PACK_ID,
@@ -72,43 +59,8 @@ export const STAR_PACKS: StarPackDefinition[] = [
         bonus: 40,
     },
 ]
-
-export const INFINITY_PACK: StarPackDefinition = {
-    id: process.env.NEXT_PUBLIC_INFINITY_PACK_ID,
-    name: "Infinity",
-    baseUsdPrice: SUBSCRIPTION_BASE_PRICES_USD.infinity,
-    stars: "infinity",
-    bonus: 0,
-    infinityTerm: "month",
-}
-
-export const MONTHLY_PACKS: StarPackDefinition = {
-    id: process.env.NEXT_PUBLIC_MONTHLY_PACK_ID,
-    name: "Monthly Subscription",
-    baseUsdPrice: SUBSCRIPTION_BASE_PRICES_USD.monthly,
-    stars: "infinity",
-    bonus: 0,
-    infinityTerm: "month",
-}
-
-export const ANNUALLY_PACKS: StarPackDefinition = {
-    id: process.env.NEXT_PUBLIC_ANNUALLY_PACK_ID,
-    name: "Annually Subscription",
-    baseUsdPrice: SUBSCRIPTION_BASE_PRICES_USD.annual,
-    stars: "infinity",
-    bonus: 0,
-    infinityTerm: "year",
-}
-
-export const ALL_STAR_PACKS: StarPackDefinition[] = [
-    ...STAR_PACKS,
-    INFINITY_PACK,
-    MONTHLY_PACKS,
-    ANNUALLY_PACKS,
-]
-
 const PACK_LOOKUP = new Map<string, StarPackDefinition>(
-    ALL_STAR_PACKS.map((pack) => [pack.id ?? "", pack])
+    STAR_PACKS.map((pack) => [pack.id ?? "", pack])
 )
 
 export function getPackById(id: string): StarPackDefinition | null {
@@ -129,22 +81,4 @@ export function getPackPrice(
     const pack = getPackById(packId)
     if (!pack) return null
     return convertUsdToCurrency(pack.baseUsdPrice, currency)
-}
-
-export function getSubscriptionPrice(
-    plan: SubscriptionPlanId,
-    currency: CurrencyCode
-): number | null {
-    const base = SUBSCRIPTION_BASE_PRICES_USD[plan]
-    if (typeof base !== "number") return null
-    return convertUsdToCurrency(base, currency)
-}
-
-export function getAnnualMonthlyEquivalent(
-    currency: CurrencyCode
-): number | null {
-    return convertUsdToCurrency(
-        SUBSCRIPTION_BASE_PRICES_USD.annualMonthlyEquivalent,
-        currency
-    )
 }

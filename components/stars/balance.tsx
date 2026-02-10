@@ -1,26 +1,25 @@
 "use client"
 
-import { Star, Infinity, LogIn } from "lucide-react"
-import { Clock } from "lucide-react"
+import { Clock, LogIn, Star } from "lucide-react"
 import { useStars } from "@/contexts/stars-context"
 import { useEffect, useMemo, useState } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import StarCard from "../star-card"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
 
 export default function StarsBalance() {
-    const { stars, nextRefillAt, refillCap, isInfinity, infinityExpiresAt } =
-        useStars()
+    const {
+        stars,
+        dailyStars,
+        planStars,
+        addonStars,
+        nextRefillAt,
+        refillCap,
+        subscription,
+    } = useStars()
     const { user } = useAuth()
     const t = useTranslations()
-
-    const hasActiveInfinity =
-        isInfinity &&
-        (infinityExpiresAt === null ||
-            infinityExpiresAt === undefined ||
-            infinityExpiresAt > Date.now())
 
     const [now, setNow] = useState<number>(Date.now())
     useEffect(() => {
@@ -28,53 +27,37 @@ export default function StarsBalance() {
         return () => window.clearInterval(id)
     }, [])
 
-    const nextIn = useMemo(
-        () => formatRelativeTime(nextRefillAt, now),
-        [nextRefillAt, now]
-    )
+    const dailyCap = refillCap
+    const dailyValue = typeof dailyStars === "number" ? dailyStars : 0
+    const planValue = typeof planStars === "number" ? planStars : 0
+    const addonValue = typeof addonStars === "number" ? addonStars : 0
+    const currentStars = typeof stars === "number" ? stars : 0
+    const planCap = subscription?.baseStars ?? 0
+    const addonCap = subscription?.addonStars ?? 0
 
-    // Format infinity expiration countdown
-    const infinityCountdown = useMemo(() => {
-        if (!hasActiveInfinity || !infinityExpiresAt) return null
-        const remainingMs = Math.max(0, infinityExpiresAt - now)
-        return formatInfinityCountdown(remainingMs)
-    }, [hasActiveInfinity, infinityExpiresAt, now])
+    const dailyProgress =
+        dailyCap > 0 ? Math.min(100, (dailyValue / dailyCap) * 100) : 0
+    const planProgress =
+        planCap > 0 ? Math.min(100, (planValue / planCap) * 100) : 0
+    const addonProgress =
+        addonCap > 0 ? Math.min(100, (addonValue / addonCap) * 100) : 0
 
-    // Format expiration date
-    const expirationDate = useMemo(() => {
-        if (!hasActiveInfinity || !infinityExpiresAt) return null
-        return formatExpirationDate(infinityExpiresAt)
-    }, [hasActiveInfinity, infinityExpiresAt])
-
-    // Check if expiration is less than 3 days (3 * 24 * 60 * 60 * 1000 ms)
-    const isExpiringSoon = useMemo(() => {
-        if (!hasActiveInfinity || !infinityExpiresAt) return false
-        const remainingMs = infinityExpiresAt - now
-        const threeDaysMs = 3 * 24 * 60 * 60 * 1000
-        return remainingMs > 0 && remainingMs < threeDaysMs
-    }, [hasActiveInfinity, infinityExpiresAt, now])
-
-    const remainingMs = Math.max(0, (nextRefillAt ?? 0) - now)
-    const stepMs = user
-        ? 2 * 60 * 60 * 1000
-        : (() => {
-              const offsetMs = 7 * 60 * 60 * 1000
-              const bkkNow = new Date(now + offsetMs)
-              const bkkMidnight = new Date(bkkNow)
-              bkkMidnight.setUTCHours(0, 0, 0, 0)
-              const bkkNextMidnight = new Date(bkkNow)
-              bkkNextMidnight.setUTCHours(24, 0, 0, 0)
-              const start =
-                  bkkNow.getTime() < bkkMidnight.getTime()
-                      ? bkkMidnight.getTime()
-                      : bkkMidnight.getTime()
-              const end = bkkNextMidnight.getTime()
-              return Math.max(1, end - start)
-          })()
-    const progress = Math.min(
-        100,
-        Math.max(0, 100 - (remainingMs / stepMs) * 100)
-    )
+    const planRefillLabel = subscription?.currentPeriodEnd
+        ? formatRefillDate(subscription.currentPeriodEnd)
+        : ""
+    const dailyRefillLabel = nextRefillAt
+        ? formatRelativeTime(nextRefillAt, now)
+        : "-"
+    const nextIn = subscription?.currentPeriodEnd
+        ? formatRefillDate(subscription.currentPeriodEnd)
+        : dailyRefillLabel
+    const planLabel = subscription
+        ? `${t(`Pricing.${subscription.tier}Plan`)} · ${
+              subscription.cycle === "annual"
+                  ? t("Pricing.yearly")
+                  : t("Pricing.monthly")
+          }`
+        : null
     return (
         <StarCard>
             <div className='relative flex flex-col items-center text-center gap-6'>
@@ -95,141 +78,95 @@ export default function StarsBalance() {
                         <p className='text-xs text-gray-400 mb-1'>
                             {t("StarsBalance.available")}
                         </p>
-                        {hasActiveInfinity ? (
-                            <Infinity className='w-8 h-8' />
-                        ) : (
-                            <p className='text-5xl md:text-6xl font-bold text-white tracking-tight bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 bg-clip-text text-transparent'>
-                                {stars}
+                        <p className='text-5xl md:text-6xl font-bold text-white tracking-tight bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 bg-clip-text text-transparent'>
+                            {currentStars}
+                        </p>
+                        {planLabel ? (
+                            <p className='mt-2 text-xs text-gray-400'>
+                                {t("StarsBalance.planLabel", { plan: planLabel })}
                             </p>
-                        )}
+                        ) : null}
+                        <div className='mt-4 flex items-center gap-3 text-sm text-gray-300'>
+                            <RefillIndicator label={t("StarsBalance.nextRefill")} value={nextIn} />
+                        </div>
                     </div>
                 </div>
 
-                {/* Enhanced Progress Section - Hide when infinity is active */}
-                {!hasActiveInfinity && (
-                    <div className='w-full max-w-2xl space-y-4'>
-                        <div className='flex items-center justify-center gap-3 text-sm text-gray-300'>
-                            <div className='flex items-center gap-2'>
-                                <Clock className='w-5 h-5 text-yellow-400' />
-                                <span>{t("StarsBalance.nextRefill")}</span>
-                            </div>
-                            <div className='px-3 py-1 rounded-full bg-gradient-to-r from-yellow-400/20 to-amber-500/20 border border-yellow-500/30'>
-                                <span className='text-white font-bold font-mono'>
-                                    {nextIn}
-                                </span>
-                            </div>
-                        </div>
+                <div className='w-full max-w-2xl space-y-4'>
+                    <div className='flex flex-col gap-4 lg:flex-row'>
+                        {/* Daily Balance Gauge */}
+                        <StarsGauge
+                            label={
+                                subscription
+                                    ? t("StarsBalance.dailyBalance", {
+                                          current: dailyValue,
+                                          total: dailyCap,
+                                      })
+                                    : t("StarsBalance.balance", {
+                                          current: dailyValue,
+                                          total: dailyCap,
+                                      })
+                            }
+                            progress={dailyProgress}
+                            rightLabel={t("StarsBalance.nextRefill")}
+                                rightValue={dailyRefillLabel || undefined}
+                        />
 
-                        {/* Enhanced Progress Bar */}
-                        <div className='relative h-3 w-full rounded-full bg-gradient-to-r from-gray-800/50 to-gray-700/50 overflow-hidden border border-gray-600/30'>
-                            <div
-                                className='h-full bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 rounded-full transition-all duration-1000 ease-out relative overflow-hidden'
-                                style={{ width: `${progress}%` }}
-                            >
-                                {/* Animated shine effect */}
-                                <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse' />
-                            </div>
-                            {/* Progress glow */}
-                            <div
-                                className='absolute top-0 h-full bg-gradient-to-r from-yellow-400/50 via-amber-500/50 to-orange-500/50 blur-sm transition-all duration-1000 ease-out'
-                                style={{ width: `${progress}%` }}
+                        {subscription && (
+                            <StarsGauge
+                                label={t("StarsBalance.planBalance", {
+                                    current: planValue,
+                                    total: planCap,
+                                })}
+                                progress={planProgress}
+                                rightLabel={t("StarsBalance.nextRefill")}
+                                rightValue={planRefillLabel || undefined}
                             />
-                        </div>
+                        )}
 
-                        {/* Enhanced Description */}
-                        <div className='p-4 rounded-xl bg-gradient-to-r from-white/5 to-white/10 border border-white/10 backdrop-blur-sm'>
-                            <p className='text-sm text-gray-300 leading-relaxed'>
-                                {user ? (
-                                    t("StarsBalance.autoRefill", {
-                                        cap: refillCap,
-                                    })
-                                ) : (
-                                    <>
-                                        <span className='text-gray-400'>
-                                            {t("StarsBalance.anonymousPrefix")}
-                                        </span>{" "}
-                                        {t("StarsBalance.anonymousRefill")}
-                                    </>
-                                )}
-                            </p>
-                        </div>
-
-                        {!user && (
-                            <Link href='/signin' className='block group'>
-                                <div className='p-4 rounded-xl bg-gradient-to-r from-primary/20 via-primary/10 to-transparent border border-primary/30 backdrop-blur-sm transition-all duration-300 group-hover:border-primary/50 group-hover:from-primary/30'>
-                                    <div className='flex items-center gap-4'>
-                                        <div className='p-2 rounded-full bg-primary/20 text-primary group-hover:scale-110 transition-transform'>
-                                            <LogIn className='w-5 h-5' />
-                                        </div>
-                                        <div className='text-left'>
-                                            <p className='text-sm font-bold text-white group-hover:text-primary transition-colors'>
-                                                Increase your star limit!
-                                            </p>
-                                            <p className='text-xs text-gray-400'>
-                                                Sign in to increase your maximum
-                                                stars from 5 to 12.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </Link>
+                        {subscription?.tier === "pro" && (
+                            <div className='flex flex-1 items-start gap-3'>
+                                <StarsGauge
+                                    label={t("StarsBalance.addonBalance", {
+                                        current: addonValue,
+                                        total: addonCap,
+                                    })}
+                                    progress={addonProgress}
+                                    accent='emerald'
+                                    rightLabel={t("StarsBalance.nextRefill")}
+                                    rightValue={planRefillLabel || undefined}
+                                />
+                                <Link
+                                    href='/stars#add-ons'
+                                    className='shrink-0 rounded-full border border-emerald-400/40 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-emerald-200 hover:bg-emerald-500/10'
+                                >
+                                    {t("StarsBalance.buyAddons")}
+                                </Link>
+                            </div>
                         )}
                     </div>
-                )}
 
-                {/* Infinity message with countdown */}
-                {hasActiveInfinity && (
-                    <div className='w-full max-w-2xl space-y-4'>
-                        <div className='p-4 rounded-xl bg-gradient-to-r from-yellow-400/20 to-amber-500/20 border border-yellow-500/30 backdrop-blur-sm'>
-                            <p className='text-sm text-yellow-200 leading-relaxed text-center mb-3'>
-                                {t("StarsBalance.infinityActive", {
-                                    defaultValue:
-                                        "You have unlimited stars! Use them freely.",
-                                })}
-                            </p>
-                            {expirationDate && infinityCountdown && (
-                                <div className='space-y-3'>
-                                    <div className='flex items-center justify-center gap-2 text-sm text-yellow-300'>
-                                        <Clock className='w-5 h-5 text-yellow-400' />
-                                        <span className='text-gray-300'>
-                                            {t("StarsBalance.expiresIn", {
-                                                defaultValue: "Expires in",
-                                            })}{" "}
-                                            <span className='text-yellow-200 font-semibold'>
-                                                {expirationDate}
-                                            </span>
-                                        </span>
+                    {!user && (
+                        <Link href='/signin' className='block group'>
+                            <div className='p-4 rounded-xl bg-gradient-to-r from-primary/20 via-primary/10 to-transparent border border-primary/30 backdrop-blur-sm transition-all duration-300 group-hover:border-primary/50 group-hover:from-primary/30'>
+                                <div className='flex items-center gap-4'>
+                                    <div className='p-2 rounded-full bg-primary/20 text-primary group-hover:scale-110 transition-transform'>
+                                        <LogIn className='w-5 h-5' />
                                     </div>
-                                    <div className='flex justify-center'>
-                                        <div className='px-3 py-1 rounded-full bg-gradient-to-r from-yellow-400/20 to-amber-500/20 border border-yellow-500/30'>
-                                            <span className='text-white font-bold font-mono text-sm'>
-                                                {infinityCountdown}
-                                            </span>
-                                        </div>
+                                    <div className='text-left'>
+                                        <p className='text-sm font-bold text-white group-hover:text-primary transition-colors'>
+                                            Increase your star limit!
+                                        </p>
+                                        <p className='text-xs text-gray-400'>
+                                            Sign in to increase your maximum
+                                            stars from 5 to 12.
+                                        </p>
                                     </div>
-                                    {isExpiringSoon && (
-                                        <div className='flex justify-center'>
-                                            <Link href='/pricing'>
-                                                <Button
-                                                    variant='outline'
-                                                    className='rounded-full bg-gradient-to-r from-yellow-400/20 to-amber-500/20 border-yellow-500/30 text-yellow-200 hover:from-yellow-400/30 hover:to-amber-500/30'
-                                                >
-                                                    {t(
-                                                        "StarsBalance.renewInfinity",
-                                                        {
-                                                            defaultValue:
-                                                                "Renew Infinity Pack",
-                                                        }
-                                                    )}
-                                                </Button>
-                                            </Link>
-                                        </div>
-                                    )}
                                 </div>
-                            )}
-                        </div>
-                    </div>
-                )}
+                            </div>
+                        </Link>
+                    )}
+                </div>
             </div>
         </StarCard>
     )
@@ -239,7 +176,7 @@ function formatRelativeTime(
     timestamp: number | null | undefined,
     nowMs: number
 ): string {
-    if (!timestamp) return "—"
+    if (!timestamp) return "-"
     const ms = Math.max(0, timestamp - nowMs)
     const hours = Math.floor(ms / 3600000)
     const minutes = Math.floor((ms % 3600000) / 60000)
@@ -248,38 +185,88 @@ function formatRelativeTime(
     return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
 }
 
-function formatInfinityCountdown(remainingMs: number): string {
-    const days = Math.floor(remainingMs / (24 * 60 * 60 * 1000))
-    const hours = Math.floor(
-        (remainingMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)
+function formatRefillDate(timestamp: number): string {
+    const formatter = new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+    })
+    return formatter.format(new Date(timestamp))
+}
+
+function StarsGauge({
+    label,
+    progress,
+    rightLabel,
+    rightValue,
+    accent = "amber",
+}: {
+    label: string
+    progress: number
+    rightLabel?: string
+    rightValue?: string
+    accent?: "amber" | "emerald"
+}) {
+    const gradient =
+        accent === "emerald"
+            ? "from-emerald-400 via-emerald-500 to-emerald-600"
+            : "from-yellow-400 via-amber-500 to-orange-500"
+    const glow =
+        accent === "emerald"
+            ? "from-emerald-400/50 via-emerald-500/50 to-emerald-600/50"
+            : "from-yellow-400/50 via-amber-500/50 to-orange-500/50"
+
+    return (
+        <div className='flex-1 space-y-2'>
+            <div className='flex items-center justify-between gap-3 text-xs text-gray-400'>
+                <span className='inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white/80'>
+                    {label}
+                </span>
+                {rightValue ? (
+                    <RefillIndicator
+                        label={rightLabel ?? "Next refill"}
+                        value={rightValue}
+                        compact
+                    />
+                ) : null}
+            </div>
+            <div className='relative h-3 w-full rounded-full bg-gradient-to-r from-gray-800/50 to-gray-700/50 overflow-hidden border border-gray-600/30'>
+                <div
+                    className={`h-full bg-gradient-to-r ${gradient} rounded-full transition-all duration-700 ease-out relative overflow-hidden`}
+                    style={{ width: `${progress}%` }}
+                >
+                    <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse' />
+                </div>
+                <div
+                    className={`absolute top-0 h-full bg-gradient-to-r ${glow} blur-sm transition-all duration-700 ease-out`}
+                    style={{ width: `${progress}%` }}
+                />
+            </div>
+        </div>
     )
-    const minutes = Math.floor((remainingMs % (60 * 60 * 1000)) / (60 * 1000))
-    const seconds = Math.floor((remainingMs % (60 * 1000)) / 1000)
-
-    const pad = (n: number) => n.toString().padStart(2, "0")
-
-    return `${pad(days)}d ${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`
 }
 
-function formatExpirationDate(timestamp: number): string {
-    const date = new Date(timestamp)
-    const months = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-    ]
-    // Use UTC methods to ensure consistent timezone
-    const month = months[date.getUTCMonth()]
-    const day = date.getUTCDate()
-    const year = date.getUTCFullYear()
-    return `${month} ${day}, ${year}`
+function RefillIndicator({
+    label,
+    value,
+    compact = false,
+}: {
+    label: string
+    value: string
+    compact?: boolean
+}) {
+    return (
+        <div className='flex items-center gap-2'>
+            {!compact ? (
+                <Clock className='w-5 h-5 text-yellow-400' />
+            ) : null}
+            <span className='text-xs text-gray-300'>{label}</span>
+            <div className='px-3 py-1 rounded-full bg-gradient-to-r from-yellow-400/20 to-amber-500/20 border border-yellow-500/30'>
+                <span className='text-white font-bold font-mono text-[11px]'>
+                    {value}
+                </span>
+            </div>
+        </div>
+    )
 }
+

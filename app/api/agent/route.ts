@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
-import { generateText } from "ai"
+import { generateText, tool } from "ai"
+import { z } from "zod"
 import { AGENT_SYSTEM_PROMPT } from "@/lib/agent/system-prompt"
-import { parseAgentResponse } from "@/lib/agent/parse"
-import type { AgentRequestPayload } from "@/types/agent"
+import type { AgentAction, AgentRequestPayload, AgentResponse } from "@/types/agent"
 
 const MODEL = "openai/gpt-4.1-mini"
 const MAX_MESSAGES = 30
@@ -43,9 +43,56 @@ export async function POST(req: Request) {
             maxOutputTokens: 600,
             system: AGENT_SYSTEM_PROMPT,
             prompt,
+            tools: {
+                navigate: tool({
+                    description: "Navigate the user to a specific page",
+                    inputSchema: z.object({
+                        page: z.string(),
+                    }),
+                    execute: async ({ page }): Promise<AgentAction> => ({
+                        type: "NAVIGATE",
+                        payload: { page },
+                    }),
+                }),
+                drawTarotCard: tool({
+                    description: "Start a tarot card draw in the chat session",
+                    inputSchema: z.object({
+                        count: z.number().int().min(1).max(10),
+                    }),
+                    execute: async ({ count }): Promise<AgentAction> => ({
+                        type: "DRAW_TAROT_CARD",
+                        payload: { count },
+                    }),
+                }),
+                startReading: tool({
+                    description: "Begin a tarot reading flow",
+                    inputSchema: z.object({
+                        type: z.enum(["love", "career", "future"]),
+                    }),
+                    execute: async ({ type }): Promise<AgentAction> => ({
+                        type: "START_READING",
+                        payload: { type },
+                    }),
+                }),
+                openModal: tool({
+                    description: "Open a UI modal by id",
+                    inputSchema: z.object({
+                        modalId: z.string(),
+                    }),
+                    execute: async ({ modalId }): Promise<AgentAction> => ({
+                        type: "OPEN_MODAL",
+                        payload: { modalId },
+                    }),
+                }),
+            },
         })
 
-        const response = parseAgentResponse(result.text ?? "")
+        const toolResult = result.toolResults?.[0]?.output as AgentAction | undefined
+        const message = (result.text ?? "").trim() || "How can I help you next?"
+        const response: AgentResponse = {
+            message,
+            action: toolResult ?? null,
+        }
         return NextResponse.json(response)
     } catch (error) {
         const message =

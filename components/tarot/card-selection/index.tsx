@@ -49,7 +49,7 @@ export default function CardSelection({
     } = useTarot()
     const { user } = useAuth()
     const isMobile = useIsMobile()
-    const { stars, spendStars, initialized, isInfinity } = useStars()
+    const { stars, spendStars, initialized } = useStars()
 
     // Desktop-only spread mode selection; mobile is forced to linear
     const [spreadMode, setSpreadMode] = useState<"circular" | "linear">(
@@ -119,10 +119,9 @@ export default function CardSelection({
             setIsCreatingReading(true)
             return
         }
-        // If not enough stars (and not infinity), block and show dialog; do not mutate state
+        // If not enough stars, block and show dialog; do not mutate state
         if (
             initialized &&
-            !isInfinity &&
             Number.isFinite(stars as number) &&
             (stars as number) < 5
         ) {
@@ -223,7 +222,6 @@ export default function CardSelection({
     }, [
         initialized,
         stars,
-        isInfinity,
         spendStars,
         clearInterpretationState,
         setSelectedCards,
@@ -410,7 +408,6 @@ export default function CardSelection({
 
                         {/* Check if user has enough stars before showing card spread */}
                         {initialized &&
-                        !isInfinity &&
                         Number.isFinite(stars as number) &&
                         (stars as number) < 5 ? (
                             /* User doesn't have enough stars - show upsell block */

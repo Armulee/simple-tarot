@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useMemo } from "react"
-import { Star, Sparkles } from "lucide-react"
+import { Star } from "lucide-react"
 import { useLocale } from "next-intl"
 import { usePathname } from "@/i18n/navigation"
 import { Swiper, SwiperSlide } from "swiper/react"
@@ -16,22 +16,21 @@ import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
 import {
     STAR_PACKS,
     getPackPrice,
-    INFINITY_PACK,
 } from "@/lib/payments/star-products"
 import { formatCurrency } from "@/lib/payments/currency-utils"
+import { useStars } from "@/contexts/stars-context"
 
 export default function NoStarsUpsell() {
     const { user } = useAuth()
+    const { subscription } = useStars()
     const pathname = usePathname()
     const locale = useLocale()
     const currency = usePreferredCurrency("USD")
 
     const packs = useMemo(() => {
-        // Show 1-time star packs + optionally Infinity, but only if configured.
-        const oneTime = STAR_PACKS.filter((p) => !!p.id)
-        const infinity = INFINITY_PACK.id ? [INFINITY_PACK] : []
-        return [...oneTime, ...infinity]
+        return STAR_PACKS.filter((p) => !!p.id)
     }, [])
+    const isProSubscriber = subscription?.tier === "pro"
 
     return (
         <div className='mt-3 space-y-3 text-center'>
@@ -47,10 +46,10 @@ export default function NoStarsUpsell() {
             {user ? (
                 <div className='space-y-2 grid grid-cols-1 md:grid-cols-2 gap-2'>
                     <div className='text-xs text-white/75'>
-                        Quick top up (instant):
+                        Top up (instant):
                     </div>
 
-                    {packs.length > 0 ? (
+                    {isProSubscriber && packs.length > 0 ? (
                         <div className='-mx-1'>
                             <Swiper
                                 modules={[FreeMode, Mousewheel]}
@@ -84,10 +83,9 @@ export default function NoStarsUpsell() {
                                             className='!w-[172px]'
                                         >
                                             <Checkout
-                                                mode='pack'
+                                                mode='addon'
                                                 packId={p.id ?? ""}
                                                 currency={currency}
-                                                infinityTerm={p.infinityTerm}
                                                 customTrigger={
                                                     <button
                                                         type='button'
@@ -96,20 +94,12 @@ export default function NoStarsUpsell() {
                                                     >
                                                         <div className='flex items-center justify-between gap-2'>
                                                             <div className='inline-flex items-center gap-2'>
-                                                                {p.stars ===
-                                                                "infinity" ? (
-                                                                    <Sparkles className='w-4 h-4 text-yellow-300' />
-                                                                ) : (
-                                                                    <Star
-                                                                        className='w-4 h-4 text-yellow-300'
-                                                                        fill='currentColor'
-                                                                    />
-                                                                )}
+                                                                <Star
+                                                                    className='w-4 h-4 text-yellow-300'
+                                                                    fill='currentColor'
+                                                                />
                                                                 <span className='text-white font-semibold'>
-                                                                    {p.stars ===
-                                                                    "infinity"
-                                                                        ? "Infinity"
-                                                                        : p.stars}
+                                                                    {p.stars}
                                                                 </span>
                                                             </div>
                                                             {priceLabel && (
@@ -134,7 +124,9 @@ export default function NoStarsUpsell() {
                         </div>
                     ) : (
                         <div className='text-xs text-white/70'>
-                            Top ups are not configured yet.
+                            {isProSubscriber
+                                ? "Top ups are not configured yet."
+                                : "Top ups are available for Pro subscribers."}
                         </div>
                     )}
                 </div>
