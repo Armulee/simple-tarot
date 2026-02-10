@@ -9,7 +9,15 @@ import { useTranslations } from "next-intl"
 import Link from "next/link"
 
 export default function StarsBalance() {
-    const { stars, nextRefillAt, refillCap, subscription } = useStars()
+    const {
+        stars,
+        dailyStars,
+        planStars,
+        addonStars,
+        nextRefillAt,
+        refillCap,
+        subscription,
+    } = useStars()
     const { user } = useAuth()
     const t = useTranslations()
 
@@ -19,23 +27,31 @@ export default function StarsBalance() {
         return () => window.clearInterval(id)
     }, [])
 
-    const nextIn = useMemo(() => {
-        if (!nextRefillAt) return "-"
-        if (subscription?.currentPeriodEnd) {
-            return formatRefillDate(nextRefillAt)
-        }
-        return formatRelativeTime(nextRefillAt, now)
-    }, [nextRefillAt, now, subscription?.currentPeriodEnd])
-
+    const dailyCap = refillCap
+    const dailyValue = typeof dailyStars === "number" ? dailyStars : 0
+    const planValue = typeof planStars === "number" ? planStars : 0
+    const addonValue = typeof addonStars === "number" ? addonStars : 0
     const currentStars = typeof stars === "number" ? stars : 0
-    const baseCap = subscription?.baseStars ?? refillCap
+    const planCap = subscription?.baseStars ?? 0
     const addonCap = subscription?.addonStars ?? 0
-    const baseAvailable = Math.min(currentStars, baseCap)
-    const addonAvailable = Math.max(0, currentStars - baseCap)
-    const baseProgress =
-        baseCap > 0 ? Math.min(100, (baseAvailable / baseCap) * 100) : 0
+
+    const dailyProgress =
+        dailyCap > 0 ? Math.min(100, (dailyValue / dailyCap) * 100) : 0
+    const planProgress =
+        planCap > 0 ? Math.min(100, (planValue / planCap) * 100) : 0
     const addonProgress =
-        addonCap > 0 ? Math.min(100, (addonAvailable / addonCap) * 100) : 0
+        addonCap > 0 ? Math.min(100, (addonValue / addonCap) * 100) : 0
+
+    const showBillingRefill =
+        Boolean(subscription?.currentPeriodEnd) && dailyValue >= dailyCap
+
+    const nextIn = useMemo(() => {
+        if (showBillingRefill) {
+            return formatRefillDate(subscription?.currentPeriodEnd ?? 0)
+        }
+        if (!nextRefillAt) return "-"
+        return formatRelativeTime(nextRefillAt, now)
+    }, [nextRefillAt, now, subscription?.currentPeriodEnd, showBillingRefill])
     const planLabel = subscription
         ? `${t(`Pricing.${subscription.tier}Plan`)} · ${
               subscription.cycle === "annual"
@@ -87,43 +103,77 @@ export default function StarsBalance() {
                         </div>
                     </div>
 
-                    {/* Plan Balance Gauge */}
+                    {/* Daily Balance Gauge */}
                     <StarsGauge
                         label={
                             subscription
-                                ? t("StarsBalance.planBalance", {
-                                      current: baseAvailable,
-                                      total: baseCap,
+                                ? t("StarsBalance.dailyBalance", {
+                                      current: dailyValue,
+                                      total: dailyCap,
                                   })
                                 : t("StarsBalance.balance", {
-                                      current: baseAvailable,
-                                      total: baseCap,
+                                      current: dailyValue,
+                                      total: dailyCap,
                                   })
                         }
-                        progress={baseProgress}
+                        progress={dailyProgress}
                     />
 
-                    {subscription?.tier === "pro" && addonCap > 0 && (
+                    {subscription && (
                         <StarsGauge
-                            label={t("StarsBalance.addonBalance", {
-                                current: addonAvailable,
-                                total: addonCap,
+                            label={t("StarsBalance.planBalance", {
+                                current: planValue,
+                                total: planCap,
                             })}
-                            progress={addonProgress}
-                            accent='emerald'
+                            progress={planProgress}
+                            rightLabel={
+                                subscription.currentPeriodEnd
+                                    ? t("StarsBalance.nextBilling", {
+                                          date: formatRefillDate(
+                                              subscription.currentPeriodEnd
+                                          ),
+                                      })
+                                    : undefined
+                            }
                         />
+                    )}
+
+                    {subscription?.tier === "pro" && (
+                        <div className='flex items-center justify-between gap-3'>
+                            <div className='flex-1'>
+                                <StarsGauge
+                                    label={t("StarsBalance.addonBalance", {
+                                        current: addonValue,
+                                        total: addonCap,
+                                    })}
+                                    progress={addonProgress}
+                                    accent='emerald'
+                                />
+                            </div>
+                            <Link
+                                href='/stars#add-ons'
+                                className='shrink-0 rounded-full border border-emerald-400/40 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-emerald-200 hover:bg-emerald-500/10'
+                            >
+                                {t("StarsBalance.buyAddons")}
+                            </Link>
+                        </div>
                     )}
 
                     {/* Enhanced Description */}
                     <div className='p-4 rounded-xl bg-gradient-to-r from-white/5 to-white/10 border border-white/10 backdrop-blur-sm'>
                         <p className='text-sm text-gray-300 leading-relaxed text-left'>
                             {subscription ? (
-                                t("StarsBalance.subscriptionRefill", {
-                                    cap: refillCap,
-                                })
+                                showBillingRefill
+                                    ? t("StarsBalance.planRefillNote", {
+                                          plan: planLabel ?? "",
+                                          cap: planCap,
+                                      })
+                                    : t("StarsBalance.dailyRefillNote", {
+                                          cap: dailyCap,
+                                      })
                             ) : user ? (
                                 t("StarsBalance.autoRefill", {
-                                    cap: refillCap,
+                                    cap: dailyCap,
                                 })
                             ) : (
                                 <>
@@ -187,10 +237,12 @@ function formatRefillDate(timestamp: number): string {
 function StarsGauge({
     label,
     progress,
+    rightLabel,
     accent = "amber",
 }: {
     label: string
     progress: number
+    rightLabel?: string
     accent?: "amber" | "emerald"
 }) {
     const gradient =
@@ -206,6 +258,11 @@ function StarsGauge({
         <div className='space-y-2'>
             <div className='flex items-center justify-between text-xs text-gray-400'>
                 <span>{label}</span>
+                {rightLabel ? (
+                    <span className='text-[10px] text-gray-500'>
+                        {rightLabel}
+                    </span>
+                ) : null}
             </div>
             <div className='relative h-3 w-full rounded-full bg-gradient-to-r from-gray-800/50 to-gray-700/50 overflow-hidden border border-gray-600/30'>
                 <div

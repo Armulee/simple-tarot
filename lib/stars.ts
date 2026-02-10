@@ -2,7 +2,10 @@ import type { User } from "@supabase/supabase-js"
 
 export type StarState = {
     currentStars: number
-    lastRefillAt: number | null
+    dailyStars: number
+    planStars: number
+    addonStars: number
+    dailyLastRefillAt: number | null
     firstLoginBonusGranted?: boolean
     firstTimeLoginGrant?: boolean
 }
@@ -28,7 +31,12 @@ export async function starGetOrCreate(user: User | null): Promise<StarState> {
     const row = json.data?.[0]
     return {
         currentStars: row?.current_stars ?? 5,
-        lastRefillAt: tsToMs(row?.last_refill_at),
+        dailyStars: row?.daily_stars ?? row?.current_stars ?? 5,
+        planStars: row?.plan_stars ?? 0,
+        addonStars: row?.addon_stars ?? 0,
+        dailyLastRefillAt: tsToMs(
+            row?.daily_last_refill_at ?? row?.last_refill_at
+        ),
         firstLoginBonusGranted: Boolean(row?.first_login_bonus_granted),
         firstTimeLoginGrant: Boolean(row?.first_time_login_grant),
     }
@@ -51,7 +59,12 @@ export async function starSpend(
     const ok = Boolean(row?.ok)
     const state: StarState = {
         currentStars: row?.current_stars ?? 5,
-        lastRefillAt: tsToMs(row?.last_refill_at),
+        dailyStars: row?.daily_stars ?? 5,
+        planStars: row?.plan_stars ?? 0,
+        addonStars: row?.addon_stars ?? 0,
+        dailyLastRefillAt: tsToMs(
+            row?.daily_last_refill_at ?? row?.last_refill_at
+        ),
     }
     return { ok, state }
 }
@@ -70,7 +83,12 @@ export async function starAdd(
     const row = json.data?.[0]
     return {
         currentStars: row?.current_stars ?? 5,
-        lastRefillAt: tsToMs(row?.last_refill_at),
+        dailyStars: row?.daily_stars ?? 5,
+        planStars: row?.plan_stars ?? 0,
+        addonStars: row?.addon_stars ?? 0,
+        dailyLastRefillAt: tsToMs(
+            row?.daily_last_refill_at ?? row?.last_refill_at
+        ),
     }
 }
 
@@ -85,7 +103,12 @@ export async function starSet(user: User, balance: number): Promise<StarState> {
     const row = json.data?.[0]
     return {
         currentStars: row?.current_stars ?? 5,
-        lastRefillAt: tsToMs(row?.last_refill_at),
+        dailyStars: row?.daily_stars ?? 5,
+        planStars: row?.plan_stars ?? 0,
+        addonStars: row?.addon_stars ?? 0,
+        dailyLastRefillAt: tsToMs(
+            row?.daily_last_refill_at ?? row?.last_refill_at
+        ),
     }
 }
 

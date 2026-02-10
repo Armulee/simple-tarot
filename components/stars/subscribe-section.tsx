@@ -540,7 +540,10 @@ export default function SubscribeSection({
             {activePlan?.tier === "pro" && (
                 <>
                     {/* Subscribe Section */}
-                    <span className='font-serif text-sm text-gray-400 text-center w-full block mb-2 text-lg font-bold text-zinc-300'>
+                    <span
+                        id='add-ons'
+                        className='font-serif text-sm text-gray-400 text-center w-full block mb-2 text-lg font-bold text-zinc-300'
+                    >
                         ADDITIONAL ADD-ON STARS PACKS
                     </span>
 

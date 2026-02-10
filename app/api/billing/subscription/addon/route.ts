@@ -145,23 +145,35 @@ export async function POST(request: Request) {
 
         if (normalizedAction === "add") {
             const baseStars = getPlanStars(planInfo.tier, planInfo.cycle)
-            const totalCap = baseStars + addonStars
             const addStars = pack.stars + pack.bonus
             const { data: currentRow } = await supabaseAdmin!
                 .from("stars")
-                .select("current_stars")
+                .select("daily_stars,plan_stars,addon_stars,addon_last_refill_at")
                 .eq("user_id", user.id)
                 .maybeSingle()
             if (currentRow) {
-                const currentStars = Number(currentRow.current_stars ?? 0)
-                const nextBalance = Math.min(
-                    totalCap,
-                    Math.max(0, currentStars + addStars)
+                const currentDaily = Number(currentRow.daily_stars ?? 0)
+                const currentPlan = Number(currentRow.plan_stars ?? baseStars)
+                const currentAddon = Number(currentRow.addon_stars ?? 0)
+                const nextAddonBalance = Math.min(
+                    addonStars,
+                    Math.max(0, currentAddon + addStars)
                 )
+                const nextTotal =
+                    currentDaily + currentPlan + nextAddonBalance
+                const addonRefillAt =
+                    currentRow.addon_last_refill_at ??
+                    (typeof subscription.current_period_start === "number"
+                        ? new Date(
+                              subscription.current_period_start * 1000
+                          ).toISOString()
+                        : null)
                 await supabaseAdmin!
                     .from("stars")
                     .update({
-                        current_stars: nextBalance,
+                        addon_stars: nextAddonBalance,
+                        addon_last_refill_at: addonRefillAt,
+                        current_stars: nextTotal,
                         updated_at: new Date().toISOString(),
                     })
                     .eq("user_id", user.id)

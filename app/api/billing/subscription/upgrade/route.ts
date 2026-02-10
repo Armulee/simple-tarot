@@ -3,7 +3,11 @@ import type Stripe from "stripe"
 import { NextResponse } from "next/server"
 import { stripe } from "@/lib/stripe"
 import { supabaseAdmin } from "@/lib/supabase"
-import { getPlanKeyFromPriceId } from "@/lib/payments/subscription-plans"
+import {
+    getPlanKeyFromPriceId,
+    getPlanStars,
+    parseSubscriptionPlanKey,
+} from "@/lib/payments/subscription-plans"
 
 export async function POST(request: Request) {
     try {
@@ -32,7 +36,7 @@ export async function POST(request: Request) {
 
         const { data: subRow, error: subError } = await supabaseAdmin!
             .from("billing_subscriptions")
-            .select("id, provider_subscription_id, status")
+            .select("id, provider_subscription_id, status, plan")
             .eq("user_id", user.id)
             .in("status", ["active", "trialing"])
             .maybeSingle()
@@ -86,6 +90,8 @@ export async function POST(request: Request) {
         }
 
         const planKey = getPlanKeyFromPriceId(priceId)
+        const prevPlanInfo = parseSubscriptionPlanKey(subRow.plan)
+        const nextPlanInfo = parseSubscriptionPlanKey(planKey)
         if (planKey) {
             await supabaseAdmin!
                 .from("billing_subscriptions")
@@ -112,6 +118,33 @@ export async function POST(request: Request) {
                     updated_at: new Date().toISOString(),
                 })
                 .eq("id", subRow.id)
+        }
+
+        if (!isDowngrade && prevPlanInfo && nextPlanInfo && supabaseAdmin) {
+            const prevCap = getPlanStars(prevPlanInfo.tier, prevPlanInfo.cycle)
+            const nextCap = getPlanStars(nextPlanInfo.tier, nextPlanInfo.cycle)
+            const delta = nextCap - prevCap
+            if (delta > 0) {
+                const { data: starRow } = await supabaseAdmin
+                    .from("stars")
+                    .select("daily_stars,plan_stars,addon_stars")
+                    .eq("user_id", user.id)
+                    .maybeSingle()
+                if (starRow) {
+                    const daily = Number(starRow.daily_stars ?? 0)
+                    const plan = Number(starRow.plan_stars ?? 0)
+                    const addon = Number(starRow.addon_stars ?? 0)
+                    const nextPlanStars = Math.max(0, plan + delta)
+                    await supabaseAdmin
+                        .from("stars")
+                        .update({
+                            plan_stars: nextPlanStars,
+                            current_stars: daily + nextPlanStars + addon,
+                            updated_at: new Date().toISOString(),
+                        })
+                        .eq("user_id", user.id)
+                }
+            }
         }
 
         return NextResponse.json({ subscription: updated })

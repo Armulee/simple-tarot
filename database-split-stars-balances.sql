@@ -1,127 +1,50 @@
--- Stars schema (public-only). No auth.users DDL required.
--- Profiles (idempotent)
-create table if not exists public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  name text,
-  avatar_url text,
-  bio text,
-  birth_date date,
-  birth_time time,
-  birth_place text,
-  job text,
-  gender text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
+-- Migration: split daily/plan/add-on star balances
+-- Adds daily/plan/addon columns and replaces star functions.
 
-alter table public.profiles enable row level security;
-drop policy if exists "Users can view own profile" on public.profiles;
-create policy "Users can view own profile" on public.profiles
-  for select using (auth.uid() = id);
-drop policy if exists "Users can update own profile" on public.profiles;
-create policy "Users can update own profile" on public.profiles
-  for update using (auth.uid() = id);
-drop policy if exists "Users can insert own profile" on public.profiles;
-create policy "Users can insert own profile" on public.profiles
-  for insert with check (auth.uid() = id);
+alter table public.stars
+    add column if not exists daily_stars integer not null default 5,
+    add column if not exists daily_last_refill_at timestamptz not null default now(),
+    add column if not exists plan_stars integer not null default 0,
+    add column if not exists plan_last_refill_at timestamptz,
+    add column if not exists addon_stars integer not null default 0,
+    add column if not exists addon_last_refill_at timestamptz;
 
+-- Backfill balances by splitting current_stars into daily + plan
+update public.stars
+set
+    daily_stars = case
+        when user_id is null then least(current_stars, 5)
+        else least(current_stars, 12)
+    end,
+    plan_stars = greatest(
+        0,
+        current_stars - case
+            when user_id is null then least(current_stars, 5)
+            else least(current_stars, 12)
+        end
+    ),
+    addon_stars = coalesce(addon_stars, 0),
+    daily_last_refill_at = coalesce(daily_last_refill_at, last_refill_at, now()),
+    plan_last_refill_at = coalesce(plan_last_refill_at, last_refill_at),
+    addon_last_refill_at = coalesce(addon_last_refill_at, last_refill_at),
+    current_stars = (
+        case
+            when user_id is null then least(current_stars, 5)
+            else least(current_stars, 12)
+        end
+    ) + greatest(
+        0,
+        current_stars - case
+            when user_id is null then least(current_stars, 5)
+            else least(current_stars, 12)
+        end
+    ) + coalesce(addon_stars, 0);
 
--- Extensions
-create extension if not exists pgcrypto;
-
--- Optional rename from old table name if present
-do $$ begin
-  if to_regclass('public.stars') is null and to_regclass('public.star_states') is not null then
-    execute 'alter table public.star_states rename to stars';
-  end if;
-end $$;
-
--- Rename legacy constraint name if it exists
-do $$ begin
-  if exists (
-    select 1 from pg_constraint c
-    join pg_class t on t.oid = c.conrelid
-    join pg_namespace n on n.oid = t.relnamespace
-    where c.conname = 'star_states_user_or_device' and n.nspname = 'public' and t.relname = 'stars'
-  ) then
-    execute 'alter table public.stars rename constraint star_states_user_or_device to stars_user_or_device';
-  end if;
-end $$;
-
--- Rename legacy index names if they exist
-do $$ begin
-  if to_regclass('public.star_states_unique_user') is not null then
-    execute 'alter index public.star_states_unique_user rename to stars_unique_user';
-  end if;
-  if to_regclass('public.star_states_unique_device') is not null then
-    execute 'alter index public.star_states_unique_device rename to stars_unique_device';
-  end if;
-end $$;
-
--- Stars table: separate rows for anonymous device and user.
-create table if not exists public.stars (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users(id) on delete cascade,
-  anon_device_id text,
-  current_stars integer not null default 5 check (current_stars >= 0),
-  last_refill_at timestamptz not null default now(),
-  daily_stars integer not null default 5,
-  daily_last_refill_at timestamptz not null default now(),
-  plan_stars integer not null default 0,
-  plan_last_refill_at timestamptz,
-  addon_stars integer not null default 0,
-  addon_last_refill_at timestamptz,
-  first_login_bonus_granted boolean not null default false,
-  first_time_login_grant boolean not null default false,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  -- Allow either or both identifiers to be present
-  constraint stars_user_or_device check ((user_id is not null) or (anon_device_id is not null))
-);
-
--- Uniqueness: only one row per user and per device
-create unique index if not exists stars_unique_user on public.stars(user_id) where user_id is not null;
-create unique index if not exists stars_unique_device on public.stars(anon_device_id) where anon_device_id is not null;
-
-alter table public.stars enable row level security;
-
--- Track which social follow rewards each user has claimed (one per platform)
-create table if not exists public.star_social_claims (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  platform text not null check (platform in ('facebook','instagram','threads','tiktok','x')),
-  stars_awarded integer not null default 1 check (stars_awarded >= 0),
-  claimed_at timestamptz not null default now()
-);
-
-create unique index if not exists star_social_claims_user_platform on public.star_social_claims(user_id, platform);
-
-alter table public.star_social_claims enable row level security;
-
-drop policy if exists "Users can view own social claims" on public.star_social_claims;
-create policy "Users can view own social claims" on public.star_social_claims
-  for select using (auth.uid() = user_id);
-
-drop policy if exists "Users can insert own social claims" on public.star_social_claims;
-create policy "Users can insert own social claims" on public.star_social_claims
-  for insert with check (auth.uid() = user_id);
-
-drop policy if exists "Users can delete own social claims" on public.star_social_claims;
-create policy "Users can delete own social claims" on public.star_social_claims
-  for delete using (auth.uid() = user_id);
-
--- Removed star_identities as it's not used by the app
-drop table if exists public.star_identities;
-
--- Ensure function signature changes can be applied cleanly by dropping dependents first
--- This avoids: ERROR 42P13: cannot change return type of existing function
 drop function if exists public.star_spend(text, integer, uuid);
 drop function if exists public.star_add(text, integer, uuid);
 drop function if exists public.star_get_or_create(text, uuid);
+drop function if exists public.star_set(text, integer, uuid);
 
--- Helper: compute refill based on cap and interval hours per star
--- For authenticated users we will pass p_interval_hours = 2
--- For anonymous users we will bypass this function (daily reset logic applies elsewhere)
 create or replace function public._star_apply_refill(
   p_current integer,
   p_last_refill timestamptz,
@@ -150,7 +73,6 @@ begin
 end;
 $$ language plpgsql immutable;
 
--- Get/create and normalize state. On first login, create a new user row with default 12 daily stars.
 create or replace function public.star_get_or_create(
   p_anon_device_id text,
   p_user_id uuid default null
@@ -303,7 +225,6 @@ begin
 end;
 $$ language plpgsql security definer set search_path = public;
 
--- Spend stars, applying refill first and starting timer when dropping below cap
 create or replace function public.star_spend(
   p_anon_device_id text,
   p_amount integer,
@@ -366,7 +287,6 @@ begin
 end;
 $$ language plpgsql security definer set search_path = public;
 
--- Add stars utility
 create or replace function public.star_add(
   p_anon_device_id text,
   p_amount integer,
@@ -395,68 +315,6 @@ begin
 end;
 $$ language plpgsql security definer set search_path = public;
 
--- Grants
-grant execute on function public.star_get_or_create(text, uuid) to anon, authenticated;
-grant execute on function public.star_spend(text, integer, uuid) to anon, authenticated;
-grant execute on function public.star_add(text, integer, uuid) to anon, authenticated;
-
--- Billing tables
--- Subscriptions: tracks recurring products
-  create table if not exists public.billing_subscriptions (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-    provider text not null default 'manual',
-  provider_subscription_id text unique,
-  provider_customer_id text,
-  plan text,
-  status text not null default 'active',
-  current_period_start timestamptz,
-  current_period_end timestamptz,
-  cancel_at_period_end boolean not null default false,
-  addon_stars integer not null default 0,
-  addon_amount_usd numeric not null default 0,
-  addon_items jsonb not null default '[]'::jsonb,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
--- Transactions: records one-time and subscription charges
-  create table if not exists public.billing_transactions (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-    type text not null check (type in ('one_time','subscription_initial','subscription_recurring','refund','chargeback')),
-    provider text not null default 'manual',
-  provider_payment_id text,
-  amount_cents integer not null check (amount_cents >= 0),
-  currency text not null default 'USD',
-  reference text,
-  status text not null default 'succeeded',
-  subscription_id uuid references public.billing_subscriptions(id) on delete set null,
-  created_at timestamptz not null default now()
-);
-
--- Indexes
-create index if not exists idx_billing_transactions_user_id on public.billing_transactions(user_id);
-create index if not exists idx_billing_transactions_created_at on public.billing_transactions(created_at desc);
-create index if not exists idx_billing_subscriptions_user_id on public.billing_subscriptions(user_id);
-
--- Enable RLS
-alter table public.billing_transactions enable row level security;
-alter table public.billing_subscriptions enable row level security;
-
--- Policies: users can view their own billing data
-drop policy if exists "Users can view own transactions" on public.billing_transactions;
-create policy "Users can view own transactions" on public.billing_transactions
-  for select using (auth.uid() = user_id);
-
-drop policy if exists "Users can view own subscriptions" on public.billing_subscriptions;
-create policy "Users can view own subscriptions" on public.billing_subscriptions
-  for select using (auth.uid() = user_id);
-
--- Insert/update policies are intentionally omitted; use service role via server routes
-
--- Set stars to an absolute balance (authenticated users only). This enables pack purchases to exceed 12.
-drop function if exists public.star_set(text, integer, uuid);
 create or replace function public.star_set(
   p_anon_device_id text,
   p_new_balance integer,
@@ -499,24 +357,7 @@ begin
 end;
 $$ language plpgsql security definer set search_path = public;
 
+grant execute on function public.star_get_or_create(text, uuid) to anon, authenticated;
+grant execute on function public.star_spend(text, integer, uuid) to anon, authenticated;
+grant execute on function public.star_add(text, integer, uuid) to anon, authenticated;
 grant execute on function public.star_set(text, integer, uuid) to authenticated;
-
--- Storage bucket for profile pictures
-insert into storage.buckets (id, name, public) values ('avatars', 'avatars', true) on conflict (id) do nothing;
-
--- Storage policies for avatars bucket
-drop policy if exists "Users can upload their own avatar" on storage.objects;
-create policy "Users can upload their own avatar" on storage.objects
-  for insert with check (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
-
-drop policy if exists "Users can update their own avatar" on storage.objects;
-create policy "Users can update their own avatar" on storage.objects
-  for update with check (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
-
-drop policy if exists "Users can delete their own avatar" on storage.objects;
-create policy "Users can delete their own avatar" on storage.objects
-  for delete using (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
-
-drop policy if exists "Avatar images are publicly accessible" on storage.objects;
-create policy "Avatar images are publicly accessible" on storage.objects
-  for select using (bucket_id = 'avatars');

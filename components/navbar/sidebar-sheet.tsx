@@ -60,6 +60,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
     const { profile, loading: profileLoading } = useProfile()
     const {
         stars,
+        dailyStars,
         initialized,
         nextRefillAt,
         refillCap,
@@ -107,8 +108,8 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
     const timeProgress = nextRefillAt
         ? Math.min(100, Math.max(0, (1 - timeLeft / cycleMs) * 100))
         : 0
-    const progress =
-        typeof stars === "number" && stars >= refillCap ? 100 : timeProgress
+    const dailyValue = typeof dailyStars === "number" ? dailyStars : 0
+    const progress = dailyValue >= refillCap ? 100 : timeProgress
     const isProSubscriber = subscription?.tier === "pro"
     const currentPlanPrice = subscription
         ? getPlanPriceUsd(subscription.tier, subscription.cycle)
@@ -367,7 +368,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
 
                                         {!nextRefillAt && (
                                             <p className='text-[10px] text-yellow-500/50 italic'>
-                                                {stars && stars >= refillCap
+                                                {dailyValue >= refillCap
                                                     ? "Maximum stars reached"
                                                     : "Refill active"}
                                             </p>

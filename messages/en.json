@@ -1629,6 +1629,7 @@
     "nextBilling": "Next Billing",
     "manageSubscription": "Manage Subscription",
     "upgradePlan": "Upgrade Plan",
+    "buyAddons": "Buy add-ons",
     "viewInvoices": "View Invoices",
     "noTransactions": "No transactions found",
     "transactionId": "Transaction ID",
@@ -1660,6 +1661,14 @@
     "addonStars": "add-on stars",
     "noAddons": "No add-on packs yet.",
     "estimatedTotal": "Estimated total",
+    "refund": "Refund",
+    "refunded": "Refunded",
+    "confirmRefund": "Request refund?",
+    "refundWarning": "Refunds are available within 7 days of purchase for eligible transactions.",
+    "keepPurchase": "Keep purchase",
+    "confirmRefundAction": "Yes, refund",
+    "refundSuccess": "Refund requested",
+    "refundFailed": "Refund failed",
     "removeAddon": "Remove",
     "addonRemoved": "Add-on removed",
     "addonRemoveFailed": "Failed to remove add-on",
@@ -1818,11 +1827,13 @@
     "pricingFaqTitle": "Pricing & refill FAQs",
     "pricingFaq": {
       "refillQuestion": "How do subscription refills work?",
-      "refillAnswer": "Basic and Pro refills reset your balance up to the plan's star amount each billing period. Your next refill happens on the next billing date.",
+      "refillAnswer": "Every account refills up to 12 daily stars (1 star per 2 hours). Basic and Pro plans add a separate plan pool that resets to the plan amount on your billing date. Add-on packs create a separate pool that also refills each billing period.",
       "changeQuestion": "What happens when I upgrade or downgrade?",
-      "changeAnswer": "Upgrades take effect immediately. Downgrades apply on the next billing period, and your refill amount will follow the new plan.",
+      "changeAnswer": "Upgrades take effect immediately and only charge the difference. Downgrades apply on the next billing period, and your plan stars refill to the new amount then.",
       "addonsQuestion": "Who can buy add-on star packs?",
-      "addonsAnswer": "Add-on packs are available for Pro subscribers to top up additional stars whenever they need."
+      "addonsAnswer": "Add-on packs are available for Pro subscribers. They add a recurring star pool that refills each billing period until removed.",
+      "refundQuestion": "Can I request a refund?",
+      "refundAnswer": "Eligible Stripe purchases can be refunded within 7 days from the billing page."
     },
     "features": {
       "unlimitedReadings": "Unlimited Readings",
@@ -1925,12 +1936,17 @@
     "nextRefill": "Next refill",
     "planLabel": "{plan}",
     "balance": "Balance: {current}/{total}",
+    "dailyBalance": "Daily stars: {current}/{total}",
     "planBalance": "Plan stars: {current}/{total}",
     "addonBalance": "Add-on stars: {current}/{total}",
+    "nextBilling": "Next billing {date}",
+    "buyAddons": "Buy add-ons",
     "anonymousPrefix": "Anonymous User:",
     "anonymousRefill": "Refills to 5 stars at midnight (UTC+7). Countdown shows time until next cosmic alignment.",
     "autoRefill": "Auto-refills by 1 star every 2 hours (up to {cap} stars).",
-    "subscriptionRefill": "Refills up to {cap} stars every billing period."
+    "subscriptionRefill": "Refills up to {cap} stars every billing period.",
+    "dailyRefillNote": "Daily stars refill by 1 every 2 hours (up to {cap}).",
+    "planRefillNote": "Your {plan} plan refills to {cap} stars on your next billing date."
   },
   "SignInAccordion": {
     "title": "Sign in",

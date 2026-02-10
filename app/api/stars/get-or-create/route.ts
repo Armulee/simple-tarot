@@ -29,58 +29,85 @@ export async function GET(req: NextRequest) {
         if (supabaseAdmin && data?.[0]) {
             try {
                 const subscription = await getActiveSubscriptionInfo(userId)
-                if (
-                    subscription?.totalStars &&
-                    subscription.currentPeriodStart &&
-                    subscription.currentPeriodStart > 0
-                ) {
+                if (data?.[0]) {
                     const row = data[0] as {
-                        current_stars?: number
-                        last_refill_at?: string | null
+                        daily_stars?: number
+                        plan_stars?: number
+                        addon_stars?: number
+                        daily_last_refill_at?: string | null
+                        plan_last_refill_at?: string | null
+                        addon_last_refill_at?: string | null
                         first_login_bonus_granted?: boolean
                         first_time_login_grant?: boolean
                     }
-                    const lastRefillMs = row.last_refill_at
-                        ? new Date(row.last_refill_at).getTime()
+                    let dailyStars = Number(row.daily_stars ?? 0)
+                    const prevPlanStars = Number(row.plan_stars ?? 0)
+                    const prevAddonStars = Number(row.addon_stars ?? 0)
+                    let planStars = prevPlanStars
+                    let addonStars = prevAddonStars
+                    let planLastRefillMs = row.plan_last_refill_at
+                        ? new Date(row.plan_last_refill_at).getTime()
                         : null
+                    let addonLastRefillMs = row.addon_last_refill_at
+                        ? new Date(row.addon_last_refill_at).getTime()
+                        : null
+                    const prevPlanLastRefillMs = planLastRefillMs
+                    const prevAddonLastRefillMs = addonLastRefillMs
+
                     if (
-                        !lastRefillMs ||
-                        lastRefillMs < subscription.currentPeriodStart
+                        subscription?.currentPeriodStart &&
+                        subscription.currentPeriodStart > 0
                     ) {
-                        const nextBalance = Math.max(
-                            Number(row.current_stars ?? 0),
-                            subscription.totalStars
-                        )
+                        if (
+                            !planLastRefillMs ||
+                            planLastRefillMs < subscription.currentPeriodStart
+                        ) {
+                            planStars = subscription.baseStars
+                            planLastRefillMs = subscription.currentPeriodStart
+                        }
+                        if (
+                            !addonLastRefillMs ||
+                            addonLastRefillMs < subscription.currentPeriodStart
+                        ) {
+                            addonStars = subscription.addonStars
+                            addonLastRefillMs = subscription.currentPeriodStart
+                        }
+                    } else if (planStars > 0 || addonStars > 0) {
+                        planStars = 0
+                        addonStars = 0
+                        planLastRefillMs = null
+                        addonLastRefillMs = null
+                    }
+
+                    const shouldUpdate =
+                        planStars !== prevPlanStars ||
+                        addonStars !== prevAddonStars ||
+                        planLastRefillMs !== prevPlanLastRefillMs ||
+                        addonLastRefillMs !== prevAddonLastRefillMs
+
+                    if (shouldUpdate) {
                         const { data: updated } = await supabaseAdmin
                             .from("stars")
                             .update({
-                                current_stars: nextBalance,
-                                last_refill_at: new Date(
-                                    subscription.currentPeriodStart
-                                ).toISOString(),
+                                plan_stars: planStars,
+                                addon_stars: addonStars,
+                                plan_last_refill_at: planLastRefillMs
+                                    ? new Date(planLastRefillMs).toISOString()
+                                    : null,
+                                addon_last_refill_at: addonLastRefillMs
+                                    ? new Date(addonLastRefillMs).toISOString()
+                                    : null,
+                                current_stars:
+                                    dailyStars + planStars + addonStars,
                                 updated_at: new Date().toISOString(),
                             })
                             .eq("user_id", userId)
                             .select(
-                                "current_stars,last_refill_at,first_login_bonus_granted,first_time_login_grant"
+                                "daily_stars,plan_stars,addon_stars,daily_last_refill_at,plan_last_refill_at,addon_last_refill_at,first_login_bonus_granted,first_time_login_grant,current_stars"
                             )
                             .maybeSingle()
                         if (updated) {
-                            return NextResponse.json({
-                                data: [
-                                    {
-                                        ...row,
-                                        current_stars: updated.current_stars,
-                                        last_refill_at: updated.last_refill_at,
-                                        first_login_bonus_granted:
-                                            updated.first_login_bonus_granted ??
-                                            row.first_login_bonus_granted,
-                                        first_time_login_grant:
-                                            updated.first_time_login_grant ??
-                                            row.first_time_login_grant,
-                                    },
-                                ],
-                            })
+                            return NextResponse.json({ data: [updated] })
                         }
                     }
                 }
