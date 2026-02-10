@@ -64,7 +64,7 @@ export default function StarsBalance() {
                             {t("StarsBalance.available")}
                         </p>
                         <p className='text-5xl md:text-6xl font-bold text-white tracking-tight bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 bg-clip-text text-transparent'>
-                            {stars}
+                            {currentStars}
                         </p>
                         {planLabel ? (
                             <p className='mt-2 text-xs text-gray-400'>
