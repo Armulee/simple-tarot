@@ -21,7 +21,7 @@ create or replace function public._star_apply_refill(
   p_now timestamptz,
   p_cap integer,
   p_interval_hours integer default 1
-) returns table (new_current integer, new_last_refill timestamptz) as $$
+) returns table (new_current integer, new_last_refill timestamptz) as $star_apply_refill$
 declare
   v_current integer := greatest(0, coalesce(p_current, 0));
   v_last timestamptz := coalesce(p_last_refill, p_now);
@@ -41,7 +41,7 @@ begin
   v_add := least(v_hours, v_cap - v_current);
   return query select v_current + v_add, v_last + (v_add * greatest(1, p_interval_hours) || ' hours')::interval;
 end;
-$$ language plpgsql immutable;
+$star_apply_refill$ language plpgsql immutable;
 
 create or replace function public.star_get_or_create(
   p_anon_device_id text,
@@ -60,7 +60,7 @@ create or replace function public.star_get_or_create(
   last_refill_at timestamptz,
   first_login_bonus_granted boolean,
   first_time_login_grant boolean
-) as $$
+) as $star_get_or_create$
 declare
   v_state public.stars%rowtype;
   v_cap integer := case when p_user_id is null then 5 else 12 end;
@@ -193,7 +193,7 @@ begin
     v_state.first_login_bonus_granted,
     v_state.first_time_login_grant;
 end;
-$$ language plpgsql security definer set search_path = public;
+$star_get_or_create$ language plpgsql security definer set search_path = public;
 
 create or replace function public.star_spend(
   p_anon_device_id text,
@@ -206,7 +206,7 @@ create or replace function public.star_spend(
   addon_stars integer,
   current_stars integer,
   daily_last_refill_at timestamptz
-) as $$
+) as $star_spend$
 declare
   v_row public.stars%rowtype;
   v_cap integer := case when p_user_id is null then 5 else 12 end;
@@ -255,7 +255,7 @@ begin
 
   return query select true, v_new_daily, v_row.plan_stars, v_row.addon_stars, v_row.current_stars, v_new_last;
 end;
-$$ language plpgsql security definer set search_path = public;
+$star_spend$ language plpgsql security definer set search_path = public;
 
 create or replace function public.star_add(
   p_anon_device_id text,
@@ -265,7 +265,7 @@ create or replace function public.star_add(
   daily_stars integer,
   current_stars integer,
   daily_last_refill_at timestamptz
-) as $$
+) as $star_add$
 declare
   v_row public.stars%rowtype;
   v_now timestamptz := now();
@@ -283,7 +283,7 @@ begin
    returning s.daily_stars, s.current_stars, s.daily_last_refill_at into v_curr, v_row.current_stars, v_last;
   return query select v_curr, v_row.current_stars, v_last;
 end;
-$$ language plpgsql security definer set search_path = public;
+$star_add$ language plpgsql security definer set search_path = public;
 
 create or replace function public.star_set(
   p_anon_device_id text,
@@ -295,7 +295,7 @@ create or replace function public.star_set(
   addon_stars integer,
   current_stars integer,
   daily_last_refill_at timestamptz
-) as $$
+) as $star_set$
 declare
   v_row public.stars%rowtype;
   v_now timestamptz := now();
@@ -325,7 +325,7 @@ begin
    returning s.daily_stars, s.plan_stars, s.addon_stars, s.current_stars, s.daily_last_refill_at into v_daily, v_plan, v_addon, v_row.current_stars, v_row.daily_last_refill_at;
   return query select v_daily, v_plan, v_addon, v_row.current_stars, v_row.daily_last_refill_at;
 end;
-$$ language plpgsql security definer set search_path = public;
+$star_set$ language plpgsql security definer set search_path = public;
 
 grant execute on function public.star_get_or_create(text, uuid) to anon, authenticated;
 grant execute on function public.star_spend(text, integer, uuid) to anon, authenticated;
