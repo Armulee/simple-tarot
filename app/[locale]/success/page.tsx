@@ -235,9 +235,15 @@ export default async function Success({
                         })
 
                     if (!currentErr && currentData?.[0]) {
-                        const currentStars =
-                            (currentData[0] as { current_stars?: number })
-                                .current_stars || 0
+                        const starRow = currentData[0] as {
+                            current_stars?: number
+                            daily_stars?: number
+                            plan_stars?: number
+                            addon_stars?: number
+                        }
+                        const currentStars = starRow.current_stars || 0
+                        const currentDaily = Number(starRow.daily_stars ?? 0)
+                        const currentAddon = Number(starRow.addon_stars ?? 0)
 
                         if (typeof starsAmount === "number") {
                             const isSubscription = mode === "subscribe"
@@ -248,14 +254,19 @@ export default async function Success({
                                 const refillAt =
                                     subscriptionPeriodStartMs ??
                                     Date.now()
+                                const nextPlan = Math.max(0, starsAmount)
                                 const { error: updateError } =
                                     await supabaseAdmin
                                         .from("stars")
                                         .update({
-                                            current_stars: nextBalance,
-                                            last_refill_at: new Date(
+                                            plan_stars: nextPlan,
+                                            plan_last_refill_at: new Date(
                                                 refillAt
                                             ).toISOString(),
+                                            current_stars:
+                                                currentDaily +
+                                                nextPlan +
+                                                currentAddon,
                                             updated_at:
                                                 new Date().toISOString(),
                                         })
