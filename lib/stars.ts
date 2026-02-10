@@ -21,6 +21,39 @@ function tsToMs(ts?: string | null): number | null {
     return Number.isFinite(ms) ? ms : null
 }
 
+function resolvePrimaryStars(
+    user: User | null,
+    row: Record<string, unknown> | undefined
+): number {
+    const daily = Number(row?.daily_stars ?? 0)
+    const anon = Number(row?.anon_stars ?? daily)
+    return user ? daily : anon
+}
+
+function resolvePrimaryLastRefill(
+    user: User | null,
+    row: Record<string, unknown> | undefined
+): number | null {
+    const dailyRefill = tsToMs(
+        typeof row?.daily_last_refill_at === "string" ||
+            row?.daily_last_refill_at === null
+            ? (row?.daily_last_refill_at as string | null)
+            : null
+    )
+    const anonRefill = tsToMs(
+        typeof row?.anon_last_refill_at === "string" ||
+            row?.anon_last_refill_at === null
+            ? (row?.anon_last_refill_at as string | null)
+            : null
+    )
+    const legacyRefill = tsToMs(
+        typeof row?.last_refill_at === "string" || row?.last_refill_at === null
+            ? (row?.last_refill_at as string | null)
+            : null
+    )
+    return user ? dailyRefill ?? legacyRefill : anonRefill ?? legacyRefill
+}
+
 export async function starGetOrCreate(user: User | null): Promise<StarState> {
     const url = user?.id
         ? `/api/stars/get-or-create?user_id=${encodeURIComponent(user.id)}`
@@ -29,14 +62,15 @@ export async function starGetOrCreate(user: User | null): Promise<StarState> {
     const json = await res.json()
     if (!res.ok) throw new Error(json.error || "STAR_INIT_FAILED")
     const row = json.data?.[0]
+    const primaryStars = resolvePrimaryStars(user, row)
+    const planStars = Number(row?.plan_stars ?? 0)
+    const addonStars = Number(row?.addon_stars ?? 0)
     return {
-        currentStars: row?.current_stars ?? 5,
-        dailyStars: row?.daily_stars ?? row?.current_stars ?? 5,
-        planStars: row?.plan_stars ?? 0,
-        addonStars: row?.addon_stars ?? 0,
-        dailyLastRefillAt: tsToMs(
-            row?.daily_last_refill_at ?? row?.last_refill_at
-        ),
+        currentStars: Number(row?.current_stars ?? primaryStars + planStars + addonStars),
+        dailyStars: primaryStars,
+        planStars,
+        addonStars,
+        dailyLastRefillAt: resolvePrimaryLastRefill(user, row),
         firstLoginBonusGranted: Boolean(row?.first_login_bonus_granted),
         firstTimeLoginGrant: Boolean(row?.first_time_login_grant),
     }
@@ -57,14 +91,15 @@ export async function starSpend(
     if (!res.ok) throw new Error(json.error || "STAR_SPEND_FAILED")
     const row = json.data?.[0]
     const ok = Boolean(row?.ok)
+    const primaryStars = resolvePrimaryStars(user, row)
+    const planStars = Number(row?.plan_stars ?? 0)
+    const addonStars = Number(row?.addon_stars ?? 0)
     const state: StarState = {
-        currentStars: row?.current_stars ?? 5,
-        dailyStars: row?.daily_stars ?? 5,
-        planStars: row?.plan_stars ?? 0,
-        addonStars: row?.addon_stars ?? 0,
-        dailyLastRefillAt: tsToMs(
-            row?.daily_last_refill_at ?? row?.last_refill_at
-        ),
+        currentStars: Number(row?.current_stars ?? primaryStars + planStars + addonStars),
+        dailyStars: primaryStars,
+        planStars,
+        addonStars,
+        dailyLastRefillAt: resolvePrimaryLastRefill(user, row),
     }
     return { ok, state }
 }
@@ -81,14 +116,15 @@ export async function starAdd(
     const json = await res.json()
     if (!res.ok) throw new Error(json.error || "STAR_ADD_FAILED")
     const row = json.data?.[0]
+    const primaryStars = resolvePrimaryStars(user, row)
+    const planStars = Number(row?.plan_stars ?? 0)
+    const addonStars = Number(row?.addon_stars ?? 0)
     return {
-        currentStars: row?.current_stars ?? 5,
-        dailyStars: row?.daily_stars ?? 5,
-        planStars: row?.plan_stars ?? 0,
-        addonStars: row?.addon_stars ?? 0,
-        dailyLastRefillAt: tsToMs(
-            row?.daily_last_refill_at ?? row?.last_refill_at
-        ),
+        currentStars: Number(row?.current_stars ?? primaryStars + planStars + addonStars),
+        dailyStars: primaryStars,
+        planStars,
+        addonStars,
+        dailyLastRefillAt: resolvePrimaryLastRefill(user, row),
     }
 }
 

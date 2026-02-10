@@ -2,7 +2,7 @@
 
 import { Clock, LogIn, Star } from "lucide-react"
 import { useStars } from "@/contexts/stars-context"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import StarCard from "../star-card"
 import { useTranslations } from "next-intl"
