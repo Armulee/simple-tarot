@@ -42,16 +42,15 @@ export default function StarsBalance() {
     const addonProgress =
         addonCap > 0 ? Math.min(100, (addonValue / addonCap) * 100) : 0
 
-    const showBillingRefill =
-        Boolean(subscription?.currentPeriodEnd) && dailyValue >= dailyCap
-
-    const nextIn = useMemo(() => {
-        if (showBillingRefill) {
-            return formatRefillDate(subscription?.currentPeriodEnd ?? 0)
-        }
-        if (!nextRefillAt) return "-"
-        return formatRelativeTime(nextRefillAt, now)
-    }, [nextRefillAt, now, subscription?.currentPeriodEnd, showBillingRefill])
+    const planRefillLabel = subscription?.currentPeriodEnd
+        ? formatRefillDate(subscription.currentPeriodEnd)
+        : ""
+    const dailyRefillLabel = nextRefillAt
+        ? formatRelativeTime(nextRefillAt, now)
+        : "-"
+    const nextIn = subscription?.currentPeriodEnd
+        ? formatRefillDate(subscription.currentPeriodEnd)
+        : dailyRefillLabel
     const planLabel = subscription
         ? `${t(`Pricing.${subscription.tier}Plan`)} · ${
               subscription.cycle === "annual"
@@ -87,60 +86,46 @@ export default function StarsBalance() {
                                 {t("StarsBalance.planLabel", { plan: planLabel })}
                             </p>
                         ) : null}
+                        <div className='mt-4 flex items-center gap-3 text-sm text-gray-300'>
+                            <RefillIndicator label={t("StarsBalance.nextRefill")} value={nextIn} />
+                        </div>
                     </div>
                 </div>
 
                 <div className='w-full max-w-2xl space-y-4'>
-                    <div className='flex items-center justify-center gap-3 text-sm text-gray-300'>
-                        <div className='flex items-center gap-2'>
-                            <Clock className='w-5 h-5 text-yellow-400' />
-                            <span>{t("StarsBalance.nextRefill")}</span>
-                        </div>
-                        <div className='px-3 py-1 rounded-full bg-gradient-to-r from-yellow-400/20 to-amber-500/20 border border-yellow-500/30'>
-                            <span className='text-white font-bold font-mono'>
-                                {nextIn}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Daily Balance Gauge */}
-                    <StarsGauge
-                        label={
-                            subscription
-                                ? t("StarsBalance.dailyBalance", {
-                                      current: dailyValue,
-                                      total: dailyCap,
-                                  })
-                                : t("StarsBalance.balance", {
-                                      current: dailyValue,
-                                      total: dailyCap,
-                                  })
-                        }
-                        progress={dailyProgress}
-                    />
-
-                    {subscription && (
+                    <div className='flex flex-col gap-4 lg:flex-row'>
+                        {/* Daily Balance Gauge */}
                         <StarsGauge
-                            label={t("StarsBalance.planBalance", {
-                                current: planValue,
-                                total: planCap,
-                            })}
-                            progress={planProgress}
-                            rightLabel={
-                                subscription.currentPeriodEnd
-                                    ? t("StarsBalance.nextBilling", {
-                                          date: formatRefillDate(
-                                              subscription.currentPeriodEnd
-                                          ),
+                            label={
+                                subscription
+                                    ? t("StarsBalance.dailyBalance", {
+                                          current: dailyValue,
+                                          total: dailyCap,
                                       })
-                                    : undefined
+                                    : t("StarsBalance.balance", {
+                                          current: dailyValue,
+                                          total: dailyCap,
+                                      })
                             }
+                            progress={dailyProgress}
+                            rightLabel={t("StarsBalance.nextRefill")}
+                                rightValue={dailyRefillLabel || undefined}
                         />
-                    )}
 
-                    {subscription?.tier === "pro" && (
-                        <div className='flex items-center justify-between gap-3'>
-                            <div className='flex-1'>
+                        {subscription && (
+                            <StarsGauge
+                                label={t("StarsBalance.planBalance", {
+                                    current: planValue,
+                                    total: planCap,
+                                })}
+                                progress={planProgress}
+                                rightLabel={t("StarsBalance.nextRefill")}
+                                rightValue={planRefillLabel || undefined}
+                            />
+                        )}
+
+                        {subscription?.tier === "pro" && (
+                            <div className='flex flex-1 items-start gap-3'>
                                 <StarsGauge
                                     label={t("StarsBalance.addonBalance", {
                                         current: addonValue,
@@ -148,42 +133,17 @@ export default function StarsBalance() {
                                     })}
                                     progress={addonProgress}
                                     accent='emerald'
+                                    rightLabel={t("StarsBalance.nextRefill")}
+                                    rightValue={planRefillLabel || undefined}
                                 />
+                                <Link
+                                    href='/stars#add-ons'
+                                    className='shrink-0 rounded-full border border-emerald-400/40 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-emerald-200 hover:bg-emerald-500/10'
+                                >
+                                    {t("StarsBalance.buyAddons")}
+                                </Link>
                             </div>
-                            <Link
-                                href='/stars#add-ons'
-                                className='shrink-0 rounded-full border border-emerald-400/40 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-emerald-200 hover:bg-emerald-500/10'
-                            >
-                                {t("StarsBalance.buyAddons")}
-                            </Link>
-                        </div>
-                    )}
-
-                    {/* Enhanced Description */}
-                    <div className='p-4 rounded-xl bg-gradient-to-r from-white/5 to-white/10 border border-white/10 backdrop-blur-sm'>
-                        <p className='text-sm text-gray-300 leading-relaxed text-left'>
-                            {subscription ? (
-                                showBillingRefill
-                                    ? t("StarsBalance.planRefillNote", {
-                                          plan: planLabel ?? "",
-                                          cap: planCap,
-                                      })
-                                    : t("StarsBalance.dailyRefillNote", {
-                                          cap: dailyCap,
-                                      })
-                            ) : user ? (
-                                t("StarsBalance.autoRefill", {
-                                    cap: dailyCap,
-                                })
-                            ) : (
-                                <>
-                                    <span className='text-gray-400'>
-                                        {t("StarsBalance.anonymousPrefix")}
-                                    </span>{" "}
-                                    {t("StarsBalance.anonymousRefill")}
-                                </>
-                            )}
-                        </p>
+                        )}
                     </div>
 
                     {!user && (
@@ -238,11 +198,13 @@ function StarsGauge({
     label,
     progress,
     rightLabel,
+    rightValue,
     accent = "amber",
 }: {
     label: string
     progress: number
     rightLabel?: string
+    rightValue?: string
     accent?: "amber" | "emerald"
 }) {
     const gradient =
@@ -255,13 +217,17 @@ function StarsGauge({
             : "from-yellow-400/50 via-amber-500/50 to-orange-500/50"
 
     return (
-        <div className='space-y-2'>
-            <div className='flex items-center justify-between text-xs text-gray-400'>
-                <span>{label}</span>
-                {rightLabel ? (
-                    <span className='text-[10px] text-gray-500'>
-                        {rightLabel}
-                    </span>
+        <div className='flex-1 space-y-2'>
+            <div className='flex items-center justify-between gap-3 text-xs text-gray-400'>
+                <span className='inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white/80'>
+                    {label}
+                </span>
+                {rightValue ? (
+                    <RefillIndicator
+                        label={rightLabel ?? "Next refill"}
+                        value={rightValue}
+                        compact
+                    />
                 ) : null}
             </div>
             <div className='relative h-3 w-full rounded-full bg-gradient-to-r from-gray-800/50 to-gray-700/50 overflow-hidden border border-gray-600/30'>
@@ -275,6 +241,30 @@ function StarsGauge({
                     className={`absolute top-0 h-full bg-gradient-to-r ${glow} blur-sm transition-all duration-700 ease-out`}
                     style={{ width: `${progress}%` }}
                 />
+            </div>
+        </div>
+    )
+}
+
+function RefillIndicator({
+    label,
+    value,
+    compact = false,
+}: {
+    label: string
+    value: string
+    compact?: boolean
+}) {
+    return (
+        <div className='flex items-center gap-2'>
+            {!compact ? (
+                <Clock className='w-5 h-5 text-yellow-400' />
+            ) : null}
+            <span className='text-xs text-gray-300'>{label}</span>
+            <div className='px-3 py-1 rounded-full bg-gradient-to-r from-yellow-400/20 to-amber-500/20 border border-yellow-500/30'>
+                <span className='text-white font-bold font-mono text-[11px]'>
+                    {value}
+                </span>
             </div>
         </div>
     )
