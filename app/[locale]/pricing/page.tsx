@@ -65,6 +65,11 @@ export default async function PricingPage({ params }: PricingPageProps) {
             answer: t("pricingFaq.addonsAnswer"),
         },
         {
+            id: "refunds",
+            question: t("pricingFaq.refundQuestion"),
+            answer: t("pricingFaq.refundAnswer"),
+        },
+        {
             id: "delivery",
             question: t("howFastStars"),
             answer: t("howFastStarsAnswer"),

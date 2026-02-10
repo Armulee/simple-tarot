@@ -3,9 +3,38 @@ import StarsBalance from "@/components/stars/balance"
 import SubscribeSection from "@/components/stars/subscribe-section"
 import WaysToEarn from "@/components/stars/ways-to-earn"
 import { getTranslations } from "next-intl/server"
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion"
 
 export default async function StarsPage() {
     const t = await getTranslations("StarsPage")
+    const tPricing = await getTranslations("Pricing")
+    const pricingFaq = [
+        {
+            id: "refill",
+            question: tPricing("pricingFaq.refillQuestion"),
+            answer: tPricing("pricingFaq.refillAnswer"),
+        },
+        {
+            id: "changes",
+            question: tPricing("pricingFaq.changeQuestion"),
+            answer: tPricing("pricingFaq.changeAnswer"),
+        },
+        {
+            id: "addons",
+            question: tPricing("pricingFaq.addonsQuestion"),
+            answer: tPricing("pricingFaq.addonsAnswer"),
+        },
+        {
+            id: "refunds",
+            question: tPricing("pricingFaq.refundQuestion"),
+            answer: tPricing("pricingFaq.refundAnswer"),
+        },
+    ]
     return (
         <div className='relative min-h-screen overflow-hidden'>
             {/* Animated background elements */}
@@ -29,6 +58,28 @@ export default async function StarsPage() {
 
                         {/* Balance Card */}
                         <StarsBalance />
+
+                        {/* FAQ */}
+                        <div className='space-y-4'>
+                            <h3 className='text-xl font-bold text-center lg:text-left'>
+                                {tPricing("pricingFaqTitle")}
+                            </h3>
+                            <Accordion className='rounded-2xl border border-white/10 bg-card/10 p-2'>
+                                {pricingFaq.map((item) => (
+                                    <AccordionItem
+                                        key={item.id}
+                                        className='border-white/10'
+                                    >
+                                        <AccordionTrigger className='px-4 py-3 text-left text-white hover:no-underline'>
+                                            {item.question}
+                                        </AccordionTrigger>
+                                        <AccordionContent className='px-4 pb-4 text-sm text-muted-foreground'>
+                                            {item.answer}
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                            </Accordion>
+                        </div>
 
                         {/* Subscribe Section */}
                         <span className='font-serif text-sm text-gray-400 text-center w-full block mb-2 text-lg font-bold text-zinc-300'>

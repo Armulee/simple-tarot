@@ -58,7 +58,9 @@ type Tx = {
     currency: string
     reference: string | null
     provider: string
+    provider_payment_id?: string | null
     created_at: string
+    status?: string | null
     stars_amount?: number | null
     pack_name?: string | null
     subscription_id?: string | null
@@ -101,6 +103,8 @@ export default function BillingPage() {
     const [addonRemoveTarget, setAddonRemoveTarget] =
         useState<AddonItem | null>(null)
     const [addonRemoving, setAddonRemoving] = useState(false)
+    const [refundTarget, setRefundTarget] = useState<Tx | null>(null)
+    const [refundLoading, setRefundLoading] = useState(false)
 
     // Auth guard: redirect to signin if not logged in
     useEffect(() => {
@@ -119,7 +123,7 @@ export default function BillingPage() {
             const txResult = await supabase
                 .from("billing_transactions")
                 .select(
-                    "id,type,amount_cents,currency,reference,provider,created_at,stars_amount,pack_name,subscription_id"
+                    "id,type,amount_cents,currency,reference,provider,provider_payment_id,status,created_at,stars_amount,pack_name,subscription_id"
                 )
                 .eq("user_id", user.id)
                 .order("created_at", { ascending: false })
@@ -264,6 +268,44 @@ export default function BillingPage() {
         }
     }
 
+    const handleRefund = async () => {
+        if (!user || !refundTarget) return
+        setRefundLoading(true)
+        try {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession()
+            if (!session?.access_token) {
+                throw new Error("AUTH_REQUIRED")
+            }
+            const response = await fetch("/api/billing/refund", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify({ transactionId: refundTarget.id }),
+            })
+            const data = await response.json().catch(() => ({}))
+            if (!response.ok) {
+                throw new Error(data?.error || "REFUND_FAILED")
+            }
+            toast.success(t("refundSuccess"))
+            fetchBillingData()
+        } catch (error) {
+            const message =
+                error instanceof Error && error.message === "AUTH_REQUIRED"
+                    ? t("authRequired") || "Please sign in"
+                    : error instanceof Error
+                      ? error.message
+                      : t("refundFailed")
+            toast.error(message)
+        } finally {
+            setRefundLoading(false)
+            setRefundTarget(null)
+        }
+    }
+
     // Fetch billing data
     useEffect(() => {
         if (!user || authLoading) return
@@ -314,6 +356,16 @@ export default function BillingPage() {
             style: "currency",
             currency: "USD",
         }).format(amount)
+
+    const refundWindowMs = 7 * 24 * 60 * 60 * 1000
+    const isRefundable = (tx: Tx) => {
+        if (!tx?.provider_payment_id) return false
+        if (tx?.status === "refunded") return false
+        if (tx?.provider !== "stripe") return false
+        const createdAt = new Date(tx.created_at).getTime()
+        if (!Number.isFinite(createdAt)) return false
+        return Date.now() - createdAt <= refundWindowMs
+    }
 
     // Group transactions by period
     const groupTransactionsByPeriod = () => {
@@ -377,6 +429,9 @@ export default function BillingPage() {
         typeof planPriceUsd === "number"
             ? planPriceUsd + addonAmountUsd
             : null
+    const isMaxPlan = planInfo?.tier === "pro"
+    const primaryActionLabel = isMaxPlan ? t("buyAddons") : t("upgradePlan")
+    const primaryActionHref = isMaxPlan ? "/stars#add-ons" : "/stars"
     const addonItems: AddonItem[] = Array.isArray(subscription?.addon_items)
         ? subscription?.addon_items ?? []
         : []
@@ -505,6 +560,15 @@ export default function BillingPage() {
                                                 <Loader2 className='w-3 h-3 animate-spin mr-2' />
                                             ) : null}
                                             {t("managePaymentMethod")}
+                                        </Button>
+                                        <Button
+                                            variant='outline'
+                                            className='rounded-full bg-yellow-400/10 border-yellow-400/30 hover:bg-yellow-400/20 text-yellow-200 text-xs uppercase tracking-widest'
+                                            onClick={() =>
+                                                router.push(primaryActionHref)
+                                            }
+                                        >
+                                            {primaryActionLabel}
                                         </Button>
                                     </div>
 
@@ -880,7 +944,7 @@ export default function BillingPage() {
                                                             </div>
 
                                                             <div className='flex items-center justify-between md:justify-end gap-8 border-t md:border-t-0 border-white/5 pt-4 md:pt-0'>
-                                                                <div className='text-right'>
+                                                                <div className='text-right space-y-2'>
                                                                     <p className='text-xs text-gray-500 font-medium uppercase tracking-wider mb-1'>
                                                                         Amount
                                                                     </p>
@@ -893,6 +957,34 @@ export default function BillingPage() {
                                                                             2
                                                                         )}
                                                                     </p>
+                                                                    {transaction.status ===
+                                                                    "refunded" ? (
+                                                                        <span className='inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-200'>
+                                                                            {t(
+                                                                                "refunded"
+                                                                            )}
+                                                                        </span>
+                                                                    ) : isRefundable(
+                                                                          transaction
+                                                                      ) ? (
+                                                                        <button
+                                                                            type='button'
+                                                                            className='inline-flex rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-red-200 hover:bg-red-500/20'
+                                                                            onClick={(
+                                                                                event
+                                                                            ) => {
+                                                                                event.preventDefault()
+                                                                                event.stopPropagation()
+                                                                                setRefundTarget(
+                                                                                    transaction
+                                                                                )
+                                                                            }}
+                                                                        >
+                                                                            {t(
+                                                                                "refund"
+                                                                            )}
+                                                                        </button>
+                                                                    ) : null}
                                                                 </div>
                                                                 <div className='w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-yellow-400 group-hover:text-black transition-all duration-300'>
                                                                     <ArrowRight className='w-5 h-5' />
@@ -975,6 +1067,40 @@ export default function BillingPage() {
                                 <Loader2 className='w-4 h-4 animate-spin mr-2' />
                             ) : null}
                             {t("confirmRemoveAddonAction")}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Refund Confirmation */}
+            <AlertDialog
+                open={Boolean(refundTarget)}
+                onOpenChange={(open) => {
+                    if (!open) setRefundTarget(null)
+                }}
+            >
+                <AlertDialogContent className='bg-zinc-900 border-white/10 text-white rounded-[2rem] p-8'>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className='text-2xl font-serif'>
+                            {t("confirmRefund")}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className='text-zinc-400'>
+                            {t("refundWarning")}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className='gap-3 mt-6'>
+                        <AlertDialogCancel className='rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white'>
+                            {t("keepPurchase")}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleRefund}
+                            className='rounded-full bg-red-500 hover:bg-red-600 text-white border-none'
+                            disabled={refundLoading}
+                        >
+                            {refundLoading ? (
+                                <Loader2 className='w-4 h-4 animate-spin mr-2' />
+                            ) : null}
+                            {t("confirmRefundAction")}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
