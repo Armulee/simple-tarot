@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server"
-import { readAndVerifyDid } from "@/lib/server/did"
+import {
+    generateDid,
+    readAndVerifyDid,
+    setDidCookie,
+} from "@/lib/server/did"
 import { supabase, supabaseAdmin } from "@/lib/supabase"
 import { getActiveSubscriptionInfo } from "@/lib/server/subscription"
 
 export async function POST(req: Request) {
     const { amount, user_id: userId } = await req.json()
-    const did = await readAndVerifyDid()
     if (!Number.isFinite(amount) || amount <= 0)
         return NextResponse.json({ error: "BAD_AMOUNT" }, { status: 400 })
 
@@ -19,6 +22,13 @@ export async function POST(req: Request) {
                     p_user_id: userId,
                 })
             if (currentErr) {
+                console.error("star_spend(user) get_or_create error", {
+                    message: currentErr.message,
+                    code: currentErr.code,
+                    details: currentErr.details,
+                    hint: currentErr.hint,
+                    userId,
+                })
                 return NextResponse.json(
                     { error: currentErr.message },
                     { status: 400 }
@@ -171,19 +181,39 @@ export async function POST(req: Request) {
         // This was causing double deduction
 
         if (error) {
+            console.error("star_spend(user) rpc error", {
+                message: error.message,
+                code: error.code,
+                details: error.details,
+                hint: error.hint,
+                userId,
+            })
             return NextResponse.json({ error: error.message }, { status: 400 })
         }
         return NextResponse.json({ data })
     }
 
-    // Anonymous: require DID
-    if (!did) return NextResponse.json({ error: "NO_DID" }, { status: 400 })
+    // Anonymous: ensure DID exists before spending
+    let did = await readAndVerifyDid()
+    if (!did) {
+        const newDid = generateDid()
+        await setDidCookie(newDid)
+        did = newDid
+    }
+
     const { data, error } = await supabase.rpc("star_spend", {
         p_anon_device_id: did,
         p_amount: amount,
         p_user_id: null,
     })
     if (error) {
+        console.error("star_spend(anon) error", {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint,
+            hasDid: Boolean(did),
+        })
         return NextResponse.json({ error: error.message }, { status: 400 })
     }
     return NextResponse.json({ data })
