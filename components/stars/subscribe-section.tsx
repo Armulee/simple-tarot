@@ -1,13 +1,14 @@
 "use client"
 
-import { useMemo, useState, useEffect } from "react"
-import { ArrowUpRight, Star } from "lucide-react"
+import { useState, useEffect } from "react"
+import { ArrowDownRight, ArrowUpRight, Star } from "lucide-react"
 import { Checkout } from "@/components/checkout"
 import OneTapTopUp from "@/components/stars/one-tap-top-up"
+import { PlanChangeDialog } from "@/components/subscription/plan-change-dialog"
 import { useTranslations, useLocale } from "next-intl"
 import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
-import { useStars } from "@/contexts/stars-context"
 import { useAuth } from "@/hooks/use-auth"
+import { useStars } from "@/contexts/stars-context"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 import CurrencySelector from "@/components/pricing/currency-selector"
@@ -19,6 +20,7 @@ import {
 import {
     SUBSCRIPTION_PLANS,
     getPlanPriceUsd,
+    getPlanStars,
     parseSubscriptionPlanKey,
     type BillingCycle,
     type SubscriptionPlanTier,
@@ -26,6 +28,15 @@ import {
 
 type SubscribeSectionProps = {
     defaultCurrency?: CurrencyCode
+}
+
+type PlanChangePrompt = {
+    priceId: string
+    action: "upgrade" | "downgrade"
+    targetTier: SubscriptionPlanTier
+    targetCycle: BillingCycle
+    targetPriceUsd: number
+    targetStars: number
 }
 
 export default function SubscribeSection({
@@ -39,37 +50,27 @@ export default function SubscribeSection({
     )
     const [currency, setCurrency] = useState(preferredCurrency)
     const { user } = useAuth()
+    const { stars, subscription } = useStars()
     const [billingCycle, setBillingCycle] =
         useState<BillingCycle>("monthly")
     const [activePlan, setActivePlan] = useState<{
         tier: SubscriptionPlanTier
         cycle: BillingCycle
     } | null>(null)
-    const [upgradeTarget, setUpgradeTarget] = useState<string | null>(null)
-    const { isInfinity, infinityExpiresAt } = useStars()
-    const proBaselineMonthlyStars = 450
-    const proBaselineAnnualStars = 5400
-
-    const hasActiveInfinity = useMemo(() => {
-        return (
-            isInfinity &&
-            (infinityExpiresAt === null ||
-                infinityExpiresAt === undefined ||
-                infinityExpiresAt > Date.now())
-        )
-    }, [isInfinity, infinityExpiresAt])
+    const [changeTarget, setChangeTarget] = useState<string | null>(null)
+    const [pendingChange, setPendingChange] = useState<PlanChangePrompt | null>(
+        null
+    )
+    const proBaselineMonthlyStars = 599
+    const proBaselineAnnualStars = 7188
 
     useEffect(() => {
         setCurrency(preferredCurrency)
     }, [preferredCurrency])
 
     useEffect(() => {
-        if (
-            activePlan &&
-            ((activePlan.tier === "pro" && activePlan.cycle === "monthly") ||
-                (activePlan.tier === "basic" && activePlan.cycle === "annual"))
-        ) {
-            setBillingCycle("annual")
+        if (activePlan) {
+            setBillingCycle(activePlan.cycle)
         }
     }, [activePlan])
 
@@ -98,27 +99,29 @@ export default function SubscribeSection({
         fetchActivePlan()
     }, [user])
 
-    const isUpgradePlan = (tier: SubscriptionPlanTier, cycle: BillingCycle) => {
-        if (!activePlan) return true
-        if (activePlan.tier === "pro" && activePlan.cycle === "annual") {
-            return false
+    const currentPlanPrice = activePlan
+        ? getPlanPriceUsd(activePlan.tier, activePlan.cycle)
+        : null
+
+    const getPlanAction = (
+        tier: SubscriptionPlanTier,
+        cycle: BillingCycle
+    ): "subscribe" | "current" | "upgrade" | "downgrade" => {
+        if (!activePlan) return "subscribe"
+        if (activePlan.tier === tier && activePlan.cycle === cycle) {
+            return "current"
         }
-        if (activePlan.tier === "pro" && activePlan.cycle === "monthly") {
-            return tier === "pro" && cycle === "annual"
-        }
-        if (activePlan.tier === "basic" && activePlan.cycle === "annual") {
-            return tier === "pro" && cycle === "annual"
-        }
-        if (activePlan.tier === "basic" && activePlan.cycle === "monthly") {
-            const currentPrice = getPlanPriceUsd("basic", "monthly")
-            return getPlanPriceUsd(tier, cycle) > currentPrice
-        }
-        return false
+        if (currentPlanPrice == null) return "upgrade"
+        const targetPrice = getPlanPriceUsd(tier, cycle)
+        return targetPrice >= currentPlanPrice ? "upgrade" : "downgrade"
     }
 
-    const handleUpgrade = async (priceId: string) => {
-        if (!priceId || upgradeTarget) return
-        setUpgradeTarget(priceId)
+    const handlePlanChange = async (
+        priceId: string,
+        action?: "upgrade" | "downgrade"
+    ) => {
+        if (!priceId || changeTarget) return
+        setChangeTarget(priceId)
         try {
             const {
                 data: { session },
@@ -144,7 +147,13 @@ export default function SubscribeSection({
                 throw new Error(data?.error || "Upgrade failed")
             }
 
-            toast.success(t("subscribe.upgradeSuccess") || "Upgraded!")
+            if (action === "downgrade") {
+                toast.success(
+                    t("subscribe.downgradeSuccess") || "Downgrade successful"
+                )
+            } else {
+                toast.success(t("subscribe.upgradeSuccess") || "Plan updated!")
+            }
         } catch (error) {
             const message =
                 error instanceof Error && error.message === "AUTH_REQUIRED"
@@ -154,52 +163,112 @@ export default function SubscribeSection({
                       : t("subscribe.upgradeError") || "Upgrade failed."
             toast.error(message)
         } finally {
-            setUpgradeTarget(null)
+            setChangeTarget(null)
         }
     }
 
+    const confirmPlanChange = async () => {
+        if (!pendingChange) return
+        const priceId = pendingChange.priceId
+        const action = pendingChange.action
+        setPendingChange(null)
+        await handlePlanChange(priceId, action)
+    }
+
+    const formatUsdAmount = (amount: number) =>
+        formatCurrency(
+            convertUsdToCurrency(amount, currency),
+            currency,
+            locale
+        )
+    const formatRefillDate = (timestamp?: number | null) => {
+        if (!timestamp) return "-"
+        return new Intl.DateTimeFormat("en-US", {
+            month: "short",
+            day: "2-digit",
+            year: "numeric",
+        }).format(new Date(timestamp))
+    }
+
+    const currentPlanStars = activePlan
+        ? getPlanStars(activePlan.tier, activePlan.cycle)
+        : 0
+    const currentPlanName = activePlan
+        ? `${t(`subscribe.${activePlan.tier}.title`)} · ${
+              activePlan.cycle === "annual"
+                  ? t("subscribe.annual")
+                  : t("subscribe.monthly")
+          }`
+        : "-"
+    const targetPlanName = pendingChange
+        ? `${t(`subscribe.${pendingChange.targetTier}.title`)} · ${
+              pendingChange.targetCycle === "annual"
+                  ? t("subscribe.annual")
+                  : t("subscribe.monthly")
+          }`
+        : "-"
+    const currentPlanPriceLabel = activePlan
+        ? formatUsdAmount(
+              getPlanPriceUsd(activePlan.tier, activePlan.cycle)
+          )
+        : "-"
+    const targetPlanPriceLabel = pendingChange
+        ? formatUsdAmount(pendingChange.targetPriceUsd)
+        : "-"
+    const differenceUsd = pendingChange
+        ? Math.max(0, pendingChange.targetPriceUsd - (currentPlanPrice ?? 0))
+        : 0
+    const differenceLabel = formatUsdAmount(differenceUsd)
+    const refillDateLabel = formatRefillDate(subscription?.currentPeriodEnd)
+    const currentStarsValue = typeof stars === "number" ? stars : 0
+    const projectedStarsValue = pendingChange
+        ? pendingChange.action === "upgrade"
+            ? Math.max(
+                  0,
+                  currentStarsValue +
+                      (pendingChange.targetStars - currentPlanStars)
+              )
+            : pendingChange.targetStars
+        : currentStarsValue
+
     return (
         <div className='mb-12'>
-            {!hasActiveInfinity && (
-                <>
-                    <div className='flex flex-wrap items-center justify-between gap-4 mb-6'>
-                        <div className='bg-black/30 border border-white/10 rounded-full p-1 flex gap-2'>
-                            {(["monthly", "annual"] as BillingCycle[]).map(
-                                (cycle) => (
-                                    <button
-                                        key={cycle}
-                                        type='button'
-                                        onClick={() => setBillingCycle(cycle)}
-                                        className={`rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-widest transition-all duration-300 ${
-                                            billingCycle === cycle
-                                                ? "bg-yellow-400 text-black"
-                                                : "text-white/60 hover:text-white"
-                                        }`}
-                                    >
-                                        {cycle === "monthly"
-                                            ? t("subscribe.monthly")
-                                            : t("subscribe.annual")}
-                                    </button>
-                                )
-                            )}
-                        </div>
-                        <CurrencySelector
-                            locale={locale}
-                            defaultCurrency={preferredCurrency}
-                            currency={currency}
-                            onCurrencyChange={setCurrency}
-                        />
-                    </div>
+            <div className='flex flex-wrap items-center justify-between gap-4 mb-6'>
+                <div className='bg-black/30 border border-white/10 rounded-full p-1 flex gap-2'>
+                    {(["monthly", "annual"] as BillingCycle[]).map((cycle) => (
+                        <button
+                            key={cycle}
+                            type='button'
+                            onClick={() => setBillingCycle(cycle)}
+                            className={`rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-widest transition-all duration-300 ${
+                                billingCycle === cycle
+                                    ? "bg-yellow-400 text-black"
+                                    : "text-white/60 hover:text-white"
+                            }`}
+                        >
+                            {cycle === "monthly"
+                                ? t("subscribe.monthly")
+                                : t("subscribe.annual")}
+                        </button>
+                    ))}
+                </div>
+                <CurrencySelector
+                    locale={locale}
+                    defaultCurrency={preferredCurrency}
+                    currency={currency}
+                    onCurrencyChange={setCurrency}
+                />
+            </div>
 
-                    <div className='grid md:grid-cols-2 gap-4 mb-6'>
-                        {SUBSCRIPTION_PLANS.filter(
-                            (plan) =>
-                                plan.id !== "custom" &&
-                                isUpgradePlan(
-                                    plan.id as SubscriptionPlanTier,
-                                    billingCycle
-                                )
-                        ).map((plan) => {
+            <div className='grid md:grid-cols-2 gap-4 mb-6'>
+                {SUBSCRIPTION_PLANS.filter(
+                    (plan) =>
+                        !(
+                            activePlan &&
+                            plan.id === activePlan.tier &&
+                            billingCycle === activePlan.cycle
+                        )
+                ).map((plan) => {
                             const billing = plan.billing?.[billingCycle]
                             const priceId = plan.priceIds?.[billingCycle] ?? ""
                             const monthlyPrice = plan.billing?.monthly?.priceUsd
@@ -246,6 +315,16 @@ export default function SubscribeSection({
                                   )
                                 : null
 
+                            const action = getPlanAction(
+                                plan.id as SubscriptionPlanTier,
+                                billingCycle
+                            )
+                            const targetPriceUsd = getPlanPriceUsd(
+                                plan.id as SubscriptionPlanTier,
+                                billingCycle
+                            )
+                            const isDowngrade = action === "downgrade"
+
                             return (
                                 <div
                                     key={plan.id}
@@ -272,7 +351,9 @@ export default function SubscribeSection({
                                             {billing?.stars ?? "--"}
                                         </div>
                                         <div className='text-xs uppercase tracking-widest text-white/60 mb-2'>
-                                            {t("subscribe.starsPerMonth")}
+                                            {billingCycle === "annual"
+                                                ? t("subscribe.starsPerYear")
+                                                : t("subscribe.starsPerMonth")}
                                         </div>
                                         {proMonthlySavingsPercent !== null &&
                                             proMonthlySavingsPercent > 0 && (
@@ -325,7 +406,15 @@ export default function SubscribeSection({
                                                           currency,
                                                           locale
                                                       ),
-                                                      cycle: t("subscribe.monthly"),
+                                                      cycle:
+                                                          billingCycle ===
+                                                          "annual"
+                                                              ? t(
+                                                                    "subscribe.annual"
+                                                                )
+                                                              : t(
+                                                                    "subscribe.monthly"
+                                                                ),
                                                   })
                                                 : t("subscribe.notConfigured")}
                                         </div>
@@ -334,18 +423,49 @@ export default function SubscribeSection({
                                     {activePlan ? (
                                         <button
                                             type='button'
-                                            className='h-full min-h-[120px] w-16 rounded-xl border border-yellow-500/30 bg-yellow-500/15 hover:bg-yellow-500/25 transition-colors flex flex-col items-center justify-center gap-2 px-3'
-                                            onClick={() => handleUpgrade(priceId)}
+                                            className={`h-full min-h-[120px] rounded-xl border transition-colors flex flex-col items-center justify-center gap-2 ${
+                                                isDowngrade
+                                                    ? "bg-red-950/60 border-red-900/40 hover:bg-red-950/80 text-red-100 px-4 py-3 w-fit min-w-[96px]"
+                                                    : "bg-yellow-500/15 border-yellow-500/30 hover:bg-yellow-500/25 text-yellow-200 px-3 w-16"
+                                            }`}
+                                            onClick={() =>
+                                                setPendingChange({
+                                                    priceId,
+                                                    action: isDowngrade
+                                                        ? "downgrade"
+                                                        : "upgrade",
+                                                    targetTier:
+                                                        plan.id as SubscriptionPlanTier,
+                                                    targetCycle: billingCycle,
+                                                    targetPriceUsd,
+                                                    targetStars:
+                                                        billing?.stars ?? 0,
+                                                })
+                                            }
                                             disabled={
                                                 !priceId ||
-                                                upgradeTarget === priceId
+                                                changeTarget === priceId
                                             }
-                                            aria-busy={upgradeTarget === priceId}
+                                            aria-busy={changeTarget === priceId}
                                         >
-                                            <ArrowUpRight className='w-5 h-5 text-yellow-300' />
-                                            <span className='text-[10px] font-semibold uppercase tracking-widest text-yellow-200 text-center'>
-                                                {t("subscribe.upgrade") ||
-                                                    "Upgrade"}
+                                            {isDowngrade ? (
+                                                <ArrowDownRight className='w-5 h-5 text-red-200' />
+                                            ) : (
+                                                <ArrowUpRight className='w-5 h-5 text-yellow-300' />
+                                            )}
+                                            <span
+                                                className={`text-[10px] font-semibold uppercase tracking-widest text-center ${
+                                                    isDowngrade
+                                                        ? "text-red-100"
+                                                        : "text-yellow-200"
+                                                }`}
+                                            >
+                                                {action === "downgrade"
+                                                    ? t(
+                                                          "subscribe.downgrade"
+                                                      ) || "Downgrade"
+                                                    : t("subscribe.upgrade") ||
+                                                      "Upgrade"}
                                             </span>
                                         </button>
                                     ) : (
@@ -371,18 +491,73 @@ export default function SubscribeSection({
                                 </div>
                             )
                         })}
-                    </div>
+            </div>
 
-                    {activePlan?.tier === "pro" && (
-                        <>
-                            {/* Subscribe Section */}
-                            <span className='font-serif text-sm text-gray-400 text-center w-full block mb-2 text-lg font-bold text-zinc-300'>
-                                ADDITIONAL ADD-ON STARS PACKS
-                            </span>
+            <PlanChangeDialog
+                open={Boolean(pendingChange)}
+                onOpenChange={(open) => {
+                    if (!open) setPendingChange(null)
+                }}
+                onConfirm={confirmPlanChange}
+                confirmDisabled={
+                    !pendingChange ||
+                    (changeTarget != null &&
+                        changeTarget === pendingChange.priceId)
+                }
+                action={pendingChange?.action ?? "upgrade"}
+                title={
+                    pendingChange?.action === "downgrade"
+                        ? t("subscribe.downgradeDialogTitle")
+                        : t("subscribe.upgradeDialogTitle")
+                }
+                description={
+                    pendingChange?.action === "downgrade"
+                        ? t("subscribe.downgradeDialogDescription")
+                        : t("subscribe.upgradeDialogDescription", {
+                              amount: differenceLabel,
+                          })
+                }
+                summaryTitle={t("subscribe.summaryTitle")}
+                starsTitle={t("subscribe.starsSummaryTitle")}
+                currentPlanLabel={t("subscribe.currentPlanLabel")}
+                targetPlanLabel={t("subscribe.targetPlanLabel")}
+                differenceLabel={t("subscribe.differenceLabel")}
+                refillLabel={t("subscribe.refillLabel")}
+                currentStarsLabel={t("subscribe.currentStarsLabel")}
+                projectedStarsLabel={t("subscribe.projectedStarsLabel")}
+                currentPlan={{
+                    name: currentPlanName,
+                    price: currentPlanPriceLabel,
+                    stars: currentPlanStars,
+                }}
+                targetPlan={{
+                    name: targetPlanName,
+                    price: targetPlanPriceLabel,
+                    stars: pendingChange?.targetStars ?? 0,
+                }}
+                differenceValue={differenceLabel}
+                refillDateValue={refillDateLabel}
+                currentStarsValue={`${currentStarsValue} / ${currentPlanStars}`}
+                projectedStarsValue={
+                    pendingChange
+                        ? `${projectedStarsValue} / ${pendingChange.targetStars}`
+                        : `${currentStarsValue}`
+                }
+                confirmLabel={t("subscribe.dialogConfirm")}
+                cancelLabel={t("subscribe.dialogCancel")}
+            />
 
-                            <OneTapTopUp currency={currency} locale={locale} />
-                        </>
-                    )}
+            {activePlan?.tier === "pro" && (
+                <>
+                    {/* Subscribe Section */}
+                    <span
+                        id='add-ons'
+                        className='font-serif text-sm text-gray-400 text-center w-full block mb-2 text-lg font-bold text-zinc-300'
+                    >
+                        ADDITIONAL ADD-ON STARS PACKS
+                    </span>
+
+                    <OneTapTopUp currency={currency} locale={locale} />
                 </>
             )}
         </div>

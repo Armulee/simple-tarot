@@ -73,19 +73,12 @@ export default async function Success({
                     : null
 
                 let starsAmount: number | null = null
-                if (pack) {
-                    if (pack.stars === "infinity") {
-                        starsDescription = t("descriptionInfinity", {
-                            defaultValue:
-                                "Your payment has been processed successfully. You now have unlimited stars and are ready to use them.",
-                        })
-                    } else if (typeof pack.stars === "number") {
-                        starsAmount = pack.stars + pack.bonus
-                        starsDescription = t("descriptionWithStars", {
-                            stars: starsAmount,
-                            defaultValue: `Your payment has been processed successfully. ${starsAmount} stars have been added to your account and are ready to use.`,
-                        })
-                    }
+                if (pack && typeof pack.stars === "number") {
+                    starsAmount = pack.stars + pack.bonus
+                    starsDescription = t("descriptionWithStars", {
+                        stars: starsAmount,
+                        defaultValue: `Your payment has been processed successfully. ${starsAmount} stars have been added to your account and are ready to use.`,
+                    })
                 } else if (mode === "subscribe" && planInfo && plan) {
                     const planStars =
                         plan.billing?.[planInfo.cycle]?.stars ?? null
@@ -99,6 +92,7 @@ export default async function Success({
                 }
 
                 let subscriptionId: string | null = null
+                let subscriptionPeriodStartMs: number | null = null
                 if (mode === "subscribe" && session.subscription) {
                     let sub: unknown = session.subscription
 
@@ -119,6 +113,7 @@ export default async function Success({
                         current_period_start: number
                         current_period_end: number
                         cancel_at_period_end: boolean
+                        customer?: string | null
                     }
 
                     const isValidSub =
@@ -127,6 +122,18 @@ export default async function Success({
                         typeof subObj.id === "string"
 
                     if (isValidSub) {
+                        subscriptionPeriodStartMs =
+                            typeof subObj.current_period_start === "number"
+                                ? subObj.current_period_start * 1000
+                                : null
+                        const sessionCustomer =
+                            typeof session.customer === "string"
+                                ? session.customer
+                                : null
+                        const subscriptionCustomer =
+                            typeof subObj.customer === "string"
+                                ? subObj.customer
+                                : null
                         const { data: subData, error: subError } =
                             await supabaseAdmin
                                 .from("billing_subscriptions")
@@ -135,10 +142,11 @@ export default async function Success({
                                         user_id: userId,
                                         provider: "stripe",
                                         provider_subscription_id: subObj.id,
-                                        plan:
-                                            planKey ??
-                                            pack?.infinityTerm ??
-                                            "monthly",
+                                        provider_customer_id:
+                                            subscriptionCustomer ??
+                                            sessionCustomer ??
+                                            null,
+                                        plan: planKey ?? null,
                                         status: subObj.status || "active",
                                         current_period_start:
                                             subObj.current_period_start
@@ -163,6 +171,9 @@ export default async function Success({
                                                   ).toISOString(),
                                         cancel_at_period_end:
                                             subObj.cancel_at_period_end || false,
+                                        addon_stars: 0,
+                                        addon_amount_usd: 0,
+                                        addon_items: [],
                                         updated_at: new Date().toISOString(),
                                     },
                                     {
@@ -224,94 +235,55 @@ export default async function Success({
                         })
 
                     if (!currentErr && currentData?.[0]) {
-                        const currentStars =
-                            (currentData[0] as { current_stars?: number })
-                                .current_stars || 0
+                        const starRow = currentData[0] as {
+                            current_stars?: number
+                            daily_stars?: number
+                            plan_stars?: number
+                            addon_stars?: number
+                        }
+                        const currentStars = starRow.current_stars || 0
+                        const currentDaily = Number(starRow.daily_stars ?? 0)
+                        const currentAddon = Number(starRow.addon_stars ?? 0)
 
-                        if (pack && pack.stars === "infinity") {
-                            const savedCurrency = currency
-                            const currentInfinityExpiresAt = (
-                                currentData[0] as {
-                                    infinity_expires_at?: string | null
-                                }
-                            )?.infinity_expires_at
-                            const currentIsInfinity =
-                                (
-                                    currentData[0] as {
-                                        is_infinity?: boolean
-                                    }
-                                )?.is_infinity || false
-
-                            let expiresAt: Date
-                            const monthsToAdd =
-                                pack.infinityTerm === "year" ? 12 : 1
-
-                            if (
-                                currentIsInfinity &&
-                                currentInfinityExpiresAt
-                            ) {
-                                const currentExpiration = new Date(
-                                    currentInfinityExpiresAt
-                                )
-                                if (currentExpiration > new Date()) {
-                                    expiresAt = new Date(currentExpiration)
-                                    expiresAt.setUTCMonth(
-                                        expiresAt.getUTCMonth() +
-                                            monthsToAdd
-                                    )
-                                } else {
-                                    expiresAt = new Date()
-                                    expiresAt.setUTCMonth(
-                                        expiresAt.getUTCMonth() +
-                                            monthsToAdd
-                                    )
-                                }
-                            } else {
-                                expiresAt = new Date()
-                                expiresAt.setUTCMonth(
-                                    expiresAt.getUTCMonth() + monthsToAdd
-                                )
-                            }
-
-                            if (mode !== "subscribe") {
+                        if (typeof starsAmount === "number") {
+                            const isSubscription = mode === "subscribe"
+                            const nextBalance = isSubscription
+                                ? Math.max(currentStars, starsAmount)
+                                : currentStars + starsAmount
+                            if (isSubscription) {
+                                const refillAt =
+                                    subscriptionPeriodStartMs ??
+                                    Date.now()
+                                const nextPlan = Math.max(0, starsAmount)
                                 const { error: updateError } =
                                     await supabaseAdmin
                                         .from("stars")
                                         .update({
-                                            is_infinity: true,
-                                            infinity_expires_at:
-                                                expiresAt.toISOString(),
-                                            last_currency_before_infinity:
-                                                savedCurrency,
+                                            plan_stars: nextPlan,
+                                            plan_last_refill_at: new Date(
+                                                refillAt
+                                            ).toISOString(),
+                                            current_stars:
+                                                currentDaily +
+                                                nextPlan +
+                                                currentAddon,
                                             updated_at:
                                                 new Date().toISOString(),
                                         })
                                         .eq("user_id", userId)
-
                                 if (updateError) {
                                     console.error(
-                                        "Failed to set one-time infinity stars:",
+                                        "Failed to set subscription stars:",
                                         updateError
                                     )
                                 }
                             } else {
-                                await supabaseAdmin
-                                    .from("stars")
-                                    .update({
-                                        is_infinity: false,
-                                        infinity_expires_at: null,
-                                        updated_at:
-                                            new Date().toISOString(),
-                                    })
-                                    .eq("user_id", userId)
+                                await supabaseAdmin.rpc("star_set", {
+                                    p_anon_device_id: null,
+                                    p_new_balance: nextBalance,
+                                    p_user_id: userId,
+                                })
                             }
-                        } else if (typeof starsAmount === "number") {
-                            const newBalance = currentStars + starsAmount
-                            await supabaseAdmin.rpc("star_set", {
-                                p_anon_device_id: null,
-                                p_new_balance: newBalance,
-                                p_user_id: userId,
-                            })
                         }
                     }
                 }

@@ -5,7 +5,7 @@ import { useStars } from "@/contexts/stars-context"
 
 /**
  * Client component to refresh stars balance when success page loads
- * This ensures infinity status is updated after purchase
+ * This ensures star balance is updated after purchase
  */
 export function RefreshStarsOnSuccess() {
     const { initialized } = useStars()

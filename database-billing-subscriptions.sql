@@ -4,11 +4,17 @@ create table if not exists public.billing_subscriptions (
     user_id uuid not null references auth.users(id) on delete cascade,
     provider text not null default 'stripe',
     provider_subscription_id text unique,
+    provider_customer_id text,
     plan text,
+    pending_plan text,
+    pending_change_at timestamptz,
     status text not null default 'active',
     current_period_start timestamptz,
     current_period_end timestamptz,
     cancel_at_period_end boolean not null default false,
+    addon_stars integer not null default 0,
+    addon_amount_usd numeric not null default 0,
+    addon_items jsonb not null default '[]'::jsonb,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );

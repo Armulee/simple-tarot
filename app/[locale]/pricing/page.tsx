@@ -9,6 +9,12 @@ import {
 } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 import PricingContent from "@/components/pricing/pricing-content"
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion"
 import type { CurrencyCode } from "@/lib/payments/currency-utils"
 
 type PricingPageProps = {
@@ -40,6 +46,38 @@ export default async function PricingPage({ params }: PricingPageProps) {
             icon: <CheckCircle2 className='w-5 h-5 text-emerald-300' />,
             title: t("instantDelivery"),
             desc: t("instantDeliveryDesc"),
+        },
+    ]
+    const pricingFaq = [
+        {
+            id: "refill",
+            question: t("pricingFaq.refillQuestion"),
+            answer: t("pricingFaq.refillAnswer"),
+        },
+        {
+            id: "changes",
+            question: t("pricingFaq.changeQuestion"),
+            answer: t("pricingFaq.changeAnswer"),
+        },
+        {
+            id: "addons",
+            question: t("pricingFaq.addonsQuestion"),
+            answer: t("pricingFaq.addonsAnswer"),
+        },
+        {
+            id: "refunds",
+            question: t("pricingFaq.refundQuestion"),
+            answer: t("pricingFaq.refundAnswer"),
+        },
+        {
+            id: "delivery",
+            question: t("howFastStars"),
+            answer: t("howFastStarsAnswer"),
+        },
+        {
+            id: "bonus",
+            question: t("whatIsBonus"),
+            answer: t("whatIsBonusAnswer"),
         },
     ]
 
@@ -140,23 +178,25 @@ export default async function PricingPage({ params }: PricingPageProps) {
             </div>
 
             {/* FAQ */}
-            <div className='grid md:grid-cols-2 gap-6'>
-                <Card className='p-6 bg-card/10 border-border/20'>
-                    <h3 className='font-serif font-semibold text-lg mb-2'>
-                        {t("howFastStars")}
-                    </h3>
-                    <p className='text-sm text-muted-foreground'>
-                        {t("howFastStarsAnswer")}
-                    </p>
-                </Card>
-                <Card className='p-6 bg-card/10 border-border/20'>
-                    <h3 className='font-serif font-semibold text-lg mb-2'>
-                        {t("whatIsBonus")}
-                    </h3>
-                    <p className='text-sm text-muted-foreground'>
-                        {t("whatIsBonusAnswer")}
-                    </p>
-                </Card>
+            <div className='space-y-6'>
+                <h3 className='text-2xl font-bold text-center md:text-left'>
+                    {t("pricingFaqTitle")}
+                </h3>
+                <Accordion className='rounded-2xl border border-white/10 bg-card/10 p-2'>
+                    {pricingFaq.map((item) => (
+                        <AccordionItem
+                            key={item.id}
+                            className='border-white/10'
+                        >
+                            <AccordionTrigger className='px-4 py-3 text-left text-white hover:no-underline'>
+                                {item.question}
+                            </AccordionTrigger>
+                            <AccordionContent className='px-4 pb-4 text-sm text-muted-foreground'>
+                                {item.answer}
+                            </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
             </div>
         </section>
     )

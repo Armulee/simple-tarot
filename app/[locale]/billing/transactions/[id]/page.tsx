@@ -114,11 +114,8 @@ export default function TransactionDetailsPage() {
         }
     }
 
-    const getStarsFromReference = (
-        reference: string | null
-    ): number | "infinity" | null => {
+    const getStarsFromReference = (reference: string | null): number | null => {
         if (!reference) return null
-        if (reference.toLowerCase().includes("infinity")) return "infinity"
         const match = reference.match(/(\d+)\s*stars?/i)
         return match ? parseInt(match[1]) : null
     }
@@ -186,9 +183,11 @@ export default function TransactionDetailsPage() {
             if (isSubscription) return name
             return name.toLowerCase().includes("pack") ? name : `${name} Pack`
         }
-        if (stars === "infinity" || transaction.stars_amount === null)
-            return "Infinity Stars Pack"
-        return `${stars || transaction.stars_amount || 0} Stars Pack`
+        const starCount =
+            typeof stars === "number"
+                ? stars
+                : transaction.stars_amount ?? 0
+        return `${starCount} Stars Pack`
     })()
 
     return (

@@ -5,9 +5,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const userId: string | null = body?.user_id ?? null
     const balance = body?.balance
-    const isInfinity = body?.is_infinity ?? false
-    const infinityExpiresAt = body?.infinity_expires_at ?? null
-    const lastCurrency = body?.last_currency ?? null
     
     if (!userId)
         return NextResponse.json({ error: "USER_REQUIRED" }, { status: 400 })
@@ -18,9 +15,6 @@ export async function POST(req: NextRequest) {
         p_anon_device_id: null,
         p_new_balance: Math.floor(balance),
         p_user_id: userId,
-        p_is_infinity: isInfinity,
-        p_infinity_expires_at: infinityExpiresAt,
-        p_last_currency: lastCurrency,
     })
     if (error)
         return NextResponse.json({ error: error.message }, { status: 400 })

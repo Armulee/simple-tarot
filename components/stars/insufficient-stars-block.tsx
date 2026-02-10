@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useMemo } from "react"
-import { Star, Sparkles, LogIn, Clock, Gift } from "lucide-react"
+import { Star, LogIn, Clock, Gift } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { usePathname } from "@/i18n/navigation"
 import { Swiper, SwiperSlide } from "swiper/react"
@@ -16,25 +16,24 @@ import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
 import {
     STAR_PACKS,
     getPackPrice,
-    INFINITY_PACK,
 } from "@/lib/payments/star-products"
 import { formatCurrency } from "@/lib/payments/currency-utils"
 import { Button } from "@/components/ui/button"
+import { useStars } from "@/contexts/stars-context"
 import { Card } from "@/components/ui/card"
 
 export default function InsufficientStarsBlock() {
     const { user } = useAuth()
+    const { subscription } = useStars()
     const pathname = usePathname()
     const locale = useLocale()
     const currency = usePreferredCurrency("USD")
     const t = useTranslations("InsufficientStars")
 
     const packs = useMemo(() => {
-        // Show 1-time star packs + optionally Infinity, but only if configured.
-        const oneTime = STAR_PACKS.filter((p) => !!p.id)
-        const infinity = INFINITY_PACK.id ? [INFINITY_PACK] : []
-        return [...oneTime, ...infinity]
+        return STAR_PACKS.filter((p) => !!p.id)
     }, [])
+    const isProSubscriber = subscription?.tier === "pro"
 
     return (
         <Card className="relative overflow-hidden border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(234,179,8,0.35)] p-6 md:p-8">
@@ -65,7 +64,7 @@ export default function InsufficientStarsBlock() {
                             {t("quickTopUp")}
                         </div>
 
-                        {packs.length > 0 ? (
+                        {isProSubscriber && packs.length > 0 ? (
                             <div className="-mx-2">
                                 <Swiper
                                     modules={[FreeMode, Mousewheel]}
@@ -99,10 +98,9 @@ export default function InsufficientStarsBlock() {
                                                 className="!w-[180px]"
                                             >
                                                 <Checkout
-                                                    mode="pack"
+                                                    mode="addon"
                                                     packId={p.id ?? ""}
                                                     currency={currency}
-                                                    infinityTerm={p.infinityTerm}
                                                     customTrigger={
                                                         <button
                                                             type="button"
@@ -111,20 +109,12 @@ export default function InsufficientStarsBlock() {
                                                         >
                                                             <div className="flex items-center justify-between gap-2">
                                                                 <div className="inline-flex items-center gap-2">
-                                                                    {p.stars ===
-                                                                    "infinity" ? (
-                                                                        <Sparkles className="w-5 h-5 text-yellow-300" />
-                                                                    ) : (
-                                                                        <Star
-                                                                            className="w-5 h-5 text-yellow-300"
-                                                                            fill="currentColor"
-                                                                        />
-                                                                    )}
+                                                                    <Star
+                                                                        className="w-5 h-5 text-yellow-300"
+                                                                        fill="currentColor"
+                                                                    />
                                                                     <span className="text-white font-bold text-lg">
-                                                                        {p.stars ===
-                                                                        "infinity"
-                                                                            ? "Infinity"
-                                                                            : p.stars}
+                                                                        {p.stars}
                                                                     </span>
                                                                 </div>
                                                                 {priceLabel && (
@@ -149,7 +139,9 @@ export default function InsufficientStarsBlock() {
                             </div>
                         ) : (
                             <div className="text-sm text-white/60">
-                                {t("packsNotConfigured")}
+                                {isProSubscriber
+                                    ? t("packsNotConfigured")
+                                    : t("proRequired")}
                             </div>
                         )}
 
