@@ -185,7 +185,10 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
         return targetPrice >= currentPlanPrice ? "upgrade" : "downgrade"
     }
 
-    const handlePlanChange = async (priceId: string) => {
+    const handlePlanChange = async (
+        priceId: string,
+        action?: "upgrade" | "downgrade"
+    ) => {
         if (!priceId || planChangeTarget) return
         setPlanChangeTarget(priceId)
         try {
@@ -210,9 +213,16 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                 throw new Error(data?.error || "Plan update failed")
             }
 
-            toast.success(
-                starsT("subscribe.upgradeSuccess") || "Plan updated"
-            )
+            if (action === "downgrade") {
+                toast.success(
+                    starsT("subscribe.downgradeSuccess") ||
+                        "Downgrade successful"
+                )
+            } else {
+                toast.success(
+                    starsT("subscribe.upgradeSuccess") || "Plan updated"
+                )
+            }
         } catch (error) {
             const message =
                 error instanceof Error && error.message === "AUTH_REQUIRED"
@@ -231,8 +241,9 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
     const confirmPlanChange = async () => {
         if (!pendingChange) return
         const priceId = pendingChange.priceId
+        const action = pendingChange.action
         setPendingChange(null)
-        await handlePlanChange(priceId)
+        await handlePlanChange(priceId, action)
     }
 
     const getUserName = () => {

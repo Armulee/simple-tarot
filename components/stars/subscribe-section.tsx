@@ -116,7 +116,10 @@ export default function SubscribeSection({
         return targetPrice >= currentPlanPrice ? "upgrade" : "downgrade"
     }
 
-    const handlePlanChange = async (priceId: string) => {
+    const handlePlanChange = async (
+        priceId: string,
+        action?: "upgrade" | "downgrade"
+    ) => {
         if (!priceId || changeTarget) return
         setChangeTarget(priceId)
         try {
@@ -144,7 +147,13 @@ export default function SubscribeSection({
                 throw new Error(data?.error || "Upgrade failed")
             }
 
-            toast.success(t("subscribe.upgradeSuccess") || "Plan updated!")
+            if (action === "downgrade") {
+                toast.success(
+                    t("subscribe.downgradeSuccess") || "Downgrade successful"
+                )
+            } else {
+                toast.success(t("subscribe.upgradeSuccess") || "Plan updated!")
+            }
         } catch (error) {
             const message =
                 error instanceof Error && error.message === "AUTH_REQUIRED"
@@ -161,8 +170,9 @@ export default function SubscribeSection({
     const confirmPlanChange = async () => {
         if (!pendingChange) return
         const priceId = pendingChange.priceId
+        const action = pendingChange.action
         setPendingChange(null)
-        await handlePlanChange(priceId)
+        await handlePlanChange(priceId, action)
     }
 
     const formatUsdAmount = (amount: number) =>

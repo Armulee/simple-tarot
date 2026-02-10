@@ -101,7 +101,10 @@ export default function SubscriptionSection({
         fetchActivePlan()
     }, [user])
 
-    const handleUpgrade = async (priceId: string) => {
+    const handleUpgrade = async (
+        priceId: string,
+        action?: "upgrade" | "downgrade"
+    ) => {
         if (!priceId || upgradeTarget) return
         setUpgradeTarget(priceId)
         try {
@@ -129,7 +132,11 @@ export default function SubscriptionSection({
                 throw new Error(data?.error || "Upgrade failed")
             }
 
-            toast.success(t("upgradeSuccess") || "Upgraded!")
+            if (action === "downgrade") {
+                toast.success(t("downgradeSuccess") || "Downgrade successful")
+            } else {
+                toast.success(t("upgradeSuccess") || "Upgraded!")
+            }
         } catch (error) {
             const message =
                 error instanceof Error && error.message === "AUTH_REQUIRED"
@@ -146,8 +153,9 @@ export default function SubscriptionSection({
     const confirmPlanChange = async () => {
         if (!pendingChange) return
         const priceId = pendingChange.priceId
+        const action = pendingChange.action
         setPendingChange(null)
-        await handleUpgrade(priceId)
+        await handleUpgrade(priceId, action)
     }
 
     const formatRefillDate = (timestamp?: number | null) => {
