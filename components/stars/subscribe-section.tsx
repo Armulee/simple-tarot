@@ -180,7 +180,7 @@ export default function SubscribeSection({
             convertUsdToCurrency(amount, currency),
             currency,
             locale
-        )
+        ).replace(/^US(?=\$)/, "")
     const formatRefillDate = (timestamp?: number | null) => {
         if (!timestamp) return "-"
         return new Intl.DateTimeFormat("en-US", {
@@ -341,11 +341,11 @@ export default function SubscribeSection({
                                                 </span>
                                             )}
                                         </div>
-                                        <div className='text-xs text-white/60 mb-3'>
+                                        {/* <div className='text-xs text-white/60 mb-3'>
                                             {t(
                                                 `subscribe.${plan.id}.subtitle`
                                             )}
-                                        </div>
+                                        </div> */}
                                         <div className='flex items-center gap-2 text-2xl font-bold text-white mb-1'>
                                             <Star fill='currentColor' className='w-6 h-6 text-yellow-400' />
                                             {billing?.stars ?? "--"}
@@ -394,29 +394,24 @@ export default function SubscribeSection({
                                                     </span>
                                                 </div>
                                             )}
-                                        <div className='text-sm text-white/80'>
-                                            {billing
-                                                ? t("subscribe.priceLabel", {
-                                                      price: formatCurrency(
-                                                          convertUsdToCurrency(
-                                                              annualMonthlyPrice ??
-                                                                  billing.priceUsd,
-                                                              currency
-                                                          ),
-                                                          currency,
-                                                          locale
-                                                      ),
-                                                      cycle:
-                                                          billingCycle ===
-                                                          "annual"
-                                                              ? t(
-                                                                    "subscribe.annual"
-                                                                )
-                                                              : t(
-                                                                    "subscribe.monthly"
-                                                                ),
-                                                  })
-                                                : t("subscribe.notConfigured")}
+                                        <div className='mt-2'>
+                                            {billing ? (
+                                                <div className='inline-flex items-end gap-2 rounded-xl border border-yellow-400/25 bg-gradient-to-r from-yellow-500/12 to-amber-500/8 px-3 py-2'>
+                                                    <span className='text-2xl font-black tracking-tight text-yellow-100'>
+                                                        {formatUsdAmount(
+                                                            annualMonthlyPrice ??
+                                                                billing.priceUsd
+                                                        )}
+                                                    </span>
+                                                    <span className='text-[11px] uppercase tracking-widest text-yellow-200/75'>
+                                                        / {t("subscribe.monthly")}
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <div className='text-sm text-white/60'>
+                                                    {t("subscribe.notConfigured")}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 

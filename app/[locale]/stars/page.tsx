@@ -59,6 +59,13 @@ export default async function StarsPage() {
                         {/* Balance Card */}
                         <StarsBalance />
 
+                        {/* Subscribe Section */}
+                        <span className='font-serif text-sm text-gray-400 text-center w-full block mb-2 text-lg font-bold text-zinc-300'>
+                            DON&apos;T WANT TO WAIT FOR REFILLED? <br/>
+                            SUBSCRIBE NOW!
+                        </span>
+                        <SubscribeSection />
+
                         {/* FAQ */}
                         <div className='space-y-4'>
                             <h3 className='text-xl font-bold text-center lg:text-left'>
@@ -80,13 +87,6 @@ export default async function StarsPage() {
                                 ))}
                             </Accordion>
                         </div>
-
-                        {/* Subscribe Section */}
-                        <span className='font-serif text-sm text-gray-400 text-center w-full block mb-2 text-lg font-bold text-zinc-300'>
-                            DON&apos;T WANT TO WAIT FOR REFILLED? <br/>
-                            SUBSCRIBE NOW!
-                        </span>
-                        <SubscribeSection />
                     </div>
 
                     {/* Right Column: Ways to Earn */}
