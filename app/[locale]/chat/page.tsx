@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { Suspense } from "react"
 import { getTranslations } from "next-intl/server"
-import LandingPage from "@/components/landing/landing-page"
+import ChatSession from "@/components/chat-session"
 import ReferralHandler from "@/components/referral-handler"
 
 import { getMetadataBase } from "@/lib/seo"
@@ -46,13 +46,15 @@ export async function generateMetadata({
     }
 }
 
-export default function HomePage() {
+export default function ChatPage() {
     return (
         <>
             <Suspense fallback={null}>
                 <ReferralHandler />
             </Suspense>
-            <LandingPage />
+            <section className='relative z-10 overflow-hidden h-[calc(100vh-64px)] flex flex-col items-center justify-center text-center'>
+                <ChatSession mode='home' />
+            </section>
         </>
     )
 }

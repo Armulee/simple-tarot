@@ -242,7 +242,7 @@ export function Navbar({ locale }: { locale: string }) {
                         </div>
 
                         {isChatSessionPage && (
-                            <Link href='/' aria-label='New reading'>
+                            <Link href='/chat' aria-label='New reading'>
                                 <Button
                                     variant='ghost'
                                     size='sm'

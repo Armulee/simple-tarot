@@ -1,6 +1,6 @@
 "use client"
 
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
 import { usePathname } from "@/i18n/navigation"
@@ -14,6 +14,7 @@ import {
     MessageSquare,
     BookOpen,
     Star,
+    Sparkles,
     ArrowDownRight,
 } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -664,7 +665,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                         <ul className='flex flex-col space-y-1'>
                             <li>
                                 <Link
-                                    href={"/"}
+                                    href='/'
                                     className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
                                         pathname === "/"
                                             ? "bg-accent text-white"
@@ -678,7 +679,21 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                             </li>
                             <li>
                                 <Link
-                                    href={"/about"}
+                                    href='/chat'
+                                    className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                                        pathname === "/chat"
+                                            ? "bg-accent text-white"
+                                            : "text-cosmic-light hover:text-white hover:bg-white/10"
+                                    }`}
+                                    onClick={() => onOpenChange(false)}
+                                >
+                                    <Sparkles className='w-4 h-4' />
+                                    <span>{t("newReading")}</span>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link
+                                    href='/about'
                                     className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
                                         pathname === "/about"
                                             ? "bg-accent text-white"
