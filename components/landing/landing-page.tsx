@@ -91,50 +91,86 @@ export default function LandingPage() {
                 <div className='absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-[500px] h-[300px] rounded-full bg-emerald-500/10 blur-3xl' />
             </div>
 
-            {/* Section 1: Niche Hook with Logo */}
-            <section className='relative z-10 flex flex-col items-center justify-center px-6 pt-14 pb-20 text-center'>
-                {/* Logo with subtle glow */}
-                <div className='mb-10 flex items-center justify-center gap-3 animate-landing-fade-up'>
-                    <div className='relative'>
-                        <div className='absolute inset-0 rounded-xl bg-white/10 blur-lg' />
-                        <Image
-                            src='/assets/logo.png'
-                            alt='AskingFate'
-                            width={44}
-                            height={44}
-                            className='relative rounded-xl object-contain ring-1 ring-white/10'
+            {/* Section 1: Hero - Most prominent section */}
+            <section className='relative z-10 min-h-[70vh] flex flex-col items-center justify-center px-6 pt-16 pb-24 text-center overflow-hidden'>
+                {/* Hero-exclusive ambient glow - more intense than rest of page */}
+                <div className='absolute inset-0 pointer-events-none -z-10'>
+                    <div className='absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_40%,rgba(139,92,246,0.25),rgba(99,102,241,0.12)_40%,transparent_70%)]' />
+                    <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] rounded-full bg-gradient-to-br from-violet-500/30 via-purple-500/15 to-transparent blur-3xl' />
+                    <div className='absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full bg-emerald-500/15 blur-3xl' />
+                </div>
+
+                {/* Floating star particles - hero only */}
+                <div className='absolute inset-0 pointer-events-none overflow-hidden'>
+                    {[...Array(12)].map((_, i) => (
+                        <div
+                            key={i}
+                            className='absolute w-1 h-1 rounded-full bg-white/60 hero-star-float'
+                            style={{
+                                left: `${10 + (i * 7) % 80}%`,
+                                top: `${15 + (i * 11) % 70}%`,
+                                animationDelay: `${i * 0.4}s`,
+                            }}
                         />
+                    ))}
+                </div>
+
+                {/* Logo - refined with glow ring */}
+                <div className='mb-12 flex items-center justify-center gap-3 animate-landing-fade-up'>
+                    <div className='relative group'>
+                        <div className='absolute -inset-1 rounded-2xl bg-gradient-to-r from-violet-500/40 to-purple-500/30 blur-md opacity-70 group-hover:opacity-100 transition-opacity' />
+                        <div className='relative rounded-xl p-1.5 bg-white/5 ring-1 ring-white/20 backdrop-blur-sm'>
+                            <Image
+                                src='/assets/logo.png'
+                                alt='AskingFate'
+                                width={48}
+                                height={48}
+                                className='rounded-lg object-contain'
+                            />
+                        </div>
                     </div>
-                    <span className='font-playfair text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent'>
-                        AskingFate
+                    <span className='font-playfair text-2xl sm:text-3xl font-bold tracking-tight'>
+                        <span className='bg-gradient-to-r from-white via-white to-white/90 bg-clip-text text-transparent'>
+                            AskingFate
+                        </span>
                     </span>
                 </div>
 
-                <div className='max-w-2xl mx-auto space-y-6 animate-landing-fade-up' style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
+                <div className='max-w-3xl mx-auto space-y-8 animate-landing-fade-up' style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
+                    {/* Main headline - shimmer gradient, larger, more dramatic */}
                     <h1
                         key={HOOKS[hookIndex]}
-                        className='font-playfair font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-[1.15] animate-fade-swap'
+                        className='font-playfair font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[1.1] animate-fade-swap px-2 [filter:drop-shadow(0_0_40px_rgba(255,255,255,0.15))]'
                     >
-                        <span className='bg-gradient-to-br from-white via-white to-white/90 bg-clip-text text-transparent drop-shadow-[0_0_40px_rgba(255,255,255,0.15)]'>
+                        <span className='hero-shimmer'>
                             {HOOKS[hookIndex]}
                         </span>
                     </h1>
-                    <p className='text-lg sm:text-xl text-white/95 font-medium tracking-tight'>
-                        Find out in 30 seconds
-                    </p>
-                    <p className='text-sm sm:text-base text-white/55'>
+
+                    {/* "Find out in 30 seconds" - glowing badge */}
+                    <div className='inline-flex items-center gap-2 px-5 py-2.5 rounded-full hero-badge-glow bg-white/10 border border-white/20 backdrop-blur-md'>
+                        <Sparkles className='w-4 h-4 text-amber-400' />
+                        <span className='text-white/95 font-semibold text-base sm:text-lg tracking-tight'>
+                            Find out in 30 seconds
+                        </span>
+                        <Sparkles className='w-4 h-4 text-amber-400' />
+                    </div>
+
+                    <p className='text-sm sm:text-base text-white/50 max-w-md mx-auto'>
                         AI analyzes your unique astrological chart
                     </p>
-                    <Link
-                        href='/chat'
-                        className='inline-block mt-2 group'
-                    >
-                        <span className='inline-flex items-center justify-center gap-2.5 px-10 py-4 text-base font-semibold rounded-2xl bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 text-white shadow-[0_4px_24px_rgba(16,185,129,0.45)] hover:shadow-[0_8px_40px_rgba(16,185,129,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300'>
+
+                    {/* CTA - larger, with pulse glow */}
+                    <Link href='/chat' className='inline-block mt-4 group'>
+                        <span className='hero-cta-pulse inline-flex items-center justify-center gap-3 px-12 py-5 text-lg font-semibold rounded-2xl bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 text-white hover:shadow-[0_8px_48px_rgba(16,185,129,0.6)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300'>
                             Ask your free question now
-                            <ChevronRight className='w-5 h-5 group-hover:translate-x-0.5 transition-transform' />
+                            <ChevronRight className='w-6 h-6 group-hover:translate-x-1 transition-transform' />
                         </span>
                     </Link>
                 </div>
+
+                {/* Decorative bottom gradient fade */}
+                <div className='absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[var(--background)] to-transparent pointer-events-none' />
             </section>
 
             {/* Section 2: Quick Categories */}
