@@ -86,7 +86,9 @@ export default function ShareSection({
     const { user } = useAuth()
     const navGuardRef = useRef<HTMLDivElement>(null)
     const [earnedStars, setEarnedStars] = useState(0)
-    const maxStars = 3
+    const starsPerVisit = 5
+    const maxGrantsPerDay = 3
+    const maxStars = starsPerVisit * maxGrantsPerDay
     const [unavailableOpen, setUnavailableOpen] = useState(false)
     const [unavailableLabel, setUnavailableLabel] = useState<string>("")
 
@@ -130,8 +132,10 @@ export default function ShareSection({
     // Listen for earned stars updates from other components
     useEffect(() => {
         const handleEarnedStarsUpdate = () => {
-            // Optimistically bump UI by +1 (capped), then reconcile with server
-            setEarnedStars((prev) => Math.min((prev || 0) + 1, maxStars))
+            // Optimistically bump UI by +5 (capped), then reconcile with server
+            setEarnedStars((prev) =>
+                Math.min((prev || 0) + starsPerVisit, maxStars)
+            )
             refreshEarnedStars()
         }
 
@@ -174,7 +178,7 @@ export default function ShareSection({
                 } catch {}
             }
         }
-    }, [refreshEarnedStars, maxStars])
+    }, [refreshEarnedStars, maxStars, starsPerVisit])
 
     // Refresh when tab becomes visible (owner may be watching while others visit)
     useEffect(() => {

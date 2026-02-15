@@ -984,6 +984,25 @@
   animation: gradient-x 3s ease infinite;
 }
 
+/* Exalted golden aura glow */
+@keyframes exalted-aura {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.2),
+      0 0 40px rgba(251, 191, 36, 0.1),
+      inset 0 0 20px rgba(251, 191, 36, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 28px rgba(251, 191, 36, 0.35),
+      0 0 50px rgba(251, 191, 36, 0.15),
+      inset 0 0 24px rgba(251, 191, 36, 0.08);
+  }
+}
+
+.animate-exalted-aura {
+  animation: exalted-aura 2.5s ease-in-out infinite;
+}
+
 /* Slow spin animation for decorative elements */
 @keyframes spin-slow {
   from {

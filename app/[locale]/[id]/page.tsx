@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { supabase } from "@/lib/supabase"
-import ChatSession from "@/components/chat-session"
-import type { ChatDecision } from "@/components/chat-session"
+import ChatSession from "@/components/chat/session"
+import type { ChatDecision } from "@/components/chat/session"
 import { getMetadataBase } from "@/lib/seo"
 import { getCleanQuestionText } from "@/lib/question-utils"
 
@@ -20,7 +20,7 @@ function isChatDecision(value: unknown): value is ChatDecision {
     if (!value || typeof value !== "object") return false
     const v = value as Record<string, unknown>
     return (
-        (v.type === "chat" || v.type === "draw") &&
+        (v.type === "chat" || v.type === "draw" || v.type === "horoscope") &&
         typeof v.spreadType === "string" &&
         typeof v.cardCount === "number" &&
         typeof v.assistantText === "string"
@@ -30,7 +30,9 @@ function isChatDecision(value: unknown): value is ChatDecision {
 async function getChatSession(id: string) {
     const { data } = await supabase
         .from("chat_sessions")
-        .select("id, question, messages, decision, owner_user_id, show_insufficient_stars, show_card_draw")
+        .select(
+            "id, question, messages, decision, owner_user_id, show_insufficient_stars, show_card_draw",
+        )
         .eq("id", id)
         .maybeSingle()
     return data as ChatSessionData | null
@@ -93,7 +95,6 @@ export default async function ChatSessionPage({
 
     return (
         <ChatSession
-            mode='session'
             initialSession={{
                 id: data.id,
                 question: data.question,

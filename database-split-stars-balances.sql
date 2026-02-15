@@ -7,7 +7,9 @@ alter table public.stars
     add column if not exists plan_stars integer not null default 0,
     add column if not exists plan_last_refill_at timestamptz,
     add column if not exists addon_stars integer not null default 0,
-    add column if not exists addon_last_refill_at timestamptz;
+    add column if not exists addon_last_refill_at timestamptz,
+    add column if not exists engagement_stars_current integer not null default 0,
+    add column if not exists engagement_stars_total integer not null default 0;
 
 -- Backfill balances by splitting current_stars into daily + plan
 update public.stars
@@ -24,6 +26,8 @@ set
         end
     ),
     addon_stars = coalesce(addon_stars, 0),
+    engagement_stars_current = coalesce(engagement_stars_current, 0),
+    engagement_stars_total = coalesce(engagement_stars_total, 0),
     daily_last_refill_at = coalesce(daily_last_refill_at, last_refill_at, now()),
     plan_last_refill_at = coalesce(plan_last_refill_at, last_refill_at),
     addon_last_refill_at = coalesce(addon_last_refill_at, last_refill_at),
@@ -86,6 +90,8 @@ create or replace function public.star_get_or_create(
   plan_last_refill_at timestamptz,
   addon_stars integer,
   addon_last_refill_at timestamptz,
+  engagement_stars_current integer,
+  engagement_stars_total integer,
   current_stars integer,
   last_refill_at timestamptz,
   first_login_bonus_granted boolean,
@@ -218,6 +224,8 @@ begin
     v_state.plan_last_refill_at,
     v_state.addon_stars,
     v_state.addon_last_refill_at,
+    v_state.engagement_stars_current,
+    v_state.engagement_stars_total,
     v_state.current_stars,
     v_state.last_refill_at,
     v_state.first_login_bonus_granted,
@@ -234,6 +242,8 @@ create or replace function public.star_spend(
   daily_stars integer,
   plan_stars integer,
   addon_stars integer,
+  engagement_stars_current integer,
+  engagement_stars_total integer,
   current_stars integer,
   daily_last_refill_at timestamptz
 ) as $$
@@ -264,7 +274,15 @@ begin
   end if;
 
   if v_new_daily < p_amount then
-    return query select false, v_new_daily, v_row.plan_stars, v_row.addon_stars, v_new_daily + coalesce(v_row.plan_stars, 0) + coalesce(v_row.addon_stars, 0), v_new_last;
+    return query select
+      false,
+      v_new_daily,
+      v_row.plan_stars,
+      v_row.addon_stars,
+      greatest(0, coalesce(v_row.engagement_stars_current, 0) - p_amount),
+      coalesce(v_row.engagement_stars_total, 0),
+      v_new_daily + coalesce(v_row.plan_stars, 0) + coalesce(v_row.addon_stars, 0),
+      v_new_last;
   end if;
 
   v_new_daily := v_new_daily - p_amount;
@@ -278,12 +296,36 @@ begin
      set daily_stars = v_new_daily,
          daily_last_refill_at = v_new_last,
          last_refill_at = v_new_last,
+         engagement_stars_current = greatest(0, coalesce(s.engagement_stars_current, 0) - p_amount),
          current_stars = v_new_daily + coalesce(s.plan_stars, 0) + coalesce(s.addon_stars, 0),
          updated_at = v_now
    where s.id = v_row.id
-   returning s.daily_stars, s.plan_stars, s.addon_stars, s.current_stars, s.daily_last_refill_at into v_new_daily, v_row.plan_stars, v_row.addon_stars, v_row.current_stars, v_new_last;
+   returning
+      s.daily_stars,
+      s.plan_stars,
+      s.addon_stars,
+      s.engagement_stars_current,
+      s.engagement_stars_total,
+      s.current_stars,
+      s.daily_last_refill_at
+   into
+      v_new_daily,
+      v_row.plan_stars,
+      v_row.addon_stars,
+      v_row.engagement_stars_current,
+      v_row.engagement_stars_total,
+      v_row.current_stars,
+      v_new_last;
 
-  return query select true, v_new_daily, v_row.plan_stars, v_row.addon_stars, v_row.current_stars, v_new_last;
+  return query select
+    true,
+    v_new_daily,
+    v_row.plan_stars,
+    v_row.addon_stars,
+    v_row.engagement_stars_current,
+    v_row.engagement_stars_total,
+    v_row.current_stars,
+    v_new_last;
 end;
 $$ language plpgsql security definer set search_path = public;
 
@@ -293,6 +335,8 @@ create or replace function public.star_add(
   p_user_id uuid default null
 ) returns table (
   daily_stars integer,
+  engagement_stars_current integer,
+  engagement_stars_total integer,
   current_stars integer,
   daily_last_refill_at timestamptz
 ) as $$
@@ -307,11 +351,29 @@ begin
   v_last := v_row.daily_last_refill_at;
   update public.stars s
      set daily_stars = v_curr,
+         engagement_stars_current = coalesce(s.engagement_stars_current, 0) + greatest(0, coalesce(p_amount, 0)),
+         engagement_stars_total = coalesce(s.engagement_stars_total, 0) + greatest(0, coalesce(p_amount, 0)),
          current_stars = v_curr + coalesce(s.plan_stars, 0) + coalesce(s.addon_stars, 0),
          updated_at = v_now
    where s.id = v_row.id
-   returning s.daily_stars, s.current_stars, s.daily_last_refill_at into v_curr, v_row.current_stars, v_last;
-  return query select v_curr, v_row.current_stars, v_last;
+   returning
+      s.daily_stars,
+      s.engagement_stars_current,
+      s.engagement_stars_total,
+      s.current_stars,
+      s.daily_last_refill_at
+   into
+      v_curr,
+      v_row.engagement_stars_current,
+      v_row.engagement_stars_total,
+      v_row.current_stars,
+      v_last;
+  return query select
+    v_curr,
+    v_row.engagement_stars_current,
+    v_row.engagement_stars_total,
+    v_row.current_stars,
+    v_last;
 end;
 $$ language plpgsql security definer set search_path = public;
 
@@ -323,6 +385,8 @@ create or replace function public.star_set(
   daily_stars integer,
   plan_stars integer,
   addon_stars integer,
+  engagement_stars_current integer,
+  engagement_stars_total integer,
   current_stars integer,
   daily_last_refill_at timestamptz
 ) as $$
@@ -352,8 +416,30 @@ begin
          last_refill_at = coalesce(s.daily_last_refill_at, v_now),
          updated_at = v_now
    where s.id = v_row.id
-   returning s.daily_stars, s.plan_stars, s.addon_stars, s.current_stars, s.daily_last_refill_at into v_daily, v_plan, v_addon, v_row.current_stars, v_row.daily_last_refill_at;
-  return query select v_daily, v_plan, v_addon, v_row.current_stars, v_row.daily_last_refill_at;
+   returning
+      s.daily_stars,
+      s.plan_stars,
+      s.addon_stars,
+      s.engagement_stars_current,
+      s.engagement_stars_total,
+      s.current_stars,
+      s.daily_last_refill_at
+   into
+      v_daily,
+      v_plan,
+      v_addon,
+      v_row.engagement_stars_current,
+      v_row.engagement_stars_total,
+      v_row.current_stars,
+      v_row.daily_last_refill_at;
+  return query select
+    v_daily,
+    v_plan,
+    v_addon,
+    v_row.engagement_stars_current,
+    v_row.engagement_stars_total,
+    v_row.current_stars,
+    v_row.daily_last_refill_at;
 end;
 $$ language plpgsql security definer set search_path = public;
 

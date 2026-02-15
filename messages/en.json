@@ -218,8 +218,24 @@
   "Home": {
     "hero": {
       "line1": "Ask me anything",
-      "line2": "about your destiny"
+      "line2": "about your destiny",
+      "rotatingPhrases": [
+        "Step Into the Cards.",
+        "Let the Tarot Reveal Your Path.",
+        "Guidance Through the Language of Symbols.",
+        "Personal Tarot Readings.",
+        "Ask the Cards.",
+        "Discover What the Cards Hold.",
+        "Written in the Stars.",
+        "Your Cosmic Blueprint Awaits.",
+        "The Sky Has a Message for You.",
+        "Daily & Personalized Horoscopes.",
+        "Astrology Insights.",
+        "Explore Your Birth Chart.",
+        "Star-Based Guidance."
+      ]
     },
+    "description": "Your personalized AI fortune teller",
     "prompts": [
       "What is the message I need to hear today?",
       "How can I find clarity in my career path?",
@@ -235,6 +251,14 @@
       "cta": "Start your astrology reading"
     },
     "learnMore": "Learn More",
+    "quickCards": {
+      "cardReading": "Do the card reading",
+      "todayHoroscope": "Today horoscope"
+    },
+    "quickCardQuestions": {
+      "cardReading": "What is the message I need to hear today?",
+      "todayHoroscope": "What is my horoscope for today?"
+    },
     "selectedCards": "You have selected {selectedCount}/{cardsToSelect} cards",
     "checkingStars": "Checking your star balance...",
     "disclaimer": "Do not trust or rely on this interpretation blindly. AskingFate uses AI and may make mistakes. For important decisions, please consult a qualified professional."
@@ -829,6 +853,10 @@
       "Aquarius": "Aquarius",
       "Pisces": "Pisces"
     },
+    "systemWestern": "Western (Tropical)",
+    "systemVedic": "Vedic (Sidereal)",
+    "tabBirthChart": "Birth Chart",
+    "tabTransitChart": "Transit Chart",
     "houseMeanings": {
       "1": "Self & Identity",
       "2": "Money & Possessions",
@@ -1243,7 +1271,7 @@
       },
       "share": {
         "title": "Share Your Reading",
-        "desc": "Get 1 free star for each new person who visits your shared link ({earned}/{max})",
+        "desc": "Get 5 free stars for each new person who visits your shared link ({earned}/{max})",
         "learnMore": "Learn more",
         "more": "More",
         "facebook": "Facebook",
@@ -1839,7 +1867,7 @@
       "addonsQuestion": "Who can buy add-on star packs?",
       "addonsAnswer": "Add-on packs are available for Pro subscribers. They add a recurring star pool that refills each billing period until removed.",
       "refundQuestion": "Can I request a refund?",
-      "refundAnswer": "Eligible Stripe purchases can be refunded within 7 days from the billing page."
+      "refundAnswer": "You can request a refund if you have not used any stars from your current plan yet. Refund requests must be submitted within 7 days of the billing date."
     },
     "features": {
       "unlimitedReadings": "Unlimited Readings",
@@ -1945,6 +1973,7 @@
     "dailyBalance": "Daily stars: {current}/{total}",
     "planBalance": "Plan stars: {current}/{total}",
     "addonBalance": "Add-on stars: {current}/{total}",
+    "engagementBalance": "Engagement stars: {current}/{total}",
     "nextBilling": "Next billing {date}",
     "buyAddons": "Buy add-ons",
     "anonymousPrefix": "Anonymous User:",
@@ -2083,14 +2112,14 @@
       },
       "share": {
         "title": "Share a Reading",
-        "subtitle": "Share a link. Earn up to 3/day.",
-        "body": "Earn +1 star for each unique visitor who opens your shared reading—capped at 3 stars per day. Awards apply automatically.",
+        "subtitle": "Share a link. Earn from up to 3 visits/day.",
+        "body": "Earn +5 stars for each unique visitor who opens your shared reading—capped at 3 rewarded visits per day. Awards apply automatically.",
         "learnMore": "Learn More"
       },
       "refer": {
         "title": "Refer a Friend",
         "subtitle": "Invite friends. Earn together.",
-        "body": "Share your referral link. You and your friend each earn 5 stars (up to 10 friends per week). If 10 friends register within a week, you receive a 10‑star bonus. Stars are granted when invited friends complete registration.",
+        "body": "Share your referral link. You and your friend each earn 20 stars (up to 10 friends per week). If 10 friends register within a week, you receive a 50‑star bonus. Stars are granted when invited friends complete registration.",
         "learnMore": "Learn More",
         "viewReferral": "View Referral Link"
       }
@@ -2143,6 +2172,22 @@
     "upgradeNow": "Upgrade now",
     "getPlan": "Get {plan}",
     "savePercent": "Save {percent}%"
+  },
+  "HoroscopeChat": {
+    "usingSavedBirthDate": "Using your saved birth date for this interpretation...",
+    "loading": "Consulting your birth chart...",
+    "fallbackAnswerError": "I could not read this chart yet.",
+    "analysisFailed": "Sorry, horoscope analysis failed. Please try again.",
+    "parseFailed": "I couldn't parse those birth details. Please try again.",
+    "askBirthDate": "Please send your birth date first (DD/MM/YYYY or YYYY-MM-DD).",
+    "askBirthTime": "Now share your birth time. If unknown, just tell me day or night. Ascendant can shift about every 2 hours, so approximate time may reduce accuracy.",
+    "askBirthPlace": "Please share your birth place (city/country). If unknown, I can use your current location but the reading may be less accurate.",
+    "usingLocationFallback": "Using your current location as fallback. This can reduce precision for houses and ascendant.",
+    "processFailed": "Sorry, I couldn't process horoscope details right now.",
+    "birthFormTitle": "Fill your birth details",
+    "birthFormSubmit": "Use this birth data",
+    "transitFormTitle": "Set transit date and time",
+    "transitFormSubmit": "Run horoscope with transit date"
   },
   "Settings": {
     "title": "Settings",

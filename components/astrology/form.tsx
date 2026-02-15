@@ -154,6 +154,8 @@ export default function HoroscopeForm() {
     const [question, setQuestion] = useState("")
     const [isGenerating, setIsGenerating] = useState(false)
     const [saveBirthDate, setSaveBirthDate] = useState(false)
+    const defaultSystem: "western_tropical" | "vedic_sidereal" =
+        "vedic_sidereal"
 
     // Load initial values from localStorage
     const hasLoadedFromStorage = useRef(false)
@@ -460,6 +462,7 @@ export default function HoroscopeForm() {
         timezone: string
         lat: string
         lng: string
+        system: "western_tropical" | "vedic_sidereal"
     }) => {
         const params = new URLSearchParams(args)
         const res = await fetch(`/api/calculate-horoscope?${params.toString()}`)
@@ -485,6 +488,7 @@ export default function HoroscopeForm() {
                 lng: birthLng || "0",
                 country: birthCountry,
                 state: birthStateProv,
+                system: defaultSystem,
             }
             const transit = {
                 day: String(transitDate.getDate()),
@@ -497,6 +501,7 @@ export default function HoroscopeForm() {
                 lng: transitLng || "0",
                 country: transitCountry,
                 state: transitStateProv,
+                system: defaultSystem,
             }
 
             const [birthChart, transitChart] = await Promise.all([
@@ -513,6 +518,25 @@ export default function HoroscopeForm() {
                     birthChart,
                     transitChart,
                     question: question.trim() || null,
+                    systemMode: defaultSystem,
+                    inputConfidence: {
+                        exactBirthTime: Boolean(birthTime.hour && birthTime.minute),
+                        usedBirthLocationFallback: !birthCountry,
+                    },
+                    swissephSnapshot: {
+                        birthChartMeta: {
+                            ascendant: birthChart?.ascendant ?? null,
+                            mc: birthChart?.mc ?? null,
+                            aspects: birthChart?.aspects ?? [],
+                            ayanamsa: birthChart?.ayanamsa ?? null,
+                        },
+                        transitChartMeta: {
+                            ascendant: transitChart?.ascendant ?? null,
+                            mc: transitChart?.mc ?? null,
+                            aspects: transitChart?.aspects ?? [],
+                            ayanamsa: transitChart?.ayanamsa ?? null,
+                        },
+                    },
                     user_id: user?.id ?? null,
                 }),
             })

@@ -28,6 +28,8 @@ export async function POST(req: NextRequest) {
             daily_stars?: number
             plan_stars?: number
             addon_stars?: number
+            engagement_stars_current?: number
+            engagement_stars_total?: number
             daily_last_refill_at?: string | null
             plan_last_refill_at?: string | null
             addon_last_refill_at?: string | null
@@ -35,6 +37,8 @@ export async function POST(req: NextRequest) {
         let dailyStars = Number(row.daily_stars ?? 0)
         let planStars = Number(row.plan_stars ?? 0)
         let addonStars = Number(row.addon_stars ?? 0)
+        const engagementStarsCurrent = Number(row.engagement_stars_current ?? 0)
+        const engagementStarsTotal = Number(row.engagement_stars_total ?? 0)
         let planLastRefillMs = row.plan_last_refill_at
             ? new Date(row.plan_last_refill_at).getTime()
             : null
@@ -95,6 +99,9 @@ export async function POST(req: NextRequest) {
                 daily_stars: nextDaily,
                 plan_stars: planStars,
                 addon_stars: addonStars,
+                engagement_stars_current:
+                    engagementStarsCurrent + Number(amount),
+                engagement_stars_total: engagementStarsTotal + Number(amount),
                 plan_last_refill_at: planLastRefillMs
                     ? new Date(planLastRefillMs).toISOString()
                     : null,
@@ -106,7 +113,7 @@ export async function POST(req: NextRequest) {
             })
             .eq("user_id", userId)
             .select(
-                "daily_stars,plan_stars,addon_stars,current_stars,daily_last_refill_at,plan_last_refill_at,addon_last_refill_at"
+                "daily_stars,plan_stars,addon_stars,engagement_stars_current,engagement_stars_total,current_stars,daily_last_refill_at,plan_last_refill_at,addon_last_refill_at"
             )
             .maybeSingle()
         if (error)

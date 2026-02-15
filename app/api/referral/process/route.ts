@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
         const { data: result, error: processError } = await supabase.rpc("process_referral_bonus", {
             p_referrer_id: referralCode,
             p_referred_user_id: userId,
-            p_bonus_amount: 5
+            p_bonus_amount: 20
         })
 
         if (processError) {

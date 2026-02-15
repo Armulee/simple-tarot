@@ -13,8 +13,10 @@ import {
 import SignInAccordion from "@/components/stars/sign-in-accordion"
 import { SocialFollowRewards } from "@/components/stars/social-follow-rewards"
 import { useTranslations } from "next-intl"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function WaysToEarn() {
+    const { user } = useAuth()
     const t = useTranslations("StarsPage")
     const [socialProgress, setSocialProgress] = useState({
         claimed: 0,
@@ -41,8 +43,11 @@ export default function WaysToEarn() {
                 </div>
 
                 <Accordion className='space-y-4'>
-                    <SignInAccordion />
-
+                    {!user ? ( 
+                        <SignInAccordion />
+                        ) : null
+                    }
+                   
                     {/* Purchase Stars */}
                     <AccordionItem className='group relative overflow-hidden rounded-2xl border border-yellow-500/30 bg-gradient-to-r from-yellow-400/15 via-amber-500/15 to-yellow-600/15 px-4 py-2 card-glow hover:from-yellow-400/20 hover:via-amber-500/20 hover:to-yellow-600/20 transition-all duration-300'>
                         <AccordionTrigger className='px-2 py-4 hover:no-underline'>
@@ -186,7 +191,7 @@ export default function WaysToEarn() {
                                         className='w-3.5 h-3.5'
                                         fill='currentColor'
                                     />
-                                    1
+                                    5
                                 </span>
                             </div>
                         </AccordionTrigger>
@@ -263,7 +268,7 @@ export default function WaysToEarn() {
                                         className='w-3.5 h-3.5'
                                         fill='currentColor'
                                     />
-                                    5
+                                    20
                                 </span>
                             </div>
                         </AccordionTrigger>

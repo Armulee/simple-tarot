@@ -69,8 +69,10 @@ export async function GET(req: NextRequest) {
             totalCount = count || 0
         }
 
-        const maxStars = 3
-        const earnedStars = Math.min(totalCount, maxStars)
+        const starsPerVisit = 5
+        const maxGrantsPerDay = 3
+        const maxStars = starsPerVisit * maxGrantsPerDay
+        const earnedStars = Math.min(totalCount, maxGrantsPerDay) * starsPerVisit
 
         return NextResponse.json({
             earnedStars,

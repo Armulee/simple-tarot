@@ -5,6 +5,8 @@ export type StarState = {
     dailyStars: number
     planStars: number
     addonStars: number
+    engagementStarsCurrent: number
+    engagementStarsTotal: number
     dailyLastRefillAt: number | null
     firstLoginBonusGranted?: boolean
     firstTimeLoginGrant?: boolean
@@ -54,6 +56,15 @@ function resolvePrimaryLastRefill(
     return user ? dailyRefill ?? legacyRefill : anonRefill ?? legacyRefill
 }
 
+function resolveEngagementStars(
+    row: Record<string, unknown> | undefined
+): { current: number; total: number } {
+    return {
+        current: Number(row?.engagement_stars_current ?? 0),
+        total: Number(row?.engagement_stars_total ?? 0),
+    }
+}
+
 export async function starGetOrCreate(user: User | null): Promise<StarState> {
     const url = user?.id
         ? `/api/stars/get-or-create?user_id=${encodeURIComponent(user.id)}`
@@ -65,11 +76,14 @@ export async function starGetOrCreate(user: User | null): Promise<StarState> {
     const primaryStars = resolvePrimaryStars(user, row)
     const planStars = Number(row?.plan_stars ?? 0)
     const addonStars = Number(row?.addon_stars ?? 0)
+    const engagement = resolveEngagementStars(row)
     return {
         currentStars: Number(row?.current_stars ?? primaryStars + planStars + addonStars),
         dailyStars: primaryStars,
         planStars,
         addonStars,
+        engagementStarsCurrent: engagement.current,
+        engagementStarsTotal: engagement.total,
         dailyLastRefillAt: resolvePrimaryLastRefill(user, row),
         firstLoginBonusGranted: Boolean(row?.first_login_bonus_granted),
         firstTimeLoginGrant: Boolean(row?.first_time_login_grant),
@@ -94,11 +108,14 @@ export async function starSpend(
     const primaryStars = resolvePrimaryStars(user, row)
     const planStars = Number(row?.plan_stars ?? 0)
     const addonStars = Number(row?.addon_stars ?? 0)
+    const engagement = resolveEngagementStars(row)
     const state: StarState = {
         currentStars: Number(row?.current_stars ?? primaryStars + planStars + addonStars),
         dailyStars: primaryStars,
         planStars,
         addonStars,
+        engagementStarsCurrent: engagement.current,
+        engagementStarsTotal: engagement.total,
         dailyLastRefillAt: resolvePrimaryLastRefill(user, row),
     }
     return { ok, state }
@@ -119,11 +136,14 @@ export async function starAdd(
     const primaryStars = resolvePrimaryStars(user, row)
     const planStars = Number(row?.plan_stars ?? 0)
     const addonStars = Number(row?.addon_stars ?? 0)
+    const engagement = resolveEngagementStars(row)
     return {
         currentStars: Number(row?.current_stars ?? primaryStars + planStars + addonStars),
         dailyStars: primaryStars,
         planStars,
         addonStars,
+        engagementStarsCurrent: engagement.current,
+        engagementStarsTotal: engagement.total,
         dailyLastRefillAt: resolvePrimaryLastRefill(user, row),
     }
 }
@@ -142,6 +162,8 @@ export async function starSet(user: User, balance: number): Promise<StarState> {
         dailyStars: row?.daily_stars ?? 5,
         planStars: row?.plan_stars ?? 0,
         addonStars: row?.addon_stars ?? 0,
+        engagementStarsCurrent: Number(row?.engagement_stars_current ?? 0),
+        engagementStarsTotal: Number(row?.engagement_stars_total ?? 0),
         dailyLastRefillAt: tsToMs(
             row?.daily_last_refill_at ?? row?.last_refill_at
         ),

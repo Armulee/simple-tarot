@@ -256,7 +256,7 @@ export default function ReferralPage() {
                                 </div>
                                 <h3 className="text-lg font-semibold text-white mb-2">Earn Together</h3>
                                 <p className="text-gray-300 text-sm">
-                                    Both you and your friend receive 5 stars each when they complete registration. Win-win!
+                                    Both you and your friend receive 20 stars each when they complete registration. Win-win!
                                 </p>
                             </CardContent>
                         </Card>
@@ -289,7 +289,7 @@ export default function ReferralPage() {
                                     </div>
                                 </div>
                                 <div className="text-center">
-                                    <div className="text-4xl font-bold text-yellow-400 mb-2">5 Stars</div>
+                                    <div className="text-4xl font-bold text-yellow-400 mb-2">20 Stars</div>
                                     <p className="text-gray-300 text-sm">Instantly credited when friend signs up</p>
                                 </div>
                             </CardContent>
@@ -307,7 +307,7 @@ export default function ReferralPage() {
                                     </div>
                                 </div>
                                 <div className="text-center">
-                                    <div className="text-4xl font-bold text-purple-400 mb-2">10 Stars</div>
+                                    <div className="text-4xl font-bold text-purple-400 mb-2">50 Stars</div>
                                     <p className="text-gray-300 text-sm">When 10 friends register in a week</p>
                                 </div>
                             </CardContent>

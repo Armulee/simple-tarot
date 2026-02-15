@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { readAndVerifyDid } from "@/lib/server/did"
 import { supabase, supabaseAdmin } from "@/lib/supabase"
 
-// Award 1 star for sharing, ignoring refill caps.
+// Award 5 stars for sharing, ignoring refill caps.
 // If authenticated, adds to user balance; otherwise, adds to device id (DID).
 export async function POST(req: NextRequest) {
     try {
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
             if (ownerUserId) {
                 const { data, error } = await db.rpc("star_add", {
                     p_anon_device_id: null,
-                    p_amount: 1,
+                    p_amount: 5,
                     p_user_id: ownerUserId,
                 })
                 if (error)
@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
             } else if (ownerDid) {
                 const { data, error } = await db.rpc("star_add", {
                     p_anon_device_id: ownerDid,
-                    p_amount: 1,
+                    p_amount: 5,
                     p_user_id: null,
                 })
                 if (error)
@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ data: { ok: true } })
         }
 
-        // Anonymous: use DID and increment by 1 (unified ids)
+        // Anonymous: use DID and increment by 5 (unified ids)
         const did = await readAndVerifyDid()
         if (!did) return NextResponse.json({ error: "NO_DID" }, { status: 400 })
         const visitorId = did
@@ -224,24 +224,9 @@ export async function POST(req: NextRequest) {
         }
         // Award to owner (user or DID)
         if (ownerUserId) {
-            const { data: currentData, error: currentErr } = await db
-                .rpc("star_get_or_create", {
-                    p_anon_device_id: null,
-                    p_user_id: ownerUserId,
-                })
-            if (currentErr)
-                return NextResponse.json(
-                    { error: currentErr.message },
-                    { status: 400 }
-                )
-            const row = (currentData?.[0] ?? {}) as { current_stars?: number }
-            const current = Number.isFinite(row.current_stars as number)
-                ? (row.current_stars as number)
-                : 0
-            const next = Math.max(0, current + 1)
-            const { data, error } = await db.rpc("star_set", {
+            const { data, error } = await db.rpc("star_add", {
                 p_anon_device_id: null,
-                p_new_balance: next,
+                p_amount: 5,
                 p_user_id: ownerUserId,
             })
             if (error)
@@ -253,7 +238,7 @@ export async function POST(req: NextRequest) {
         } else if (ownerDid) {
             const { data, error } = await db.rpc("star_add", {
                 p_anon_device_id: ownerDid,
-                p_amount: 1,
+                p_amount: 5,
                 p_user_id: null,
             })
             if (error)

@@ -119,8 +119,23 @@ const OWN_SIGNS: Record<string, string[]> = {
     Jupiter: ["Sagittarius", "Pisces"],
     Venus: ["Taurus", "Libra"],
     Saturn: ["Capricorn", "Aquarius"],
-    Rahu: ["Aquarius"], 
-    Ketu: ["Scorpio"], 
+    Rahu: ["Aquarius"],
+    Ketu: ["Scorpio"],
+}
+
+export function getPlanetDignity(
+    planet: string,
+    sign: string
+): { isExalted: boolean; isDebilitated: boolean; isOwnSign: boolean } {
+    const normalizedSign =
+        ZODIAC_SIGNS.find((s) => s.toLowerCase() === sign.toLowerCase()) ||
+        sign
+    return {
+        isExalted: EXALTED_SIGNS[planet]?.includes(normalizedSign) ?? false,
+        isDebilitated:
+            DEBILITATED_SIGNS[planet]?.includes(normalizedSign) ?? false,
+        isOwnSign: OWN_SIGNS[planet]?.includes(normalizedSign) ?? false,
+    }
 }
 
 export function calculatePlanetStats(

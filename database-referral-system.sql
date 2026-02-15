@@ -5,7 +5,7 @@ create table if not exists public.referral_bonuses (
   id uuid primary key default gen_random_uuid(),
   referrer_id uuid not null references auth.users(id) on delete cascade,
   referred_user_id uuid not null references auth.users(id) on delete cascade,
-  bonus_amount integer not null default 5,
+  bonus_amount integer not null default 20,
   processed_at timestamptz not null default now(),
   created_at timestamptz not null default now(),
   -- Ensure unique referral per user
@@ -23,7 +23,7 @@ create policy "Users can view their own referral bonuses" on public.referral_bon
 create or replace function public.process_referral_bonus(
   p_referrer_id uuid,
   p_referred_user_id uuid,
-  p_bonus_amount integer default 5
+  p_bonus_amount integer default 20
 ) returns json as $$
 declare
   v_referrer_stars integer;
@@ -37,14 +37,20 @@ begin
 
   -- Add stars to referrer
   update public.stars 
-  set current_stars = current_stars + p_bonus_amount,
+  set daily_stars = coalesce(daily_stars, 0) + p_bonus_amount,
+      engagement_stars_current = coalesce(engagement_stars_current, 0) + p_bonus_amount,
+      engagement_stars_total = coalesce(engagement_stars_total, 0) + p_bonus_amount,
+      current_stars = coalesce(daily_stars, 0) + p_bonus_amount + coalesce(plan_stars, 0) + coalesce(addon_stars, 0),
       updated_at = now()
   where user_id = p_referrer_id
   returning current_stars into v_referrer_stars;
 
   -- Add stars to referred user
   update public.stars 
-  set current_stars = current_stars + p_bonus_amount,
+  set daily_stars = coalesce(daily_stars, 0) + p_bonus_amount,
+      engagement_stars_current = coalesce(engagement_stars_current, 0) + p_bonus_amount,
+      engagement_stars_total = coalesce(engagement_stars_total, 0) + p_bonus_amount,
+      current_stars = coalesce(daily_stars, 0) + p_bonus_amount + coalesce(plan_stars, 0) + coalesce(addon_stars, 0),
       updated_at = now()
   where user_id = p_referred_user_id
   returning current_stars into v_referred_stars;

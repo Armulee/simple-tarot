@@ -1,5 +1,18 @@
 import { z } from "zod";
 
+/** Schema for horoscope question interpretation (interpretation only; planet/house meanings use static fallbacks) */
+export const horoscopeInterpretationSchema = z.object({
+    interpretation: z
+        .string()
+        .describe(
+            "Main 4-8 sentence horoscope reading. Answer the user's question using the chart data.",
+        ),
+});
+
+export type HoroscopeInterpretation = z.infer<
+    typeof horoscopeInterpretationSchema
+>;
+
 export const astrologySummarySchema = z.object({
     transits: z.array(z.object({
         planet: z.string().describe("The planet name, e.g., 'Sun', 'Mars'."),

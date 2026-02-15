@@ -30,6 +30,8 @@ interface StarsContextType {
     dailyStars: number | null
     planStars: number | null
     addonStars: number | null
+    engagementStarsCurrent: number | null
+    engagementStarsTotal: number | null
     initialized: boolean
     addStars: (amount: number) => void
     setStarsBalance: (balance: number) => void
@@ -61,6 +63,12 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     const [dailyStars, setDailyStars] = useState<number | null>(null)
     const [planStars, setPlanStars] = useState<number | null>(null)
     const [addonStars, setAddonStars] = useState<number | null>(null)
+    const [engagementStarsCurrent, setEngagementStarsCurrent] = useState<
+        number | null
+    >(null)
+    const [engagementStarsTotal, setEngagementStarsTotal] = useState<
+        number | null
+    >(null)
     const [initialized, setInitialized] = useState(false)
     const [nextRefillAt, setNextRefillAt] = useState<number | null>(null)
     const [dailyLastRefillAt, setDailyLastRefillAt] = useState<number | null>(
@@ -93,6 +101,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         setDailyStars(state.dailyStars)
         setPlanStars(state.planStars)
         setAddonStars(state.addonStars)
+        setEngagementStarsCurrent(state.engagementStarsCurrent)
+        setEngagementStarsTotal(state.engagementStarsTotal)
         setDailyLastRefillAt(state.dailyLastRefillAt)
     }, [])
 
@@ -171,6 +181,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             setDailyStars(null)
             setPlanStars(null)
             setAddonStars(null)
+            setEngagementStarsCurrent(null)
+            setEngagementStarsTotal(null)
             setNextRefillAt(null)
             setDailyLastRefillAt(null)
             // The state updates above will trigger a re-render,
@@ -228,6 +240,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                 setDailyStars(5)
                 setPlanStars(0)
                 setAddonStars(0)
+                setEngagementStarsCurrent(0)
+                setEngagementStarsTotal(0)
                 setInitialized(true)
                 ;(async () => {
                     try {
@@ -365,6 +379,12 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                     : current + amount
                 return Math.max(0, next)
             })
+            setEngagementStarsCurrent((prev: number | null) =>
+                Math.max(0, (prev ?? 0) + amount)
+            )
+            setEngagementStarsTotal((prev: number | null) =>
+                Math.max(0, (prev ?? 0) + amount)
+            )
             ;(async () => {
                 try {
                     void refreshSubscription()
@@ -509,6 +529,9 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                 setDailyStars(nextDaily)
                 setPlanStars(nextPlan)
                 setAddonStars(nextAddon)
+                setEngagementStarsCurrent((prev: number | null) =>
+                    Math.max(0, (prev ?? 0) - amount)
+                )
                 if (user && currentDaily >= refillCap && nextDaily < refillCap) {
                     setDailyLastRefillAt(Date.now())
                     setNextRefillAt(Date.now() + REFILL_INTERVAL_MS_AUTH)
@@ -601,6 +624,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             dailyStars,
             planStars,
             addonStars,
+            engagementStarsCurrent,
+            engagementStarsTotal,
             initialized,
             addStars,
             setStarsBalance,
@@ -618,6 +643,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             dailyStars,
             planStars,
             addonStars,
+            engagementStarsCurrent,
+            engagementStarsTotal,
             initialized,
             addStars,
             setStarsBalance,
