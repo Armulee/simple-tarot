@@ -1,3 +1,4 @@
+import SwissEph from "swisseph-wasm"
 import type {
     AstrologyAspect,
     AstrologyPoint,
@@ -5,10 +6,6 @@ import type {
     SwissEphChart,
     SwissEphInput,
 } from "@/lib/astrology/types"
-
-// swisseph is a native CJS module without typed exports.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const swisseph = require("swisseph")
 
 const ZODIAC_SIGNS = [
     "Aries",
@@ -35,23 +32,6 @@ const PLANETS = [
     { key: "Saturn", id: 6 },
 ] as const
 
-type SweCalcResult = {
-    longitude: number
-    latitude: number
-    distance: number
-    longitudeSpeed: number
-    latitudeSpeed: number
-    distanceSpeed: number
-    error?: string
-}
-
-type SweHousesResult = {
-    house: number[]
-    ascendant: number
-    mc: number
-    error?: string
-}
-
 function normalizeLongitude(value: number) {
     const normalized = value % 360
     return normalized < 0 ? normalized + 360 : normalized
@@ -76,72 +56,6 @@ function toPoint(longitude: number, speed: number): AstrologyPoint {
         speed: Number(speed.toFixed(6)),
         retrograde: speed < 0,
     }
-}
-
-function sweJuldayUtc(input: SwissEphInput): Promise<number> {
-    const utcHour = input.hour + input.minute / 60 - input.timezone
-    return new Promise((resolve) => {
-        swisseph.swe_julday(
-            input.year,
-            input.month,
-            input.day,
-            utcHour,
-            swisseph.SE_GREG_CAL,
-            (value: number) => resolve(value)
-        )
-    })
-}
-
-function sweCalcUt(
-    julianDayUt: number,
-    planetId: number,
-    iflag: number
-): Promise<SweCalcResult> {
-    return new Promise((resolve, reject) => {
-        swisseph.swe_calc_ut(
-            julianDayUt,
-            planetId,
-            iflag,
-            (result: SweCalcResult) => {
-                if (result?.error) {
-                    reject(new Error(result.error))
-                    return
-                }
-                resolve(result)
-            }
-        )
-    })
-}
-
-function sweHousesEx(
-    julianDayUt: number,
-    iflag: number,
-    lat: number,
-    lng: number,
-    houseSystem: string
-): Promise<SweHousesResult> {
-    return new Promise((resolve, reject) => {
-        swisseph.swe_houses_ex(
-            julianDayUt,
-            iflag,
-            lat,
-            lng,
-            houseSystem,
-            (result: SweHousesResult) => {
-                if (result?.error) {
-                    reject(new Error(result.error))
-                    return
-                }
-                resolve(result)
-            }
-        )
-    })
-}
-
-function sweGetAyanamsaUt(julianDayUt: number): Promise<number> {
-    return new Promise((resolve) => {
-        swisseph.swe_get_ayanamsa_ut(julianDayUt, (value: number) => resolve(value))
-    })
 }
 
 function getAspects(planets: Record<string, AstrologyPoint>): AstrologyAspect[] {
@@ -187,61 +101,97 @@ export async function calculateSwissEphChart(
     system: AstrologySystem
 ): Promise<SwissEphChart> {
     const houseSystem = input.houseSystem || "P"
-    const julianDayUt = await sweJuldayUtc(input)
-    const isVedic = system === "vedic_sidereal"
+    const swe = new SwissEph()
+    await swe.initSwissEph()
 
-    if (isVedic) {
-        swisseph.swe_set_sid_mode(swisseph.SE_SIDM_LAHIRI, 0, 0)
-    }
+    try {
+        const utcHour = input.hour + input.minute / 60 - input.timezone
+        const julianDayUt = swe.julday(
+            input.year,
+            input.month,
+            input.day,
+            utcHour
+        )
+        const isVedic = system === "vedic_sidereal"
 
-    const baseFlag = swisseph.SEFLG_SPEED | swisseph.SEFLG_SWIEPH
-    const iflag = isVedic ? baseFlag | swisseph.SEFLG_SIDEREAL : baseFlag
-    const houseIflag = isVedic ? swisseph.SEFLG_SIDEREAL : 0
-
-    const [housesResult, nodeResult, ...planetResults] = await Promise.all([
-        sweHousesEx(julianDayUt, houseIflag, input.lat, input.lng, houseSystem),
-        sweCalcUt(julianDayUt, swisseph.SE_TRUE_NODE, iflag),
-        ...PLANETS.map((planet) => sweCalcUt(julianDayUt, planet.id, iflag)),
-    ])
-
-    const planets: Record<string, AstrologyPoint> = {}
-    PLANETS.forEach((planet, index) => {
-        const result = planetResults[index]
-        planets[planet.key] = toPoint(result.longitude, result.longitudeSpeed)
-    })
-
-    planets.Rahu = toPoint(nodeResult.longitude, nodeResult.longitudeSpeed)
-    planets.Ketu = toPoint(
-        normalizeLongitude(nodeResult.longitude + 180),
-        -nodeResult.longitudeSpeed
-    )
-    planets.Ascendant = toPoint(housesResult.ascendant, 0)
-
-    const houses: SwissEphChart["houses"] = {}
-    const houseValues = Array.isArray(housesResult.house) ? housesResult.house : []
-    for (let i = 0; i < 12; i++) {
-        const houseLongitude = houseValues[i] ?? 0
-        const parsed = longitudeToSign(houseLongitude)
-        houses[String(i + 1)] = {
-            sign: parsed.sign,
-            degree: parsed.degree,
-            longitude: parsed.longitude,
+        if (isVedic) {
+            swe.set_sid_mode(swe.SE_SIDM_LAHIRI, 0, 0)
         }
-    }
 
-    const ayanamsa = isVedic ? await sweGetAyanamsaUt(julianDayUt) : null
+        const baseFlag = swe.SEFLG_SWIEPH | swe.SEFLG_SPEED
+        const iflag = isVedic ? baseFlag | swe.SEFLG_SIDEREAL : baseFlag
+        const houseIflag = isVedic ? swe.SEFLG_SIDEREAL : swe.SEFLG_SWIEPH
 
-    return {
-        system,
-        ayanamsa: ayanamsa != null ? Number(ayanamsa.toFixed(6)) : null,
-        ascendant: toPoint(housesResult.ascendant, 0),
-        mc: toPoint(housesResult.mc, 0),
-        planets,
-        houses,
-        aspects: getAspects(planets),
-        raw: {
-            julianDayUt: Number(julianDayUt.toFixed(6)),
-            houseSystem,
-        },
+        // houses_ex exists in swisseph-wasm but types are incomplete
+        const housesResult = (
+            swe as unknown as {
+                houses_ex: (
+                    jd: number,
+                    iflag: number,
+                    lat: number,
+                    lng: number,
+                    hsys: string
+                ) => { cusps: Float64Array; ascmc: Float64Array }
+            }
+        ).houses_ex(
+            julianDayUt,
+            houseIflag,
+            input.lat,
+            input.lng,
+            houseSystem
+        )
+
+        const nodeResult = swe.calc_ut(
+            julianDayUt,
+            swe.SE_TRUE_NODE,
+            iflag
+        ) as Float64Array
+
+        const planetResults = PLANETS.map((planet) =>
+            swe.calc_ut(julianDayUt, planet.id, iflag) as Float64Array
+        )
+
+        const planets: Record<string, AstrologyPoint> = {}
+        PLANETS.forEach((planet, index) => {
+            const result = planetResults[index]
+            planets[planet.key] = toPoint(result[0], result[3])
+        })
+
+        planets.Rahu = toPoint(nodeResult[0], nodeResult[3])
+        planets.Ketu = toPoint(
+            normalizeLongitude(nodeResult[0] + 180),
+            -nodeResult[3]
+        )
+        planets.Ascendant = toPoint(housesResult.ascmc[0], 0)
+
+        const houses: SwissEphChart["houses"] = {}
+        const cusps = housesResult.cusps
+        for (let i = 0; i < 12; i++) {
+            const houseLongitude = cusps[i + 1] ?? 0
+            const parsed = longitudeToSign(houseLongitude)
+            houses[String(i + 1)] = {
+                sign: parsed.sign,
+                degree: parsed.degree,
+                longitude: parsed.longitude,
+            }
+        }
+
+        const ayanamsa = isVedic ? swe.get_ayanamsa(julianDayUt) : null
+
+        return {
+            system,
+            ayanamsa: ayanamsa != null ? Number(ayanamsa.toFixed(6)) : null,
+            ascendant: toPoint(housesResult.ascmc[0], 0),
+            mc: toPoint(housesResult.ascmc[1], 0),
+            planets,
+            houses,
+            aspects: getAspects(planets),
+            raw: {
+                julianDayUt: Number(julianDayUt.toFixed(6)),
+                houseSystem,
+            },
+        }
+    } finally {
+        swe.close()
     }
 }

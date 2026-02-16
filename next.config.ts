@@ -2,7 +2,7 @@ import { NextConfig } from "next"
 import createNextIntlPlugin from "next-intl/plugin"
 
 const nextConfig: NextConfig = {
-    serverExternalPackages: ["swisseph"],
+    serverExternalPackages: ["swisseph-wasm"],
 }
 
 const withNextIntl = createNextIntlPlugin()
