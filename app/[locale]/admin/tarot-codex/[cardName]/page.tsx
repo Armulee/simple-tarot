@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react"
 import Image from "next/image"
 import { useParams } from "next/navigation"
 import { useRouter } from "@/i18n/navigation"
-import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -63,7 +62,6 @@ function Field({
 export default function AdminTarotCodexEditPage() {
     const params = useParams()
     const router = useRouter()
-    const { user, loading } = useAuth()
     const [state, setState] = useState<PageState>({ status: "loading" })
     const [form, setForm] = useState<Partial<TarotCodexRow>>({})
     const [saving, setSaving] = useState(false)
@@ -113,13 +111,8 @@ export default function AdminTarotCodexEditPage() {
     }, [cardName])
 
     useEffect(() => {
-        if (loading) return
-        if (!user) {
-            setState({ status: "notfound" })
-            return
-        }
         void fetchData()
-    }, [loading, user, fetchData])
+    }, [fetchData])
 
     const updateField = <K extends keyof TarotCodexRow>(
         key: K,
@@ -180,17 +173,9 @@ export default function AdminTarotCodexEditPage() {
         }
     }
 
-    if (state.status === "loading") {
-        return (
-            <div className="min-h-screen px-6 py-16">
-                <div className="mx-auto max-w-4xl">
-                    <p className="text-white/60">Loading...</p>
-                </div>
-            </div>
-        )
+    if (state.status === "loading" || state.status === "notfound") {
+        return <NotFound />
     }
-
-    if (state.status === "notfound") return <NotFound />
 
     if (state.status === "error") {
         return (

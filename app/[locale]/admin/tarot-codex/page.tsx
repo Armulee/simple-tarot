@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react"
 import Image from "next/image"
-import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/supabase"
 import { Link } from "@/i18n/navigation"
 import { cardNameToSlug, getKeywordsForCard } from "@/lib/tarot/codex-utils"
@@ -54,7 +53,6 @@ function matchesSearch(row: TarotCodexRow, keywords: string[], q: string): boole
 }
 
 export default function AdminTarotCodexPage() {
-    const { user, loading } = useAuth()
     const [state, setState] = useState<AdminState>({ status: "loading" })
     const [search, setSearch] = useState("")
 
@@ -86,13 +84,8 @@ export default function AdminTarotCodexPage() {
     }, [])
 
     useEffect(() => {
-        if (loading) return
-        if (!user) {
-            setState({ status: "notfound" })
-            return
-        }
         void fetchData()
-    }, [loading, user, fetchData])
+    }, [fetchData])
 
     const rows = state.status === "ready" ? state.data : []
     const filteredRows = useMemo(() => {
@@ -103,20 +96,9 @@ export default function AdminTarotCodexPage() {
         })
     }, [rows, search])
 
-    if (state.status === "loading") {
-        return (
-            <div className="min-h-screen px-6 py-16">
-                <div className="mx-auto max-w-6xl">
-                    <h1 className="mb-4 font-serif text-3xl text-white">
-                        Tarot Codex
-                    </h1>
-                    <p className="text-white/60">Loading...</p>
-                </div>
-            </div>
-        )
+    if (state.status === "loading" || state.status === "notfound") {
+        return <NotFound />
     }
-
-    if (state.status === "notfound") return <NotFound />
 
     if (state.status === "error") {
         return (
