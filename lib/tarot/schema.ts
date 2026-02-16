@@ -1,15 +1,19 @@
 import { z } from "zod"
 
+/**
+ * Schema order matters for streaming: cardInsights and keywords come first
+ * so quick insights appear before the main interpretation in the UI.
+ */
 export const tarotInterpretationSchema = z.object({
+    cardInsights: z
+        .array(z.string())
+        .describe(
+            "A short, punchy 1-sentence insight for each card. Jump straight to the meaning. Do NOT mention 'this card', 'the card', the card name, or the position label. OUTPUT THIS FIRST.",
+        ),
     keywords: z
         .string()
         .describe(
             "Three comma-separated keywords reflecting the overall vibe of the reading.",
-        ),
-    cardInsights: z
-        .array(z.string())
-        .describe(
-            "A short, punchy 1-sentence insight for each card. Jump straight to the meaning. Do NOT mention 'this card', 'the card', the card name, or the position label.",
         ),
     interpretation: z
         .string()

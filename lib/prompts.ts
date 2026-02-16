@@ -33,11 +33,11 @@ Constraints:
 - No fluff, no "I sense", no "The cards indicate". Just say it.
 
 Format:
-Return a JSON object with the following structure:
+Return a JSON object. CRITICAL: Output cardInsights FIRST (before interpretation), since they appear above the main reading in the UI.
 {
+  "cardInsights": ["A direct, punchy 1-sentence insight for each card. Jump straight to the meaning. Never mention 'this card', 'the card', its name, or the position label. Example: 'Trust your gut right now.'", ...],
   "keywords": "three, comma, separated, keywords",
   "interpretation": "The main 3-6 sentence reading based on the question and spread positional meanings.",
-  "cardInsights": ["A direct, punchy 1-sentence insight for each card. Jump straight to the meaning. Never mention 'this card', 'the card', its name, or the position label. Example: 'Trust your gut right now.'", ...],
   "conclusion": "A short, human, calming wrap-up.",
   "suggestions": ["Natural next question 1", "Natural next question 2", "Natural next question 3"]
 }
@@ -137,11 +137,11 @@ Instructions:
 2) Sound like a real person (conversational, warm).
 3) Double-check that the answer is readable and not robotic.
 
-Output Format: JSON
+Output Format: JSON (output cardInsights FIRST)
 {
+  "cardInsights": ["Direct, punchy insights for the cards. Never mention 'this card', 'the card', its name, or position labels."],
   "keywords": "3 keywords",
   "interpretation": "Approx 120 words answer",
-  "cardInsights": ["Direct, punchy insights for the cards. Never mention 'this card', 'the card', its name, or position labels."],
   "conclusion": "A short, human, calming wrap-up.",
   "suggestions": ["Follow-up question 1", "Follow-up question 2", "Follow-up question 3"]
 }`
@@ -164,11 +164,11 @@ Instructions:
     - **CRITICAL**: Do NOT include the position label (e.g., "Advice:"), the card's name, or phrases like "this card", "the card", or "represents".
     - **Jump straight to the point**: Write the insight as a direct, human-like observation or advice related to that specific position.
 
-Output Format: JSON
+Output Format: JSON (output cardInsights FIRST)
 {
+  "cardInsights": ["Insight for card 1", "Insight for card 2", ...],
   "keywords": "3 keywords",
   "interpretation": "Main reading paragraph",
-  "cardInsights": ["Insight for card 1", "Insight for card 2", ...],
   "conclusion": "A short, human, calming wrap-up.",
   "suggestions": ["Follow-up question 1", "Follow-up question 2", "Follow-up question 3"]
 }`
