@@ -229,6 +229,10 @@ export default function ChatSession({
         const insights = interpretationObject.cardInsights
             ?.filter((s): s is string => typeof s === "string")
             ?? undefined
+        const suggestions = interpretationObject.suggestions
+            ?.map((s) => (typeof s === "string" ? s.trim() : ""))
+            .filter(Boolean)
+            .slice(0, 5) ?? undefined
         setMessages((prev) =>
             prev.map((m) =>
                 m.id === lid
@@ -237,6 +241,11 @@ export default function ChatSession({
                           text:
                               interpretationObject.interpretation ?? m.text ?? "",
                           insights: insights ?? m.insights,
+                          followUpConclusion:
+                              interpretationObject.conclusion?.trim() ??
+                              m.followUpConclusion,
+                          followUpSuggestions:
+                              suggestions ?? m.followUpSuggestions,
                       }
                     : m,
             ),

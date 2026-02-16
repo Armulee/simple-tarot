@@ -496,7 +496,12 @@ export default function MessageList({
                                             </div>
                                         )}
                                     </div>
-                                    {!message.isLoading && (
+                                    {(message.followUpConclusion ||
+                                        (Array.isArray(
+                                            message.followUpSuggestions,
+                                        ) &&
+                                            message.followUpSuggestions
+                                                .length > 0)) && (
                                         <div className='w-full md:max-w-[85%] space-y-2 pt-4'>
                                             {message.followUpLoading && (
                                                 <p className='text-xs sm:text-sm text-white/60'>
