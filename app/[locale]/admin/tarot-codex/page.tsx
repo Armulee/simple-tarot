@@ -94,6 +94,15 @@ export default function AdminTarotCodexPage() {
         void fetchData()
     }, [loading, user, fetchData])
 
+    const rows = state.status === "ready" ? state.data : []
+    const filteredRows = useMemo(() => {
+        if (!search.trim()) return rows
+        return rows.filter((row) => {
+            const keywords = getKeywordsForCard(row.card_name)
+            return matchesSearch(row, keywords, search)
+        })
+    }, [rows, search])
+
     if (state.status === "loading") {
         return (
             <div className="min-h-screen px-6 py-16">
@@ -121,16 +130,6 @@ export default function AdminTarotCodexPage() {
             </div>
         )
     }
-
-    const rows = state.data
-
-    const filteredRows = useMemo(() => {
-        if (!search.trim()) return rows
-        return rows.filter((row) => {
-            const keywords = getKeywordsForCard(row.card_name)
-            return matchesSearch(row, keywords, search)
-        })
-    }, [rows, search])
 
     return (
         <div className="min-h-screen px-6 py-16">
