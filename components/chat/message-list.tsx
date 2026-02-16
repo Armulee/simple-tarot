@@ -406,7 +406,11 @@ export default function MessageList({
                                                             <div className='absolute -bottom-1 -right-1 w-2 h-2 border-b border-r border-primary/40 rounded-br-sm' />
                                                             <p className='text-[10px] font-serif italic text-indigo-100 leading-relaxed'>
                                                                 &ldquo;
-                                                                {message.isLoading ? (
+                                                                {message.isLoading &&
+                                                                !message
+                                                                    .insights?.[
+                                                                    index
+                                                                ] ? (
                                                                     <span className='inline-flex items-center gap-1.5'>
                                                                         <Loader2 className='h-3 w-3 animate-spin' />
                                                                         {`Consulting${".".repeat(
@@ -447,7 +451,8 @@ export default function MessageList({
                                             </div>
                                         </div>
                                         <div className='text-white/90 leading-relaxed whitespace-pre-wrap'>
-                                            {message.isLoading ? (
+                                            {message.isLoading &&
+                                            !message.text?.trim() ? (
                                                 <span className='inline-flex items-center gap-2 text-white/70'>
                                                     <Loader2 className='h-4 w-4 animate-spin' />
                                                     {`Consulting${".".repeat(
@@ -455,7 +460,7 @@ export default function MessageList({
                                                     )}`}
                                                 </span>
                                             ) : (
-                                                message.text
+                                                message.text || ""
                                             )}
                                         </div>
                                         {!message.isLoading && (

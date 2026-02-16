@@ -2,12 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslations, useLocale } from "next-intl"
+import { experimental_useObject as useObject } from "@ai-sdk/react"
 import { useStars } from "@/contexts/stars-context"
 import Footer from "@/components/footer/footer"
 import { TypewriterText } from "@/components/typewriter-text"
 import QuestionInput from "@/components/question-input"
 import type { TarotCard } from "@/contexts/tarot-context"
 import { getTarotReadingPrompt } from "@/lib/prompts"
+import {
+    tarotInterpretationSchema,
+    type TarotInterpretation,
+} from "@/lib/tarot/schema"
 import { getDefaultAstrologySystem } from "@/lib/astrology/intake"
 import {
     chartDataToBirth,
@@ -158,14 +163,94 @@ export default function ChatSession({
     const prevIsInterpretingRef = useRef(false)
     const hasBootstrapped = useRef(false)
     const persistTimeoutRef = useRef<number | null>(null)
+    const interpretationLoadingIdRef = useRef<string | null>(null)
+
+    const {
+        submit: submitInterpretation,
+        object: interpretationObject,
+        isLoading: isInterpretationLoading,
+        stop: stopInterpretation,
+    } = useObject({
+        api: "/api/interpret-cards/question",
+        schema: tarotInterpretationSchema,
+        onFinish: ({ object }: { object: TarotInterpretation | undefined }) => {
+            const lid = interpretationLoadingIdRef.current
+            if (!lid || !object) return
+            const insights = object.cardInsights?.filter(
+                (s): s is string => typeof s === "string",
+            )
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === lid
+                        ? {
+                              ...m,
+                              text: object.interpretation || m.text,
+                              insights: insights ?? m.insights,
+                              isLoading: false,
+                              followUpConclusion: object.conclusion?.trim(),
+                              followUpSuggestions: object.suggestions
+                                  ?.map((s) =>
+                                      typeof s === "string" ? s.trim() : "",
+                                  )
+                                  .filter(Boolean)
+                                  .slice(0, 5),
+                              followUpLoading: false,
+                          }
+                        : m,
+                ),
+            )
+            interpretationLoadingIdRef.current = null
+            setIsInterpreting(false)
+        },
+        onError: () => {
+            const lid = interpretationLoadingIdRef.current
+            if (lid) {
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === lid
+                            ? {
+                                  ...m,
+                                  text: "Sorry, I couldn't interpret those cards. Please try again.",
+                                  isLoading: false,
+                              }
+                            : m,
+                    ),
+                )
+                interpretationLoadingIdRef.current = null
+            }
+            setIsInterpreting(false)
+        },
+    })
+
+    // Stream interpretation object updates to the loading message
+    useEffect(() => {
+        const lid = interpretationLoadingIdRef.current
+        if (!lid || !interpretationObject) return
+        const insights = interpretationObject.cardInsights
+            ?.filter((s): s is string => typeof s === "string")
+            ?? undefined
+        setMessages((prev) =>
+            prev.map((m) =>
+                m.id === lid
+                    ? {
+                          ...m,
+                          text:
+                              interpretationObject.interpretation ?? m.text ?? "",
+                          insights: insights ?? m.insights,
+                      }
+                    : m,
+            ),
+        )
+    }, [interpretationObject])
 
     useEffect(() => {
         return () => {
             if (abortControllerRef.current) {
                 abortControllerRef.current.abort()
             }
+            stopInterpretation()
         }
-    }, [])
+    }, [stopInterpretation])
 
     useEffect(() => {
         if (!navigator?.geolocation) return
@@ -1383,100 +1468,12 @@ export default function ChatSession({
             isFollowUp: false,
         })
 
-        if (abortControllerRef.current) {
-            abortControllerRef.current.abort()
-        }
-        abortControllerRef.current = new AbortController()
-
-        try {
-            const response = await fetch("/api/interpret-cards/question", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    prompt,
-                    question: lastQuestion,
-                    cards: cardNames,
-                }),
-                signal: abortControllerRef.current.signal,
-            })
-
-            if (!response.ok || !response.body) {
-                throw new Error("Failed to interpret")
-            }
-
-            const reader = response.body.getReader()
-            const decoder = new TextDecoder()
-            let buffer = ""
-
-            try {
-                while (true) {
-                    const { done, value: chunk } = await reader.read()
-                    if (done) break
-                    buffer += decoder.decode(chunk, { stream: true })
-                }
-                buffer += decoder.decode()
-            } finally {
-                reader.releaseLock()
-            }
-
-            let interpretationText = buffer
-            let parsedInsights: string[] = []
-            let followUpConclusion: string | undefined
-            let followUpSuggestions: string[] | undefined
-
-            try {
-                const parsed = JSON.parse(buffer)
-                interpretationText = parsed.interpretation || buffer
-                if (Array.isArray(parsed.cardInsights)) {
-                    parsedInsights = parsed.cardInsights
-                }
-                if (typeof parsed.conclusion === "string") {
-                    followUpConclusion = parsed.conclusion.trim()
-                }
-                if (Array.isArray(parsed.suggestions)) {
-                    followUpSuggestions = parsed.suggestions
-                        .map((s: unknown) =>
-                            typeof s === "string" ? s.trim() : "",
-                        )
-                        .filter(Boolean)
-                        .slice(0, 5)
-                }
-            } catch {}
-
-            setMessages((prev) =>
-                prev.map((message) =>
-                    message.id === loadingId
-                        ? {
-                              ...message,
-                              text: interpretationText,
-                              insights: parsedInsights,
-                              isLoading: false,
-                              followUpConclusion,
-                              followUpSuggestions,
-                              followUpLoading: false,
-                          }
-                        : message,
-                ),
-            )
-        } catch (err) {
-            if (err instanceof Error && err.name === "AbortError") {
-                setMessages((prev) => prev.filter((m) => m.id !== loadingId))
-                return
-            }
-            setMessages((prev) =>
-                prev.map((message) =>
-                    message.id === loadingId
-                        ? {
-                              ...message,
-                              text: "Sorry, I couldn't interpret those cards. Please try again.",
-                              isLoading: false,
-                          }
-                        : message,
-                ),
-            )
-        } finally {
-            setIsInterpreting(false)
-        }
+        interpretationLoadingIdRef.current = loadingId
+        submitInterpretation({
+            prompt,
+            question: lastQuestion,
+            cards: cardNames,
+        })
     }
 
     const hasMessages = messages.length > 0
