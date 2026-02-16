@@ -18,7 +18,7 @@ export const tarotInterpretationSchema = z.object({
     interpretation: z
         .string()
         .describe(
-            "The main 3-6 sentence reading based on the question and spread, in a warm and conversational tone.",
+            "The main 6-12 sentence reading based on the question and spread, in a warm and conversational tone.",
         ),
     conclusion: z
         .string()

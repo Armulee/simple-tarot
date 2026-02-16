@@ -27,7 +27,7 @@ Follow-up & Wrap-up:
   - Mix practical next-step questions with at least one deeper reflective question when relevant.
 
 Constraints:
-- Length: 3–6 sentences (approx. 100–130 words) for the main interpretation.
+- Length: 6–12 sentences (approx. 180–280 words) for the main interpretation.
 - **Language**: EVERY field (cardInsights, keywords, interpretation, conclusion, suggestions) MUST be in the user's language. If the user asks in Thai, write ALL text in Thai. If in English, write in English. Never mix languages or default to English.
 - Cards: Mention them naturally only if they add value to the answer.
 - No fluff, no "I sense", no "The cards indicate". Just say it.
@@ -37,7 +37,7 @@ Return a JSON object. CRITICAL: Output cardInsights FIRST (before interpretation
 {
   "cardInsights": ["A direct, punchy 1-sentence insight for each card. Jump straight to the meaning. Never mention 'this card', 'the card', its name, or the position label. Example: 'Trust your gut right now.'", ...],
   "keywords": "three, comma, separated, keywords",
-  "interpretation": "The main 3-6 sentence reading based on the question and spread positional meanings.",
+  "interpretation": "The main 6-12 sentence reading based on the question and spread positional meanings.",
   "conclusion": "A short, human, calming wrap-up.",
   "suggestions": ["Natural next question 1", "Natural next question 2", "Natural next question 3"]
 }
@@ -142,7 +142,7 @@ Output Format: JSON (output cardInsights FIRST)
 {
   "cardInsights": ["Direct, punchy insights for the cards. Never mention 'this card', 'the card', its name, or position labels."],
   "keywords": "3 keywords",
-  "interpretation": "Approx 120 words answer",
+  "interpretation": "Approx 120-250 words answer",
   "conclusion": "A short, human, calming wrap-up.",
   "suggestions": ["Follow-up question 1", "Follow-up question 2", "Follow-up question 3"]
 }`
@@ -170,7 +170,7 @@ Output Format: JSON (output cardInsights FIRST)
 {
   "cardInsights": ["Insight for card 1", "Insight for card 2", ...],
   "keywords": "3 keywords",
-  "interpretation": "Main reading paragraph",
+  "interpretation": "Main reading paragraph (6-12 sentences, 180-280 words)",
   "conclusion": "A short, human, calming wrap-up.",
   "suggestions": ["Follow-up question 1", "Follow-up question 2", "Follow-up question 3"]
 }`
