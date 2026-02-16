@@ -46,7 +46,7 @@ ${prompt}`
             system: TAROT_SYSTEM_PROMPT,
             prompt: `${prompt}
 
-IMPORTANT: Respond in the language of the user's question. Use the reference meanings above to ground your interpretation.`,
+IMPORTANT: Write EVERY field (cardInsights, keywords, interpretation, conclusion, suggestions) in the SAME language as the user's question. If the user asked in Thai, write ALL text in Thai. Use the reference meanings above to ground your interpretation.`,
         })
 
         return result.toTextStreamResponse()

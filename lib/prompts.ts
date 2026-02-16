@@ -28,7 +28,7 @@ Follow-up & Wrap-up:
 
 Constraints:
 - Length: 3–6 sentences (approx. 100–130 words) for the main interpretation.
-- Language: Match the user's language, slang, and vibe perfectly.
+- **Language**: EVERY field (cardInsights, keywords, interpretation, conclusion, suggestions) MUST be in the user's language. If the user asks in Thai, write ALL text in Thai. If in English, write in English. Never mix languages or default to English.
 - Cards: Mention them naturally only if they add value to the answer.
 - No fluff, no "I sense", no "The cards indicate". Just say it.
 
@@ -42,7 +42,7 @@ Return a JSON object. CRITICAL: Output cardInsights FIRST (before interpretation
   "suggestions": ["Natural next question 1", "Natural next question 2", "Natural next question 3"]
 }
 
-Important: The JSON must be valid. All text must be in the same language as the answer.
+Important: The JSON must be valid. ALL text (cardInsights, keywords, interpretation, conclusion, suggestions) must be in the SAME language as the user's question. Never default to English when the user asked in another language.
 `
 
 export interface TarotPromptOptions {
@@ -136,6 +136,7 @@ Instructions:
 1) Answer the specific follow-up question directly.
 2) Sound like a real person (conversational, warm).
 3) Double-check that the answer is readable and not robotic.
+4) Write ALL fields (cardInsights, keywords, interpretation, conclusion, suggestions) in the SAME language as the follow-up question.
 
 Output Format: JSON (output cardInsights FIRST)
 {
@@ -160,7 +161,8 @@ Instructions:
 2) Follow the specific positional meanings for the reading type.
 3) Ensure the response sounds like a real person talking, not an AI.
 4) Verify the text is readable and directly addresses the specific concern.
-5) Provide a short 1-sentence insight for EACH card in its position in the "cardInsights" array.
+5) Write ALL fields (cardInsights, keywords, interpretation, conclusion, suggestions) in the SAME language as the user's question.
+6) Provide a short 1-sentence insight for EACH card in its position in the "cardInsights" array.
     - **CRITICAL**: Do NOT include the position label (e.g., "Advice:"), the card's name, or phrases like "this card", "the card", or "represents".
     - **Jump straight to the point**: Write the insight as a direct, human-like observation or advice related to that specific position.
 
@@ -206,7 +208,7 @@ Rules:
 - Questions asking "when" (e.g. "when will I become rich", "when will I succeed", "when will I get married", "when will I be noticed") are type "horoscope" — astrology is better suited for timing and future dates.
 - Questions about future success, career timing, wealth timing, or when something will happen should be type "horoscope".
 - Tarot-style open questions that do not ask for astrology specifics should remain "chat" or "draw" as appropriate.
-- Use the user's language and tone.
+- **CRITICAL**: Write assistantText in the SAME language as the user's question. If the user writes in Thai, respond in Thai. If in English, respond in English. Never default to English when the user asked in another language.
 - Keep assistantText concise (1-3 sentences).
 - End assistantText with a gentle conversational nudge that encourages the user to continue (one short follow-up question or suggestion).
 - Ensure JSON is valid and contains all fields.`
@@ -231,7 +233,8 @@ ${historyText}
 User question:
 ${question}
 
-Decide whether to respond as chat or require tarot draw, then output JSON.`
+Decide whether to respond as chat or require tarot draw, then output JSON.
+CRITICAL: Write assistantText in the SAME language as the user's question above. If the user wrote in Thai, respond in Thai. If in another language, match it.`
 }
 
 export function getHoroscopeInterpretationPrompt({
