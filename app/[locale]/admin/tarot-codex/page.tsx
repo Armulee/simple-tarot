@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import Image from "next/image"
 import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/supabase"
 import { Link } from "@/i18n/navigation"
 import { cardNameToSlug, getKeywordsForCard } from "@/lib/tarot/codex-utils"
+import { Input } from "@/components/ui/input"
 import NotFound from "@/app/not-found"
 
 export type TarotCodexRow = {
@@ -36,9 +37,26 @@ function truncate(s: string, len = 100) {
     return s.length > len ? s.slice(0, len) + "…" : s
 }
 
+function matchesSearch(row: TarotCodexRow, keywords: string[], q: string): boolean {
+    if (!q.trim()) return true
+    const lower = q.toLowerCase().trim()
+    if (row.card_name.toLowerCase().includes(lower)) return true
+    if (row.meaning_general?.toLowerCase().includes(lower)) return true
+    if (row.reversed_meaning_general?.toLowerCase().includes(lower)) return true
+    if (row.meaning_love?.toLowerCase().includes(lower)) return true
+    if (row.meaning_career?.toLowerCase().includes(lower)) return true
+    if (row.meaning_financial?.toLowerCase().includes(lower)) return true
+    if (row.advice?.toLowerCase().includes(lower)) return true
+    if (row.astrology?.toLowerCase().includes(lower)) return true
+    if (row.timing?.toLowerCase().includes(lower)) return true
+    if (keywords.some((kw) => kw.toLowerCase().includes(lower))) return true
+    return false
+}
+
 export default function AdminTarotCodexPage() {
     const { user, loading } = useAuth()
     const [state, setState] = useState<AdminState>({ status: "loading" })
+    const [search, setSearch] = useState("")
 
     const fetchData = useCallback(async () => {
         const {
@@ -106,6 +124,14 @@ export default function AdminTarotCodexPage() {
 
     const rows = state.data
 
+    const filteredRows = useMemo(() => {
+        if (!search.trim()) return rows
+        return rows.filter((row) => {
+            const keywords = getKeywordsForCard(row.card_name)
+            return matchesSearch(row, keywords, search)
+        })
+    }, [rows, search])
+
     return (
         <div className="min-h-screen px-6 py-16">
             <div className="mx-auto max-w-6xl space-y-8">
@@ -120,19 +146,29 @@ export default function AdminTarotCodexPage() {
                         Tarot Codex
                     </h1>
                     <p className="mt-1 text-white/60">
-                        {rows.length} cards · Click any card to edit
+                        {filteredRows.length} of {rows.length} cards · Click any
+                        card to edit
                     </p>
+                    <div className="mt-4">
+                        <Input
+                            type="search"
+                            placeholder="Search by card name, keywords, meaning…"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="max-w-md border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                        />
+                    </div>
                 </div>
 
                 <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                    {rows.map((row) => {
+                    {filteredRows.map((row) => {
                         const slug = cardNameToSlug(row.card_name)
                         const keywords = getKeywordsForCard(row.card_name)
 
                         return (
                             <Link
                                 key={row.id}
-                                href={`/admin/tarot-codex/${row.id}`}
+                                href={`/admin/tarot-codex/${slug}`}
                                 className="group block"
                             >
                                 <div className="overflow-hidden rounded-xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-4 shadow-lg transition-all duration-300 hover:border-amber-500/50 hover:shadow-amber-500/10 hover:shadow-xl">
