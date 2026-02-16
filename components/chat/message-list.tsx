@@ -411,8 +411,8 @@ export default function MessageList({
                                                                     .insights?.[
                                                                     index
                                                                 ] ? (
-                                                                    <span className='inline-flex items-center gap-1.5'>
-                                                                        <Loader2 className='h-3 w-3 animate-spin' />
+                                                                    <span className='inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-2 py-1 backdrop-blur-xl shadow-[0_0_12px_-3px_rgba(56,189,248,0.3)] text-[10px] font-medium text-white/90'>
+                                                                        <Loader2 className='h-2.5 w-2.5 animate-spin shrink-0' />
                                                                         {`Consulting${".".repeat(
                                                                             loadingDots,
                                                                         )}`}
@@ -658,8 +658,8 @@ export default function MessageList({
                                 <div className='w-full md:max-w-[85%] text-white/90'>
                                     {message.isLoading &&
                                     !message.text?.trim() ? (
-                                        <span className='inline-flex items-center gap-2 text-white/70'>
-                                            <Loader2 className='h-4 w-4 animate-spin' />
+                                        <span className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90'>
+                                            <Loader2 className='h-4 w-4 animate-spin shrink-0' />
                                             {`Consulting${".".repeat(
                                                 loadingDots,
                                             )}`}
