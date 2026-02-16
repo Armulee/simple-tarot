@@ -1,6 +1,8 @@
 import { z } from "zod"
 import { buildChartData } from "@/lib/astrology/build-chart-data"
 
+export const runtime = "nodejs"
+
 const requestSchema = z.object({
     locale: z.string().optional(),
     birth: z.object({
