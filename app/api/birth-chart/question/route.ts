@@ -1,6 +1,6 @@
 import { streamText } from "ai"
 
-import { MODEL } from "@/lib/ai-model"
+const MODEL = "google/gemini-2.0-flash"
 
 export async function POST(req: Request) {
     try {
@@ -39,7 +39,7 @@ Rules:
                 const inputTokens = usage?.inputTokens
                 const outputTokens = usage?.outputTokens
                 console.log("AI usage (Birth Chart)", {
-                    model: "gemini-2.0-flash",
+                    model: MODEL,
                     inputTokens,
                     outputTokens,
                 })

@@ -1,7 +1,7 @@
 import { streamObject } from "ai"
-
-import { MODEL } from "@/lib/ai-model"
 import { astrologySummarySchema } from "@/lib/astrology/schema"
+
+const MODEL = "google/gemini-2.0-flash"
 
 export async function POST(req: Request) {
     try {

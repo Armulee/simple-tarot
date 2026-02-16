@@ -1,10 +1,11 @@
 import { streamText } from "ai"
 
-import { MODEL } from "@/lib/ai-model"
 import {
     CHAT_DECISION_SYSTEM_PROMPT,
     getChatDecisionPrompt,
 } from "@/lib/prompts"
+
+const MODEL = "google/gemini-2.0-flash"
 
 export async function POST(req: Request) {
     try {

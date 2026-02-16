@@ -3,7 +3,8 @@ import { generateText, tool } from "ai"
 import { z } from "zod"
 import { AGENT_SYSTEM_PROMPT } from "@/lib/agent/system-prompt"
 import type { AgentAction, AgentRequestPayload, AgentResponse } from "@/types/agent"
-import { MODEL } from "@/lib/ai-model"
+
+const MODEL = "google/gemini-2.0-flash"
 const MAX_MESSAGES = 30
 
 function buildPrompt(payload: AgentRequestPayload) {

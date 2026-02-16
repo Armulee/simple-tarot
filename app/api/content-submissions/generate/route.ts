@@ -10,7 +10,8 @@ import {
     type MediaPlatform,
     type LanguageCode,
 } from "@/lib/content-generator"
-import { MODEL } from "@/lib/ai-model"
+
+const MODEL = "google/gemini-2.0-flash"
 
 const OUTPUT_DIRECTIVES: Record<ContentTypeKey, string> = {
     shortText:

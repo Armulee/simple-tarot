@@ -1,5 +1,4 @@
 import { streamObject } from "ai"
-import { MODEL } from "@/lib/ai-model"
 import { TAROT_SYSTEM_PROMPT } from "@/lib/prompts"
 import { tarotInterpretationSchema } from "@/lib/tarot/schema"
 import {
@@ -7,6 +6,8 @@ import {
     extractTopicsFromQuestion,
     buildRagContext,
 } from "@/lib/tarot/rag"
+
+const MODEL = "google/gemini-2.0-flash"
 
 export async function POST(req: Request) {
     try {

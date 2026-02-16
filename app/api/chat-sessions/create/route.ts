@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { nanoid } from "nanoid"
 import { generateText } from "ai"
-import { MODEL } from "@/lib/ai-model"
 import { readAndVerifyDid } from "@/lib/server/did"
 import { supabaseAdmin } from "@/lib/supabase"
 
 const MAX_QUESTION_LENGTH = 500
 const MAX_MESSAGE_COUNT = 100
 const MAX_TOPIC_LENGTH = 80
+const MODEL = "google/gemini-2.0-flash"
 
 function cleanTopic(raw: string): string {
     return (

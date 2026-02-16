@@ -2,7 +2,8 @@ import { generateObject } from "ai"
 import { z } from "zod"
 import { getDefaultAstrologySystem } from "@/lib/astrology/intake"
 import { resolveLocationFromCountryState } from "@/lib/location"
-import { MODEL } from "@/lib/ai-model"
+
+const MODEL = "google/gemini-2.0-flash"
 
 const extractSchema = z.object({
     birthDate: z
