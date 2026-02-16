@@ -651,7 +651,17 @@ export default function MessageList({
                                 )
                             ) : (
                                 <div className='w-full md:max-w-[85%] text-white/90'>
-                                    {message.text}
+                                    {message.isLoading &&
+                                    !message.text?.trim() ? (
+                                        <span className='inline-flex items-center gap-2 text-white/70'>
+                                            <Loader2 className='h-4 w-4 animate-spin' />
+                                            {`Consulting${".".repeat(
+                                                loadingDots,
+                                            )}`}
+                                        </span>
+                                    ) : (
+                                        message.text || ""
+                                    )}
                                 </div>
                             )}
                             {!isChatLoading &&
@@ -740,6 +750,9 @@ export default function MessageList({
                     messages.length > 0 &&
                     !messages.some(
                         (m) => m.variant === "horoscope" && m.isLoading,
+                    ) &&
+                    !messages.some(
+                        (m) => m.variant === "plain" && m.isLoading,
                     ) && (
                         <div className='flex flex-col items-start gap-4'>
                             <ConsultingBadge />
