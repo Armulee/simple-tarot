@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react"
 import Image from "next/image"
 import { supabase } from "@/lib/supabase"
 import { Link } from "@/i18n/navigation"
-import { cardNameToSlug, getKeywordsForCard } from "@/lib/tarot/codex-utils"
+import { cardNameToSlug } from "@/lib/tarot/codex-utils"
 import { Input } from "@/components/ui/input"
 import NotFound from "@/app/not-found"
 
@@ -36,7 +36,7 @@ function truncate(s: string, len = 100) {
     return s.length > len ? s.slice(0, len) + "…" : s
 }
 
-function matchesSearch(row: TarotCodexRow, keywords: string[], q: string): boolean {
+function matchesSearch(row: TarotCodexRow, q: string): boolean {
     if (!q.trim()) return true
     const lower = q.toLowerCase().trim()
     if (row.card_name.toLowerCase().includes(lower)) return true
@@ -48,7 +48,6 @@ function matchesSearch(row: TarotCodexRow, keywords: string[], q: string): boole
     if (row.advice?.toLowerCase().includes(lower)) return true
     if (row.astrology?.toLowerCase().includes(lower)) return true
     if (row.timing?.toLowerCase().includes(lower)) return true
-    if (keywords.some((kw) => kw.toLowerCase().includes(lower))) return true
     return false
 }
 
@@ -90,10 +89,7 @@ export default function AdminTarotCodexPage() {
     const rows = state.status === "ready" ? state.data : []
     const filteredRows = useMemo(() => {
         if (!search.trim()) return rows
-        return rows.filter((row) => {
-            const keywords = getKeywordsForCard(row.card_name)
-            return matchesSearch(row, keywords, search)
-        })
+        return rows.filter((row) => matchesSearch(row, search))
     }, [rows, search])
 
     if (state.status === "loading" || state.status === "notfound") {
@@ -133,7 +129,7 @@ export default function AdminTarotCodexPage() {
                     <div className="mt-4">
                         <Input
                             type="search"
-                            placeholder="Search by card name, keywords, meaning…"
+                            placeholder="Search by card name, meaning…"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="max-w-md border-white/20 bg-white/5 text-white placeholder:text-white/40"
@@ -144,7 +140,6 @@ export default function AdminTarotCodexPage() {
                 <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                     {filteredRows.map((row) => {
                         const slug = cardNameToSlug(row.card_name)
-                        const keywords = getKeywordsForCard(row.card_name)
 
                         return (
                             <Link
@@ -165,18 +160,6 @@ export default function AdminTarotCodexPage() {
                                     <h3 className="text-center font-semibold text-white">
                                         {row.card_name}
                                     </h3>
-                                    {keywords.length > 0 && (
-                                        <div className="mt-2 flex flex-wrap justify-center gap-1">
-                                            {keywords.slice(0, 4).map((kw) => (
-                                                <span
-                                                    key={kw}
-                                                    className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs text-amber-200"
-                                                >
-                                                    {kw}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
                                     <p className="mt-3 line-clamp-3 text-sm text-white/70">
                                         {truncate(row.meaning_general, 120)}
                                     </p>
