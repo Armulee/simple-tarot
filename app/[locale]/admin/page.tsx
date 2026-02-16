@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/supabase"
 import { Card } from "@/components/ui/card"
+import { Link } from "@/i18n/navigation"
 import NotFound from "@/app/not-found"
 
 type AdminMetrics = {
@@ -123,6 +124,12 @@ export default function AdminDashboardPage() {
                         {t("title")}
                     </h1>
                     <p className='text-white/60 mt-2'>{t("subtitle")}</p>
+                    <Link
+                        href="/admin/tarot-codex"
+                        className='mt-4 inline-block text-sm text-white/70 underline hover:text-white'
+                    >
+                        Tarot Codex →
+                    </Link>
                 </div>
 
                 <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
