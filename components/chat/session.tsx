@@ -1392,7 +1392,11 @@ export default function ChatSession({
             const response = await fetch("/api/interpret-cards/question", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ prompt }),
+                body: JSON.stringify({
+                    prompt,
+                    question: lastQuestion,
+                    cards: cardNames,
+                }),
                 signal: abortControllerRef.current.signal,
             })
 
