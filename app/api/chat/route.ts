@@ -17,7 +17,6 @@ export async function POST(req: Request) {
 
         const result = streamText({
             model: MODEL,
-            temperature: 0.2,
             maxOutputTokens: 2000,
             system: CHAT_DECISION_SYSTEM_PROMPT,
             prompt: getChatDecisionPrompt({ question, history }),

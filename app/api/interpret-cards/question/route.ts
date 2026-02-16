@@ -16,7 +16,6 @@ export async function POST(req: Request) {
 
         const result = await streamObject({
             model: MODEL as unknown as LanguageModel,
-            temperature: 0.7,
             maxOutputTokens: 4000,
             schema: tarotInterpretationSchema,
             system: TAROT_SYSTEM_PROMPT,
