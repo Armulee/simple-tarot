@@ -2,7 +2,7 @@ import { streamObject, type LanguageModel } from "ai"
 import { TAROT_SYSTEM_PROMPT } from "@/lib/prompts"
 import { tarotInterpretationSchema } from "@/lib/tarot/schema"
 
-const MODEL = "google/gemini-3-flash"
+const MODEL = "openai/gpt-4o-mini"
 
 export async function POST(req: Request) {
     try {

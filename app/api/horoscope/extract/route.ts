@@ -3,7 +3,7 @@ import { z } from "zod"
 import { getDefaultAstrologySystem } from "@/lib/astrology/intake"
 import { resolveLocationFromCountryState } from "@/lib/location"
 
-const MODEL = "google/gemini-3-flash"
+const MODEL = "openai/gpt-4o-mini"
 
 const extractSchema = z.object({
     birthDate: z

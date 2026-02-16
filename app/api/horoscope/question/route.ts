@@ -5,7 +5,7 @@ import { getDefaultAstrologySystem, resolveBirthTime } from "@/lib/astrology/int
 import { horoscopeInterpretationSchema } from "@/lib/astrology/schema"
 import { getHoroscopeInterpretationPrompt } from "@/lib/prompts"
 
-const MODEL = "google/gemini-3-flash"
+const MODEL = "openai/gpt-4o-mini"
 
 const requestSchema = z.object({
     question: z.string().trim().min(1),
