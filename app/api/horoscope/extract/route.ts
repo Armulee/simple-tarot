@@ -2,8 +2,7 @@ import { generateObject } from "ai"
 import { z } from "zod"
 import { getDefaultAstrologySystem } from "@/lib/astrology/intake"
 import { resolveLocationFromCountryState } from "@/lib/location"
-
-const MODEL = "openai/gpt-4o-mini"
+import { MODEL } from "@/lib/ai-model"
 
 const extractSchema = z.object({
     birthDate: z

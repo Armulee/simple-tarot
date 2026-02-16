@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { nanoid } from "nanoid"
-import { supabaseAdmin } from "@/lib/supabase"
-import { readAndVerifyDid } from "@/lib/server/did"
 import { generateText } from "ai"
+import { MODEL } from "@/lib/ai-model"
+import { readAndVerifyDid } from "@/lib/server/did"
+import { supabaseAdmin } from "@/lib/supabase"
 
 const MAX_QUESTION_LENGTH = 500
 const MAX_MESSAGE_COUNT = 100
 const MAX_TOPIC_LENGTH = 80
-const TOPIC_MODEL = "openai/gpt-4.1-mini"
 
 function cleanTopic(raw: string): string {
     return (
@@ -38,7 +38,7 @@ ${question}
 Return a clear, descriptive session topic now.`
 
     const result = await generateText({
-        model: TOPIC_MODEL,
+        model: MODEL,
         temperature: 0.2,
         maxOutputTokens: 30,
         system,

@@ -4,8 +4,7 @@ import { buildChartData } from "@/lib/astrology/build-chart-data"
 import { getDefaultAstrologySystem, resolveBirthTime } from "@/lib/astrology/intake"
 import { horoscopeInterpretationSchema } from "@/lib/astrology/schema"
 import { getHoroscopeInterpretationPrompt } from "@/lib/prompts"
-
-const MODEL = "openai/gpt-4o-mini"
+import { MODEL } from "@/lib/ai-model"
 
 const requestSchema = z.object({
     question: z.string().trim().min(1),

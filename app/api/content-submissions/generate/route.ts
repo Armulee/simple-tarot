@@ -10,8 +10,7 @@ import {
     type MediaPlatform,
     type LanguageCode,
 } from "@/lib/content-generator"
-
-const MODEL = "openai/gpt-4o-mini"
+import { MODEL } from "@/lib/ai-model"
 
 const OUTPUT_DIRECTIVES: Record<ContentTypeKey, string> = {
     shortText:

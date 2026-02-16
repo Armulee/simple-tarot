@@ -1,6 +1,6 @@
 import { streamText } from "ai"
 
-const MODEL = "openai/gpt-4o-mini"
+import { MODEL } from "@/lib/ai-model"
 
 export async function POST(req: Request) {
     try {
@@ -38,16 +38,10 @@ Rules:
             .then((usage) => {
                 const inputTokens = usage?.inputTokens
                 const outputTokens = usage?.outputTokens
-                const estimatedCost = costPerUsage(
-                    inputTokens,
-                    outputTokens,
-                    MODEL
-                )
                 console.log("AI usage (Birth Chart)", {
-                    model: MODEL,
+                    model: "gemini-2.0-flash",
                     inputTokens,
                     outputTokens,
-                    estimatedCostUSD: estimatedCost,
                 })
             })
             .catch(() => {})
@@ -61,14 +55,3 @@ Rules:
     }
 }
 
-function costPerUsage(
-    input: number | undefined,
-    output: number | undefined,
-    model: string = MODEL
-) {
-    if (model === "openai/gpt-4.1-mini" && input && output) {
-        return input * (0.4 / 1000000) + output * (1.6 / 1000000)
-    }
-    // Fallback for other models
-    return 0
-}

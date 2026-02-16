@@ -1,7 +1,7 @@
-import { LanguageModel, streamObject } from "ai"
-import { astrologySummarySchema } from "@/lib/astrology/schema"
+import { streamObject } from "ai"
 
-const MODEL = "openai/gpt-4o-mini"
+import { MODEL } from "@/lib/ai-model"
+import { astrologySummarySchema } from "@/lib/astrology/schema"
 
 export async function POST(req: Request) {
     try {
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
         }
 
         const result = streamObject({
-            model: MODEL as unknown as LanguageModel,
+            model: MODEL,
             schema: astrologySummarySchema,
             system: `You are an astrology interpretation engine.
 

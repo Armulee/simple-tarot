@@ -1,4 +1,5 @@
-import { streamObject, type LanguageModel } from "ai"
+import { streamObject } from "ai"
+import { MODEL } from "@/lib/ai-model"
 import { TAROT_SYSTEM_PROMPT } from "@/lib/prompts"
 import { tarotInterpretationSchema } from "@/lib/tarot/schema"
 import {
@@ -6,8 +7,6 @@ import {
     extractTopicsFromQuestion,
     buildRagContext,
 } from "@/lib/tarot/rag"
-
-const MODEL = "openai/gpt-4o-mini"
 
 export async function POST(req: Request) {
     try {
@@ -40,7 +39,7 @@ ${prompt}`
         }
 
         const result = await streamObject({
-            model: MODEL as unknown as LanguageModel,
+            model: MODEL,
             maxOutputTokens: 4000,
             schema: tarotInterpretationSchema,
             system: TAROT_SYSTEM_PROMPT,
