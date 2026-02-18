@@ -342,7 +342,14 @@ export default function Interpretation({
                 previousInterpretation,
             })
 
-            submit({ prompt })
+            const cardArray = (cards ?? []).map((c) =>
+                typeof c === "string" ? c : String(c)
+            )
+            submit({
+                prompt,
+                question: question ?? "",
+                cards: cardArray,
+            })
         }
     }, [
         interpretation,

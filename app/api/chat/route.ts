@@ -5,7 +5,7 @@ import {
     getChatDecisionPrompt,
 } from "@/lib/prompts"
 
-const MODEL = "google/gemini-3-flash"
+const MODEL = "google/gemini-2.0-flash"
 
 export async function POST(req: Request) {
     try {

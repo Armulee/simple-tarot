@@ -1,7 +1,7 @@
-import { LanguageModel, streamObject } from "ai"
+import { streamObject } from "ai"
 import { astrologySummarySchema } from "@/lib/astrology/schema"
 
-const MODEL = "google/gemini-3-flash"
+const MODEL = "google/gemini-2.0-flash"
 
 export async function POST(req: Request) {
     try {
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
         }
 
         const result = streamObject({
-            model: MODEL as unknown as LanguageModel,
+            model: MODEL,
             schema: astrologySummarySchema,
             system: `You are an astrology interpretation engine.
 

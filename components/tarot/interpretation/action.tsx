@@ -973,7 +973,14 @@ export default function ActionSection({
                 previousInterpretation,
             })
 
-            submit({ prompt })
+            const cardArray = (cards ?? []).map((c) =>
+                typeof c === "string" ? c : String(c)
+            )
+            submit({
+                prompt,
+                question: question || "",
+                cards: cardArray,
+            })
         } catch (error) {
             console.error("Error regenerating interpretation:", error)
             if (typeof onGeneratingChange === "function")

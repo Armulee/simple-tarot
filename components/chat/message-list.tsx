@@ -406,9 +406,13 @@ export default function MessageList({
                                                             <div className='absolute -bottom-1 -right-1 w-2 h-2 border-b border-r border-primary/40 rounded-br-sm' />
                                                             <p className='text-[10px] font-serif italic text-indigo-100 leading-relaxed'>
                                                                 &ldquo;
-                                                                {message.isLoading ? (
-                                                                    <span className='inline-flex items-center gap-1.5'>
-                                                                        <Loader2 className='h-3 w-3 animate-spin' />
+                                                                {message.isLoading &&
+                                                                !message
+                                                                    .insights?.[
+                                                                    index
+                                                                ] ? (
+                                                                    <span className='inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-2 py-1 backdrop-blur-xl shadow-[0_0_12px_-3px_rgba(56,189,248,0.3)] text-[10px] font-medium text-white/90'>
+                                                                        <Loader2 className='h-2.5 w-2.5 animate-spin shrink-0' />
                                                                         {`Consulting${".".repeat(
                                                                             loadingDots,
                                                                         )}`}
@@ -447,15 +451,16 @@ export default function MessageList({
                                             </div>
                                         </div>
                                         <div className='text-white/90 leading-relaxed whitespace-pre-wrap'>
-                                            {message.isLoading ? (
-                                                <span className='inline-flex items-center gap-2 text-white/70'>
-                                                    <Loader2 className='h-4 w-4 animate-spin' />
+                                            {message.isLoading &&
+                                            !message.text?.trim() ? (
+                                                <span className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90'>
+                                                    <Loader2 className='h-4 w-4 animate-spin shrink-0' />
                                                     {`Consulting${".".repeat(
                                                         loadingDots,
                                                     )}`}
                                                 </span>
                                             ) : (
-                                                message.text
+                                                message.text || ""
                                             )}
                                         </div>
                                         {!message.isLoading && (
@@ -491,7 +496,12 @@ export default function MessageList({
                                             </div>
                                         )}
                                     </div>
-                                    {!message.isLoading && (
+                                    {(message.followUpConclusion ||
+                                        (Array.isArray(
+                                            message.followUpSuggestions,
+                                        ) &&
+                                            message.followUpSuggestions
+                                                .length > 0)) && (
                                         <div className='w-full md:max-w-[85%] space-y-2 pt-4'>
                                             {message.followUpLoading && (
                                                 <p className='text-xs sm:text-sm text-white/60'>
@@ -646,7 +656,17 @@ export default function MessageList({
                                 )
                             ) : (
                                 <div className='w-full md:max-w-[85%] text-white/90'>
-                                    {message.text}
+                                    {message.isLoading &&
+                                    !message.text?.trim() ? (
+                                        <span className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90'>
+                                            <Loader2 className='h-4 w-4 animate-spin shrink-0' />
+                                            {`Consulting${".".repeat(
+                                                loadingDots,
+                                            )}`}
+                                        </span>
+                                    ) : (
+                                        message.text || ""
+                                    )}
                                 </div>
                             )}
                             {!isChatLoading &&
@@ -735,6 +755,9 @@ export default function MessageList({
                     messages.length > 0 &&
                     !messages.some(
                         (m) => m.variant === "horoscope" && m.isLoading,
+                    ) &&
+                    !messages.some(
+                        (m) => m.variant === "plain" && m.isLoading,
                     ) && (
                         <div className='flex flex-col items-start gap-4'>
                             <ConsultingBadge />

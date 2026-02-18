@@ -2,12 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslations, useLocale } from "next-intl"
+import { experimental_useObject as useObject } from "@ai-sdk/react"
 import { useStars } from "@/contexts/stars-context"
 import Footer from "@/components/footer/footer"
 import { TypewriterText } from "@/components/typewriter-text"
 import QuestionInput from "@/components/question-input"
 import type { TarotCard } from "@/contexts/tarot-context"
 import { getTarotReadingPrompt } from "@/lib/prompts"
+import {
+    tarotInterpretationSchema,
+    type TarotInterpretation,
+} from "@/lib/tarot/schema"
 import { getDefaultAstrologySystem } from "@/lib/astrology/intake"
 import {
     chartDataToBirth,
@@ -158,14 +163,103 @@ export default function ChatSession({
     const prevIsInterpretingRef = useRef(false)
     const hasBootstrapped = useRef(false)
     const persistTimeoutRef = useRef<number | null>(null)
+    const interpretationLoadingIdRef = useRef<string | null>(null)
+
+    const {
+        submit: submitInterpretation,
+        object: interpretationObject,
+        isLoading: isInterpretationLoading,
+        stop: stopInterpretation,
+    } = useObject({
+        api: "/api/interpret-cards/question",
+        schema: tarotInterpretationSchema,
+        onFinish: ({ object }: { object: TarotInterpretation | undefined }) => {
+            const lid = interpretationLoadingIdRef.current
+            if (!lid || !object) return
+            const insights = object.cardInsights?.filter(
+                (s): s is string => typeof s === "string",
+            )
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === lid
+                        ? {
+                              ...m,
+                              text: object.interpretation || m.text,
+                              insights: insights ?? m.insights,
+                              isLoading: false,
+                              followUpConclusion: object.conclusion?.trim(),
+                              followUpSuggestions: object.suggestions
+                                  ?.map((s) =>
+                                      typeof s === "string" ? s.trim() : "",
+                                  )
+                                  .filter(Boolean)
+                                  .slice(0, 5),
+                              followUpLoading: false,
+                          }
+                        : m,
+                ),
+            )
+            interpretationLoadingIdRef.current = null
+            setIsInterpreting(false)
+        },
+        onError: () => {
+            const lid = interpretationLoadingIdRef.current
+            if (lid) {
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === lid
+                            ? {
+                                  ...m,
+                                  text: "Sorry, I couldn't interpret those cards. Please try again.",
+                                  isLoading: false,
+                              }
+                            : m,
+                    ),
+                )
+                interpretationLoadingIdRef.current = null
+            }
+            setIsInterpreting(false)
+        },
+    })
+
+    // Stream interpretation object updates to the loading message
+    useEffect(() => {
+        const lid = interpretationLoadingIdRef.current
+        if (!lid || !interpretationObject) return
+        const insights = interpretationObject.cardInsights
+            ?.filter((s): s is string => typeof s === "string")
+            ?? undefined
+        const suggestions = interpretationObject.suggestions
+            ?.map((s) => (typeof s === "string" ? s.trim() : ""))
+            .filter(Boolean)
+            .slice(0, 5) ?? undefined
+        setMessages((prev) =>
+            prev.map((m) =>
+                m.id === lid
+                    ? {
+                          ...m,
+                          text:
+                              interpretationObject.interpretation ?? m.text ?? "",
+                          insights: insights ?? m.insights,
+                          followUpConclusion:
+                              interpretationObject.conclusion?.trim() ??
+                              m.followUpConclusion,
+                          followUpSuggestions:
+                              suggestions ?? m.followUpSuggestions,
+                      }
+                    : m,
+            ),
+        )
+    }, [interpretationObject])
 
     useEffect(() => {
         return () => {
             if (abortControllerRef.current) {
                 abortControllerRef.current.abort()
             }
+            stopInterpretation()
         }
-    }, [])
+    }, [stopInterpretation])
 
     useEffect(() => {
         if (!navigator?.geolocation) return
@@ -925,10 +1019,23 @@ export default function ChatSession({
         ],
     )
 
+    const extractAssistantTextFromStream = useCallback((raw: string): string => {
+        const match = raw.match(
+            /"assistantText"\s*:\s*"((?:[^"\\]|\\.)*)"?/,
+        )
+        if (!match) return ""
+        const s = match[1]
+        return s
+            .replace(/\\\\/g, "\\")
+            .replace(/\\n/g, "\n")
+            .replace(/\\"/g, '"')
+    }, [])
+
     const fetchDecision = useCallback(
         async (
             value: string,
             historyOverride?: { role: string; text: string }[],
+            onChunk?: (partialAssistantText: string) => void,
         ) => {
             if (abortControllerRef.current) {
                 abortControllerRef.current.abort()
@@ -964,6 +1071,10 @@ export default function ChatSession({
                     const { done, value: chunk } = await reader.read()
                     if (done) break
                     buffer += decoder.decode(chunk, { stream: true })
+                    if (onChunk) {
+                        const partial = extractAssistantTextFromStream(buffer)
+                        if (partial) onChunk(partial)
+                    }
                 }
                 buffer += decoder.decode()
             } finally {
@@ -974,7 +1085,7 @@ export default function ChatSession({
             if (!parsed) throw new Error("Invalid decision payload")
             return parsed
         },
-        [messages, parseDecision],
+        [messages, parseDecision, extractAssistantTextFromStream],
     )
 
     const handleStopConsulting = useCallback(() => {
@@ -1046,14 +1157,36 @@ export default function ChatSession({
             setShowLearnMore(false)
             resetInteractiveStateForRewrite()
 
-            setMessages(baseMessages)
+            const assistantLoadingId = `assistant-${Date.now()}`
+            setMessages([
+                ...baseMessages,
+                {
+                    id: assistantLoadingId,
+                    role: "assistant",
+                    text: "",
+                    variant: "plain",
+                    isLoading: true,
+                },
+            ])
 
             try {
                 const history = baseMessages.slice(0, -1).map((m) => ({
                     role: m.role,
                     text: m.text,
                 }))
-                const nextDecision = await fetchDecision(trimmed, history)
+                const nextDecision = await fetchDecision(
+                    trimmed,
+                    history,
+                    (partial) => {
+                        setMessages((prev) =>
+                            prev.map((m) =>
+                                m.id === assistantLoadingId
+                                    ? { ...m, text: partial }
+                                    : m,
+                            ),
+                        )
+                    },
+                )
                 setDecision(nextDecision)
                 setConsulting(false)
 
@@ -1064,17 +1197,18 @@ export default function ChatSession({
                     nextDecision.type === "horoscope" && hasSavedBirthReady
                         ? tHoroscope("usingSavedBirthDate")
                         : nextDecision.assistantText
-                if (assistantMessage) {
-                    setMessages((prev) => [
-                        ...prev,
-                        {
-                            id: `assistant-${Date.now()}`,
-                            role: "assistant",
-                            text: assistantMessage,
-                            variant: "plain",
-                        },
-                    ])
-                }
+
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === assistantLoadingId
+                            ? {
+                                  ...m,
+                                  text: assistantMessage || m.text,
+                                  isLoading: false,
+                              }
+                            : m,
+                    ),
+                )
 
                 if (nextDecision.type === "draw") {
                     setShowCardDraw(true)
@@ -1087,17 +1221,24 @@ export default function ChatSession({
                 }
             } catch (err) {
                 setConsulting(false)
-                if (err instanceof Error && err.name === "AbortError") return
+                if (err instanceof Error && err.name === "AbortError") {
+                    setMessages((prev) =>
+                        prev.filter((m) => m.id !== assistantLoadingId),
+                    )
+                    return
+                }
 
-                setMessages((prev) => [
-                    ...prev,
-                    {
-                        id: `assistant-error-${Date.now()}`,
-                        role: "assistant",
-                        text: "Sorry, something went wrong. Please try again.",
-                        variant: "plain",
-                    },
-                ])
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === assistantLoadingId
+                            ? {
+                                  ...m,
+                                  text: "Sorry, something went wrong. Please try again.",
+                                  isLoading: false,
+                              }
+                            : m,
+                    ),
+                )
             }
         },
         [
@@ -1212,6 +1353,8 @@ export default function ChatSession({
             setShowLearnMore(false)
             resetInteractiveStateForRewrite()
 
+            const assistantLoadingId = `assistant-${Date.now()}`
+
             if (shouldAppendUserMessage) {
                 setMessages((prev) => [
                     ...prev,
@@ -1223,6 +1366,17 @@ export default function ChatSession({
                 ])
             }
 
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: assistantLoadingId,
+                    role: "assistant",
+                    text: "",
+                    variant: "plain",
+                    isLoading: true,
+                },
+            ])
+
             try {
                 const history =
                     shouldAppendUserMessage || messages.length === 0
@@ -1231,7 +1385,19 @@ export default function ChatSession({
                               role: m.role,
                               text: m.text,
                           }))
-                const nextDecision = await fetchDecision(trimmed, history)
+                const nextDecision = await fetchDecision(
+                    trimmed,
+                    history,
+                    (partial) => {
+                        setMessages((prev) =>
+                            prev.map((m) =>
+                                m.id === assistantLoadingId
+                                    ? { ...m, text: partial }
+                                    : m,
+                            ),
+                        )
+                    },
+                )
                 setDecision(nextDecision)
                 setConsulting(false)
 
@@ -1242,17 +1408,18 @@ export default function ChatSession({
                     nextDecision.type === "horoscope" && hasSavedBirthReady
                         ? tHoroscope("usingSavedBirthDate")
                         : nextDecision.assistantText
-                if (assistantMessage) {
-                    setMessages((prev) => [
-                        ...prev,
-                        {
-                            id: `assistant-${Date.now()}`,
-                            role: "assistant",
-                            text: assistantMessage,
-                            variant: "plain",
-                        },
-                    ])
-                }
+
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === assistantLoadingId
+                            ? {
+                                  ...m,
+                                  text: assistantMessage || m.text,
+                                  isLoading: false,
+                              }
+                            : m,
+                    ),
+                )
 
                 if (nextDecision.type === "draw") {
                     setShowCardDraw(true)
@@ -1265,17 +1432,24 @@ export default function ChatSession({
                 }
             } catch (err) {
                 setConsulting(false)
-                if (err instanceof Error && err.name === "AbortError") return
+                if (err instanceof Error && err.name === "AbortError") {
+                    setMessages((prev) =>
+                        prev.filter((m) => m.id !== assistantLoadingId),
+                    )
+                    return
+                }
 
-                setMessages((prev) => [
-                    ...prev,
-                    {
-                        id: `assistant-error-${Date.now()}`,
-                        role: "assistant",
-                        text: "Sorry, something went wrong. Please try again.",
-                        variant: "plain",
-                    },
-                ])
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === assistantLoadingId
+                            ? {
+                                  ...m,
+                                  text: "Sorry, something went wrong. Please try again.",
+                                  isLoading: false,
+                              }
+                            : m,
+                    ),
+                )
             }
         },
         [
@@ -1376,103 +1550,38 @@ export default function ChatSession({
             card.isReversed ? `${card.name} (Reversed)` : card.name,
         )
 
+        const lastInterpretationMsg = [...messages]
+            .reverse()
+            .find(
+                (m) =>
+                    m.variant === "box" &&
+                    !m.isLoading &&
+                    m.question &&
+                    m.text?.trim(),
+            )
+        const isFollowUp = Boolean(decision?.isFollowUp) && !!lastInterpretationMsg
+        const previousQuestion = isFollowUp
+            ? lastInterpretationMsg?.question ?? null
+            : null
+        const previousInterpretation = isFollowUp
+            ? lastInterpretationMsg?.text?.trim() ?? null
+            : null
+
         const prompt = getTarotReadingPrompt({
             question: lastQuestion,
             cards: cardNames.join(", "),
             readingType: decision?.spreadType ?? null,
-            isFollowUp: false,
+            isFollowUp,
+            previousQuestion,
+            previousInterpretation,
         })
 
-        if (abortControllerRef.current) {
-            abortControllerRef.current.abort()
-        }
-        abortControllerRef.current = new AbortController()
-
-        try {
-            const response = await fetch("/api/interpret-cards/question", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ prompt }),
-                signal: abortControllerRef.current.signal,
-            })
-
-            if (!response.ok || !response.body) {
-                throw new Error("Failed to interpret")
-            }
-
-            const reader = response.body.getReader()
-            const decoder = new TextDecoder()
-            let buffer = ""
-
-            try {
-                while (true) {
-                    const { done, value: chunk } = await reader.read()
-                    if (done) break
-                    buffer += decoder.decode(chunk, { stream: true })
-                }
-                buffer += decoder.decode()
-            } finally {
-                reader.releaseLock()
-            }
-
-            let interpretationText = buffer
-            let parsedInsights: string[] = []
-            let followUpConclusion: string | undefined
-            let followUpSuggestions: string[] | undefined
-
-            try {
-                const parsed = JSON.parse(buffer)
-                interpretationText = parsed.interpretation || buffer
-                if (Array.isArray(parsed.cardInsights)) {
-                    parsedInsights = parsed.cardInsights
-                }
-                if (typeof parsed.conclusion === "string") {
-                    followUpConclusion = parsed.conclusion.trim()
-                }
-                if (Array.isArray(parsed.suggestions)) {
-                    followUpSuggestions = parsed.suggestions
-                        .map((s: unknown) =>
-                            typeof s === "string" ? s.trim() : "",
-                        )
-                        .filter(Boolean)
-                        .slice(0, 5)
-                }
-            } catch {}
-
-            setMessages((prev) =>
-                prev.map((message) =>
-                    message.id === loadingId
-                        ? {
-                              ...message,
-                              text: interpretationText,
-                              insights: parsedInsights,
-                              isLoading: false,
-                              followUpConclusion,
-                              followUpSuggestions,
-                              followUpLoading: false,
-                          }
-                        : message,
-                ),
-            )
-        } catch (err) {
-            if (err instanceof Error && err.name === "AbortError") {
-                setMessages((prev) => prev.filter((m) => m.id !== loadingId))
-                return
-            }
-            setMessages((prev) =>
-                prev.map((message) =>
-                    message.id === loadingId
-                        ? {
-                              ...message,
-                              text: "Sorry, I couldn't interpret those cards. Please try again.",
-                              isLoading: false,
-                          }
-                        : message,
-                ),
-            )
-        } finally {
-            setIsInterpreting(false)
-        }
+        interpretationLoadingIdRef.current = loadingId
+        submitInterpretation({
+            prompt,
+            question: lastQuestion,
+            cards: cardNames,
+        })
     }
 
     const hasMessages = messages.length > 0
