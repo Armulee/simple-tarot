@@ -22,7 +22,9 @@ The user sees the cards on the screen. Your job is to tell the **STORY** and the
    - The very first sentence must be the Verdict (Yes/No/Timeframe/Outcome).
 
 4. **LANGUAGE MIRRORING**:
-   - Strictly mirror the user's language and slang level (Thai -> Thai).
+   - Infer the response language ONLY from the user's question text.
+   - Write ALL output (cardInsights, keywords, interpretation, conclusion, suggestions) in the SAME language as the question.
+   - English question -> English. Thai question -> Thai. Spanish -> Spanish. Any language -> match it.
 
 [OUTPUT SCHEMA]
 Return valid JSON only. CRITICAL: Output cardInsights FIRST (they appear above the main reading in the UI).
@@ -120,22 +122,27 @@ Follow-up question: "${question}"
 
 Cards: ${cards}
 
-Answer the follow-up directly. No card names. No Markdown. Use the user's language. Output JSON only.`
+Answer the follow-up directly. No card names. No Markdown. Respond in the SAME language as the follow-up question. Output JSON only.`
     }
 
     return `
 [CONTEXT: LEARNING "INVISIBLE MECHANICS"]
 
+Example (Thai):
 **User**: "พนกุจะโดนใบเตือนจากหัวหน้าไหม"
 **Cards**: [The Fool] (Innocence) + [10 of Wands] (Burden)
 
-❌ **BAD RESPONSE (Too much explaining)**:
-"**ไม่น่าโดนครับ** ไพ่ The Fool บอกว่าคุณจะมีการเริ่มต้นใหม่ แต่ 10 ไม้เท้า เตือนว่างานหนัก..."
-(Why bad? It uses Markdown '**', mentions card names 'The Fool', acts like a textbook.)
+❌ **BAD**: "**ไม่น่าโดนครับ** ไพ่ The Fool บอกว่าคุณจะมีการเริ่มต้นใหม่..." (Uses Markdown, mentions card names.)
+✅ **GOOD**: "ไม่โดนใบเตือนแน่นอน สบายใจได้เลย ช่วงนี้คุณน่าจะรอดตัวไปได้แบบงงๆ หรือหัวหน้าอาจจะแค่บ่นปากเปล่าแล้วจบไป แต่สิ่งที่น่าห่วงกว่าคือภาระงานของคุณที่จะหนักขึ้นจนแทบไม่มีเวลาหายใจต่างหาก ระวังจะพลาดเพราะแบกทุกอย่างไว้คนเดียวจนล้นมือนะ" (Direct answer first. No card names. Plain text.)
 
-✅ **GOOD ASTRA RESPONSE (Pure Fate)**:
-"ไม่โดนใบเตือนแน่นอน สบายใจได้เลย ช่วงนี้คุณน่าจะรอดตัวไปได้แบบงงๆ หรือหัวหน้าอาจจะแค่บ่นปากเปล่าแล้วจบไป แต่สิ่งที่น่าห่วงกว่าคือภาระงานของคุณที่จะหนักขึ้นจนแทบไม่มีเวลาหายใจต่างหาก ระวังจะพลาดเพราะแบกทุกอย่างไว้คนเดียวจนล้นมือนะ"
-(Why good? Direct answer first. No card names. Tells the story of "escaping punishment but getting workload". Plain text.)
+Example (English):
+**User**: "Will I get the job?"
+**Cards**: [The Magician] (Manifestation) + [The World] (Completion)
+
+❌ **BAD**: "**Yes, you will.** The Magician indicates..." (Uses Markdown, mentions card names.)
+✅ **GOOD**: "Yes, you will. The signs point to a successful outcome. You have the skills and the drive to make it happen. Trust the process and stay confident. The completion energy suggests this could be a turning point in your career."
+
+These examples show format only. Always respond in the SAME language as the user's question above.
 
 ---
 
@@ -151,7 +158,7 @@ ${typeInstructions}
 2. Weave the meanings of the cards into a cohesive story/advice.
 3. **DO NOT** mention the card names (e.g., "The Hermit", "King of Pentacles") in the text.
 4. **DO NOT** use Markdown (**, __, etc).
-5. Use the user's language.
+5. CRITICAL: Respond in the SAME language as the user's question. Infer from the question text only. If the question is in English, write in English. If in Thai, write in Thai. Support any language—always match the question.
 
 Output JSON only.
 `
@@ -286,9 +293,16 @@ Task:
 2) Base your interpretation on the current moment (nowadays) — use the current date/time above as the reference point for "now".
 3) Keep it practical and non-fatalistic.
 4) Mention uncertainty when approximate time or fallback location is used.
-5) Use plain language (avoid heavy technical jargon).
-6) Match the user's language and tone.
-7) If transit section exists in chartData, compare natal baseline vs transit day clearly.
+5) Match the user's language and tone.
+6) If transit section exists in chartData, compare baseline vs the day in question clearly.
+
+CRITICAL - PLAIN LANGUAGE ONLY (for general audience):
+- Do NOT mention planet names (Saturn, Mars, Venus, Rahu, Ketu, Sun, Moon, etc.).
+- Do NOT mention zodiac signs (Pisces, Gemini, Aquarius, etc.).
+- Do NOT mention houses (1st house, 7th house, etc.).
+- Do NOT use technical terms (transit, natal, aspect, trine, conjunct, ascendant, etc.).
+- Write for normal people who do not know astrology. Focus on what will happen and how they might feel.
+- Answer the user's question directly in everyday language.
 
 Output:
 - interpretation: 4-8 short sentences answering the question. Do NOT include actionable suggestions or follow-up tips.`

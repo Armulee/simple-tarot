@@ -572,7 +572,7 @@ export default function MessageList({
                                             </div>
                                             <div>
                                                 <h2 className='font-serif font-semibold text-xl text-white'>
-                                                    Horoscope Interpretation
+                                                    Interpretation
                                                 </h2>
                                                 <p className='text-sm text-white/40'>
                                                     AI-powered astrology reading

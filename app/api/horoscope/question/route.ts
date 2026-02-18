@@ -88,10 +88,9 @@ export async function POST(req: Request) {
         const result = await generateObject({
             model: MODEL,
             schema: horoscopeInterpretationSchema,
-            system: `You are an expert astrologer.
-Be clear, kind, and practical.
-Never claim fixed destiny.
-If uncertainty flags exist, mention them calmly and briefly.`,
+            system: `You are an expert astrologer who writes for a general audience.
+Be clear, kind, and practical. Never claim fixed destiny.
+Write in plain, everyday language. Do NOT use planet names, zodiac signs, houses, or any astrology jargon. Focus on what will happen and how the user might feel—answer their question directly.`,
             prompt,
             temperature: 0.4,
         })

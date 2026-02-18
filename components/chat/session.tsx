@@ -14,10 +14,7 @@ import {
     type TarotInterpretation,
 } from "@/lib/tarot/schema"
 import { getDefaultAstrologySystem } from "@/lib/astrology/intake"
-import {
-    chartDataToBirth,
-    chartDataToTransit,
-} from "@/lib/chart-data-to-birth"
+import { chartDataToBirth, chartDataToTransit } from "@/lib/chart-data-to-birth"
 import { loadBirthFromStorage } from "@/lib/birth-storage"
 import { resolveLocationFromCoords } from "@/lib/location"
 import type {
@@ -226,20 +223,24 @@ export default function ChatSession({
     useEffect(() => {
         const lid = interpretationLoadingIdRef.current
         if (!lid || !interpretationObject) return
-        const insights = interpretationObject.cardInsights
-            ?.filter((s): s is string => typeof s === "string")
-            ?? undefined
-        const suggestions = interpretationObject.suggestions
-            ?.map((s) => (typeof s === "string" ? s.trim() : ""))
-            .filter(Boolean)
-            .slice(0, 5) ?? undefined
+        const insights =
+            interpretationObject.cardInsights?.filter(
+                (s): s is string => typeof s === "string",
+            ) ?? undefined
+        const suggestions =
+            interpretationObject.suggestions
+                ?.map((s) => (typeof s === "string" ? s.trim() : ""))
+                .filter(Boolean)
+                .slice(0, 5) ?? undefined
         setMessages((prev) =>
             prev.map((m) =>
                 m.id === lid
                     ? {
                           ...m,
                           text:
-                              interpretationObject.interpretation ?? m.text ?? "",
+                              interpretationObject.interpretation ??
+                              m.text ??
+                              "",
                           insights: insights ?? m.insights,
                           followUpConclusion:
                               interpretationObject.conclusion?.trim() ??
@@ -319,12 +320,12 @@ export default function ChatSession({
 
     const effectiveLocale = normalizeLocale(aiLocale ?? locale)
     const cardUi = CARD_UI_TEXT[effectiveLocale]
-    // Check if user has enough stars (at least 5) for card draw
+    // Check if user has enough stars (at least 1) for card draw
     // Returns null while loading, true/false once initialized
     const hasEnoughStars = useMemo(() => {
         if (!starsInitialized) return null // Return null while loading to show loading state
         if (!Number.isFinite(stars as number)) return true
-        return (stars as number) >= 5
+        return (stars as number) >= 1
     }, [stars, starsInitialized])
 
     // Track if we need to show star checking state
@@ -674,7 +675,8 @@ export default function ChatSession({
                     ),
                 )
             } catch (err) {
-                const isAbort = err instanceof Error && err.name === "AbortError"
+                const isAbort =
+                    err instanceof Error && err.name === "AbortError"
                 if (isAbort) {
                     setMessages((prev) => {
                         const withoutLoading = prev.filter(
@@ -719,12 +721,19 @@ export default function ChatSession({
     )
 
     const refetchHoroscopeWithSystem = useCallback(
-        async (messageId: string, newSystem: "western_tropical" | "vedic_sidereal") => {
+        async (
+            messageId: string,
+            newSystem: "western_tropical" | "vedic_sidereal",
+        ) => {
             const msg = messages.find((m) => m.id === messageId)
             if (!msg || msg.variant !== "horoscope" || !msg.chartData) return
-            const birth = chartDataToBirth(msg.chartData as Record<string, unknown>)
+            const birth = chartDataToBirth(
+                msg.chartData as Record<string, unknown>,
+            )
             if (!birth) return
-            const transit = chartDataToTransit(msg.chartData as Record<string, unknown>)
+            const transit = chartDataToTransit(
+                msg.chartData as Record<string, unknown>,
+            )
             const questionText = msg.question || "General horoscope reading"
             setIsInterpreting(true)
             try {
@@ -766,11 +775,15 @@ export default function ChatSession({
                     }),
                 })
                 if (!response.ok) throw new Error("Refetch failed")
-                const chartDataHeader = response.headers.get("X-AskingFate-Chart-Data")
+                const chartDataHeader = response.headers.get(
+                    "X-AskingFate-Chart-Data",
+                )
                 let chartDataParsed: Record<string, unknown> | null = null
                 if (chartDataHeader) {
                     try {
-                        chartDataParsed = JSON.parse(atob(chartDataHeader)) as Record<string, unknown>
+                        chartDataParsed = JSON.parse(
+                            atob(chartDataHeader),
+                        ) as Record<string, unknown>
                     } catch {
                         /* ignore */
                     }
@@ -780,7 +793,9 @@ export default function ChatSession({
                     planetMeanings?: Record<string, string>
                     houseMeanings?: Record<string, string>
                 }
-                const interpretation = json?.interpretation?.trim() || tHoroscope("fallbackAnswerError")
+                const interpretation =
+                    json?.interpretation?.trim() ||
+                    tHoroscope("fallbackAnswerError")
                 setMessages((prev) =>
                     prev.map((m) =>
                         m.id === messageId
@@ -870,7 +885,8 @@ export default function ChatSession({
                     setHoroscopeSystem(
                         getDefaultAstrologySystem(
                             locale,
-                            nextBirth?.country ?? currentLocationFallback?.country,
+                            nextBirth?.country ??
+                                currentLocationFallback?.country,
                         ) as "western_tropical" | "vedic_sidereal",
                     )
                 }
@@ -893,20 +909,21 @@ export default function ChatSession({
                     extracted?.transit?.day != null &&
                     extracted?.transit?.month != null &&
                     extracted?.transit?.year != null
-                const transitToUse: HoroscopeTransitData | null = hasTransitFromExtract
-                    ? {
-                          day: extracted!.transit!.day!,
-                          month: extracted!.transit!.month!,
-                          year: extracted!.transit!.year!,
-                          hour: null,
-                          minute: null,
-                          timezone: nextBirth.timezone,
-                          lat: nextBirth.lat,
-                          lng: nextBirth.lng,
-                          country: nextBirth.country,
-                          state: nextBirth.state,
-                      }
-                    : horoscopeTransit
+                const transitToUse: HoroscopeTransitData | null =
+                    hasTransitFromExtract
+                        ? {
+                              day: extracted!.transit!.day!,
+                              month: extracted!.transit!.month!,
+                              year: extracted!.transit!.year!,
+                              hour: null,
+                              minute: null,
+                              timezone: nextBirth.timezone,
+                              lat: nextBirth.lat,
+                              lng: nextBirth.lng,
+                              country: nextBirth.country,
+                              state: nextBirth.state,
+                          }
+                        : horoscopeTransit
                 if (hasTransitFromExtract) {
                     setHoroscopeTransit(transitToUse)
                 }
@@ -1019,17 +1036,20 @@ export default function ChatSession({
         ],
     )
 
-    const extractAssistantTextFromStream = useCallback((raw: string): string => {
-        const match = raw.match(
-            /"assistantText"\s*:\s*"((?:[^"\\]|\\.)*)"?/,
-        )
-        if (!match) return ""
-        const s = match[1]
-        return s
-            .replace(/\\\\/g, "\\")
-            .replace(/\\n/g, "\n")
-            .replace(/\\"/g, '"')
-    }, [])
+    const extractAssistantTextFromStream = useCallback(
+        (raw: string): string => {
+            const match = raw.match(
+                /"assistantText"\s*:\s*"((?:[^"\\]|\\.)*)"?/,
+            )
+            if (!match) return ""
+            const s = match[1]
+            return s
+                .replace(/\\\\/g, "\\")
+                .replace(/\\n/g, "\n")
+                .replace(/\\"/g, '"')
+        },
+        [],
+    )
 
     const fetchDecision = useCallback(
         async (
@@ -1509,8 +1529,8 @@ export default function ChatSession({
     ) => {
         if (!lastQuestion) return
 
-        // Deduct 5 stars before proceeding to interpretation
-        const starSuccess = spendStars(5)
+        // Deduct 1 star before proceeding to interpretation
+        const starSuccess = spendStars(1)
         if (!starSuccess) {
             // Not enough stars - this shouldn't happen if UI is correct
             // but handle gracefully
@@ -1559,12 +1579,13 @@ export default function ChatSession({
                     m.question &&
                     m.text?.trim(),
             )
-        const isFollowUp = Boolean(decision?.isFollowUp) && !!lastInterpretationMsg
+        const isFollowUp =
+            Boolean(decision?.isFollowUp) && !!lastInterpretationMsg
         const previousQuestion = isFollowUp
-            ? lastInterpretationMsg?.question ?? null
+            ? (lastInterpretationMsg?.question ?? null)
             : null
         const previousInterpretation = isFollowUp
-            ? lastInterpretationMsg?.text?.trim() ?? null
+            ? (lastInterpretationMsg?.text?.trim() ?? null)
             : null
 
         const prompt = getTarotReadingPrompt({

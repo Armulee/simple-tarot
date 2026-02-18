@@ -4,6 +4,12 @@ import React, { useState } from "react"
 import { useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
 import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion"
+import {
     Popover,
     PopoverContent,
     PopoverTrigger,
@@ -36,7 +42,6 @@ import {
     Calendar as CalendarIcon,
 } from "lucide-react"
 import { getPlanetDignity } from "@/lib/birth-chart-utils"
-import { getPlanetMeaning } from "@/lib/astrology/meanings"
 import type { AstrologySystem } from "@/lib/astrology/types"
 
 const PLANET_ICONS: Record<
@@ -240,21 +245,6 @@ function SystemBadgePopover({
     )
 }
 
-function isInterestedPoint(
-    planet: string,
-    p: AstrologyPoint,
-    dignity: { isExalted: boolean; isDebilitated: boolean; isOwnSign: boolean },
-): boolean {
-    if (planet === "Ascendant") return true
-    if (planet === "Sun" || planet === "Moon") return true
-    return (
-        dignity.isExalted ||
-        dignity.isDebilitated ||
-        dignity.isOwnSign ||
-        (p.retrograde ?? false)
-    )
-}
-
 export function BirthChartCard({
     chartData,
     planetMeanings,
@@ -267,6 +257,8 @@ export function BirthChartCard({
     houseMeanings?: Record<string, string>
     onRefetchWithSystem?: (system: AstrologySystem) => void
 }) {
+    void planetMeanings
+    void houseMeanings
     const t = useTranslations("BirthChart")
     const [activeTab, setActiveTab] = useState<"birth" | "transit">("birth")
     const hasTransit = Boolean(
@@ -311,17 +303,9 @@ export function BirthChartCard({
         .filter(Boolean)
         .join(", ")
 
-    const hasQuestionRelevantPlanets =
-        planetMeanings && Object.keys(planetMeanings).length > 0
-    const planetsToShow = PLANET_ORDER.filter((key) => {
-        const p = chart.planets?.[key]
-        if (!p) return false
-        if (hasQuestionRelevantPlanets) {
-            return key in (planetMeanings ?? {})
-        }
-        const dignity = getPlanetDignity(key, p.sign)
-        return isInterestedPoint(key, p, dignity)
-    })
+    const planetsToShow = PLANET_ORDER.filter(
+        (key) => chart.planets?.[key] != null,
+    )
 
     return (
         <div className='space-y-8 pb-4'>
@@ -409,260 +393,229 @@ export function BirthChartCard({
                 </div>
             </div>
 
-            {/* Key Placements - filter by planetMeanings when question-relevant */}
+            {/* Key Placements - expandable, hidden by default */}
             {planetsToShow.length > 0 && (
-                <div className='space-y-6'>
-                    <div className='flex items-center gap-4'>
-                        <div className='rounded-xl border border-accent/30 bg-accent/20 p-2.5 text-accent shadow-lg shadow-accent/10'>
-                            <Sparkles className='w-5 h-5' />
-                        </div>
-                        <div>
-                            <div className='flex-1 min-w-0'>
-                                <h3 className='text-xl font-serif font-bold text-white'>
-                                    Key Placements
-                                </h3>
-                                {onRefetchWithSystem && (
-                                    <SystemBadgePopover
-                                        currentSystem={
-                                            (chart?.system as AstrologySystem) ??
-                                            "vedic_sidereal"
-                                        }
-                                        onSelect={onRefetchWithSystem}
-                                        t={t}
-                                    />
-                                )}
-                            </div>
-                        </div>
-                        <div className='ml-4 h-px flex-1 bg-gradient-to-r from-white/10 to-transparent' />
-                    </div>
-
-                    <div className='grid gap-5 grid-cols-2 lg:grid-cols-3'>
-                        {planetsToShow.map((planet) => {
-                            const p = chart.planets![planet]
-                            const dignity = getPlanetDignity(planet, p.sign)
-                            const meaning =
-                                planetMeanings?.[planet] ??
-                                getPlanetMeaning(planet, p.sign)
-                            const PlanetIconComponent =
-                                PLANET_ICONS[planet] ?? Star
-                            const isRetrograde = p.retrograde ?? false
-
-                            const cardStyle = dignity.isExalted
-                                ? "border-amber-400/50 bg-amber-500/15 animate-exalted-aura hover:border-amber-400/70"
-                                : dignity.isDebilitated
-                                  ? "border-red-500/50 bg-red-500/15 shadow-lg shadow-red-500/10 hover:border-red-500/70"
-                                  : dignity.isOwnSign
-                                    ? "border-blue-400/50 bg-blue-500/10 shadow-[0_0_20px_rgba(96,165,250,0.15)] hover:border-blue-400/70 hover:shadow-[0_0_28px_rgba(96,165,250,0.25)]"
-                                    : isRetrograde
-                                      ? "border-white/10 bg-white/5 hover:bg-white/[0.08]"
-                                      : "border-white/10 bg-white/5 hover:border-accent/30 hover:bg-white/[0.08]"
-
-                            const iconStyle = dignity.isExalted
-                                ? "border-amber-400/40 bg-amber-500/20 text-amber-400"
-                                : dignity.isDebilitated
-                                  ? "border-red-500/30 bg-red-500/20 text-red-400"
-                                  : dignity.isOwnSign
-                                    ? "border-blue-400/40 bg-blue-500/20 text-blue-400"
-                                    : isRetrograde
-                                      ? "border-white/10 bg-white/5 text-white/50"
-                                      : "border-accent/20 bg-accent/10 text-accent"
-
-                            const signStyle = isRetrograde
-                                ? "text-white/40"
-                                : dignity.isExalted
-                                  ? "text-amber-400/90"
-                                  : dignity.isDebilitated
-                                    ? "text-red-400/90"
-                                    : dignity.isOwnSign
-                                      ? "text-blue-400/90"
-                                      : "text-accent opacity-80"
-
-                            const meaningBorderStyle = dignity.isExalted
-                                ? "border-amber-400/30"
-                                : dignity.isDebilitated
-                                  ? "border-red-500/20"
-                                  : dignity.isOwnSign
-                                    ? "border-blue-400/30"
-                                    : "border-accent/20"
-
-                            return (
-                                <Card
-                                    key={planet}
-                                    className={`py-0 group overflow-hidden transition-all duration-500 ${cardStyle}`}
-                                >
-                                    <div className='space-y-4 p-5'>
-                                        <div className='flex items-center justify-between'>
-                                            <div className='flex items-center gap-3'>
-                                                <div
-                                                    className={`rounded-lg border p-2 transition-transform duration-500 group-hover:scale-110 ${iconStyle}`}
-                                                >
-                                                    <PlanetIconComponent className='w-5 h-5' />
-                                                </div>
-                                                <div>
-                                                    <div className='flex flex-wrap items-center gap-2'>
-                                                        <h4
-                                                            className={`text-sm font-bold tracking-tight ${
-                                                                isRetrograde
-                                                                    ? "text-white/60"
-                                                                    : "text-white"
-                                                            }`}
-                                                        >
-                                                            {planet}
-                                                        </h4>
-                                                        {dignity.isExalted && (
-                                                            <span className='rounded border border-amber-400/40 bg-amber-500/20 px-1.5 py-0.5 text-[8px] font-bold uppercase text-amber-400'>
-                                                                Exalted
-                                                            </span>
-                                                        )}
-                                                        {dignity.isDebilitated && (
-                                                            <span className='rounded border border-red-500/40 bg-red-500/20 px-1.5 py-0.5 text-[8px] font-bold uppercase text-red-400'>
-                                                                Debilitated
-                                                            </span>
-                                                        )}
-                                                        {dignity.isOwnSign && (
-                                                            <span className='rounded border border-blue-400/40 bg-blue-500/20 px-1.5 py-0.5 text-[8px] font-bold uppercase text-blue-400'>
-                                                                Own Sign
-                                                            </span>
-                                                        )}
-                                                        {isRetrograde && (
-                                                            <span className='rounded border border-white/20 bg-white/10 px-1.5 py-0.5 text-[8px] font-bold uppercase text-white/60'>
-                                                                Retrograde
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <p
-                                                        className={`text-[10px] font-bold uppercase tracking-widest ${signStyle}`}
-                                                    >
-                                                        {p.sign}
-                                                        {p.degree > 0
-                                                            ? ` · ${p.degree.toFixed(1)}°`
-                                                            : ""}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {meaning && (
-                                            <p
-                                                className={`line-clamp-3 border-l-2 pl-3 text-xs leading-relaxed italic text-white/70 transition-all duration-500 group-hover:line-clamp-none ${meaningBorderStyle}`}
-                                            >
-                                                {meaning}
-                                            </p>
-                                        )}
-                                    </div>
-                                </Card>
-                            )
-                        })}
-                    </div>
-                </div>
-            )}
-
-            {/* Houses - filter by houseMeanings when question-relevant */}
-            {chart.houses &&
-                Object.keys(chart.houses).length > 0 &&
-                (() => {
-                    const hasQuestionRelevantHouses =
-                        houseMeanings && Object.keys(houseMeanings).length > 0
-                    const houseIndices = hasQuestionRelevantHouses
-                        ? Object.keys(houseMeanings ?? {})
-                              .map(Number)
-                              .filter((n) => n >= 1 && n <= 12)
-                              .sort((a, b) => a - b)
-                        : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-                    if (houseIndices.length === 0) return null
-                    return (
-                        <div className='space-y-6'>
-                            <div className='flex items-center gap-4'>
+                <Accordion className='space-y-0'>
+                    <AccordionItem
+                        defaultOpen={false}
+                        className='rounded-2xl border border-white/10 bg-white/5 p-4'
+                    >
+                        <AccordionTrigger className='py-0 hover:no-underline'>
+                            <div className='flex items-center gap-4 w-full'>
                                 <div className='rounded-xl border border-accent/30 bg-accent/20 p-2.5 text-accent shadow-lg shadow-accent/10'>
-                                    <Home className='w-5 h-5' />
+                                    <Sparkles className='w-5 h-5' />
                                 </div>
-                                <div>
-                                    <h3 className='text-xl font-serif font-bold text-white'>
-                                        Life Areas
+                                <div className='min-w-0 w-full'>
+                                    <h3 className='text-xl font-serif font-bold text-white text-left w-full'>
+                                        Key Placements
                                     </h3>
-                                    <p className='mt-0.5 text-xs uppercase tracking-widest text-white/40'>
-                                        {hasQuestionRelevantHouses
-                                            ? "Relevant to your question"
-                                            : "Houses of Destiny"}
-                                    </p>
+                                    {onRefetchWithSystem && (
+                                        <div
+                                            className='mt-1'
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <SystemBadgePopover
+                                                currentSystem={
+                                                    (chart?.system as AstrologySystem) ??
+                                                    "vedic_sidereal"
+                                                }
+                                                onSelect={onRefetchWithSystem}
+                                                t={t}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                                 <div className='ml-4 h-px flex-1 bg-gradient-to-r from-white/10 to-transparent' />
                             </div>
-
+                        </AccordionTrigger>
+                        <AccordionContent className='pt-2'>
                             <div className='grid gap-5 grid-cols-2 lg:grid-cols-3'>
-                                {houseIndices.map((i) => {
-                                    const h = chart.houses?.[String(i)]
-                                    if (!h) return null
-                                    const HouseIconComponent =
-                                        HOUSE_ICONS[String(i)] ?? Home
-                                    const suffix = getOrdinalSuffix(i)
-                                    const aiMeaning = houseMeanings?.[String(i)]
-                                    const staticLabel = t(
-                                        `houseMeanings.${i}`,
-                                        {
-                                            defaultValue: "",
-                                        },
+                                {planetsToShow.map((planet) => {
+                                    const p = chart.planets![planet]
+                                    const dignity = getPlanetDignity(
+                                        planet,
+                                        p.sign,
                                     )
-                                    const staticDesc = t(
-                                        `houseDescriptions.${i}`,
-                                        {
-                                            defaultValue: "",
-                                        },
-                                    )
+                                    const PlanetIconComponent =
+                                        PLANET_ICONS[planet] ?? Star
+                                    const isRetrograde = p.retrograde ?? false
+
+                                    const cardStyle = dignity.isExalted
+                                        ? "border-amber-400/50 bg-amber-500/15 animate-exalted-aura hover:border-amber-400/70"
+                                        : dignity.isDebilitated
+                                          ? "border-red-500/50 bg-red-500/15 shadow-lg shadow-red-500/10 hover:border-red-500/70"
+                                          : dignity.isOwnSign
+                                            ? "border-blue-400/50 bg-blue-500/10 shadow-[0_0_20px_rgba(96,165,250,0.15)] hover:border-blue-400/70 hover:shadow-[0_0_28px_rgba(96,165,250,0.25)]"
+                                            : isRetrograde
+                                              ? "border-white/10 bg-white/5 hover:bg-white/[0.08]"
+                                              : "border-white/10 bg-white/5 hover:border-accent/30 hover:bg-white/[0.08]"
+
+                                    const iconStyle = dignity.isExalted
+                                        ? "border-amber-400/40 bg-amber-500/20 text-amber-400"
+                                        : dignity.isDebilitated
+                                          ? "border-red-500/30 bg-red-500/20 text-red-400"
+                                          : dignity.isOwnSign
+                                            ? "border-blue-400/40 bg-blue-500/20 text-blue-400"
+                                            : isRetrograde
+                                              ? "border-white/10 bg-white/5 text-white/50"
+                                              : "border-accent/20 bg-accent/10 text-accent"
+
+                                    const signStyle = isRetrograde
+                                        ? "text-white/40"
+                                        : dignity.isExalted
+                                          ? "text-amber-400/90"
+                                          : dignity.isDebilitated
+                                            ? "text-red-400/90"
+                                            : dignity.isOwnSign
+                                              ? "text-blue-400/90"
+                                              : "text-accent opacity-80"
 
                                     return (
                                         <Card
-                                            key={i}
-                                            className='py-0 group overflow-hidden border-white/10 bg-white/5 transition-all duration-500 hover:border-accent/30 hover:bg-white/[0.08]'
+                                            key={planet}
+                                            className={`py-0 group overflow-visible transition-all duration-500 ${cardStyle}`}
                                         >
-                                            <div className='space-y-4 p-5'>
-                                                <div className='flex items-start justify-between'>
+                                            <div className='space-y-4 px-3 py-2'>
+                                                <div className='flex items-center justify-between'>
                                                     <div className='flex items-center gap-3'>
-                                                        <div className='rounded-lg border border-accent/20 bg-accent/10 p-2 text-accent transition-colors duration-500 group-hover:bg-accent group-hover:text-white'>
-                                                            <HouseIconComponent className='w-5 h-5' />
+                                                        <div
+                                                            className={`rounded-lg border p-2 transition-transform duration-500 group-hover:scale-110 ${iconStyle}`}
+                                                        >
+                                                            <PlanetIconComponent className='w-5 h-5' />
                                                         </div>
                                                         <div>
-                                                            <h4 className='text-sm font-bold tracking-tight text-white'>
-                                                                {i}
-                                                                {suffix} House
-                                                            </h4>
-                                                            <p className='text-[10px] uppercase tracking-wider text-white/40'>
-                                                                {h.sign}{" "}
-                                                                {formatDegree(
-                                                                    h.degree,
+                                                            <div className='flex flex-wrap items-center gap-2'>
+                                                                <h4
+                                                                    className={`text-sm font-bold tracking-tight ${
+                                                                        isRetrograde
+                                                                            ? "text-white/60"
+                                                                            : "text-white"
+                                                                    }`}
+                                                                >
+                                                                    {planet}
+                                                                </h4>
+                                                                {dignity.isExalted && (
+                                                                    <span className='rounded border border-amber-400/40 bg-amber-500/20 px-1.5 py-0.5 text-[8px] font-bold uppercase text-amber-400'>
+                                                                        Exalted
+                                                                    </span>
                                                                 )}
+                                                                {dignity.isDebilitated && (
+                                                                    <span className='rounded border border-red-500/40 bg-red-500/20 px-1.5 py-0.5 text-[8px] font-bold uppercase text-red-400'>
+                                                                        Debilitated
+                                                                    </span>
+                                                                )}
+                                                                {dignity.isOwnSign && (
+                                                                    <span className='rounded border border-blue-400/40 bg-blue-500/20 px-1.5 py-0.5 text-[8px] font-bold uppercase text-blue-400'>
+                                                                        Own Sign
+                                                                    </span>
+                                                                )}
+                                                                {isRetrograde && (
+                                                                    <span className='rounded border border-white/20 bg-white/10 px-1.5 py-0.5 text-[8px] font-bold uppercase text-white/60'>
+                                                                        Retrograde
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <p
+                                                                className={`text-[10px] font-bold uppercase tracking-widest ${signStyle}`}
+                                                            >
+                                                                {p.sign}
+                                                                {p.degree > 0
+                                                                    ? ` · ${p.degree.toFixed(1)}°`
+                                                                    : ""}
                                                             </p>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div className='space-y-2'>
-                                                    {aiMeaning ? (
-                                                        <p className='text-[11px] text-white/70 leading-relaxed line-clamp-3 group-hover:line-clamp-none transition-all italic border-l-2 border-accent/20 pl-3'>
-                                                            {aiMeaning}
-                                                        </p>
-                                                    ) : (
-                                                        <>
-                                                            {staticLabel && (
-                                                                <p className='text-sm font-semibold text-white leading-tight group-hover:text-accent transition-colors'>
-                                                                    {
-                                                                        staticLabel
-                                                                    }
-                                                                </p>
-                                                            )}
-                                                            {staticDesc && (
-                                                                <p className='text-[11px] text-white/50 leading-relaxed line-clamp-3 group-hover:line-clamp-none transition-all'>
-                                                                    {staticDesc}
-                                                                </p>
-                                                            )}
-                                                        </>
-                                                    )}
                                                 </div>
                                             </div>
                                         </Card>
                                     )
                                 })}
                             </div>
-                        </div>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+            )}
+
+            {/* Life Areas - expandable, hidden by default */}
+            {chart.houses &&
+                Object.keys(chart.houses).length > 0 &&
+                (() => {
+                    const houseIndices = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+                    return (
+                        <Accordion className='space-y-0'>
+                            <AccordionItem
+                                defaultOpen={false}
+                                className='rounded-2xl border border-white/10 bg-white/5 p-4'
+                            >
+                                <AccordionTrigger className='py-0 hover:no-underline'>
+                                    <div className='flex items-center gap-4 w-full'>
+                                        <div className='rounded-xl border border-accent/30 bg-accent/20 p-2.5 text-accent shadow-lg shadow-accent/10'>
+                                            <Home className='w-5 h-5' />
+                                        </div>
+                                        <div>
+                                            <h3 className='text-xl font-serif font-bold text-white text-left'>
+                                                Life Areas
+                                            </h3>
+                                        </div>
+                                        <div className='ml-4 h-px flex-1 bg-gradient-to-r from-white/10 to-transparent' />
+                                    </div>
+                                </AccordionTrigger>
+                                <AccordionContent className='pt-2'>
+                                    <div className='grid gap-5 grid-cols-2 lg:grid-cols-3'>
+                                        {houseIndices.map((i) => {
+                                            const h = chart.houses?.[String(i)]
+                                            if (!h) return null
+                                            const HouseIconComponent =
+                                                HOUSE_ICONS[String(i)] ?? Home
+                                            const suffix = getOrdinalSuffix(i)
+                                            const houseLabel = t(
+                                                `houseMeanings.${i}`,
+                                                { defaultValue: "" },
+                                            )
+
+                                            return (
+                                                <Card
+                                                    key={i}
+                                                    className='py-0 group overflow-hidden border-white/10 bg-white/5 transition-all duration-500 hover:border-accent/30 hover:bg-white/[0.08]'
+                                                >
+                                                    <div className='space-y-4 px-3 py-2'>
+                                                        <div className='flex items-start justify-between'>
+                                                            <div className='flex items-center gap-3'>
+                                                                <div className='rounded-lg border border-accent/20 bg-accent/10 p-2 text-accent transition-colors duration-500 group-hover:bg-accent group-hover:text-white'>
+                                                                    <HouseIconComponent className='w-5 h-5' />
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className='text-sm font-bold tracking-tight text-white'>
+                                                                        {i}
+                                                                        {
+                                                                            suffix
+                                                                        }{" "}
+                                                                        House
+                                                                    </h4>
+                                                                    {houseLabel && (
+                                                                        <p className='text-xs font-semibold text-white/60 leading-tight mt-0.5'>
+                                                                            {
+                                                                                houseLabel
+                                                                            }
+                                                                        </p>
+                                                                    )}
+                                                                    <p className='text-[10px] uppercase tracking-wider text-white/40'>
+                                                                        {h.sign}{" "}
+                                                                        {formatDegree(
+                                                                            h.degree,
+                                                                        )}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </Card>
+                                            )
+                                        })}
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
+                        </Accordion>
                     )
                 })()}
 

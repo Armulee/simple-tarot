@@ -23,7 +23,7 @@ export const CARD_UI_TEXT: Record<"en" | "th", CardUiText> = {
     en: {
         selected: (selectedCount: number, cardsToSelect: number) =>
             `You have selected ${selectedCount}/${cardsToSelect} cards`,
-        consumeStar: "Drawing cards will consume 5 stars",
+        consumeStar: "Drawing cards will consume 1 star",
         shuffle: "Shuffle",
         pick: "Pick me",
         swipe: "Swipe up on a card to select",
@@ -37,7 +37,7 @@ export const CARD_UI_TEXT: Record<"en" | "th", CardUiText> = {
     th: {
         selected: (selectedCount: number, cardsToSelect: number) =>
             `คุณเลือกไพ่แล้ว ${selectedCount}/${cardsToSelect} ใบ`,
-        consumeStar: "การจั่วไพ่จะใช้ดวงดาว 5 ดวง",
+        consumeStar: "การจั่วไพ่จะใช้ดวงดาว 1 ดวง",
         shuffle: "สับไพ่",
         pick: "เลือกให้หน่อย",
         swipe: "ปัดขึ้นบนไพ่เพื่อเลือก",

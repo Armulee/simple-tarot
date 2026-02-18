@@ -1216,7 +1216,7 @@
       "linear": "Linear",
       "confirm": "Confirm Selection ({selected}/{total})",
       "shuffle": "Shuffle",
-      "consumeStar": "Starting the interpretation will consume 5 stars.",
+      "consumeStar": "Starting the interpretation will consume 1 star.",
       "random": "Pick For Me"
     },
     "editQuestion": {
@@ -2139,8 +2139,8 @@
   },
   "InsufficientStars": {
     "title": "Not Enough Stars",
-    "descriptionLoggedIn": "You need at least 5 stars to draw cards and get your reading. Top up your stars to continue your mystical journey.",
-    "descriptionAnonymous": "You need at least 5 stars to draw cards. Sign in to unlock 12 free stars with automatic 2-hourly refills!",
+    "descriptionLoggedIn": "You need at least 1 star to draw cards and get your reading. Top up your stars to continue your mystical journey.",
+    "descriptionAnonymous": "You need at least 1 star to draw cards. Sign in to unlock 12 free stars with automatic 2-hourly refills!",
     "quickTopUp": "Quick Top Up",
     "packsNotConfigured": "Star packs are not configured yet.",
     "proRequired": "Add-on packs are available for Pro subscribers only.",
@@ -2151,7 +2151,7 @@
     "benefit2Desc": "Get stars every 2 hours",
     "signInButton": "Sign In to Continue",
     "signInNote": "Create a free account and get 12 stars to start your tarot journey",
-    "chatMessageLoggedIn": "It looks like you don't have enough stars to draw cards right now. You need at least 5 stars to continue with your reading. You can top up your stars instantly using one of the options below, or wait for your stars to refill automatically.",
+    "chatMessageLoggedIn": "It looks like you don't have enough stars to draw cards right now. You need at least 1 star to continue with your reading. You can top up your stars instantly using one of the options below, or wait for your stars to refill automatically.",
     "chatMessageAnonymous": "It looks like you don't have enough stars to draw cards right now. Sign in to unlock 12 free stars with automatic refills every 2 hours, or create an account to get started on your mystical journey!",
     "promoBasicTitle": "Upgrade to Pro for more stars",
     "promoGuestTitle": "Unlock more stars instantly",

@@ -34,7 +34,10 @@ import { useTarot } from "@/contexts/tarot-context"
 import Image from "next/image"
 import { useStars } from "@/contexts/stars-context"
 import { experimental_useObject as useObject } from "@ai-sdk/react"
-import { tarotInterpretationSchema, type TarotInterpretation } from "@/lib/tarot/schema"
+import {
+    tarotInterpretationSchema,
+    type TarotInterpretation,
+} from "@/lib/tarot/schema"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -104,7 +107,7 @@ export default function ActionSection({
     const [isDownloading, setIsDownloading] = useState(false)
     const [downloadOpen, setDownloadOpen] = useState(false)
     const [downloadFormat, setDownloadFormat] = useState<"image" | "video">(
-        "image"
+        "image",
     )
     const [downloadStyleId, setDownloadStyleId] = useState("story")
     const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -118,7 +121,7 @@ export default function ActionSection({
     const previewCacheRef = useRef<Map<string, Blob>>(new Map())
     const videoCacheRef = useRef<Map<string, Blob>>(new Map())
     const [thumbnailUrls, setThumbnailUrls] = useState<Record<string, string>>(
-        {}
+        {},
     )
     const [showReport, setShowReport] = useState(false)
     const [reportReason, setReportReason] = useState("")
@@ -160,7 +163,7 @@ export default function ActionSection({
                 height: 1080,
             },
         ],
-        [t]
+        [t],
     )
     const selectedStyle =
         downloadStyles.find((style) => style.id === downloadStyleId) ||
@@ -229,7 +232,7 @@ export default function ActionSection({
                 type: res.headers.get("Content-Type") || "image/png",
             })
         },
-        [question, cards, interpretation]
+        [question, cards, interpretation],
     )
 
     const createShareVideo = useCallback(
@@ -242,8 +245,7 @@ export default function ActionSection({
             signal?: AbortSignal
             onProgress?: (progress: number) => void
         }) => {
-            const cachedImage =
-                previewCacheRef.current.get(style.id) || null
+            const cachedImage = previewCacheRef.current.get(style.id) || null
             const baseBlob =
                 cachedImage ||
                 (await fetchShareImage({
@@ -256,7 +258,7 @@ export default function ActionSection({
                 typeof createImageBitmap === "function"
                     ? await createImageBitmap(baseBlob)
                     : await new Promise<HTMLImageElement>((resolve, reject) => {
-                      const img = new window.Image()
+                          const img = new window.Image()
                           img.onload = () => resolve(img)
                           img.onerror = () =>
                               reject(new Error("Failed to load image"))
@@ -270,7 +272,7 @@ export default function ActionSection({
             if (!ctx) throw new Error("Canvas not supported")
 
             const starCount = Math.round(
-                Math.max(120, (style.width * style.height) / 20000)
+                Math.max(120, (style.width * style.height) / 20000),
             )
             const stars = Array.from({ length: starCount }, () => ({
                 x: Math.random() * style.width,
@@ -301,7 +303,7 @@ export default function ActionSection({
 
             const stream = canvas.captureStream(30)
             const mimeType = MediaRecorder.isTypeSupported(
-                "video/webm;codecs=vp9"
+                "video/webm;codecs=vp9",
             )
                 ? "video/webm;codecs=vp9"
                 : "video/webm"
@@ -327,7 +329,7 @@ export default function ActionSection({
                     resolve(
                         new Blob(chunks, {
                             type: recorder.mimeType || "video/webm",
-                        })
+                        }),
                     )
                 }
 
@@ -356,7 +358,7 @@ export default function ActionSection({
                             0,
                             gx,
                             gy,
-                            orb.radius
+                            orb.radius,
                         )
                         gradient.addColorStop(0, orb.color)
                         gradient.addColorStop(1, "rgba(0,0,0,0)")
@@ -374,7 +376,7 @@ export default function ActionSection({
                             0.5 *
                                 Math.sin(
                                     t * Math.PI * 2 * star.twinkleSpeed +
-                                        star.twinkleOffset
+                                        star.twinkleOffset,
                                 )
                         const alpha = star.alpha * twinkle
                         ctx.fillStyle = `rgba(255,255,255,${alpha})`
@@ -408,7 +410,7 @@ export default function ActionSection({
             }
             return blob
         },
-        [fetchShareImage]
+        [fetchShareImage],
     )
 
     const loadVersions = useCallback(async () => {
@@ -421,7 +423,7 @@ export default function ActionSection({
 
             const res = await fetch(
                 `/api/tarot/versions?readingId=${readingId}`,
-                { headers }
+                { headers },
             )
             if (!res.ok) return
             const data = await res.json()
@@ -451,7 +453,7 @@ export default function ActionSection({
             previewBlobRef.current = null
             setThumbnailUrls((current) => {
                 Object.values(current).forEach((url) =>
-                    URL.revokeObjectURL(url)
+                    URL.revokeObjectURL(url),
                 )
                 return {}
             })
@@ -490,9 +492,7 @@ export default function ActionSection({
             setPreviewError(null)
             setPreviewProgress(0)
             try {
-                const cachedBlob = previewCacheRef.current.get(
-                    selectedStyle.id
-                )
+                const cachedBlob = previewCacheRef.current.get(selectedStyle.id)
                 if (cachedBlob) {
                     const nextUrl = URL.createObjectURL(cachedBlob)
                     setPreviewUrl((current) => {
@@ -591,7 +591,7 @@ export default function ActionSection({
                         next[style.id] = url
                         return next
                     })
-                })
+                }),
             )
         }
 
@@ -683,8 +683,7 @@ export default function ActionSection({
             if (cachedPreview?.styleId === selectedStyle.id) {
                 blob = cachedPreview.blob
             } else {
-                blob =
-                    previewCacheRef.current.get(selectedStyle.id) || null
+                blob = previewCacheRef.current.get(selectedStyle.id) || null
             }
 
             if (!blob) {
@@ -780,9 +779,8 @@ export default function ActionSection({
                             "Content-Type": "application/json",
                         }
                         if (session?.access_token) {
-                            headers[
-                                "Authorization"
-                            ] = `Bearer ${session.access_token}`
+                            headers["Authorization"] =
+                                `Bearer ${session.access_token}`
                         }
 
                         await fetch("/api/tarot/update", {
@@ -822,7 +820,7 @@ export default function ActionSection({
     useEffect(() => {
         if (object?.cardInsights) {
             const insights = object.cardInsights.filter(
-                (insight): insight is string => typeof insight === "string"
+                (insight): insight is string => typeof insight === "string",
             )
             if (insights.length > 0) {
                 setCardInsights(insights)
@@ -918,13 +916,13 @@ export default function ActionSection({
 
     const handleRegenerate = useCallback(async () => {
         try {
-            if (!Number.isFinite(stars as number) || (stars as number) < 5) {
+            if (!Number.isFinite(stars as number) || (stars as number) < 1) {
                 return
             }
 
-            const ok = await spendStars(5)
+            const ok = await spendStars(1)
             if (ok) {
-                toast.warning("-5 stars for regeneration", {
+                toast.warning("-1 star for regeneration", {
                     position: "bottom-center",
                 })
             } else {
@@ -949,7 +947,7 @@ export default function ActionSection({
             try {
                 if (typeof window !== "undefined") {
                     const rawBackup = localStorage.getItem(
-                        "reading-state-v1-backup"
+                        "reading-state-v1-backup",
                     )
                     if (rawBackup) {
                         const backup = JSON.parse(rawBackup) as {
@@ -974,7 +972,7 @@ export default function ActionSection({
             })
 
             const cardArray = (cards ?? []).map((c) =>
-                typeof c === "string" ? c : String(c)
+                typeof c === "string" ? c : String(c),
             )
             submit({
                 prompt,
@@ -1007,7 +1005,7 @@ export default function ActionSection({
                 <span className='leading-tight text-center'>
                     <span className='block'>{t("buttons.regenerate")}</span>
                     <span className='block text-[10px] text-yellow-300'>
-                        -5{" "}
+                        -1{" "}
                         <Star
                             className='inline w-3 h-3 text-yellow-300'
                             fill='currentColor'
@@ -1206,15 +1204,10 @@ export default function ActionSection({
 
     const renderIcon = (icon: ReactNode) =>
         isValidElement(icon)
-            ? cloneElement(
-                  icon as ReactElement<{ className?: string }>,
-                  { className: "w-3 h-3 text-white" }
-              )
+            ? cloneElement(icon as ReactElement<{ className?: string }>, {
+                  className: "w-3 h-3 text-white",
+              })
             : icon
-
-    const [expandedActionId, setExpandedActionId] = useState<string | null>(
-        null
-    )
 
     if (variant === "compact") {
         return (
@@ -1278,9 +1271,6 @@ export default function ActionSection({
                         className='py-1'
                     >
                         {actionOptions.map((action, index) => {
-                            const isExpanded =
-                                expandedActionId === action.id &&
-                                action.id !== "versions"
                             const labelText =
                                 typeof action.label === "string"
                                     ? action.label
@@ -1297,20 +1287,7 @@ export default function ActionSection({
                                             <SheetTrigger asChild>
                                                 <button
                                                     type='button'
-                                                    className={`group flex items-center gap-2 py-2 pr-2 pl-0 transition-all duration-300 hover:shadow-lg w-full ${
-                                                        isExpanded
-                                                            ? "rounded-xl pr-3 pl-0"
-                                                            : "rounded-full"
-                                                    }`}
-                                                    onClick={() =>
-                                                        setExpandedActionId(
-                                                            (prev) =>
-                                                                prev ===
-                                                                action.id
-                                                                    ? null
-                                                                    : action.id
-                                                        )
-                                                    }
+                                                    className='group flex flex-col items-center gap-1.5 py-2 transition-all duration-300 hover:shadow-lg w-full'
                                                     style={{
                                                         animationDelay: `${index * 50}ms`,
                                                         animationFillMode:
@@ -1320,19 +1297,18 @@ export default function ActionSection({
                                                     <div
                                                         className='relative w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
                                                         style={{
-                                                            background: action.bg,
+                                                            background:
+                                                                action.bg,
                                                         }}
                                                     >
                                                         {renderIcon(
-                                                            action.icon
+                                                            action.icon,
                                                         )}
                                                         <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
                                                     </div>
-                                                    {isExpanded && (
-                                                        <span className='text-xs text-white/80'>
-                                                            {labelText}
-                                                        </span>
-                                                    )}
+                                                    <span className='text-[10px] text-white/70 leading-snug text-wrap text-pretty text-center'>
+                                                        {labelText}
+                                                    </span>
                                                 </button>
                                             </SheetTrigger>
                                             <SheetContent
@@ -1381,12 +1357,12 @@ export default function ActionSection({
                                                             downloadFormat ===
                                                                 "video"
                                                                 ? "actions.downloadSheetTitleVideo"
-                                                                : "actions.downloadSheetTitleImage"
+                                                                : "actions.downloadSheetTitleImage",
                                                         )}
                                                     </SheetTitle>
                                                     <SheetDescription>
                                                         {t(
-                                                            "actions.downloadSheetDesc"
+                                                            "actions.downloadSheetDesc",
                                                         )}
                                                     </SheetDescription>
                                                     <div className='mt-4 flex justify-center'>
@@ -1395,7 +1371,7 @@ export default function ActionSection({
                                                                 type='button'
                                                                 onClick={() =>
                                                                     setDownloadFormat(
-                                                                        "image"
+                                                                        "image",
                                                                     )
                                                                 }
                                                                 className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
@@ -1406,14 +1382,14 @@ export default function ActionSection({
                                                                 }`}
                                                             >
                                                                 {t(
-                                                                    "actions.downloadTabImage"
+                                                                    "actions.downloadTabImage",
                                                                 )}
                                                             </button>
                                                             <button
                                                                 type='button'
                                                                 onClick={() =>
                                                                     setDownloadFormat(
-                                                                        "video"
+                                                                        "video",
                                                                     )
                                                                 }
                                                                 className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
@@ -1424,7 +1400,7 @@ export default function ActionSection({
                                                                 }`}
                                                             >
                                                                 {t(
-                                                                    "actions.downloadTabVideo"
+                                                                    "actions.downloadTabVideo",
                                                                 )}
                                                             </button>
                                                         </div>
@@ -1435,12 +1411,12 @@ export default function ActionSection({
                                                         <div className='flex items-center justify-between text-sm'>
                                                             <span className='font-medium'>
                                                                 {t(
-                                                                    "actions.downloadStylesTitle"
+                                                                    "actions.downloadStylesTitle",
                                                                 )}
                                                             </span>
                                                             <span className='text-xs text-muted-foreground'>
                                                                 {t(
-                                                                    "actions.downloadStylesHint"
+                                                                    "actions.downloadStylesHint",
                                                                 )}
                                                             </span>
                                                         </div>
@@ -1454,7 +1430,7 @@ export default function ActionSection({
                                                                         type='button'
                                                                         onClick={() =>
                                                                             setDownloadStyleId(
-                                                                                style.id
+                                                                                style.id,
                                                                             )
                                                                         }
                                                                         className={`flex h-36 flex-col rounded-lg border p-2 text-left transition ${
@@ -1466,16 +1442,20 @@ export default function ActionSection({
                                                                     >
                                                                         <div className='h-16 w-full overflow-hidden rounded-md border border-border/40 bg-muted/40'>
                                                                             {thumbnailUrls[
-                                                                                style.id
+                                                                                style
+                                                                                    .id
                                                                             ] ? (
                                                                                 <div className='relative h-full w-full'>
                                                                                     <img
                                                                                         src={
                                                                                             thumbnailUrls[
-                                                                                                style.id
+                                                                                                style
+                                                                                                    .id
                                                                                             ]
                                                                                         }
-                                                                                        alt={style.label}
+                                                                                        alt={
+                                                                                            style.label
+                                                                                        }
                                                                                         className='object-contain'
                                                                                     />
                                                                                 </div>
@@ -1496,7 +1476,7 @@ export default function ActionSection({
                                                                             }
                                                                         </div>
                                                                     </button>
-                                                                )
+                                                                ),
                                                             )}
                                                         </div>
                                                     </div>
@@ -1504,12 +1484,12 @@ export default function ActionSection({
                                                         <div className='flex items-center justify-between text-sm'>
                                                             <span className='font-medium'>
                                                                 {t(
-                                                                    "actions.downloadBrandingTitle"
+                                                                    "actions.downloadBrandingTitle",
                                                                 )}
                                                             </span>
                                                             <span className='text-xs text-muted-foreground'>
                                                                 {t(
-                                                                    "actions.downloadBrandingHint"
+                                                                    "actions.downloadBrandingHint",
                                                                 )}
                                                             </span>
                                                         </div>
@@ -1537,138 +1517,133 @@ export default function ActionSection({
                                                             type='button'
                                                             onClick={() =>
                                                                 setDownloadOpen(
-                                                                    false
+                                                                    false,
                                                                 )
                                                             }
                                                             className='w-full rounded-md border border-border/60 bg-background px-4 py-2 text-sm hover:bg-muted/40 sm:w-auto'
                                                         >
-                                                            {t("actions.cancel")}
+                                                            {t(
+                                                                "actions.cancel",
+                                                            )}
                                                         </button>
                                                         <button
                                                             type='button'
-                                                            onClick={handleDownload}
-                                                            disabled={isDownloading}
+                                                            onClick={
+                                                                handleDownload
+                                                            }
+                                                            disabled={
+                                                                isDownloading
+                                                            }
                                                             className='w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
                                                         >
                                                             {t(
-                                                                "actions.downloadButton"
+                                                                "actions.downloadButton",
                                                             )}
                                                         </button>
                                                     </SheetFooter>
                                                 </div>
                                             </SheetContent>
                                         </Sheet>
-                                ) : action.id === "versions" ? (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <button
-                                                type='button'
-                                                className={`group flex items-center gap-2 py-2 pr-2 pl-0 transition-all duration-300 hover:shadow-lg w-full ${
-                                                    isExpanded
-                                                        ? "rounded-xl pr-3 pl-0"
-                                                        : "rounded-full"
-                                                }`}
-                                                onClick={() =>
-                                                    setExpandedActionId(
-                                                        (prev) =>
-                                                            prev ===
-                                                            action.id
-                                                                ? null
-                                                                : action.id
-                                                    )
-                                                }
-                                                style={{
-                                                    animationDelay: `${index * 50}ms`,
-                                                    animationFillMode: "both",
-                                                }}
-                                            >
-                                                <div
-                                                    className='relative w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
+                                    ) : action.id === "versions" ? (
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <button
+                                                    type='button'
+                                                    className='group flex flex-col items-center gap-1.5 py-2 transition-all duration-300 hover:shadow-lg w-full'
                                                     style={{
-                                                        background: action.bg,
+                                                        animationDelay: `${index * 50}ms`,
+                                                        animationFillMode:
+                                                            "both",
                                                     }}
                                                 >
-                                                    {renderIcon(action.icon)}
-                                                    <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
-                                                </div>
-                                            </button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className='w-72'>
-                                            <div className='max-h-64 overflow-auto space-y-2'>
-                                                {versions.map((v) => (
-                                                    <button
-                                                        key={v.id}
-                                                        type='button'
-                                                        onClick={() => {
-                                                            if (typeof onInterpretationChange === "function") {
-                                                                onInterpretationChange(v.content)
-                                                            }
+                                                    <div
+                                                        className='relative w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
+                                                        style={{
+                                                            background:
+                                                                action.bg,
                                                         }}
-                                                        className='w-full text-left px-2 py-1 rounded hover:bg-white/10 text-sm'
                                                     >
-                                                        {new Date(
-                                                            v.created_at
-                                                        ).toLocaleString()}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </PopoverContent>
-                                    </Popover>
-                                ) : (
-                                    <button
-                                        type='button'
-                                        className={`group flex items-center gap-2 py-2 pr-2 pl-0 transition-all duration-300 hover:shadow-lg w-full ${
-                                            isExpanded
-                                                ? "rounded-xl pr-3 pl-0"
-                                                : "rounded-full"
-                                        }`}
-                                        onClick={() => {
-                                            setExpandedActionId((prev) =>
-                                                prev === action.id
-                                                    ? null
-                                                    : action.id
-                                            )
-                                            void action.onClick?.()
-                                        }}
-                                        style={{
-                                            animationDelay: `${index * 50}ms`,
-                                            animationFillMode: "both",
-                                        }}
-                                    >
-                                        <div
-                                            className='relative w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
-                                            style={{ background: action.bg }}
-                                        >
-                                            {renderIcon(action.icon)}
-                                            <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
-                                        </div>
-                                        {isExpanded && action.id !== "versions" && (
-                                            <div className='text-left'>
-                                                <div className='text-xs text-white/80'>
-                                                    {labelText}
+                                                        {renderIcon(
+                                                            action.icon,
+                                                        )}
+                                                        <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                                                    </div>
+                                                    <span className='text-[10px] text-white/70 text-center leading-tight truncate max-w-full'>
+                                                        {labelText}
+                                                    </span>
+                                                </button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-72'>
+                                                <div className='max-h-64 overflow-auto space-y-2'>
+                                                    {versions.map((v) => (
+                                                        <button
+                                                            key={v.id}
+                                                            type='button'
+                                                            onClick={() => {
+                                                                if (
+                                                                    typeof onInterpretationChange ===
+                                                                    "function"
+                                                                ) {
+                                                                    onInterpretationChange(
+                                                                        v.content,
+                                                                    )
+                                                                }
+                                                            }}
+                                                            className='w-full text-left px-2 py-1 rounded hover:bg-white/10 text-sm'
+                                                        >
+                                                            {new Date(
+                                                                v.created_at,
+                                                            ).toLocaleString()}
+                                                        </button>
+                                                    ))}
                                                 </div>
+                                            </PopoverContent>
+                                        </Popover>
+                                    ) : (
+                                        <button
+                                            type='button'
+                                            className='group flex flex-col items-center gap-1.5 py-2 transition-all duration-300 hover:shadow-lg w-full'
+                                            onClick={() =>
+                                                void action.onClick?.()
+                                            }
+                                            style={{
+                                                animationDelay: `${index * 50}ms`,
+                                                animationFillMode: "both",
+                                            }}
+                                        >
+                                            <div
+                                                className='relative w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
+                                                style={{
+                                                    background: action.bg,
+                                                }}
+                                            >
+                                                {renderIcon(action.icon)}
+                                                <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                                            </div>
+                                            <div className='flex flex-col items-center'>
+                                                <span className='text-[10px] text-white/70 leading-snug text-wrap text-pretty text-center'>
+                                                    {labelText}
+                                                </span>
                                                 {action.id === "regen" && (
-                                                    <div className='text-[10px] text-yellow-300 flex items-center gap-1'>
+                                                    <span className='text-[9px] text-yellow-300 flex items-center gap-0.5'>
                                                         -5{" "}
                                                         <Star
-                                                            className='w-3 h-3 text-yellow-300'
+                                                            className='w-2.5 h-2.5 text-yellow-300'
                                                             fill='currentColor'
                                                         />
-                                                    </div>
+                                                    </span>
                                                 )}
                                             </div>
-                                        )}
-                                    </button>
-                                )}
-                            </SwiperSlide>
-                        )
-                    })}
-                </Swiper>
+                                        </button>
+                                    )}
+                                </SwiperSlide>
+                            )
+                        })}
+                    </Swiper>
+                </div>
             </div>
-        </div>
-    )
-}
-
+        )
+    }
 
     return (
         <div className='relative overflow-hidden group bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/5 hover:bg-white/[0.06] hover:border-primary/20 transition-all duration-300'>
@@ -1804,12 +1779,12 @@ export default function ActionSection({
                                                         downloadFormat ===
                                                             "video"
                                                             ? "actions.downloadSheetTitleVideo"
-                                                            : "actions.downloadSheetTitleImage"
+                                                            : "actions.downloadSheetTitleImage",
                                                     )}
                                                 </SheetTitle>
                                                 <SheetDescription>
                                                     {t(
-                                                        "actions.downloadSheetDesc"
+                                                        "actions.downloadSheetDesc",
                                                     )}
                                                 </SheetDescription>
                                                 <div className='mt-4 flex justify-center'>
@@ -1818,7 +1793,7 @@ export default function ActionSection({
                                                             type='button'
                                                             onClick={() =>
                                                                 setDownloadFormat(
-                                                                    "image"
+                                                                    "image",
                                                                 )
                                                             }
                                                             className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
@@ -1829,14 +1804,14 @@ export default function ActionSection({
                                                             }`}
                                                         >
                                                             {t(
-                                                                "actions.downloadTabImage"
+                                                                "actions.downloadTabImage",
                                                             )}
                                                         </button>
                                                         <button
                                                             type='button'
                                                             onClick={() =>
                                                                 setDownloadFormat(
-                                                                    "video"
+                                                                    "video",
                                                                 )
                                                             }
                                                             className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
@@ -1847,7 +1822,7 @@ export default function ActionSection({
                                                             }`}
                                                         >
                                                             {t(
-                                                                "actions.downloadTabVideo"
+                                                                "actions.downloadTabVideo",
                                                             )}
                                                         </button>
                                                     </div>
@@ -1858,12 +1833,12 @@ export default function ActionSection({
                                                     <div className='flex items-center justify-between text-sm'>
                                                         <span className='font-medium'>
                                                             {t(
-                                                                "actions.downloadStylesTitle"
+                                                                "actions.downloadStylesTitle",
                                                             )}
                                                         </span>
                                                         <span className='text-xs text-muted-foreground'>
                                                             {t(
-                                                                "actions.downloadStylesHint"
+                                                                "actions.downloadStylesHint",
                                                             )}
                                                         </span>
                                                     </div>
@@ -1877,7 +1852,7 @@ export default function ActionSection({
                                                                     type='button'
                                                                     onClick={() =>
                                                                         setDownloadStyleId(
-                                                                            style.id
+                                                                            style.id,
                                                                         )
                                                                     }
                                                                     className={`flex h-36 flex-col rounded-lg border p-2 text-left transition ${
@@ -1930,7 +1905,7 @@ export default function ActionSection({
                                                                         }
                                                                     </div>
                                                                 </button>
-                                                            )
+                                                            ),
                                                         )}
                                                     </div>
                                                 </div>
@@ -1938,7 +1913,7 @@ export default function ActionSection({
                                                     <div className='flex items-center justify-between text-sm'>
                                                         <span className='font-medium'>
                                                             {t(
-                                                                "actions.downloadPreviewTitle"
+                                                                "actions.downloadPreviewTitle",
                                                             )}
                                                         </span>
                                                         <span className='text-xs text-muted-foreground'>
@@ -1969,8 +1944,8 @@ export default function ActionSection({
                                                                                       6,
                                                                                       Math.round(
                                                                                           activePreviewProgress *
-                                                                                              100
-                                                                                      )
+                                                                                              100,
+                                                                                      ),
                                                                                   )}%`,
                                                                               }
                                                                     }
@@ -1995,7 +1970,7 @@ export default function ActionSection({
                                                             ) : (
                                                                 <div className='absolute inset-0 flex items-center justify-center text-xs text-muted-foreground'>
                                                                     {t(
-                                                                        "actions.downloadVideoPreviewFallback"
+                                                                        "actions.downloadVideoPreviewFallback",
                                                                     )}
                                                                 </div>
                                                             )
@@ -2005,7 +1980,7 @@ export default function ActionSection({
                                                             <Image
                                                                 src={previewUrl}
                                                                 alt={t(
-                                                                    "actions.downloadPreviewAlt"
+                                                                    "actions.downloadPreviewAlt",
                                                                 )}
                                                                 fill
                                                                 unoptimized
@@ -2015,7 +1990,7 @@ export default function ActionSection({
                                                             <div className='absolute inset-0 flex items-center justify-center text-xs text-muted-foreground'>
                                                                 {previewError ||
                                                                     t(
-                                                                        "actions.downloadPreviewFallback"
+                                                                        "actions.downloadPreviewFallback",
                                                                     )}
                                                             </div>
                                                         )}
@@ -2031,7 +2006,7 @@ export default function ActionSection({
                                                     }
                                                 >
                                                     {t(
-                                                        "actions.downloadCancel"
+                                                        "actions.downloadCancel",
                                                     )}
                                                 </button>
                                                 <button
@@ -2055,7 +2030,7 @@ export default function ActionSection({
                                                         downloadFormat ===
                                                             "video"
                                                             ? "actions.downloadVideoButton"
-                                                            : "actions.downloadButton"
+                                                            : "actions.downloadButton",
                                                     )}
                                                 </button>
                                             </SheetFooter>
@@ -2096,31 +2071,33 @@ export default function ActionSection({
                                             </PopoverTrigger>
                                             <PopoverContent className='w-72'>
                                                 <div className='max-h-64 overflow-auto space-y-2'>
-                                                    {versions.map((v, index) => (
-                                                        <button
-                                                            key={v.id}
-                                                            type='button'
-                                                            className='w-full text-left px-2 py-1 rounded hover:bg-white/10 text-sm'
-                                                            onClick={() => {
-                                                                if (
-                                                                    typeof onInterpretationChange ===
-                                                                    "function"
-                                                                )
-                                                                    onInterpretationChange(
-                                                                        v.content
+                                                    {versions.map(
+                                                        (v, index) => (
+                                                            <button
+                                                                key={v.id}
+                                                                type='button'
+                                                                className='w-full text-left px-2 py-1 rounded hover:bg-white/10 text-sm'
+                                                                onClick={() => {
+                                                                    if (
+                                                                        typeof onInterpretationChange ===
+                                                                        "function"
                                                                     )
-                                                                else
-                                                                    setInterpretation(
-                                                                        v.content
-                                                                    )
-                                                            }}
-                                                        >
-                                                            {`Version ${
-                                                                versions.length -
-                                                                index
-                                                            } • ${new Date(v.created_at).toLocaleString()}`}
-                                                        </button>
-                                                    ))}
+                                                                        onInterpretationChange(
+                                                                            v.content,
+                                                                        )
+                                                                    else
+                                                                        setInterpretation(
+                                                                            v.content,
+                                                                        )
+                                                                }}
+                                                            >
+                                                                {`Version ${
+                                                                    versions.length -
+                                                                    index
+                                                                } • ${new Date(v.created_at).toLocaleString()}`}
+                                                            </button>
+                                                        ),
+                                                    )}
                                                 </div>
                                             </PopoverContent>
                                         </Popover>
