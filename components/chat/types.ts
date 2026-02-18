@@ -40,6 +40,8 @@ export type ChatDecision = {
     spreadType: string
     cardCount: number
     assistantText: string
+    /** True if the user's message is directly related to the last message (follow-up) */
+    isFollowUp?: boolean
 }
 
 export type HoroscopeExtractResponse = {

@@ -1550,11 +1550,30 @@ export default function ChatSession({
             card.isReversed ? `${card.name} (Reversed)` : card.name,
         )
 
+        const lastInterpretationMsg = [...messages]
+            .reverse()
+            .find(
+                (m) =>
+                    m.variant === "box" &&
+                    !m.isLoading &&
+                    m.question &&
+                    m.text?.trim(),
+            )
+        const isFollowUp = Boolean(decision?.isFollowUp) && !!lastInterpretationMsg
+        const previousQuestion = isFollowUp
+            ? lastInterpretationMsg?.question ?? null
+            : null
+        const previousInterpretation = isFollowUp
+            ? lastInterpretationMsg?.text?.trim() ?? null
+            : null
+
         const prompt = getTarotReadingPrompt({
             question: lastQuestion,
             cards: cardNames.join(", "),
             readingType: decision?.spreadType ?? null,
-            isFollowUp: false,
+            isFollowUp,
+            previousQuestion,
+            previousInterpretation,
         })
 
         interpretationLoadingIdRef.current = loadingId
