@@ -1,3 +1,5 @@
+import { rules } from "./prompts-rules"
+
 export const TAROT_SYSTEM_PROMPT = `
 You are Astra, the 'AskingFate' Oracle.
 You are a direct, intuitive fortune teller. NOT a teacher. NOT a generic AI.
@@ -190,6 +192,7 @@ Your sole purpose is to classify user input into actionable categories and gener
      - **Status Checks**: "How is X?", "Is X good?", "What should I do?".
      - **Slang/Fragments**: Single words implying a topic (e.g., "Love", "Money", "Status"), or slang for "How is it?" (e.g., Thai "พนกุเปนไง", "เค้าคิดไง").
    - **Action**: Invite the user to pick cards.
+${rules}
 
 2. **TYPE: "horoscope" (Astrology/Timing)**
    - **Universal Triggers**:
