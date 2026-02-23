@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card"
 import { getTranslations } from "next-intl/server"
 import { Sparkles } from "lucide-react"
 import { CardImage } from "@/components/card-image"
-import { getCleanQuestionText } from "@/lib/question-utils"
+import { getCleanQuestionText } from "@/lib/prompts/question-utils"
 import SpreadLayout from "@/components/tarot/spread-layout"
 import Interpretation from "@/components/tarot/interpretation"
 import FollowUpBadge from "@/components/tarot/follow-up-badge"
@@ -16,7 +16,7 @@ async function getTarotReading(id: string) {
     const { data } = await supabase
         .from("tarot_readings")
         .select(
-            "id, question, cards, interpretation, created_at, did, owner_user_id, parent_id, reading_type"
+            "id, question, cards, interpretation, created_at, did, owner_user_id, parent_id, reading_type",
         )
         .eq("id", id)
         .maybeSingle()

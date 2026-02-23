@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo, useRef } from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
@@ -9,6 +9,7 @@ import QuestionInput from "@/components/question-input"
 import Footer from "@/components/footer/footer"
 import HomeQuickCards from "@/components/home/home-quick-cards"
 import { ConsultingBadge } from "@/components/consulting-badge"
+import { GetStartedTourOverlay } from "@/components/home/get-started-tour-overlay"
 
 export default function Home() {
     const tHome = useTranslations("Home")
@@ -21,6 +22,8 @@ export default function Home() {
     const [linkingQuestion, setLinkingQuestion] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [showLearnMore, setShowLearnMore] = useState(false)
+    const [showTour, setShowTour] = useState(false)
+    const inputContainerRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
         const timer = window.setTimeout(() => {
@@ -32,6 +35,7 @@ export default function Home() {
     const createSessionAndRedirect = async (value: string) => {
         const trimmed = value.trim()
         if (!trimmed || isLinking) return
+        setShowTour(false)
         setQuestion("")
         setError(null)
         setLinkingQuestion(trimmed)
@@ -100,21 +104,37 @@ export default function Home() {
                         <p className='text-white/70 text-sm md:text-base'>
                             {tHome("description")}
                         </p>
-                        {shouldShowLearnMore && (
+                        <div className='w-[300px] mx-auto flex flex-col gap-2 justify-center items-center'>
                             <button
                                 type='button'
-                                className='animate-fade-swap text-xs sm:text-sm uppercase tracking-widest text-white/70 hover:text-white transition-colors'
                                 onClick={() => {
-                                    window.location.href = "/about"
+                                    document
+                                        .getElementById(
+                                            "home-question-input-wrapper",
+                                        )
+                                        ?.scrollIntoView({ behavior: "smooth" })
+                                    setShowTour(true)
                                 }}
+                                className='w-full rounded-full bg-gradient-to-r from-primary via-accent to-primary px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/25 hover:opacity-90 transition-opacity'
                             >
-                                <span className='flex items-center gap-4'>
-                                    <span className='h-px w-10 bg-white/30' />
-                                    {tHome("learnMore")}
-                                    <span className='h-px w-10 bg-white/30' />
-                                </span>
+                                {tHome("getStarted")}
                             </button>
-                        )}
+                            {shouldShowLearnMore && (
+                                <button
+                                    type='button'
+                                    className='mx-auto animate-fade-swap text-xs sm:text-sm uppercase tracking-widest text-white/70 hover:text-white transition-colors'
+                                    onClick={() => {
+                                        window.location.href = "/about"
+                                    }}
+                                >
+                                    <span className='flex items-center gap-4'>
+                                        <span className='h-px w-10 bg-white/30' />
+                                        {tHome("learnMore")}
+                                        <span className='h-px w-10 bg-white/30' />
+                                    </span>
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             ) : (
@@ -136,7 +156,14 @@ export default function Home() {
                 </div>
             )}
 
-            <div className='sticky bottom-0 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 transition-all duration-500'>
+            <HomeQuickCards
+                onCardClick={createSessionAndRedirect}
+                disabled={isLinking}
+            />
+
+            <div
+                className={`sticky bottom-0 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 transition-all duration-500 ${showTour ? "z-[51]" : ""}`}
+            >
                 <div className='w-full max-w-3xl mx-auto px-4 space-y-4 transition-all duration-500 pb-4'>
                     {error && (
                         <p className='text-xs text-red-400 text-center animate-fade-in'>
@@ -144,20 +171,21 @@ export default function Home() {
                         </p>
                     )}
 
-                    <HomeQuickCards
-                        onCardClick={createSessionAndRedirect}
-                        disabled={isLinking}
-                    />
-
-                    <QuestionInput
-                        id='home-question-input'
-                        value={question}
-                        onChange={setQuestion}
-                        onSubmit={createSessionAndRedirect}
-                        isLoading={isLinking}
-                        centered
-                        className='max-w-sm md:max-w-md transition-[max-width] duration-500 ease-in-out'
-                    />
+                    <div
+                        ref={inputContainerRef}
+                        id='home-question-input-wrapper'
+                        className='flex justify-center'
+                    >
+                        <QuestionInput
+                            id='home-question-input'
+                            value={question}
+                            onChange={setQuestion}
+                            onSubmit={createSessionAndRedirect}
+                            isLoading={isLinking}
+                            centered
+                            className='max-w-sm md:max-w-md transition-[max-width] duration-500 ease-in-out'
+                        />
+                    </div>
                     <p className='text-[11px] leading-relaxed text-white/50 text-center text-left'>
                         {disclaimerText}
                     </p>
@@ -166,6 +194,14 @@ export default function Home() {
                     <Footer />
                 </div>
             </div>
+
+            {showTour && (
+                <GetStartedTourOverlay
+                    isOpen={showTour}
+                    onClose={() => setShowTour(false)}
+                    targetRef={inputContainerRef}
+                />
+            )}
         </div>
     )
 }

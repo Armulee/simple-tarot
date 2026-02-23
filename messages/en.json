@@ -250,6 +250,9 @@
       "instruction": "Enter your birth details, keep Transit set to now (or choose a date), add an optional question, then tap Start to generate your horoscope.",
       "cta": "Start your astrology reading"
     },
+    "getStarted": "Get Started",
+    "tourInstruction": "Type your question you want to ask your fate in here:",
+    "tourExamples": "e.g. \"What is the message I need to hear today?\" or \"How can I find clarity in my career?\"",
     "learnMore": "Learn More",
     "quickCards": {
       "cardReading": "Do the card reading",
@@ -262,6 +265,13 @@
     "selectedCards": "You have selected {selectedCount}/{cardsToSelect} cards",
     "checkingStars": "Checking your star balance...",
     "disclaimer": "Do not trust or rely on this interpretation blindly. AskingFate uses AI and may make mistakes. For important decisions, please consult a qualified professional."
+  },
+  "ActionTrigger": {
+    "autoPickLabel": "Auto pick card:",
+    "autoPickOn": "on",
+    "autoPickOff": "off",
+    "newBirthInfo": "New birth info",
+    "birthInfo": "Birth info: {date}"
   },
   "About": {
     "whatIs": "What is",
@@ -2185,9 +2195,7 @@
     "usingLocationFallback": "Using your current location as fallback. This can reduce precision for houses and ascendant.",
     "processFailed": "Sorry, I couldn't process horoscope details right now.",
     "birthFormTitle": "Fill your birth details",
-    "birthFormSubmit": "Use this birth data",
-    "transitFormTitle": "Set transit date and time",
-    "transitFormSubmit": "Run horoscope with transit date"
+    "birthFormSubmit": "Use this birth data"
   },
   "Settings": {
     "title": "Settings",

@@ -9,7 +9,7 @@ const MODEL = "google/gemini-2.0-flash"
 
 export async function POST(req: Request) {
     try {
-        const { question, history } = await req.json()
+        const { question, history, savedBirthInfo } = await req.json()
 
         if (!question) {
             return new Response("User question is required", { status: 400 })
@@ -19,7 +19,11 @@ export async function POST(req: Request) {
             model: MODEL,
             maxOutputTokens: 2000,
             system: CHAT_DECISION_SYSTEM_PROMPT,
-            prompt: getChatDecisionPrompt({ question, history }),
+            prompt: getChatDecisionPrompt({
+                question,
+                history,
+                savedBirthInfo: savedBirthInfo ?? null,
+            }),
         })
 
         return result.toTextStreamResponse()

@@ -9,7 +9,7 @@ import { ReadingConfig } from "../../../app/[locale]/reading/page"
 import { CircularCardSpread } from "./circular-card-spread"
 import LinearCardSpread from "./linear-card-spread"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { getCleanQuestionText } from "@/lib/question-utils"
+import { getCleanQuestionText } from "@/lib/prompts/question-utils"
 import { useTranslations } from "next-intl"
 import { InlineQuestionEdit } from "../inline-question-edit"
 // import AdDialog from "@/components/ads/ad-dialog"
@@ -53,7 +53,7 @@ export default function CardSelection({
 
     // Desktop-only spread mode selection; mobile is forced to linear
     const [spreadMode, setSpreadMode] = useState<"circular" | "linear">(
-        "circular"
+        "circular",
     )
     const [isEditing, setIsEditing] = useState(false)
     const [isShuffling, setIsShuffling] = useState(false)
@@ -68,7 +68,10 @@ export default function CardSelection({
         { name: string; isReversed: boolean }[]
     >([])
     const [spreadResetKey, setSpreadResetKey] = useState(0)
-    const cardsToSelect = readingType && readingConfig[readingType] ? readingConfig[readingType].cards : 1
+    const cardsToSelect =
+        readingType && readingConfig[readingType]
+            ? readingConfig[readingType].cards
+            : 1
 
     // Dialog state
     const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
@@ -111,128 +114,131 @@ export default function CardSelection({
     // Clear interpretation cache for new readings - no-op
     const clearInterpretationCache = useCallback(() => {}, [])
 
-    const handleCardsSelected = useCallback(async (
-        cards: { name: string; isReversed: boolean }[]
-    ) => {
-        if (!initialized) {
-            setPendingSelection(cards)
-            setIsCreatingReading(true)
-            return
-        }
-        // If not enough stars, block and show dialog; do not mutate state
-        if (
-            initialized &&
-            Number.isFinite(stars as number) &&
-            (stars as number) < 5
-        ) {
-            setShowNoStarsDialog(true)
-            return
-        }
-        // Clear old interpretation state when new cards are selected
-        clearInterpretationState()
-
-        // Convert to TarotCard format
-        const tarotCards: TarotCard[] = cards.map((card, index) => ({
-            id: index + 1,
-            name: card.name,
-            image: `assets/rider-waite-tarot/${card.name
-                .toLowerCase()
-                .replace(/\s+/g, "-")}.png`,
-            meaning: card.isReversed ? `${card.name} (Reversed)` : card.name,
-            isReversed: card.isReversed,
-        }))
-
-        setSelectedCards(tarotCards)
-        // Clear interpretation cache for new reading (only for non-follow-up readings)
-        if (!isFollowUp) {
-            clearInterpretationCache()
-        }
-
-        // Create tarot reading entry and redirect to the new page
-        try {
-            setIsCreatingReading(true)
-            const currentQuestion =
-                isFollowUp && followUpQuestion ? followUpQuestion : question
-            const cardNames = cards.map((card) =>
-                card.isReversed ? `${card.name} (Reversed)` : card.name
-            )
-            // Read parent reading id for follow-ups
-            let parentReadingId: string | null = null
-            try {
-                const raw = localStorage.getItem("reading-state-v1")
-                if (raw) {
-                    const data = JSON.parse(raw) as {
-                        parentReadingId?: string | null
-                    }
-                    if (data.parentReadingId)
-                        parentReadingId = data.parentReadingId
-                }
-                if (!parentReadingId) {
-                    const rawBackup = localStorage.getItem(
-                        "reading-state-v1-backup"
-                    )
-                    if (rawBackup) {
-                        const backup = JSON.parse(rawBackup) as {
-                            parentReadingId?: string | null
-                        }
-                        if (backup.parentReadingId)
-                            parentReadingId = backup.parentReadingId
-                    }
-                }
-            } catch {}
-
-            // Deduct star before creating the reading
-            const starSuccess = spendStars(5)
-            if (!starSuccess) {
-                if (initialized) {
-                    setShowNoStarsDialog(true)
-                }
-                setIsCreatingReading(false)
+    const handleCardsSelected = useCallback(
+        async (cards: { name: string; isReversed: boolean }[]) => {
+            if (!initialized) {
+                setPendingSelection(cards)
+                setIsCreatingReading(true)
                 return
             }
+            // If not enough stars, block and show dialog; do not mutate state
+            if (
+                initialized &&
+                Number.isFinite(stars as number) &&
+                (stars as number) < 5
+            ) {
+                setShowNoStarsDialog(true)
+                return
+            }
+            // Clear old interpretation state when new cards are selected
+            clearInterpretationState()
 
-            const response = await fetch("/api/tarot/create", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    question: currentQuestion,
-                    cards: cardNames,
-                    parent_reading_id: isFollowUp ? parentReadingId : null,
-                    user_id: user?.id || null,
-                    reading_type: readingType || null,
-                }),
-            })
+            // Convert to TarotCard format
+            const tarotCards: TarotCard[] = cards.map((card, index) => ({
+                id: index + 1,
+                name: card.name,
+                image: `assets/rider-waite-tarot/${card.name
+                    .toLowerCase()
+                    .replace(/\s+/g, "-")}.png`,
+                meaning: card.isReversed
+                    ? `${card.name} (Reversed)`
+                    : card.name,
+                isReversed: card.isReversed,
+            }))
 
-            if (response.ok) {
-                const { id } = await response.json()
-                // Redirect to the new tarot reading page
-                window.location.href = `/tarot/${id}`
-            } else {
-                console.error("Failed to create tarot reading")
+            setSelectedCards(tarotCards)
+            // Clear interpretation cache for new reading (only for non-follow-up readings)
+            if (!isFollowUp) {
+                clearInterpretationCache()
+            }
+
+            // Create tarot reading entry and redirect to the new page
+            try {
+                setIsCreatingReading(true)
+                const currentQuestion =
+                    isFollowUp && followUpQuestion ? followUpQuestion : question
+                const cardNames = cards.map((card) =>
+                    card.isReversed ? `${card.name} (Reversed)` : card.name,
+                )
+                // Read parent reading id for follow-ups
+                let parentReadingId: string | null = null
+                try {
+                    const raw = localStorage.getItem("reading-state-v1")
+                    if (raw) {
+                        const data = JSON.parse(raw) as {
+                            parentReadingId?: string | null
+                        }
+                        if (data.parentReadingId)
+                            parentReadingId = data.parentReadingId
+                    }
+                    if (!parentReadingId) {
+                        const rawBackup = localStorage.getItem(
+                            "reading-state-v1-backup",
+                        )
+                        if (rawBackup) {
+                            const backup = JSON.parse(rawBackup) as {
+                                parentReadingId?: string | null
+                            }
+                            if (backup.parentReadingId)
+                                parentReadingId = backup.parentReadingId
+                        }
+                    }
+                } catch {}
+
+                // Deduct star before creating the reading
+                const starSuccess = spendStars(5)
+                if (!starSuccess) {
+                    if (initialized) {
+                        setShowNoStarsDialog(true)
+                    }
+                    setIsCreatingReading(false)
+                    return
+                }
+
+                const response = await fetch("/api/tarot/create", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        question: currentQuestion,
+                        cards: cardNames,
+                        parent_reading_id: isFollowUp ? parentReadingId : null,
+                        user_id: user?.id || null,
+                        reading_type: readingType || null,
+                    }),
+                })
+
+                if (response.ok) {
+                    const { id } = await response.json()
+                    // Redirect to the new tarot reading page
+                    window.location.href = `/tarot/${id}`
+                } else {
+                    console.error("Failed to create tarot reading")
+                    setIsCreatingReading(false)
+                    // Fallback to old flow
+                    setCurrentStep("interpretation")
+                }
+            } catch (error) {
+                console.error("Error creating tarot reading:", error)
                 setIsCreatingReading(false)
                 // Fallback to old flow
                 setCurrentStep("interpretation")
             }
-        } catch (error) {
-            console.error("Error creating tarot reading:", error)
-            setIsCreatingReading(false)
-            // Fallback to old flow
-            setCurrentStep("interpretation")
-        }
-    }, [
-        initialized,
-        stars,
-        spendStars,
-        clearInterpretationState,
-        setSelectedCards,
-        isFollowUp,
-        question,
-        followUpQuestion,
-        user?.id,
-        readingType,
-        setCurrentStep,
-        clearInterpretationCache,
-    ])
+        },
+        [
+            initialized,
+            stars,
+            spendStars,
+            clearInterpretationState,
+            setSelectedCards,
+            isFollowUp,
+            question,
+            followUpQuestion,
+            user?.id,
+            readingType,
+            setCurrentStep,
+            clearInterpretationCache,
+        ],
+    )
 
     useEffect(() => {
         if (initialized && pendingSelection) {
@@ -244,12 +250,12 @@ export default function CardSelection({
 
     const externalNames = useMemo(
         () => aggSelected.map((c) => c.name),
-        [aggSelected]
+        [aggSelected],
     )
 
     const handlePartialSelect = (
         card: { name: string; isReversed: boolean },
-        action: "add" | "remove"
+        action: "add" | "remove",
     ) => {
         setAggSelected((prev) => {
             let next = prev
@@ -290,7 +296,7 @@ export default function CardSelection({
 
             {/* No Stars Dialog */}
             <AlertDialog open={showNoStarsDialog}>
-            <AlertDialogContent className='overflow-x-hidden max-h-[85vh] overflow-y-auto overscroll-contain border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(234,179,8,0.35)]'>
+                <AlertDialogContent className='overflow-x-hidden max-h-[85vh] overflow-y-auto overscroll-contain border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(234,179,8,0.35)]'>
                     <div className='pointer-events-none absolute -top-24 -left-24 h-56 w-56 rounded-full bg-gradient-to-br from-yellow-300/25 via-yellow-500/15 to-transparent blur-3xl' />
                     <div className='pointer-events-none absolute -bottom-28 -right-28 h-72 w-72 rounded-full bg-gradient-to-tl from-yellow-400/20 via-yellow-600/10 to-transparent blur-[100px]' />
 
@@ -360,7 +366,7 @@ export default function CardSelection({
                                         {getCleanQuestionText(
                                             isFollowUp && followUpQuestion
                                                 ? followUpQuestion
-                                                : question || ""
+                                                : question || "",
                                         )}
                                         &rdquo;
                                     </p>
@@ -428,7 +434,7 @@ export default function CardSelection({
                                                     setSpreadMode("circular")
                                                     setAggSelected([])
                                                     setSpreadResetKey(
-                                                        (k) => k + 1
+                                                        (k) => k + 1,
                                                     )
                                                 }}
                                                 className='rounded-full'
@@ -447,7 +453,7 @@ export default function CardSelection({
                                                     setSpreadMode("linear")
                                                     setAggSelected([])
                                                     setSpreadResetKey(
-                                                        (k) => k + 1
+                                                        (k) => k + 1,
                                                     )
                                                 }}
                                                 className='rounded-full'
@@ -466,7 +472,7 @@ export default function CardSelection({
                                             <Button
                                                 onClick={() =>
                                                     handleCardsSelected(
-                                                        aggSelected
+                                                        aggSelected,
                                                     )
                                                 }
                                                 className='px-8 py-3 bg-gradient-to-r from-[#15a6ff] to-[#b56cff] text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105'
@@ -517,12 +523,19 @@ export default function CardSelection({
                                             externalSelectedNames={
                                                 externalNames
                                             }
-                                            onProvideShuffle={(fn, shuffling) => {
+                                            onProvideShuffle={(
+                                                fn,
+                                                shuffling,
+                                            ) => {
                                                 circularShuffleRef.current = fn
                                                 setIsShuffling(!!shuffling)
                                             }}
-                                            onProvideRandomPick={(fn, picking) => {
-                                                circularRandomPickRef.current = fn
+                                            onProvideRandomPick={(
+                                                fn,
+                                                picking,
+                                            ) => {
+                                                circularRandomPickRef.current =
+                                                    fn
                                                 setIsRandomPicking(!!picking)
                                             }}
                                         />
@@ -536,7 +549,9 @@ export default function CardSelection({
                                         onClick={handleShuffle}
                                         disabled={isShuffling}
                                     >
-                                        <RotateCw className={`w-4 h-4 ${isShuffling ? "animate-spin" : ""}`} />
+                                        <RotateCw
+                                            className={`w-4 h-4 ${isShuffling ? "animate-spin" : ""}`}
+                                        />
                                         {t("chooseCards.shuffle", {
                                             default: "Shuffle",
                                         })}

@@ -23,6 +23,8 @@ type Props = {
     onSubmit: (value: HoroscopeBirthData) => void
     title: string
     submitLabel: string
+    /** When true, always save to storage on submit and hide the remember checkbox */
+    alwaysSave?: boolean
 }
 
 function toDateInputValue(data: HoroscopeBirthData | null) {
@@ -39,6 +41,7 @@ export default function InlineUserDateForm({
     onSubmit,
     title,
     submitLabel,
+    alwaysSave = false,
 }: Props) {
     const [date, setDate] = useState(toDateInputValue(initial))
     const [timeMode, setTimeMode] = useState<"exact" | "day" | "night">(
@@ -179,7 +182,7 @@ export default function InlineUserDateForm({
             state: resolvedState,
             usedLocationFallback,
         }
-        if (rememberBirth) {
+        if (alwaysSave || rememberBirth) {
             saveBirthToStorage(payload)
         } else if (loadBirthFromStorage()) {
             clearBirthFromStorage()
@@ -319,17 +322,20 @@ export default function InlineUserDateForm({
 
                 {/* Actions */}
                 <div className='flex items-center justify-between gap-3 pt-2'>
-                    <label className='flex items-center gap-2 cursor-pointer text-sm text-white/80 hover:text-white'>
-                        <Checkbox
-                            id='remember-birth'
-                            checked={rememberBirth}
-                            onCheckedChange={(c) =>
-                                setRememberBirth(c === true)
-                            }
-                            className='border-white/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary'
-                        />
-                        <span>Remember my birth date</span>
-                    </label>
+                    {!alwaysSave && (
+                        <label className='flex items-center gap-2 cursor-pointer text-sm text-white/80 hover:text-white'>
+                            <Checkbox
+                                id='remember-birth'
+                                checked={rememberBirth}
+                                onCheckedChange={(c) =>
+                                    setRememberBirth(c === true)
+                                }
+                                className='border-white/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary'
+                            />
+                            <span>Remember my birth date</span>
+                        </label>
+                    )}
+                    {alwaysSave && <div />}
                     <button
                         type='button'
                         onClick={submit}

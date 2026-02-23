@@ -13,18 +13,11 @@ import ActionSection from "@/components/tarot/interpretation/action"
 import ShareSection from "@/components/tarot/interpretation/share"
 import InsufficientStarsBlock from "@/components/stars/insufficient-stars-block"
 import { ConsultingBadge } from "@/components/consulting-badge"
-import {
-    hasCompleteBirthData,
-    loadBirthFromStorage,
-} from "@/lib/birth-storage"
+import { hasCompleteBirthData, loadBirthFromStorage } from "@/lib/birth-storage"
 import InlineUserDateForm from "@/components/astrology/inline-user-date-form"
-import InlineTransitDateForm from "@/components/astrology/inline-transit-date-form"
 import { BirthChartCard } from "@/components/astrology/birth-chart-card"
 import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
-import type {
-    HoroscopeBirthData,
-    HoroscopeTransitData,
-} from "@/types/horoscope"
+import type { HoroscopeBirthData } from "@/types/horoscope"
 import type { ChatMessage } from "./types"
 import {
     ChevronDown,
@@ -88,9 +81,7 @@ function ChartDataCollapsible({
                 ) : (
                     <ChevronRight className='h-3.5 w-3.5 shrink-0' />
                 )}
-                <span>
-                    View Swiss Ephemeris data passed to AI
-                </span>
+                <span>View Swiss Ephemeris data passed to AI</span>
             </button>
             {open && (
                 <pre className='p-3 text-[10px] text-white/60 overflow-x-auto max-h-64 overflow-y-auto font-mono whitespace-pre-wrap break-words border-t border-white/5'>
@@ -131,14 +122,11 @@ type MessageListProps = {
     disclaimerText: string
     birthFormTitle: string
     birthFormSubmit: string
-    transitFormTitle: string
-    transitFormSubmit: string
     onRegenerateAt: (messageIndex: number) => void
     onStartEditAt: (messageIndex: number) => void
     onCancelEdit: () => void
     onSendEditAt: (messageIndex: number) => void
     onApplySuggestedQuestion: (value: string) => void
-    onTransitFormSubmit: (value: HoroscopeTransitData) => Promise<void>
     onUserDateFormSubmit: (value: HoroscopeBirthData) => Promise<void>
     onCancelHoroscopeLoading: () => void
     onRefetchHoroscopeWithSystem: (
@@ -177,14 +165,11 @@ export default function MessageList({
     disclaimerText,
     birthFormTitle,
     birthFormSubmit,
-    transitFormTitle,
-    transitFormSubmit,
     onRegenerateAt,
     onStartEditAt,
     onCancelEdit,
     onSendEditAt,
     onApplySuggestedQuestion,
-    onTransitFormSubmit,
     onUserDateFormSubmit,
     onCancelHoroscopeLoading,
     onRefetchHoroscopeWithSystem,
@@ -312,8 +297,7 @@ export default function MessageList({
                             .slice(messageIndex + 1)
                             .some(
                                 (m) =>
-                                    m.variant === "horoscope" &&
-                                    !m.isLoading,
+                                    m.variant === "horoscope" && !m.isLoading,
                             )
                         if (hasHoroscopeResultAfter) {
                             return null
@@ -500,8 +484,8 @@ export default function MessageList({
                                         (Array.isArray(
                                             message.followUpSuggestions,
                                         ) &&
-                                            message.followUpSuggestions
-                                                .length > 0)) && (
+                                            message.followUpSuggestions.length >
+                                                0)) && (
                                         <div className='w-full md:max-w-[85%] space-y-2 pt-4'>
                                             {message.followUpLoading && (
                                                 <p className='text-xs sm:text-sm text-white/60'>
@@ -530,7 +514,7 @@ export default function MessageList({
                                                                             s,
                                                                         )
                                                                     }
-                                                                    className='rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition px-3 py-1.5 text-xs text-white/80 hover:text-white'
+                                                                    className='rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition px-3 py-1.5 text-xs text-left text-white/80 hover:text-white'
                                                                 >
                                                                     {s}
                                                                 </button>
@@ -543,28 +527,31 @@ export default function MessageList({
                                 </>
                             ) : message.variant === "horoscope" ? (
                                 <div className='w-full md:max-w-[85%] space-y-6'>
-                                    {message.chartData && !message.isLoading && (
-                                        <BirthChartCard
-                                            chartData={
-                                                message.chartData as Parameters<
-                                                    typeof BirthChartCard
-                                                >[0]["chartData"]
-                                            }
-                                            question={message.question}
-                                            planetMeanings={
-                                                message.planetMeanings ?? undefined
-                                            }
-                                            houseMeanings={
-                                                message.houseMeanings ?? undefined
-                                            }
-                                            onRefetchWithSystem={(system) =>
-                                                onRefetchHoroscopeWithSystem(
-                                                    message.id,
-                                                    system,
-                                                )
-                                            }
-                                        />
-                                    )}
+                                    {message.chartData &&
+                                        !message.isLoading && (
+                                            <BirthChartCard
+                                                chartData={
+                                                    message.chartData as Parameters<
+                                                        typeof BirthChartCard
+                                                    >[0]["chartData"]
+                                                }
+                                                question={message.question}
+                                                planetMeanings={
+                                                    message.planetMeanings ??
+                                                    undefined
+                                                }
+                                                houseMeanings={
+                                                    message.houseMeanings ??
+                                                    undefined
+                                                }
+                                                onRefetchWithSystem={(system) =>
+                                                    onRefetchHoroscopeWithSystem(
+                                                        message.id,
+                                                        system,
+                                                    )
+                                                }
+                                            />
+                                        )}
                                     <div className='rounded-2xl border border-white/10 bg-white/5 p-8 shadow-lg space-y-6'>
                                         <div className='flex items-center space-x-3'>
                                             <div className='w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center'>
@@ -580,68 +567,62 @@ export default function MessageList({
                                             </div>
                                         </div>
                                         <div className='text-white/90 leading-relaxed whitespace-pre-wrap'>
-                                        {message.isLoading ? (
-                                            <button
-                                                type='button'
-                                                onClick={onCancelHoroscopeLoading}
-                                                title='Click to cancel and edit birth details'
-                                                className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90 hover:text-white transition-colors cursor-pointer'
-                                            >
-                                                <Square className='h-3.5 w-3.5 shrink-0 fill-current' />
-                                                <Loader2 className='h-4 w-4 animate-spin shrink-0' />
-                                                {formatHoroscopeLoadingText(
-                                                    message.horoscopeBirthData,
-                                                    loadingDots,
-                                                )}
-                                            </button>
-                                        ) : (
-                                            message.text
-                                        )}
-                                    </div>
-                                    {!message.isLoading && (
-                                        <div className='pt-4 border-t border-white/5 space-y-4'>
-                                            <div className='space-y-2'>
-                                                <p className='text-[11px] uppercase tracking-[0.2em] text-white/50'>
-                                                    Actions
-                                                </p>
-                                                <ActionSection
+                                            {message.isLoading ? (
+                                                <button
+                                                    type='button'
+                                                    onClick={
+                                                        onCancelHoroscopeLoading
+                                                    }
+                                                    title='Click to cancel and edit birth details'
+                                                    className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90 hover:text-white transition-colors cursor-pointer'
+                                                >
+                                                    <Square className='h-3.5 w-3.5 shrink-0 fill-current' />
+                                                    <Loader2 className='h-4 w-4 animate-spin shrink-0' />
+                                                    {formatHoroscopeLoadingText(
+                                                        message.horoscopeBirthData,
+                                                        loadingDots,
+                                                    )}
+                                                </button>
+                                            ) : (
+                                                message.text
+                                            )}
+                                        </div>
+                                        {!message.isLoading && (
+                                            <div className='pt-4 border-t border-white/5 space-y-4'>
+                                                <div className='space-y-2'>
+                                                    <p className='text-[11px] uppercase tracking-[0.2em] text-white/50'>
+                                                        Actions
+                                                    </p>
+                                                    <ActionSection
+                                                        variant='embedded'
+                                                        question={
+                                                            message.question
+                                                        }
+                                                        interpretation={
+                                                            message.text
+                                                        }
+                                                    />
+                                                </div>
+                                                <ShareSection
                                                     variant='embedded'
                                                     question={message.question}
                                                     interpretation={
                                                         message.text
                                                     }
                                                 />
+                                                {message.chartData && (
+                                                    <ChartDataCollapsible
+                                                        chartData={
+                                                            message.chartData
+                                                        }
+                                                    />
+                                                )}
                                             </div>
-                                            <ShareSection
-                                                variant='embedded'
-                                                question={message.question}
-                                                interpretation={message.text}
-                                            />
-                                            {message.chartData && (
-                                                <ChartDataCollapsible
-                                                    chartData={
-                                                        message.chartData
-                                                    }
-                                                />
-                                            )}
-                                        </div>
-                                    )}
+                                        )}
                                     </div>
                                 </div>
                             ) : message.variant === "tool" ? (
-                                message.toolType === "transit-date-form" &&
-                                message.toolBirthPrefill ? (
-                                    <InlineTransitDateForm
-                                        birth={message.toolBirthPrefill}
-                                        initialTransit={
-                                            message.toolTransitPrefill
-                                        }
-                                        onSubmit={onTransitFormSubmit}
-                                        title={transitFormTitle}
-                                        submitLabel={transitFormSubmit}
-                                    />
-                                ) : (
-                                    <InlineUserDateForm
+                                <InlineUserDateForm
                                         initial={
                                             message.toolBirthPrefill ||
                                             horoscopeBirth
@@ -653,7 +634,6 @@ export default function MessageList({
                                         title={birthFormTitle}
                                         submitLabel={birthFormSubmit}
                                     />
-                                )
                             ) : (
                                 <div className='w-full md:max-w-[85%] text-white/90'>
                                     {message.isLoading &&

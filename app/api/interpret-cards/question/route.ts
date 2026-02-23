@@ -2,10 +2,14 @@ import { streamObject } from "ai"
 import { TAROT_SYSTEM_PROMPT } from "@/lib/prompts"
 import { tarotInterpretationSchema } from "@/lib/tarot/schema"
 import {
-    fetchTarotCodexForCards,
+    fetchMeaningsForCards,
     extractTopicsFromQuestion,
-    buildRagContext,
+    buildArticleContext,
 } from "@/lib/tarot/rag"
+import {
+    buildConversationContextPromptBlock,
+    normalizeConversationContext,
+} from "@/lib/astrology/question-context"
 
 const MODEL = "google/gemini-2.0-flash"
 
@@ -15,19 +19,37 @@ export async function POST(req: Request) {
             prompt?: string
             question?: string
             cards?: string[]
+            conversationContext?: unknown
+            locale?: string
         }
 
-        const { prompt: rawPrompt, question, cards } = body
+        const {
+            prompt: rawPrompt,
+            question,
+            cards,
+            conversationContext: rawContext,
+            locale = "en",
+        } = body
 
         let prompt = rawPrompt ?? ""
+        const conversationContext = normalizeConversationContext(rawContext)
+        const contextBlock =
+            buildConversationContextPromptBlock(conversationContext)
+        if (contextBlock && !prompt.includes("Session context:")) {
+            prompt = `${contextBlock}
+
+---
+
+${prompt}`
+        }
 
         if (question && Array.isArray(cards) && cards.length > 0) {
-            const codexMap = await fetchTarotCodexForCards(cards)
+            const meaningsMap = await fetchMeaningsForCards(cards, locale)
             const topics = extractTopicsFromQuestion(question)
-            const ragContext = buildRagContext(cards, codexMap, topics)
+            const articleContext = buildArticleContext(cards, meaningsMap, topics)
 
-            if (ragContext) {
-                prompt = `${ragContext}
+            if (articleContext) {
+                prompt = `${articleContext}
 
 ---
 

@@ -199,12 +199,13 @@ function SystemBadgePopover({
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-                <button
-                    type='button'
-                    className='shrink-0 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 hover:text-white transition-colors'
+                <span
+                    role='button'
+                    tabIndex={0}
+                    className='shrink-0 inline-flex cursor-pointer rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 hover:text-white transition-colors'
                 >
                     {label}
-                </button>
+                </span>
             </PopoverTrigger>
             <PopoverContent
                 align='end'

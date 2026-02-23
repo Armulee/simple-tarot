@@ -4,7 +4,7 @@
 
 export function isFollowUpQuestion(
     _question: string,
-    opts?: { isFollowUp?: boolean }
+    opts?: { isFollowUp?: boolean },
 ): boolean {
     return !!opts?.isFollowUp
 }

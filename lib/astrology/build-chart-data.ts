@@ -4,6 +4,8 @@ import {
     resolveBirthTime,
 } from "@/lib/astrology/intake"
 import type { AstrologySystem, SwissEphChart } from "@/lib/astrology/types"
+import type { QuestionTimeRange } from "@/lib/astrology/question-time-range"
+import type { CodexTransitSummary } from "@/lib/astrology/ephemeris-codex"
 
 export type HoroscopeChartRequestBody = {
     birth: {
@@ -33,6 +35,9 @@ export type HoroscopeChartRequestBody = {
         country?: string | null
         state?: string | null
     } | null
+    questionRange?: QuestionTimeRange
+    transitDataSource?: "codex" | "swisseph_fallback"
+    codexTransitSummary?: CodexTransitSummary | null
 }
 
 export type ChartDataResult = {
@@ -70,6 +75,14 @@ export type ChartDataResult = {
         }
         charts: SwissEphChart[]
     } | null
+    questionRange?: {
+        startDateIso: string
+        endDateIso: string
+        durationDays: number
+        source: QuestionTimeRange["source"]
+    } | null
+    transitDataSource?: "codex" | "swisseph_fallback" | null
+    codexTransitSummary?: CodexTransitSummary | null
 }
 
 export async function buildChartData(
@@ -113,27 +126,45 @@ export async function buildChartData(
         )
     )
 
+    const transitFromRange = body.questionRange
+        ? {
+              day: body.questionRange.startDate.getUTCDate(),
+              month: body.questionRange.startDate.getUTCMonth() + 1,
+              year: body.questionRange.startDate.getUTCFullYear(),
+              hour: 12,
+              minute: 0,
+              timezone: body.birth.timezone,
+              lat: body.birth.lat,
+              lng: body.birth.lng,
+              country: body.birth.country ?? null,
+              state: body.birth.state ?? null,
+          }
+        : null
+    const selectedTransit = body.transit ?? transitFromRange
+    const shouldComputeTransitCharts = body.transitDataSource !== "codex"
+
     const hasTransit =
-        body.transit?.day &&
-        body.transit?.month &&
-        body.transit?.year &&
-        body.transit?.timezone != null &&
-        body.transit?.lat != null &&
-        body.transit?.lng != null
+        shouldComputeTransitCharts &&
+        selectedTransit?.day &&
+        selectedTransit?.month &&
+        selectedTransit?.year &&
+        selectedTransit?.timezone != null &&
+        selectedTransit?.lat != null &&
+        selectedTransit?.lng != null
 
     const transitCharts = hasTransit
         ? await Promise.all(
               systemsToRun.map((systemMode) =>
                   calculateSwissEphChart(
                       {
-                          year: body.transit!.year as number,
-                          month: body.transit!.month as number,
-                          day: body.transit!.day as number,
-                          hour: body.transit!.hour ?? 12,
-                          minute: body.transit!.minute ?? 0,
-                          timezone: body.transit!.timezone as number,
-                          lat: body.transit!.lat as number,
-                          lng: body.transit!.lng as number,
+                          year: selectedTransit!.year as number,
+                          month: selectedTransit!.month as number,
+                          day: selectedTransit!.day as number,
+                          hour: selectedTransit!.hour ?? 12,
+                          minute: selectedTransit!.minute ?? 0,
+                          timezone: selectedTransit!.timezone as number,
+                          lat: selectedTransit!.lat as number,
+                          lng: selectedTransit!.lng as number,
                       },
                       systemMode
                   )
@@ -166,21 +197,31 @@ export async function buildChartData(
         transit: hasTransit && transitCharts
             ? {
                   date: {
-                      day: body.transit?.day ?? null,
-                      month: body.transit?.month ?? null,
-                      year: body.transit?.year ?? null,
-                      hour: body.transit?.hour ?? null,
-                      minute: body.transit?.minute ?? null,
+                      day: selectedTransit?.day ?? null,
+                      month: selectedTransit?.month ?? null,
+                      year: selectedTransit?.year ?? null,
+                      hour: selectedTransit?.hour ?? null,
+                      minute: selectedTransit?.minute ?? null,
                   },
                   location: {
-                      country: body.transit?.country ?? null,
-                      state: body.transit?.state ?? null,
-                      lat: body.transit?.lat ?? null,
-                      lng: body.transit?.lng ?? null,
-                      timezone: body.transit?.timezone ?? null,
+                      country: selectedTransit?.country ?? null,
+                      state: selectedTransit?.state ?? null,
+                      lat: selectedTransit?.lat ?? null,
+                      lng: selectedTransit?.lng ?? null,
+                      timezone: selectedTransit?.timezone ?? null,
                   },
                   charts: transitCharts,
               }
             : null,
+        questionRange: body.questionRange
+            ? {
+                  startDateIso: body.questionRange.startDateIso,
+                  endDateIso: body.questionRange.endDateIso,
+                  durationDays: body.questionRange.durationDays,
+                  source: body.questionRange.source,
+              }
+            : null,
+        transitDataSource: body.transitDataSource ?? null,
+        codexTransitSummary: body.codexTransitSummary ?? null,
     }
 }

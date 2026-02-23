@@ -5,6 +5,7 @@ import type {
     HoroscopeBirthData,
     HoroscopeTransitData,
 } from "@/types/horoscope"
+import type { ConversationContextPayload } from "@/lib/astrology/question-context"
 
 export type ChatMessage = {
     id: string
@@ -92,6 +93,8 @@ export type ChatSessionPayload = {
     showInsufficientStars?: boolean
     showCardDraw?: boolean
 }
+
+export type ConversationContext = ConversationContextPayload
 
 export type CardUiText = {
     selected: (selectedCount: number, cardsToSelect: number) => string

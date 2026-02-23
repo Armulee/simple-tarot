@@ -9,7 +9,7 @@ import {
     type TarotInterpretation,
 } from "@/lib/tarot/schema"
 import QuestionInput from "../../question-input"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { getTarotReadingPrompt } from "@/lib/prompts"
 import { useAuth } from "@/hooks/use-auth"
 import { useTarot } from "@/contexts/tarot-context"
@@ -55,6 +55,7 @@ export default function Interpretation({
     onInterpretationChange,
 }: ReadingProps) {
     const t = useTranslations("ReadingPage.interpretation")
+    const locale = useLocale()
     const { user, session } = useAuth()
     const {
         isFollowUp,
@@ -66,7 +67,7 @@ export default function Interpretation({
 
     // --- State Declarations ---
     const [interpretation, setInterpretationState] = useState<string | null>(
-        initialInterpretation ?? null
+        initialInterpretation ?? null,
     )
     const [isGenerating, setIsGenerating] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -111,7 +112,12 @@ export default function Interpretation({
             }
         }
 
-        if (readingId && !initialInterpretation && !interpretation && !hasCheckedDB) {
+        if (
+            readingId &&
+            !initialInterpretation &&
+            !interpretation &&
+            !hasCheckedDB
+        ) {
             checkInterpretation()
         }
     }, [
@@ -151,9 +157,8 @@ export default function Interpretation({
                             "Content-Type": "application/json",
                         }
                         if (session?.access_token) {
-                            headers[
-                                "Authorization"
-                            ] = `Bearer ${session.access_token}`
+                            headers["Authorization"] =
+                                `Bearer ${session.access_token}`
                         }
 
                         await fetch("/api/tarot/update", {
@@ -208,7 +213,7 @@ export default function Interpretation({
         if (object?.cardInsights) {
             // Filter out null/undefined values and ensure it's a string array
             const insights = object.cardInsights.filter(
-                (insight): insight is string => typeof insight === "string"
+                (insight): insight is string => typeof insight === "string",
             )
             if (insights.length > 0) {
                 setContextCardInsights(insights)
@@ -318,7 +323,7 @@ export default function Interpretation({
             try {
                 if (typeof window !== "undefined") {
                     const rawBackup = localStorage.getItem(
-                        "reading-state-v1-backup"
+                        "reading-state-v1-backup",
                     )
                     if (rawBackup) {
                         const backup = JSON.parse(rawBackup) as {
@@ -343,7 +348,7 @@ export default function Interpretation({
             })
 
             const cardArray = (cards ?? []).map((c) =>
-                typeof c === "string" ? c : String(c)
+                typeof c === "string" ? c : String(c),
             )
             submit({
                 prompt,
@@ -503,7 +508,7 @@ export default function Interpretation({
                                                             .map(
                                                                 (
                                                                     k: string,
-                                                                    i: number
+                                                                    i: number,
                                                                 ) => {
                                                                     const trimmed =
                                                                         k.trim()
@@ -520,15 +525,15 @@ export default function Interpretation({
                                                                         >
                                                                             {trimmed
                                                                                 .charAt(
-                                                                                    0
+                                                                                    0,
                                                                                 )
                                                                                 .toUpperCase() +
                                                                                 trimmed.slice(
-                                                                                    1
+                                                                                    1,
                                                                                 )}
                                                                         </span>
                                                                     )
-                                                                }
+                                                                },
                                                             )}
                                                     </div>
                                                 )}
@@ -555,7 +560,7 @@ export default function Interpretation({
                                                             .map(
                                                                 (
                                                                     k: string,
-                                                                    i: number
+                                                                    i: number,
                                                                 ) => {
                                                                     const trimmed =
                                                                         k.trim()
@@ -572,15 +577,15 @@ export default function Interpretation({
                                                                         >
                                                                             {trimmed
                                                                                 .charAt(
-                                                                                    0
+                                                                                    0,
                                                                                 )
                                                                                 .toUpperCase() +
                                                                                 trimmed.slice(
-                                                                                    1
+                                                                                    1,
                                                                                 )}
                                                                         </span>
                                                                     )
-                                                                }
+                                                                },
                                                             )}
                                                     </div>
                                                 )}

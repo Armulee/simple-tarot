@@ -1,43 +1,49 @@
 "use client"
-import {
-    Pencil,
-    Sparkles,
-    Layers,
-    ArrowRight,
-} from "lucide-react"
+import { Pencil, Sparkles, Layers, ArrowRight } from "lucide-react"
 import { Button } from "../ui/button"
 import { Card } from "../ui/card"
 import { Badge } from "../ui/badge"
 import { useTarot, type ReadingType } from "@/contexts/tarot-context"
 import { ReadingConfig } from "../../app/[locale]/tarot/page"
-import { isFollowUpQuestion, getCleanQuestionText } from "@/lib/question-utils"
+import {
+    isFollowUpQuestion,
+    getCleanQuestionText,
+} from "@/lib/prompts/question-utils"
 import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
 import { InlineQuestionEdit } from "./inline-question-edit"
 
-const MiniCard = ({ 
-    className = "", 
-    style = {}, 
-    delay = 0 
-}: { 
-    className?: string; 
-    style?: React.CSSProperties; 
-    delay?: number 
+const MiniCard = ({
+    className = "",
+    style = {},
+    delay = 0,
+}: {
+    className?: string
+    style?: React.CSSProperties
+    delay?: number
 }) => (
-    <div 
+    <div
         className={`w-8 h-12 rounded-[4px] bg-white p-[1.5px] shadow-lg transition-all duration-700 group-hover:shadow-primary/40 ${className}`}
         style={{ ...style, transitionDelay: `${delay}ms` }}
     >
-        <div className="w-full h-full rounded-[3px] overflow-hidden relative"
-             style={{
-                background: "linear-gradient(135deg, #05081a, #1a0b2e 60%, #3b0f4a)"
-             }}>
-            <div className="absolute inset-0 opacity-40"
-                 style={{
-                    background: "radial-gradient(circle at 30% 20%, #7b2cbf 0%, transparent 40%), radial-gradient(circle at 70% 80%, #00bcd4 0%, transparent 45%)"
-                 }} />
-            <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-[8px] text-amber-300/60 group-hover:text-amber-300 group-hover:scale-110 transition-all">✷</div>
+        <div
+            className='w-full h-full rounded-[3px] overflow-hidden relative'
+            style={{
+                background:
+                    "linear-gradient(135deg, #05081a, #1a0b2e 60%, #3b0f4a)",
+            }}
+        >
+            <div
+                className='absolute inset-0 opacity-40'
+                style={{
+                    background:
+                        "radial-gradient(circle at 30% 20%, #7b2cbf 0%, transparent 40%), radial-gradient(circle at 70% 80%, #00bcd4 0%, transparent 45%)",
+                }}
+            />
+            <div className='absolute inset-0 flex items-center justify-center'>
+                <div className='text-[8px] text-amber-300/60 group-hover:text-amber-300 group-hover:scale-110 transition-all'>
+                    ✷
+                </div>
             </div>
         </div>
     </div>
@@ -45,57 +51,92 @@ const MiniCard = ({
 
 const MiniSpread = ({ type }: { type: string }) => {
     switch (type) {
-        case 'simple':
+        case "simple":
             return (
-                <div className="flex justify-center items-center h-24">
-                    <MiniCard className="scale-125 rotate-[5deg] group-hover:rotate-0 shadow-indigo-500/50" />
+                <div className='flex justify-center items-center h-24'>
+                    <MiniCard className='scale-125 rotate-[5deg] group-hover:rotate-0 shadow-indigo-500/50' />
                 </div>
             )
-        case 'general':
+        case "general":
             return (
-                <div className="flex justify-center items-center h-24 -space-x-4">
-                    <MiniCard className="rotate-[-12deg] group-hover:rotate-[-8deg] translate-y-2 opacity-80" delay={100} />
-                    <MiniCard className="z-10 scale-110 shadow-xl" delay={0} />
-                    <MiniCard className="rotate-[12deg] group-hover:rotate-[8deg] translate-y-2 opacity-80" delay={200} />
+                <div className='flex justify-center items-center h-24 -space-x-4'>
+                    <MiniCard
+                        className='rotate-[-12deg] group-hover:rotate-[-8deg] translate-y-2 opacity-80'
+                        delay={100}
+                    />
+                    <MiniCard className='z-10 scale-110 shadow-xl' delay={0} />
+                    <MiniCard
+                        className='rotate-[12deg] group-hover:rotate-[8deg] translate-y-2 opacity-80'
+                        delay={200}
+                    />
                 </div>
             )
-        case 'detailed':
+        case "detailed":
             return (
-                <div className="relative h-24 w-32 mx-auto flex items-center justify-center">
-                    <MiniCard className="absolute top-0 left-1/2 -translate-x-1/2 scale-75 opacity-60" delay={300} />
-                    <MiniCard className="absolute top-1/2 left-0 -translate-y-1/2 scale-75 opacity-60 rotate-[-10deg]" delay={100} />
-                    <MiniCard className="absolute z-10 scale-100 shadow-xl" delay={0} />
-                    <MiniCard className="absolute top-1/2 right-0 -translate-y-1/2 scale-75 opacity-60 rotate-[10deg]" delay={200} />
-                    <MiniCard className="absolute bottom-0 left-1/2 -translate-x-1/2 scale-75 opacity-60" delay={400} />
+                <div className='relative h-24 w-32 mx-auto flex items-center justify-center'>
+                    <MiniCard
+                        className='absolute top-0 left-1/2 -translate-x-1/2 scale-75 opacity-60'
+                        delay={300}
+                    />
+                    <MiniCard
+                        className='absolute top-1/2 left-0 -translate-y-1/2 scale-75 opacity-60 rotate-[-10deg]'
+                        delay={100}
+                    />
+                    <MiniCard
+                        className='absolute z-10 scale-100 shadow-xl'
+                        delay={0}
+                    />
+                    <MiniCard
+                        className='absolute top-1/2 right-0 -translate-y-1/2 scale-75 opacity-60 rotate-[10deg]'
+                        delay={200}
+                    />
+                    <MiniCard
+                        className='absolute bottom-0 left-1/2 -translate-x-1/2 scale-75 opacity-60'
+                        delay={400}
+                    />
                 </div>
             )
-        case 'expanded':
+        case "expanded":
             return (
-                <div className="flex justify-center items-center h-24 -space-x-5">
+                <div className='flex justify-center items-center h-24 -space-x-5'>
                     {[...Array(7)].map((_, i) => (
-                        <MiniCard 
-                            key={i} 
-                            className={`scale-[0.7] ${i === 3 ? 'z-10 scale-[0.85] shadow-xl' : 'opacity-60'}`}
-                            style={{ 
+                        <MiniCard
+                            key={i}
+                            className={`scale-[0.7] ${i === 3 ? "z-10 scale-[0.85] shadow-xl" : "opacity-60"}`}
+                            style={{
                                 transform: `rotate(${(i - 3) * 12}deg) translateY(${Math.abs(i - 3) * 4}px)`,
-                                transitionDelay: `${Math.abs(i - 3) * 100}ms`
+                                transitionDelay: `${Math.abs(i - 3) * 100}ms`,
                             }}
                         />
                     ))}
                 </div>
             )
-        case 'celtic':
+        case "celtic":
             return (
-                <div className="flex justify-center items-center h-24 gap-4 scale-90">
-                    <div className="relative w-16 h-16 flex items-center justify-center">
-                         <MiniCard className="absolute opacity-60 scale-75" delay={200} />
-                         <MiniCard className="absolute rotate-90 z-10 scale-75 shadow-lg" delay={0} />
-                         <div className="absolute -top-7 left-1/2 -translate-x-1/2 scale-[0.4] opacity-40"><MiniCard /></div>
-                         <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 scale-[0.4] opacity-40"><MiniCard /></div>
-                         <div className="absolute top-1/2 -left-7 -translate-y-1/2 scale-[0.4] opacity-40"><MiniCard /></div>
-                         <div className="absolute top-1/2 -right-7 -translate-y-1/2 scale-[0.4] opacity-40"><MiniCard /></div>
+                <div className='flex justify-center items-center h-24 gap-4 scale-90'>
+                    <div className='relative w-16 h-16 flex items-center justify-center'>
+                        <MiniCard
+                            className='absolute opacity-60 scale-75'
+                            delay={200}
+                        />
+                        <MiniCard
+                            className='absolute rotate-90 z-10 scale-75 shadow-lg'
+                            delay={0}
+                        />
+                        <div className='absolute -top-7 left-1/2 -translate-x-1/2 scale-[0.4] opacity-40'>
+                            <MiniCard />
+                        </div>
+                        <div className='absolute -bottom-7 left-1/2 -translate-x-1/2 scale-[0.4] opacity-40'>
+                            <MiniCard />
+                        </div>
+                        <div className='absolute top-1/2 -left-7 -translate-y-1/2 scale-[0.4] opacity-40'>
+                            <MiniCard />
+                        </div>
+                        <div className='absolute top-1/2 -right-7 -translate-y-1/2 scale-[0.4] opacity-40'>
+                            <MiniCard />
+                        </div>
                     </div>
-                    <div className="flex flex-col -space-y-8 scale-[0.55] opacity-60 translate-x-1">
+                    <div className='flex flex-col -space-y-8 scale-[0.55] opacity-60 translate-x-1'>
                         <MiniCard delay={400} />
                         <MiniCard delay={300} />
                         <MiniCard delay={200} />
@@ -104,7 +145,7 @@ const MiniSpread = ({ type }: { type: string }) => {
                 </div>
             )
         default:
-            return <Sparkles className="w-10 h-10 text-primary" />;
+            return <Sparkles className='w-10 h-10 text-primary' />
     }
 }
 
@@ -228,7 +269,7 @@ export default function ReadingType({
                                 >
                                     <div className='space-y-6'>
                                         <div className='mx-auto w-full flex items-center justify-center transition-transform duration-500 group-hover:scale-105'>
-                                            <MiniSpread type="simple" />
+                                            <MiniSpread type='simple' />
                                         </div>
                                         <div className='space-y-2'>
                                             <h3 className='text-2xl font-serif font-bold text-white'>
@@ -258,7 +299,7 @@ export default function ReadingType({
                                                 }}
                                                 onClick={() =>
                                                     handleReadingTypeSelect(
-                                                        key as ReadingType
+                                                        key as ReadingType,
                                                     )
                                                 }
                                             >
@@ -268,7 +309,9 @@ export default function ReadingType({
                                                 <div className='relative z-10 w-full space-y-6'>
                                                     {/* Spread Visualization */}
                                                     <div className='mx-auto w-full flex items-center justify-center transition-transform duration-500 group-hover:scale-105'>
-                                                        <MiniSpread type={key} />
+                                                        <MiniSpread
+                                                            type={key}
+                                                        />
                                                     </div>
 
                                                     <div className='space-y-2'>
@@ -298,7 +341,7 @@ export default function ReadingType({
                                                 </div>
                                             </Card>
                                         )
-                                    }
+                                    },
                                 )}
                             </div>
                         )}
