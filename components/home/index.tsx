@@ -10,6 +10,11 @@ import QuestionInput from "@/components/question-input"
 import Footer from "@/components/footer/footer"
 import HomeQuickCards from "@/components/home/home-quick-cards"
 import { ConsultingBadge } from "@/components/consulting-badge"
+import InterpretationModeSelector from "@/components/chat/interpretation-mode-selector"
+import {
+    loadInterpretationModeFromStorage,
+    type InterpretationMode,
+} from "@/lib/interpretation-mode-storage"
 import { GetStartedTourOverlay } from "@/components/home/get-started-tour-overlay"
 
 export default function Home() {
@@ -25,6 +30,8 @@ export default function Home() {
     const [error, setError] = useState<string | null>(null)
     const [showLearnMore, setShowLearnMore] = useState(false)
     const [showTour, setShowTour] = useState(false)
+    const [interpretationMode, setInterpretationMode] =
+        useState<InterpretationMode>(() => loadInterpretationModeFromStorage())
     const inputContainerRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -180,17 +187,25 @@ export default function Home() {
                     <div
                         ref={inputContainerRef}
                         id='home-question-input-wrapper'
-                        className='flex justify-center'
+                        className='flex flex-col'
                     >
-                        <QuestionInput
-                            id='home-question-input'
-                            value={question}
-                            onChange={setQuestion}
-                            onSubmit={createSessionAndRedirect}
-                            isLoading={isLinking}
-                            centered
-                            className='max-w-sm md:max-w-md transition-[max-width] duration-500 ease-in-out'
-                        />
+                        <div className='flex justify-center'>
+                            <QuestionInput
+                                id='home-question-input'
+                                value={question}
+                                onChange={setQuestion}
+                                onSubmit={createSessionAndRedirect}
+                                isLoading={isLinking}
+                                centered
+                                className='max-w-sm md:max-w-md transition-[max-width] duration-500 ease-in-out'
+                            />
+                        </div>
+                        <div className='flex justify-start mt-2'>
+                            <InterpretationModeSelector
+                                value={interpretationMode}
+                                onChange={setInterpretationMode}
+                            />
+                        </div>
                     </div>
                     <p className='text-[11px] leading-relaxed text-white/50 text-center text-left'>
                         {disclaimerText}
