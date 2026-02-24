@@ -8,6 +8,8 @@ import { useTarot } from "@/contexts/tarot-context"
 import AutoHeightTextarea from "./ui/auto-height-textarea"
 import { useTranslations } from "next-intl"
 import { useStarConsent } from "@/components/star-consent"
+import InterpretationModeSelector from "@/components/chat/interpretation-mode-selector"
+import type { InterpretationMode } from "@/lib/interpretation-mode-storage"
 
 export default function QuestionInput({
     id = "question-input",
@@ -24,6 +26,8 @@ export default function QuestionInput({
     followUp = false,
     followUpParentId,
     centered = false,
+    interpretationMode,
+    onInterpretationModeChange,
 }: {
     id?: string
     label?: string
@@ -39,6 +43,8 @@ export default function QuestionInput({
     followUp?: boolean
     followUpParentId?: string
     centered?: boolean
+    interpretationMode?: InterpretationMode
+    onInterpretationModeChange?: (mode: InterpretationMode) => void
 }) {
     const t = useTranslations("QuestionInput")
     // removed unused pathname
@@ -184,41 +190,52 @@ export default function QuestionInput({
                 {label}
             </Label>
             <div
-                className={`relative group w-full ${
+                className={`w-full ${
                     className ?? "max-w-sm md:max-w-md"
                 } ${centered ? "mx-auto" : ""}`}
             >
-                <div className='pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(120%_120%_at_0%_0%,rgba(99,102,241,0.18),rgba(168,85,247,0.12)_35%,rgba(34,211,238,0.10)_70%,transparent_80%)] blur-xl opacity-90 group-focus-within:opacity-0 transition-opacity' />
-                <AutoHeightTextarea
-                    id={id}
-                    name={id}
-                    placeholder={placeholder || t("placeholder")}
-                    className={`relative z-10 w-full pl-4 pr-15 py-2 text-white placeholder:text-white/70 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 focus:border-primary/60 focus:ring-2 focus:ring-primary/40 rounded-2xl resize-y shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] resize-none`}
-                    onFocus={() => {
-                        if (choice === null || choice === "declined") show()
-                    }}
-                    onChange={(e) => setQuestion(e.target.value)}
-                    value={question}
-                    defaultValue={defaultValue}
-                    onKeyDown={handleKeyDown}
-                />
-                <Button
-                    onClick={isLoading ? onStop : handleStartReading}
-                    disabled={!isLoading && !question.trim() && !defaultValue}
-                    size='lg'
-                    variant='ghost'
-                    className={`absolute bottom-0 right-0 z-20 bg-transparent hover:bg-transparent border-0 text-lg disabled:opacity-30 disabled:cursor-not-allowed text-indigo-300 hover:text-white ${
-                        buttonClassName ?? ""
-                    }`}
-                >
-                    {/* Gradient aura behind icon by default; hides on hover */}
-                    <span className='pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-400/50 via-purple-400/50 to-cyan-400/50 opacity-80 hover:opacity-0' />
-                    {isLoading ? (
-                        <Square className='relative z-10 w-5 h-5 drop-shadow-sm fill-current' />
-                    ) : (
-                        <Send className='relative z-10 w-5 h-5 drop-shadow-sm' />
+                <div className='relative group w-full'>
+                    <div className='pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(120%_120%_at_0%_0%,rgba(99,102,241,0.18),rgba(168,85,247,0.12)_35%,rgba(34,211,238,0.10)_70%,transparent_80%)] blur-xl opacity-90 group-focus-within:opacity-0 transition-opacity' />
+                    <AutoHeightTextarea
+                        id={id}
+                        name={id}
+                        placeholder={placeholder || t("placeholder")}
+                        className={`relative z-10 w-full pl-4 pr-15 py-2 text-white placeholder:text-white/70 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 focus:border-primary/60 focus:ring-2 focus:ring-primary/40 rounded-2xl resize-y shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] resize-none`}
+                        onFocus={() => {
+                            if (choice === null || choice === "declined") show()
+                        }}
+                        onChange={(e) => setQuestion(e.target.value)}
+                        value={question}
+                        defaultValue={defaultValue}
+                        onKeyDown={handleKeyDown}
+                    />
+                    <Button
+                        onClick={isLoading ? onStop : handleStartReading}
+                        disabled={!isLoading && !question.trim() && !defaultValue}
+                        size='lg'
+                        variant='ghost'
+                        className={`absolute bottom-0 right-0 z-20 bg-transparent hover:bg-transparent border-0 text-lg disabled:opacity-30 disabled:cursor-not-allowed text-indigo-300 hover:text-white ${
+                            buttonClassName ?? ""
+                        }`}
+                    >
+                        {/* Gradient aura behind icon by default; hides on hover */}
+                        <span className='pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-400/50 via-purple-400/50 to-cyan-400/50 opacity-80 hover:opacity-0' />
+                        {isLoading ? (
+                            <Square className='relative z-10 w-5 h-5 drop-shadow-sm fill-current' />
+                        ) : (
+                            <Send className='relative z-10 w-5 h-5 drop-shadow-sm' />
+                        )}
+                    </Button>
+                </div>
+                {interpretationMode !== undefined &&
+                    onInterpretationModeChange && (
+                        <div className='flex justify-end mt-2'>
+                            <InterpretationModeSelector
+                                value={interpretationMode}
+                                onChange={onInterpretationModeChange}
+                            />
+                        </div>
                     )}
-                </Button>
             </div>
         </div>
     )

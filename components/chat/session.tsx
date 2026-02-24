@@ -34,7 +34,6 @@ import type {
 import DrawCardSection from "@/components/chat/draw-card-section"
 import ActionTrigger from "@/components/chat/action-trigger"
 import BirthInfoModal from "@/components/chat/birth-info-modal"
-import InterpretationModeSelector from "@/components/chat/interpretation-mode-selector"
 import MessageList from "@/components/chat/message-list"
 import {
     CARD_UI_TEXT,
@@ -1827,13 +1826,9 @@ export default function ChatSession({
                 className={`transition-[max-width] duration-500 ease-in-out ${
                     isInputFixed ? "max-w-3xl" : "max-w-sm md:max-w-md"
                 }`}
+                interpretationMode={interpretationMode}
+                onInterpretationModeChange={setInterpretationMode}
             />
-            <div className='flex justify-start mt-2'>
-                <InterpretationModeSelector
-                    value={interpretationMode}
-                    onChange={setInterpretationMode}
-                />
-            </div>
             {!hasAssistantResponse && (
                 <p
                     className={`text-[11px] leading-relaxed text-white/50 text-center transition-all duration-500 text-left ${
