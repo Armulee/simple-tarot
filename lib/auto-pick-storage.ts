@@ -1,13 +1,13 @@
 const STORAGE_KEY = "askingfate_auto_pick"
 
 export function loadAutoPickFromStorage(): boolean {
-    if (typeof window === "undefined") return true
+    if (typeof window === "undefined") return false
     try {
         const raw = window.localStorage.getItem(STORAGE_KEY)
-        if (raw === "false") return false
-        return true
+        if (raw === "true") return true
+        return false
     } catch {
-        return true
+        return false
     }
 }
 
