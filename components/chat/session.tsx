@@ -1828,7 +1828,7 @@ export default function ChatSession({
                     isInputFixed ? "max-w-3xl" : "max-w-sm md:max-w-md"
                 }`}
             />
-            <div className='flex justify-center mt-2'>
+            <div className='flex justify-start mt-2'>
                 <InterpretationModeSelector
                     value={interpretationMode}
                     onChange={setInterpretationMode}

@@ -60,7 +60,7 @@ export default function InterpretationModeSelector({
                         onClick={() => handleSelect("auto")}
                         className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                             value === "auto"
-                                ? "bg-primary/20 text-primary"
+                                ? "bg-yellow-500/20 text-yellow-400"
                                 : "text-white/80 hover:bg-white/10 hover:text-white"
                         }`}
                     >
@@ -71,7 +71,7 @@ export default function InterpretationModeSelector({
                         onClick={() => handleSelect("tarot")}
                         className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                             value === "tarot"
-                                ? "bg-primary/20 text-primary"
+                                ? "bg-yellow-500/20 text-yellow-400"
                                 : "text-white/80 hover:bg-white/10 hover:text-white"
                         }`}
                     >
@@ -82,7 +82,7 @@ export default function InterpretationModeSelector({
                         onClick={() => handleSelect("horoscope")}
                         className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                             value === "horoscope"
-                                ? "bg-primary/20 text-primary"
+                                ? "bg-yellow-500/20 text-yellow-400"
                                 : "text-white/80 hover:bg-white/10 hover:text-white"
                         }`}
                     >
