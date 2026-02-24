@@ -229,7 +229,7 @@ export default function QuestionInput({
                 </div>
                 {interpretationMode !== undefined &&
                     onInterpretationModeChange && (
-                        <div className='flex justify-end mt-2'>
+                        <div className='flex justify-start mt-2'>
                             <InterpretationModeSelector
                                 value={interpretationMode}
                                 onChange={onInterpretationModeChange}
