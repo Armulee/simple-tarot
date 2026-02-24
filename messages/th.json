@@ -286,6 +286,11 @@
     "newBirthInfo": "ข้อมูลวันเกิด",
     "birthInfo": "ข้อมูลวันเกิด: {date}"
   },
+  "InterpretationMode": {
+    "auto": "อัตโนมัติ",
+    "tarot": "ไพ่ทาโรต์",
+    "horoscope": "ดวงชะตา"
+  },
   "About": {
     "whatIs": "คืออะไร",
     "brand": "Asking Fate?",

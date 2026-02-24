@@ -21,6 +21,10 @@ import {
     loadAutoPickFromStorage,
     saveAutoPickToStorage,
 } from "@/lib/auto-pick-storage"
+import {
+    loadInterpretationModeFromStorage,
+    type InterpretationMode,
+} from "@/lib/interpretation-mode-storage"
 import { pickRandomCards } from "@/lib/tarot/pick-random-cards"
 import { resolveLocationFromCoords } from "@/lib/location"
 import type {
@@ -30,6 +34,7 @@ import type {
 import DrawCardSection from "@/components/chat/draw-card-section"
 import ActionTrigger from "@/components/chat/action-trigger"
 import BirthInfoModal from "@/components/chat/birth-info-modal"
+import InterpretationModeSelector from "@/components/chat/interpretation-mode-selector"
 import MessageList from "@/components/chat/message-list"
 import {
     CARD_UI_TEXT,
@@ -188,6 +193,8 @@ export default function ChatSession({
     const [autoPickOn, setAutoPickOn] = useState(() =>
         loadAutoPickFromStorage(),
     )
+    const [interpretationMode, setInterpretationMode] =
+        useState<InterpretationMode>(() => loadInterpretationModeFromStorage())
     const [showBirthModal, setShowBirthModal] = useState(false)
     const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(
         () => loadBirthFromStorage(),
@@ -660,6 +667,25 @@ export default function ChatSession({
             return null
         }
     }, [])
+
+    const applyInterpretationModeOverride = useCallback(
+        (decision: ChatDecision): ChatDecision => {
+            if (interpretationMode === "auto") return decision
+            if (interpretationMode === "tarot" && decision.type === "horoscope") {
+                return {
+                    ...decision,
+                    type: "draw",
+                    spreadType: decision.spreadType || "simple",
+                    cardCount: decision.cardCount || 3,
+                }
+            }
+            if (interpretationMode === "horoscope" && decision.type === "draw") {
+                return { ...decision, type: "horoscope" }
+            }
+            return decision
+        },
+        [interpretationMode],
+    )
 
     const getDefaultSystemByLocale = useCallback(() => {
         return getDefaultAstrologySystem(
@@ -1355,7 +1381,7 @@ export default function ChatSession({
                     ? formatBirthInfoForAssistant(savedBirth, locale)
                     : null
 
-                const nextDecision = await fetchDecision(
+                let nextDecision = await fetchDecision(
                     trimmed,
                     history,
                     (partial) => {
@@ -1369,6 +1395,7 @@ export default function ChatSession({
                     },
                     savedBirthInfo,
                 )
+                nextDecision = applyInterpretationModeOverride(nextDecision)
                 setDecision(nextDecision)
                 setConsulting(false)
 
@@ -1416,6 +1443,7 @@ export default function ChatSession({
             }
         },
         [
+            applyInterpretationModeOverride,
             consulting,
             fetchDecision,
             getDefaultSystemByLocale,
@@ -1566,7 +1594,7 @@ export default function ChatSession({
                     ? formatBirthInfoForAssistant(savedBirth, locale)
                     : null
 
-                const nextDecision = await fetchDecision(
+                let nextDecision = await fetchDecision(
                     trimmed,
                     history,
                     (partial) => {
@@ -1580,6 +1608,7 @@ export default function ChatSession({
                     },
                     savedBirthInfo,
                 )
+                nextDecision = applyInterpretationModeOverride(nextDecision)
                 setDecision(nextDecision)
                 setConsulting(false)
 
@@ -1627,6 +1656,7 @@ export default function ChatSession({
             }
         },
         [
+            applyInterpretationModeOverride,
             fetchDecision,
             getDefaultSystemByLocale,
             handleHoroscopeInput,
@@ -1798,6 +1828,12 @@ export default function ChatSession({
                     isInputFixed ? "max-w-3xl" : "max-w-sm md:max-w-md"
                 }`}
             />
+            <div className='flex justify-center mt-2'>
+                <InterpretationModeSelector
+                    value={interpretationMode}
+                    onChange={setInterpretationMode}
+                />
+            </div>
             {!hasAssistantResponse && (
                 <p
                     className={`text-[11px] leading-relaxed text-white/50 text-center transition-all duration-500 text-left ${

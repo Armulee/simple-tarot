@@ -273,6 +273,11 @@
     "newBirthInfo": "New birth info",
     "birthInfo": "Birth info: {date}"
   },
+  "InterpretationMode": {
+    "auto": "Auto",
+    "tarot": "Tarot",
+    "horoscope": "Horoscope"
+  },
   "About": {
     "whatIs": "What is",
     "brand": "Asking Fate?",
