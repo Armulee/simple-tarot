@@ -568,7 +568,10 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                             Boolean(user)
                         )
                     )
-                    broadcastStarsUpdate()
+                    // Skip broadcast after spend: we already have correct state.
+                    // Broadcasting triggers reconcile in same tab, which can race with
+                    // get-or-create and overwrite with stale data (star reappearing).
+                    // Other tabs will reconcile on visibility change.
                 } catch {
                     try {
                         void refreshSubscription()
