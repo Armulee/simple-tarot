@@ -38,6 +38,7 @@ export async function POST(req: Request) {
             const dailyStars = Number(row.daily_stars ?? 0)
             let planStars = Number(row.plan_stars ?? 0)
             let addonStars = Number(row.addon_stars ?? 0)
+            const starsBefore = dailyStars + planStars + addonStars
             const engagementStarsCurrent = Number(
                 row.engagement_stars_current ?? 0
             )
@@ -131,6 +132,14 @@ export async function POST(req: Request) {
             if (dailyStars >= 12 && nextDaily < 12) {
                 dailyLastRefillAt = new Date().toISOString()
             }
+
+            const starsAfter = nextDaily + nextPlan + nextAddon
+            console.log("[stars/spend] authenticated", {
+                user_id: userId,
+                amount_before: starsBefore,
+                amount_spend: amount,
+                amount_after: starsAfter,
+            })
 
             const { data: updated } = await supabaseAdmin
                 .from("stars")
