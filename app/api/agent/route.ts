@@ -5,10 +5,9 @@ import { AGENT_SYSTEM_PROMPT } from "@/lib/agent/system-prompt"
 import type { AgentAction, AgentRequestPayload, AgentResponse } from "@/types/agent"
 
 const MODEL = "openai/gpt-5-nano"
-const MAX_MESSAGES = 30
 
 function buildPrompt(payload: AgentRequestPayload) {
-    const messages = payload.messages.slice(-MAX_MESSAGES)
+    const messages = payload.messages
     const history = messages
         .map((message) => `${message.role.toUpperCase()}: ${message.content}`)
         .join("\n")
@@ -40,7 +39,6 @@ export async function POST(req: Request) {
         const result = await generateText({
             model: MODEL,
             temperature: 0.4,
-            maxOutputTokens: 600,
             system: AGENT_SYSTEM_PROMPT,
             prompt,
             tools: {

@@ -64,7 +64,6 @@ ${prompt}`
         const result = await streamObject({
             model: MODEL,
             temperature: 0.8,
-            maxOutputTokens: 4000,
             schema: tarotInterpretationSchema,
             system: TAROT_SYSTEM_PROMPT,
             prompt: `${prompt}

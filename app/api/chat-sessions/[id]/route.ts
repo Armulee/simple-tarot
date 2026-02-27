@@ -3,10 +3,6 @@ import { supabase, supabaseAdmin } from "@/lib/supabase"
 import { readAndVerifyDid } from "@/lib/server/did"
 import { createClient } from "@supabase/supabase-js"
 
-const MAX_QUESTION_LENGTH = 500
-const MAX_MESSAGE_COUNT = 200
-const MAX_TOPIC_LENGTH = 80
-
 // Helper to get user from authorization header
 async function getUserFromAuth(req: NextRequest) {
     const authHeader = req.headers.get("authorization")
@@ -77,13 +73,13 @@ export async function PATCH(
         }
 
         if (typeof body?.question === "string") {
-            update.question = body.question.slice(0, MAX_QUESTION_LENGTH)
+            update.question = body.question
         }
         if (typeof body?.topic === "string") {
-            update.topic = body.topic.slice(0, MAX_TOPIC_LENGTH)
+            update.topic = body.topic
         }
         if (Array.isArray(body?.messages)) {
-            update.messages = body.messages.slice(0, MAX_MESSAGE_COUNT)
+            update.messages = body.messages
         }
         if (body?.decision && typeof body.decision === "object") {
             update.decision = body.decision

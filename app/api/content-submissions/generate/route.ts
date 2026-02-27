@@ -128,7 +128,6 @@ Deliver the final copy ready for a creator to publish without additional editing
         const result = await generateText({
             model: MODEL,
             temperature: 0.7,
-            maxOutputTokens: 600,
             system: systemPrompt,
             prompt: userPrompt,
         })

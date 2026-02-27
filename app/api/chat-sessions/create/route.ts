@@ -4,9 +4,6 @@ import { generateText } from "ai"
 import { readAndVerifyDid } from "@/lib/server/did"
 import { supabaseAdmin } from "@/lib/supabase"
 
-const MAX_QUESTION_LENGTH = 500
-const MAX_MESSAGE_COUNT = 100
-const MAX_TOPIC_LENGTH = 80
 const MODEL = "openai/gpt-5-nano"
 
 function cleanTopic(raw: string): string {
@@ -17,7 +14,6 @@ function cleanTopic(raw: string): string {
             .replace(/[.。!?！？:：;；]+$/g, "")
             .replace(/\s+/g, " ")
             .trim()
-            .slice(0, MAX_TOPIC_LENGTH)
     )
 }
 
@@ -40,7 +36,6 @@ Return a clear, descriptive session topic now.`
     const result = await generateText({
         model: MODEL,
         temperature: 0.2,
-        maxOutputTokens: 30,
         system,
         prompt,
     })
@@ -62,13 +57,13 @@ export async function POST(req: NextRequest) {
         if (!did) return NextResponse.json({ error: "NO_DID" }, { status: 400 })
 
         const body = await req.json()
-        const question = (body?.question ?? "").toString().slice(0, MAX_QUESTION_LENGTH)
+        const question = (body?.question ?? "").toString()
         const ownerUserId: string | null =
             typeof body?.user_id === "string" && body.user_id
                 ? body.user_id
                 : null
         const rawMessages = Array.isArray(body?.messages)
-            ? body.messages.slice(0, MAX_MESSAGE_COUNT)
+            ? body.messages
             : []
         const messages =
             rawMessages.length > 0
