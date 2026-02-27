@@ -4,7 +4,7 @@ import { z } from "zod"
 import { AGENT_SYSTEM_PROMPT } from "@/lib/agent/system-prompt"
 import type { AgentAction, AgentRequestPayload, AgentResponse } from "@/types/agent"
 
-const MODEL = "google/gemini-2.0-flash"
+const MODEL = "openai/gpt-5-nano"
 const MAX_MESSAGES = 30
 
 function buildPrompt(payload: AgentRequestPayload) {

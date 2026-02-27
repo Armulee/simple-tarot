@@ -7,7 +7,7 @@ import { supabaseAdmin } from "@/lib/supabase"
 const MAX_QUESTION_LENGTH = 500
 const MAX_MESSAGE_COUNT = 100
 const MAX_TOPIC_LENGTH = 80
-const MODEL = "google/gemini-2.0-flash"
+const MODEL = "openai/gpt-5-nano"
 
 function cleanTopic(raw: string): string {
     return (
