@@ -11,7 +11,7 @@ import {
     normalizeConversationContext,
 } from "@/lib/astrology/question-context"
 
-const MODEL = "openai/gpt-4o-mini"
+const MODEL = "openai/gpt-4.1-mini"
 
 export async function POST(req: Request) {
     try {

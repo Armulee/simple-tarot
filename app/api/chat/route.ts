@@ -5,7 +5,7 @@ import {
     getChatDecisionPrompt,
 } from "@/lib/prompts"
 
-const MODEL = "openai/gpt-4o-mini"
+const MODEL = "openai/gpt-4.1-mini"
 
 export async function POST(req: Request) {
     try {

@@ -4,7 +4,7 @@ import { generateText } from "ai"
 import { readAndVerifyDid } from "@/lib/server/did"
 import { supabaseAdmin } from "@/lib/supabase"
 
-const MODEL = "openai/gpt-4o-mini"
+const MODEL = "openai/gpt-4.1-mini"
 
 function cleanTopic(raw: string): string {
     return (
