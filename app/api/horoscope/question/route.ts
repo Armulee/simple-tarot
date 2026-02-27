@@ -14,7 +14,7 @@ import {
     normalizeConversationContext,
 } from "@/lib/astrology/question-context"
 
-const MODEL = "openai/gpt-5-nano"
+const MODEL = "openai/gpt-4o-mini"
 
 const requestSchema = z.object({
     question: z.string().trim().min(1),

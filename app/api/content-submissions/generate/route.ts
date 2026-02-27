@@ -11,7 +11,7 @@ import {
     type LanguageCode,
 } from "@/lib/content-generator"
 
-const MODEL = "openai/gpt-5-nano"
+const MODEL = "openai/gpt-4o-mini"
 
 const OUTPUT_DIRECTIVES: Record<ContentTypeKey, string> = {
     shortText:
