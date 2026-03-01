@@ -1,8 +1,8 @@
-export type InterpretationMode = "auto" | "tarot" | "horoscope"
+export type InterpretationMode = "auto" | "tarot" | "horoscope" | "chat"
 
 const STORAGE_KEY = "askingfate_interpretation_mode"
 
-const VALID_MODES: InterpretationMode[] = ["auto", "tarot", "horoscope"]
+const VALID_MODES: InterpretationMode[] = ["auto", "tarot", "horoscope", "chat"]
 
 export function loadInterpretationModeFromStorage(): InterpretationMode {
     if (typeof window === "undefined") return "auto"

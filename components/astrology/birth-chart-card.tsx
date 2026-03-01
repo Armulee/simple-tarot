@@ -1,7 +1,8 @@
 "use client"
 
 import React, { useState } from "react"
-import { useTranslations } from "next-intl"
+import Image from "next/image"
+import { useLocale, useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
 import {
     Accordion,
@@ -37,9 +38,8 @@ import {
     Trophy,
     CloudMoon,
     Sparkles,
-    MapPin,
-    Clock,
-    Calendar as CalendarIcon,
+    CalendarDays,
+    Clock3,
 } from "lucide-react"
 import { getPlanetDignity } from "@/lib/birth-chart-utils"
 import type { AstrologySystem } from "@/lib/astrology/types"
@@ -90,6 +90,61 @@ const PLANET_ORDER = [
     "Rahu",
     "Ketu",
 ]
+
+const PLANET_IMAGE_ASSETS: Record<string, string> = {
+    Sun: "/assets/planetary/sun.png",
+    Moon: "/assets/planetary/moon.png",
+    Mercury: "/assets/planetary/mercury.png",
+    Venus: "/assets/planetary/venus.png",
+    Mars: "/assets/planetary/mars.png",
+    Jupiter: "/assets/planetary/jupiter.png",
+    Saturn: "/assets/planetary/saturn.png",
+    Rahu: "/assets/planetary/rahu.png",
+    Ketu: "/assets/planetary/rahu.png",
+    Uranus: "/assets/planetary/uranus.png",
+}
+
+const ZODIAC_SIGNS_EN = [
+    "Aries",
+    "Taurus",
+    "Gemini",
+    "Cancer",
+    "Leo",
+    "Virgo",
+    "Libra",
+    "Scorpio",
+    "Sagittarius",
+    "Capricorn",
+    "Aquarius",
+    "Pisces",
+]
+
+const ZODIAC_SIGN_INDEX: Record<string, number> = {
+    Aries: 0,
+    Taurus: 1,
+    Gemini: 2,
+    Cancer: 3,
+    Leo: 4,
+    Virgo: 5,
+    Libra: 6,
+    Scorpio: 7,
+    Sagittarius: 8,
+    Capricorn: 9,
+    Aquarius: 10,
+    Pisces: 11,
+    เมษ: 0,
+    พฤษภ: 1,
+    มิถุน: 2,
+    กรกฎ: 3,
+    สิงห์: 4,
+    กันย์: 5,
+    ตุลย์: 6,
+    พิจิก: 7,
+    ธนู: 8,
+    มังกร: 9,
+    กุมภ์: 10,
+    มีน: 11,
+}
 
 type AstrologyPoint = {
     sign: string
@@ -153,24 +208,45 @@ function formatDegree(deg: number) {
     return `${Math.floor(deg)}°${Math.round((deg % 1) * 60)}′`
 }
 
-function formatDate(d: {
-    day: number
-    month: number
-    year: number
-    hour: number
-    minute: number
-}) {
-    const date = new Date(d.year, d.month - 1, d.day)
-    const dateStr = date.toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-    })
-    const h = d.hour
-    const ampm = h >= 12 ? "PM" : "AM"
-    const displayHour = h % 12 || 12
-    const timeStr = `${displayHour}:${String(d.minute).padStart(2, "0")} ${ampm}`
-    return { dateStr, timeStr }
+function getLocalizedZodiacSign(
+    signRaw: string,
+    t: (key: string, values?: Record<string, string | number>) => string,
+) {
+    const signIndex = ZODIAC_SIGN_INDEX[signRaw]
+    if (typeof signIndex !== "number") return signRaw
+    const canonicalSign = ZODIAC_SIGNS_EN[signIndex] ?? signRaw
+    return t(`zodiacSigns.${canonicalSign}`)
+}
+
+function formatDisplayDate(
+    date: { day?: number | null; month?: number | null; year?: number | null },
+    locale: string,
+) {
+    if (!date.day || !date.month || !date.year) return ""
+    return new Date(date.year, date.month - 1, date.day).toLocaleDateString(
+        locale.startsWith("th") ? "th-TH" : "en-US",
+        {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+        },
+    )
+}
+
+function formatDisplayTime(
+    time: { hour?: number | null; minute?: number | null },
+    locale: string,
+) {
+    if (time.hour == null || time.minute == null) return ""
+    const base = new Date()
+    base.setHours(time.hour, time.minute, 0, 0)
+    return base.toLocaleTimeString(
+        locale.startsWith("th") ? "th-TH" : "en-US",
+        {
+            hour: "numeric",
+            minute: "2-digit",
+        },
+    )
 }
 
 function getOrdinalSuffix(i: number) {
@@ -181,6 +257,9 @@ function getOrdinalSuffix(i: number) {
     if (j === 3 && k !== 13) return "rd"
     return "th"
 }
+
+const metaCardClass =
+    "rounded-xl border border-white/10 bg-gradient-to-br from-white/10 to-white/[0.03] px-3 py-2"
 
 function SystemBadgePopover({
     currentSystem,
@@ -202,7 +281,7 @@ function SystemBadgePopover({
                 <span
                     role='button'
                     tabIndex={0}
-                    className='shrink-0 inline-flex cursor-pointer rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 hover:text-white transition-colors'
+                    className='shrink-0 inline-flex cursor-pointer rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1.5 text-xs font-medium text-yellow-500 hover:bg-primary/20 hover:text-white transition-colors'
                 >
                     {label}
                 </span>
@@ -220,7 +299,7 @@ function SystemBadgePopover({
                         }}
                         className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                             currentSystem === "western_tropical"
-                                ? "bg-primary/20 text-primary"
+                                ? "bg-yellow-500/20 text-yellow-500"
                                 : "text-white/80 hover:bg-white/10 hover:text-white"
                         }`}
                     >
@@ -234,7 +313,7 @@ function SystemBadgePopover({
                         }}
                         className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                             currentSystem === "vedic_sidereal"
-                                ? "bg-primary/20 text-primary"
+                                ? "bg-yellow-500/20 text-yellow-500"
                                 : "text-white/80 hover:bg-white/10 hover:text-white"
                         }`}
                     >
@@ -261,139 +340,161 @@ export function BirthChartCard({
     void planetMeanings
     void houseMeanings
     const t = useTranslations("BirthChart")
-    const [activeTab, setActiveTab] = useState<"birth" | "transit">("birth")
+    const locale = useLocale()
+    const [birthSection, setBirthSection] = useState<"planetary" | "lifeAreas">(
+        "planetary",
+    )
     const hasTransit = Boolean(
         chartData?.transit?.charts?.length &&
             chartData.transit?.date?.day &&
             chartData.transit?.date?.month &&
             chartData.transit?.date?.year,
     )
-    const chart =
-        activeTab === "transit" && hasTransit
-            ? chartData!.transit!.charts![0]
-            : chartData?.charts?.[0]
+    const chart = chartData?.charts?.[0]
+    const transitChart = hasTransit ? chartData?.transit?.charts?.[0] : null
     if (!chart?.planets) return null
-
-    const birth = chartData.birth
-    const transit = chartData.transit
-    const isBirthTab = activeTab === "birth" || !hasTransit
-    const contextDate = isBirthTab
-        ? birth?.date && birth?.time
-            ? {
-                  day: birth.date.day,
-                  month: birth.date.month,
-                  year: birth.date.year,
-                  hour: birth!.time!.hour,
-                  minute: birth!.time!.minute,
-              }
-            : null
-        : transit?.date?.day && transit?.date?.month && transit?.date?.year
-          ? {
-                day: transit.date.day,
-                month: transit.date.month,
-                year: transit.date.year,
-                hour: transit.date.hour ?? 12,
-                minute: transit.date.minute ?? 0,
-            }
-          : null
-    const { dateStr, timeStr } = contextDate
-        ? formatDate(contextDate)
-        : { dateStr: "", timeStr: "" }
-    const contextLocation = isBirthTab ? birth?.location : transit?.location
-    const locationLabel = [contextLocation?.state, contextLocation?.country]
-        .filter(Boolean)
-        .join(", ")
 
     const planetsToShow = PLANET_ORDER.filter(
         (key) => chart.planets?.[key] != null,
     )
+    const transitPlanetsToShow = PLANET_ORDER.filter(
+        (key) => key !== "Ascendant" && transitChart?.planets?.[key] != null,
+    )
+    const hasHouses = Boolean(
+        chart.houses && Object.keys(chart.houses).length > 0,
+    )
+    const birthDateText = formatDisplayDate(chartData.birth?.date ?? {}, locale)
+    const birthTimeText = formatDisplayTime(chartData.birth?.time ?? {}, locale)
+    const transitDateText = formatDisplayDate(
+        chartData.transit?.date ?? {},
+        locale,
+    )
+
+    const renderPlanetaryGrid = (
+        targetChart: NonNullable<ChartData["charts"]>[number],
+        planetKeys: string[],
+    ) => (
+        <div className='px-1 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3'>
+            {planetKeys.map((planet) => {
+                const p = targetChart.planets?.[planet]
+                if (!p) return null
+
+                const dignity = getPlanetDignity(planet, p.sign)
+                const PlanetIconComponent = PLANET_ICONS[planet] ?? Star
+                const planetImageSrc = PLANET_IMAGE_ASSETS[planet]
+                const isRetrograde = p.retrograde ?? false
+                const toneClass = isRetrograde
+                    ? "text-white/45"
+                    : dignity.isExalted
+                      ? "text-amber-300"
+                      : dignity.isOwnSign
+                        ? "text-sky-300"
+                        : dignity.isDebilitated
+                          ? "text-red-300"
+                          : "text-white"
+                const subToneClass = isRetrograde
+                    ? "text-white/40"
+                    : dignity.isExalted
+                      ? "text-amber-200/90"
+                      : dignity.isOwnSign
+                        ? "text-sky-200/90"
+                        : dignity.isDebilitated
+                          ? "text-red-200/90"
+                          : "text-white/65"
+                const auraClass = isRetrograde
+                    ? "shadow-none"
+                    : dignity.isExalted
+                      ? "shadow-[0_0_22px_rgba(251,191,36,0.5)]"
+                      : dignity.isOwnSign
+                        ? "shadow-[0_0_22px_rgba(56,189,248,0.5)]"
+                        : dignity.isDebilitated
+                          ? "shadow-[0_0_20px_rgba(248,113,113,0.45)]"
+                          : "shadow-none"
+                const ringClass = isRetrograde
+                    ? "ring-1 ring-white/15"
+                    : dignity.isExalted
+                      ? "ring-1 ring-amber-300/70"
+                      : dignity.isOwnSign
+                        ? "ring-1 ring-sky-300/70"
+                        : dignity.isDebilitated
+                          ? "ring-1 ring-red-300/70"
+                          : ""
+                const statusToneClass = isRetrograde
+                    ? "text-white/45"
+                    : dignity.isExalted
+                      ? "text-amber-300/90"
+                      : dignity.isOwnSign
+                        ? "text-sky-300/90"
+                        : dignity.isDebilitated
+                          ? "text-red-300/90"
+                          : "text-white/45"
+
+                return (
+                    <div key={planet} className='flex items-start gap-3'>
+                        {planetImageSrc ? (
+                            <Image
+                                src={planetImageSrc}
+                                alt={planet}
+                                width={52}
+                                height={52}
+                                className={`h-[52px] w-[52px] rounded-full object-cover ${ringClass} ${auraClass} ${
+                                    planet === "Ketu" ? "rotate-90" : ""
+                                }`}
+                            />
+                        ) : (
+                            <div
+                                className={`h-[52px] w-[52px] rounded-full bg-white/5 text-white/70 flex items-center justify-center ${ringClass} ${auraClass}`}
+                            >
+                                <PlanetIconComponent className='h-6 w-6' />
+                            </div>
+                        )}
+                        <div className='min-w-0'>
+                            <p className={`text-sm font-medium ${toneClass}`}>
+                                {t(`planets.${planet}`)}
+                            </p>
+                            <p className={`text-xs ${subToneClass}`}>
+                                {getLocalizedZodiacSign(p.sign, t)}
+                                {p.degree > 0
+                                    ? ` · ${p.degree.toFixed(1)}°`
+                                    : ""}
+                            </p>
+                            <p className='text-[10px] text-white/45'>
+                                {p.longitude.toFixed(3)}°
+                            </p>
+                            {(dignity.isExalted ||
+                                dignity.isDebilitated ||
+                                dignity.isOwnSign ||
+                                isRetrograde) && (
+                                <p
+                                    className={`mt-1 text-[10px] uppercase tracking-wide ${statusToneClass}`}
+                                >
+                                    {[
+                                        dignity.isExalted
+                                            ? t("stats.status.exalted")
+                                            : null,
+                                        dignity.isDebilitated
+                                            ? t("stats.status.debilitated")
+                                            : null,
+                                        dignity.isOwnSign
+                                            ? t("stats.status.ownSign")
+                                            : null,
+                                        isRetrograde
+                                            ? t("stats.status.retrograde")
+                                            : null,
+                                    ]
+                                        .filter(Boolean)
+                                        .join(" · ")}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                )
+            })}
+        </div>
+    )
 
     return (
         <div className='space-y-8 pb-4'>
-            {hasTransit && (
-                <div className='flex gap-2 rounded-xl border border-white/10 bg-white/5 p-1'>
-                    <button
-                        type='button'
-                        onClick={() => setActiveTab("birth")}
-                        className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
-                            activeTab === "birth"
-                                ? "bg-primary/20 text-primary"
-                                : "text-white/70 hover:text-white hover:bg-white/5"
-                        }`}
-                    >
-                        {t("tabBirthChart")}
-                    </button>
-                    <button
-                        type='button'
-                        onClick={() => setActiveTab("transit")}
-                        className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
-                            activeTab === "transit"
-                                ? "bg-primary/20 text-primary"
-                                : "text-white/70 hover:text-white hover:bg-white/5"
-                        }`}
-                    >
-                        {t("tabTransitChart")}
-                    </button>
-                </div>
-            )}
-            {/* Context Summary Header - same as info-tab */}
-            <div className='relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8'>
-                <div className='flex flex-col md:flex-row md:items-center justify-between gap-8'>
-                    <div className='grid grid-cols-2 xs:grid-cols-3 gap-6'>
-                        {contextDate && (
-                            <>
-                                <div className='flex items-center gap-3'>
-                                    <div className='p-2 rounded-full border border-white/10 bg-white/5 text-accent'>
-                                        <CalendarIcon className='w-4 h-4' />
-                                    </div>
-                                    <div>
-                                        <p className='text-white/40 text-[10px] uppercase tracking-wider'>
-                                            Date
-                                        </p>
-                                        <p className='text-sm font-semibold text-white'>
-                                            {dateStr}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className='flex items-center gap-3'>
-                                    <div className='p-2 rounded-full border border-white/10 bg-white/5 text-accent'>
-                                        <Clock className='w-4 h-4' />
-                                    </div>
-                                    <div>
-                                        <p className='text-white/40 text-[10px] uppercase tracking-wider'>
-                                            Time
-                                        </p>
-                                        <p className='text-sm font-semibold text-white'>
-                                            {timeStr}
-                                            {isBirthTab &&
-                                                birth?.time?.approximate && (
-                                                    <span className='text-white/40 font-normal'>
-                                                        {" "}
-                                                        (approx)
-                                                    </span>
-                                                )}
-                                        </p>
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                        <div className='flex items-center gap-3'>
-                            <div className='p-2 rounded-full border border-white/10 bg-white/5 text-accent'>
-                                <MapPin className='w-4 h-4' />
-                            </div>
-                            <div>
-                                <p className='text-white/40 text-[10px] uppercase tracking-wider'>
-                                    Location
-                                </p>
-                                <p className='truncate max-w-[150px] text-sm font-semibold text-white'>
-                                    {locationLabel || "Unknown"}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {/* Key Placements - expandable, hidden by default */}
             {planetsToShow.length > 0 && (
                 <Accordion className='space-y-0'>
@@ -408,7 +509,7 @@ export function BirthChartCard({
                                 </div>
                                 <div className='min-w-0 w-full'>
                                     <h3 className='text-xl font-serif font-bold text-white text-left w-full'>
-                                        Key Placements
+                                        {t("birthDetailsTitle")}
                                     </h3>
                                     {onRefetchWithSystem && (
                                         <div
@@ -430,195 +531,162 @@ export function BirthChartCard({
                             </div>
                         </AccordionTrigger>
                         <AccordionContent className='pt-2'>
-                            <div className='grid gap-5 grid-cols-2 lg:grid-cols-3'>
-                                {planetsToShow.map((planet) => {
-                                    const p = chart.planets![planet]
-                                    const dignity = getPlanetDignity(
-                                        planet,
-                                        p.sign,
-                                    )
-                                    const PlanetIconComponent =
-                                        PLANET_ICONS[planet] ?? Star
-                                    const isRetrograde = p.retrograde ?? false
+                            {(birthDateText || birthTimeText) && (
+                                <div className='mb-4 grid gap-2 sm:grid-cols-2'>
+                                    {birthDateText && (
+                                        <div className={metaCardClass}>
+                                            <p className='mb-1 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-white/55'>
+                                                <CalendarDays className='h-3.5 w-3.5 text-accent/80' />
+                                                {t("birthDateLabel")}
+                                            </p>
+                                            <p className='text-sm font-medium text-white/90'>
+                                                {birthDateText}
+                                            </p>
+                                        </div>
+                                    )}
+                                    {birthTimeText && (
+                                        <div className={metaCardClass}>
+                                            <p className='mb-1 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-white/55'>
+                                                <Clock3 className='h-3.5 w-3.5 text-accent/80' />
+                                                {t("birthTimeLabel")}
+                                            </p>
+                                            <p className='text-sm font-medium text-white/90'>
+                                                {birthTimeText}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            <div className='mb-4 flex gap-2 rounded-xl border border-white/10 bg-white/5 p-1'>
+                                <button
+                                    type='button'
+                                    onClick={() => setBirthSection("planetary")}
+                                    className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                                        birthSection === "planetary"
+                                            ? "bg-yellow-500/20 text-yellow-500"
+                                            : "text-white/70 hover:text-white hover:bg-white/5"
+                                    }`}
+                                >
+                                    {t("planetarySectionLabel")}
+                                </button>
+                                <button
+                                    type='button'
+                                    onClick={() => setBirthSection("lifeAreas")}
+                                    className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                                        birthSection === "lifeAreas"
+                                            ? "bg-yellow-500/20 text-yellow-500"
+                                            : "text-white/70 hover:text-white hover:bg-white/5"
+                                    }`}
+                                >
+                                    {t("lifeAreasSectionLabel")}
+                                </button>
+                            </div>
+                            {birthSection === "planetary" &&
+                                renderPlanetaryGrid(chart, planetsToShow)}
+                            {birthSection === "lifeAreas" && hasHouses && (
+                                <div className='grid gap-5 grid-cols-2 lg:grid-cols-3'>
+                                    {[
+                                        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+                                    ].map((i) => {
+                                        const h = chart.houses?.[String(i)]
+                                        if (!h) return null
+                                        const HouseIconComponent =
+                                            HOUSE_ICONS[String(i)] ?? Home
+                                        const suffix = getOrdinalSuffix(i)
+                                        const houseLabel = t(
+                                            `houseMeanings.${i}`,
+                                            { defaultValue: "" },
+                                        )
 
-                                    const cardStyle = dignity.isExalted
-                                        ? "border-amber-400/50 bg-amber-500/15 animate-exalted-aura hover:border-amber-400/70"
-                                        : dignity.isDebilitated
-                                          ? "border-red-500/50 bg-red-500/15 shadow-lg shadow-red-500/10 hover:border-red-500/70"
-                                          : dignity.isOwnSign
-                                            ? "border-blue-400/50 bg-blue-500/10 shadow-[0_0_20px_rgba(96,165,250,0.15)] hover:border-blue-400/70 hover:shadow-[0_0_28px_rgba(96,165,250,0.25)]"
-                                            : isRetrograde
-                                              ? "border-white/10 bg-white/5 hover:bg-white/[0.08]"
-                                              : "border-white/10 bg-white/5 hover:border-accent/30 hover:bg-white/[0.08]"
-
-                                    const iconStyle = dignity.isExalted
-                                        ? "border-amber-400/40 bg-amber-500/20 text-amber-400"
-                                        : dignity.isDebilitated
-                                          ? "border-red-500/30 bg-red-500/20 text-red-400"
-                                          : dignity.isOwnSign
-                                            ? "border-blue-400/40 bg-blue-500/20 text-blue-400"
-                                            : isRetrograde
-                                              ? "border-white/10 bg-white/5 text-white/50"
-                                              : "border-accent/20 bg-accent/10 text-accent"
-
-                                    const signStyle = isRetrograde
-                                        ? "text-white/40"
-                                        : dignity.isExalted
-                                          ? "text-amber-400/90"
-                                          : dignity.isDebilitated
-                                            ? "text-red-400/90"
-                                            : dignity.isOwnSign
-                                              ? "text-blue-400/90"
-                                              : "text-accent opacity-80"
-
-                                    return (
-                                        <Card
-                                            key={planet}
-                                            className={`py-0 group overflow-visible transition-all duration-500 ${cardStyle}`}
-                                        >
-                                            <div className='space-y-4 px-3 py-2'>
-                                                <div className='flex items-center justify-between'>
-                                                    <div className='flex items-center gap-3'>
-                                                        <div
-                                                            className={`rounded-lg border p-2 transition-transform duration-500 group-hover:scale-110 ${iconStyle}`}
-                                                        >
-                                                            <PlanetIconComponent className='w-5 h-5' />
-                                                        </div>
-                                                        <div>
-                                                            <div className='flex flex-wrap items-center gap-2'>
-                                                                <h4
-                                                                    className={`text-sm font-bold tracking-tight ${
-                                                                        isRetrograde
-                                                                            ? "text-white/60"
-                                                                            : "text-white"
-                                                                    }`}
-                                                                >
-                                                                    {planet}
-                                                                </h4>
-                                                                {dignity.isExalted && (
-                                                                    <span className='rounded border border-amber-400/40 bg-amber-500/20 px-1.5 py-0.5 text-[8px] font-bold uppercase text-amber-400'>
-                                                                        Exalted
-                                                                    </span>
-                                                                )}
-                                                                {dignity.isDebilitated && (
-                                                                    <span className='rounded border border-red-500/40 bg-red-500/20 px-1.5 py-0.5 text-[8px] font-bold uppercase text-red-400'>
-                                                                        Debilitated
-                                                                    </span>
-                                                                )}
-                                                                {dignity.isOwnSign && (
-                                                                    <span className='rounded border border-blue-400/40 bg-blue-500/20 px-1.5 py-0.5 text-[8px] font-bold uppercase text-blue-400'>
-                                                                        Own Sign
-                                                                    </span>
-                                                                )}
-                                                                {isRetrograde && (
-                                                                    <span className='rounded border border-white/20 bg-white/10 px-1.5 py-0.5 text-[8px] font-bold uppercase text-white/60'>
-                                                                        Retrograde
-                                                                    </span>
-                                                                )}
+                                        return (
+                                            <Card
+                                                key={i}
+                                                className='py-0 group overflow-hidden border-white/10 bg-white/5 transition-all duration-500 hover:border-accent/30 hover:bg-white/[0.08]'
+                                            >
+                                                <div className='space-y-4 px-3 py-2'>
+                                                    <div className='flex items-start justify-between'>
+                                                        <div className='flex items-center gap-3'>
+                                                            <div className='rounded-lg border border-accent/20 bg-accent/10 p-2 text-accent transition-colors duration-500 group-hover:bg-accent group-hover:text-white'>
+                                                                <HouseIconComponent className='w-5 h-5' />
                                                             </div>
-                                                            <p
-                                                                className={`text-[10px] font-bold uppercase tracking-widest ${signStyle}`}
-                                                            >
-                                                                {p.sign}
-                                                                {p.degree > 0
-                                                                    ? ` · ${p.degree.toFixed(1)}°`
-                                                                    : ""}
-                                                            </p>
+                                                            <div>
+                                                                <h4 className='text-sm font-bold tracking-tight text-white'>
+                                                                    {i}
+                                                                    {
+                                                                        suffix
+                                                                    }{" "}
+                                                                    House
+                                                                </h4>
+                                                                {houseLabel && (
+                                                                    <p className='text-xs font-semibold text-white/60 leading-tight mt-0.5'>
+                                                                        {
+                                                                            houseLabel
+                                                                        }
+                                                                    </p>
+                                                                )}
+                                                                <p className='text-[10px] uppercase tracking-wider text-white/40'>
+                                                                    {h.sign}{" "}
+                                                                    {formatDegree(
+                                                                        h.degree,
+                                                                    )}
+                                                                </p>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </Card>
-                                    )
-                                })}
-                            </div>
+                                            </Card>
+                                        )
+                                    })}
+                                </div>
+                            )}
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
             )}
 
-            {/* Life Areas - expandable, hidden by default */}
-            {chart.houses &&
-                Object.keys(chart.houses).length > 0 &&
-                (() => {
-                    const houseIndices = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-                    return (
-                        <Accordion className='space-y-0'>
-                            <AccordionItem
-                                defaultOpen={false}
-                                className='rounded-2xl border border-white/10 bg-white/5 p-4'
-                            >
-                                <AccordionTrigger className='py-0 hover:no-underline'>
-                                    <div className='flex items-center gap-4 w-full'>
-                                        <div className='rounded-xl border border-accent/30 bg-accent/20 p-2.5 text-accent shadow-lg shadow-accent/10'>
-                                            <Home className='w-5 h-5' />
-                                        </div>
-                                        <div>
-                                            <h3 className='text-xl font-serif font-bold text-white text-left'>
-                                                Life Areas
-                                            </h3>
-                                        </div>
-                                        <div className='ml-4 h-px flex-1 bg-gradient-to-r from-white/10 to-transparent' />
+            {hasTransit && transitChart && transitPlanetsToShow.length > 0 && (
+                <Accordion className='space-y-0'>
+                    <AccordionItem
+                        defaultOpen={false}
+                        className='rounded-2xl border border-white/10 bg-white/5 p-4'
+                    >
+                        <AccordionTrigger className='py-0 hover:no-underline'>
+                            <div className='flex items-center gap-4 w-full'>
+                                <div className='rounded-xl border border-accent/30 bg-accent/20 p-2.5 text-accent shadow-lg shadow-accent/10'>
+                                    <Sparkles className='w-5 h-5' />
+                                </div>
+                                <div className='min-w-0 w-full'>
+                                    <h3 className='text-xl font-serif font-bold text-white text-left w-full'>
+                                        {t("transitDetailsTitle")}
+                                    </h3>
+                                </div>
+                                <div className='ml-4 h-px flex-1 bg-gradient-to-r from-white/10 to-transparent' />
+                            </div>
+                        </AccordionTrigger>
+                        <AccordionContent className='pt-2'>
+                            {transitDateText && (
+                                <div className='mb-4'>
+                                    <div
+                                        className={`${metaCardClass} max-w-sm`}
+                                    >
+                                        <p className='mb-1 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-white/55'>
+                                            <CalendarDays className='h-3.5 w-3.5 text-accent/80' />
+                                            {t("transitDateLabel")}
+                                        </p>
+                                        <p className='text-sm font-medium text-white/90'>
+                                            {transitDateText}
+                                        </p>
                                     </div>
-                                </AccordionTrigger>
-                                <AccordionContent className='pt-2'>
-                                    <div className='grid gap-5 grid-cols-2 lg:grid-cols-3'>
-                                        {houseIndices.map((i) => {
-                                            const h = chart.houses?.[String(i)]
-                                            if (!h) return null
-                                            const HouseIconComponent =
-                                                HOUSE_ICONS[String(i)] ?? Home
-                                            const suffix = getOrdinalSuffix(i)
-                                            const houseLabel = t(
-                                                `houseMeanings.${i}`,
-                                                { defaultValue: "" },
-                                            )
-
-                                            return (
-                                                <Card
-                                                    key={i}
-                                                    className='py-0 group overflow-hidden border-white/10 bg-white/5 transition-all duration-500 hover:border-accent/30 hover:bg-white/[0.08]'
-                                                >
-                                                    <div className='space-y-4 px-3 py-2'>
-                                                        <div className='flex items-start justify-between'>
-                                                            <div className='flex items-center gap-3'>
-                                                                <div className='rounded-lg border border-accent/20 bg-accent/10 p-2 text-accent transition-colors duration-500 group-hover:bg-accent group-hover:text-white'>
-                                                                    <HouseIconComponent className='w-5 h-5' />
-                                                                </div>
-                                                                <div>
-                                                                    <h4 className='text-sm font-bold tracking-tight text-white'>
-                                                                        {i}
-                                                                        {
-                                                                            suffix
-                                                                        }{" "}
-                                                                        House
-                                                                    </h4>
-                                                                    {houseLabel && (
-                                                                        <p className='text-xs font-semibold text-white/60 leading-tight mt-0.5'>
-                                                                            {
-                                                                                houseLabel
-                                                                            }
-                                                                        </p>
-                                                                    )}
-                                                                    <p className='text-[10px] uppercase tracking-wider text-white/40'>
-                                                                        {h.sign}{" "}
-                                                                        {formatDegree(
-                                                                            h.degree,
-                                                                        )}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </Card>
-                                            )
-                                        })}
-                                    </div>
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Accordion>
-                    )
-                })()}
+                                </div>
+                            )}
+                            {renderPlanetaryGrid(
+                                transitChart,
+                                transitPlanetsToShow,
+                            )}
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+            )}
 
             {chart.system === "vedic_sidereal" && chart.ayanamsa != null && (
                 <p className='text-[10px] text-white/40'>

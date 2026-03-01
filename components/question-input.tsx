@@ -1,4 +1,6 @@
 "use client"
+
+import type { RefObject } from "react"
 import { Send, Square } from "lucide-react"
 import { Button } from "./ui/button"
 import { Label } from "./ui/label"
@@ -28,6 +30,15 @@ export default function QuestionInput({
     centered = false,
     interpretationMode,
     onInterpretationModeChange,
+    // Input section wrapper (when provided, renders separator + action triggers + disclaimer)
+    actionTrigger,
+    disclaimerText,
+    showDisclaimer = true,
+    error,
+    containerRef,
+    sectionId,
+    wrapperClassName = "",
+    inputWrapperClassName = "max-w-sm md:max-w-md",
 }: {
     id?: string
     label?: string
@@ -45,6 +56,14 @@ export default function QuestionInput({
     centered?: boolean
     interpretationMode?: InterpretationMode
     onInterpretationModeChange?: (mode: InterpretationMode) => void
+    actionTrigger?: React.ReactNode
+    disclaimerText?: string
+    showDisclaimer?: boolean
+    error?: React.ReactNode
+    containerRef?: RefObject<HTMLDivElement | null>
+    sectionId?: string
+    wrapperClassName?: string
+    inputWrapperClassName?: string
 }) {
     const t = useTranslations("QuestionInput")
     // removed unused pathname
@@ -119,7 +138,7 @@ export default function QuestionInput({
             }
             localStorage.setItem(
                 "reading-state-v1-backup",
-                JSON.stringify(backupData)
+                JSON.stringify(backupData),
             )
         } catch (e) {
             console.error("Failed to backup reading data:", e)
@@ -159,8 +178,8 @@ export default function QuestionInput({
         const checkDevice = () => {
             setIsSmallDevice(
                 /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-                    navigator.userAgent
-                )
+                    navigator.userAgent,
+                ),
             )
         }
 
@@ -179,7 +198,7 @@ export default function QuestionInput({
         }
     }
 
-    return (
+    const inputContent = (
         <div
             className={`w-full mb-6 ${centered ? "text-center" : "text-left"}`}
         >
@@ -189,11 +208,7 @@ export default function QuestionInput({
             >
                 {label}
             </Label>
-            <div
-                className={`w-full ${
-                    className ?? "max-w-sm md:max-w-md"
-                } ${centered ? "mx-auto" : ""}`}
-            >
+            <div className={`w-full ${className ?? "max-w-sm md:max-w-md"}`}>
                 <div className='relative group w-full'>
                     <div className='pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(120%_120%_at_0%_0%,rgba(99,102,241,0.18),rgba(168,85,247,0.12)_35%,rgba(34,211,238,0.10)_70%,transparent_80%)] blur-xl opacity-90 group-focus-within:opacity-0 transition-opacity' />
                     <AutoHeightTextarea
@@ -211,7 +226,9 @@ export default function QuestionInput({
                     />
                     <Button
                         onClick={isLoading ? onStop : handleStartReading}
-                        disabled={!isLoading && !question.trim() && !defaultValue}
+                        disabled={
+                            !isLoading && !question.trim() && !defaultValue
+                        }
                         size='lg'
                         variant='ghost'
                         className={`absolute bottom-0 right-0 z-20 bg-transparent hover:bg-transparent border-0 text-lg disabled:opacity-30 disabled:cursor-not-allowed text-indigo-300 hover:text-white ${
@@ -239,4 +256,33 @@ export default function QuestionInput({
             </div>
         </div>
     )
+
+    if (actionTrigger != null) {
+        return (
+            <div
+                className={`border-t border-white/10 bg-[#07060f]/80 backdrop-blur ${wrapperClassName}`}
+            >
+                <div
+                    ref={containerRef}
+                    id={sectionId}
+                    className='mx-auto w-full max-w-3xl px-4 py-4 space-y-4 transition-all duration-500'
+                >
+                    {error}
+                    <div
+                        className={`flex flex-col transition-[max-width] duration-500 ease-in-out ${inputWrapperClassName}`}
+                    >
+                        {actionTrigger}
+                        {inputContent}
+                    </div>
+                    {showDisclaimer && disclaimerText && (
+                        <p className='text-[11px] leading-relaxed text-white/50 text-center text-left'>
+                            {disclaimerText}
+                        </p>
+                    )}
+                </div>
+            </div>
+        )
+    }
+
+    return inputContent
 }

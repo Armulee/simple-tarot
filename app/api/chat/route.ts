@@ -5,11 +5,23 @@ import {
     getChatDecisionPrompt,
 } from "@/lib/prompts"
 
-const MODEL = "openai/gpt-4.1-mini"
+const MODEL = "openai/gpt-4o-mini"
 
 export async function POST(req: Request) {
     try {
-        const { question, history, savedBirthInfo } = await req.json()
+        let body: {
+            question?: string
+            history?: unknown
+            savedBirthInfo?: string | null
+        }
+        try {
+            body = await req.json()
+        } catch {
+            return new Response("Invalid or empty request body", {
+                status: 400,
+            })
+        }
+        const { question, history, savedBirthInfo } = body ?? {}
 
         if (!question) {
             return new Response("User question is required", { status: 400 })

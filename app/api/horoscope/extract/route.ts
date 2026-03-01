@@ -1,9 +1,10 @@
 import { generateObject } from "ai"
 import { z } from "zod"
 import { getDefaultAstrologySystem } from "@/lib/astrology/intake"
+import { selectTransitDateFromSources } from "@/lib/astrology/transit-date-extract"
 import { resolveLocationFromCountryState } from "@/lib/location"
 
-const MODEL = "openai/gpt-4.1-mini"
+const MODEL = "openai/gpt-4o-mini"
 
 const extractSchema = z.object({
     birthDate: z
@@ -54,68 +55,31 @@ const requestSchema = z.object({
         .optional(),
 })
 
-function detectTransitMention(message: string) {
-    const text = message.toLowerCase()
-    const now = new Date()
-    const tomorrow = new Date(now)
-    tomorrow.setDate(now.getDate() + 1)
-
-    if (/(today|this day|วันนี้)/i.test(message)) {
-        return {
-            mentioned: true,
-            day: now.getDate(),
-            month: now.getMonth() + 1,
-            year: now.getFullYear(),
-        }
-    }
-    if (/(tomorrow|พรุ่งนี้)/i.test(message)) {
-        return {
-            mentioned: true,
-            day: tomorrow.getDate(),
-            month: tomorrow.getMonth() + 1,
-            year: tomorrow.getFullYear(),
-        }
-    }
-
-    const thaiDateMatch = message.match(/วันที่\s*(\d{1,2})/)
-    if (thaiDateMatch) {
-        const day = Number(thaiDateMatch[1])
-        if (Number.isFinite(day) && day >= 1 && day <= 31) {
-            return {
-                mentioned: true,
-                day,
-                month: now.getMonth() + 1,
-                year: now.getFullYear(),
-            }
-        }
-    }
-
-    const englishDateMatch = text.match(/\b(on|date)\s+(\d{1,2})\b/)
-    if (englishDateMatch) {
-        const day = Number(englishDateMatch[2])
-        if (Number.isFinite(day) && day >= 1 && day <= 31) {
-            return {
-                mentioned: true,
-                day,
-                month: now.getMonth() + 1,
-                year: now.getFullYear(),
-            }
-        }
-    }
-
-    return { mentioned: false, day: null, month: null, year: null }
-}
-
 export async function POST(req: Request) {
     try {
         const payload = requestSchema.parse(await req.json())
         const locale = payload.locale || "en"
 
-        const extraction = await generateObject({
-            model: MODEL,
-            schema: extractSchema,
-            temperature: 0,
-            system: `Extract birth data and transit date from user text.
+        const fallbackExtracted: z.infer<typeof extractSchema> = {
+            birthDate: null,
+            birthTime: {
+                hour: null,
+                minute: null,
+                timeHint: "unknown",
+                isExact: false,
+            },
+            location: null,
+            systemPreference: "unknown",
+            transitDate: null,
+        }
+
+        let extracted: z.infer<typeof extractSchema> = fallbackExtracted
+        try {
+            const extraction = await generateObject({
+                model: MODEL,
+                schema: extractSchema,
+                temperature: 0,
+                system: `Extract birth data and transit date from user text.
 
 Rules:
 - Do not invent values.
@@ -124,25 +88,43 @@ Rules:
 - If text says nighttime/evening/midnight -> night.
 - If no clue -> unknown.
 - If astrology system not specified, return "unknown".
-- Transit: If user mentions a date for the transit/forecast (e.g. "today", "tomorrow", "15 Jan 2025", "next week", "วันที่ 20"), extract it. Set transitDate.mentioned=true and fill day/month/year. Use current date for "today", tomorrow for "tomorrow". If no transit date mentioned, set transitDate.mentioned=false and day/month/year to null.`,
-            prompt: `User locale: ${locale}
+- Transit precision:
+  1) Exact full date has highest priority.
+  2) Relative day words (today/tomorrow) are second.
+  3) Day-only phrases (on 20 / วันที่ 20 / date 15) are third and should use current month/year.
+  4) Otherwise no transit date.
+- Transit: Set transitDate.mentioned=true ONLY when you can resolve a concrete calendar day/month/year for transit/forecast timing.
+- Transit examples:
+  - "today"/"วันนี้"/"this day" -> current date
+  - "tomorrow"/"พรุ่งนี้" -> tomorrow
+  - "วันที่ 20"/"on 20"/"date 15" -> that day in current month/year
+  - "15 Jan 2025"/"March 3" -> parse date
+- Transit negative rules:
+  - If message only says broad periods like "this month", "next year", "soon", "ช่วงนี้", "เดือนหน้า" with no specific day, set mentioned=false.
+  - If date is ambiguous and cannot be resolved to a single day/month/year, set mentioned=false.
+  - Do not use birth date as transitDate unless user clearly asks forecast/transit for that same date.`,
+                prompt: `User locale: ${locale}
 Current date: ${new Date().toISOString().slice(0, 10)}
 Message:
 ${payload.message}`,
-        })
-
-        const extracted = extraction.object
+            })
+            extracted = extraction.object
+        } catch {
+            // Fail-soft: keep request flowing with deterministic fallbacks instead of 400.
+            // This allows /api/horoscope/question to apply default timeframe fallback.
+            extracted = fallbackExtracted
+        }
 
         const hasDate = Boolean(
             extracted.birthDate?.day &&
                 extracted.birthDate?.month &&
-                extracted.birthDate?.year
+                extracted.birthDate?.year,
         )
 
         const hasExactTime = Boolean(
             extracted.birthTime?.isExact &&
                 extracted.birthTime?.hour != null &&
-                extracted.birthTime?.minute != null
+                extracted.birthTime?.minute != null,
         )
         const hasTimeHint =
             extracted.birthTime?.timeHint === "day" ||
@@ -171,7 +153,10 @@ ${payload.message}`,
                 : null
 
         if (country && (lat == null || lng == null || timezone == null)) {
-            const resolved = resolveLocationFromCountryState(country, state || undefined)
+            const resolved = resolveLocationFromCountryState(
+                country,
+                state || undefined,
+            )
             if (resolved) {
                 country = resolved.countryName
                 state = resolved.stateName || state
@@ -181,45 +166,25 @@ ${payload.message}`,
             }
         }
 
-        const usedLocationFallback = !extracted.location?.country && Boolean(country)
-        const defaultSystem = getDefaultAstrologySystem(locale, country || undefined)
+        const usedLocationFallback =
+            !extracted.location?.country && Boolean(country)
+        const defaultSystem = getDefaultAstrologySystem(
+            locale,
+            country || undefined,
+        )
         const systemPreference =
             extracted.systemPreference === "unknown"
                 ? defaultSystem
                 : extracted.systemPreference
 
-        const aiTransit = extracted.transitDate
-        const ruleBasedTransit = detectTransitMention(payload.message)
-        const hasAiTransit =
-            aiTransit?.mentioned &&
-            aiTransit?.day != null &&
-            aiTransit?.month != null &&
-            aiTransit?.year != null
-        const hasRuleTransit =
-            ruleBasedTransit.mentioned &&
-            ruleBasedTransit.day != null &&
-            ruleBasedTransit.month != null &&
-            ruleBasedTransit.year != null
-        const transit = hasAiTransit
-            ? {
-                  mentioned: true,
-                  day: aiTransit.day,
-                  month: aiTransit.month,
-                  year: aiTransit.year,
-              }
-            : hasRuleTransit
-              ? ruleBasedTransit
-              : aiTransit?.mentioned
-                ? {
-                      mentioned: true,
-                      day: aiTransit.day,
-                      month: aiTransit.month,
-                      year: aiTransit.year,
-                  }
-                : ruleBasedTransit
+        const transit = selectTransitDateFromSources({
+            message: payload.message,
+            extractedTransit: extracted.transitDate,
+        })
         const missingFields: string[] = []
         if (!hasDate) missingFields.push("birthDate")
-        if (!(hasExactTime || hasTimeHint)) missingFields.push("birthTimeOrDayNight")
+        if (!(hasExactTime || hasTimeHint))
+            missingFields.push("birthTimeOrDayNight")
         if (!(country && lat != null && lng != null && timezone != null)) {
             missingFields.push("birthLocation")
         }
@@ -248,13 +213,19 @@ ${payload.message}`,
                 readyForCalculation:
                     hasDate &&
                     (hasExactTime || hasTimeHint) &&
-                    Boolean(country && lat != null && lng != null && timezone != null),
+                    Boolean(
+                        country &&
+                            lat != null &&
+                            lng != null &&
+                            timezone != null,
+                    ),
                 missingFields,
             },
             transit,
         })
     } catch (error) {
-        const message = error instanceof Error ? error.message : "EXTRACT_FAILED"
+        const message =
+            error instanceof Error ? error.message : "EXTRACT_FAILED"
         return Response.json({ error: message }, { status: 400 })
     }
 }

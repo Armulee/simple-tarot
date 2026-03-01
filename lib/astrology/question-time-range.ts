@@ -1,7 +1,7 @@
-const DEFAULT_YEARS = 2
+const DEFAULT_FALLBACK_DAYS = 180
 const DAY_MS = 24 * 60 * 60 * 1000
 
-export type TimeRangeSource = "explicit" | "relative" | "default_2y"
+export type TimeRangeSource = "explicit" | "relative" | "default_180d"
 
 export type QuestionTimeRange = {
     startDate: Date
@@ -30,16 +30,6 @@ function toIsoDate(value: Date) {
 
 function addDays(value: Date, days: number) {
     return new Date(value.getTime() + days * DAY_MS)
-}
-
-function addYearsUtc(value: Date, years: number) {
-    return new Date(
-        Date.UTC(
-            value.getUTCFullYear() + years,
-            value.getUTCMonth(),
-            value.getUTCDate()
-        )
-    )
 }
 
 function lastDayOfMonthUtc(year: number, monthIndex: number) {
@@ -144,12 +134,29 @@ function parseExplicitDate(question: string): Date | null {
     return null
 }
 
+function parseRelativeSingleDayDate(question: string, now: Date): Date | null {
+    if (/\b(today|this day)\b|วันนี้/i.test(question)) {
+        return now
+    }
+    if (/\b(tomorrow)\b|พรุ่งนี้/i.test(question)) {
+        return addDays(now, 1)
+    }
+    return null
+}
+
 type RelativeRange = {
     durationDays?: number
     calendarEnd?: Date
 }
 
 function parseRelativeRange(question: string, now: Date): RelativeRange | null {
+    if (/\b(today|this day)\b|วันนี้/i.test(question)) {
+        return { durationDays: 1 }
+    }
+    if (/\b(tomorrow)\b|พรุ่งนี้/i.test(question)) {
+        return { durationDays: 1 }
+    }
+
     const lowered = question.toLowerCase()
     const withinMatch = lowered.match(
         /\b(?:within|in|for|next)\s+(\d+)\s+(day|days|week|weeks|month|months|year|years)\b/
@@ -232,14 +239,20 @@ export function resolveQuestionTimeRange(
     }
 ): QuestionTimeRange {
     const today = startOfUtcDay(opts?.now ?? new Date())
-    const explicitDate = parseExplicitDate(question) ?? getHintDate(opts?.hintedTransitDate ?? null)
+    const explicitDate =
+        parseExplicitDate(question) ||
+        parseRelativeSingleDayDate(question, today) ||
+        getHintDate(opts?.hintedTransitDate ?? null)
     const relativeRange = parseRelativeRange(question, today)
 
     const startDate = explicitDate ?? today
-    let source: TimeRangeSource = "default_2y"
-    let endDate = addYearsUtc(startDate, DEFAULT_YEARS)
+    let source: TimeRangeSource = "default_180d"
+    let endDate = addDays(startDate, DEFAULT_FALLBACK_DAYS)
 
-    if (relativeRange?.calendarEnd) {
+    if (explicitDate && !relativeRange) {
+        endDate = addDays(startDate, 1)
+        source = "explicit"
+    } else if (relativeRange?.calendarEnd) {
         endDate = startOfUtcDay(relativeRange.calendarEnd)
         source = "relative"
     } else if (relativeRange?.durationDays) {
@@ -247,13 +260,13 @@ export function resolveQuestionTimeRange(
         source = "relative"
     }
 
-    if (explicitDate) {
-        source = source === "default_2y" ? "explicit" : source
+    if (explicitDate && source === "default_180d") {
+        source = source === "default_180d" ? "explicit" : source
     }
 
     if (endDate.getTime() <= startDate.getTime()) {
-        endDate = addYearsUtc(startDate, DEFAULT_YEARS)
-        source = explicitDate ? "explicit" : "default_2y"
+        endDate = addDays(startDate, DEFAULT_FALLBACK_DAYS)
+        source = explicitDate ? "explicit" : "default_180d"
     }
 
     const durationDays = normalizeDurationDays(startDate, endDate)

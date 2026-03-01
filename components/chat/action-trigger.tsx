@@ -26,32 +26,46 @@ function formatBirthDate(
 }
 
 type ActionTriggerProps = {
-    autoPickOn: boolean
-    onToggleAutoPick: () => void
+    autoPickOn?: boolean
+    onToggleAutoPick?: () => void
     savedBirth: HoroscopeBirthData | null
     onBirthInfoClick: () => void
-    showDrawTrigger: boolean
-    showInsufficientStars: boolean
-    cardsToSelect: number
-    cardUi: CardUiText
-    onScrollToDraw: () => void
-    onPickAll: () => void
+    showDrawTrigger?: boolean
+    showInsufficientStars?: boolean
+    cardsToSelect?: number
+    cardUi?: CardUiText
+    onScrollToDraw?: () => void
+    onPickAll?: () => void
+    showAutoPick?: boolean
 }
 
 const buttonBase =
     "w-fit flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/85 hover:text-white hover:border-white/30 transition-colors text-left"
 
+const DUMMY_CARD_UI: CardUiText = {
+    selected: () => "",
+    consumeStar: "",
+    shuffle: "",
+    pick: "",
+    swipe: "",
+    drawCta: () => "",
+    topUpCta: () => "",
+    pickAllCta: () => "",
+    pickAllPlaceholder: "",
+}
+
 export default function ActionTrigger({
-    autoPickOn,
-    onToggleAutoPick,
+    autoPickOn = false,
+    onToggleAutoPick = () => {},
     savedBirth,
     onBirthInfoClick,
-    showDrawTrigger,
-    showInsufficientStars,
-    cardsToSelect,
-    cardUi,
-    onScrollToDraw,
-    onPickAll,
+    showDrawTrigger = false,
+    showInsufficientStars = false,
+    cardsToSelect = 0,
+    cardUi = DUMMY_CARD_UI,
+    onScrollToDraw = () => {},
+    onPickAll = () => {},
+    showAutoPick = true,
 }: ActionTriggerProps) {
     const t = useTranslations("ActionTrigger")
     const locale = useLocale()
@@ -60,9 +74,11 @@ export default function ActionTrigger({
     const hasBirthDate = Boolean(birthDateStr)
 
     const slides = [
-        {
-            id: "auto-pick",
-            content: (
+        ...(showAutoPick
+            ? [
+                  {
+                      id: "auto-pick",
+                      content: (
                 <button
                     type='button'
                     onClick={onToggleAutoPick}
@@ -80,7 +96,9 @@ export default function ActionTrigger({
                     </span>
                 </button>
             ),
-        },
+                  },
+              ]
+            : []),
         {
             id: "birth-info",
             content: (

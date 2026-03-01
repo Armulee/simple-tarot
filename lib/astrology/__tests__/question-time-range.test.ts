@@ -8,7 +8,7 @@ test("uses explicit date from question as range start", () => {
     })
     assert.equal(range.startDateIso, "2027-03-12")
     assert.equal(range.source, "explicit")
-    assert.ok(range.durationDays >= 365)
+    assert.equal(range.durationDays, 1)
 })
 
 test("uses relative duration when question asks within N months", () => {
@@ -20,11 +20,11 @@ test("uses relative duration when question asks within N months", () => {
     assert.equal(range.durationDays, 180)
 })
 
-test("falls back to default 2-year range when undetermined", () => {
+test("falls back to default 180-day range when undetermined", () => {
     const range = resolveQuestionTimeRange("Tell me about my love life", {
         now: new Date("2026-02-21T00:00:00.000Z"),
     })
     assert.equal(range.startDateIso, "2026-02-21")
-    assert.equal(range.source, "default_2y")
-    assert.ok(range.durationDays >= 730)
+    assert.equal(range.source, "default_180d")
+    assert.equal(range.durationDays, 180)
 })

@@ -1,6 +1,6 @@
 import { streamText } from "ai"
 
-const MODEL = "openai/gpt-4.1-mini"
+const MODEL = "openai/gpt-4o-mini"
 
 export async function POST(req: Request) {
     try {
@@ -15,7 +15,8 @@ export async function POST(req: Request) {
         const result = streamText({
             model: MODEL,
             system: `You are an expert astrologer.
-            
+You respond as a female. Astra is a female oracle. Use feminine voice and perspective in all responses.
+
 Goal: Answer the user's question based on their birth chart details provided in the prompt.
 Write 2–5 short sentences (under ~100 words). Sound insightful, encouraging, and clear.
 

@@ -1,10 +1,12 @@
 "use client"
 
+import Image from "next/image"
 import {
     type Dispatch,
     type ReactNode,
     type RefObject,
     type SetStateAction,
+    useMemo,
     useState,
 } from "react"
 import { Badge } from "@/components/ui/badge"
@@ -16,31 +18,40 @@ import { ConsultingBadge } from "@/components/consulting-badge"
 import { hasCompleteBirthData, loadBirthFromStorage } from "@/lib/birth-storage"
 import InlineUserDateForm from "@/components/astrology/inline-user-date-form"
 import { BirthChartCard } from "@/components/astrology/birth-chart-card"
+import RealtimePlanetaryPanel from "@/components/astrology/realtime-planetary-panel"
 import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
 import type { HoroscopeBirthData } from "@/types/horoscope"
-import type { ChatMessage } from "./types"
+import type { ChatMessage, SourceAspectEvent } from "./types"
+import { useTranslations } from "next-intl"
 import {
     ChevronDown,
     ChevronRight,
     Flag,
+    Layers,
     Loader2,
+    MoveHorizontal,
     Pencil,
-    Square,
     RotateCw,
     Send,
     Share2,
     Sparkles,
+    Square,
     ThumbsDown,
     ThumbsUp,
+    Triangle,
+    TrendingDown,
+    TrendingUp,
+    Minus,
     X,
 } from "lucide-react"
 
 function formatHoroscopeLoadingText(
     birth: HoroscopeBirthData | null | undefined,
     dots: number,
+    consultingBase: string,
 ): string {
     if (!birth?.day || !birth?.month || !birth?.year) {
-        return `Consulting${".".repeat(dots)}`
+        return `${consultingBase}${".".repeat(dots)}`
     }
     const date = new Date(birth.year, birth.month - 1, birth.day)
     const dateStr = date.toLocaleDateString("en-US", {
@@ -92,6 +103,148 @@ function ChartDataCollapsible({
     )
 }
 
+const PLANET_IMAGE_KEYS = new Set([
+    "sun",
+    "moon",
+    "mercury",
+    "venus",
+    "mars",
+    "jupiter",
+    "saturn",
+    "uranus",
+    "neptune",
+    "pluto",
+    "rahu",
+    "ketu",
+])
+
+function AspectIcon({ aspectType }: { aspectType: string }) {
+    if (aspectType === "conjunction") {
+        return <Layers className='h-4 w-4 text-cyan-200' />
+    }
+    if (aspectType === "opposition") {
+        return <MoveHorizontal className='h-4 w-4 text-cyan-200' />
+    }
+    if (aspectType === "square") {
+        return <Square className='h-4 w-4 text-cyan-200' />
+    }
+    if (aspectType === "trine") {
+        return <Triangle className='h-4 w-4 text-cyan-200' />
+    }
+    return <Minus className='h-4 w-4 text-cyan-200' />
+}
+
+function SourceAspectCard({
+    event,
+    tPanel,
+}: {
+    event: SourceAspectEvent
+    tPanel: ReturnType<typeof useTranslations>
+}) {
+    const [hiddenImages, setHiddenImages] = useState<Record<string, boolean>>(
+        {},
+    )
+    const normalizePositionText = (value: string | undefined) =>
+        value
+            ? value
+                  .replace(/Â(?=[°·])/g, "")
+                  .replace(/\s*[·]\s*/g, " · ")
+                  .trim()
+            : undefined
+    const noPosition = tPanel("noChartPosition")
+
+    function PlanetAvatar({ planet }: { planet: string }) {
+        const key = planet.toLowerCase()
+        const shouldTryImage = PLANET_IMAGE_KEYS.has(key)
+        if (shouldTryImage && !hiddenImages[planet]) {
+            return (
+                <Image
+                    src={`/assets/planetary/${key}.png`}
+                    alt={planet}
+                    width={42}
+                    height={42}
+                    className='h-[42px] w-[42px] rounded-full object-cover'
+                    onError={() =>
+                        setHiddenImages((prev) => ({
+                            ...prev,
+                            [planet]: true,
+                        }))
+                    }
+                />
+            )
+        }
+
+        return (
+            <div className='h-10 w-10 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-[11px] text-white/80'>
+                {planet.slice(0, 2).toUpperCase()}
+            </div>
+        )
+    }
+
+    const sentimentIcon =
+        event.sentiment === "good" ? (
+            <TrendingUp className='h-3.5 w-3.5 text-emerald-300' />
+        ) : event.sentiment === "bad" ? (
+            <TrendingDown className='h-3.5 w-3.5 text-rose-300' />
+        ) : (
+            <Minus className='h-3.5 w-3.5 text-slate-300' />
+        )
+    const displayKeyword = event.keyword?.trim() || tPanel("defaultKeyword")
+    const transitPosition =
+        normalizePositionText(event.transitPositionText) || noPosition
+    const natalPosition =
+        normalizePositionText(event.natalPositionText) || noPosition
+    const transitAbsoluteText = event.transitAbsoluteText || "-"
+    const natalAbsoluteText = event.natalAbsoluteText || "-"
+
+    return (
+        <div className='rounded-2xl border border-white/10 bg-white/5 p-3 space-y-2 min-w-[260px]'>
+            <div className='flex items-center justify-between gap-3'>
+                <div className='inline-flex items-center gap-2'>
+                    <PlanetAvatar planet={event.transitPlanet} />
+                    <div className='flex flex-col'>
+                        <span className='text-sm font-medium text-white'>
+                            {(tPanel(`planets.${event.transitPlanet}`) ??
+                                event.transitPlanet) + tPanel("transitSuffix")}
+                        </span>
+                        <span className='text-[10px] text-white/65'>
+                            {transitPosition}
+                        </span>
+                        <span className='text-[10px] text-white/45'>
+                            {transitAbsoluteText}
+                        </span>
+                    </div>
+                </div>
+                <div className='flex flex-col items-center'>
+                    <AspectIcon aspectType={event.aspectType} />
+                    <span className='text-[10px] text-white/70'>
+                        {tPanel(`aspects.${event.aspectType}`) ??
+                            event.aspectType}
+                    </span>
+                    <span className='text-[9px] text-white/50'>
+                        orb: {event.orb}°
+                    </span>
+                </div>
+                <div className='inline-flex items-center gap-2'>
+                    <PlanetAvatar planet={event.natalPlanet} />
+                    <div className='flex flex-col'>
+                        <span className='text-sm font-medium text-white'>
+                            {(tPanel(`planets.${event.natalPlanet}`) ??
+                                event.natalPlanet) + tPanel("natalSuffix")}
+                        </span>
+                        <span className='text-[10px] text-white/65'>
+                            {natalPosition}
+                        </span>
+                        <span className='text-[10px] text-white/45'>
+                            {natalAbsoluteText}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 type MessageListProps = {
     hasMessages: boolean
     messages: ChatMessage[]
@@ -127,6 +280,11 @@ type MessageListProps = {
     onCancelEdit: () => void
     onSendEditAt: (messageIndex: number) => void
     onApplySuggestedQuestion: (value: string) => void
+    onAskAspectDetail?: (
+        question: string,
+        aspectKey: string,
+        event: SourceAspectEvent,
+    ) => void
     onUserDateFormSubmit: (value: HoroscopeBirthData) => Promise<void>
     onCancelHoroscopeLoading: () => void
     onRefetchHoroscopeWithSystem: (
@@ -136,6 +294,9 @@ type MessageListProps = {
     onToggleReaction: (id: string, next: "like" | "dislike") => void
     onReport: (id: string, text: string) => void
     onShare: (id: string, text: string) => void
+    onReadAloud: (id: string, text: string) => void
+    readAloudLoadingMessageId: string | null
+    readAloudPlayingMessageId: string | null
     lastAssistantMessageRef: RefObject<HTMLDivElement | null>
     insufficientStarsRef: RefObject<HTMLDivElement | null>
     messagesEndRef: RefObject<HTMLDivElement | null>
@@ -170,6 +331,7 @@ export default function MessageList({
     onCancelEdit,
     onSendEditAt,
     onApplySuggestedQuestion,
+    onAskAspectDetail,
     onUserDateFormSubmit,
     onCancelHoroscopeLoading,
     onRefetchHoroscopeWithSystem,
@@ -180,18 +342,32 @@ export default function MessageList({
     insufficientStarsRef,
     messagesEndRef,
 }: MessageListProps) {
+    const t = useTranslations("Home")
+    const tPanel = useTranslations("PlanetaryPanel")
+    const consultingBase = t("consulting")
+
+    const askedAspectKeys = useMemo(() => {
+        const map: Record<string, string> = {}
+        for (const m of messages) {
+            if (m.sourceAspectKey) map[m.sourceAspectKey] = m.id
+        }
+        return map
+    }, [messages])
+
     if (!hasMessages) return null
 
     return (
         <div className='flex-1 overflow-y-auto px-4 pt-6'>
             <div className='mx-auto max-w-3xl space-y-6 text-left'>
                 {messages.map((message, messageIndex) => {
+                    // --- User message: user's question with edit/regenerate actions ---
                     if (message.role === "user") {
                         const isEditing = editingMessageId === message.id
 
                         return (
                             <div
                                 key={message.id}
+                                id={`msg-${message.id}`}
                                 className='flex flex-col items-end gap-2'
                             >
                                 <div className='max-w-[80%] rounded-2xl bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 px-4 py-3 text-white shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)]'>
@@ -287,7 +463,7 @@ export default function MessageList({
                         )
                     }
 
-                    // Hide birth/transit form once we have horoscope result
+                    // --- Tool message (birth/transit form): hide once horoscope result exists ---
                     if (
                         message.variant === "tool" &&
                         (message.toolType === "user-date-form" ||
@@ -312,9 +488,11 @@ export default function MessageList({
                         }
                     }
 
+                    // --- Assistant message: cards, interpretation, actions ---
                     return (
                         <div
                             key={message.id}
+                            id={`msg-${message.id}`}
                             ref={
                                 messageIndex === messages.length - 1
                                     ? (node) => {
@@ -326,6 +504,7 @@ export default function MessageList({
                             }
                             className='flex flex-col items-start gap-4'
                         >
+                            {/* Tarot cards: shown for box variant when cards are drawn */}
                             {message.cards && message.cards.length > 0 && (
                                 <div className='flex flex-wrap gap-6 w-full md:max-w-[85%]'>
                                     {message.cards.map((card, index) => {
@@ -397,7 +576,7 @@ export default function MessageList({
                                                                 ] ? (
                                                                     <span className='inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-2 py-1 backdrop-blur-xl shadow-[0_0_12px_-3px_rgba(56,189,248,0.3)] text-[10px] font-medium text-white/90'>
                                                                         <Loader2 className='h-2.5 w-2.5 animate-spin shrink-0' />
-                                                                        {`Consulting${".".repeat(
+                                                                        {`${consultingBase}${".".repeat(
                                                                             loadingDots,
                                                                         )}`}
                                                                     </span>
@@ -406,7 +585,7 @@ export default function MessageList({
                                                                         .insights?.[
                                                                         index
                                                                     ] ||
-                                                                    "Consulting..."
+                                                                    `${consultingBase}...`
                                                                 )}
                                                                 &rdquo;
                                                             </p>
@@ -418,6 +597,7 @@ export default function MessageList({
                                     })}
                                 </div>
                             )}
+                            {/* Box variant: tarot interpretation with cards, insights, actions, share */}
                             {message.variant === "box" ? (
                                 <>
                                     <div className='w-full md:max-w-[85%] rounded-2xl border border-white/10 bg-white/5 p-8 shadow-lg space-y-6'>
@@ -435,11 +615,58 @@ export default function MessageList({
                                             </div>
                                         </div>
                                         <div className='text-white/90 leading-relaxed whitespace-pre-wrap'>
+                                            {/* {!message.isLoading &&
+                                                !!message.text?.trim() && (
+                                                    <button
+                                                        type='button'
+                                                        className='inline-flex items-center justify-center h-5 w-5 rounded-full hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40 align-middle mr-2'
+                                                        onClick={() =>
+                                                            onReadAloud(
+                                                                message.id,
+                                                                message.text,
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            readAloudLoadingMessageId ===
+                                                            message.id
+                                                        }
+                                                        aria-label={
+                                                            readAloudPlayingMessageId ===
+                                                            message.id
+                                                                ? t(
+                                                                      "readAloud.stop",
+                                                                  )
+                                                                : t(
+                                                                      "readAloud.play",
+                                                                  )
+                                                        }
+                                                        title={
+                                                            readAloudPlayingMessageId ===
+                                                            message.id
+                                                                ? t(
+                                                                      "readAloud.stop",
+                                                                  )
+                                                                : t(
+                                                                      "readAloud.play",
+                                                                  )
+                                                        }
+                                                    >
+                                                        {readAloudLoadingMessageId ===
+                                                        message.id ? (
+                                                            <Loader2 className='w-3 h-3 animate-spin' />
+                                                        ) : readAloudPlayingMessageId ===
+                                                          message.id ? (
+                                                            <Square className='w-3 h-3 fill-current' />
+                                                        ) : (
+                                                            <Volume2 className='w-3 h-3' />
+                                                        )}
+                                                    </button>
+                                                )} */}
                                             {message.isLoading &&
                                             !message.text?.trim() ? (
                                                 <span className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90'>
                                                     <Loader2 className='h-4 w-4 animate-spin shrink-0' />
-                                                    {`Consulting${".".repeat(
+                                                    {`${consultingBase}${".".repeat(
                                                         loadingDots,
                                                     )}`}
                                                 </span>
@@ -525,75 +752,162 @@ export default function MessageList({
                                         </div>
                                     )}
                                 </>
-                            ) : message.variant === "horoscope" ? (
-                                <div className='w-full md:max-w-[85%] space-y-6'>
-                                    {message.chartData &&
-                                        !message.isLoading && (
-                                            <BirthChartCard
-                                                chartData={
-                                                    message.chartData as Parameters<
-                                                        typeof BirthChartCard
-                                                    >[0]["chartData"]
+                            ) : /* Horoscope variant: birth chart, astrology interpretation, actions, share */
+                            message.variant === "horoscope" ? (
+                                <>
+                                    {message.sourceAspectEvent && (
+                                        <div className='w-full md:max-w-[85%]'>
+                                            <SourceAspectCard
+                                                event={
+                                                    message.sourceAspectEvent
                                                 }
-                                                question={message.question}
-                                                planetMeanings={
-                                                    message.planetMeanings ??
-                                                    undefined
-                                                }
-                                                houseMeanings={
-                                                    message.houseMeanings ??
-                                                    undefined
-                                                }
-                                                onRefetchWithSystem={(system) =>
-                                                    onRefetchHoroscopeWithSystem(
-                                                        message.id,
-                                                        system,
-                                                    )
-                                                }
+                                                tPanel={tPanel}
                                             />
-                                        )}
-                                    <div className='rounded-2xl border border-white/10 bg-white/5 p-8 shadow-lg space-y-6'>
-                                        <div className='flex items-center space-x-3'>
-                                            <div className='w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center'>
-                                                <Sparkles className='w-5 h-5 text-primary' />
-                                            </div>
-                                            <div>
-                                                <h2 className='font-serif font-semibold text-xl text-white'>
-                                                    Interpretation
-                                                </h2>
-                                                <p className='text-sm text-white/40'>
-                                                    AI-powered astrology reading
-                                                </p>
-                                            </div>
                                         </div>
-                                        <div className='text-white/90 leading-relaxed whitespace-pre-wrap'>
-                                            {message.isLoading ? (
-                                                <button
-                                                    type='button'
-                                                    onClick={
-                                                        onCancelHoroscopeLoading
+                                    )}
+                                    <div className='w-full md:max-w-[85%] space-y-6'>
+                                        {message.chartData &&
+                                            !message.isLoading && (
+                                                <BirthChartCard
+                                                    chartData={
+                                                        message.chartData as Parameters<
+                                                            typeof BirthChartCard
+                                                        >[0]["chartData"]
                                                     }
-                                                    title='Click to cancel and edit birth details'
-                                                    className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90 hover:text-white transition-colors cursor-pointer'
-                                                >
-                                                    <Square className='h-3.5 w-3.5 shrink-0 fill-current' />
-                                                    <Loader2 className='h-4 w-4 animate-spin shrink-0' />
-                                                    {formatHoroscopeLoadingText(
-                                                        message.horoscopeBirthData,
-                                                        loadingDots,
-                                                    )}
-                                                </button>
-                                            ) : (
-                                                message.text
+                                                    question={message.question}
+                                                    planetMeanings={
+                                                        message.planetMeanings ??
+                                                        undefined
+                                                    }
+                                                    houseMeanings={
+                                                        message.houseMeanings ??
+                                                        undefined
+                                                    }
+                                                    onRefetchWithSystem={(
+                                                        system,
+                                                    ) =>
+                                                        onRefetchHoroscopeWithSystem(
+                                                            message.id,
+                                                            system,
+                                                        )
+                                                    }
+                                                />
                                             )}
-                                        </div>
-                                        {!message.isLoading && (
-                                            <div className='pt-4 border-t border-white/5 space-y-4'>
-                                                <div className='space-y-2'>
-                                                    <p className='text-[11px] uppercase tracking-[0.2em] text-white/50'>
-                                                        Actions
+                                        <RealtimePlanetaryPanel
+                                            chartData={message.chartData}
+                                            personalizedTransitAspects={
+                                                message.personalizedTransitAspects
+                                            }
+                                            personalizedTransitAspectsMerged={
+                                                message.personalizedTransitAspectsMerged
+                                            }
+                                            onAskAspectDetail={
+                                                onAskAspectDetail
+                                            }
+                                            askedAspectKeys={askedAspectKeys}
+                                        />
+                                        <div className='rounded-2xl border border-white/10 bg-white/5 p-8 shadow-lg space-y-6'>
+                                            <div className='flex items-center space-x-3'>
+                                                <div className='w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center'>
+                                                    <Sparkles className='w-5 h-5 text-primary' />
+                                                </div>
+                                                <div>
+                                                    <h2 className='font-serif font-semibold text-xl text-white'>
+                                                        Interpretation
+                                                    </h2>
+                                                    <p className='text-sm text-white/40'>
+                                                        AI-powered astrology
+                                                        reading
                                                     </p>
-                                                    <ActionSection
+                                                </div>
+                                            </div>
+                                            <div className='text-white/90 leading-relaxed whitespace-pre-wrap'>
+                                                {/* {!message.isLoading &&
+                                                    !!message.text?.trim() && (
+                                                        <button
+                                                            type='button'
+                                                            className='inline-flex items-center justify-center h-5 w-5 rounded-full hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40 align-middle mr-2'
+                                                            onClick={() =>
+                                                                onReadAloud(
+                                                                    message.id,
+                                                                    message.text,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                readAloudLoadingMessageId ===
+                                                                message.id
+                                                            }
+                                                            aria-label={
+                                                                readAloudPlayingMessageId ===
+                                                                message.id
+                                                                    ? t(
+                                                                          "readAloud.stop",
+                                                                      )
+                                                                    : t(
+                                                                          "readAloud.play",
+                                                                      )
+                                                            }
+                                                            title={
+                                                                readAloudPlayingMessageId ===
+                                                                message.id
+                                                                    ? t(
+                                                                          "readAloud.stop",
+                                                                      )
+                                                                    : t(
+                                                                          "readAloud.play",
+                                                                      )
+                                                            }
+                                                        >
+                                                            {readAloudLoadingMessageId ===
+                                                            message.id ? (
+                                                                <Loader2 className='w-3 h-3 animate-spin' />
+                                                            ) : readAloudPlayingMessageId ===
+                                                              message.id ? (
+                                                                <Square className='w-3 h-3 fill-current' />
+                                                            ) : (
+                                                                <Volume2 className='w-3 h-3' />
+                                                            )}
+                                                        </button>
+                                                    )} */}
+                                                {message.text}
+                                                {message.isLoading && (
+                                                    <div className='mt-3'>
+                                                        <button
+                                                            type='button'
+                                                            onClick={
+                                                                onCancelHoroscopeLoading
+                                                            }
+                                                            title='Click to cancel and edit birth details'
+                                                            className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90 hover:text-white transition-colors cursor-pointer'
+                                                        >
+                                                            <Square className='h-3.5 w-3.5 shrink-0 fill-current' />
+                                                            <Loader2 className='h-4 w-4 animate-spin shrink-0' />
+                                                            {formatHoroscopeLoadingText(
+                                                                message.horoscopeBirthData,
+                                                                loadingDots,
+                                                                consultingBase,
+                                                            )}
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {!message.isLoading && (
+                                                <div className='pt-4 border-t border-white/5 space-y-4'>
+                                                    <div className='space-y-2'>
+                                                        <p className='text-[11px] uppercase tracking-[0.2em] text-white/50'>
+                                                            Actions
+                                                        </p>
+                                                        <ActionSection
+                                                            variant='embedded'
+                                                            question={
+                                                                message.question
+                                                            }
+                                                            interpretation={
+                                                                message.text
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <ShareSection
                                                         variant='embedded'
                                                         question={
                                                             message.question
@@ -602,125 +916,216 @@ export default function MessageList({
                                                             message.text
                                                         }
                                                     />
+                                                    {message.chartData && (
+                                                        <ChartDataCollapsible
+                                                            chartData={
+                                                                message.chartData
+                                                            }
+                                                        />
+                                                    )}
                                                 </div>
-                                                <ShareSection
-                                                    variant='embedded'
-                                                    question={message.question}
-                                                    interpretation={
-                                                        message.text
-                                                    }
-                                                />
-                                                {message.chartData && (
-                                                    <ChartDataCollapsible
-                                                        chartData={
-                                                            message.chartData
+                                            )}
+                                        </div>
+                                    </div>
+                                    {!message.isLoading &&
+                                        (message.followUpConclusion ||
+                                            (Array.isArray(
+                                                message.followUpSuggestions,
+                                            ) &&
+                                                message.followUpSuggestions
+                                                    .length > 0)) && (
+                                            <div className='w-full md:max-w-[85%] space-y-2 pt-4'>
+                                                {message.followUpConclusion && (
+                                                    <p className='text-white'>
+                                                        {
+                                                            message.followUpConclusion
                                                         }
-                                                    />
+                                                    </p>
                                                 )}
+                                                {Array.isArray(
+                                                    message.followUpSuggestions,
+                                                ) &&
+                                                    message.followUpSuggestions
+                                                        .length > 0 && (
+                                                        <div className='flex flex-wrap gap-2'>
+                                                            {message.followUpSuggestions.map(
+                                                                (s) => (
+                                                                    <button
+                                                                        key={s}
+                                                                        type='button'
+                                                                        onClick={() =>
+                                                                            onApplySuggestedQuestion(
+                                                                                s,
+                                                                            )
+                                                                        }
+                                                                        className='rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition px-3 py-1.5 text-xs text-left text-white/80 hover:text-white'
+                                                                    >
+                                                                        {s}
+                                                                    </button>
+                                                                ),
+                                                            )}
+                                                        </div>
+                                                    )}
                                             </div>
                                         )}
-                                    </div>
-                                </div>
-                            ) : message.variant === "tool" ? (
+                                </>
+                            ) : /* Tool variant: inline birth/transit date form */
+                            message.variant === "tool" ? (
                                 <InlineUserDateForm
-                                        initial={
-                                            message.toolBirthPrefill ||
-                                            horoscopeBirth
-                                        }
-                                        currentLocation={
-                                            currentLocationFallback
-                                        }
-                                        onSubmit={onUserDateFormSubmit}
-                                        title={birthFormTitle}
-                                        submitLabel={birthFormSubmit}
-                                    />
+                                    initial={
+                                        message.toolBirthPrefill ||
+                                        horoscopeBirth
+                                    }
+                                    currentLocation={currentLocationFallback}
+                                    onSubmit={onUserDateFormSubmit}
+                                    title={birthFormTitle}
+                                    submitLabel={birthFormSubmit}
+                                />
                             ) : (
-                                <div className='w-full md:max-w-[85%] text-white/90'>
-                                    {message.isLoading &&
-                                    !message.text?.trim() ? (
-                                        <span className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90'>
-                                            <Loader2 className='h-4 w-4 animate-spin shrink-0' />
-                                            {`Consulting${".".repeat(
-                                                loadingDots,
-                                            )}`}
-                                        </span>
-                                    ) : (
-                                        message.text || ""
+                                /* Plain variant: simple assistant text (chat decision, bridge message) */
+                                <>
+                                    {message.sourceAspectEvent && (
+                                        <div className='w-full md:max-w-[85%] mb-2'>
+                                            <SourceAspectCard
+                                                event={
+                                                    message.sourceAspectEvent
+                                                }
+                                                tPanel={tPanel}
+                                            />
+                                        </div>
                                     )}
-                                </div>
+                                    <div className='w-full md:max-w-[85%] text-white/90 leading-relaxed whitespace-pre-wrap'>
+                                        {/* {!message.isLoading &&
+                                        !!message.text?.trim() && (
+                                            <button
+                                                type='button'
+                                                className='inline-flex items-center justify-center h-5 w-5 rounded-full hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40 align-middle mr-1'
+                                                onClick={() =>
+                                                    onReadAloud(
+                                                        message.id,
+                                                        message.text,
+                                                    )
+                                                }
+                                                disabled={
+                                                    readAloudLoadingMessageId ===
+                                                    message.id
+                                                }
+                                                aria-label={
+                                                    readAloudPlayingMessageId ===
+                                                    message.id
+                                                        ? t("readAloud.stop")
+                                                        : t("readAloud.play")
+                                                }
+                                                title={
+                                                    readAloudPlayingMessageId ===
+                                                    message.id
+                                                        ? t("readAloud.stop")
+                                                        : t("readAloud.play")
+                                                }
+                                            >
+                                                {readAloudLoadingMessageId ===
+                                                message.id ? (
+                                                    <Loader2 className='w-3 h-3 animate-spin' />
+                                                ) : readAloudPlayingMessageId ===
+                                                  message.id ? (
+                                                    <Square className='w-3 h-3 fill-current' />
+                                                ) : (
+                                                    <Volume2 className='w-3 h-3' />
+                                                )}
+                                            </button>
+                                        )} */}
+                                        {message.isLoading &&
+                                        !message.text?.trim() ? (
+                                            <span className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90'>
+                                                <Loader2 className='h-4 w-4 animate-spin shrink-0' />
+                                                {`${consultingBase}${".".repeat(
+                                                    loadingDots,
+                                                )}`}
+                                            </span>
+                                        ) : (
+                                            message.text || ""
+                                        )}
+                                    </div>
+                                </>
                             )}
-                            {!isChatLoading &&
-                                message.variant === "plain" &&
-                                !hasInterpretation && (
+                            {/* Assistant actions: like/dislike/report/share (plain only) */}
+                            {message.role === "assistant" &&
+                                message.variant !== "tool" && (
                                     <div className='flex items-center gap-2 text-[11px] text-white/60'>
-                                        <button
-                                            type='button'
-                                            className={`flex items-center justify-center h-6 w-6 rounded-full hover:text-white hover:bg-white/10 transition-colors ${
-                                                assistantReactions[
-                                                    message.id
-                                                ] === "like"
-                                                    ? "text-white"
-                                                    : ""
-                                            }`}
-                                            onClick={() =>
-                                                onToggleReaction(
-                                                    message.id,
-                                                    "like",
-                                                )
-                                            }
-                                            aria-label='Like'
-                                            title='Like'
-                                        >
-                                            <ThumbsUp className='w-3 h-3' />
-                                        </button>
-                                        <button
-                                            type='button'
-                                            className={`flex items-center justify-center h-6 w-6 rounded-full hover:text-white hover:bg-white/10 transition-colors ${
-                                                assistantReactions[
-                                                    message.id
-                                                ] === "dislike"
-                                                    ? "text-white"
-                                                    : ""
-                                            }`}
-                                            onClick={() =>
-                                                onToggleReaction(
-                                                    message.id,
-                                                    "dislike",
-                                                )
-                                            }
-                                            aria-label='Dislike'
-                                            title='Dislike'
-                                        >
-                                            <ThumbsDown className='w-3 h-3' />
-                                        </button>
-                                        <button
-                                            type='button'
-                                            className='flex items-center justify-center h-6 w-6 rounded-full hover:text-white hover:bg-white/10 transition-colors'
-                                            onClick={() =>
-                                                onReport(
-                                                    message.id,
-                                                    message.text,
-                                                )
-                                            }
-                                            aria-label='Report'
-                                            title='Report'
-                                        >
-                                            <Flag className='w-3 h-3' />
-                                        </button>
-                                        <button
-                                            type='button'
-                                            className='flex items-center justify-center h-6 w-6 rounded-full hover:text-white hover:bg-white/10 transition-colors'
-                                            onClick={() =>
-                                                onShare(
-                                                    message.id,
-                                                    message.text,
-                                                )
-                                            }
-                                            aria-label='Share'
-                                            title='Share'
-                                        >
-                                            <Share2 className='w-3 h-3' />
-                                        </button>
+                                        {!isChatLoading &&
+                                            message.variant === "plain" &&
+                                            !hasInterpretation && (
+                                                <>
+                                                    <button
+                                                        type='button'
+                                                        className={`flex items-center justify-center h-6 w-6 rounded-full hover:text-white hover:bg-white/10 transition-colors ${
+                                                            assistantReactions[
+                                                                message.id
+                                                            ] === "like"
+                                                                ? "text-white"
+                                                                : ""
+                                                        }`}
+                                                        onClick={() =>
+                                                            onToggleReaction(
+                                                                message.id,
+                                                                "like",
+                                                            )
+                                                        }
+                                                        aria-label='Like'
+                                                        title='Like'
+                                                    >
+                                                        <ThumbsUp className='w-3 h-3' />
+                                                    </button>
+                                                    <button
+                                                        type='button'
+                                                        className={`flex items-center justify-center h-6 w-6 rounded-full hover:text-white hover:bg-white/10 transition-colors ${
+                                                            assistantReactions[
+                                                                message.id
+                                                            ] === "dislike"
+                                                                ? "text-white"
+                                                                : ""
+                                                        }`}
+                                                        onClick={() =>
+                                                            onToggleReaction(
+                                                                message.id,
+                                                                "dislike",
+                                                            )
+                                                        }
+                                                        aria-label='Dislike'
+                                                        title='Dislike'
+                                                    >
+                                                        <ThumbsDown className='w-3 h-3' />
+                                                    </button>
+                                                    <button
+                                                        type='button'
+                                                        className='flex items-center justify-center h-6 w-6 rounded-full hover:text-white hover:bg-white/10 transition-colors'
+                                                        onClick={() =>
+                                                            onReport(
+                                                                message.id,
+                                                                message.text,
+                                                            )
+                                                        }
+                                                        aria-label='Report'
+                                                        title='Report'
+                                                    >
+                                                        <Flag className='w-3 h-3' />
+                                                    </button>
+                                                    <button
+                                                        type='button'
+                                                        className='flex items-center justify-center h-6 w-6 rounded-full hover:text-white hover:bg-white/10 transition-colors'
+                                                        onClick={() =>
+                                                            onShare(
+                                                                message.id,
+                                                                message.text,
+                                                            )
+                                                        }
+                                                        aria-label='Share'
+                                                        title='Share'
+                                                    >
+                                                        <Share2 className='w-3 h-3' />
+                                                    </button>
+                                                </>
+                                            )}
                                         {messageNotices[message.id] && (
                                             <span className='text-white/40'>
                                                 {messageNotices[message.id]}

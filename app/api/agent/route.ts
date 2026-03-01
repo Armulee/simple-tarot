@@ -4,7 +4,7 @@ import { z } from "zod"
 import { AGENT_SYSTEM_PROMPT } from "@/lib/agent/system-prompt"
 import type { AgentAction, AgentRequestPayload, AgentResponse } from "@/types/agent"
 
-const MODEL = "openai/gpt-4.1-mini"
+const MODEL = "openai/gpt-4o-mini"
 
 function buildPrompt(payload: AgentRequestPayload) {
     const messages = payload.messages

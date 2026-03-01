@@ -219,20 +219,35 @@
     "hero": {
       "line1": "Ask me anything",
       "line2": "about your destiny",
-      "rotatingPhrases": [
-        "Step Into the Cards.",
-        "Let the Tarot Reveal Your Path.",
-        "Guidance Through the Language of Symbols.",
-        "Personal Tarot Readings.",
-        "Ask the Cards.",
-        "Discover What the Cards Hold.",
-        "Written in the Stars.",
-        "Your Cosmic Blueprint Awaits.",
-        "The Sky Has a Message for You.",
-        "Daily & Personalized Horoscopes.",
-        "Astrology Insights.",
-        "Explore Your Birth Chart.",
-        "Star-Based Guidance."
+      "rotatingPhrasesWhite": [
+        "Step Into the ",
+        "Let the Tarot ",
+        "Guidance Through the Language of ",
+        "Personal ",
+        "Ask the ",
+        "Discover What the ",
+        "Written in the ",
+        "Your Cosmic Blueprint ",
+        "The Sky Has a Message ",
+        "Daily & Personalized ",
+        "Astrology ",
+        "Explore Your ",
+        "Star-Based "
+      ],
+      "rotatingPhrasesGradient": [
+        "Cards.",
+        "Reveal Your Path.",
+        "Symbols.",
+        "Tarot Readings.",
+        "Cards.",
+        "Cards Hold.",
+        "Stars.",
+        "Awaits.",
+        "for You.",
+        "Horoscopes.",
+        "Insights.",
+        "Birth Chart.",
+        "Guidance."
       ]
     },
     "description": "Your personalized AI fortune teller",
@@ -263,8 +278,21 @@
       "todayHoroscope": "What is my horoscope for today?"
     },
     "selectedCards": "You have selected {selectedCount}/{cardsToSelect} cards",
+    "consulting": "Consulting",
     "checkingStars": "Checking your star balance...",
-    "disclaimer": "Do not trust or rely on this interpretation blindly. AskingFate uses AI and may make mistakes. For important decisions, please consult a qualified professional."
+    "disclaimer": "Do not trust or rely on this interpretation blindly. AskingFate uses AI and may make mistakes. For important decisions, please consult a qualified professional.",
+    "readAloud": {
+      "play": "Read aloud",
+      "stop": "Stop reading",
+      "error": "Could not generate audio.",
+      "insufficientStars": "Not enough stars.",
+      "starCost": "star to generate",
+      "confirmTitle": "Generate voice",
+      "confirmDescription": "Generating voice costs one star.",
+      "doNotShowAgain": "Do not show again",
+      "confirm": "Generate",
+      "cancel": "Cancel"
+    }
   },
   "ActionTrigger": {
     "autoPickLabel": "Auto pick card:",
@@ -276,7 +304,8 @@
   "InterpretationMode": {
     "auto": "Auto",
     "tarot": "Tarot",
-    "horoscope": "Horoscope"
+    "horoscope": "Horoscope",
+    "chat": "Chat"
   },
   "About": {
     "whatIs": "What is",
@@ -805,6 +834,13 @@
     "planetaryStrengths": "Planetary Strengths",
     "yourHouses": "Your Houses",
     "planetaryPositions": "Planetary Positions",
+    "birthDetailsTitle": "Birth Details",
+    "birthDateLabel": "Birth date",
+    "birthTimeLabel": "Birth time",
+    "planetarySectionLabel": "Planetary",
+    "lifeAreasSectionLabel": "Life Areas",
+    "transitDetailsTitle": "Transit Details",
+    "transitDateLabel": "Transit date",
     "shareTitle": "Share Your Birth Chart",
     "shareDescription": "Share your cosmic blueprint with friends",
     "questionLabel": "Ask about your Chart",
@@ -837,7 +873,8 @@
         "exalted": "Exalted",
         "ownSign": "Own Sign",
         "debilitated": "Debilitated",
-        "normal": "Normal"
+        "normal": "Normal",
+        "retrograde": "Retrograde"
       }
     },
     "planets": {
@@ -1978,7 +2015,15 @@
     "delete": "Delete",
     "deleteSuccess": "Reading deleted successfully",
     "deleteError": "Failed to delete reading",
-    "swipeToDelete": "Swipe left to delete"
+    "swipeToDelete": "Swipe left to delete",
+    "contextMenu": {
+      "openReading": "Open reading",
+      "openInNewTab": "Open in new tab",
+      "copyLink": "Copy link",
+      "share": "Share",
+      "linkCopied": "Link copied to clipboard",
+      "shareError": "Could not share"
+    }
   },
   "StarsBalance": {
     "available": "Stars available",
@@ -2188,6 +2233,34 @@
     "getPlan": "Get {plan}",
     "savePercent": "Save {percent}%"
   },
+  "BirthForm": {
+    "datePlaceholder": "dd/mm/yyyy",
+    "yearEraCE": "A.D.",
+    "yearEraBE": "B.E.",
+    "dateErrorDay": "Day must be between 1 and 31",
+    "dateErrorMonth": "Month must be between 1 and 12",
+    "missingTimeHint": "We need your birth time for precision.",
+    "missingDateHint": "We need your birth date.",
+    "timePlaceholder": "hh:mm",
+    "timePickerTitle": "Select time",
+    "timePickerHour": "Hour",
+    "timePickerMinute": "Minute",
+    "timePickerDone": "Done",
+    "birthDate": "Birth date",
+    "birthTime": "Birth time",
+    "exactTime": "Exact time",
+    "daytime": "Daytime",
+    "nighttime": "Nighttime",
+    "birthPlace": "Birth place (optional)",
+    "country": "Country",
+    "stateProvince": "State / Province",
+    "useCurrentLocation": "Use current location",
+    "advanced": "Advanced (lat, lng, timezone)",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "timezone": "Timezone (e.g. 7)",
+    "rememberBirth": "Remember my birth date"
+  }, 
   "HoroscopeChat": {
     "usingSavedBirthDate": "Using your saved birth date for this interpretation...",
     "loading": "Consulting your birth chart...",
@@ -2271,5 +2344,55 @@
       "medium": "Medium",
       "large": "Large"
     }
+  },
+  "PlanetaryPanel": {
+    "transitSuffix": " Transit",
+    "natalSuffix": " Natal",
+    "noChartPosition": "No chart position",
+    "defaultKeyword": "Personalized aspect",
+    "exactDatePrefix": "On {date}",
+    "rangeDate": "Starts {start} (peak {peak})",
+    "mainEvents": "Main Events",
+    "showDailyVibes": "Show Daily Vibes ({count})",
+    "showLifeSituation": "Show Life Situation ({count})",
+    "planets": {
+      "Sun": "Sun",
+      "Moon": "Moon",
+      "Mercury": "Mercury",
+      "Venus": "Venus",
+      "Mars": "Mars",
+      "Jupiter": "Jupiter",
+      "Saturn": "Saturn",
+      "Rahu": "Rahu",
+      "Ketu": "Ketu",
+      "Uranus": "Uranus",
+      "Neptune": "Neptune",
+      "Pluto": "Pluto",
+      "Ascendant": "Ascendant"
+    },
+    "aspects": {
+      "conjunction": "Conjunction",
+      "opposition": "Opposition",
+      "square": "Square",
+      "trine": "Trine",
+      "sextile": "Sextile"
+    },
+    "zodiac": {
+      "Aries": "Aries",
+      "Taurus": "Taurus",
+      "Gemini": "Gemini",
+      "Cancer": "Cancer",
+      "Leo": "Leo",
+      "Virgo": "Virgo",
+      "Libra": "Libra",
+      "Scorpio": "Scorpio",
+      "Sagittarius": "Sagittarius",
+      "Capricorn": "Capricorn",
+      "Aquarius": "Aquarius",
+      "Pisces": "Pisces"
+    },
+    "askMore": "Ask more",
+    "readDescription": "Read description",
+    "askAspectQuestion": "How does transit {transit} {aspect} natal {natal} affect me?"
   }
 }

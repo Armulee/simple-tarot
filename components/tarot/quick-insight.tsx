@@ -1,5 +1,6 @@
 import { useTarot } from "@/contexts/tarot-context"
 import { Loader2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 export default function QuickInsight({
     index = 0,
@@ -11,6 +12,7 @@ export default function QuickInsight({
     index?: number
     className?: string
 }) {
+    const t = useTranslations("Home")
     const { cardInsights } = useTarot()
     const insight = cardInsights?.[index]
 
@@ -42,7 +44,7 @@ export default function QuickInsight({
             <div className='relative flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/5 bg-white/5'>
                 <Loader2 className='w-3 h-3 animate-spin text-primary' />
                 <span className='text-[10px] font-medium tracking-tighter text-white/40 uppercase'>
-                    Consulting...
+                    {`${t("consulting")}...`}
                 </span>
             </div>
         </div>

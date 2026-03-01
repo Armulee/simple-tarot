@@ -11,7 +11,7 @@ import {
     type LanguageCode,
 } from "@/lib/content-generator"
 
-const MODEL = "openai/gpt-4.1-mini"
+const MODEL = "openai/gpt-4o-mini"
 
 const OUTPUT_DIRECTIVES: Record<ContentTypeKey, string> = {
     shortText:
@@ -35,7 +35,7 @@ function isValidLanguage(value: string): value is LanguageCode {
 
 function isContentAllowedForMedia(
     media: MediaPlatform,
-    contentType: string
+    contentType: string,
 ): contentType is ContentTypeKey {
     const allowed = CONTENT_TYPE_OPTIONS_BY_MEDIA[media] ?? []
     return allowed.includes(contentType as ContentTypeKey)
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
         if (typeof rawMedia !== "string" || !isValidMediaPlatform(rawMedia)) {
             return NextResponse.json(
                 { error: "Invalid media platform selection." },
-                { status: 400 }
+                { status: 400 },
             )
         }
 
@@ -62,14 +62,14 @@ export async function POST(request: Request) {
         ) {
             return NextResponse.json(
                 { error: "Invalid content type for the selected platform." },
-                { status: 400 }
+                { status: 400 },
             )
         }
 
         if (typeof rawLanguage !== "string" || !isValidLanguage(rawLanguage)) {
             return NextResponse.json(
                 { error: "Invalid language selection." },
-                { status: 400 }
+                { status: 400 },
             )
         }
 
@@ -91,10 +91,18 @@ export async function POST(request: Request) {
                 : `Write entirely in ${languageMeta.label}.`
 
         const creatorNotes: string[] = []
-        if (typeof context?.title === "string" && context.title.trim().length > 0) {
-            creatorNotes.push(`Campaign title or angle: ${context.title.trim()}`)
+        if (
+            typeof context?.title === "string" &&
+            context.title.trim().length > 0
+        ) {
+            creatorNotes.push(
+                `Campaign title or angle: ${context.title.trim()}`,
+            )
         }
-        if (typeof context?.notes === "string" && context.notes.trim().length > 0) {
+        if (
+            typeof context?.notes === "string" &&
+            context.notes.trim().length > 0
+        ) {
             creatorNotes.push(`Creator notes: ${context.notes.trim()}`)
         }
         const notesBlock =
@@ -136,7 +144,7 @@ Deliver the final copy ready for a creator to publish without additional editing
         if (!content) {
             return NextResponse.json(
                 { error: "AI response was empty. Please try again." },
-                { status: 500 }
+                { status: 500 },
             )
         }
 
@@ -145,7 +153,7 @@ Deliver the final copy ready for a creator to publish without additional editing
         console.error("AI content generation error:", error)
         return NextResponse.json(
             { error: "Failed to generate content. Please try again later." },
-            { status: 500 }
+            { status: 500 },
         )
     }
 }

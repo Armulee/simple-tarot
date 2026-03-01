@@ -232,20 +232,35 @@
     "hero": {
       "line1": "ถามฉันได้ทุกเรื่อง",
       "line2": "เกี่ยวกับโชคชะตาของคุณ",
-      "rotatingPhrases": [
-        "Step Into the Cards.",
-        "Let the Tarot Reveal Your Path.",
-        "Guidance Through the Language of Symbols.",
-        "Personal Tarot Readings.",
-        "Ask the Cards.",
-        "Discover What the Cards Hold.",
-        "Written in the Stars.",
-        "Your Cosmic Blueprint Awaits.",
-        "The Sky Has a Message for You.",
-        "Daily & Personalized Horoscopes.",
-        "Astrology Insights.",
-        "Explore Your Birth Chart.",
-        "Star-Based Guidance."
+      "rotatingPhrasesWhite": [
+        "ก้าวเข้าสู่โลกแห่ง",
+        "ให้ไพ่ทาโรต์เปิดเผย",
+        "คำแนะนำผ่านภาษาของ",
+        "การอ่าน",
+        "ถาม",
+        "ค้นพบสิ่งที่",
+        "เขียนไว้ใน",
+        "พิมพ์เขียวจักรวาลของคุณ",
+        "ท้องฟ้ามีข้อความ",
+        "ดวงชะตารายวันและ",
+        "ข้อมูลเชิงลึก",
+        "สำรวจ",
+        "คำแนะนำจาก"
+      ],
+      "rotatingPhrasesGradient": [
+        "ไพ่ทาโรต์",
+        "เส้นทางของคุณ",
+        "สัญลักษณ์",
+        "ไพ่ทาโรต์ส่วนตัว",
+        "ไพ่",
+        "ไพ่บอกคุณ",
+        "ดวงดาว",
+        "รออยู่",
+        "สำหรับคุณ",
+        "ส่วนตัว",
+        "ทางโหราศาสตร์",
+        "ดวงชะตาเกิดของคุณ",
+        "ดวงดาว"
       ]
     },
     "description": "นักทำนาย AI ส่วนตัวของคุณ",
@@ -276,8 +291,21 @@
       "todayHoroscope": "ดวงของฉันวันนี้เป็นอย่างไร?"
     },
     "selectedCards": "คุณเลือกไพ่แล้ว {selectedCount}/{cardsToSelect} ใบ",
+    "consulting": "กำลังปรึกษา",
     "checkingStars": "กำลังตรวจสอบยอดดวงดาวของคุณ...",
-    "disclaimer": "ไม่ควรเชื่อถือหรือพึ่งพาคำทำนายอย่างหลับหูหลับตา AskingFate ใช้ AI ซึ่งอาจผิดพลาดได้ สำหรับการตัดสินใจสำคัญ โปรดปรึกษาผู้เชี่ยวชาญที่มีคุณสมบัติ"
+    "disclaimer": "ไม่ควรเชื่อถือหรือพึ่งพาคำทำนายอย่างหลับหูหลับตา AskingFate ใช้ AI ซึ่งอาจผิดพลาดได้ สำหรับการตัดสินใจสำคัญ โปรดปรึกษาผู้เชี่ยวชาญที่มีคุณสมบัติ",
+    "readAloud": {
+      "play": "อ่านออกเสียง",
+      "stop": "หยุดอ่าน",
+      "error": "ไม่สามารถสร้างเสียงได้",
+      "insufficientStars": "ดวงดาวไม่เพียงพอ",
+      "starCost": "ดาวสำหรับสร้างเสียง",
+      "confirmTitle": "สร้างเสียง",
+      "confirmDescription": "การสร้างเสียงใช้ดวงดาว 1 ดวง",
+      "doNotShowAgain": "ไม่แสดงอีก",
+      "confirm": "สร้าง",
+      "cancel": "ยกเลิก"
+    }
   },
   "ActionTrigger": {
     "autoPickLabel": "เลือกไพ่ให้อัตโนมัติ:",
@@ -289,7 +317,8 @@
   "InterpretationMode": {
     "auto": "อัตโนมัติ",
     "tarot": "ไพ่ทาโรต์",
-    "horoscope": "ดวงชะตา"
+    "horoscope": "ดวงชะตา",
+    "chat": "แชท"
   },
   "About": {
     "whatIs": "คืออะไร",
@@ -662,6 +691,13 @@
     "planetaryStrengths": "พลังดาวเคราะห์",
     "yourHouses": "เรือนทั้ง 12",
     "planetaryPositions": "ตำแหน่งดาวเคราะห์",
+    "birthDetailsTitle": "รายละเอียดดวงกำเนิด",
+    "birthDateLabel": "วันเกิด",
+    "birthTimeLabel": "เวลาเกิด",
+    "planetarySectionLabel": "ดาวเคราะห์",
+    "lifeAreasSectionLabel": "เรือนชีวิต",
+    "transitDetailsTitle": "รายละเอียดดวงจร",
+    "transitDateLabel": "วันจร",
     "shareTitle": "แชร์ดวงชะตาของคุณ",
     "shareDescription": "แชร์พิมพ์เขียวจักรวาลของคุณกับเพื่อน",
     "questionLabel": "ถามเกี่ยวกับดวงชะตาของคุณ",
@@ -691,10 +727,11 @@
         "Ketu": "การไม่ยึดติด การปลดปล่อย อดีต ลัทธิลึกลับ"
       },
       "status": {
-        "exalted": "สูงส่ง",
-        "ownSign": "เรือนของตัวเอง",
-        "debilitated": "อ่อนแอ",
-        "normal": "ปกติ"
+        "exalted": "มหาอุจจ์",
+        "ownSign": "เกษตร",
+        "debilitated": "นิจ",
+        "normal": "ปกติ",
+        "retrograde": "ประ"
       }
     },
     "planets": {
@@ -1939,7 +1976,15 @@
     "delete": "ลบ",
     "deleteSuccess": "ลบการอ่านสำเร็จ",
     "deleteError": "ไม่สามารถลบการอ่านได้",
-    "swipeToDelete": "ปัดซ้ายเพื่อลบ"
+    "swipeToDelete": "ปัดซ้ายเพื่อลบ",
+    "contextMenu": {
+      "openReading": "เปิดการอ่าน",
+      "openInNewTab": "เปิดในแท็บใหม่",
+      "copyLink": "คัดลอกลิงก์",
+      "share": "แชร์",
+      "linkCopied": "คัดลอกลิงก์ไปยังคลิปบอร์ดแล้ว",
+      "shareError": "ไม่สามารถแชร์ได้"
+    }
   },
   "StarsBalance": {
     "available": "ดวงดาวที่ใช้ได้",
@@ -2190,6 +2235,34 @@
     "getPlan": "เลือก {plan}",
     "savePercent": "ประหยัด {percent}%"
   },
+  "BirthForm": {
+    "datePlaceholder": "วว/ดด/ปปปป",
+    "yearEraCE": "ค.ศ.",
+    "yearEraBE": "พ.ศ.",
+    "dateErrorDay": "วันต้องอยู่ระหว่าง 1 ถึง 31",
+    "dateErrorMonth": "เดือนต้องอยู่ระหว่าง 1 ถึง 12",
+    "missingTimeHint": "เราต้องการเวลาเกิดของคุณเพื่อความแม่นยำ",
+    "missingDateHint": "เราต้องการวันเกิดของคุณ",
+    "timePlaceholder": "ชม:นาที",
+    "timePickerTitle": "เลือกเวลา",
+    "timePickerHour": "ชั่วโมง",
+    "timePickerMinute": "นาที",
+    "timePickerDone": "เสร็จสิ้น",
+    "birthDate": "วันเกิด",
+    "birthTime": "เวลาเกิด",
+    "exactTime": "เวลาชัดเจน",
+    "daytime": "กลางวัน",
+    "nighttime": "กลางคืน",
+    "birthPlace": "สถานที่เกิด (ไม่บังคับ)",
+    "country": "ประเทศ",
+    "stateProvince": "จังหวัด / รัฐ",
+    "useCurrentLocation": "ใช้ตำแหน่งปัจจุบัน",
+    "advanced": "ขั้นสูง (lat, lng, timezone)",
+    "latitude": "ละติจูด",
+    "longitude": "ลองจิจูด",
+    "timezone": "เขตเวลา (เช่น 7)",
+    "rememberBirth": "จำข้อมูลวันเกิดของฉัน"
+  },
   "HoroscopeChat": {
     "usingSavedBirthDate": "กำลังใช้ข้อมูลวันเกิดที่บันทึกไว้ทำนายดวง...",
     "loading": "กำลังอ่านดวงจากข้อมูลเกิดของคุณ...",
@@ -2273,5 +2346,55 @@
       "medium": "กลาง",
       "large": "ใหญ่"
     }
+  },
+  "PlanetaryPanel": {
+    "transitSuffix": "จรมา",
+    "natalSuffix": "กำเนิด",
+    "noChartPosition": "ไม่มีตำแหน่งดาว",
+    "defaultKeyword": "แง่มุมเฉพาะบุคคล",
+    "exactDatePrefix": "วันที่ {date}",
+    "rangeDate": "เริ่ม {start} (พีค {peak})",
+    "mainEvents": "เหตุการณ์หลัก",
+    "showDailyVibes": "แสดง Daily Vibes ({count})",
+    "showLifeSituation": "แสดงสถานการณ์ชีวิต ({count})",
+    "planets": {
+      "Sun": "อาทิตย์",
+      "Moon": "จันทร์",
+      "Mercury": "พุธ",
+      "Venus": "ศุกร์",
+      "Mars": "อังคาร",
+      "Jupiter": "พฤหัสบดี",
+      "Saturn": "เสาร์",
+      "Rahu": "ราหู",
+      "Ketu": "เกตุ",
+      "Uranus": "ยูเรนัส",
+      "Neptune": "เนปจูน",
+      "Pluto": "พลูโต",
+      "Ascendant": "ลัคนา"
+    },
+    "aspects": {
+      "conjunction": "กุม",
+      "opposition": "เล็ง",
+      "square": "ฉาก",
+      "trine": "ตรีโกณ",
+      "sextile": "โยค"
+    },
+    "zodiac": {
+      "Aries": "เมษ",
+      "Taurus": "พฤษภ",
+      "Gemini": "เมถุน",
+      "Cancer": "กรกฎ",
+      "Leo": "สิงห์",
+      "Virgo": "กันย์",
+      "Libra": "ตุลย์",
+      "Scorpio": "พิจิก",
+      "Sagittarius": "ธนู",
+      "Capricorn": "มังกร",
+      "Aquarius": "กุมภ์",
+      "Pisces": "มีน"
+    },
+    "askMore": "ถามเพิ่ม",
+    "readDescription": "อ่านคำอธิบาย",
+    "askAspectQuestion": "ดาว{transit}จรทำมุม{aspect}กับดาว{natal}กำเนิด ส่งผลต่อฉันอย่างไร?"
   }
 }

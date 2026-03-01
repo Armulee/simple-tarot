@@ -34,8 +34,8 @@ export default function HomeQuickCards({
     ] as const
 
     return (
-        <div className='flex justify-center'>
-            <div className='text-center w-[380px]'>
+        <div className='flex justify-start px-4'>
+            <div className='text-center w-full'>
                 <Swiper
                     modules={[FreeMode, Mousewheel]}
                     freeMode={{

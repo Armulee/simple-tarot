@@ -12,6 +12,8 @@ interface LoopingTypewriterTextProps {
     className?: string
     /** For the first phrase only: character index to split white (before) vs gradient (after) */
     firstPhraseSplitAt?: number
+    /** Explicit split index per phrase. When provided, used instead of getSplitIndex (ensures correct word boundaries e.g. for Thai) */
+    splitAtPerPhrase?: number[]
 }
 
 function pickNextPhrase(phrases: string[], currentIndex: number): number {
@@ -27,9 +29,13 @@ function pickNextPhrase(phrases: string[], currentIndex: number): number {
 function getSplitIndex(
     phrase: string,
     phraseIndex: number,
-    firstPhraseSplitAt?: number
+    firstPhraseSplitAt?: number,
 ): number {
-    if (phraseIndex === 0 && firstPhraseSplitAt != null && firstPhraseSplitAt > 0) {
+    if (
+        phraseIndex === 0 &&
+        firstPhraseSplitAt != null &&
+        firstPhraseSplitAt > 0
+    ) {
         return firstPhraseSplitAt
     }
     const minSplit = Math.floor(phrase.length * 0.3)
@@ -49,6 +55,7 @@ export function LoopingTypewriterText({
     fadeDuration = 500,
     className = "",
     firstPhraseSplitAt,
+    splitAtPerPhrase,
 }: LoopingTypewriterTextProps) {
     const [phase, setPhase] = useState<Phase>("typing")
     const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0)
@@ -99,11 +106,10 @@ export function LoopingTypewriterText({
         return () => clearTimeout(timeout)
     }, [phase, fadeDuration, phrases, currentPhraseIndex])
 
-    const splitAt = getSplitIndex(
-        text,
-        currentPhraseIndex,
-        firstPhraseSplitAt
-    )
+    const explicitSplit = splitAtPerPhrase?.[currentPhraseIndex]
+    const splitAt =
+        explicitSplit ??
+        getSplitIndex(text, currentPhraseIndex, firstPhraseSplitAt)
     const whitePart = displayedText.slice(0, splitAt)
     const gradientPart = displayedText.slice(splitAt)
 

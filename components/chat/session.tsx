@@ -13,6 +13,14 @@ import {
     tarotInterpretationSchema,
     type TarotInterpretation,
 } from "@/lib/tarot/schema"
+import {
+    horoscopeInterpretationSchema,
+    type HoroscopeInterpretation,
+} from "@/lib/astrology/schema"
+import {
+    mergeAspectKeywordsIntoAspects,
+    type AspectKeywordItem,
+} from "@/lib/astrology/transit-aspects"
 import { getDefaultAstrologySystem } from "@/lib/astrology/intake"
 import { buildConversationContextFromMessages } from "@/lib/astrology/question-context"
 import { chartDataToBirth, chartDataToTransit } from "@/lib/chart-data-to-birth"
@@ -25,6 +33,10 @@ import {
     loadInterpretationModeFromStorage,
     type InterpretationMode,
 } from "@/lib/interpretation-mode-storage"
+import {
+    getSkipReadAloudConfirm,
+    setSkipReadAloudConfirm,
+} from "@/lib/read-aloud-confirm-storage"
 import { pickRandomCards } from "@/lib/tarot/pick-random-cards"
 import { resolveLocationFromCoords } from "@/lib/location"
 import type {
@@ -36,6 +48,16 @@ import ActionTrigger from "@/components/chat/action-trigger"
 import BirthInfoModal from "@/components/chat/birth-info-modal"
 import MessageList from "@/components/chat/message-list"
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Star } from "lucide-react"
+import {
     CARD_UI_TEXT,
     isPickForMeIntent,
     normalizeLocale,
@@ -43,41 +65,144 @@ import {
 import type {
     ChatDecision,
     ChatMessage,
+    AspectInsightItem,
     ChatSessionPayload,
     HoroscopeExtractResponse,
+    SourceAspectEvent,
 } from "@/components/chat/types"
 
 export type { ChatDecision } from "@/components/chat/types"
 
-function formatBirthInfoForAssistant(
-    birth: HoroscopeBirthData,
-    locale: string,
-): string {
-    const parts: string[] = []
-    if (birth.day && birth.month && birth.year) {
-        const date = new Date(birth.year, birth.month - 1, birth.day)
-        parts.push(
-            date.toLocaleDateString(
-                locale.startsWith("th") ? "th-TH" : "en-US",
-                { month: "short", day: "numeric", year: "numeric" },
-            ),
-        )
+function normalizeAspectInsights(
+    items:
+        | Array<
+              | {
+                    aspectKey?: string | null
+                    keyword?: string | null
+                    sentiment?: string | null
+                    insight?: string | null
+                }
+              | undefined
+          >
+        | undefined
+        | null,
+) {
+    const clean: AspectInsightItem[] = []
+    const seenAspectKeys = new Set<string>()
+    for (const item of items ?? []) {
+        const aspectKey = (item?.aspectKey ?? "").trim()
+        const keyword = (item?.keyword ?? "").trim()
+        const sentiment = (item?.sentiment ?? "").trim().toLowerCase()
+        const insight = (item?.insight ?? "").trim()
+
+        if (!aspectKey || !keyword) continue
+        if (seenAspectKeys.has(aspectKey)) continue
+        if (
+            sentiment !== "good" &&
+            sentiment !== "bad" &&
+            sentiment !== "neutral"
+        ) {
+            continue
+        }
+
+        const normalized: AspectInsightItem = { aspectKey, keyword, sentiment }
+        if (insight) normalized.insight = insight
+        clean.push(normalized)
+        seenAspectKeys.add(aspectKey)
     }
-    if (birth.hour != null && birth.minute != null) {
-        const h = birth.hour
-        const ampm = h >= 12 ? "PM" : "AM"
-        const displayHour = h % 12 || 12
-        parts.push(
-            `${displayHour}:${String(birth.minute).padStart(2, "0")} ${ampm}`,
-        )
-    } else if (birth.timeHint === "day") {
-        parts.push("daytime")
-    } else if (birth.timeHint === "night") {
-        parts.push("nighttime")
+
+    return clean.length > 0 ? clean : undefined
+}
+
+function mergeAspectInsightsToPersonalizedAspects(
+    base: ChatMessage["personalizedTransitAspects"] | null | undefined,
+    aspectInsights: AspectInsightItem[] | undefined,
+) {
+    if (!base || !aspectInsights?.length) return base ?? null
+    const keywordItems: AspectKeywordItem[] = aspectInsights.map((item) => ({
+        aspectKey: item.aspectKey,
+        keyword: item.keyword,
+        sentiment: item.sentiment,
+        insight: item.insight,
+    }))
+    return mergeAspectKeywordsIntoAspects(base, keywordItems)
+}
+
+function filterPersonalizedAspectsByKeys(
+    base: ChatMessage["personalizedTransitAspects"] | null | undefined,
+    aspectKeys: Set<string>,
+) {
+    if (!base || aspectKeys.size === 0) return null
+
+    const exactEvents = base.exact?.events.filter((event) =>
+        aspectKeys.has(event.aspectKey),
+    )
+    const rangeEvents = base.range?.events.filter((event) =>
+        aspectKeys.has(event.aspectKey),
+    )
+
+    const nextExact =
+        base.exact && exactEvents && exactEvents.length > 0
+            ? { ...base.exact, events: exactEvents }
+            : null
+    const nextRange =
+        base.range && rangeEvents && rangeEvents.length > 0
+            ? { ...base.range, events: rangeEvents }
+            : null
+
+    if (!nextExact && !nextRange) return null
+
+    return {
+        ...base,
+        exact: nextExact,
+        range: nextRange,
     }
-    const location = [birth.state, birth.country].filter(Boolean).join(", ")
-    if (location) parts.push(location)
-    return parts.join(" · ")
+}
+
+function buildDiscussedAspectsFromInsights(
+    base: ChatMessage["personalizedTransitAspects"] | null | undefined,
+    aspectInsights: AspectInsightItem[] | undefined,
+) {
+    if (!base || !aspectInsights?.length) return null
+    const merged = mergeAspectInsightsToPersonalizedAspects(base, aspectInsights)
+    const keys = new Set(aspectInsights.map((item) => item.aspectKey))
+    return filterPersonalizedAspectsByKeys(merged, keys)
+}
+
+function areAspectInsightsEqual(
+    left: ChatMessage["aspectInsights"],
+    right: ChatMessage["aspectInsights"],
+) {
+    if (left === right) return true
+    if (!left || !right) return !left && !right
+    if (left.length !== right.length) return false
+    for (let i = 0; i < left.length; i++) {
+        const a = left[i]
+        const b = right[i]
+        if (!a || !b) return false
+        if (
+            a.aspectKey !== b.aspectKey ||
+            a.keyword !== b.keyword ||
+            a.sentiment !== b.sentiment ||
+            a.insight !== b.insight
+        ) {
+            return false
+        }
+    }
+    return true
+}
+
+function areStringArraysEqual(
+    left: string[] | undefined,
+    right: string[] | undefined,
+) {
+    if (left === right) return true
+    if (!left || !right) return !left && !right
+    if (left.length !== right.length) return false
+    for (let i = 0; i < left.length; i++) {
+        if (left[i] !== right[i]) return false
+    }
+    return true
 }
 
 export default function ChatSession({
@@ -163,6 +288,19 @@ export default function ChatSession({
     const [messageNotices, setMessageNotices] = useState<
         Record<string, string>
     >({})
+    const [readAloudLoadingMessageId, setReadAloudLoadingMessageId] = useState<
+        string | null
+    >(null)
+    const [readAloudPlayingMessageId, setReadAloudPlayingMessageId] = useState<
+        string | null
+    >(null)
+    const [readAloudConfirmOpen, setReadAloudConfirmOpen] = useState(false)
+    const [readAloudPending, setReadAloudPending] = useState<{
+        id: string
+        text: string
+    } | null>(null)
+    const [readAloudDoNotShowAgain, setReadAloudDoNotShowAgain] =
+        useState(false)
     const [sessionId] = useState<string | null>(initialSession?.id ?? null)
     const [horoscopeQuestion, setHoroscopeQuestion] = useState<string | null>(
         null,
@@ -182,7 +320,6 @@ export default function ChatSession({
         timezone?: number
     } | null>(null)
     const abortControllerRef = useRef<AbortController | null>(null)
-    const horoscopeAbortRef = useRef<AbortController | null>(null)
     const [showInsufficientStars, setShowInsufficientStars] = useState<boolean>(
         initialSession?.showInsufficientStars ?? false,
     )
@@ -212,7 +349,22 @@ export default function ChatSession({
     const hasBootstrapped = useRef(false)
     const persistTimeoutRef = useRef<number | null>(null)
     const interpretationLoadingIdRef = useRef<string | null>(null)
+    const horoscopeTargetMessageIdRef = useRef<string | null>(null)
+    const horoscopeIsRefetchRef = useRef(false)
+    const horoscopeRefetchSystemRef = useRef<
+        "western_tropical" | "vedic_sidereal" | null
+    >(null)
+    const horoscopeCachedBeforeRefetchRef = useRef<
+        "western_tropical" | "vedic_sidereal" | null
+    >(null)
+    const horoscopeLastTransitRef = useRef<HoroscopeTransitData | null>(null)
     const autoPickTriggeredRef = useRef(false)
+    const readAloudAudioRef = useRef<HTMLAudioElement | null>(null)
+    const readAloudObjectUrlsRef = useRef<Record<string, string>>({})
+    const pendingAspectDetailRef = useRef<{
+        aspectKey: string
+        event: SourceAspectEvent
+    } | null>(null)
 
     const {
         submit: submitInterpretation,
@@ -270,10 +422,209 @@ export default function ChatSession({
         },
     })
 
+    const {
+        submit: submitHoroscope,
+        object: horoscopeObject,
+        stop: stopHoroscope,
+    } = useObject({
+        api: "/api/horoscope/question",
+        schema: horoscopeInterpretationSchema,
+        fetch: async (url, options) => {
+            const res = await fetch(url, options)
+            const chartB64 = res.headers.get("X-AskingFate-Chart-Data")
+            const targetId = horoscopeTargetMessageIdRef.current
+            if (chartB64 && targetId) {
+                try {
+                    const chartData = JSON.parse(atob(chartB64)) as Record<
+                        string,
+                        unknown
+                    >
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === targetId
+                                ? (() => {
+                                      const fullAspects =
+                                          (chartData.personalizedTransitAspects as ChatMessage["personalizedTransitAspects"]) ??
+                                          null
+                                      return {
+                                          ...m,
+                                          chartData,
+                                          personalizedTransitAspects: fullAspects,
+                                          personalizedTransitAspectsMerged:
+                                              buildDiscussedAspectsFromInsights(
+                                                  fullAspects,
+                                                  m.aspectInsights,
+                                              ),
+                                      }
+                                  })()
+                                : m,
+                        ),
+                    )
+                } catch {
+                    /* ignore */
+                }
+            }
+            return res
+        },
+        onFinish: ({
+            object,
+        }: {
+            object: HoroscopeInterpretation | undefined
+        }) => {
+            const targetId = horoscopeTargetMessageIdRef.current
+            if (!targetId || !object) return
+            const interpretation =
+                object.interpretation?.trim() ||
+                tHoroscope("fallbackAnswerError")
+            const conclusion = object.conclusion?.trim() ?? null
+            const aspectInsights = normalizeAspectInsights(object.aspectInsights)
+            const suggestions = (
+                object.suggestions?.filter(
+                    (s): s is string =>
+                        typeof s === "string" && s.trim().length > 0,
+                ) ?? []
+            ).slice(0, 5)
+            const refetchSystem = horoscopeRefetchSystemRef.current
+            setMessages((prev) =>
+                prev.map((m) => {
+                    if (m.id !== targetId) return m
+                    const fullAspects = m.personalizedTransitAspects ?? null
+                    const mergedAspects = buildDiscussedAspectsFromInsights(
+                        fullAspects,
+                        aspectInsights,
+                    )
+                    const update: Partial<ChatMessage> = {
+                        text: interpretation,
+                        aspectInsights,
+                        personalizedTransitAspects: fullAspects,
+                        personalizedTransitAspectsMerged: mergedAspects,
+                        followUpConclusion: conclusion ?? undefined,
+                        followUpSuggestions:
+                            suggestions.length > 0 ? suggestions : undefined,
+                        isLoading: false,
+                    }
+                    if (m.chartData) {
+                        const chartDataObj = m.chartData as Record<
+                            string,
+                            unknown
+                        >
+                        const charts = chartDataObj?.charts as
+                            | Array<{ system?: string }>
+                            | undefined
+                        const systemKey =
+                            refetchSystem ??
+                            (charts?.[0]?.system as
+                                | "western_tropical"
+                                | "vedic_sidereal"
+                                | undefined) ??
+                            "vedic_sidereal"
+                        update.interpretationCache = {
+                            ...m.interpretationCache,
+                            [systemKey]: {
+                                chartData: m.chartData,
+                                text: interpretation,
+                                aspectInsights,
+                                personalizedTransitAspects:
+                                    fullAspects,
+                                personalizedTransitAspectsMerged:
+                                    mergedAspects ?? null,
+                                followUpConclusion: conclusion ?? undefined,
+                                followUpSuggestions:
+                                    suggestions.length > 0
+                                        ? suggestions
+                                        : undefined,
+                            },
+                        }
+                    }
+                    return { ...m, ...update }
+                }),
+            )
+            horoscopeTargetMessageIdRef.current = null
+            horoscopeRefetchSystemRef.current = null
+            horoscopeCachedBeforeRefetchRef.current = null
+            setIsInterpreting(false)
+        },
+        onError: (e: Error) => {
+            const targetId = horoscopeTargetMessageIdRef.current
+            if (!targetId) return
+            const isAbort = e?.name === "AbortError"
+            const isRefetch = horoscopeIsRefetchRef.current
+            if (isAbort && !isRefetch) {
+                setMessages((prev) => {
+                    const msg = prev.find((m) => m.id === targetId)
+                    const birth = msg?.horoscopeBirthData
+                    const withoutLoading = prev.filter((m) => m.id !== targetId)
+                    return [
+                        ...withoutLoading,
+                        {
+                            id: `assistant-tool-user-date-form-${Date.now()}`,
+                            role: "assistant",
+                            text: "",
+                            variant: "tool",
+                            toolType: "user-date-form",
+                            toolBirthPrefill: birth ?? null,
+                            toolTransitPrefill: horoscopeLastTransitRef.current,
+                            toolFromCancel: true,
+                        },
+                    ]
+                })
+            } else if (isAbort && isRefetch) {
+                const cachedSystem = horoscopeCachedBeforeRefetchRef.current
+                setMessages((prev) =>
+                    prev.map((m) => {
+                        if (m.id !== targetId) return m
+                        if (
+                            cachedSystem &&
+                            m.interpretationCache?.[cachedSystem]
+                        ) {
+                            const cached = m.interpretationCache[cachedSystem]
+                            return {
+                                ...m,
+                                chartData: cached.chartData,
+                                personalizedTransitAspects:
+                                    cached.personalizedTransitAspects ?? null,
+                                personalizedTransitAspectsMerged:
+                                    cached.personalizedTransitAspectsMerged ??
+                                    null,
+                                text: cached.text,
+                                aspectInsights: cached.aspectInsights,
+                                followUpConclusion: cached.followUpConclusion,
+                                followUpSuggestions: cached.followUpSuggestions,
+                                isLoading: false,
+                            }
+                        }
+                        return { ...m, isLoading: false }
+                    }),
+                )
+            } else {
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === targetId
+                            ? {
+                                  ...m,
+                                  text: tHoroscope("analysisFailed"),
+                                  isLoading: false,
+                              }
+                            : m,
+                    ),
+                )
+            }
+            horoscopeTargetMessageIdRef.current = null
+            horoscopeRefetchSystemRef.current = null
+            horoscopeCachedBeforeRefetchRef.current = null
+            setIsInterpreting(false)
+        },
+    })
+
     const buildConversationContext = useCallback(
         (currentQuestion?: string) =>
             buildConversationContextFromMessages(messages, currentQuestion),
         [messages],
+    )
+
+    const buildHoroscopeConversationContext = useCallback(
+        (question: string) => buildConversationContext(question.trim()),
+        [buildConversationContext],
     )
 
     // Stream interpretation object updates to the loading message
@@ -310,14 +661,98 @@ export default function ChatSession({
         )
     }, [interpretationObject])
 
+    // Stream horoscope object updates to the loading message
+    useEffect(() => {
+        const targetId = horoscopeTargetMessageIdRef.current
+        if (!targetId || !horoscopeObject) return
+        const suggestions =
+            horoscopeObject.suggestions
+                ?.map((s) => (typeof s === "string" ? s.trim() : ""))
+                .filter(Boolean)
+                .slice(0, 5) ?? undefined
+        const streamedInterpretation =
+            horoscopeObject.interpretation ?? undefined
+        const streamedAspectInsights = normalizeAspectInsights(
+            horoscopeObject.aspectInsights,
+        )
+        const streamedConclusion = horoscopeObject.conclusion?.trim() ?? undefined
+        setMessages((prev) =>
+            prev.map((m) =>
+                m.id !== targetId
+                    ? m
+                    : (() => {
+                          const nextText = streamedInterpretation ?? m.text ?? ""
+                          const nextAspectInsights =
+                              streamedAspectInsights ?? m.aspectInsights
+                          const shouldMergeAspects =
+                              !!streamedAspectInsights &&
+                              !areAspectInsightsEqual(
+                                  streamedAspectInsights,
+                                  m.aspectInsights,
+                              )
+                          const nextPersonalizedTransitAspectsMerged =
+                              shouldMergeAspects
+                                  ? buildDiscussedAspectsFromInsights(
+                                        m.personalizedTransitAspects,
+                                        streamedAspectInsights,
+                                    )
+                                  : m.personalizedTransitAspectsMerged
+                          const nextConclusion =
+                              streamedConclusion ?? m.followUpConclusion
+                          const nextSuggestions =
+                              suggestions ?? m.followUpSuggestions
+
+                          const changed =
+                              nextText !== m.text ||
+                              !areAspectInsightsEqual(
+                                  nextAspectInsights,
+                                  m.aspectInsights,
+                              ) ||
+                              nextPersonalizedTransitAspectsMerged !==
+                                  m.personalizedTransitAspectsMerged ||
+                              nextConclusion !== m.followUpConclusion ||
+                              !areStringArraysEqual(
+                                  nextSuggestions,
+                                  m.followUpSuggestions,
+                              )
+                          if (!changed) return m
+
+                          return {
+                              ...m,
+                              text: nextText,
+                              aspectInsights: nextAspectInsights,
+                              personalizedTransitAspectsMerged:
+                                  nextPersonalizedTransitAspectsMerged,
+                              followUpConclusion: nextConclusion,
+                              followUpSuggestions: nextSuggestions,
+                          }
+                      })(),
+            ),
+        )
+    }, [horoscopeObject])
+
     useEffect(() => {
         return () => {
             if (abortControllerRef.current) {
                 abortControllerRef.current.abort()
             }
             stopInterpretation()
+            stopHoroscope()
         }
-    }, [stopInterpretation])
+    }, [stopInterpretation, stopHoroscope])
+
+    useEffect(() => {
+        return () => {
+            if (readAloudAudioRef.current) {
+                readAloudAudioRef.current.pause()
+                readAloudAudioRef.current.src = ""
+            }
+            Object.values(readAloudObjectUrlsRef.current).forEach((url) => {
+                URL.revokeObjectURL(url)
+            })
+            readAloudObjectUrlsRef.current = {}
+        }
+    }, [])
 
     useEffect(() => {
         if (!navigator?.geolocation) return
@@ -445,8 +880,8 @@ export default function ChatSession({
             return
         }
 
-        if (!messagesEndRef.current) return
-        messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
+        // Don't auto-scroll during streaming - keep viewport fixed
+        if (consulting || isInterpreting) return
     }, [messages, consulting, showCardDraw, isInterpreting])
 
     useEffect(() => {
@@ -653,7 +1088,9 @@ export default function ChatSession({
         showCardDraw,
     ])
 
-    const heroText = consulting ? "Consulting..." : tHome("hero.line1")
+    const heroText = consulting
+        ? `${tHome("consulting")}...`
+        : tHome("hero.line1")
 
     const parseDecision = useCallback((raw: string): ChatDecision | null => {
         const start = raw.indexOf("{")
@@ -670,7 +1107,13 @@ export default function ChatSession({
     const applyInterpretationModeOverride = useCallback(
         (decision: ChatDecision): ChatDecision => {
             if (interpretationMode === "auto") return decision
-            if (interpretationMode === "tarot" && decision.type === "horoscope") {
+            if (interpretationMode === "chat") {
+                return { ...decision, type: "chat" }
+            }
+            if (
+                interpretationMode === "tarot" &&
+                decision.type === "horoscope"
+            ) {
                 return {
                     ...decision,
                     type: "draw",
@@ -678,7 +1121,10 @@ export default function ChatSession({
                     cardCount: decision.cardCount || 3,
                 }
             }
-            if (interpretationMode === "horoscope" && decision.type === "draw") {
+            if (
+                interpretationMode === "horoscope" &&
+                decision.type === "draw"
+            ) {
                 return { ...decision, type: "horoscope" }
             }
             return decision
@@ -734,22 +1180,19 @@ export default function ChatSession({
         [],
     )
 
-    const pushToolCard = useCallback(
-        (birth: HoroscopeBirthData | null) => {
-            setMessages((prev) => [
-                ...prev,
-                {
-                    id: `assistant-tool-user-date-form-${Date.now()}`,
-                    role: "assistant",
-                    text: "",
-                    variant: "tool",
-                    toolType: "user-date-form",
-                    toolBirthPrefill: birth,
-                },
-            ])
-        },
-        [],
-    )
+    const pushToolCard = useCallback((birth: HoroscopeBirthData | null) => {
+        setMessages((prev) => [
+            ...prev,
+            {
+                id: `assistant-tool-user-date-form-${Date.now()}`,
+                role: "assistant",
+                text: "",
+                variant: "tool",
+                toolType: "user-date-form",
+                toolBirthPrefill: birth,
+            },
+        ])
+    }, [])
 
     const runHoroscopeReading = useCallback(
         async (
@@ -759,10 +1202,9 @@ export default function ChatSession({
         ) => {
             setIsInterpreting(true)
             const loadingId = `assistant-horoscope-loading-${Date.now()}`
-            if (horoscopeAbortRef.current) {
-                horoscopeAbortRef.current.abort()
-            }
-            horoscopeAbortRef.current = new AbortController()
+            horoscopeIsRefetchRef.current = false
+            horoscopeTargetMessageIdRef.current = loadingId
+            horoscopeLastTransitRef.current = transit ?? null
             setMessages((prev) => {
                 const withoutForms = prev.filter(
                     (m) =>
@@ -779,153 +1221,68 @@ export default function ChatSession({
                     last.isLoading === true
                         ? withoutForms.slice(0, -1)
                         : withoutForms
+                const pendingAspect = pendingAspectDetailRef.current
                 return [
                     ...withoutBridgeLoading,
                     {
                         id: loadingId,
-                        role: "assistant",
-                        text: tHoroscope("loading"),
-                        variant: "horoscope",
+                        role: "assistant" as const,
+                        text: "",
+                        variant: "horoscope" as const,
                         isLoading: true,
                         question: questionText,
                         horoscopeBirthData: birth,
+                        ...(pendingAspect && {
+                            sourceAspectKey: pendingAspect.aspectKey,
+                            sourceAspectEvent: pendingAspect.event,
+                        }),
                     },
                 ]
             })
-            try {
-                const response = await fetch("/api/horoscope/question", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    signal: horoscopeAbortRef.current?.signal,
-                    body: JSON.stringify({
-                        question: questionText,
-                        conversationContext:
-                            buildConversationContext(questionText),
-                        locale,
-                        system: horoscopeSystem,
-                        birth: {
-                            day: birth.day,
-                            month: birth.month,
-                            year: birth.year,
-                            hour: birth.hour,
-                            minute: birth.minute,
-                            timeHint: birth.timeHint,
-                            timezone: birth.timezone,
-                            lat: birth.lat,
-                            lng: birth.lng,
-                            country: birth.country,
-                            state: birth.state,
-                            usedLocationFallback: birth.usedLocationFallback,
-                        },
-                        transit: transit
-                            ? {
-                                  day: transit.day,
-                                  month: transit.month,
-                                  year: transit.year,
-                                  hour: transit.hour,
-                                  minute: transit.minute,
-                                  timezone: transit.timezone,
-                                  lat: transit.lat,
-                                  lng: transit.lng,
-                                  country: transit.country,
-                                  state: transit.state,
-                              }
-                            : null,
-                    }),
-                })
-
-                if (!response.ok || !response.body) {
-                    throw new Error("Failed to generate horoscope")
-                }
-
-                let chartDataParsed: Record<string, unknown> | null = null
-                const chartDataHeader = response.headers.get(
-                    "X-AskingFate-Chart-Data",
-                )
-                if (chartDataHeader) {
-                    try {
-                        chartDataParsed = JSON.parse(
-                            atob(chartDataHeader),
-                        ) as Record<string, unknown>
-                    } catch {
-                        /* ignore */
-                    }
-                }
-
-                const json = (await response.json()) as {
-                    interpretation?: string
-                    planetMeanings?: Record<string, string>
-                    houseMeanings?: Record<string, string>
-                }
-                const interpretation =
-                    json?.interpretation?.trim() ||
-                    tHoroscope("fallbackAnswerError")
-                const planetMeanings = json?.planetMeanings ?? null
-                const houseMeanings = json?.houseMeanings ?? null
-
-                setMessages((prev) =>
-                    prev.map((m) =>
-                        m.id === loadingId
-                            ? {
-                                  ...m,
-                                  text: interpretation,
-                                  isLoading: false,
-                                  chartData: chartDataParsed,
-                                  planetMeanings,
-                                  houseMeanings,
-                              }
-                            : m,
-                    ),
-                )
-            } catch (err) {
-                const isAbort =
-                    err instanceof Error && err.name === "AbortError"
-                if (isAbort) {
-                    setMessages((prev) => {
-                        const withoutLoading = prev.filter(
-                            (m) => m.id !== loadingId,
-                        )
-                        return [
-                            ...withoutLoading,
-                            {
-                                id: `assistant-tool-user-date-form-${Date.now()}`,
-                                role: "assistant",
-                                text: "",
-                                variant: "tool",
-                                toolType: "user-date-form",
-                                toolBirthPrefill: birth,
-                                toolTransitPrefill: horoscopeTransit,
-                                toolFromCancel: true,
-                            },
-                        ]
-                    })
-                } else {
-                    setMessages((prev) =>
-                        prev.map((m) =>
-                            m.id === loadingId
-                                ? {
-                                      ...m,
-                                      text: tHoroscope("analysisFailed"),
-                                      isLoading: false,
-                                  }
-                                : m,
-                        ),
-                    )
-                }
-            } finally {
-                horoscopeAbortRef.current = null
-                setIsInterpreting(false)
-                setHoroscopeBirth(null)
-                setHoroscopeQuestion(null)
-                setHoroscopeTransit(null)
-            }
+            submitHoroscope({
+                question: questionText,
+                conversationContext:
+                    buildHoroscopeConversationContext(questionText),
+                locale,
+                system: horoscopeSystem,
+                birth: {
+                    day: birth.day,
+                    month: birth.month,
+                    year: birth.year,
+                    hour: birth.hour,
+                    minute: birth.minute,
+                    timeHint: birth.timeHint,
+                    timezone: birth.timezone,
+                    lat: birth.lat,
+                    lng: birth.lng,
+                    country: birth.country,
+                    state: birth.state,
+                    usedLocationFallback: birth.usedLocationFallback,
+                },
+                transit: transit
+                    ? {
+                          day: transit.day,
+                          month: transit.month,
+                          year: transit.year,
+                          hour: transit.hour,
+                          minute: transit.minute,
+                          timezone: transit.timezone,
+                          lat: transit.lat,
+                          lng: transit.lng,
+                          country: transit.country,
+                          state: transit.state,
+                      }
+                    : null,
+            })
+            setHoroscopeBirth(null)
+            setHoroscopeQuestion(null)
+            setHoroscopeTransit(null)
         },
         [
-            buildConversationContext,
+            buildHoroscopeConversationContext,
             horoscopeSystem,
             locale,
-            tHoroscope,
-            horoscopeTransit,
+            submitHoroscope,
         ],
     )
 
@@ -936,6 +1293,34 @@ export default function ChatSession({
         ) => {
             const msg = messages.find((m) => m.id === messageId)
             if (!msg || msg.variant !== "horoscope" || !msg.chartData) return
+
+            // Restore from cache if we have it
+            const cached = msg.interpretationCache?.[newSystem]
+            if (cached) {
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === messageId
+                            ? {
+                                  ...m,
+                                  chartData: cached.chartData,
+                                  personalizedTransitAspects:
+                                      cached.personalizedTransitAspects ?? null,
+                              personalizedTransitAspectsMerged:
+                                  cached.personalizedTransitAspectsMerged ??
+                                  null,
+                                  text: cached.text,
+                              aspectInsights: cached.aspectInsights,
+                                  followUpConclusion: cached.followUpConclusion,
+                                  followUpSuggestions:
+                                      cached.followUpSuggestions,
+                                  isLoading: false,
+                              }
+                            : m,
+                    ),
+                )
+                return
+            }
+
             const birth = chartDataToBirth(
                 msg.chartData as Record<string, unknown>,
             )
@@ -944,95 +1329,92 @@ export default function ChatSession({
                 msg.chartData as Record<string, unknown>,
             )
             const questionText = msg.question || "General horoscope reading"
-            setIsInterpreting(true)
-            try {
-                const response = await fetch("/api/horoscope/question", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        question: questionText,
-                        conversationContext:
-                            buildConversationContext(questionText),
-                        locale,
-                        system: newSystem,
-                        birth: {
-                            day: birth.day,
-                            month: birth.month,
-                            year: birth.year,
-                            hour: birth.hour,
-                            minute: birth.minute,
-                            timeHint: birth.timeHint,
-                            timezone: birth.timezone,
-                            lat: birth.lat,
-                            lng: birth.lng,
-                            country: birth.country,
-                            state: birth.state,
-                            usedLocationFallback: birth.usedLocationFallback,
-                        },
-                        transit: transit
-                            ? {
-                                  day: transit.day,
-                                  month: transit.month,
-                                  year: transit.year,
-                                  hour: transit.hour,
-                                  minute: transit.minute,
-                                  timezone: transit.timezone,
-                                  lat: transit.lat,
-                                  lng: transit.lng,
-                                  country: transit.country,
-                                  state: transit.state,
-                              }
-                            : null,
-                    }),
-                })
-                if (!response.ok) throw new Error("Refetch failed")
-                const chartDataHeader = response.headers.get(
-                    "X-AskingFate-Chart-Data",
-                )
-                let chartDataParsed: Record<string, unknown> | null = null
-                if (chartDataHeader) {
-                    try {
-                        chartDataParsed = JSON.parse(
-                            atob(chartDataHeader),
-                        ) as Record<string, unknown>
-                    } catch {
-                        /* ignore */
-                    }
-                }
-                const json = (await response.json()) as {
-                    interpretation?: string
-                    planetMeanings?: Record<string, string>
-                    houseMeanings?: Record<string, string>
-                }
-                const interpretation =
-                    json?.interpretation?.trim() ||
-                    tHoroscope("fallbackAnswerError")
-                setMessages((prev) =>
-                    prev.map((m) =>
-                        m.id === messageId
-                            ? {
-                                  ...m,
-                                  text: interpretation,
-                                  chartData: chartDataParsed ?? m.chartData,
-                                  planetMeanings: json?.planetMeanings ?? null,
-                                  houseMeanings: json?.houseMeanings ?? null,
-                              }
-                            : m,
-                    ),
-                )
-            } catch {
-                setMessages((prev) =>
-                    prev.map((m) =>
-                        m.id === messageId
-                            ? { ...m, text: tHoroscope("analysisFailed") }
-                            : m,
-                    ),
-                )
-            } finally {
-                setIsInterpreting(false)
+
+            // Cache current interpretation before refetching
+            const chartDataObj = msg.chartData as Record<string, unknown>
+            const charts = chartDataObj?.charts as
+                | Array<{ system?: string }>
+                | undefined
+            const currentSystem =
+                (charts?.[0]?.system as
+                    | "western_tropical"
+                    | "vedic_sidereal"
+                    | undefined) ?? "vedic_sidereal"
+            const cacheEntry = {
+                chartData: chartDataObj,
+                text: msg.text ?? "",
+                aspectInsights: msg.aspectInsights,
+                personalizedTransitAspects:
+                    msg.personalizedTransitAspects ?? null,
+                personalizedTransitAspectsMerged:
+                    msg.personalizedTransitAspectsMerged ?? null,
+                followUpConclusion: msg.followUpConclusion,
+                followUpSuggestions: msg.followUpSuggestions,
             }
+
+            horoscopeIsRefetchRef.current = true
+            horoscopeRefetchSystemRef.current = newSystem
+            horoscopeCachedBeforeRefetchRef.current = currentSystem
+            horoscopeTargetMessageIdRef.current = messageId
+            setIsInterpreting(true)
+
+            // Clear old text, keep chart visible until new data arrives
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === messageId
+                        ? {
+                              ...m,
+                              text: "",
+                              aspectInsights: undefined,
+                              personalizedTransitAspectsMerged: null,
+                              followUpConclusion: undefined,
+                              followUpSuggestions: undefined,
+                              isLoading: true,
+                              interpretationCache: {
+                                  ...m.interpretationCache,
+                                  [currentSystem]: cacheEntry,
+                              },
+                          }
+                        : m,
+                ),
+            )
+            submitHoroscope({
+                question: questionText,
+                conversationContext:
+                    buildHoroscopeConversationContext(questionText),
+                locale,
+                system: newSystem,
+                birth: {
+                    day: birth.day,
+                    month: birth.month,
+                    year: birth.year,
+                    hour: birth.hour,
+                    minute: birth.minute,
+                    timeHint: birth.timeHint,
+                    timezone: birth.timezone,
+                    lat: birth.lat,
+                    lng: birth.lng,
+                    country: birth.country,
+                    state: birth.state,
+                    usedLocationFallback: birth.usedLocationFallback,
+                },
+                transit: transit
+                    ? {
+                          day: transit.day,
+                          month: transit.month,
+                          year: transit.year,
+                          hour: transit.hour,
+                          minute: transit.minute,
+                          timezone: transit.timezone,
+                          lat: transit.lat,
+                          lng: transit.lng,
+                          country: transit.country,
+                          state: transit.state,
+                      }
+                    : null,
+            })
         },
-        [buildConversationContext, locale, messages, tHoroscope],
+        [buildHoroscopeConversationContext, locale, messages, submitHoroscope],
     )
 
     const handleHoroscopeInput = useCallback(
@@ -1297,10 +1679,8 @@ export default function ChatSession({
     }, [])
 
     const handleCancelHoroscopeLoading = useCallback(() => {
-        if (horoscopeAbortRef.current) {
-            horoscopeAbortRef.current.abort()
-        }
-    }, [])
+        stopHoroscope()
+    }, [stopHoroscope])
 
     const setNotice = (id: string, text: string) => {
         setMessageNotices((prev) => ({ ...prev, [id]: text }))
@@ -1312,6 +1692,126 @@ export default function ChatSession({
             })
         }, 2200)
     }
+
+    const stopReadAloud = useCallback(() => {
+        const audio = readAloudAudioRef.current
+        if (!audio) return
+        audio.pause()
+        audio.currentTime = 0
+        setReadAloudPlayingMessageId(null)
+    }, [])
+
+    const TTS_MAX_LENGTH = 2500
+
+    const proceedReadAloud = useCallback(
+        async (id: string, text: string) => {
+            const trimmed = (text?.trim() ?? "").slice(0, TTS_MAX_LENGTH)
+            if (!trimmed) return
+
+            if (readAloudAudioRef.current) {
+                readAloudAudioRef.current.pause()
+                readAloudAudioRef.current.currentTime = 0
+            }
+            setReadAloudPlayingMessageId(null)
+            setReadAloudLoadingMessageId(id)
+
+            try {
+                let audioUrl = readAloudObjectUrlsRef.current[id]
+                if (!audioUrl) {
+                    const starSuccess = spendStars(1)
+                    if (!starSuccess) {
+                        setNotice(id, tHome("readAloud.insufficientStars"))
+                        setReadAloudLoadingMessageId((prev) =>
+                            prev === id ? null : prev,
+                        )
+                        return
+                    }
+                    const response = await fetch("/api/tts", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ text: trimmed, locale }),
+                    })
+                    if (!response.ok) {
+                        throw new Error("TTS request failed")
+                    }
+                    const blob = await response.blob()
+                    audioUrl = URL.createObjectURL(blob)
+                    readAloudObjectUrlsRef.current[id] = audioUrl
+                }
+
+                if (!readAloudAudioRef.current) {
+                    const audio = new Audio()
+                    audio.onended = () => {
+                        setReadAloudPlayingMessageId(null)
+                    }
+                    readAloudAudioRef.current = audio
+                }
+
+                const audio = readAloudAudioRef.current
+                audio.src = audioUrl
+                await audio.play()
+                setReadAloudPlayingMessageId(id)
+            } catch {
+                setNotice(id, tHome("readAloud.error"))
+                setReadAloudPlayingMessageId(null)
+            } finally {
+                setReadAloudLoadingMessageId((prev) =>
+                    prev === id ? null : prev,
+                )
+            }
+        },
+        [locale, tHome, spendStars],
+    )
+
+    const handleReadAloud = useCallback(
+        (id: string, text: string) => {
+            const trimmed = (text?.trim() ?? "").slice(0, TTS_MAX_LENGTH)
+            if (!trimmed) return
+
+            if (readAloudPlayingMessageId === id) {
+                stopReadAloud()
+                return
+            }
+
+            const hasCached = !!readAloudObjectUrlsRef.current[id]
+            if (hasCached || getSkipReadAloudConfirm()) {
+                void proceedReadAloud(id, text)
+                return
+            }
+
+            const hasEnoughForVoice =
+                !starsInitialized ||
+                !Number.isFinite(stars as number) ||
+                (stars as number) >= 1
+            if (!hasEnoughForVoice) {
+                setNotice(id, tHome("readAloud.insufficientStars"))
+                return
+            }
+
+            setReadAloudPending({ id, text })
+            setReadAloudDoNotShowAgain(false)
+            setReadAloudConfirmOpen(true)
+        },
+        [
+            readAloudPlayingMessageId,
+            stopReadAloud,
+            proceedReadAloud,
+            starsInitialized,
+            stars,
+            tHome,
+        ],
+    )
+
+    const handleReadAloudConfirm = useCallback(() => {
+        if (readAloudPending) {
+            if (readAloudDoNotShowAgain) {
+                setSkipReadAloudConfirm(true)
+            }
+            void proceedReadAloud(readAloudPending.id, readAloudPending.text)
+            setReadAloudPending(null)
+        }
+        setReadAloudConfirmOpen(false)
+    }, [readAloudPending, readAloudDoNotShowAgain, proceedReadAloud])
 
     const focusInput = () => {
         window.requestAnimationFrame(() => {
@@ -1377,7 +1877,7 @@ export default function ChatSession({
                 const hasSavedBirthReady =
                     savedBirth && isHoroscopeReady(savedBirth)
                 const savedBirthInfo = hasSavedBirthReady
-                    ? formatBirthInfoForAssistant(savedBirth, locale)
+                    ? "saved_profile_in_action_trigger"
                     : null
 
                 let nextDecision = await fetchDecision(
@@ -1449,7 +1949,6 @@ export default function ChatSession({
             handleHoroscopeInput,
             isHoroscopeReady,
             isInterpreting,
-            locale,
         ],
     )
 
@@ -1501,6 +2000,21 @@ export default function ChatSession({
         focusInput()
     }
 
+    const handleAskAspectDetail = async (
+        question: string,
+        aspectKey: string,
+        event: SourceAspectEvent,
+    ) => {
+        const ok = spendStars(1)
+        if (!ok) {
+            setShowInsufficientStars(true)
+            return
+        }
+        pendingAspectDetailRef.current = { aspectKey, event }
+        await startDecisionFlow(question, { forceChatOnly: true })
+        pendingAspectDetailRef.current = null
+    }
+
     const toggleReaction = (id: string, next: "like" | "dislike") => {
         setAssistantReactions((prev) => ({
             ...prev,
@@ -1541,7 +2055,10 @@ export default function ChatSession({
     const startDecisionFlow = useCallback(
         async (
             value: string,
-            options: { appendUserMessage?: boolean } = {},
+            options: {
+                appendUserMessage?: boolean
+                forceChatOnly?: boolean
+            } = {},
         ) => {
             const trimmed = value.trim()
             if (!trimmed) return
@@ -1567,6 +2084,7 @@ export default function ChatSession({
                 ])
             }
 
+            const pending = pendingAspectDetailRef.current
             setMessages((prev) => [
                 ...prev,
                 {
@@ -1575,6 +2093,10 @@ export default function ChatSession({
                     text: "",
                     variant: "plain",
                     isLoading: true,
+                    ...(pending && {
+                        sourceAspectKey: pending.aspectKey,
+                        sourceAspectEvent: pending.event,
+                    }),
                 },
             ])
 
@@ -1590,7 +2112,7 @@ export default function ChatSession({
                 const hasSavedBirthReady =
                     savedBirth && isHoroscopeReady(savedBirth)
                 const savedBirthInfo = hasSavedBirthReady
-                    ? formatBirthInfoForAssistant(savedBirth, locale)
+                    ? "saved_profile_in_action_trigger"
                     : null
 
                 let nextDecision = await fetchDecision(
@@ -1608,6 +2130,9 @@ export default function ChatSession({
                     savedBirthInfo,
                 )
                 nextDecision = applyInterpretationModeOverride(nextDecision)
+                if (options.forceChatOnly) {
+                    nextDecision = { ...nextDecision, type: "chat" }
+                }
                 setDecision(nextDecision)
                 setConsulting(false)
 
@@ -1660,7 +2185,6 @@ export default function ChatSession({
             getDefaultSystemByLocale,
             handleHoroscopeInput,
             isHoroscopeReady,
-            locale,
             messages,
         ],
     )
@@ -1787,19 +2311,6 @@ export default function ChatSession({
 
     const inputSection = (
         <>
-            <ActionTrigger
-                autoPickOn={autoPickOn}
-                onToggleAutoPick={handleToggleAutoPick}
-                savedBirth={savedBirth}
-                onBirthInfoClick={() => setShowBirthModal(true)}
-                showDrawTrigger={showDrawTrigger}
-                showInsufficientStars={showInsufficientStars}
-                cardsToSelect={cardsToSelect}
-                cardUi={cardUi}
-                onScrollToDraw={handleScrollToDraw}
-                onPickAll={() => handlePickAll(cardsToSelect)}
-            />
-
             <BirthInfoModal
                 open={showBirthModal}
                 onOpenChange={setShowBirthModal}
@@ -1809,6 +2320,58 @@ export default function ChatSession({
                 title={tHoroscope("birthFormTitle")}
                 submitLabel={tHoroscope("birthFormSubmit")}
             />
+
+            <Dialog
+                open={readAloudConfirmOpen}
+                onOpenChange={(o) => {
+                    if (!o) {
+                        setReadAloudConfirmOpen(false)
+                        setReadAloudPending(null)
+                    }
+                }}
+            >
+                <DialogContent className='sm:max-w-md border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl'>
+                    <DialogHeader>
+                        <DialogTitle className='text-yellow-200 font-serif text-xl flex items-center gap-2'>
+                            <Star className='w-5 h-5 text-yellow-400 fill-yellow-400 shrink-0' />
+                            {tHome("readAloud.confirmTitle")}
+                        </DialogTitle>
+                        <DialogDescription className='text-white/80 text-sm'>
+                            {tHome("readAloud.confirmDescription")}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <DialogFooter className='gap-2 sm:gap-0'>
+                        <button
+                            type='button'
+                            onClick={handleReadAloudConfirm}
+                            className='mb-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90'
+                        >
+                            {tHome("readAloud.confirm")}
+                        </button>
+                        <button
+                            type='button'
+                            onClick={() => {
+                                setReadAloudConfirmOpen(false)
+                                setReadAloudPending(null)
+                            }}
+                            className='rounded-lg border border-white/20 px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10'
+                        >
+                            {tHome("readAloud.cancel")}
+                        </button>
+
+                        <label className='flex items-center gap-2 cursor-pointer text-sm text-white/80 hover:text-white mt-4'>
+                            <Checkbox
+                                checked={readAloudDoNotShowAgain}
+                                onCheckedChange={(c) =>
+                                    setReadAloudDoNotShowAgain(c === true)
+                                }
+                            />
+                            {tHome("readAloud.doNotShowAgain")}
+                        </label>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             <QuestionInput
                 id='home-question-input'
@@ -1823,28 +2386,34 @@ export default function ChatSession({
                         ? cardUi.pickAllPlaceholder
                         : undefined
                 }
-                className={`transition-[max-width] duration-500 ease-in-out ${
-                    isInputFixed ? "max-w-3xl" : "max-w-sm md:max-w-md"
-                }`}
+                className='w-full'
                 interpretationMode={interpretationMode}
                 onInterpretationModeChange={setInterpretationMode}
+                actionTrigger={
+                    <ActionTrigger
+                        autoPickOn={autoPickOn}
+                        onToggleAutoPick={handleToggleAutoPick}
+                        savedBirth={savedBirth}
+                        onBirthInfoClick={() => setShowBirthModal(true)}
+                        showDrawTrigger={showDrawTrigger}
+                        showInsufficientStars={showInsufficientStars}
+                        cardsToSelect={cardsToSelect}
+                        cardUi={cardUi}
+                        onScrollToDraw={handleScrollToDraw}
+                        onPickAll={() => handlePickAll(cardsToSelect)}
+                    />
+                }
+                disclaimerText={disclaimerText}
+                showDisclaimer={!hasAssistantResponse}
+                inputWrapperClassName={
+                    hasMessages ? "max-w-3xl" : "max-w-sm md:max-w-md"
+                }
             />
-            {!hasAssistantResponse && (
-                <p
-                    className={`text-[11px] leading-relaxed text-white/50 text-center transition-all duration-500 text-left ${
-                        hasMessages
-                            ? "opacity-0 h-0 overflow-hidden"
-                            : "opacity-100"
-                    }`}
-                >
-                    {disclaimerText}
-                </p>
-            )}
         </>
     )
 
     return (
-        <div className='w-full h-full min-h-[calc(100dvh-65px)] flex flex-col overflow-hidden relative'>
+        <div className='w-full h-full min-h-[calc(100dvh-65px)] pb-10 flex flex-col overflow-hidden relative'>
             {shouldShowHero && (
                 <div
                     className={`flex-1 flex items-center justify-center px-6 ${
@@ -1919,12 +2488,16 @@ export default function ChatSession({
                 onCancelEdit={handleCancelEdit}
                 onSendEditAt={handleSendEditAt}
                 onApplySuggestedQuestion={applySuggestedQuestion}
+                onAskAspectDetail={handleAskAspectDetail}
                 onUserDateFormSubmit={handleUserDateFormSubmit}
                 onCancelHoroscopeLoading={handleCancelHoroscopeLoading}
                 onRefetchHoroscopeWithSystem={refetchHoroscopeWithSystem}
                 onToggleReaction={toggleReaction}
                 onReport={handleReport}
                 onShare={handleShare}
+                onReadAloud={handleReadAloud}
+                readAloudLoadingMessageId={readAloudLoadingMessageId}
+                readAloudPlayingMessageId={readAloudPlayingMessageId}
                 lastAssistantMessageRef={lastAssistantMessageRef}
                 insufficientStarsRef={insufficientStarsRef}
                 messagesEndRef={messagesEndRef}
@@ -1960,10 +2533,8 @@ export default function ChatSession({
                 </div>
             </div>
             {isInputFixed && (
-                <div className='fixed bottom-0 left-0 right-0 z-30 border-t border-white/10 bg-[#07060f]/80 backdrop-blur'>
-                    <div className='mx-auto w-full max-w-3xl px-4 py-4'>
-                        {inputSection}
-                    </div>
+                <div className='fixed bottom-0 left-0 right-0 z-30'>
+                    {inputSection}
                 </div>
             )}
         </div>

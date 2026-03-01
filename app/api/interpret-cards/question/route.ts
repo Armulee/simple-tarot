@@ -2,16 +2,16 @@ import { streamObject } from "ai"
 import { TAROT_SYSTEM_PROMPT } from "@/lib/prompts"
 import { tarotInterpretationSchema } from "@/lib/tarot/schema"
 import {
-    fetchMeaningsForCards,
+    fetchTarotCodexForCards,
     extractTopicsFromQuestion,
-    buildArticleContext,
+    buildRagContext,
 } from "@/lib/tarot/rag"
 import {
     buildConversationContextPromptBlock,
     normalizeConversationContext,
 } from "@/lib/astrology/question-context"
 
-const MODEL = "openai/gpt-4.1-mini"
+const MODEL = "openai/gpt-4o-mini"
 
 export async function POST(req: Request) {
     try {
@@ -28,7 +28,6 @@ export async function POST(req: Request) {
             question,
             cards,
             conversationContext: rawContext,
-            locale = "en",
         } = body
 
         let prompt = rawPrompt ?? ""
@@ -44,12 +43,12 @@ ${prompt}`
         }
 
         if (question && Array.isArray(cards) && cards.length > 0) {
-            const meaningsMap = await fetchMeaningsForCards(cards, locale)
+            const codexMap = await fetchTarotCodexForCards(cards)
             const topics = extractTopicsFromQuestion(question)
-            const articleContext = buildArticleContext(cards, meaningsMap, topics)
+            const ragContext = buildRagContext(cards, codexMap, topics)
 
-            if (articleContext) {
-                prompt = `${articleContext}
+            if (ragContext) {
+                prompt = `${ragContext}
 
 ---
 

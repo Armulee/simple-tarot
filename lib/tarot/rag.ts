@@ -192,6 +192,7 @@ export function buildRagContext(
     topics: QuestionTopic[],
 ): string {
     const parts: string[] = []
+    console.log(topics)
 
     for (let i = 0; i < cardDisplays.length; i++) {
         const display = cardDisplays[i]

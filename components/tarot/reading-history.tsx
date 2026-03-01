@@ -2,17 +2,25 @@
 
 import { useEffect, useMemo, useState, useCallback, useRef } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/hooks/use-auth"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
-import { Search, Calendar, X, Star, Sparkles, Trash2, Loader2, MoreHorizontal } from "lucide-react"
+import { Search, Calendar, X, Star, Sparkles, Trash2, Loader2, MoreHorizontal, ExternalLink, Link2, Share2, BookOpen } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import {
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuSeparator,
+    ContextMenuTrigger,
+} from "@/components/ui/context-menu"
 import { useTranslations, useLocale } from 'next-intl'
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -272,6 +280,55 @@ const ReadingCard = ({
         setSwipeX(0)
     }
 
+    const router = useRouter()
+
+    const getReadingUrl = () =>
+        typeof window !== "undefined"
+            ? `${window.location.origin}/${locale}/${reading.id}`
+            : ""
+
+    const handleCopyLink = async () => {
+        const url = getReadingUrl()
+        try {
+            await navigator.clipboard.writeText(url)
+            toast.success(t("contextMenu.linkCopied") || "Link copied to clipboard")
+        } catch {
+            toast.error(t("contextMenu.shareError") || "Could not share")
+        }
+    }
+
+    const handleShare = async () => {
+        const url = getReadingUrl()
+        const title = reading.topic || reading.question || "Tarot Reading"
+        const text = `"${title}" — AI tarot reading`
+        try {
+            if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+                await navigator.share({
+                    title: "Asking Fate",
+                    text,
+                    url,
+                })
+            } else {
+                await handleCopyLink()
+            }
+        } catch {
+            await handleCopyLink()
+        }
+    }
+
+    const handleOpenInNewTab = () => {
+        window.open(getReadingUrl(), "_blank", "noopener,noreferrer")
+    }
+
+    const handleOpenReading = () => {
+        router.push(`/${locale}/${reading.id}`)
+    }
+
+    const handleContextDelete = (e: Event) => {
+        e.preventDefault()
+        handleDelete(e as unknown as React.MouseEvent)
+    }
+
     return (
         <div 
             className="relative overflow-hidden rounded-xl"
@@ -296,20 +353,22 @@ const ReadingCard = ({
                 </button>
             </div>
 
-            {/* Swipeable card content */}
-            <div
-                className="relative transition-transform duration-200 ease-out"
-                style={{ 
-                    transform: `translateX(${swipeX}px)`,
-                    transition: isDragging ? 'none' : 'transform 0.2s ease-out'
-                }}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-            >
+            {/* Swipeable card content with context menu */}
+            <ContextMenu>
+                <ContextMenuTrigger asChild>
+                    <div
+                        className="relative transition-transform duration-200 ease-out"
+                        style={{ 
+                            transform: `translateX(${swipeX}px)`,
+                            transition: isDragging ? 'none' : 'transform 0.2s ease-out'
+                        }}
+                        onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
+                        onMouseDown={handleMouseDown}
+                        onMouseMove={handleMouseMove}
+                        onMouseUp={handleMouseUp}
+                    >
                 <Link
                     href={`/${locale}/${reading.id}`}
                     className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-xl"
@@ -423,7 +482,40 @@ const ReadingCard = ({
                         </PopoverContent>
                     </Popover>
                 </div>
-            </div>
+                    </div>
+                </ContextMenuTrigger>
+                <ContextMenuContent className="w-48 bg-slate-900 border-slate-800 shadow-xl">
+                    <ContextMenuItem onSelect={handleOpenReading} className="gap-2">
+                        <BookOpen className="h-4 w-4" />
+                        {t("contextMenu.openReading")}
+                    </ContextMenuItem>
+                    <ContextMenuItem onSelect={handleOpenInNewTab} className="gap-2">
+                        <ExternalLink className="h-4 w-4" />
+                        {t("contextMenu.openInNewTab")}
+                    </ContextMenuItem>
+                    <ContextMenuItem onSelect={handleCopyLink} className="gap-2">
+                        <Link2 className="h-4 w-4" />
+                        {t("contextMenu.copyLink")}
+                    </ContextMenuItem>
+                    <ContextMenuItem onSelect={handleShare} className="gap-2">
+                        <Share2 className="h-4 w-4" />
+                        {t("contextMenu.share")}
+                    </ContextMenuItem>
+                    <ContextMenuSeparator />
+                    <ContextMenuItem
+                        onSelect={handleContextDelete}
+                        disabled={isDeleting}
+                        className="gap-2 text-red-400 focus:text-red-300 focus:bg-red-500/10"
+                    >
+                        {isDeleting ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <Trash2 className="h-4 w-4" />
+                        )}
+                        {t("delete")}
+                    </ContextMenuItem>
+                </ContextMenuContent>
+            </ContextMenu>
         </div>
     )
 }

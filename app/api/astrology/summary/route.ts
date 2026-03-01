@@ -1,7 +1,7 @@
 import { streamObject } from "ai"
 import { astrologySummarySchema } from "@/lib/astrology/schema"
 
-const MODEL = "openai/gpt-4.1-mini"
+const MODEL = "openai/gpt-4o-mini"
 
 export async function POST(req: Request) {
     try {
@@ -54,5 +54,3 @@ IMPORTANT: Respond in the language of the user's question, ignoring the English 
         return new Response("Failed to generate summary", { status: 500 })
     }
 }
-
-

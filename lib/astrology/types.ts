@@ -33,6 +33,8 @@ export type AstrologyAspect = {
     orb: number
 }
 
+export type MajorAspectType = AstrologyAspect["type"]
+
 export type SwissEphChart = {
     system: AstrologySystem
     ayanamsa: number | null

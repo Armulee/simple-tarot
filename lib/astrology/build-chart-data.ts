@@ -6,6 +6,7 @@ import {
 import type { AstrologySystem, SwissEphChart } from "@/lib/astrology/types"
 import type { QuestionTimeRange } from "@/lib/astrology/question-time-range"
 import type { CodexTransitSummary } from "@/lib/astrology/ephemeris-codex"
+import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
 
 export type HoroscopeChartRequestBody = {
     birth: {
@@ -83,6 +84,7 @@ export type ChartDataResult = {
     } | null
     transitDataSource?: "codex" | "swisseph_fallback" | null
     codexTransitSummary?: CodexTransitSummary | null
+    personalizedTransitAspects?: PersonalizedTransitAspectsResult | null
 }
 
 export async function buildChartData(
@@ -141,10 +143,8 @@ export async function buildChartData(
           }
         : null
     const selectedTransit = body.transit ?? transitFromRange
-    const shouldComputeTransitCharts = body.transitDataSource !== "codex"
 
     const hasTransit =
-        shouldComputeTransitCharts &&
         selectedTransit?.day &&
         selectedTransit?.month &&
         selectedTransit?.year &&
