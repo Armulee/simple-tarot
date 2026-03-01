@@ -330,12 +330,18 @@ export function BirthChartCard({
     planetMeanings,
     houseMeanings,
     onRefetchWithSystem,
+    showBirthDetails,
+    showTransitDetails,
+    renderFromPanel,
 }: {
     chartData: ChartData
     question?: string | null
     planetMeanings?: Record<string, string>
     houseMeanings?: Record<string, string>
     onRefetchWithSystem?: (system: AstrologySystem) => void
+    showBirthDetails?: boolean
+    showTransitDetails?: boolean
+    renderFromPanel?: boolean
 }) {
     void planetMeanings
     void houseMeanings
@@ -363,6 +369,7 @@ export function BirthChartCard({
     const hasHouses = Boolean(
         chart.houses && Object.keys(chart.houses).length > 0,
     )
+    const fromPanel = renderFromPanel === true
     const birthDateText = formatDisplayDate(chartData.birth?.date ?? {}, locale)
     const birthTimeText = formatDisplayTime(chartData.birth?.time ?? {}, locale)
     const transitDateText = formatDisplayDate(
@@ -493,17 +500,134 @@ export function BirthChartCard({
         </div>
     )
 
+    const renderBirthDetailsContent = () => (
+        <>
+            {(birthDateText || birthTimeText) && (
+                <div className='mb-4 grid gap-2 sm:grid-cols-2'>
+                    {birthDateText && (
+                        <div className={metaCardClass}>
+                            <p className='mb-1 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-white/55'>
+                                <CalendarDays className='h-3.5 w-3.5 text-accent/80' />
+                                {t("birthDateLabel")}
+                            </p>
+                            <p className='text-sm font-medium text-white/90'>
+                                {birthDateText}
+                            </p>
+                        </div>
+                    )}
+                    {birthTimeText && (
+                        <div className={metaCardClass}>
+                            <p className='mb-1 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-white/55'>
+                                <Clock3 className='h-3.5 w-3.5 text-accent/80' />
+                                {t("birthTimeLabel")}
+                            </p>
+                            <p className='text-sm font-medium text-white/90'>
+                                {birthTimeText}
+                            </p>
+                        </div>
+                    )}
+                </div>
+            )}
+            <div className='mb-4 flex gap-2 rounded-xl border border-white/10 bg-white/5 p-1'>
+                <button
+                    type='button'
+                    onClick={() => setBirthSection("planetary")}
+                    className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                        birthSection === "planetary"
+                            ? "bg-yellow-500/20 text-yellow-500"
+                            : "text-white/70 hover:text-white hover:bg-white/5"
+                    }`}
+                >
+                    {t("planetarySectionLabel")}
+                </button>
+                <button
+                    type='button'
+                    onClick={() => setBirthSection("lifeAreas")}
+                    className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                        birthSection === "lifeAreas"
+                            ? "bg-yellow-500/20 text-yellow-500"
+                            : "text-white/70 hover:text-white hover:bg-white/5"
+                    }`}
+                >
+                    {t("lifeAreasSectionLabel")}
+                </button>
+            </div>
+            {birthSection === "planetary" && renderPlanetaryGrid(chart, planetsToShow)}
+            {birthSection === "lifeAreas" && hasHouses && (
+                <div className='grid gap-5 grid-cols-2 lg:grid-cols-3'>
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => {
+                        const h = chart.houses?.[String(i)]
+                        if (!h) return null
+                        const HouseIconComponent = HOUSE_ICONS[String(i)] ?? Home
+                        const suffix = getOrdinalSuffix(i)
+                        const houseLabel = t(`houseMeanings.${i}`, {
+                            defaultValue: "",
+                        })
+
+                        return (
+                            <Card
+                                key={i}
+                                className='py-0 group overflow-hidden border-white/10 bg-white/5 transition-all duration-500 hover:border-accent/30 hover:bg-white/[0.08]'
+                            >
+                                <div className='space-y-4 px-3 py-2'>
+                                    <div className='flex items-start justify-between'>
+                                        <div className='flex items-center gap-3'>
+                                            <div className='rounded-lg border border-accent/20 bg-accent/10 p-2 text-accent transition-colors duration-500 group-hover:bg-accent group-hover:text-white'>
+                                                <HouseIconComponent className='w-5 h-5' />
+                                            </div>
+                                            <div>
+                                                <h4 className='text-sm font-bold tracking-tight text-white'>
+                                                    {i}
+                                                    {suffix} House
+                                                </h4>
+                                                {houseLabel && (
+                                                    <p className='text-xs font-semibold text-white/60 leading-tight mt-0.5'>
+                                                        {houseLabel}
+                                                    </p>
+                                                )}
+                                                <p className='text-[10px] uppercase tracking-wider text-white/40'>
+                                                    {h.sign}{" "}
+                                                    {formatDegree(h.degree)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Card>
+                        )
+                    })}
+                </div>
+            )}
+        </>
+    )
+
+    const renderTransitDetailsContent = () => (
+        <>
+            {transitDateText && (
+                <div className='mb-4'>
+                    <div className={`${metaCardClass} max-w-sm`}>
+                        <p className='mb-1 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-white/55'>
+                            <CalendarDays className='h-3.5 w-3.5 text-accent/80' />
+                            {t("transitDateLabel")}
+                        </p>
+                        <p className='text-sm font-medium text-white/90'>
+                            {transitDateText}
+                        </p>
+                    </div>
+                </div>
+            )}
+            {renderPlanetaryGrid(transitChart!, transitPlanetsToShow)}
+        </>
+    )
+
     return (
         <div className='space-y-8 pb-4'>
             {/* Key Placements - expandable, hidden by default */}
             {planetsToShow.length > 0 && (
-                <Accordion className='space-y-0'>
-                    <AccordionItem
-                        defaultOpen={false}
-                        className='rounded-2xl border border-white/10 bg-white/5 p-4'
-                    >
-                        <AccordionTrigger className='py-0 hover:no-underline'>
-                            <div className='flex items-center gap-4 w-full'>
+                fromPanel ? (
+                    showBirthDetails ? (
+                        <div className='rounded-2xl border border-white/10 bg-white/5 p-4'>
+                            <div className='flex items-center gap-4 w-full mb-2'>
                                 <div className='rounded-xl border border-accent/30 bg-accent/20 p-2.5 text-accent shadow-lg shadow-accent/10'>
                                     <Sparkles className='w-5 h-5' />
                                 </div>
@@ -512,10 +636,7 @@ export function BirthChartCard({
                                         {t("birthDetailsTitle")}
                                     </h3>
                                     {onRefetchWithSystem && (
-                                        <div
-                                            className='mt-1'
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
+                                        <div className='mt-1'>
                                             <SystemBadgePopover
                                                 currentSystem={
                                                     (chart?.system as AstrologySystem) ??
@@ -529,129 +650,60 @@ export function BirthChartCard({
                                 </div>
                                 <div className='ml-4 h-px flex-1 bg-gradient-to-r from-white/10 to-transparent' />
                             </div>
-                        </AccordionTrigger>
-                        <AccordionContent className='pt-2'>
-                            {(birthDateText || birthTimeText) && (
-                                <div className='mb-4 grid gap-2 sm:grid-cols-2'>
-                                    {birthDateText && (
-                                        <div className={metaCardClass}>
-                                            <p className='mb-1 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-white/55'>
-                                                <CalendarDays className='h-3.5 w-3.5 text-accent/80' />
-                                                {t("birthDateLabel")}
-                                            </p>
-                                            <p className='text-sm font-medium text-white/90'>
-                                                {birthDateText}
-                                            </p>
-                                        </div>
-                                    )}
-                                    {birthTimeText && (
-                                        <div className={metaCardClass}>
-                                            <p className='mb-1 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-white/55'>
-                                                <Clock3 className='h-3.5 w-3.5 text-accent/80' />
-                                                {t("birthTimeLabel")}
-                                            </p>
-                                            <p className='text-sm font-medium text-white/90'>
-                                                {birthTimeText}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                            <div className='mb-4 flex gap-2 rounded-xl border border-white/10 bg-white/5 p-1'>
-                                <button
-                                    type='button'
-                                    onClick={() => setBirthSection("planetary")}
-                                    className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                                        birthSection === "planetary"
-                                            ? "bg-yellow-500/20 text-yellow-500"
-                                            : "text-white/70 hover:text-white hover:bg-white/5"
-                                    }`}
-                                >
-                                    {t("planetarySectionLabel")}
-                                </button>
-                                <button
-                                    type='button'
-                                    onClick={() => setBirthSection("lifeAreas")}
-                                    className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                                        birthSection === "lifeAreas"
-                                            ? "bg-yellow-500/20 text-yellow-500"
-                                            : "text-white/70 hover:text-white hover:bg-white/5"
-                                    }`}
-                                >
-                                    {t("lifeAreasSectionLabel")}
-                                </button>
-                            </div>
-                            {birthSection === "planetary" &&
-                                renderPlanetaryGrid(chart, planetsToShow)}
-                            {birthSection === "lifeAreas" && hasHouses && (
-                                <div className='grid gap-5 grid-cols-2 lg:grid-cols-3'>
-                                    {[
-                                        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-                                    ].map((i) => {
-                                        const h = chart.houses?.[String(i)]
-                                        if (!h) return null
-                                        const HouseIconComponent =
-                                            HOUSE_ICONS[String(i)] ?? Home
-                                        const suffix = getOrdinalSuffix(i)
-                                        const houseLabel = t(
-                                            `houseMeanings.${i}`,
-                                            { defaultValue: "" },
-                                        )
-
-                                        return (
-                                            <Card
-                                                key={i}
-                                                className='py-0 group overflow-hidden border-white/10 bg-white/5 transition-all duration-500 hover:border-accent/30 hover:bg-white/[0.08]'
+                            {renderBirthDetailsContent()}
+                        </div>
+                    ) : null
+                ) : (
+                    <Accordion className='space-y-0'>
+                        <AccordionItem
+                            defaultOpen={false}
+                            className='rounded-2xl border border-white/10 bg-white/5 p-4'
+                        >
+                            <AccordionTrigger className='py-0 hover:no-underline'>
+                                <div className='flex items-center gap-4 w-full'>
+                                    <div className='rounded-xl border border-accent/30 bg-accent/20 p-2.5 text-accent shadow-lg shadow-accent/10'>
+                                        <Sparkles className='w-5 h-5' />
+                                    </div>
+                                    <div className='min-w-0 w-full'>
+                                        <h3 className='text-xl font-serif font-bold text-white text-left w-full'>
+                                            {t("birthDetailsTitle")}
+                                        </h3>
+                                        {onRefetchWithSystem && (
+                                            <div
+                                                className='mt-1'
+                                                onClick={(e) =>
+                                                    e.stopPropagation()
+                                                }
                                             >
-                                                <div className='space-y-4 px-3 py-2'>
-                                                    <div className='flex items-start justify-between'>
-                                                        <div className='flex items-center gap-3'>
-                                                            <div className='rounded-lg border border-accent/20 bg-accent/10 p-2 text-accent transition-colors duration-500 group-hover:bg-accent group-hover:text-white'>
-                                                                <HouseIconComponent className='w-5 h-5' />
-                                                            </div>
-                                                            <div>
-                                                                <h4 className='text-sm font-bold tracking-tight text-white'>
-                                                                    {i}
-                                                                    {
-                                                                        suffix
-                                                                    }{" "}
-                                                                    House
-                                                                </h4>
-                                                                {houseLabel && (
-                                                                    <p className='text-xs font-semibold text-white/60 leading-tight mt-0.5'>
-                                                                        {
-                                                                            houseLabel
-                                                                        }
-                                                                    </p>
-                                                                )}
-                                                                <p className='text-[10px] uppercase tracking-wider text-white/40'>
-                                                                    {h.sign}{" "}
-                                                                    {formatDegree(
-                                                                        h.degree,
-                                                                    )}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </Card>
-                                        )
-                                    })}
+                                                <SystemBadgePopover
+                                                    currentSystem={
+                                                        (chart?.system as AstrologySystem) ??
+                                                        "vedic_sidereal"
+                                                    }
+                                                    onSelect={
+                                                        onRefetchWithSystem
+                                                    }
+                                                    t={t}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className='ml-4 h-px flex-1 bg-gradient-to-r from-white/10 to-transparent' />
                                 </div>
-                            )}
-                        </AccordionContent>
-                    </AccordionItem>
-                </Accordion>
+                            </AccordionTrigger>
+                            <AccordionContent className='pt-2'>
+                                {renderBirthDetailsContent()}
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
+                )
             )}
 
             {hasTransit && transitChart && transitPlanetsToShow.length > 0 && (
-                <Accordion className='space-y-0'>
-                    <AccordionItem
-                        defaultOpen={false}
-                        className='rounded-2xl border border-white/10 bg-white/5 p-4'
-                    >
-                        <AccordionTrigger className='py-0 hover:no-underline'>
-                            <div className='flex items-center gap-4 w-full'>
+                fromPanel ? (
+                    showTransitDetails ? (
+                        <div className='rounded-2xl border border-white/10 bg-white/5 p-4'>
+                            <div className='flex items-center gap-4 w-full mb-2'>
                                 <div className='rounded-xl border border-accent/30 bg-accent/20 p-2.5 text-accent shadow-lg shadow-accent/10'>
                                     <Sparkles className='w-5 h-5' />
                                 </div>
@@ -662,30 +714,34 @@ export function BirthChartCard({
                                 </div>
                                 <div className='ml-4 h-px flex-1 bg-gradient-to-r from-white/10 to-transparent' />
                             </div>
-                        </AccordionTrigger>
-                        <AccordionContent className='pt-2'>
-                            {transitDateText && (
-                                <div className='mb-4'>
-                                    <div
-                                        className={`${metaCardClass} max-w-sm`}
-                                    >
-                                        <p className='mb-1 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-white/55'>
-                                            <CalendarDays className='h-3.5 w-3.5 text-accent/80' />
-                                            {t("transitDateLabel")}
-                                        </p>
-                                        <p className='text-sm font-medium text-white/90'>
-                                            {transitDateText}
-                                        </p>
+                            {renderTransitDetailsContent()}
+                        </div>
+                    ) : null
+                ) : (
+                    <Accordion className='space-y-0'>
+                        <AccordionItem
+                            defaultOpen={false}
+                            className='rounded-2xl border border-white/10 bg-white/5 p-4'
+                        >
+                            <AccordionTrigger className='py-0 hover:no-underline'>
+                                <div className='flex items-center gap-4 w-full'>
+                                    <div className='rounded-xl border border-accent/30 bg-accent/20 p-2.5 text-accent shadow-lg shadow-accent/10'>
+                                        <Sparkles className='w-5 h-5' />
                                     </div>
+                                    <div className='min-w-0 w-full'>
+                                        <h3 className='text-xl font-serif font-bold text-white text-left w-full'>
+                                            {t("transitDetailsTitle")}
+                                        </h3>
+                                    </div>
+                                    <div className='ml-4 h-px flex-1 bg-gradient-to-r from-white/10 to-transparent' />
                                 </div>
-                            )}
-                            {renderPlanetaryGrid(
-                                transitChart,
-                                transitPlanetsToShow,
-                            )}
-                        </AccordionContent>
-                    </AccordionItem>
-                </Accordion>
+                            </AccordionTrigger>
+                            <AccordionContent className='pt-2'>
+                                {renderTransitDetailsContent()}
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
+                )
             )}
 
             {chart.system === "vedic_sidereal" && chart.ayanamsa != null && (

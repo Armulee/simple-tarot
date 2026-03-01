@@ -348,6 +348,10 @@ export default function RealtimePlanetaryPanel({
     personalizedTransitAspectsMerged,
     onAskAspectDetail,
     askedAspectKeys,
+    showBirthDetails,
+    showTransitDetails,
+    onToggleBirthDetails,
+    onToggleTransitDetails,
 }: {
     chartData?: Record<string, unknown> | null
     personalizedTransitAspects?: PersonalizedTransitAspectsResult | null
@@ -358,6 +362,10 @@ export default function RealtimePlanetaryPanel({
         event: SourceAspectEvent,
     ) => void
     askedAspectKeys?: Record<string, string>
+    showBirthDetails?: boolean
+    showTransitDetails?: boolean
+    onToggleBirthDetails?: () => void
+    onToggleTransitDetails?: () => void
 }) {
     const locale = useLocale()
     const t = useTranslations("PlanetaryPanel")
@@ -367,6 +375,8 @@ export default function RealtimePlanetaryPanel({
     )
     const [showDailyVibes, setShowDailyVibes] = useState(false)
     const [showLifeSituation, setShowLifeSituation] = useState(false)
+    const [localShowBirthDetails, setLocalShowBirthDetails] = useState(false)
+    const [localShowTransitDetails, setLocalShowTransitDetails] = useState(false)
     const fallbackAspects = chartData?.personalizedTransitAspects as
         | PersonalizedTransitAspectsResult
         | undefined
@@ -400,6 +410,22 @@ export default function RealtimePlanetaryPanel({
     const minorEvents = discussedEvents.filter(
         (event) => event.tier === "minor",
     )
+    const hasBirthDetails = Boolean(
+        (chartData as { charts?: unknown[] } | null)?.charts?.length,
+    )
+    const hasTransitDetails = Boolean(
+        (chartData as { transit?: { charts?: unknown[] } } | null)?.transit
+            ?.charts?.length,
+    )
+    const resolvedShowBirthDetails = showBirthDetails ?? localShowBirthDetails
+    const resolvedShowTransitDetails =
+        showTransitDetails ?? localShowTransitDetails
+    const handleToggleBirthDetails =
+        onToggleBirthDetails ??
+        (() => setLocalShowBirthDetails((prev) => !prev))
+    const handleToggleTransitDetails =
+        onToggleTransitDetails ??
+        (() => setLocalShowTransitDetails((prev) => !prev))
 
     function PlanetAvatar({ planet }: { planet: string }) {
         const key = planet.toLowerCase()
@@ -628,63 +654,85 @@ export default function RealtimePlanetaryPanel({
                 </div>
             )}
 
-            {minorEvents.length > 0 && (
-                <div className='space-y-2'>
-                    <button
-                        type='button'
-                        onClick={() => setShowDailyVibes((prev) => !prev)}
-                        className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
-                    >
-                        {showDailyVibes ? (
-                            <ChevronUp className='h-3.5 w-3.5' />
-                        ) : (
-                            <ChevronDown className='h-3.5 w-3.5' />
-                        )}
-                        {t("showDailyVibes", { count: minorEvents.length })}
-                    </button>
-
-                    {showDailyVibes && (
-                        <div className='grid gap-3 grid-cols-1 sm:grid-cols-2'>
-                            {minorEvents.map((event) => (
-                                <EventCard
-                                    key={event.aspectKey}
-                                    event={event}
-                                />
-                            ))}
-                        </div>
+            <div className='space-y-2'>
+                <div className='flex flex-wrap items-center gap-2'>
+                    {minorEvents.length > 0 && (
+                        <button
+                            type='button'
+                            onClick={() => setShowDailyVibes((prev) => !prev)}
+                            className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
+                        >
+                            {showDailyVibes ? (
+                                <ChevronUp className='h-3.5 w-3.5' />
+                            ) : (
+                                <ChevronDown className='h-3.5 w-3.5' />
+                            )}
+                            {t("showDailyVibes", { count: minorEvents.length })}
+                        </button>
+                    )}
+                    {lifeSituationEvents.length > 0 && (
+                        <button
+                            type='button'
+                            onClick={() => setShowLifeSituation((prev) => !prev)}
+                            className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
+                        >
+                            {showLifeSituation ? (
+                                <ChevronUp className='h-3.5 w-3.5' />
+                            ) : (
+                                <ChevronDown className='h-3.5 w-3.5' />
+                            )}
+                            {t("showLifeSituation", {
+                                count: lifeSituationEvents.length,
+                            })}
+                        </button>
+                    )}
+                    {hasBirthDetails && (
+                        <button
+                            type='button'
+                            onClick={handleToggleBirthDetails}
+                            className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
+                        >
+                            {resolvedShowBirthDetails ? (
+                                <ChevronUp className='h-3.5 w-3.5' />
+                            ) : (
+                                <ChevronDown className='h-3.5 w-3.5' />
+                            )}
+                            {t("showBirthDetails")}
+                        </button>
+                    )}
+                    {hasTransitDetails && (
+                        <button
+                            type='button'
+                            onClick={handleToggleTransitDetails}
+                            className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
+                        >
+                            {resolvedShowTransitDetails ? (
+                                <ChevronUp className='h-3.5 w-3.5' />
+                            ) : (
+                                <ChevronDown className='h-3.5 w-3.5' />
+                            )}
+                            {t("showTransitDetails")}
+                        </button>
                     )}
                 </div>
-            )}
 
-            {lifeSituationEvents.length > 0 && (
-                <div className='space-y-2'>
-                    <button
-                        type='button'
-                        onClick={() => setShowLifeSituation((prev) => !prev)}
-                        className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
-                    >
-                        {showLifeSituation ? (
-                            <ChevronUp className='h-3.5 w-3.5' />
-                        ) : (
-                            <ChevronDown className='h-3.5 w-3.5' />
-                        )}
-                        {t("showLifeSituation", {
-                            count: lifeSituationEvents.length,
-                        })}
-                    </button>
+                {showDailyVibes && minorEvents.length > 0 && (
+                    <div className='grid gap-3 grid-cols-1 sm:grid-cols-2'>
+                        {minorEvents.map((event) => (
+                            <EventCard key={event.aspectKey} event={event} />
+                        ))}
+                    </div>
+                )}
 
-                    {showLifeSituation && (
-                        <div className='grid gap-3 grid-cols-1 sm:grid-cols-2'>
-                            {lifeSituationEvents.map((event) => (
-                                <EventCard
-                                    key={event.aspectKey}
-                                    event={event}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
+                {showLifeSituation && lifeSituationEvents.length > 0 && (
+                    <div className='grid gap-3 grid-cols-1 sm:grid-cols-2'>
+                        {lifeSituationEvents.map((event) => (
+                            <EventCard key={event.aspectKey} event={event} />
+                        ))}
+                    </div>
+                )}
+
+            </div>
         </div>
     )
 }

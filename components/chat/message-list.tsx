@@ -39,8 +39,6 @@ import {
     ThumbsDown,
     ThumbsUp,
     Triangle,
-    TrendingDown,
-    TrendingUp,
     Minus,
     X,
 } from "lucide-react"
@@ -181,15 +179,6 @@ function SourceAspectCard({
         )
     }
 
-    const sentimentIcon =
-        event.sentiment === "good" ? (
-            <TrendingUp className='h-3.5 w-3.5 text-emerald-300' />
-        ) : event.sentiment === "bad" ? (
-            <TrendingDown className='h-3.5 w-3.5 text-rose-300' />
-        ) : (
-            <Minus className='h-3.5 w-3.5 text-slate-300' />
-        )
-    const displayKeyword = event.keyword?.trim() || tPanel("defaultKeyword")
     const transitPosition =
         normalizePositionText(event.transitPositionText) || noPosition
     const natalPosition =
@@ -345,6 +334,9 @@ export default function MessageList({
     const t = useTranslations("Home")
     const tPanel = useTranslations("PlanetaryPanel")
     const consultingBase = t("consulting")
+    const [panelDetailToggles, setPanelDetailToggles] = useState<
+        Record<string, { birth: boolean; transit: boolean }>
+    >({})
 
     const askedAspectKeys = useMemo(() => {
         const map: Record<string, string> = {}
@@ -360,6 +352,10 @@ export default function MessageList({
         <div className='flex-1 overflow-y-auto px-4 pt-6'>
             <div className='mx-auto max-w-3xl space-y-6 text-left'>
                 {messages.map((message, messageIndex) => {
+                    const detailToggle = panelDetailToggles[message.id] ?? {
+                        birth: false,
+                        transit: false,
+                    }
                     // --- User message: user's question with edit/regenerate actions ---
                     if (message.role === "user") {
                         const isEditing = editingMessageId === message.id
@@ -766,8 +762,60 @@ export default function MessageList({
                                         </div>
                                     )}
                                     <div className='w-full md:max-w-[85%] space-y-6'>
+                                        <RealtimePlanetaryPanel
+                                            chartData={message.chartData}
+                                            personalizedTransitAspects={
+                                                message.personalizedTransitAspects
+                                            }
+                                            personalizedTransitAspectsMerged={
+                                                message.personalizedTransitAspectsMerged
+                                            }
+                                            onAskAspectDetail={
+                                                onAskAspectDetail
+                                            }
+                                            askedAspectKeys={askedAspectKeys}
+                                            showBirthDetails={
+                                                detailToggle.birth
+                                            }
+                                            showTransitDetails={
+                                                detailToggle.transit
+                                            }
+                                            onToggleBirthDetails={() =>
+                                                setPanelDetailToggles((prev) => ({
+                                                    ...prev,
+                                                    [message.id]: {
+                                                        birth: !(
+                                                            prev[message.id]
+                                                                ?.birth ?? false
+                                                        ),
+                                                        transit:
+                                                            prev[message.id]
+                                                                ?.transit ??
+                                                            false,
+                                                    },
+                                                }))
+                                            }
+                                            onToggleTransitDetails={() =>
+                                                setPanelDetailToggles((prev) => ({
+                                                    ...prev,
+                                                    [message.id]: {
+                                                        birth:
+                                                            prev[message.id]
+                                                                ?.birth ??
+                                                            false,
+                                                        transit: !(
+                                                            prev[message.id]
+                                                                ?.transit ??
+                                                            false
+                                                        ),
+                                                    },
+                                                }))
+                                            }
+                                        />
                                         {message.chartData &&
-                                            !message.isLoading && (
+                                            !message.isLoading &&
+                                            (detailToggle.birth ||
+                                                detailToggle.transit) && (
                                                 <BirthChartCard
                                                     chartData={
                                                         message.chartData as Parameters<
@@ -791,21 +839,15 @@ export default function MessageList({
                                                             system,
                                                         )
                                                     }
+                                                    showBirthDetails={
+                                                        detailToggle.birth
+                                                    }
+                                                    showTransitDetails={
+                                                        detailToggle.transit
+                                                    }
+                                                    renderFromPanel
                                                 />
                                             )}
-                                        <RealtimePlanetaryPanel
-                                            chartData={message.chartData}
-                                            personalizedTransitAspects={
-                                                message.personalizedTransitAspects
-                                            }
-                                            personalizedTransitAspectsMerged={
-                                                message.personalizedTransitAspectsMerged
-                                            }
-                                            onAskAspectDetail={
-                                                onAskAspectDetail
-                                            }
-                                            askedAspectKeys={askedAspectKeys}
-                                        />
                                         <div className='rounded-2xl border border-white/10 bg-white/5 p-8 shadow-lg space-y-6'>
                                             <div className='flex items-center space-x-3'>
                                                 <div className='w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center'>
