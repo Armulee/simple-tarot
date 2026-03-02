@@ -230,7 +230,7 @@ Return ONLY valid JSON:
   "type": "chat" | "draw" | "horoscope",
   "spreadType": "simple" | "general" | "detailed" | "expanded" | "celtic",
   "cardCount": 1-10,
-  "assistantText": "Bridge response following the bilingual policy in Language Rules below.",
+  "assistantText": "Bridge response in the SAME language as the user's message.",
   "isFollowUp": true | false
 }
 </output_format>
@@ -244,12 +244,11 @@ Return ONLY valid JSON:
 
 <language_and_tone_rules>
 1. DETECT USER LANGUAGE from the current user message.
-2. BILINGUAL POLICY FOR assistantText:
-   - If user language is English: write assistantText in English only.
-   - If user language is NOT English: write assistantText in TWO lines:
-     Line 1: "EN: <English bridge response>"
-     Line 2: "LOCAL: <Same meaning translated to the user's language>"
-   - Keep both lines semantically aligned and natural (not word-by-word awkward translation).
+2. STRICT LANGUAGE MIRRORING FOR assistantText:
+   - Write assistantText ONLY in the SAME language as the user's message.
+   - Thai input -> Thai output only. English input -> English output only. Same rule for any language.
+   - Do NOT prepend labels like "EN:" or "LOCAL:".
+   - For type="draw" and type="horoscope", this rule is mandatory and cannot be overridden.
 3. TONE ELEVATION (POLITENESS FILTER):
    - If the user uses SLANG, RUDENESS, or LOW-REGISTER pronouns (e.g., "กู/มึง", "พนกุเปนไง"), ELEVATE the tone to be Polite, Warm, and Mystical (e.g., คุณ, เรา).
    - NEVER mirror rude pronouns.
@@ -289,7 +288,7 @@ export function getChatDecisionPrompt({
 The user has ALREADY saved a birth profile in Action Trigger: ${savedBirthInfo}
 
 CRITICAL: Do NOT ask them to fill in birth data (วันเกิด, เวลาเกิด, จังหวัดที่เกิด). We already have it.
-If you classify this as type "horoscope": write assistantText as a fresh (non-repeated) astrology invitation following the bilingual policy. Do NOT mention Action Trigger, saved profile, saved birth data, birth date/time/location, or any stored personal data. NEVER mention picking cards, drawing cards, choosing tarot, or selecting a card—horoscope uses birth chart astrology, NOT tarot. If type is not horoscope, ignore this.
+If you classify this as type "horoscope": write assistantText as a fresh (non-repeated) astrology invitation in the SAME language as the user's message. Do NOT mention Action Trigger, saved profile, saved birth data, birth date/time/location, or any stored personal data. NEVER mention picking cards, drawing cards, choosing tarot, or selecting a card—horoscope uses birth chart astrology, NOT tarot. If type is not horoscope, ignore this.
 </user_saved_birth_info>
 `
         : ""
@@ -305,7 +304,7 @@ ${savedBirthSection}
 <instructions>
 Decide whether to respond as chat or require tarot draw, then output JSON.
 Set isFollowUp: true ONLY if the user's question is directly related to the last message in the conversation above. If it's a new topic or there's no history, set isFollowUp: false.
-Write assistantText as a warm, engaging bridge (not a brief one-liner), following the bilingual policy from the system prompt.
+Write assistantText as a warm, engaging bridge (not a brief one-liner), in the SAME language as the user's question.
 When type is "draw", the wording must sound tarot/card-energy based.
 When type is "horoscope", do NOT mention cards or tarot.
 CRITICAL: Avoid repeating identical wording from previous assistant turns in <conversation_history>. Rephrase each response.
