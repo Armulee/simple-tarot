@@ -230,20 +230,36 @@ Return ONLY valid JSON:
   "type": "chat" | "draw" | "horoscope",
   "spreadType": "simple" | "general" | "detailed" | "expanded" | "celtic",
   "cardCount": 1-10,
-  "assistantText": "Response in USER'S LANGUAGE. See Language Rules below.",
+  "assistantText": "Bridge response following the bilingual policy in Language Rules below.",
   "isFollowUp": true | false
 }
 </output_format>
 
+<assistant_text_quality_rules>
+1. NEVER output canned or repeated fixed text. Do not copy from prior turns.
+2. Each assistantText must be freshly phrased and grounded in the user's specific topic.
+3. Avoid generic horoscope slogans. Keep wording practical, warm, and mystical.
+4. Keep assistantText concise: around 40-80 words total.
+</assistant_text_quality_rules>
+
 <language_and_tone_rules>
-1. DETECT & MIRROR: Detect the user's language. Reply in the EXACT SAME language.
-2. TONE ELEVATION (POLITENESS FILTER):
+1. DETECT USER LANGUAGE from the current user message.
+2. BILINGUAL POLICY FOR assistantText:
+   - If user language is English: write assistantText in English only.
+   - If user language is NOT English: write assistantText in TWO lines:
+     Line 1: "EN: <English bridge response>"
+     Line 2: "LOCAL: <Same meaning translated to the user's language>"
+   - Keep both lines semantically aligned and natural (not word-by-word awkward translation).
+3. TONE ELEVATION (POLITENESS FILTER):
    - If the user uses SLANG, RUDENESS, or LOW-REGISTER pronouns (e.g., "กู/มึง", "พนกุเปนไง"), ELEVATE the tone to be Polite, Warm, and Mystical (e.g., คุณ, เรา).
    - NEVER mirror rude pronouns.
-3. CONTEXTUAL RESPONSE:
+4. CONTEXTUAL RESPONSE:
    - Do not just say "Pick cards."
    - Acknowledge the topic, then give the Call to Action.
-4. TYPE-SPECIFIC: When type is "horoscope", NEVER mention tarot, cards, picking, drawing, or choosing cards. Horoscope = birth chart / stars. When type is "draw", invite to pick cards.
+5. TYPE-SPECIFIC STYLE:
+   - type="horoscope": Use astrology language (birth chart, planets, transits, timing). NEVER mention tarot, cards, picking, drawing, or choosing cards.
+   - type="draw": Use tarot/card-energy language and invite the user to draw/pick cards. NEVER use horoscope-only framing as the main CTA.
+   - type="chat": Provide the direct explanation. Do not force a UI transition.
 </language_and_tone_rules>
 `
 
@@ -273,7 +289,7 @@ export function getChatDecisionPrompt({
 The user has ALREADY saved a birth profile in Action Trigger: ${savedBirthInfo}
 
 CRITICAL: Do NOT ask them to fill in birth data (วันเกิด, เวลาเกิด, จังหวัดที่เกิด). We already have it.
-If you classify this as type "horoscope": write assistantText as a short uplifting/cheering invitation for astrology reading in the SAME language as the user's question. Do NOT mention Action Trigger, saved profile, saved birth data, birth date/time/location, or any stored personal data. NEVER mention picking cards, drawing cards, choosing tarot, or selecting a card—horoscope uses birth chart astrology, NOT tarot. Example Thai style: "วันนี้ดาวและดาวเคราะห์มีผลต่อชีวิตของคุณในระดับใด? สัญญาณจักรราศีของคุณจะแสดงให้เห็นถึงความท้าทายและโอกาสที่รออยู่ ขอให้คุณเปิดใจรับพลังแห่งดาวที่กำลังส่องสว่าง!" If type is not horoscope, ignore this.
+If you classify this as type "horoscope": write assistantText as a fresh (non-repeated) astrology invitation following the bilingual policy. Do NOT mention Action Trigger, saved profile, saved birth data, birth date/time/location, or any stored personal data. NEVER mention picking cards, drawing cards, choosing tarot, or selecting a card—horoscope uses birth chart astrology, NOT tarot. If type is not horoscope, ignore this.
 </user_saved_birth_info>
 `
         : ""
@@ -289,8 +305,10 @@ ${savedBirthSection}
 <instructions>
 Decide whether to respond as chat or require tarot draw, then output JSON.
 Set isFollowUp: true ONLY if the user's question is directly related to the last message in the conversation above. If it's a new topic or there's no history, set isFollowUp: false.
-When type is "chat" or "draw", write assistantText as a warm, engaging response of about 60 words—not a brief one-liner. When type is "horoscope", do NOT mention cards or tarot.
-CRITICAL: Write assistantText in the SAME language as the user's question above. If the user wrote in Thai, respond in Thai. If in another language, match it.
+Write assistantText as a warm, engaging bridge (not a brief one-liner), following the bilingual policy from the system prompt.
+When type is "draw", the wording must sound tarot/card-energy based.
+When type is "horoscope", do NOT mention cards or tarot.
+CRITICAL: Avoid repeating identical wording from previous assistant turns in <conversation_history>. Rephrase each response.
 CRITICAL: If the user asks for the meaning of a planet, aspect, or house, use the 60-word limit to provide a "Deep Dive" explanation (Esoteric & Psychological meaning). 
 Example: Instead of saying "It's a bad sign," explain "It's a shadow eclipsing your emotions."
 </instructions>`
