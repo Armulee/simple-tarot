@@ -619,7 +619,7 @@ export default function Interpretation({
                     <ActionSection
                         question={question || ""}
                         cards={cards || []}
-                        interpretation={interpretation}
+                        interpretation={interpretation ?? undefined}
                         readingId={readingId!}
                         onInterpretationChange={(text) =>
                             setInterpretationState(text)
@@ -632,7 +632,7 @@ export default function Interpretation({
                     <ShareSection
                         question={question || ""}
                         cards={cards || []}
-                        interpretation={interpretation}
+                        interpretation={interpretation ?? undefined}
                         readingId={readingId!}
                     />
                     <div className='border-t border-border/50 pt-4 flex justify-center'>
