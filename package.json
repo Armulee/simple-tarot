@@ -39,6 +39,7 @@
     "country-state-city": "^3.2.1",
     "countrycitystatejson": "^25.8.101",
     "date-fns": "^4.1.0",
+    "franc": "^6.2.0",
     "html-to-image": "^1.11.13",
     "libphonenumber-js": "^1.12.23",
     "lucide-react": "^0.542.0",

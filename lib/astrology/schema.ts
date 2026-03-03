@@ -34,19 +34,19 @@ export const horoscopeInterpretationSchema = z.object({
     interpretation: z
         .string()
         .describe(
-            "Main 4-8 sentence horoscope reading. Answer the user's question using the chart data.",
+            "Main 4-8 sentence horoscope reading. Answer the user's question directly using chart data. When timing is mentioned, use exact date/date-range wording (no vague timing phrases).",
         ),
     conclusion: z
         .string()
         .describe(
-            "A short, calming wrap-up that concludes the reading without sounding like a tagline.",
+            "A short, calming wrap-up that concludes the reading without sounding like a tagline. Keep timing language concrete when present.",
         ),
     suggestions: z
         .array(z.string())
-        .min(3)
         .max(5)
+        .default([])
         .describe(
-            "3-5 concise, specific follow-up questions the user could ask next. Write as user questions.",
+            "Up to 5 concise, specific follow-up questions the user could ask next. Write as user questions.",
         ),
 })
 

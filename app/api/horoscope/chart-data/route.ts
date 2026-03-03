@@ -1,7 +1,15 @@
 import { z } from "zod"
 import { buildChartData } from "@/lib/astrology/build-chart-data"
+import { resolveQuestionTimeRangeAsync } from "@/lib/astrology/question-time-range"
+import { getCodexTransitWindow } from "@/lib/astrology/ephemeris-codex"
+import {
+    buildNatalLongitudes,
+    buildPersonalizedTransitAspects,
+    buildTransitLongitudesFromSwissPlanets,
+} from "@/lib/astrology/transit-aspects"
 
 const requestSchema = z.object({
+    question: z.string().trim().min(1),
     locale: z.string().optional(),
     birth: z.object({
         day: z.number().int().min(1).max(31),
@@ -35,26 +43,102 @@ const requestSchema = z.object({
         .optional(),
 })
 
-/**
- * Returns the raw Swiss Ephemeris chart data that gets passed to the AI
- * for horoscope interpretation. Use this to inspect what data the AI receives.
- */
+const DAY_MS = 24 * 60 * 60 * 1000
+const EXPLICIT_ASPECT_PADDING_DAYS = 30
+
+function addUtcDays(date: Date, days: number) {
+    return new Date(date.getTime() + days * DAY_MS)
+}
+
+function toIsoDate(date: Date) {
+    return date.toISOString().slice(0, 10)
+}
+
 export async function POST(req: Request) {
     try {
         const body = requestSchema.parse(await req.json())
         const locale = body.locale || "en"
 
-        const chartData = await buildChartData(
+        const questionRange = await resolveQuestionTimeRangeAsync(body.question, {
+            hintedTransitDate: body.transit
+                ? {
+                      day: body.transit.day ?? null,
+                      month: body.transit.month ?? null,
+                      year: body.transit.year ?? null,
+                  }
+                : null,
+        })
+        const codexTransit = await getCodexTransitWindow(questionRange)
+        const aspectRange =
+            questionRange.source === "explicit"
+                ? {
+                      ...questionRange,
+                      startDate: addUtcDays(
+                          questionRange.startDate,
+                          -EXPLICIT_ASPECT_PADDING_DAYS,
+                      ),
+                      endDate: addUtcDays(
+                          questionRange.startDate,
+                          EXPLICIT_ASPECT_PADDING_DAYS,
+                      ),
+                      startDateIso: toIsoDate(
+                          addUtcDays(
+                              questionRange.startDate,
+                              -EXPLICIT_ASPECT_PADDING_DAYS,
+                          ),
+                      ),
+                      endDateIso: toIsoDate(
+                          addUtcDays(
+                              questionRange.startDate,
+                              EXPLICIT_ASPECT_PADDING_DAYS,
+                          ),
+                      ),
+                      durationDays: EXPLICIT_ASPECT_PADDING_DAYS * 2,
+                  }
+                : questionRange
+        const aspectCodexTransit =
+            questionRange.source === "explicit"
+                ? await getCodexTransitWindow(aspectRange)
+                : codexTransit
+
+        const chartDataResult = await buildChartData(
             {
                 birth: body.birth,
                 system: body.system,
                 transit: body.transit ?? undefined,
+                questionRange,
+                transitDataSource: codexTransit.source,
+                codexTransitSummary: codexTransit.summary,
             },
-            locale
+            locale,
         )
 
-        return Response.json(chartData, { status: 200 })
+        const primaryBirthChart = chartDataResult.charts?.[0]
+        const primaryTransitChart = chartDataResult.transit?.charts?.[0]
+        const natalLongitudes = buildNatalLongitudes(
+            primaryBirthChart?.planets ?? {},
+        )
+        const fallbackExactTransitLongitudes =
+            buildTransitLongitudesFromSwissPlanets(
+                primaryTransitChart?.planets ?? {},
+            )
+        const personalizedTransitAspects = buildPersonalizedTransitAspects({
+            questionRange: {
+                source: questionRange.source,
+                startDateIso: questionRange.startDateIso,
+                endDateIso: questionRange.endDateIso,
+            },
+            natalLongitudes,
+            codexRows: aspectCodexTransit.rows,
+            fallbackExactTransitLongitudes,
+        })
+
+        return Response.json(
+            { ...chartDataResult, personalizedTransitAspects },
+            { status: 200 },
+        )
     } catch (error) {
+        console.error("[horoscope/chart-data] request failed:", error)
         const message =
             error instanceof Error ? error.message : "CHART_DATA_FAILED"
         return Response.json({ error: message }, { status: 400 })

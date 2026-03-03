@@ -5,7 +5,11 @@ import {
     outputRules,
     femalePersonaRule,
 } from "./prompts-rules"
-import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
+import type {
+    PersonalizedTransitAspectsResult,
+    PersonalizedTransitAspectExact,
+    PersonalizedTransitAspectWindow,
+} from "@/lib/astrology/transit-aspects"
 
 export const TAROT_SYSTEM_PROMPT = `
 <role>
@@ -188,12 +192,6 @@ Your sole purpose is to classify user input into actionable categories and gener
 If the user's query asks "When" or specifies any timeframe (e.g., "this year," "next month," "at what age"), you MUST immediately classify the intent as "horoscope". This directive strictly overrides all other classification rules.
 </absolute_override_rule>
 
-<core_logic>
-- DO NOT stall. DO NOT ask clarifying questions.
-- SEMANTIC DECISION: Analyze the meaning.
-  - Asking for timing/destiny -> "horoscope".
-  - Asking for current status/near-future outcomes without specific timeframes -> "draw".
-</core_logic>
 
 <persona>
 - Your logic is robotic, but your assistantText output must be Warm, Grounded, and Mystical.
@@ -204,20 +202,35 @@ If the user's query asks "When" or specifies any timeframe (e.g., "this year," "
 
 <classification_categories>
 1. TYPE: "horoscope" (Astrology & TIMING)
-   ... [Keep your existing triggers and actions] ...
-   - Data Override: If type is "horoscope", you MUST set "spreadType" to null and "cardCount" to 0.
+   Triggers (ANY match → horoscope):
+   a) TIME-BOUND KEYWORDS: today, tomorrow, tonight, this week, this month,
+      this year, next week, next month, next year, when, what age, at what age,
+      วันนี้, พรุ่งนี้, คืนนี้, สัปดาห์นี้, เดือนนี้, ปีนี้, เดือนหน้า, ปีหน้า, เมื่อไหร่, ตอนไหน, กี่ปี
+   b) EXPLICIT DATES or date-like phrases (e.g., "in March", "on the 15th", "ธันวาคม", "วันที่ 20")
+   c) USER EXPLICITLY REQUESTS HOROSCOPE: "horoscope", "birth chart", "ดูดวง", "ผูกดวง", "ลัคนา", "ดวงชะตา", "astrology reading"
+   d) TIMING QUESTIONS: starts with "When" / "เมื่อไหร่" / "ตอนไหน" or asks about future timing ("at what point", "how long until")
+   - Data Override: spreadType: null, cardCount: 0.
 
 2. TYPE: "draw" (Tarot Reading - Situational)
-   ... [Keep your existing triggers and actions] ...
-   - Data Override: Determine "spreadType" and "cardCount" based on the user's query complexity.
-${rules}
+   Triggers:
+   a) VAGUE / TIMELESS predictions: "Will I…?", "Should I…?", "How is my…?", "What about…?"
+      WITHOUT any time-bound keyword from category 1.
+   b) User explicitly requests tarot: "tarot", "ไพ่", "draw cards", "จั่วไพ่", "เปิดไพ่"
+   c) General situational questions with no timing anchor.
+   - Data Override: Determine spreadType and cardCount from query complexity.
+   ${rules}
 
 3. TYPE: "chat" (Knowledge & Conversation)
-   - Trigger: User asks about meanings, definitions, or "Why/What/How" regarding astrology or tarot (e.g., "ราหูกุมจันทร์คืออะไร", "ทำไมต้องดู 360 องศา").
-   - Action: Provide a Deep, Intellectual, and Mystical explanation directly in 'assistantText'. 
-   - Rule: Do NOT invite to a UI action if the user is seeking knowledge. Be the teacher/consultant.
+   Triggers:
+   - Asks about meanings, definitions, or "Why/What/How" regarding astrology or tarot concepts.
    - Data Override: spreadType: null, cardCount: 0.
 </classification_categories>
+
+<decision_tiebreaker>
+- If a query has BOTH time keywords AND vague phrasing, TIME wins → "horoscope".
+- If a query mentions BOTH tarot AND horoscope explicitly, use the LAST mentioned tool.
+- If completely ambiguous and no time keyword → default to "draw".
+</decision_tiebreaker>
 
 <follow_up_detection>
 - isFollowUp: true ONLY if the user's new message is directly related to the last message in the conversation.
@@ -301,6 +314,7 @@ ${historyText}
 ${question}
 </user_question>
 ${savedBirthSection}
+
 <instructions>
 Decide whether to respond as chat or require tarot draw, then output JSON.
 Set isFollowUp: true ONLY if the user's question is directly related to the last message in the conversation above. If it's a new topic or there's no history, set isFollowUp: false.
@@ -311,6 +325,60 @@ CRITICAL: Avoid repeating identical wording from previous assistant turns in <co
 CRITICAL: If the user asks for the meaning of a planet, aspect, or house, use the 60-word limit to provide a "Deep Dive" explanation (Esoteric & Psychological meaning). 
 Example: Instead of saying "It's a bad sign," explain "It's a shadow eclipsing your emotions."
 </instructions>`
+}
+
+const MAX_ASPECT_EVENTS = 15
+
+function compactExactEvent(e: PersonalizedTransitAspectExact) {
+    return {
+        aspectKey: e.aspectKey,
+        transit: `${e.transitPlanet} ${e.transitPositionText}`,
+        natal: `${e.natalPlanet} ${e.natalPositionText}`,
+        aspect: `${e.aspectType} (${e.aspectAngle}°)`,
+        orb: e.orb,
+        tier: e.tier,
+        sign: e.zodiacSign,
+    }
+}
+
+function compactWindowEvent(e: PersonalizedTransitAspectWindow) {
+    return {
+        aspectKey: e.aspectKey,
+        transit: `${e.transitPlanet} ${e.transitPositionText}`,
+        natal: `${e.natalPlanet} ${e.natalPositionText}`,
+        aspect: `${e.aspectType} (${e.aspectAngle}°)`,
+        window: `${e.startDateIso} → ${e.endDateIso} (peak ${e.peakDateIso})`,
+        minOrb: e.minOrb,
+        hitDays: e.hitDays,
+        tier: e.tier,
+        sign: e.zodiacSign,
+    }
+}
+
+function compactTransitAspects(
+    data: PersonalizedTransitAspectsResult | null,
+): string {
+    if (!data) return "null"
+    const result: Record<string, unknown> = { orbDegrees: data.orbDegrees }
+    if (data.exact) {
+        result.exact = {
+            dateIso: data.exact.dateIso,
+            events: data.exact.events
+                .slice(0, MAX_ASPECT_EVENTS)
+                .map(compactExactEvent),
+        }
+    }
+    if (data.range) {
+        result.range = {
+            startDateIso: data.range.startDateIso,
+            endDateIso: data.range.endDateIso,
+            sampledDays: data.range.sampledDays,
+            events: data.range.events
+                .slice(0, MAX_ASPECT_EVENTS)
+                .map(compactWindowEvent),
+        }
+    }
+    return JSON.stringify(result)
 }
 
 export function getHoroscopeInterpretationPrompt({
@@ -339,7 +407,7 @@ export function getHoroscopeInterpretationPrompt({
         startDateIso: string
         endDateIso: string
         durationDays: number
-        source: "explicit" | "relative" | "default_180d"
+        source: "explicit" | "relative" | "default_30d" | "ai_inferred"
     }
     transitDataSource: "codex" | "swisseph_fallback"
     codexTransitSummary: unknown
@@ -381,11 +449,11 @@ ${chartData}
 </astrology_data>
 
 <transit_summary>
-${JSON.stringify(codexTransitSummary ?? null, null, 2)}
+${JSON.stringify(codexTransitSummary ?? null)}
 </transit_summary>
 
 <personalized_transit_aspects>
-${JSON.stringify(personalizedTransitAspects ?? null, null, 2)}
+${compactTransitAspects(personalizedTransitAspects)}
 </personalized_transit_aspects>
 
 <conversation_history>
@@ -398,38 +466,28 @@ ${question}
 
 <instructions>
 1) Answer the <user_question> using ONLY the <astrology_data>, <transit_summary>, and <personalized_transit_aspects>.
-2) DO NOT summarize the entire ${questionRange.durationDays}-day timeframe. Instead, act as a "Peak Finder". You MUST identify the absolute BEST specific date ranges (windows of a few weeks or months) within this timeframe for the user's goal.
-3) STRUCTURE YOUR ANSWER: 
-   - Start by clearly answering the core question with a stance: YES (favorable soon), WAIT (favorable but later), or NO / RECONSIDER (no highly favorable windows found).
-   - Then, pinpoint the EXACT dates or months when the energy peaks for this specific action.
-   - If there is no good period within the timeframe, say so directly and explain why.
-4) Base your interpretation on the current moment (nowadays) — use the Current date and time in <system_context> as the reference point for "now".
-5) Keep it practical, decisive, and actionable. Do not give generic advice like "be careful" or "think thoroughly" without backing it up with specific astrological timing.
-6) Match the user's tone and style.
-7) If <transit_summary> exists, compare baseline vs time window clearly.
-8) If this is a birth-chart suitability style question, emphasize personal strengths, natural fit, and timing windows tied to the question.
-9) <conversation_history> is strictly optional background context. First decide whether each history item is directly relevant to the current <user_question>. If not relevant, ignore it completely.
-10) If the current <user_question> is a new topic, answer as a fresh reading and do not reuse conclusions, timelines, or outcomes from older turns.
-11) When mentioning time periods, use EXACT dates in readable format. Match the date format to the output language. Do NOT use ISO format (YYYY-MM-DD). Never use vague phrases.
-12) Support each major conclusion with clear astrological evidence by referencing relevant planetary positions or movements from the provided data.
-13) PERSONALIZED ASPECT GUIDE:
-   - Conjunction (0°): concentrated merged energy (can be constructive or challenging).
-   - Opposition (180°): tension/polarity, confrontation, or strong influence from others.
-   - Square (90°): obstacles, friction, pressure that requires action.
-   - Trine (120°): ease, flow, supportive momentum, natural opportunity.
-   - Sextile (60°): opportunity that becomes beneficial when actively pursued.
-14) If <personalized_transit_aspects> exists, prioritize those birth-vs-transit hits for personalized timing and describe the strongest ones by smallest orb.
+2) Give ONE integrated deep summary, not a timeline breakdown. Do not rank "best day".
+3) Start with a direct answer in the first 1-2 sentences, then explain the deeper meaning in plain everyday language.
+4) Keep it practical and human-centered: what this means emotionally, behaviorally, and for real decisions right now.
+5) Avoid technical astrology wording in final prose. Do NOT use terms like conjunction, square, trine, sextile, orb, degrees, or raw planet-angle jargon.
+6) If timing is discussed, use ONLY exact date(s) or exact date range(s) from provided data. Never use vague timing phrases.
+7) If this is a birth-chart suitability style question, emphasize personal strengths, natural fit, and realistic caution points in plain language.
+8) <conversation_history> is optional background only. Use it only when directly relevant; otherwise ignore it.
+9) If the current <user_question> is a new topic, answer as a fresh reading and do not reuse old conclusions.
+10) Never output internal tokens or IDs such as aspectKey, {#...}, pipe-delimited markers, or raw event identifiers.
+11) Make every date/date-range visually prominent using natural sentence emphasis (for example, place the date early in the sentence). Do NOT use markdown syntax such as **, __, or backticks.
+12) If there is no exact event date, use the exact timeframe boundaries from Question timeframe start/end and format them in output language month names.
 </instructions>
 
 <critical_rules>
 - PLAIN LANGUAGE ONLY (for general audience).
-- Mention key planets and positions when needed, but explain them in plain language.
-- Keep technical jargon minimal. If a technical term is used, briefly explain it in everyday words.
-- Write for normal people who do not know astrology. Focus on what will happen and how they might feel.
+- Keep the response deep but simple for people with no astrology background.
+- Focus on what the user is likely to experience and how to respond wisely.
 - Answer the user's question directly in everyday language.
-- EXACT DATES ONLY: When citing time periods, use dates in the SAME language as your output. Thai output = Thai month names.
 - NO HISTORY LEAKAGE: Do not bring up past events or timelines (like "April") from the <conversation_history> unless the user explicitly asks about them in the current <user_question>.
 - PRIORITY RULE: If any history conflicts with the current <user_question>, follow the current question and ignore the conflicting history.
+- NEVER expose machine-style tags or debug markers (e.g., {#Pluto|trine|Mars|...}, aspectKey, or JSON-like fragments) in interpretation or conclusion.
+- NEVER use vague timing words such as "soon", "this period", "ช่วงนี้", "ปลายปี", "ต้นปีหน้า", or similar approximations.
 </critical_rules>
 
 <output_and_language_rules>
@@ -445,6 +503,6 @@ ${question}
 - insight: exactly ONE short sentence suitable for a compact event card.
 - interpretation: 4-8 short sentences answering the question.
 - conclusion: A short, calming wrap-up that concludes the reading without sounding like a tagline.
-- suggestions: 3-5 concise follow-up questions the user could ask next. Write as user questions (e.g., "When is the best time for career change?").
+- suggestions: 3-5 concise follow-up questions the user could ask next. Write as user questions (e.g., "How should I handle this energy in my work life?").
 </output_and_language_rules>`
 }

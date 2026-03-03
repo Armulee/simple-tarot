@@ -62,7 +62,6 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
-import { getTarotReadingPrompt } from "@/lib/prompts"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 
@@ -73,7 +72,13 @@ interface ActionSectionProps {
     readingId?: string
     onInterpretationChange?: (text: string) => void
     onGeneratingChange?: (loading: boolean) => void
+    onStreamingObjectChange?: (
+        obj: Partial<TarotInterpretation> | null,
+    ) => void
     variant?: "full" | "compact" | "embedded"
+    mode?: "tarot" | "horoscope"
+    onRegenerateHoroscope?: (messageId: string) => void
+    messageId?: string
 }
 
 export default function ActionSection({
@@ -83,7 +88,11 @@ export default function ActionSection({
     readingId: propReadingId,
     onInterpretationChange,
     onGeneratingChange,
+    onStreamingObjectChange,
     variant = "full",
+    mode = "tarot",
+    onRegenerateHoroscope,
+    messageId,
 }: ActionSectionProps = {}) {
     const t = useTranslations("ReadingPage.interpretation")
     const {
@@ -766,6 +775,8 @@ export default function ActionSection({
             object: TarotInterpretation | undefined
         }) => {
             if (object) {
+                if (typeof onStreamingObjectChange === "function")
+                    onStreamingObjectChange(null)
                 const completion = `${object.keywords}\n\n${object.interpretation}`
                 if (typeof onInterpretationChange === "function") {
                     onInterpretationChange(completion)
@@ -808,6 +819,8 @@ export default function ActionSection({
             }
         },
         onError: () => {
+            if (typeof onStreamingObjectChange === "function")
+                onStreamingObjectChange(null)
             toast.error("Failed to generate a new interpretation")
             if (typeof onGeneratingChange === "function")
                 onGeneratingChange(false)
@@ -827,6 +840,15 @@ export default function ActionSection({
             }
         }
     }, [object?.cardInsights, setCardInsights])
+
+    // Sync streaming object to parent for regenerate flow (so parent can show streaming text)
+    useEffect(() => {
+        if (typeof onStreamingObjectChange === "function") {
+            onStreamingObjectChange(
+                object ? (object as Partial<TarotInterpretation>) : null,
+            )
+        }
+    }, [object, onStreamingObjectChange])
 
     useEffect(() => {
         const el = navGuardRef.current
@@ -929,6 +951,16 @@ export default function ActionSection({
                 toast.error("Not enough stars to regenerate")
                 return
             }
+
+            if (
+                mode === "horoscope" &&
+                typeof onRegenerateHoroscope === "function" &&
+                messageId
+            ) {
+                onRegenerateHoroscope(messageId)
+                return
+            }
+
             setPaidForInterpretation(true)
 
             if (typeof onInterpretationChange === "function") {
@@ -939,8 +971,6 @@ export default function ActionSection({
 
             if (typeof onGeneratingChange === "function")
                 onGeneratingChange(true)
-
-            const cardNames = cards.join(", ")
 
             let previousQuestion: string | null = null
             let previousInterpretation: string | null = null
@@ -962,22 +992,16 @@ export default function ActionSection({
                 }
             } catch {}
 
-            const prompt = getTarotReadingPrompt({
-                question: question || "",
-                cards: cardNames,
-                readingType: readingType || null,
-                isFollowUp,
-                previousQuestion,
-                previousInterpretation,
-            })
-
             const cardArray = (cards ?? []).map((c) =>
                 typeof c === "string" ? c : String(c),
             )
             submit({
-                prompt,
                 question: question || "",
                 cards: cardArray,
+                readingType: readingType || null,
+                isFollowUp,
+                previousQuestion,
+                previousInterpretation,
             })
         } catch (error) {
             console.error("Error regenerating interpretation:", error)
@@ -985,6 +1009,9 @@ export default function ActionSection({
                 onGeneratingChange(false)
         }
     }, [
+        mode,
+        onRegenerateHoroscope,
+        messageId,
         question,
         cards,
         stars,
@@ -1626,7 +1653,7 @@ export default function ActionSection({
                                                 </span>
                                                 {action.id === "regen" && (
                                                     <span className='text-[9px] text-yellow-300 flex items-center gap-0.5'>
-                                                        -5{" "}
+                                                        -1{" "}
                                                         <Star
                                                             className='w-2.5 h-2.5 text-yellow-300'
                                                             fill='currentColor'

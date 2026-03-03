@@ -15,9 +15,7 @@ const THAI_REGEX = /[\u0E00-\u0E7F]/g
  * - English: default when no significant Thai
  * Returns null for very short or ambiguous input.
  */
-export function detectInputLanguage(
-    text: string,
-): SupportedLocale | null {
+export function detectInputLanguage(text: string): SupportedLocale | null {
     const trimmed = text.trim()
     if (trimmed.length < 2) return null
 
@@ -30,8 +28,6 @@ export function detectInputLanguage(
     return "en"
 }
 
-export function isSupportedLocale(
-    locale: string,
-): locale is SupportedLocale {
+export function isSupportedLocale(locale: string): locale is SupportedLocale {
     return SUPPORTED_LOCALES.includes(locale as SupportedLocale)
 }

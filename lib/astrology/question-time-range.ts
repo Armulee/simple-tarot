@@ -1,7 +1,9 @@
-const DEFAULT_FALLBACK_DAYS = 180
+import { resolveTimeRangeDaysWithAI } from "./ai-time-range"
+
+const DEFAULT_FALLBACK_DAYS = 30
 const DAY_MS = 24 * 60 * 60 * 1000
 
-export type TimeRangeSource = "explicit" | "relative" | "default_180d"
+export type TimeRangeSource = "explicit" | "relative" | "default_30d" | "ai_inferred"
 
 export type QuestionTimeRange = {
     startDate: Date
@@ -246,7 +248,7 @@ export function resolveQuestionTimeRange(
     const relativeRange = parseRelativeRange(question, today)
 
     const startDate = explicitDate ?? today
-    let source: TimeRangeSource = "default_180d"
+    let source: TimeRangeSource = "default_30d"
     let endDate = addDays(startDate, DEFAULT_FALLBACK_DAYS)
 
     if (explicitDate && !relativeRange) {
@@ -260,13 +262,13 @@ export function resolveQuestionTimeRange(
         source = "relative"
     }
 
-    if (explicitDate && source === "default_180d") {
-        source = source === "default_180d" ? "explicit" : source
+    if (explicitDate && source === "default_30d") {
+        source = source === "default_30d" ? "explicit" : source
     }
 
     if (endDate.getTime() <= startDate.getTime()) {
         endDate = addDays(startDate, DEFAULT_FALLBACK_DAYS)
-        source = explicitDate ? "explicit" : "default_180d"
+        source = explicitDate ? "explicit" : "default_30d"
     }
 
     const durationDays = normalizeDurationDays(startDate, endDate)
@@ -277,5 +279,35 @@ export function resolveQuestionTimeRange(
         endDateIso: toIsoDate(endDate),
         durationDays,
         source,
+    }
+}
+
+/**
+ * Async version: runs the sync regex resolver first, then falls back to
+ * an AI call when no explicit/relative time range was detected.
+ */
+export async function resolveQuestionTimeRangeAsync(
+    question: string,
+    opts?: {
+        now?: Date
+        hintedTransitDate?: TransitDateHint
+    },
+): Promise<QuestionTimeRange> {
+    const result = resolveQuestionTimeRange(question, opts)
+
+    if (result.source !== "default_30d") return result
+
+    const aiDays = await resolveTimeRangeDaysWithAI(question)
+    if (aiDays === DEFAULT_FALLBACK_DAYS) return result
+
+    const endDate = addDays(result.startDate, aiDays)
+    const durationDays = normalizeDurationDays(result.startDate, endDate)
+    return {
+        startDate: result.startDate,
+        endDate,
+        startDateIso: result.startDateIso,
+        endDateIso: toIsoDate(endDate),
+        durationDays,
+        source: "ai_inferred",
     }
 }

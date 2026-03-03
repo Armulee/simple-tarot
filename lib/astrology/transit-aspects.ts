@@ -190,7 +190,8 @@ function parseAbsoluteLongitudeFromSignDegree(sign: unknown, degree: unknown) {
 }
 
 function normalizeAngleDelta(from: number, to: number) {
-    const raw = Math.abs(normalizeLongitude(to) - normalizeLongitude(from)) % 360
+    const raw =
+        Math.abs(normalizeLongitude(to) - normalizeLongitude(from)) % 360
     return raw > 180 ? 360 - raw : raw
 }
 
@@ -222,17 +223,19 @@ function toComparableDateValue(dateIso: string) {
 
 function isNextUtcDay(previousDateIso: string, nextDateIso: string) {
     const dayMs = 24 * 60 * 60 * 1000
-    return toComparableDateValue(nextDateIso) - toComparableDateValue(previousDateIso) === dayMs
+    return (
+        toComparableDateValue(nextDateIso) -
+            toComparableDateValue(previousDateIso) ===
+        dayMs
+    )
 }
 
 function resolveMajorAspect(separation: number) {
-    let best:
-        | {
-              type: MajorAspectType
-              angle: number
-              orb: number
-          }
-        | null = null
+    let best: {
+        type: MajorAspectType
+        angle: number
+        orb: number
+    } | null = null
 
     for (const aspect of MAJOR_ASPECTS) {
         const orb = Math.abs(separation - aspect.angle)
@@ -247,7 +250,9 @@ function resolveMajorAspect(separation: number) {
 
 function buildTransitLongitudesByPlanet(row: EphemerisCodexRow) {
     const transit: Partial<Record<MajorPlanetName, number>> = {}
-    for (const [planet, codexKey] of Object.entries(PLANET_TO_CODEX_KEY) as Array<
+    for (const [planet, codexKey] of Object.entries(
+        PLANET_TO_CODEX_KEY,
+    ) as Array<
         [MajorPlanetName, (typeof PLANET_TO_CODEX_KEY)[MajorPlanetName]]
     >) {
         const value = row[codexKey]
@@ -267,10 +272,13 @@ type SwissPlanetPoint = {
 function absoluteLongitudeFromSwissPoint(point: SwissPlanetPoint | undefined) {
     const fromSignDegree = parseAbsoluteLongitudeFromSignDegree(
         point?.sign,
-        point?.degree
+        point?.degree,
     )
     if (typeof fromSignDegree === "number") return fromSignDegree
-    if (typeof point?.longitude === "number" && Number.isFinite(point.longitude)) {
+    if (
+        typeof point?.longitude === "number" &&
+        Number.isFinite(point.longitude)
+    ) {
         return normalizeLongitude(point.longitude)
     }
     return null
@@ -293,17 +301,20 @@ export function buildAspectEventKey(input: {
 function computeDailyExactHits(
     dateIso: string,
     natalLongitudes: Record<MajorPlanetName, number>,
-    transitLongitudes: Partial<Record<MajorPlanetName, number>>
+    transitLongitudes: Partial<Record<MajorPlanetName, number>>,
 ) {
     const events: PersonalizedTransitAspectExact[] = []
 
     for (const [transitPlanet, transitLongitude] of Object.entries(
-        transitLongitudes
+        transitLongitudes,
     ) as Array<[MajorPlanetName, number]>) {
         for (const [natalPlanet, natalLongitude] of Object.entries(
-            natalLongitudes
+            natalLongitudes,
         ) as Array<[MajorPlanetName, number]>) {
-            const separation = normalizeAngleDelta(transitLongitude, natalLongitude)
+            const separation = normalizeAngleDelta(
+                transitLongitude,
+                natalLongitude,
+            )
             const aspect = resolveMajorAspect(separation)
             if (!aspect) continue
             events.push({
@@ -322,18 +333,19 @@ function computeDailyExactHits(
                 dateIso,
                 tier: getEventTier(transitPlanet),
                 priorityScore: Number(
-                    getPriorityScore(transitPlanet, aspect.orb).toFixed(3)
+                    getPriorityScore(transitPlanet, aspect.orb).toFixed(3),
                 ),
-                zodiacSign: getZodiacSignFromAbsoluteLongitude(transitLongitude),
+                zodiacSign:
+                    getZodiacSignFromAbsoluteLongitude(transitLongitude),
                 transitPositionText:
                     formatPositionTextFromAbsoluteLongitude(transitLongitude),
                 natalPositionText:
                     formatPositionTextFromAbsoluteLongitude(natalLongitude),
                 transitAbsoluteLongitude: Number(
-                    normalizeLongitude(transitLongitude).toFixed(3)
+                    normalizeLongitude(transitLongitude).toFixed(3),
                 ),
                 natalAbsoluteLongitude: Number(
-                    normalizeLongitude(natalLongitude).toFixed(3)
+                    normalizeLongitude(natalLongitude).toFixed(3),
                 ),
             })
         }
@@ -343,12 +355,23 @@ function computeDailyExactHits(
         (a, b) =>
             a.priorityScore - b.priorityScore ||
             a.orb - b.orb ||
-            a.transitPlanet.localeCompare(b.transitPlanet)
+            a.transitPlanet.localeCompare(b.transitPlanet),
     )
 }
 
 function toWindowKey(event: PersonalizedTransitAspectExact) {
     return `${event.transitPlanet}|${event.natalPlanet}|${event.aspectType}`
+}
+
+function isDateWithinInclusive(
+    targetDateIso: string,
+    startDateIso: string,
+    endDateIso: string
+) {
+    const target = toComparableDateValue(targetDateIso)
+    const start = toComparableDateValue(startDateIso)
+    const end = toComparableDateValue(endDateIso)
+    return target >= start && target <= end
 }
 
 function finalizeActiveWindows(activeByKey: Map<string, ActiveWindow>) {
@@ -365,10 +388,12 @@ export function getDefaultTransitAspectPlanets() {
 }
 
 export function buildNatalLongitudes(
-    planets: Record<string, SwissPlanetPoint | undefined>
+    planets: Record<string, SwissPlanetPoint | undefined>,
 ) {
     const natal: Partial<Record<MajorPlanetName, number>> = {}
-    for (const [planet, codexKey] of Object.entries(PLANET_TO_CODEX_KEY) as Array<
+    for (const [planet, codexKey] of Object.entries(
+        PLANET_TO_CODEX_KEY,
+    ) as Array<
         [MajorPlanetName, (typeof PLANET_TO_CODEX_KEY)[MajorPlanetName]]
     >) {
         const point = planets[planet]
@@ -378,7 +403,7 @@ export function buildNatalLongitudes(
             continue
         }
         const fallback = absoluteLongitudeFromSwissPoint(
-            planets[codexKey.replace("_long", "")]
+            planets[codexKey.replace("_long", "")],
         )
         if (typeof fallback === "number") {
             natal[planet] = fallback
@@ -401,16 +426,16 @@ export function computeExactTransitAspects({
     const completeNatal = Object.fromEntries(
         Object.entries(natalLongitudes).filter(
             (entry): entry is [MajorPlanetName, number] =>
-                typeof entry[1] === "number" && Number.isFinite(entry[1])
-        )
+                typeof entry[1] === "number" && Number.isFinite(entry[1]),
+        ),
     ) as Record<MajorPlanetName, number>
     if (Object.keys(completeNatal).length === 0) return null
 
     const completeFallbackTransit = Object.fromEntries(
         Object.entries(fallbackTransitLongitudes ?? {}).filter(
             (entry): entry is [MajorPlanetName, number] =>
-                typeof entry[1] === "number" && Number.isFinite(entry[1])
-        )
+                typeof entry[1] === "number" && Number.isFinite(entry[1]),
+        ),
     ) as Record<MajorPlanetName, number>
     const transitLongitudes = codexRow
         ? buildTransitLongitudesByPlanet(codexRow)
@@ -419,7 +444,11 @@ export function computeExactTransitAspects({
 
     return {
         dateIso,
-        events: computeDailyExactHits(dateIso, completeNatal, transitLongitudes),
+        events: computeDailyExactHits(
+            dateIso,
+            completeNatal,
+            transitLongitudes,
+        ),
     }
 }
 
@@ -437,8 +466,8 @@ export function computeRangeTransitAspects({
     const completeNatal = Object.fromEntries(
         Object.entries(natalLongitudes).filter(
             (entry): entry is [MajorPlanetName, number] =>
-                typeof entry[1] === "number" && Number.isFinite(entry[1])
-        )
+                typeof entry[1] === "number" && Number.isFinite(entry[1]),
+        ),
     ) as Record<MajorPlanetName, number>
     if (Object.keys(completeNatal).length === 0) return null
     if (codexRows.length === 0) {
@@ -455,7 +484,11 @@ export function computeRangeTransitAspects({
 
     for (const row of codexRows) {
         const transitLongitudes = buildTransitLongitudesByPlanet(row)
-        const todayHits = computeDailyExactHits(row.date, completeNatal, transitLongitudes)
+        const todayHits = computeDailyExactHits(
+            row.date,
+            completeNatal,
+            transitLongitudes,
+        )
         const seenKeys = new Set<string>()
 
         for (const hit of todayHits) {
@@ -537,7 +570,10 @@ export function computeRangeTransitAspects({
                 active.event.peakDateIso = hit.dateIso
                 active.event.peakSeparation = hit.separation
                 active.event.priorityScore = Number(
-                    getPriorityScore(active.event.transitPlanet, hit.orb).toFixed(3)
+                    getPriorityScore(
+                        active.event.transitPlanet,
+                        hit.orb,
+                    ).toFixed(3),
                 )
                 active.event.zodiacSign = hit.zodiacSign
                 active.event.transitPositionText = hit.transitPositionText
@@ -569,7 +605,7 @@ export function computeRangeTransitAspects({
             a.priorityScore - b.priorityScore ||
             a.minOrb - b.minOrb ||
             b.hitDays - a.hitDays ||
-            a.startDateIso.localeCompare(b.startDateIso)
+            a.startDateIso.localeCompare(b.startDateIso),
     )
 
     return {
@@ -587,7 +623,7 @@ export function buildPersonalizedTransitAspects({
     fallbackExactTransitLongitudes,
 }: {
     questionRange: {
-        source: "explicit" | "relative" | "default_180d"
+        source: "explicit" | "relative" | "default_30d" | "ai_inferred"
         startDateIso: string
         endDateIso: string
     }
@@ -595,8 +631,9 @@ export function buildPersonalizedTransitAspects({
     codexRows: EphemerisCodexRow[]
     fallbackExactTransitLongitudes?: Partial<Record<MajorPlanetName, number>>
 }): PersonalizedTransitAspectsResult {
-    const exactRow = codexRows.find((row) => row.date === questionRange.startDateIso) ?? null
-    const exact =
+    const exactRow =
+        codexRows.find((row) => row.date === questionRange.startDateIso) ?? null
+    const explicitExact =
         questionRange.source === "explicit"
             ? computeExactTransitAspects({
                   dateIso: questionRange.startDateIso,
@@ -606,15 +643,38 @@ export function buildPersonalizedTransitAspects({
               })
             : null
 
+    const computedRange = computeRangeTransitAspects({
+        startDateIso:
+            codexRows[0]?.date ??
+            questionRange.startDateIso,
+        endDateIso:
+            codexRows[codexRows.length - 1]?.date ??
+            questionRange.endDateIso,
+        natalLongitudes,
+        codexRows,
+    })
+
     const range =
         questionRange.source === "explicit"
-            ? null
-            : computeRangeTransitAspects({
-                  startDateIso: questionRange.startDateIso,
-                  endDateIso: questionRange.endDateIso,
-                  natalLongitudes,
-                  codexRows,
-              })
+            ? computedRange
+                ? {
+                      ...computedRange,
+                      events: computedRange.events.filter((event) =>
+                          isDateWithinInclusive(
+                              questionRange.startDateIso,
+                              event.startDateIso,
+                              event.endDateIso
+                          )
+                      ),
+                  }
+                : null
+            : computedRange
+
+    const exact =
+        questionRange.source === "explicit" &&
+        (!range || range.events.length === 0)
+            ? explicitExact
+            : null
 
     return {
         orbDegrees: ORB_DEGREES,
@@ -628,12 +688,13 @@ export function buildPersonalizedTransitAspects({
 }
 
 export function buildTransitLongitudesFromSwissPlanets(
-    planets: Record<string, SwissPlanetPoint | undefined>
+    planets: Record<string, SwissPlanetPoint | undefined>,
 ) {
     const transit: Partial<Record<MajorPlanetName, number>> = {}
     for (const planet of getDefaultTransitAspectPlanets()) {
         const value = absoluteLongitudeFromSwissPoint(
-            planets[planet] ?? planets[planet === "Rahu" ? "true_node" : planet]
+            planets[planet] ??
+                planets[planet === "Rahu" ? "true_node" : planet],
         )
         if (typeof value === "number") {
             transit[planet] = value
@@ -644,7 +705,7 @@ export function buildTransitLongitudesFromSwissPlanets(
 
 export function mergeAspectKeywordsIntoAspects(
     aspects: PersonalizedTransitAspectsResult,
-    keywords: AspectKeywordItem[]
+    keywords: AspectKeywordItem[],
 ): PersonalizedTransitAspectsResult {
     if (!keywords.length) return aspects
     const map = new Map<string, AspectKeywordItem>()

@@ -71,6 +71,43 @@ function formatHoroscopeLoadingText(
     return `${dateStr}${suffix}${".".repeat(dots)}`
 }
 
+function renderInlineBoldMarkdown(text: string): ReactNode[] {
+    if (!text.includes("**")) return [text]
+
+    const nodes: ReactNode[] = []
+    let cursor = 0
+    let key = 0
+
+    while (cursor < text.length) {
+        const open = text.indexOf("**", cursor)
+        if (open === -1) {
+            nodes.push(text.slice(cursor))
+            break
+        }
+
+        const close = text.indexOf("**", open + 2)
+        if (close === -1) {
+            nodes.push(text.slice(cursor))
+            break
+        }
+
+        if (open > cursor) {
+            nodes.push(text.slice(cursor, open))
+        }
+
+        const boldText = text.slice(open + 2, close)
+        if (boldText.trim().length === 0) {
+            nodes.push("**" + boldText + "**")
+        } else {
+            nodes.push(<strong key={`bold-${key++}`}>{boldText}</strong>)
+        }
+
+        cursor = close + 2
+    }
+
+    return nodes
+}
+
 function ChartDataCollapsible({
     chartData,
 }: {
@@ -276,6 +313,7 @@ type MessageListProps = {
     ) => void
     onUserDateFormSubmit: (value: HoroscopeBirthData) => Promise<void>
     onCancelHoroscopeLoading: () => void
+    onRegenerateHoroscope?: (messageId: string) => void
     onRefetchHoroscopeWithSystem: (
         messageId: string,
         system: "western_tropical" | "vedic_sidereal",
@@ -323,6 +361,7 @@ export default function MessageList({
     onAskAspectDetail,
     onUserDateFormSubmit,
     onCancelHoroscopeLoading,
+    onRegenerateHoroscope,
     onRefetchHoroscopeWithSystem,
     onToggleReaction,
     onReport,
@@ -667,7 +706,9 @@ export default function MessageList({
                                                     )}`}
                                                 </span>
                                             ) : (
-                                                message.text || ""
+                                                renderInlineBoldMarkdown(
+                                                    message.text || "",
+                                                )
                                             )}
                                         </div>
                                         {!message.isLoading && (
@@ -718,7 +759,9 @@ export default function MessageList({
                                             )}
                                             {message.followUpConclusion && (
                                                 <p className='text-white'>
-                                                    {message.followUpConclusion}
+                                                    {renderInlineBoldMarkdown(
+                                                        message.followUpConclusion,
+                                                    )}
                                                 </p>
                                             )}
                                             {Array.isArray(
@@ -752,7 +795,7 @@ export default function MessageList({
                             message.variant === "horoscope" ? (
                                 <>
                                     {message.sourceAspectEvent && (
-                                        <div className='w-full md:max-w-[85%]'>
+                                        <div className='w-full md:max-w-[85%] animate-fade-in'>
                                             <SourceAspectCard
                                                 event={
                                                     message.sourceAspectEvent
@@ -781,35 +824,40 @@ export default function MessageList({
                                                 detailToggle.transit
                                             }
                                             onToggleBirthDetails={() =>
-                                                setPanelDetailToggles((prev) => ({
-                                                    ...prev,
-                                                    [message.id]: {
-                                                        birth: !(
-                                                            prev[message.id]
-                                                                ?.birth ?? false
-                                                        ),
-                                                        transit:
-                                                            prev[message.id]
-                                                                ?.transit ??
-                                                            false,
-                                                    },
-                                                }))
+                                                setPanelDetailToggles(
+                                                    (prev) => ({
+                                                        ...prev,
+                                                        [message.id]: {
+                                                            birth: !(
+                                                                prev[message.id]
+                                                                    ?.birth ??
+                                                                false
+                                                            ),
+                                                            transit:
+                                                                prev[message.id]
+                                                                    ?.transit ??
+                                                                false,
+                                                        },
+                                                    }),
+                                                )
                                             }
                                             onToggleTransitDetails={() =>
-                                                setPanelDetailToggles((prev) => ({
-                                                    ...prev,
-                                                    [message.id]: {
-                                                        birth:
-                                                            prev[message.id]
-                                                                ?.birth ??
-                                                            false,
-                                                        transit: !(
-                                                            prev[message.id]
-                                                                ?.transit ??
-                                                            false
-                                                        ),
-                                                    },
-                                                }))
+                                                setPanelDetailToggles(
+                                                    (prev) => ({
+                                                        ...prev,
+                                                        [message.id]: {
+                                                            birth:
+                                                                prev[message.id]
+                                                                    ?.birth ??
+                                                                false,
+                                                            transit: !(
+                                                                prev[message.id]
+                                                                    ?.transit ??
+                                                                false
+                                                            ),
+                                                        },
+                                                    }),
+                                                )
                                             }
                                         />
                                         {message.chartData &&
@@ -911,7 +959,9 @@ export default function MessageList({
                                                             )}
                                                         </button>
                                                     )} */}
-                                                {message.text}
+                                                {renderInlineBoldMarkdown(
+                                                    message.text || "",
+                                                )}
                                                 {message.isLoading && (
                                                     <div className='mt-3'>
                                                         <button
@@ -941,11 +991,18 @@ export default function MessageList({
                                                         </p>
                                                         <ActionSection
                                                             variant='embedded'
+                                                            mode='horoscope'
                                                             question={
                                                                 message.question
                                                             }
                                                             interpretation={
                                                                 message.text
+                                                            }
+                                                            messageId={
+                                                                message.id
+                                                            }
+                                                            onRegenerateHoroscope={
+                                                                onRegenerateHoroscope
                                                             }
                                                         />
                                                     </div>
@@ -979,9 +1036,9 @@ export default function MessageList({
                                             <div className='w-full md:max-w-[85%] space-y-2 pt-4'>
                                                 {message.followUpConclusion && (
                                                     <p className='text-white'>
-                                                        {
-                                                            message.followUpConclusion
-                                                        }
+                                                        {renderInlineBoldMarkdown(
+                                                            message.followUpConclusion,
+                                                        )}
                                                     </p>
                                                 )}
                                                 {Array.isArray(
@@ -1027,7 +1084,7 @@ export default function MessageList({
                                 /* Plain variant: simple assistant text (chat decision, bridge message) */
                                 <>
                                     {message.sourceAspectEvent && (
-                                        <div className='w-full md:max-w-[85%] mb-2'>
+                                        <div className='w-full md:max-w-[85%] mb-2 animate-fade-in'>
                                             <SourceAspectCard
                                                 event={
                                                     message.sourceAspectEvent
@@ -1085,7 +1142,9 @@ export default function MessageList({
                                                 )}`}
                                             </span>
                                         ) : (
-                                            message.text || ""
+                                            renderInlineBoldMarkdown(
+                                                message.text || "",
+                                            )
                                         )}
                                     </div>
                                 </>

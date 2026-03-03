@@ -103,8 +103,8 @@ export async function GET(req: NextRequest) {
                             })
                             .eq("user_id", userId)
                             .select(
-                                "daily_stars,plan_stars,addon_stars,daily_last_refill_at,plan_last_refill_at,addon_last_refill_at,first_login_bonus_granted,first_time_login_grant,current_stars"
-                                + ",engagement_stars_current,engagement_stars_total"
+                                "daily_stars,plan_stars,addon_stars,daily_last_refill_at,plan_last_refill_at,addon_last_refill_at,first_login_bonus_granted,first_time_login_grant,current_stars" +
+                                    ",engagement_stars_current,engagement_stars_total",
                             )
                             .maybeSingle()
                         if (updated) {

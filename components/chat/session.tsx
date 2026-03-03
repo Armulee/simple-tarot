@@ -8,7 +8,6 @@ import Footer from "@/components/footer/footer"
 import { TypewriterText } from "@/components/typewriter-text"
 import QuestionInput from "@/components/question-input"
 import type { TarotCard } from "@/contexts/tarot-context"
-import { getTarotReadingPrompt } from "@/lib/prompts"
 import {
     tarotInterpretationSchema,
     type TarotInterpretation,
@@ -164,7 +163,10 @@ function buildDiscussedAspectsFromInsights(
     aspectInsights: AspectInsightItem[] | undefined,
 ) {
     if (!base || !aspectInsights?.length) return null
-    const merged = mergeAspectInsightsToPersonalizedAspects(base, aspectInsights)
+    const merged = mergeAspectInsightsToPersonalizedAspects(
+        base,
+        aspectInsights,
+    )
     const keys = new Set(aspectInsights.map((item) => item.aspectKey))
     return filterPersonalizedAspectsByKeys(merged, keys)
 }
@@ -431,37 +433,58 @@ export default function ChatSession({
         schema: horoscopeInterpretationSchema,
         fetch: async (url, options) => {
             const res = await fetch(url, options)
-            const chartB64 = res.headers.get("X-AskingFate-Chart-Data")
             const targetId = horoscopeTargetMessageIdRef.current
-            if (chartB64 && targetId) {
+            if (targetId && options?.body) {
                 try {
-                    const chartData = JSON.parse(atob(chartB64)) as Record<
-                        string,
-                        unknown
-                    >
-                    setMessages((prev) =>
-                        prev.map((m) =>
-                            m.id === targetId
-                                ? (() => {
-                                      const fullAspects =
-                                          (chartData.personalizedTransitAspects as ChatMessage["personalizedTransitAspects"]) ??
-                                          null
-                                      return {
-                                          ...m,
-                                          chartData,
-                                          personalizedTransitAspects: fullAspects,
-                                          personalizedTransitAspectsMerged:
-                                              buildDiscussedAspectsFromInsights(
-                                                  fullAspects,
-                                                  m.aspectInsights,
-                                              ),
-                                      }
-                                  })()
-                                : m,
-                        ),
-                    )
+                    const bodyPayload =
+                        typeof options.body === "string"
+                            ? JSON.parse(options.body)
+                            : options.body
+                    const { question, birth, transit, system, locale } =
+                        bodyPayload ?? {}
+                    if (question && birth) {
+                        fetch("/api/horoscope/chart-data", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                question,
+                                birth,
+                                transit,
+                                system,
+                                locale,
+                            }),
+                        })
+                            .then((r) => r.json())
+                            .then((chartData: Record<string, unknown>) => {
+                                if (chartData.error) return
+                                const msgId = targetId
+                                const fullAspects =
+                                    (chartData.personalizedTransitAspects as ChatMessage["personalizedTransitAspects"]) ??
+                                    null
+                                setMessages((prev) =>
+                                    prev.map((m) =>
+                                        m.id === msgId
+                                            ? {
+                                                  ...m,
+                                                  chartData,
+                                                  personalizedTransitAspects:
+                                                      fullAspects,
+                                                  personalizedTransitAspectsMerged:
+                                                      buildDiscussedAspectsFromInsights(
+                                                          fullAspects,
+                                                          m.aspectInsights,
+                                                      ),
+                                              }
+                                            : m,
+                                    ),
+                                )
+                            })
+                            .catch(() => {
+                                /* chart-data fetch failed; cards just won't render */
+                            })
+                    }
                 } catch {
-                    /* ignore */
+                    /* body parse failed */
                 }
             }
             return res
@@ -477,7 +500,9 @@ export default function ChatSession({
                 object.interpretation?.trim() ||
                 tHoroscope("fallbackAnswerError")
             const conclusion = object.conclusion?.trim() ?? null
-            const aspectInsights = normalizeAspectInsights(object.aspectInsights)
+            const aspectInsights = normalizeAspectInsights(
+                object.aspectInsights,
+            )
             const suggestions = (
                 object.suggestions?.filter(
                     (s): s is string =>
@@ -524,8 +549,7 @@ export default function ChatSession({
                                 chartData: m.chartData,
                                 text: interpretation,
                                 aspectInsights,
-                                personalizedTransitAspects:
-                                    fullAspects,
+                                personalizedTransitAspects: fullAspects,
                                 personalizedTransitAspectsMerged:
                                     mergedAspects ?? null,
                                 followUpConclusion: conclusion ?? undefined,
@@ -545,6 +569,7 @@ export default function ChatSession({
             setIsInterpreting(false)
         },
         onError: (e: Error) => {
+            console.error("[horoscope/useObject] stream error:", e)
             const targetId = horoscopeTargetMessageIdRef.current
             if (!targetId) return
             const isAbort = e?.name === "AbortError"
@@ -675,13 +700,15 @@ export default function ChatSession({
         const streamedAspectInsights = normalizeAspectInsights(
             horoscopeObject.aspectInsights,
         )
-        const streamedConclusion = horoscopeObject.conclusion?.trim() ?? undefined
+        const streamedConclusion =
+            horoscopeObject.conclusion?.trim() ?? undefined
         setMessages((prev) =>
             prev.map((m) =>
                 m.id !== targetId
                     ? m
                     : (() => {
-                          const nextText = streamedInterpretation ?? m.text ?? ""
+                          const nextText =
+                              streamedInterpretation ?? m.text ?? ""
                           const nextAspectInsights =
                               streamedAspectInsights ?? m.aspectInsights
                           const shouldMergeAspects =
@@ -993,22 +1020,14 @@ export default function ChatSession({
                 : null
             const conversationContext = buildConversationContext(lastQuestion)
 
-            const prompt = getTarotReadingPrompt({
+            interpretationLoadingIdRef.current = loadingId
+            submitInterpretation({
                 question: lastQuestion,
-                cards: cardNames.join(", "),
+                cards: cardNames,
                 readingType: decision?.spreadType ?? null,
                 isFollowUp,
                 previousQuestion,
                 previousInterpretation,
-                conversationContextText: conversationContext.contextText,
-                userMainPoint: conversationContext.userMainPoint,
-            })
-
-            interpretationLoadingIdRef.current = loadingId
-            submitInterpretation({
-                prompt,
-                question: lastQuestion,
-                cards: cardNames,
                 conversationContext,
                 locale,
             })
@@ -1286,6 +1305,92 @@ export default function ChatSession({
         ],
     )
 
+    const regenerateHoroscopeAt = useCallback(
+        (messageId: string) => {
+            const msg = messages.find((m) => m.id === messageId)
+            if (!msg || msg.variant !== "horoscope" || !msg.chartData) return
+
+            const birth = chartDataToBirth(
+                msg.chartData as Record<string, unknown>,
+            )
+            if (!birth) return
+            const transit = chartDataToTransit(
+                msg.chartData as Record<string, unknown>,
+            )
+            const questionText = msg.question || "General horoscope reading"
+
+            const chartDataObj = msg.chartData as Record<string, unknown>
+            const charts = chartDataObj?.charts as
+                | Array<{ system?: string }>
+                | undefined
+            const currentSystem =
+                (charts?.[0]?.system as
+                    | "western_tropical"
+                    | "vedic_sidereal"
+                    | undefined) ?? "vedic_sidereal"
+
+            horoscopeIsRefetchRef.current = true
+            horoscopeRefetchSystemRef.current = currentSystem
+            horoscopeCachedBeforeRefetchRef.current = currentSystem
+            horoscopeTargetMessageIdRef.current = messageId
+            setIsInterpreting(true)
+
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === messageId
+                        ? {
+                              ...m,
+                              text: "",
+                              aspectInsights: undefined,
+                              sourceAspectKey: undefined,
+                              sourceAspectEvent: undefined,
+                              personalizedTransitAspectsMerged: null,
+                              followUpConclusion: undefined,
+                              followUpSuggestions: undefined,
+                              isLoading: true,
+                          }
+                        : m,
+                ),
+            )
+            submitHoroscope({
+                question: questionText,
+                conversationContext:
+                    buildHoroscopeConversationContext(questionText),
+                locale,
+                system: currentSystem,
+                birth: {
+                    day: birth.day,
+                    month: birth.month,
+                    year: birth.year,
+                    hour: birth.hour,
+                    minute: birth.minute,
+                    timeHint: birth.timeHint,
+                    timezone: birth.timezone,
+                    lat: birth.lat,
+                    lng: birth.lng,
+                    country: birth.country,
+                    state: birth.state,
+                    usedLocationFallback: birth.usedLocationFallback,
+                },
+                transit: transit
+                    ? {
+                          day: transit.day,
+                          month: transit.month,
+                          year: transit.year,
+                          hour: transit.hour,
+                          minute: transit.minute,
+                          timezone: transit.timezone,
+                          lat: transit.lat,
+                          lng: transit.lng,
+                          country: transit.country,
+                          state: transit.state,
+                      }
+                    : null,
+            })
+        },
+        [buildHoroscopeConversationContext, locale, messages, submitHoroscope],
+    )
+
     const refetchHoroscopeWithSystem = useCallback(
         async (
             messageId: string,
@@ -1305,11 +1410,11 @@ export default function ChatSession({
                                   chartData: cached.chartData,
                                   personalizedTransitAspects:
                                       cached.personalizedTransitAspects ?? null,
-                              personalizedTransitAspectsMerged:
-                                  cached.personalizedTransitAspectsMerged ??
-                                  null,
+                                  personalizedTransitAspectsMerged:
+                                      cached.personalizedTransitAspectsMerged ??
+                                      null,
                                   text: cached.text,
-                              aspectInsights: cached.aspectInsights,
+                                  aspectInsights: cached.aspectInsights,
                                   followUpConclusion: cached.followUpConclusion,
                                   followUpSuggestions:
                                       cached.followUpSuggestions,
@@ -1526,6 +1631,7 @@ export default function ChatSession({
                 }
 
                 const questionText =
+                    trimmed ||
                     horoscopeQuestion ||
                     lastQuestion ||
                     "General horoscope reading"
@@ -2491,6 +2597,7 @@ export default function ChatSession({
                 onAskAspectDetail={handleAskAspectDetail}
                 onUserDateFormSubmit={handleUserDateFormSubmit}
                 onCancelHoroscopeLoading={handleCancelHoroscopeLoading}
+                onRegenerateHoroscope={regenerateHoroscopeAt}
                 onRefetchHoroscopeWithSystem={refetchHoroscopeWithSystem}
                 onToggleReaction={toggleReaction}
                 onReport={handleReport}

@@ -7,7 +7,7 @@ import {
 } from "@/lib/astrology/intake"
 import { horoscopeInterpretationSchema } from "@/lib/astrology/schema"
 import { getHoroscopeInterpretationPrompt } from "@/lib/prompts"
-import { resolveQuestionTimeRange } from "@/lib/astrology/question-time-range"
+import { resolveQuestionTimeRangeAsync } from "@/lib/astrology/question-time-range"
 import { getCodexTransitWindow } from "@/lib/astrology/ephemeris-codex"
 import { isBirthChartSuitabilityQuestion } from "@/lib/astrology/question-intent"
 import { normalizeConversationContext } from "@/lib/astrology/question-context"
@@ -17,7 +17,20 @@ import {
     buildTransitLongitudesFromSwissPlanets,
 } from "@/lib/astrology/transit-aspects"
 
-const MODEL = "openai/gpt-4o-mini"
+// Chart data (with aspects) is now served separately via /api/horoscope/chart-data.
+// This route only streams the AI interpretation.
+
+const MODEL = "google/gemini-2.0-flash"
+const DAY_MS = 24 * 60 * 60 * 1000
+const EXPLICIT_ASPECT_PADDING_DAYS = 30
+
+function addUtcDays(date: Date, days: number) {
+    return new Date(date.getTime() + days * DAY_MS)
+}
+
+function toIsoDate(date: Date) {
+    return date.toISOString().slice(0, 10)
+}
 
 const requestSchema = z.object({
     question: z.string().trim().min(1),
@@ -71,7 +84,7 @@ export async function POST(req: Request) {
             body.system ||
             getDefaultAstrologySystem(locale) ||
             ("vedic_sidereal" as const)
-        const questionRange = resolveQuestionTimeRange(body.question, {
+        const questionRange = await resolveQuestionTimeRangeAsync(body.question, {
             hintedTransitDate: body.transit
                 ? {
                       day: body.transit.day ?? null,
@@ -81,6 +94,37 @@ export async function POST(req: Request) {
                 : null,
         })
         const codexTransit = await getCodexTransitWindow(questionRange)
+        const aspectRange =
+            questionRange.source === "explicit"
+                ? {
+                      ...questionRange,
+                      startDate: addUtcDays(
+                          questionRange.startDate,
+                          -EXPLICIT_ASPECT_PADDING_DAYS,
+                      ),
+                      endDate: addUtcDays(
+                          questionRange.startDate,
+                          EXPLICIT_ASPECT_PADDING_DAYS,
+                      ),
+                      startDateIso: toIsoDate(
+                          addUtcDays(
+                              questionRange.startDate,
+                              -EXPLICIT_ASPECT_PADDING_DAYS,
+                          ),
+                      ),
+                      endDateIso: toIsoDate(
+                          addUtcDays(
+                              questionRange.startDate,
+                              EXPLICIT_ASPECT_PADDING_DAYS,
+                          ),
+                      ),
+                      durationDays: EXPLICIT_ASPECT_PADDING_DAYS * 2,
+                  }
+                : questionRange
+        const aspectCodexTransit =
+            questionRange.source === "explicit"
+                ? await getCodexTransitWindow(aspectRange)
+                : codexTransit
         const suitabilityQuestion = isBirthChartSuitabilityQuestion(
             body.question,
         )
@@ -116,21 +160,20 @@ export async function POST(req: Request) {
                 endDateIso: questionRange.endDateIso,
             },
             natalLongitudes,
-            codexRows: codexTransit.rows,
+            codexRows: aspectCodexTransit.rows,
             fallbackExactTransitLongitudes,
         })
-        const chartDataWithAspects = {
-            ...chartDataResult,
-            personalizedTransitAspects,
-        }
-
         const resolvedTime = resolveBirthTime({
             hour: body.birth.hour ?? null,
             minute: body.birth.minute ?? null,
             timeHint: body.birth.timeHint ?? "unknown",
         })
 
-        const chartData = JSON.stringify(chartDataWithAspects, null, 2)
+        const chartDataForPrompt = {
+            ...chartDataResult,
+            personalizedTransitAspects: undefined,
+        }
+        const chartData = JSON.stringify(chartDataForPrompt)
 
         const now = new Date()
         const currentDateTime = now.toLocaleString("en-CA", {
@@ -161,6 +204,10 @@ export async function POST(req: Request) {
             userMainPoint: conversationContext?.userMainPoint ?? "",
         })
 
+        console.log(
+            `[horoscope/question] prompt size: ${(prompt.length / 1024).toFixed(1)}KB (~${Math.ceil(prompt.length / 4)} tokens)`,
+        )
+
         const result = await streamObject({
             model: MODEL,
             schema: horoscopeInterpretationSchema,
@@ -180,28 +227,15 @@ Output structure: Provide interpretation (main reading), conclusion (short calmi
 
         result.object
             .then((obj) => {
-                console.log(
-                    "[horoscope/question] AI object:",
-                    JSON.stringify(obj, null, 2),
-                )
+                console.log(obj)
             })
             .catch((err) => {
-                console.error("[horoscope/question] AI object error:", err)
+                console.log(err)
             })
 
-        const streamRes = result.toTextStreamResponse()
-        const chartDataB64 = Buffer.from(
-            JSON.stringify(chartDataWithAspects),
-        ).toString("base64")
-
-        return new Response(streamRes.body, {
-            status: streamRes.status,
-            headers: new Headers({
-                ...Object.fromEntries(streamRes.headers),
-                "X-AskingFate-Chart-Data": chartDataB64,
-            }),
-        })
+        return result.toTextStreamResponse()
     } catch (error) {
+        console.error("[horoscope/question] request failed:", error)
         const message =
             error instanceof Error ? error.message : "HOROSCOPE_FAILED"
         return new Response(message, { status: 400 })

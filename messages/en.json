@@ -252,11 +252,11 @@
     },
     "description": "Your personalized AI fortune teller",
     "prompts": [
-      "What is the message I need to hear today?",
-      "How can I find clarity in my career path?",
-      "What should I focus on in love this month?",
       "What is blocking my next step forward?",
-      "How can I align with my true purpose?"
+      "How can I align with my true purpose?",
+      "What is the message for me from the stars?",
+      "What will happen in my career path?",
+      "What should I focus on in love this month?"
     ],
     "astrologyFeature": {
       "title1": "Starlit Transit",
@@ -2352,9 +2352,12 @@
     "defaultKeyword": "Personalized aspect",
     "exactDatePrefix": "On {date}",
     "rangeDate": "Starts {start} (peak {peak})",
+    "rangeDateStart": "Starts {start}",
+    "rangeDatePeak": "Peak {peak}",
+    "rangeDateEnd": "Ends {end}",
     "mainEvents": "Main Events",
     "showDailyVibes": "Show Daily Vibes ({count})",
-    "showLifeSituation": "Show Life Situation ({count})",
+    "showLifeSituation": "Show All Planetary Aspects ({count})",
     "showBirthDetails": "Show Birth Details",
     "showTransitDetails": "Show Transit Details",
     "birthDetails": "Birth Details",

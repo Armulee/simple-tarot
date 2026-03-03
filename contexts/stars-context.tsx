@@ -72,7 +72,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     const [initialized, setInitialized] = useState(false)
     const [nextRefillAt, setNextRefillAt] = useState<number | null>(null)
     const [dailyLastRefillAt, setDailyLastRefillAt] = useState<number | null>(
-        null
+        null,
     )
     const [firstLoginBonusGranted, setFirstLoginBonusGranted] = useState<
         boolean | undefined
@@ -87,11 +87,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     const refillCap = user ? 12 : 5
 
     const stars = useMemo(() => {
-        if (
-            dailyStars === null &&
-            planStars === null &&
-            addonStars === null
-        ) {
+        if (dailyStars === null && planStars === null && addonStars === null) {
             return null
         }
         return (dailyStars ?? 0) + (planStars ?? 0) + (addonStars ?? 0)
@@ -127,7 +123,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             current: number,
             lastRefillMs: number | null,
             cap: number,
-            isLoggedIn: boolean
+            isLoggedIn: boolean,
         ): number | null => {
             if (!isLoggedIn) {
                 // Anonymous: next refill at next Bangkok midnight
@@ -137,7 +133,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             const base = lastRefillMs ?? Date.now()
             return base + REFILL_INTERVAL_MS_AUTH
         },
-        [getNextBangkokMidnightMs]
+        [getNextBangkokMidnightMs],
     )
 
     const refillCycleMs = useMemo(() => {
@@ -158,8 +154,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                 dailyStars ?? 0,
                 dailyLastRefillAt,
                 refillCap,
-                Boolean(user)
-            )
+                Boolean(user),
+            ),
         )
     }, [
         initialized,
@@ -207,8 +203,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                             state.dailyStars,
                             state.dailyLastRefillAt,
                             refillCap,
-                            Boolean(user)
-                        )
+                            Boolean(user),
+                        ),
                     )
                     setFirstLoginBonusGranted(state.firstLoginBonusGranted)
                     setFirstTimeLoginGrant(state.firstTimeLoginGrant)
@@ -254,8 +250,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                                 state.dailyStars,
                                 state.dailyLastRefillAt,
                                 refillCap,
-                                Boolean(user)
-                            )
+                                Boolean(user),
+                            ),
                         )
                         setFirstLoginBonusGranted(state.firstLoginBonusGranted)
                         setFirstTimeLoginGrant(state.firstTimeLoginGrant)
@@ -266,7 +262,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         if (typeof window !== "undefined") {
             window.addEventListener(
                 "cookie-consent-changed",
-                onConsent as EventListener
+                onConsent as EventListener,
             )
         }
         return () => {
@@ -274,7 +270,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             if (typeof window !== "undefined") {
                 window.removeEventListener(
                     "cookie-consent-changed",
-                    onConsent as EventListener
+                    onConsent as EventListener,
                 )
             }
         }
@@ -317,8 +313,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                         state.dailyStars,
                         state.dailyLastRefillAt,
                         refillCap,
-                        Boolean(user)
-                    )
+                        Boolean(user),
+                    ),
                 )
                 setFirstLoginBonusGranted(state.firstLoginBonusGranted)
                 setFirstTimeLoginGrant(state.firstTimeLoginGrant)
@@ -336,7 +332,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         if (typeof window !== "undefined") {
             window.addEventListener(
                 "stars-balance-updated",
-                onCustomUpdate as EventListener
+                onCustomUpdate as EventListener,
             )
             document.addEventListener("visibilitychange", onVisibility)
             if ("BroadcastChannel" in window) {
@@ -351,7 +347,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             if (typeof window !== "undefined") {
                 window.removeEventListener(
                     "stars-balance-updated",
-                    onCustomUpdate as EventListener
+                    onCustomUpdate as EventListener,
                 )
                 document.removeEventListener("visibilitychange", onVisibility)
                 if (bc) {
@@ -380,10 +376,10 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                 return Math.max(0, next)
             })
             setEngagementStarsCurrent((prev: number | null) =>
-                Math.max(0, (prev ?? 0) + amount)
+                Math.max(0, (prev ?? 0) + amount),
             )
             setEngagementStarsTotal((prev: number | null) =>
-                Math.max(0, (prev ?? 0) + amount)
+                Math.max(0, (prev ?? 0) + amount),
             )
             ;(async () => {
                 try {
@@ -395,8 +391,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                             state.dailyStars,
                             state.dailyLastRefillAt,
                             refillCap,
-                            Boolean(user)
-                        )
+                            Boolean(user),
+                        ),
                     )
                     broadcastStarsUpdate()
                 } catch {
@@ -410,8 +406,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                                 state.dailyStars,
                                 state.dailyLastRefillAt,
                                 refillCap,
-                                Boolean(user)
-                            )
+                                Boolean(user),
+                            ),
                         )
                         broadcastStarsUpdate()
                     } catch {}
@@ -425,7 +421,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             broadcastStarsUpdate,
             refreshSubscription,
             applyStarState,
-        ]
+        ],
     )
 
     // For purchases: explicitly set absolute balance. Requires logged-in user.
@@ -450,8 +446,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                             state.dailyStars,
                             state.dailyLastRefillAt,
                             refillCap,
-                            Boolean(user)
-                        )
+                            Boolean(user),
+                        ),
                     )
                     broadcastStarsUpdate()
                 } catch {
@@ -464,8 +460,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                                 state.dailyStars,
                                 state.dailyLastRefillAt,
                                 refillCap,
-                                Boolean(user)
-                            )
+                                Boolean(user),
+                            ),
                         )
                         broadcastStarsUpdate()
                     } catch {}
@@ -479,7 +475,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             broadcastStarsUpdate,
             refreshSubscription,
             applyStarState,
-        ]
+        ],
     )
 
     const spendStars = useCallback(
@@ -530,9 +526,13 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                 setPlanStars(nextPlan)
                 setAddonStars(nextAddon)
                 setEngagementStarsCurrent((prev: number | null) =>
-                    Math.max(0, (prev ?? 0) - amount)
+                    Math.max(0, (prev ?? 0) - amount),
                 )
-                if (user && currentDaily >= refillCap && nextDaily < refillCap) {
+                if (
+                    user &&
+                    currentDaily >= refillCap &&
+                    nextDaily < refillCap
+                ) {
                     setDailyLastRefillAt(Date.now())
                     setNextRefillAt(Date.now() + REFILL_INTERVAL_MS_AUTH)
                 }
@@ -553,8 +553,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                                 refreshed.dailyStars,
                                 refreshed.dailyLastRefillAt,
                                 refillCap,
-                                Boolean(user)
-                            )
+                                Boolean(user),
+                            ),
                         )
                         broadcastStarsUpdate()
                         return
@@ -565,8 +565,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                             state.dailyStars,
                             state.dailyLastRefillAt,
                             refillCap,
-                            Boolean(user)
-                        )
+                            Boolean(user),
+                        ),
                     )
                     broadcastStarsUpdate()
                 } catch {
@@ -579,8 +579,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                                 refreshed.dailyStars,
                                 refreshed.dailyLastRefillAt,
                                 refillCap,
-                                Boolean(user)
-                            )
+                                Boolean(user),
+                            ),
                         )
                         broadcastStarsUpdate()
                     } catch {}
@@ -599,7 +599,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             planStars,
             addonStars,
             applyStarState,
-        ]
+        ],
     )
 
     const resetStars = useCallback(
@@ -615,7 +615,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                 return next
             })
         },
-        [addStars]
+        [addStars],
     )
 
     const value = useMemo<StarsContextType>(
@@ -656,7 +656,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             firstLoginBonusGranted,
             firstTimeLoginGrant,
             subscription,
-        ]
+        ],
     )
 
     return (

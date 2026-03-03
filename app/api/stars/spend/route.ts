@@ -21,7 +21,7 @@ export async function POST(req: Request) {
             if (currentErr) {
                 return NextResponse.json(
                     { error: currentErr.message },
-                    { status: 400 }
+                    { status: 400 },
                 )
             }
 
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
             let addonStars = Number(row.addon_stars ?? 0)
             const starsBefore = dailyStars + planStars + addonStars
             const engagementStarsCurrent = Number(
-                row.engagement_stars_current ?? 0
+                row.engagement_stars_current ?? 0,
             )
             const engagementStarsTotal = Number(row.engagement_stars_total ?? 0)
             let planLastRefillMs = row.plan_last_refill_at
@@ -119,7 +119,7 @@ export async function POST(req: Request) {
                             addon_stars: addonStars,
                             engagement_stars_current: Math.max(
                                 0,
-                                engagementStarsCurrent - amount
+                                engagementStarsCurrent - amount,
                             ),
                             engagement_stars_total: engagementStarsTotal,
                             current_stars: dailyStars + planStars + addonStars,
@@ -149,7 +149,7 @@ export async function POST(req: Request) {
                     addon_stars: nextAddon,
                     engagement_stars_current: Math.max(
                         0,
-                        engagementStarsCurrent - amount
+                        engagementStarsCurrent - amount,
                     ),
                     engagement_stars_total: engagementStarsTotal,
                     plan_last_refill_at: planLastRefillMs
@@ -165,7 +165,7 @@ export async function POST(req: Request) {
                 })
                 .eq("user_id", userId)
                 .select(
-                    "daily_stars,plan_stars,addon_stars,engagement_stars_current,engagement_stars_total,current_stars,daily_last_refill_at"
+                    "daily_stars,plan_stars,addon_stars,engagement_stars_current,engagement_stars_total,current_stars,daily_last_refill_at",
                 )
                 .maybeSingle()
 

@@ -1,5 +1,5 @@
 import { streamObject } from "ai"
-import { TAROT_SYSTEM_PROMPT } from "@/lib/prompts"
+import { getTarotReadingPrompt, TAROT_SYSTEM_PROMPT } from "@/lib/prompts"
 import { tarotInterpretationSchema } from "@/lib/tarot/schema"
 import {
     fetchTarotCodexForCards,
@@ -11,30 +11,49 @@ import {
     normalizeConversationContext,
 } from "@/lib/astrology/question-context"
 
-const MODEL = "openai/gpt-4o-mini"
+const MODEL = "openai/gpt-4.1-mini"
 
 export async function POST(req: Request) {
     try {
         const body = (await req.json()) as {
-            prompt?: string
             question?: string
             cards?: string[]
+            readingType?: string | null
+            isFollowUp?: boolean
+            previousQuestion?: string | null
+            previousInterpretation?: string | null
             conversationContext?: unknown
             locale?: string
         }
 
         const {
-            prompt: rawPrompt,
             question,
             cards,
+            readingType,
+            isFollowUp,
+            previousQuestion,
+            previousInterpretation,
             conversationContext: rawContext,
         } = body
 
-        let prompt = rawPrompt ?? ""
+        if (!question || !Array.isArray(cards) || cards.length === 0) {
+            return new Response("Question and cards are required", {
+                status: 400,
+            })
+        }
+
+        let prompt = getTarotReadingPrompt({
+            question,
+            cards: cards.join(", "),
+            readingType: readingType ?? null,
+            isFollowUp: Boolean(isFollowUp),
+            previousQuestion: previousQuestion ?? null,
+            previousInterpretation: previousInterpretation ?? null,
+        })
         const conversationContext = normalizeConversationContext(rawContext)
         const contextBlock =
             buildConversationContextPromptBlock(conversationContext)
-        if (contextBlock && !prompt.includes("Session context:")) {
+        if (contextBlock && !prompt.includes("<session_context>")) {
             prompt = `${contextBlock}
 
 ---
@@ -42,22 +61,15 @@ export async function POST(req: Request) {
 ${prompt}`
         }
 
-        if (question && Array.isArray(cards) && cards.length > 0) {
-            const codexMap = await fetchTarotCodexForCards(cards)
-            const topics = extractTopicsFromQuestion(question)
-            const ragContext = buildRagContext(cards, codexMap, topics)
+        const codexMap = await fetchTarotCodexForCards(cards)
+        const topics = extractTopicsFromQuestion(question)
+        const ragContext = buildRagContext(cards, codexMap, topics)
 
-            if (ragContext) {
-                prompt = `${ragContext}
-
+        if (ragContext) {
+            prompt = `${ragContext}
 ---
 
 ${prompt}`
-            }
-        }
-
-        if (!prompt.trim()) {
-            return new Response("Prompt is required", { status: 400 })
         }
 
         const result = await streamObject({

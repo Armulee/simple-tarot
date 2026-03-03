@@ -5,6 +5,7 @@ import Image from "next/image"
 import {
     ChevronDown,
     ChevronUp,
+    Flame,
     Layers,
     Minus,
     MoveHorizontal,
@@ -15,7 +16,7 @@ import {
     TrendingDown,
     TrendingUp,
 } from "lucide-react"
-import { Eye } from "lucide-react"
+import { Calendar, Eye } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
 import type { SourceAspectEvent } from "@/components/chat/types"
@@ -46,6 +47,8 @@ type PanelAspectEvent = {
     sentiment: "good" | "bad" | "neutral"
     insight?: string
     dateText: string
+    peakText?: string
+    endText?: string
     tier: "main" | "minor"
     zodiacSign: string
     transitPositionText?: string
@@ -282,6 +285,9 @@ function getPersonalizedAspectEvents(
             dateText: t("exactDatePrefix", {
                 date: formatDateIsoForLocale(event.dateIso, locale),
             }),
+            endText: t("rangeDateEnd", {
+                end: formatDateIsoForLocale(event.dateIso, locale),
+            }),
         })
     }
     for (const event of rangeEvents) {
@@ -311,9 +317,14 @@ function getPersonalizedAspectEvents(
             natalAbsoluteLongitude: toFiniteNumber(
                 event.natalAbsoluteLongitude,
             ),
-            dateText: t("rangeDate", {
+            dateText: t("rangeDateStart", {
                 start: formatDateIsoForLocale(event.startDateIso, locale),
+            }),
+            peakText: t("rangeDatePeak", {
                 peak: formatDateIsoForLocale(event.peakDateIso, locale),
+            }),
+            endText: t("rangeDateEnd", {
+                end: formatDateIsoForLocale(event.endDateIso, locale),
             }),
         })
     }
@@ -376,7 +387,8 @@ export default function RealtimePlanetaryPanel({
     const [showDailyVibes, setShowDailyVibes] = useState(false)
     const [showLifeSituation, setShowLifeSituation] = useState(false)
     const [localShowBirthDetails, setLocalShowBirthDetails] = useState(false)
-    const [localShowTransitDetails, setLocalShowTransitDetails] = useState(false)
+    const [localShowTransitDetails, setLocalShowTransitDetails] =
+        useState(false)
     const fallbackAspects = chartData?.personalizedTransitAspects as
         | PersonalizedTransitAspectsResult
         | undefined
@@ -635,6 +647,26 @@ export default function RealtimePlanetaryPanel({
                         {event.insight}
                     </p>
                 )}
+
+                {event.dateText && (
+                    <div className='flex justify-between items-center text-[10px] w-full text-amber-100/90 rounded px-2 py-1'>
+                        <span className='inline-flex items-center gap-1'>
+                            <Calendar className='h-3 w-3 shrink-0' />
+                            {event.dateText}
+                        </span>
+                        {event.peakText && (
+                            <span className='inline-flex items-center gap-1 text-amber-200/90 px-2'>
+                                <Flame className='h-3 w-3 text-orange-300' />
+                                {event.peakText}
+                            </span>
+                        )}
+                        {event.endText && (
+                            <span className='text-amber-200/80 text-right'>
+                                {event.endText}
+                            </span>
+                        )}
+                    </div>
+                )}
             </div>
         )
     }
@@ -673,7 +705,9 @@ export default function RealtimePlanetaryPanel({
                     {lifeSituationEvents.length > 0 && (
                         <button
                             type='button'
-                            onClick={() => setShowLifeSituation((prev) => !prev)}
+                            onClick={() =>
+                                setShowLifeSituation((prev) => !prev)
+                            }
                             className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
                         >
                             {showLifeSituation ? (
@@ -731,7 +765,6 @@ export default function RealtimePlanetaryPanel({
                         ))}
                     </div>
                 )}
-
             </div>
         </div>
     )

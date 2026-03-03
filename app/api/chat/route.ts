@@ -1,11 +1,12 @@
-import { streamText } from "ai"
+import { streamObject } from "ai"
 
+import { chatDecisionSchema } from "@/lib/chat/decision-schema"
 import {
     CHAT_DECISION_SYSTEM_PROMPT,
     getChatDecisionPrompt,
 } from "@/lib/prompts"
 
-const MODEL = "openai/gpt-4o-mini"
+const MODEL = "openai/gpt-4.1-mini"
 
 function normalizeHistory(
     history: unknown,
@@ -52,14 +53,19 @@ export async function POST(req: Request) {
             return new Response("User question is required", { status: 400 })
         }
 
-        const result = streamText({
+        const result = streamObject({
             model: MODEL,
+            schema: chatDecisionSchema,
             system: CHAT_DECISION_SYSTEM_PROMPT,
             prompt: getChatDecisionPrompt({
                 question,
                 history: normalizedHistory,
                 savedBirthInfo: savedBirthInfo ?? null,
             }),
+        })
+
+        result.object.then((obj) => {
+            console.log("[chat/decision] type:", obj.type)
         })
 
         return result.toTextStreamResponse()

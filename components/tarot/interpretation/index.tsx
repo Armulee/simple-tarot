@@ -8,9 +8,10 @@ import {
     tarotInterpretationSchema,
     type TarotInterpretation,
 } from "@/lib/tarot/schema"
+
+type PartialTarotInterpretation = Partial<TarotInterpretation>
 import QuestionInput from "../../question-input"
-import { useTranslations, useLocale } from "next-intl"
-import { getTarotReadingPrompt } from "@/lib/prompts"
+import { useTranslations } from "next-intl"
 import { useAuth } from "@/hooks/use-auth"
 import { useTarot } from "@/contexts/tarot-context"
 import {
@@ -41,6 +42,8 @@ type ReadingProps = {
     isLargeScreen?: boolean
     readingType?: string | null
     onInterpretationChange?: (text: string | null) => void
+    /** Streaming object from sibling ActionSection (e.g. reading-layout regenerate) */
+    streamingObject?: PartialTarotInterpretation | null
 }
 
 export default function Interpretation({
@@ -53,9 +56,9 @@ export default function Interpretation({
     isLargeScreen = false,
     readingType: propReadingType,
     onInterpretationChange,
+    streamingObject: streamingObjectProp,
 }: ReadingProps) {
     const t = useTranslations("ReadingPage.interpretation")
-    const locale = useLocale()
     const { user, session } = useAuth()
     const {
         isFollowUp,
@@ -70,6 +73,8 @@ export default function Interpretation({
         initialInterpretation ?? null,
     )
     const [isGenerating, setIsGenerating] = useState(false)
+    const [streamingObjectFromAction, setStreamingObjectFromAction] =
+        useState<PartialTarotInterpretation | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
     const [isAuthLoading, setIsAuthLoading] = useState(true)
@@ -315,8 +320,6 @@ export default function Interpretation({
 
             setIsGenerating(true)
             setError(null)
-            const cardNames = (cards ?? []).join(", ")
-
             // Try to include context from the previous reading when this is a follow-up
             let previousQuestion: string | null = null
             let previousInterpretation: string | null = null
@@ -338,22 +341,16 @@ export default function Interpretation({
                 }
             } catch {}
 
-            const prompt = getTarotReadingPrompt({
-                question: question ?? "",
-                cards: cardNames,
-                readingType: propReadingType || readingType || null,
-                isFollowUp,
-                previousQuestion,
-                previousInterpretation,
-            })
-
             const cardArray = (cards ?? []).map((c) =>
                 typeof c === "string" ? c : String(c),
             )
             submit({
-                prompt,
                 question: question ?? "",
                 cards: cardArray,
+                readingType: propReadingType || readingType || null,
+                isFollowUp,
+                previousQuestion,
+                previousInterpretation,
             })
         }
     }, [
@@ -476,7 +473,11 @@ export default function Interpretation({
                                     Try Again
                                 </button>
                             </div>
-                        ) : isGenerating && !interpretation && !object ? (
+                        ) : isGenerating &&
+                          !interpretation &&
+                          !object &&
+                          !streamingObjectProp &&
+                          !streamingObjectFromAction ? (
                             <div className='flex justify-center py-6 text-sm text-muted-foreground'>
                                 Generating interpretation...
                             </div>
@@ -550,12 +551,16 @@ export default function Interpretation({
                                     }
 
                                     // If we are currently generating, display the streaming object
-                                    if (object) {
+                                    const displayObject =
+                                        object ??
+                                        streamingObjectProp ??
+                                        streamingObjectFromAction
+                                    if (displayObject) {
                                         return (
                                             <>
-                                                {object.keywords && (
+                                                {displayObject.keywords && (
                                                     <div className='flex flex-wrap gap-2 mb-4'>
-                                                        {object.keywords
+                                                        {displayObject.keywords
                                                             .split(",")
                                                             .map(
                                                                 (
@@ -589,7 +594,7 @@ export default function Interpretation({
                                                             )}
                                                     </div>
                                                 )}
-                                                {object.interpretation}
+                                                {displayObject.interpretation}
 
                                                 {/* Disclaimer at the bottom (while generating) */}
                                                 <div className='mt-8 pt-6 border-t border-white/5 opacity-50'>
@@ -609,7 +614,7 @@ export default function Interpretation({
                 </div>
             </Card>
 
-            {!isLargeScreen && interpretation && !error && (
+            {!isLargeScreen && (interpretation || isGenerating) && !error && (
                 <div className='w-full max-w-4xl space-y-6'>
                     <ActionSection
                         question={question || ""}
@@ -622,6 +627,7 @@ export default function Interpretation({
                         onGeneratingChange={(loading) =>
                             setIsGenerating(loading)
                         }
+                        onStreamingObjectChange={setStreamingObjectFromAction}
                     />
                     <ShareSection
                         question={question || ""}
