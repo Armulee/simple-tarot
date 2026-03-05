@@ -60,7 +60,6 @@ export async function POST(req: Request) {
             prompt: getChatDecisionPrompt({
                 question,
                 history: normalizedHistory,
-                savedBirthInfo: savedBirthInfo ?? null,
             }),
         })
 
