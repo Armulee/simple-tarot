@@ -149,6 +149,43 @@ export function extractTopicsFromQuestion(question: string): QuestionTopic[] {
     return [...new Set(topics)]
 }
 
+export type UserSituation = {
+    topic: string
+    intent: string
+    emotion: string
+}
+
+/** Map situation topic to tarot_codex meaning category */
+export function getMeaningCategoryFromTopic(topic: string): "general" | "love" | "career" | "financial" {
+    const t = topic.toLowerCase().trim()
+    if (["career", "work", "job", "business"].includes(t)) return "career"
+    if (["relationship", "love", "romance", "partner"].includes(t)) return "love"
+    if (["money", "financial", "finance", "wealth"].includes(t)) return "financial"
+    return "general"
+}
+
+/** Get meaning text for a card from codex based on situation topic and reversed state */
+export function getMeaningForSituation(
+    row: TarotCodexRow,
+    situation: UserSituation,
+    isReversed: boolean,
+): string {
+    const category = getMeaningCategoryFromTopic(situation.topic)
+    if (category === "love") {
+        const val = isReversed ? row.reversed_meaning_love : row.meaning_love
+        return val ?? (isReversed ? row.reversed_meaning_general : row.meaning_general)
+    }
+    if (category === "career") {
+        const val = isReversed ? row.reversed_meaning_career : row.meaning_career
+        return val ?? (isReversed ? row.reversed_meaning_general : row.meaning_general)
+    }
+    if (category === "financial") {
+        const val = isReversed ? row.reversed_meaning_financial : row.meaning_financial
+        return val ?? (isReversed ? row.reversed_meaning_general : row.meaning_general)
+    }
+    return isReversed ? row.reversed_meaning_general : row.meaning_general
+}
+
 export function getBaseCardName(cardDisplay: string): string {
     return cardDisplay
         .replace(/\s*\(reversed\)/gi, "")

@@ -1,8 +1,27 @@
 import { z } from "zod"
 
 /**
+ * Schema for tarot narrator output (interpretation, insight, advice).
+ * Used by interpret-cards API.
+ */
+export const tarotNarratorSchema = z.object({
+    interpretation: z
+        .string()
+        .describe("The main tarot reading. Answer the question in the first sentence."),
+    insight: z
+        .string()
+        .describe("A key insight from the reading."),
+    advice: z
+        .string()
+        .describe("Practical guidance or advice."),
+})
+
+export type TarotNarratorResult = z.infer<typeof tarotNarratorSchema>
+
+/**
  * Schema order matters for streaming: cardInsights and keywords come first
  * so quick insights appear before the main interpretation in the UI.
+ * @deprecated Use tarotNarratorSchema for interpret-cards.
  */
 export const tarotInterpretationSchema = z.object({
     cardInsights: z

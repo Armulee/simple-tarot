@@ -12,7 +12,7 @@ import ActionSection from "./interpretation/action"
 import ShareSection from "./interpretation/share"
 import QuestionInput from "../question-input"
 import { useTranslations } from "next-intl"
-import type { TarotInterpretation } from "@/lib/tarot/schema"
+import type { TarotNarratorResult } from "@/lib/tarot/schema"
 
 type TarotCard = {
     id: number
@@ -48,7 +48,7 @@ export default function TarotReadingLayout({
     )
     const [isGenerating, setIsGenerating] = useState(false)
     const [streamingObject, setStreamingObject] = useState<
-        Partial<TarotInterpretation> | null
+        Partial<TarotNarratorResult> | null
     >(null)
     return (
         <div className="hidden lg:block space-y-8">

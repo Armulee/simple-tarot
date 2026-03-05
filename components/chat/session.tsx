@@ -9,8 +9,8 @@ import { TypewriterText } from "@/components/typewriter-text"
 import QuestionInput from "@/components/question-input"
 import type { TarotCard } from "@/contexts/tarot-context"
 import {
-    tarotInterpretationSchema,
-    type TarotInterpretation,
+    tarotNarratorSchema,
+    type TarotNarratorResult,
 } from "@/lib/tarot/schema"
 import {
     horoscopeInterpretationSchema,
@@ -37,6 +37,7 @@ import {
     setSkipReadAloudConfirm,
 } from "@/lib/read-aloud-confirm-storage"
 import { pickRandomCards } from "@/lib/tarot/pick-random-cards"
+import { chooseTarotSpread } from "@/lib/tarot/choose-spread"
 import { resolveLocationFromCoords } from "@/lib/location"
 import type {
     HoroscopeBirthData,
@@ -374,13 +375,11 @@ export default function ChatSession({
         stop: stopInterpretation,
     } = useObject({
         api: "/api/interpret-cards/question",
-        schema: tarotInterpretationSchema,
-        onFinish: ({ object }: { object: TarotInterpretation | undefined }) => {
+        schema: tarotNarratorSchema,
+        onFinish: ({ object }: { object: TarotNarratorResult | undefined }) => {
             const lid = interpretationLoadingIdRef.current
             if (!lid || !object) return
-            const insights = object.cardInsights?.filter(
-                (s): s is string => typeof s === "string",
-            )
+            const insights = object.insight ? [object.insight] : undefined
             setMessages((prev) =>
                 prev.map((m) =>
                     m.id === lid
@@ -389,13 +388,8 @@ export default function ChatSession({
                               text: object.interpretation || m.text,
                               insights: insights ?? m.insights,
                               isLoading: false,
-                              followUpConclusion: object.conclusion?.trim(),
-                              followUpSuggestions: object.suggestions
-                                  ?.map((s) =>
-                                      typeof s === "string" ? s.trim() : "",
-                                  )
-                                  .filter(Boolean)
-                                  .slice(0, 5),
+                              followUpConclusion: object.advice?.trim(),
+                              followUpSuggestions: undefined,
                               followUpLoading: false,
                           }
                         : m,
@@ -656,15 +650,9 @@ export default function ChatSession({
     useEffect(() => {
         const lid = interpretationLoadingIdRef.current
         if (!lid || !interpretationObject) return
-        const insights =
-            interpretationObject.cardInsights?.filter(
-                (s): s is string => typeof s === "string",
-            ) ?? undefined
-        const suggestions =
-            interpretationObject.suggestions
-                ?.map((s) => (typeof s === "string" ? s.trim() : ""))
-                .filter(Boolean)
-                .slice(0, 5) ?? undefined
+        const insights = interpretationObject.insight
+            ? [interpretationObject.insight]
+            : undefined
         setMessages((prev) =>
             prev.map((m) =>
                 m.id === lid
@@ -676,10 +664,9 @@ export default function ChatSession({
                               "",
                           insights: insights ?? m.insights,
                           followUpConclusion:
-                              interpretationObject.conclusion?.trim() ??
+                              interpretationObject.advice?.trim() ??
                               m.followUpConclusion,
-                          followUpSuggestions:
-                              suggestions ?? m.followUpSuggestions,
+                          followUpSuggestions: m.followUpSuggestions,
                       }
                     : m,
             ),
@@ -1133,12 +1120,7 @@ export default function ChatSession({
                 interpretationMode === "tarot" &&
                 decision.type === "horoscope"
             ) {
-                return {
-                    ...decision,
-                    type: "draw",
-                    spreadType: decision.spreadType || "simple",
-                    cardCount: decision.cardCount || 3,
-                }
+                return { ...decision, type: "draw" }
             }
             if (
                 interpretationMode === "horoscope" &&
@@ -2001,6 +1983,12 @@ export default function ChatSession({
                     savedBirthInfo,
                 )
                 nextDecision = applyInterpretationModeOverride(nextDecision)
+                if (nextDecision.type === "draw") {
+                    nextDecision = {
+                        ...nextDecision,
+                        ...chooseTarotSpread(trimmed),
+                    }
+                }
                 setDecision(nextDecision)
                 setConsulting(false)
 
@@ -2238,6 +2226,12 @@ export default function ChatSession({
                 nextDecision = applyInterpretationModeOverride(nextDecision)
                 if (options.forceChatOnly) {
                     nextDecision = { ...nextDecision, type: "chat" }
+                }
+                if (nextDecision.type === "draw") {
+                    nextDecision = {
+                        ...nextDecision,
+                        ...chooseTarotSpread(trimmed),
+                    }
                 }
                 setDecision(nextDecision)
                 setConsulting(false)
