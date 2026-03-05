@@ -1022,20 +1022,6 @@ export default function ChatSession({
             const conversationContext = buildConversationContext(lastQuestion)
 
             interpretationLoadingIdRef.current = loadingId
-
-            fetch("/api/situation-extract", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ question: lastQuestion }),
-            })
-                .then((r) => r.json())
-                .then((situation) => {
-                    console.log("[situation-extract] result:", situation)
-                })
-                .catch((err) => {
-                    console.warn("[situation-extract] failed:", err)
-                })
-
             submitInterpretation({
                 question: lastQuestion,
                 cards: cardNames,

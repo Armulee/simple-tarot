@@ -1,10 +1,18 @@
-import { streamObject } from "ai"
-import { getTarotReadingPrompt, TAROT_SYSTEM_PROMPT } from "@/lib/prompts"
+import { generateObject, streamObject } from "ai"
+import {
+    getTarotReadingPrompt,
+    TAROT_SYSTEM_PROMPT,
+    USER_SITUATION_PROMPT,
+} from "@/lib/prompts"
+import { userSituationSchema } from "@/lib/chat/situation-schema"
 import { tarotInterpretationSchema } from "@/lib/tarot/schema"
 import {
     fetchTarotCodexForCards,
     extractTopicsFromQuestion,
     buildRagContext,
+    getMeaningForSituation,
+    getBaseCardName,
+    isReversed,
 } from "@/lib/tarot/rag"
 import {
     buildConversationContextPromptBlock,
@@ -42,6 +50,30 @@ export async function POST(req: Request) {
             })
         }
 
+        const { object: situation } = await generateObject({
+            model: MODEL,
+            schema: userSituationSchema,
+            system: USER_SITUATION_PROMPT,
+            prompt: question,
+            temperature: 0.3,
+        })
+
+        const codexMap = await fetchTarotCodexForCards(cards)
+        const mappedMeanings: Array<{ card: string; meaning: string }> = []
+        for (let i = 0; i < cards.length; i++) {
+            const display = cards[i]
+            const baseName = getBaseCardName(display)
+            const reversed = isReversed(display)
+            const row = codexMap.get(baseName)
+            if (row) {
+                const meaning = getMeaningForSituation(row, situation, reversed)
+                mappedMeanings.push({ card: display, meaning })
+            }
+        }
+
+        console.log("[interpret-cards] extracted situation:", JSON.stringify(situation))
+        console.log("[interpret-cards] mapped meanings:", JSON.stringify(mappedMeanings, null, 2))
+
         let prompt = getTarotReadingPrompt({
             question,
             cards: cards.join(", "),
@@ -61,7 +93,6 @@ export async function POST(req: Request) {
 ${prompt}`
         }
 
-        const codexMap = await fetchTarotCodexForCards(cards)
         const topics = extractTopicsFromQuestion(question)
         const ragContext = buildRagContext(cards, codexMap, topics)
 
