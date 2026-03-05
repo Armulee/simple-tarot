@@ -20,9 +20,7 @@ function isChatDecision(value: unknown): value is ChatDecision {
     if (!value || typeof value !== "object") return false
     const v = value as Record<string, unknown>
     return (
-        (v.type === "chat" || v.type === "draw") &&
-        typeof v.spreadType === "string" &&
-        typeof v.cardCount === "number" &&
+        (v.type === "chat" || v.type === "draw" || v.type === "horoscope") &&
         typeof v.assistantText === "string"
     )
 }
