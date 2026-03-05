@@ -47,9 +47,9 @@ type ChatMessage = {
 }
 
 export type ChatDecision = {
-    type: "chat" | "draw"
-    spreadType: string
-    cardCount: number
+    type: "chat" | "draw" | "horoscope"
+    spreadType?: string
+    cardCount?: number
     assistantText: string
 }
 

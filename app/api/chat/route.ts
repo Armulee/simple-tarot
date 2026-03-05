@@ -1,4 +1,4 @@
-import { streamText } from "ai"
+import { generateText } from "ai"
 
 const MODEL = "openai/gpt-4o-mini"
 
@@ -87,6 +87,21 @@ Classify the intent and return JSON.
 `
 }
 
+function chooseTarotSpread(question: string) {
+    const q = question.trim()
+    const wordCount = q.split(/\s+/).length
+
+    if (wordCount <= 6) {
+        return { spreadType: "simple", cardCount: 1 }
+    }
+
+    if (wordCount <= 15) {
+        return { spreadType: "general", cardCount: 3 }
+    }
+
+    return { spreadType: "detailed", cardCount: 5 }
+}
+
 export async function POST(req: Request) {
     try {
         const { question, history } = await req.json()
@@ -95,14 +110,22 @@ export async function POST(req: Request) {
             return new Response("User question is required", { status: 400 })
         }
 
-        const result = streamText({
+        const result = await generateText({
             model: MODEL,
             maxOutputTokens: 2000,
             system: CHAT_DECISION_SYSTEM_PROMPT,
             prompt: getChatDecisionPrompt({ question, history }),
         })
 
-        return result.toTextStreamResponse()
+        const decision = JSON.parse(result.text)
+
+        if (decision.type === "draw") {
+            const spread = chooseTarotSpread(question)
+            decision.spreadType = spread.spreadType
+            decision.cardCount = spread.cardCount
+        }
+
+        return Response.json(decision)
     } catch (error) {
         console.error("Error generating chat decision:", error)
         return new Response("Failed to generate decision", { status: 500 })
