@@ -1033,6 +1033,19 @@ export default function ChatSession({
                 conversationContext,
                 locale,
             })
+
+            fetch("/api/situation", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ question: lastQuestion }),
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    alert(JSON.stringify(data, null, 2))
+                })
+                .catch((err) => {
+                    console.error("[situation] extraction failed:", err)
+                })
         },
         [
             lastQuestion,
