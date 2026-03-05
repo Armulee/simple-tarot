@@ -6,7 +6,7 @@ import {
     getChatDecisionPrompt,
 } from "@/lib/prompts"
 
-const MODEL = "openai/gpt-4.1-mini"
+const MODEL = "openai/gpt-4o-mini"
 
 function normalizeHistory(
     history: unknown,
