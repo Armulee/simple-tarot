@@ -70,6 +70,8 @@ import type {
     SourceAspectEvent,
 } from "@/components/chat/types"
 
+import { chooseTarotSpread } from "@/lib/chat/decision-schema"
+
 export type { ChatDecision } from "@/components/chat/types"
 
 function normalizeAspectInsights(
@@ -1133,12 +1135,7 @@ export default function ChatSession({
                 interpretationMode === "tarot" &&
                 decision.type === "horoscope"
             ) {
-                return {
-                    ...decision,
-                    type: "draw",
-                    spreadType: decision.spreadType || "simple",
-                    cardCount: decision.cardCount || 3,
-                }
+                return { ...decision, type: "draw" }
             }
             if (
                 interpretationMode === "horoscope" &&
@@ -2001,6 +1998,12 @@ export default function ChatSession({
                     savedBirthInfo,
                 )
                 nextDecision = applyInterpretationModeOverride(nextDecision)
+                if (nextDecision.type === "draw") {
+                    nextDecision = {
+                        ...nextDecision,
+                        ...chooseTarotSpread(trimmed),
+                    }
+                }
                 setDecision(nextDecision)
                 setConsulting(false)
 
@@ -2238,6 +2241,12 @@ export default function ChatSession({
                 nextDecision = applyInterpretationModeOverride(nextDecision)
                 if (options.forceChatOnly) {
                     nextDecision = { ...nextDecision, type: "chat" }
+                }
+                if (nextDecision.type === "draw") {
+                    nextDecision = {
+                        ...nextDecision,
+                        ...chooseTarotSpread(trimmed),
+                    }
                 }
                 setDecision(nextDecision)
                 setConsulting(false)
