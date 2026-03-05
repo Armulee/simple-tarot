@@ -968,7 +968,7 @@ export default function ChatSession({
 
     // Auto-pick flow: when auto pick is ON and cards need drawing with enough stars
     const runInterpretationForCards = useCallback(
-        (cards: { name: string; isReversed: boolean }[]) => {
+        async (cards: { name: string; isReversed: boolean }[]) => {
             if (!lastQuestion) return
 
             const drawnCards: TarotCard[] = cards.map((card, index) => ({
@@ -982,6 +982,52 @@ export default function ChatSession({
                     : card.name,
                 isReversed: card.isReversed,
             }))
+
+            const cardNames = cards.map((card) =>
+                card.isReversed ? `${card.name} (Reversed)` : card.name,
+            )
+
+            let situationData: {
+                topic: string
+                intent: string
+                emotion: string
+                focus: string
+                cardMeanings: string[]
+            } | null = null
+
+            try {
+                const res = await fetch("/api/situation", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        question: lastQuestion,
+                        cards: cardNames,
+                    }),
+                })
+                if (res.ok) {
+                    situationData = await res.json()
+                    const meaningLines = (situationData?.cardMeanings ?? [])
+                        .map(
+                            (m: string, i: number) =>
+                                `- ${cardNames[i]}: ${m}`,
+                        )
+                        .join("\n")
+                    alert(
+                        `Situation:\n${JSON.stringify(
+                            {
+                                topic: situationData?.topic,
+                                intent: situationData?.intent,
+                                emotion: situationData?.emotion,
+                                focus: situationData?.focus,
+                            },
+                            null,
+                            2,
+                        )}\n\nCard meanings:\n${meaningLines}`,
+                    )
+                }
+            } catch (err) {
+                console.error("[situation] extraction failed:", err)
+            }
 
             const loadingId = `assistant-interpretation-loading-${Date.now()}`
             setMessages((prev) => [
@@ -998,10 +1044,6 @@ export default function ChatSession({
                     spreadType: decision?.spreadType ?? null,
                 },
             ])
-
-            const cardNames = cards.map((card) =>
-                card.isReversed ? `${card.name} (Reversed)` : card.name,
-            )
 
             const lastInterpretationMsg = [...messages]
                 .reverse()
@@ -1033,19 +1075,6 @@ export default function ChatSession({
                 conversationContext,
                 locale,
             })
-
-            fetch("/api/situation", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ question: lastQuestion }),
-            })
-                .then((res) => res.json())
-                .then((data) => {
-                    alert(JSON.stringify(data, null, 2))
-                })
-                .catch((err) => {
-                    console.error("[situation] extraction failed:", err)
-                })
         },
         [
             lastQuestion,
