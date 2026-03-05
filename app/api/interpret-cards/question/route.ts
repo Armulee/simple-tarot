@@ -1,25 +1,20 @@
 import { generateObject, streamObject } from "ai"
 import {
-    getTarotReadingPrompt,
-    TAROT_SYSTEM_PROMPT,
+    getTarotNarratorPrompt,
+    getSpreadPositions,
+    TAROT_NARRATOR_SYSTEM_PROMPT,
     USER_SITUATION_PROMPT,
 } from "@/lib/prompts"
 import { userSituationSchema } from "@/lib/chat/situation-schema"
-import { tarotInterpretationSchema } from "@/lib/tarot/schema"
+import { tarotNarratorSchema } from "@/lib/tarot/schema"
 import {
     fetchTarotCodexForCards,
-    extractTopicsFromQuestion,
-    buildRagContext,
     getMeaningForSituation,
     getBaseCardName,
     isReversed,
 } from "@/lib/tarot/rag"
-import {
-    buildConversationContextPromptBlock,
-    normalizeConversationContext,
-} from "@/lib/astrology/question-context"
 
-const MODEL = "openai/gpt-4.1-mini"
+const MODEL = "openai/gpt-4o-mini"
 
 export async function POST(req: Request) {
     try {
@@ -38,10 +33,6 @@ export async function POST(req: Request) {
             question,
             cards,
             readingType,
-            isFollowUp,
-            previousQuestion,
-            previousInterpretation,
-            conversationContext: rawContext,
         } = body
 
         if (!question || !Array.isArray(cards) || cards.length === 0) {
@@ -74,43 +65,31 @@ export async function POST(req: Request) {
         console.log("[interpret-cards] extracted situation:", JSON.stringify(situation))
         console.log("[interpret-cards] mapped meanings:", JSON.stringify(mappedMeanings, null, 2))
 
-        let prompt = getTarotReadingPrompt({
+        const truncateMeaning = (text: string): string => {
+            const first = text.split(/[.!?]/)[0]?.trim() ?? text
+            return first.length > 80 ? `${first.slice(0, 77)}...` : first
+        }
+        const cardEnergies = `[${mappedMeanings.map((m) => truncateMeaning(m.meaning)).join(", ")}]`
+        const positionsText = getSpreadPositions(readingType ?? null)
+
+        const prompt = getTarotNarratorPrompt({
             question,
-            cards: cards.join(", "),
-            readingType: readingType ?? null,
-            isFollowUp: Boolean(isFollowUp),
-            previousQuestion: previousQuestion ?? null,
-            previousInterpretation: previousInterpretation ?? null,
+            topic: situation.topic,
+            intent: situation.intent,
+            emotion: situation.emotion,
+            focus: situation.intent,
+            cardEnergies,
+            positions: positionsText,
         })
-        const conversationContext = normalizeConversationContext(rawContext)
-        const contextBlock =
-            buildConversationContextPromptBlock(conversationContext)
-        if (contextBlock && !prompt.includes("<session_context>")) {
-            prompt = `${contextBlock}
-
----
-
-${prompt}`
-        }
-
-        const topics = extractTopicsFromQuestion(question)
-        const ragContext = buildRagContext(cards, codexMap, topics)
-
-        if (ragContext) {
-            prompt = `${ragContext}
----
-
-${prompt}`
-        }
 
         const result = await streamObject({
             model: MODEL,
             temperature: 0.8,
-            schema: tarotInterpretationSchema,
-            system: TAROT_SYSTEM_PROMPT,
+            schema: tarotNarratorSchema,
+            system: TAROT_NARRATOR_SYSTEM_PROMPT,
             prompt: `${prompt}
 
-IMPORTANT: Write EVERY field (cardInsights, keywords, interpretation, conclusion, suggestions) in the SAME language as the user's question. Infer the language ONLY from the question text—English question = English response, Thai = Thai, Spanish = Spanish, etc. Support any language. Use the reference meanings above to ground your interpretation.`,
+IMPORTANT: Write interpretation, insight, and advice in the SAME language as the user's question.`,
         })
 
         return result.toTextStreamResponse()

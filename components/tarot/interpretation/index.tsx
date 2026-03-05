@@ -5,11 +5,11 @@ import { Sparkles } from "lucide-react"
 import { useEffect, useState, useCallback } from "react"
 import { experimental_useObject as useObject } from "@ai-sdk/react"
 import {
-    tarotInterpretationSchema,
-    type TarotInterpretation,
+    tarotNarratorSchema,
+    type TarotNarratorResult,
 } from "@/lib/tarot/schema"
 
-type PartialTarotInterpretation = Partial<TarotInterpretation>
+type PartialTarotNarrator = Partial<TarotNarratorResult>
 import QuestionInput from "../../question-input"
 import { useTranslations } from "next-intl"
 import { useAuth } from "@/hooks/use-auth"
@@ -43,7 +43,7 @@ type ReadingProps = {
     readingType?: string | null
     onInterpretationChange?: (text: string | null) => void
     /** Streaming object from sibling ActionSection (e.g. reading-layout regenerate) */
-    streamingObject?: PartialTarotInterpretation | null
+    streamingObject?: PartialTarotNarrator | null
 }
 
 export default function Interpretation({
@@ -74,7 +74,7 @@ export default function Interpretation({
     )
     const [isGenerating, setIsGenerating] = useState(false)
     const [streamingObjectFromAction, setStreamingObjectFromAction] =
-        useState<PartialTarotInterpretation | null>(null)
+        useState<PartialTarotNarrator | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
     const [isAuthLoading, setIsAuthLoading] = useState(true)
@@ -135,18 +135,21 @@ export default function Interpretation({
 
     const { object, submit } = useObject({
         api: "/api/interpret-cards/question",
-        schema: tarotInterpretationSchema,
+        schema: tarotNarratorSchema,
         onFinish: async ({
             object,
         }: {
-            object: TarotInterpretation | undefined
+            object: TarotNarratorResult | undefined
         }) => {
             if (object) {
                 try {
-                    const mainText = `${object.keywords}\n\n${object.interpretation}`
+                    const parts = [object.interpretation]
+                    if (object.insight?.trim()) parts.push(object.insight.trim())
+                    if (object.advice?.trim()) parts.push(object.advice.trim())
+                    const mainText = parts.join("\n\n")
                     setInterpretationState(mainText)
-                    if (object.cardInsights) {
-                        setContextCardInsights(object.cardInsights as string[])
+                    if (object.insight) {
+                        setContextCardInsights([object.insight])
                     }
                     setIsGenerating(false)
 
@@ -215,16 +218,10 @@ export default function Interpretation({
 
     // Sync card insights to context while streaming
     useEffect(() => {
-        if (object?.cardInsights) {
-            // Filter out null/undefined values and ensure it's a string array
-            const insights = object.cardInsights.filter(
-                (insight): insight is string => typeof insight === "string",
-            )
-            if (insights.length > 0) {
-                setContextCardInsights(insights)
-            }
+        if (object?.insight) {
+            setContextCardInsights([object.insight])
         }
-    }, [object?.cardInsights, setContextCardInsights])
+    }, [object?.insight, setContextCardInsights])
 
     useEffect(() => {
         if (typeof question === "string") {
@@ -558,40 +555,11 @@ export default function Interpretation({
                                     if (displayObject) {
                                         return (
                                             <>
-                                                {displayObject.keywords && (
+                                                {displayObject.insight && (
                                                     <div className='flex flex-wrap gap-2 mb-4'>
-                                                        {displayObject.keywords
-                                                            .split(",")
-                                                            .map(
-                                                                (
-                                                                    k: string,
-                                                                    i: number,
-                                                                ) => {
-                                                                    const trimmed =
-                                                                        k.trim()
-                                                                    if (
-                                                                        !trimmed
-                                                                    )
-                                                                        return null
-                                                                    return (
-                                                                        <span
-                                                                            key={
-                                                                                i
-                                                                            }
-                                                                            className='px-3 py-1 text-xs font-medium rounded-full bg-white/10 text-white border border-white/20'
-                                                                        >
-                                                                            {trimmed
-                                                                                .charAt(
-                                                                                    0,
-                                                                                )
-                                                                                .toUpperCase() +
-                                                                                trimmed.slice(
-                                                                                    1,
-                                                                                )}
-                                                                        </span>
-                                                                    )
-                                                                },
-                                                            )}
+                                                        <span className='px-3 py-1 text-xs font-medium rounded-full bg-white/10 text-white border border-white/20'>
+                                                            {displayObject.insight}
+                                                        </span>
                                                     </div>
                                                 )}
                                                 {displayObject.interpretation}

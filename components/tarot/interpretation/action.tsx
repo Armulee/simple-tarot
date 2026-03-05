@@ -35,8 +35,8 @@ import Image from "next/image"
 import { useStars } from "@/contexts/stars-context"
 import { experimental_useObject as useObject } from "@ai-sdk/react"
 import {
-    tarotInterpretationSchema,
-    type TarotInterpretation,
+    tarotNarratorSchema,
+    type TarotNarratorResult,
 } from "@/lib/tarot/schema"
 import {
     AlertDialog,
@@ -73,7 +73,7 @@ interface ActionSectionProps {
     onInterpretationChange?: (text: string) => void
     onGeneratingChange?: (loading: boolean) => void
     onStreamingObjectChange?: (
-        obj: Partial<TarotInterpretation> | null,
+        obj: Partial<TarotNarratorResult> | null,
     ) => void
     variant?: "full" | "compact" | "embedded"
     mode?: "tarot" | "horoscope"
@@ -768,16 +768,19 @@ export default function ActionSection({
 
     const { submit, object } = useObject({
         api: "/api/interpret-cards/question",
-        schema: tarotInterpretationSchema,
+        schema: tarotNarratorSchema,
         onFinish: async ({
             object,
         }: {
-            object: TarotInterpretation | undefined
+            object: TarotNarratorResult | undefined
         }) => {
             if (object) {
                 if (typeof onStreamingObjectChange === "function")
                     onStreamingObjectChange(null)
-                const completion = `${object.keywords}\n\n${object.interpretation}`
+                const parts = [object.interpretation]
+                if (object.insight?.trim()) parts.push(object.insight.trim())
+                if (object.advice?.trim()) parts.push(object.advice.trim())
+                const completion = parts.join("\n\n")
                 if (typeof onInterpretationChange === "function") {
                     onInterpretationChange(completion)
                 } else {
@@ -831,21 +834,16 @@ export default function ActionSection({
 
     // Sync card insights to context while streaming
     useEffect(() => {
-        if (object?.cardInsights) {
-            const insights = object.cardInsights.filter(
-                (insight): insight is string => typeof insight === "string",
-            )
-            if (insights.length > 0) {
-                setCardInsights(insights)
-            }
+        if (object?.insight) {
+            setCardInsights([object.insight])
         }
-    }, [object?.cardInsights, setCardInsights])
+    }, [object?.insight, setCardInsights])
 
     // Sync streaming object to parent for regenerate flow (so parent can show streaming text)
     useEffect(() => {
         if (typeof onStreamingObjectChange === "function") {
             onStreamingObjectChange(
-                object ? (object as Partial<TarotInterpretation>) : null,
+                object ? (object as Partial<TarotNarratorResult>) : null,
             )
         }
     }, [object, onStreamingObjectChange])
