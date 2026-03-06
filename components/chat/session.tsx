@@ -1074,6 +1074,15 @@ export default function ChatSession({
                 previousInterpretation,
                 conversationContext,
                 locale,
+                situation: situationData
+                    ? {
+                          topic: situationData.topic,
+                          intent: situationData.intent,
+                          emotion: situationData.emotion,
+                          focus: situationData.focus,
+                      }
+                    : undefined,
+                cardEnergies: situationData?.cardMeanings,
             })
         },
         [
