@@ -1006,24 +1006,6 @@ export default function ChatSession({
                 })
                 if (res.ok) {
                     situationData = await res.json()
-                    const meaningLines = (situationData?.cardMeanings ?? [])
-                        .map(
-                            (sentences: string[], i: number) =>
-                                `- ${cardNames[i]}: [${sentences.join(", ")}]`,
-                        )
-                        .join("\n")
-                    alert(
-                        `Situation:\n${JSON.stringify(
-                            {
-                                topic: situationData?.topic,
-                                intent: situationData?.intent,
-                                emotion: situationData?.emotion,
-                                focus: situationData?.focus,
-                            },
-                            null,
-                            2,
-                        )}\n\nCard meanings:\n${meaningLines}`,
-                    )
                 }
             } catch (err) {
                 console.error("[situation] extraction failed:", err)
