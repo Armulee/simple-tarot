@@ -52,10 +52,11 @@ function pickMeaning(row: TarotCodexRow, topic: string, reversed: boolean): stri
     return reversed ? row.reversed_meaning_general : row.meaning_general
 }
 
-function truncateToFirstSentence(text: string): string {
-    const firstDot = text.indexOf(".")
-    if (firstDot < 0) return text
-    return text.slice(0, firstDot + 1).trim()
+function splitIntoSentences(text: string): string[] {
+    return text
+        .split(".")
+        .map((s) => s.trim())
+        .filter(Boolean)
 }
 
 export async function POST(req: Request) {
@@ -83,7 +84,7 @@ export async function POST(req: Request) {
 
         console.log("[situation] extracted:", situation)
 
-        let cardMeanings: string[] = []
+        let cardMeanings: string[][] = []
 
         if (cards && cards.length > 0 && supabaseAdmin) {
             const baseNames = [...new Set(cards.map(getBaseCardName))]
@@ -105,9 +106,9 @@ export async function POST(req: Request) {
                 const baseName = getBaseCardName(cardDisplay)
                 const reversed = isReversed(cardDisplay)
                 const row = codexMap.get(baseName)
-                if (!row) return ""
+                if (!row) return []
                 const meaning = pickMeaning(row, situation.topic, reversed)
-                return truncateToFirstSentence(meaning)
+                return splitIntoSentences(meaning)
             })
         }
 

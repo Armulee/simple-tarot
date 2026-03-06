@@ -992,7 +992,7 @@ export default function ChatSession({
                 intent: string
                 emotion: string
                 focus: string
-                cardMeanings: string[]
+                cardMeanings: string[][]
             } | null = null
 
             try {
@@ -1008,8 +1008,8 @@ export default function ChatSession({
                     situationData = await res.json()
                     const meaningLines = (situationData?.cardMeanings ?? [])
                         .map(
-                            (m: string, i: number) =>
-                                `- ${cardNames[i]}: ${m}`,
+                            (sentences: string[], i: number) =>
+                                `- ${cardNames[i]}: [${sentences.join(", ")}]`,
                         )
                         .join("\n")
                     alert(
