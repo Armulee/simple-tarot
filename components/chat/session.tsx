@@ -70,6 +70,8 @@ import type {
     SourceAspectEvent,
 } from "@/components/chat/types"
 
+import { chooseTarotSpread } from "@/lib/chat/decision-schema"
+
 export type { ChatDecision } from "@/components/chat/types"
 
 function normalizeAspectInsights(
@@ -966,7 +968,7 @@ export default function ChatSession({
 
     // Auto-pick flow: when auto pick is ON and cards need drawing with enough stars
     const runInterpretationForCards = useCallback(
-        (cards: { name: string; isReversed: boolean }[]) => {
+        async (cards: { name: string; isReversed: boolean }[]) => {
             if (!lastQuestion) return
 
             const drawnCards: TarotCard[] = cards.map((card, index) => ({
@@ -980,6 +982,34 @@ export default function ChatSession({
                     : card.name,
                 isReversed: card.isReversed,
             }))
+
+            const cardNames = cards.map((card) =>
+                card.isReversed ? `${card.name} (Reversed)` : card.name,
+            )
+
+            let situationData: {
+                topic: string
+                intent: string
+                emotion: string
+                focus: string
+                cardMeanings: string[][]
+            } | null = null
+
+            try {
+                const res = await fetch("/api/situation", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        question: lastQuestion,
+                        cards: cardNames,
+                    }),
+                })
+                if (res.ok) {
+                    situationData = await res.json()
+                }
+            } catch (err) {
+                console.error("[situation] extraction failed:", err)
+            }
 
             const loadingId = `assistant-interpretation-loading-${Date.now()}`
             setMessages((prev) => [
@@ -996,10 +1026,6 @@ export default function ChatSession({
                     spreadType: decision?.spreadType ?? null,
                 },
             ])
-
-            const cardNames = cards.map((card) =>
-                card.isReversed ? `${card.name} (Reversed)` : card.name,
-            )
 
             const lastInterpretationMsg = [...messages]
                 .reverse()
@@ -1030,6 +1056,15 @@ export default function ChatSession({
                 previousInterpretation,
                 conversationContext,
                 locale,
+                situation: situationData
+                    ? {
+                          topic: situationData.topic,
+                          intent: situationData.intent,
+                          emotion: situationData.emotion,
+                          focus: situationData.focus,
+                      }
+                    : undefined,
+                cardEnergies: situationData?.cardMeanings,
             })
         },
         [
@@ -1133,12 +1168,7 @@ export default function ChatSession({
                 interpretationMode === "tarot" &&
                 decision.type === "horoscope"
             ) {
-                return {
-                    ...decision,
-                    type: "draw",
-                    spreadType: decision.spreadType || "simple",
-                    cardCount: decision.cardCount || 3,
-                }
+                return { ...decision, type: "draw" }
             }
             if (
                 interpretationMode === "horoscope" &&
@@ -2001,6 +2031,12 @@ export default function ChatSession({
                     savedBirthInfo,
                 )
                 nextDecision = applyInterpretationModeOverride(nextDecision)
+                if (nextDecision.type === "draw") {
+                    nextDecision = {
+                        ...nextDecision,
+                        ...chooseTarotSpread(trimmed),
+                    }
+                }
                 setDecision(nextDecision)
                 setConsulting(false)
 
@@ -2238,6 +2274,12 @@ export default function ChatSession({
                 nextDecision = applyInterpretationModeOverride(nextDecision)
                 if (options.forceChatOnly) {
                     nextDecision = { ...nextDecision, type: "chat" }
+                }
+                if (nextDecision.type === "draw") {
+                    nextDecision = {
+                        ...nextDecision,
+                        ...chooseTarotSpread(trimmed),
+                    }
                 }
                 setDecision(nextDecision)
                 setConsulting(false)

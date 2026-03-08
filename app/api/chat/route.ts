@@ -1,12 +1,84 @@
 import { streamObject } from "ai"
 
 import { chatDecisionSchema } from "@/lib/chat/decision-schema"
-import {
-    CHAT_DECISION_SYSTEM_PROMPT,
-    getChatDecisionPrompt,
-} from "@/lib/prompts"
 
-const MODEL = "openai/gpt-4.1-mini"
+const MODEL = "openai/gpt-4o-mini"
+
+const CHAT_DECISION_SYSTEM_PROMPT = `
+You are Astra, an oracle for AskingFate.
+
+Classify the user's message into ONE type:
+
+chat
+draw
+horoscope
+
+Definitions:
+
+chat
+- explanations
+- definitions
+- knowledge questions
+- general conversation
+
+draw
+- questions about the user's life situation
+- relationship, career, decisions
+- "what will happen"
+- "is this good"
+- "how will this go"
+- updates about their situation
+
+horoscope
+- timing questions
+- today / tomorrow / this month / this year
+- astrology timing
+
+Important rule:
+
+If the user is talking about their own situation or asking how something will go,
+choose "draw" even if the question is vague.
+
+Return JSON only:
+
+{
+"type":"chat"|"draw"|"horoscope",
+"assistantText":"response to the user"
+}
+
+assistantText rules:
+
+If draw → invite the user to draw tarot cards.
+If horoscope → invite horoscope reading.
+Use the same language as the user.
+1–2 sentences only.
+`
+
+function getChatDecisionPrompt({
+    question,
+    history,
+}: {
+    question: string
+    history?: Array<{ role: "user" | "assistant"; text: string }>
+}) {
+    const historyText =
+        history && history.length
+            ? history
+                  .slice(-4)
+                  .map((m) => `${m.role}: ${m.text}`)
+                  .join("\n")
+            : "None"
+
+    return `
+Conversation:
+${historyText}
+
+User message:
+${question}
+
+Classify the intent and return JSON.
+`
+}
 
 function normalizeHistory(
     history: unknown,
@@ -46,7 +118,7 @@ export async function POST(req: Request) {
                 status: 400,
             })
         }
-        const { question, history, savedBirthInfo } = body ?? {}
+        const { question, history } = body ?? {}
         const normalizedHistory = normalizeHistory(history)
 
         if (!question) {
@@ -60,7 +132,6 @@ export async function POST(req: Request) {
             prompt: getChatDecisionPrompt({
                 question,
                 history: normalizedHistory,
-                savedBirthInfo: savedBirthInfo ?? null,
             }),
         })
 

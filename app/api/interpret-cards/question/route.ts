@@ -24,6 +24,13 @@ export async function POST(req: Request) {
             previousInterpretation?: string | null
             conversationContext?: unknown
             locale?: string
+            situation?: {
+                topic: string
+                intent: string
+                emotion: string
+                focus: string
+            }
+            cardEnergies?: string[][]
         }
 
         const {
@@ -34,6 +41,8 @@ export async function POST(req: Request) {
             previousQuestion,
             previousInterpretation,
             conversationContext: rawContext,
+            situation,
+            cardEnergies,
         } = body
 
         if (!question || !Array.isArray(cards) || cards.length === 0) {
@@ -61,15 +70,43 @@ export async function POST(req: Request) {
 ${prompt}`
         }
 
-        const codexMap = await fetchTarotCodexForCards(cards)
-        const topics = extractTopicsFromQuestion(question)
-        const ragContext = buildRagContext(cards, codexMap, topics)
+        if (situation && cardEnergies && cardEnergies.length > 0) {
+            const situationBlock = `<user_situation>
+Topic: ${situation.topic}
+Intent: ${situation.intent}
+Emotion: ${situation.emotion}
+Focus: ${situation.focus}
+</user_situation>`
 
-        if (ragContext) {
-            prompt = `${ragContext}
+            const energyLines = cards
+                .map((card, i) => {
+                    const sentences = cardEnergies[i] ?? []
+                    return `${card}: ${sentences.join(". ")}`
+                })
+                .join("\n")
+
+            const energyBlock = `<card_energies>
+${energyLines}
+</card_energies>`
+
+            prompt = `${situationBlock}
+
+${energyBlock}
+
 ---
 
 ${prompt}`
+        } else {
+            const codexMap = await fetchTarotCodexForCards(cards)
+            const topics = extractTopicsFromQuestion(question)
+            const ragContext = buildRagContext(cards, codexMap, topics)
+
+            if (ragContext) {
+                prompt = `${ragContext}
+---
+
+${prompt}`
+            }
         }
 
         const result = await streamObject({
@@ -79,7 +116,7 @@ ${prompt}`
             system: TAROT_SYSTEM_PROMPT,
             prompt: `${prompt}
 
-IMPORTANT: Write EVERY field (cardInsights, keywords, interpretation, conclusion, suggestions) in the SAME language as the user's question. Infer the language ONLY from the question text—English question = English response, Thai = Thai, Spanish = Spanish, etc. Support any language. Use the reference meanings above to ground your interpretation.`,
+IMPORTANT: Write EVERY field (cardInsights, keywords, interpretation, conclusion, suggestions) in the SAME language as the user's question. Infer the language ONLY from the question text—English question = English response, Thai = Thai, Spanish = Spanish, etc. Support any language. Use the card energies above to ground your interpretation and answer the user's situation directly.`,
         })
 
         return result.toTextStreamResponse()
