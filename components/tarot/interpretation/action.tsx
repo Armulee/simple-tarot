@@ -34,13 +34,13 @@ import { useTarot } from "@/contexts/tarot-context"
 import Image from "next/image"
 import { useStars } from "@/contexts/stars-context"
 import { experimental_useObject as useObject } from "@ai-sdk/react"
+import SharePreview from "@/components/tarot/share-preview"
 import {
     tarotInterpretationSchema,
     type TarotInterpretation,
 } from "@/lib/tarot/schema"
 import {
     AlertDialog,
-    AlertDialogAction,
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
@@ -72,13 +72,23 @@ interface ActionSectionProps {
     readingId?: string
     onInterpretationChange?: (text: string) => void
     onGeneratingChange?: (loading: boolean) => void
-    onStreamingObjectChange?: (
-        obj: Partial<TarotInterpretation> | null,
-    ) => void
+    onStreamingObjectChange?: (obj: Partial<TarotInterpretation> | null) => void
     variant?: "full" | "compact" | "embedded"
     mode?: "tarot" | "horoscope"
     onRegenerateHoroscope?: (messageId: string) => void
+    onRegenerateTarot?: (messageId: string) => void
     messageId?: string
+    insights?: string[]
+    conclusion?: string
+    spreadType?: string
+    cardsFull?: Array<{
+        id: number
+        name: string
+        image: string
+        meaning: string
+        isReversed: boolean
+    }>
+    assistantText?: string
 }
 
 export default function ActionSection({
@@ -92,7 +102,13 @@ export default function ActionSection({
     variant = "full",
     mode = "tarot",
     onRegenerateHoroscope,
+    onRegenerateTarot,
     messageId,
+    insights: propInsights,
+    conclusion: propConclusion,
+    spreadType: propSpreadType,
+    cardsFull: propCardsFull,
+    assistantText: propAssistantText,
 }: ActionSectionProps = {}) {
     const t = useTranslations("ReadingPage.interpretation")
     const {
@@ -135,6 +151,7 @@ export default function ActionSection({
     const [showReport, setShowReport] = useState(false)
     const [reportReason, setReportReason] = useState("")
     const [reportDetails, setReportDetails] = useState("")
+    const [feedbackComment, setFeedbackComment] = useState("")
     const [voteState, setVoteState] = useState<"up" | "down" | null>(null)
     const [showFeedback, setShowFeedback] = useState(false)
     const [rating, setRating] = useState<number>(0)
@@ -443,6 +460,48 @@ export default function ActionSection({
     useEffect(() => {
         void loadVersions()
     }, [loadVersions])
+
+    useEffect(() => {
+        if (!interpretation || !readingId) return
+        const timer = setTimeout(() => {
+            void loadVersions()
+        }, 1500)
+        return () => clearTimeout(timer)
+    }, [interpretation, readingId, loadVersions])
+
+    const contentType = mode === "horoscope" ? "horoscope" : "tarot"
+
+    useEffect(() => {
+        if (!readingId) return
+        fetch(
+            `/api/reactions?contentId=${readingId}&contentType=${contentType}`,
+        )
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (d?.reaction === "like") setVoteState("up")
+                else if (d?.reaction === "dislike") setVoteState("down")
+            })
+            .catch(() => {})
+    }, [readingId, contentType])
+
+    const persistVote = useCallback(
+        (next: "up" | "down" | null) => {
+            setVoteState(next)
+            if (!readingId) return
+            const reaction =
+                next === "up" ? "like" : next === "down" ? "dislike" : null
+            fetch("/api/reactions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    content_id: readingId,
+                    content_type: contentType,
+                    reaction,
+                }),
+            }).catch(() => {})
+        },
+        [readingId, contentType],
+    )
 
     useEffect(() => {
         if (!downloadOpen) {
@@ -884,7 +943,7 @@ export default function ActionSection({
 
     const ensureShareLink = useCallback(async (): Promise<string | null> => {
         try {
-            if (readingId) {
+            if (readingId && !messageId) {
                 const origin =
                     typeof window !== "undefined"
                         ? window.location.origin
@@ -910,7 +969,7 @@ export default function ActionSection({
                         typeof window !== "undefined"
                             ? window.location.origin
                             : "https://dooduang.ai"
-                    return `${origin}/share/tarot/${checkData.id}`
+                    return `${origin}/share/${checkData.id}`
                 }
             }
 
@@ -922,6 +981,11 @@ export default function ActionSection({
                     cards: cards,
                     interpretation,
                     user_id: user?.id ?? null,
+                    assistant_text: propAssistantText ?? null,
+                    insights: propInsights ?? null,
+                    conclusion: propConclusion ?? null,
+                    spread_type: propSpreadType ?? null,
+                    cards_full: propCardsFull ?? null,
                 }),
             })
             if (!res.ok) return null
@@ -930,11 +994,23 @@ export default function ActionSection({
                 typeof window !== "undefined"
                     ? window.location.origin
                     : "https://dooduang.ai"
-            return `${origin}/share/tarot/${id}`
+            return `${origin}/share/${id}`
         } catch {
             return null
         }
-    }, [readingId, question, cards, interpretation, user?.id])
+    }, [
+        readingId,
+        messageId,
+        question,
+        cards,
+        interpretation,
+        user?.id,
+        propAssistantText,
+        propInsights,
+        propConclusion,
+        propSpreadType,
+        propCardsFull,
+    ])
 
     const handleRegenerate = useCallback(async () => {
         try {
@@ -958,6 +1034,11 @@ export default function ActionSection({
                 messageId
             ) {
                 onRegenerateHoroscope(messageId)
+                return
+            }
+
+            if (typeof onRegenerateTarot === "function" && messageId) {
+                onRegenerateTarot(messageId)
                 return
             }
 
@@ -1011,6 +1092,7 @@ export default function ActionSection({
     }, [
         mode,
         onRegenerateHoroscope,
+        onRegenerateTarot,
         messageId,
         question,
         cards,
@@ -1185,7 +1267,7 @@ export default function ActionSection({
                   bg: "linear-gradient(135deg, var(--primary), var(--accent))",
                   description: t("actions.voteUpDesc"),
                   onClick: async () => {
-                      setVoteState("up")
+                      persistVote("up")
                   },
               }
             : {
@@ -1195,7 +1277,7 @@ export default function ActionSection({
                   bg: "linear-gradient(135deg, var(--primary), var(--accent))",
                   description: t("actions.removeVoteUpDesc"),
                   onClick: async () => {
-                      setVoteState(null)
+                      persistVote(null)
                   },
               },
         voteState !== "down"
@@ -1206,7 +1288,7 @@ export default function ActionSection({
                   bg: "linear-gradient(135deg, var(--primary), var(--accent))",
                   description: t("actions.voteDownDesc"),
                   onClick: async () => {
-                      setVoteState("down")
+                      persistVote("down")
                   },
               }
             : {
@@ -1216,7 +1298,7 @@ export default function ActionSection({
                   bg: "linear-gradient(135deg, var(--primary), var(--accent))",
                   description: t("actions.removeVoteDownDesc"),
                   onClick: async () => {
-                      setVoteState(null)
+                      persistVote(null)
                   },
               },
         {
@@ -1521,22 +1603,24 @@ export default function ActionSection({
                                                             </span>
                                                         </div>
                                                         <div className='relative w-full max-w-[430px] mx-auto overflow-hidden rounded-lg border bg-muted/20'>
-                                                            {isActivePreviewLoading ? (
-                                                                <div className='absolute inset-0 animate-pulse bg-muted/40' />
-                                                            ) : null}
-                                                            {previewUrl ? (
-                                                                <div className='relative h-full w-full'>
-                                                                    <img
-                                                                        src={
-                                                                            previewUrl
-                                                                        }
-                                                                        alt='Preview'
-                                                                        className='object-cover'
-                                                                    />
-                                                                </div>
-                                                            ) : (
-                                                                <div className='absolute inset-0 animate-pulse bg-muted/40' />
-                                                            )}
+                                                            <SharePreview
+                                                                question={
+                                                                    question
+                                                                }
+                                                                cards={cards}
+                                                                interpretation={
+                                                                    interpretation
+                                                                }
+                                                                aspectRatio={
+                                                                    downloadStyleId ===
+                                                                    "story"
+                                                                        ? "story"
+                                                                        : downloadStyleId ===
+                                                                            "square"
+                                                                          ? "square"
+                                                                          : "landscape"
+                                                                }
+                                                            />
                                                         </div>
                                                     </div>
                                                     <SheetFooter className='sticky bottom-0 z-10 gap-2 border-t border-white/10 bg-gradient-to-t from-[#0a0a1a]/95 via-[#0a0a1a]/90 to-transparent px-4 pb-4 pt-3 sm:flex-row sm:justify-end'>
@@ -1600,29 +1684,54 @@ export default function ActionSection({
                                                     </span>
                                                 </button>
                                             </PopoverTrigger>
-                                            <PopoverContent className='w-72'>
-                                                <div className='max-h-64 overflow-auto space-y-2'>
-                                                    {versions.map((v) => (
-                                                        <button
-                                                            key={v.id}
-                                                            type='button'
-                                                            onClick={() => {
-                                                                if (
-                                                                    typeof onInterpretationChange ===
-                                                                    "function"
-                                                                ) {
-                                                                    onInterpretationChange(
-                                                                        v.content,
-                                                                    )
-                                                                }
-                                                            }}
-                                                            className='w-full text-left px-2 py-1 rounded hover:bg-white/10 text-sm'
-                                                        >
-                                                            {new Date(
-                                                                v.created_at,
-                                                            ).toLocaleString()}
-                                                        </button>
-                                                    ))}
+                                            <PopoverContent className='w-72 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 shadow-[0_12px_40px_-12px_rgba(234,179,8,0.35)] backdrop-blur-xl'>
+                                                <div className='max-h-64 overflow-auto space-y-1'>
+                                                    {versions.length === 0 ? (
+                                                        <div className='px-2 py-1.5 text-sm text-white font-medium'>
+                                                            Version 1 (current)
+                                                        </div>
+                                                    ) : (
+                                                        versions.map(
+                                                            (v, idx) => {
+                                                                const isCurrent =
+                                                                    interpretation?.trim() ===
+                                                                    v.content?.trim()
+                                                                return (
+                                                                    <button
+                                                                        key={
+                                                                            v.id
+                                                                        }
+                                                                        type='button'
+                                                                        onClick={() => {
+                                                                            if (
+                                                                                typeof onInterpretationChange ===
+                                                                                "function"
+                                                                            ) {
+                                                                                onInterpretationChange(
+                                                                                    v.content,
+                                                                                )
+                                                                            } else {
+                                                                                setInterpretation(
+                                                                                    v.content,
+                                                                                )
+                                                                            }
+                                                                        }}
+                                                                        className={`w-full text-left px-2 py-1.5 rounded hover:bg-white/10 text-sm ${
+                                                                            isCurrent
+                                                                                ? "text-white font-medium bg-white/5"
+                                                                                : "text-white/70"
+                                                                        }`}
+                                                                    >
+                                                                        Version{" "}
+                                                                        {idx +
+                                                                            1}
+                                                                        {isCurrent &&
+                                                                            " (current)"}
+                                                                    </button>
+                                                                )
+                                                            },
+                                                        )
+                                                    )}
                                                 </div>
                                             </PopoverContent>
                                         </Popover>
@@ -1668,6 +1777,169 @@ export default function ActionSection({
                         })}
                     </Swiper>
                 </div>
+
+                {/* Report dialog */}
+                <AlertDialog open={showReport} onOpenChange={setShowReport}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                {t("dialogs.report.title")}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {t("dialogs.report.desc")}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className='space-y-2'>
+                            <select
+                                className='w-full bg-background border border-border/40 rounded-md p-2'
+                                value={reportReason}
+                                onChange={(e) =>
+                                    setReportReason(e.target.value)
+                                }
+                            >
+                                <option value=''>
+                                    {t("dialogs.report.reasons.select")}
+                                </option>
+                                <option value='inappropriate'>
+                                    {t("dialogs.report.reasons.inappropriate")}
+                                </option>
+                                <option value='spam'>
+                                    {t("dialogs.report.reasons.spam")}
+                                </option>
+                                <option value='harassment'>
+                                    {t("dialogs.report.reasons.harassment")}
+                                </option>
+                                <option value='privacy'>
+                                    {t("dialogs.report.reasons.privacy")}
+                                </option>
+                                <option value='other'>
+                                    {t("dialogs.report.reasons.other")}
+                                </option>
+                            </select>
+                            {reportReason && (
+                                <textarea
+                                    className='w-full bg-background border border-border/40 rounded-md p-2 min-h-[80px]'
+                                    placeholder={t(
+                                        "dialogs.report.placeholder",
+                                    )}
+                                    value={reportDetails}
+                                    onChange={(e) =>
+                                        setReportDetails(e.target.value)
+                                    }
+                                />
+                            )}
+                        </div>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>
+                                {t("dialogs.report.cancel")}
+                            </AlertDialogCancel>
+                            <button
+                                type='button'
+                                disabled={!reportReason}
+                                className='inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50'
+                                onClick={async () => {
+                                    try {
+                                        const res = await fetch(
+                                            "/api/reports",
+                                            {
+                                                method: "POST",
+                                                headers: {
+                                                    "Content-Type":
+                                                        "application/json",
+                                                },
+                                                body: JSON.stringify({
+                                                    reading_id: readingId,
+                                                    reason: reportReason,
+                                                    details:
+                                                        reportDetails ||
+                                                        undefined,
+                                                }),
+                                            },
+                                        )
+                                        if (res.ok) {
+                                            setShowReport(false)
+                                            setReportReason("")
+                                            setReportDetails("")
+                                        }
+                                    } catch {}
+                                }}
+                            >
+                                {t("dialogs.report.submit")}
+                            </button>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+
+                {/* Feedback dialog */}
+                <AlertDialog open={showFeedback} onOpenChange={setShowFeedback}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                {t("dialogs.feedback.title")}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {t("dialogs.feedback.desc")}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className='flex items-center justify-center gap-2 py-2'>
+                            {[1, 2, 3, 4, 5].map((n) => (
+                                <button
+                                    key={n}
+                                    type='button'
+                                    onClick={() => setRating(n)}
+                                    className={`w-8 h-8 rounded-full transition-colors ${rating >= n ? "bg-yellow-400" : "bg-zinc-700 hover:bg-zinc-600"}`}
+                                    aria-label={`Rate ${n}`}
+                                />
+                            ))}
+                        </div>
+                        <textarea
+                            className='w-full bg-background border border-border/40 rounded-md p-2'
+                            placeholder={t("dialogs.feedback.placeholder")}
+                            value={feedbackComment}
+                            onChange={(e) =>
+                                setFeedbackComment(e.target.value)
+                            }
+                        />
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>
+                                {t("dialogs.feedback.cancel")}
+                            </AlertDialogCancel>
+                            <button
+                                type='button'
+                                disabled={rating === 0}
+                                className='inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50'
+                                onClick={async () => {
+                                    try {
+                                        const res = await fetch(
+                                            "/api/feedbacks",
+                                            {
+                                                method: "POST",
+                                                headers: {
+                                                    "Content-Type":
+                                                        "application/json",
+                                                },
+                                                body: JSON.stringify({
+                                                    reading_id: readingId,
+                                                    rating,
+                                                    comment:
+                                                        feedbackComment ||
+                                                        undefined,
+                                                }),
+                                            },
+                                        )
+                                        if (res.ok) {
+                                            setShowFeedback(false)
+                                            setFeedbackComment("")
+                                            setRating(0)
+                                        }
+                                    } catch {}
+                                }}
+                            >
+                                {t("dialogs.feedback.submit")}
+                            </button>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         )
     }
@@ -1947,80 +2219,23 @@ export default function ActionSection({
                                                             {selectedStyle.size}
                                                         </span>
                                                     </div>
-                                                    <div
-                                                        className='relative w-full max-w-[430px] mx-auto overflow-hidden rounded-lg border bg-muted/20'
-                                                        style={{
-                                                            aspectRatio: `${selectedStyle.width}/${selectedStyle.height}`,
-                                                        }}
-                                                    >
-                                                        {isActivePreviewLoading && (
-                                                            <div className='absolute left-3 right-3 top-3 z-10 h-2 overflow-hidden rounded-full bg-black/40'>
-                                                                <div
-                                                                    className={`h-full rounded-full bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 transition-all ${
-                                                                        activePreviewProgress ==
-                                                                        null
-                                                                            ? "animate-pulse w-2/3"
-                                                                            : ""
-                                                                    }`}
-                                                                    style={
-                                                                        activePreviewProgress ==
-                                                                        null
-                                                                            ? undefined
-                                                                            : {
-                                                                                  width: `${Math.max(
-                                                                                      6,
-                                                                                      Math.round(
-                                                                                          activePreviewProgress *
-                                                                                              100,
-                                                                                      ),
-                                                                                  )}%`,
-                                                                              }
-                                                                    }
-                                                                />
-                                                            </div>
-                                                        )}
-                                                        {downloadFormat ===
-                                                        "video" ? (
-                                                            isVideoGenerating ? (
-                                                                <div className='absolute inset-0 animate-pulse bg-muted/40' />
-                                                            ) : videoPreviewUrl ? (
-                                                                <video
-                                                                    src={
-                                                                        videoPreviewUrl
-                                                                    }
-                                                                    className='h-full w-full object-cover'
-                                                                    autoPlay
-                                                                    loop
-                                                                    muted
-                                                                    playsInline
-                                                                />
-                                                            ) : (
-                                                                <div className='absolute inset-0 flex items-center justify-center text-xs text-muted-foreground'>
-                                                                    {t(
-                                                                        "actions.downloadVideoPreviewFallback",
-                                                                    )}
-                                                                </div>
-                                                            )
-                                                        ) : isPreviewLoading ? (
-                                                            <div className='absolute inset-0 animate-pulse bg-muted/40' />
-                                                        ) : previewUrl ? (
-                                                            <Image
-                                                                src={previewUrl}
-                                                                alt={t(
-                                                                    "actions.downloadPreviewAlt",
-                                                                )}
-                                                                fill
-                                                                unoptimized
-                                                                className='object-cover'
-                                                            />
-                                                        ) : (
-                                                            <div className='absolute inset-0 flex items-center justify-center text-xs text-muted-foreground'>
-                                                                {previewError ||
-                                                                    t(
-                                                                        "actions.downloadPreviewFallback",
-                                                                    )}
-                                                            </div>
-                                                        )}
+                                                    <div className='relative w-full max-w-[430px] mx-auto overflow-hidden rounded-lg border bg-muted/20'>
+                                                        <SharePreview
+                                                            question={question}
+                                                            cards={cards}
+                                                            interpretation={
+                                                                interpretation
+                                                            }
+                                                            aspectRatio={
+                                                                downloadStyleId ===
+                                                                "story"
+                                                                    ? "story"
+                                                                    : downloadStyleId ===
+                                                                        "square"
+                                                                      ? "square"
+                                                                      : "landscape"
+                                                            }
+                                                        />
                                                     </div>
                                                 </div>
                                             </div>
@@ -2099,31 +2314,37 @@ export default function ActionSection({
                                             <PopoverContent className='w-72'>
                                                 <div className='max-h-64 overflow-auto space-y-2'>
                                                     {versions.map(
-                                                        (v, index) => (
-                                                            <button
-                                                                key={v.id}
-                                                                type='button'
-                                                                className='w-full text-left px-2 py-1 rounded hover:bg-white/10 text-sm'
-                                                                onClick={() => {
-                                                                    if (
-                                                                        typeof onInterpretationChange ===
-                                                                        "function"
-                                                                    )
-                                                                        onInterpretationChange(
-                                                                            v.content,
+                                                        (v, index) => {
+                                                            const isCurrent =
+                                                                interpretation?.trim() ===
+                                                                v.content?.trim()
+                                                            return (
+                                                                <button
+                                                                    key={v.id}
+                                                                    type='button'
+                                                                    className={`w-full text-left px-2 py-1 rounded hover:bg-white/10 text-sm ${
+                                                                        isCurrent
+                                                                            ? "text-white font-medium bg-white/5"
+                                                                            : "text-white/70"
+                                                                    }`}
+                                                                    onClick={() => {
+                                                                        if (
+                                                                            typeof onInterpretationChange ===
+                                                                            "function"
                                                                         )
-                                                                    else
-                                                                        setInterpretation(
-                                                                            v.content,
-                                                                        )
-                                                                }}
-                                                            >
-                                                                {`Version ${
-                                                                    versions.length -
-                                                                    index
-                                                                } • ${new Date(v.created_at).toLocaleString()}`}
-                                                            </button>
-                                                        ),
+                                                                            onInterpretationChange(
+                                                                                v.content,
+                                                                            )
+                                                                        else
+                                                                            setInterpretation(
+                                                                                v.content,
+                                                                            )
+                                                                    }}
+                                                                >
+                                                                    {`Version ${index + 1}${isCurrent ? " (current)" : ""}`}
+                                                                </button>
+                                                            )
+                                                        },
                                                     )}
                                                 </div>
                                             </PopoverContent>
@@ -2183,7 +2404,7 @@ export default function ActionSection({
             {/* Removed inline star deduction note; using toast instead */}
 
             {/* Report dialog */}
-            <AlertDialog open={showReport}>
+            <AlertDialog open={showReport} onOpenChange={setShowReport}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
@@ -2218,9 +2439,9 @@ export default function ActionSection({
                                 {t("dialogs.report.reasons.other")}
                             </option>
                         </select>
-                        {reportReason === "other" && (
+                        {reportReason && (
                             <textarea
-                                className='w-full bg-background border border-border/40 rounded-md p-2'
+                                className='w-full bg-background border border-border/40 rounded-md p-2 min-h-[80px]'
                                 placeholder={t("dialogs.report.placeholder")}
                                 value={reportDetails}
                                 onChange={(e) =>
@@ -2230,12 +2451,14 @@ export default function ActionSection({
                         )}
                     </div>
                     <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setShowReport(false)}>
+                        <AlertDialogCancel>
                             {t("dialogs.report.cancel")}
                         </AlertDialogCancel>
-                        <AlertDialogAction
+                        <button
+                            type='button'
+                            disabled={!reportReason}
+                            className='inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50'
                             onClick={async () => {
-                                if (!reportReason) return
                                 try {
                                     const res = await fetch("/api/reports", {
                                         method: "POST",
@@ -2248,18 +2471,22 @@ export default function ActionSection({
                                             details: reportDetails || undefined,
                                         }),
                                     })
-                                    if (res.ok) setShowReport(false)
+                                    if (res.ok) {
+                                        setShowReport(false)
+                                        setReportReason("")
+                                        setReportDetails("")
+                                    }
                                 } catch {}
                             }}
                         >
                             {t("dialogs.report.submit")}
-                        </AlertDialogAction>
+                        </button>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
 
             {/* Feedback dialog */}
-            <AlertDialog open={showFeedback}>
+            <AlertDialog open={showFeedback} onOpenChange={setShowFeedback}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
@@ -2275,7 +2502,7 @@ export default function ActionSection({
                                 key={n}
                                 type='button'
                                 onClick={() => setRating(n)}
-                                className={`w-8 h-8 rounded-full ${rating >= n ? "bg-yellow-400" : "bg-zinc-700"}`}
+                                className={`w-8 h-8 rounded-full transition-colors ${rating >= n ? "bg-yellow-400" : "bg-zinc-700 hover:bg-zinc-600"}`}
                                 aria-label={`Rate ${n}`}
                             />
                         ))}
@@ -2283,16 +2510,17 @@ export default function ActionSection({
                     <textarea
                         className='w-full bg-background border border-border/40 rounded-md p-2'
                         placeholder={t("dialogs.feedback.placeholder")}
-                        value={reportDetails}
-                        onChange={(e) => setReportDetails(e.target.value)}
+                        value={feedbackComment}
+                        onChange={(e) => setFeedbackComment(e.target.value)}
                     />
                     <AlertDialogFooter>
-                        <AlertDialogCancel
-                            onClick={() => setShowFeedback(false)}
-                        >
+                        <AlertDialogCancel>
                             {t("dialogs.feedback.cancel")}
                         </AlertDialogCancel>
-                        <AlertDialogAction
+                        <button
+                            type='button'
+                            disabled={rating === 0}
+                            className='inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50'
                             onClick={async () => {
                                 try {
                                     const res = await fetch("/api/feedbacks", {
@@ -2303,15 +2531,20 @@ export default function ActionSection({
                                         body: JSON.stringify({
                                             reading_id: readingId,
                                             rating,
-                                            comment: reportDetails || undefined,
+                                            comment:
+                                                feedbackComment || undefined,
                                         }),
                                     })
-                                    if (res.ok) setShowFeedback(false)
+                                    if (res.ok) {
+                                        setShowFeedback(false)
+                                        setFeedbackComment("")
+                                        setRating(0)
+                                    }
                                 } catch {}
                             }}
                         >
                             {t("dialogs.feedback.submit")}
-                        </AlertDialogAction>
+                        </button>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
