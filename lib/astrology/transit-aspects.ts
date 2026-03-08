@@ -374,6 +374,18 @@ function isDateWithinInclusive(
     return target >= start && target <= end
 }
 
+function doRangesOverlap(
+    aStart: string,
+    aEnd: string,
+    bStart: string,
+    bEnd: string,
+) {
+    return (
+        toComparableDateValue(aStart) <= toComparableDateValue(bEnd) &&
+        toComparableDateValue(aEnd) >= toComparableDateValue(bStart)
+    )
+}
+
 function finalizeActiveWindows(activeByKey: Map<string, ActiveWindow>) {
     const finalized: PersonalizedTransitAspectWindow[] = []
     for (const active of activeByKey.values()) {
@@ -654,21 +666,25 @@ export function buildPersonalizedTransitAspects({
         codexRows,
     })
 
-    const range =
-        questionRange.source === "explicit"
-            ? computedRange
-                ? {
-                      ...computedRange,
-                      events: computedRange.events.filter((event) =>
-                          isDateWithinInclusive(
-                              questionRange.startDateIso,
-                              event.startDateIso,
-                              event.endDateIso
-                          )
-                      ),
-                  }
-                : null
-            : computedRange
+    const range = computedRange
+        ? {
+              ...computedRange,
+              events: computedRange.events.filter((event) =>
+                  questionRange.source === "explicit"
+                      ? isDateWithinInclusive(
+                            questionRange.startDateIso,
+                            event.startDateIso,
+                            event.endDateIso,
+                        )
+                      : doRangesOverlap(
+                            questionRange.startDateIso,
+                            questionRange.endDateIso,
+                            event.startDateIso,
+                            event.endDateIso,
+                        ),
+              ),
+          }
+        : null
 
     const exact =
         questionRange.source === "explicit" &&

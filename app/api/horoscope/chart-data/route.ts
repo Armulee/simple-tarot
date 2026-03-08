@@ -44,7 +44,7 @@ const requestSchema = z.object({
 })
 
 const DAY_MS = 24 * 60 * 60 * 1000
-const EXPLICIT_ASPECT_PADDING_DAYS = 30
+const ASPECT_PADDING_DAYS = 90
 
 function addUtcDays(date: Date, days: number) {
     return new Date(date.getTime() + days * DAY_MS)
@@ -69,37 +69,31 @@ export async function POST(req: Request) {
                 : null,
         })
         const codexTransit = await getCodexTransitWindow(questionRange)
-        const aspectRange =
-            questionRange.source === "explicit"
-                ? {
-                      ...questionRange,
-                      startDate: addUtcDays(
-                          questionRange.startDate,
-                          -EXPLICIT_ASPECT_PADDING_DAYS,
-                      ),
-                      endDate: addUtcDays(
-                          questionRange.startDate,
-                          EXPLICIT_ASPECT_PADDING_DAYS,
-                      ),
-                      startDateIso: toIsoDate(
-                          addUtcDays(
-                              questionRange.startDate,
-                              -EXPLICIT_ASPECT_PADDING_DAYS,
-                          ),
-                      ),
-                      endDateIso: toIsoDate(
-                          addUtcDays(
-                              questionRange.startDate,
-                              EXPLICIT_ASPECT_PADDING_DAYS,
-                          ),
-                      ),
-                      durationDays: EXPLICIT_ASPECT_PADDING_DAYS * 2,
-                  }
-                : questionRange
-        const aspectCodexTransit =
-            questionRange.source === "explicit"
-                ? await getCodexTransitWindow(aspectRange)
-                : codexTransit
+        const aspectRange = {
+            ...questionRange,
+            startDate: addUtcDays(
+                questionRange.startDate,
+                -ASPECT_PADDING_DAYS,
+            ),
+            endDate: addUtcDays(
+                questionRange.endDate,
+                ASPECT_PADDING_DAYS,
+            ),
+            startDateIso: toIsoDate(
+                addUtcDays(
+                    questionRange.startDate,
+                    -ASPECT_PADDING_DAYS,
+                ),
+            ),
+            endDateIso: toIsoDate(
+                addUtcDays(
+                    questionRange.endDate,
+                    ASPECT_PADDING_DAYS,
+                ),
+            ),
+            durationDays: questionRange.durationDays + ASPECT_PADDING_DAYS * 2,
+        }
+        const aspectCodexTransit = await getCodexTransitWindow(aspectRange)
 
         const chartDataResult = await buildChartData(
             {

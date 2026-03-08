@@ -53,13 +53,32 @@ export async function POST(req: NextRequest) {
             attempts++
         }
 
+        const assistantText = body?.assistant_text
+            ? String(body.assistant_text).slice(0, 2000)
+            : null
+        const insights = Array.isArray(body?.insights) ? body.insights : null
+        const conclusion = body?.conclusion
+            ? String(body.conclusion).slice(0, 2000)
+            : null
+        const spreadType = body?.spread_type
+            ? String(body.spread_type).slice(0, 50)
+            : null
+        const cardsFull = Array.isArray(body?.cards_full)
+            ? body.cards_full
+            : null
+
         const { error } = await supabaseAdmin.from("shared_tarot").insert({
             id: finalId,
-            did, // owner DID (device id)
+            did,
             owner_user_id: ownerUserId,
             question,
             cards,
             interpretation,
+            assistant_text: assistantText,
+            insights,
+            conclusion,
+            spread_type: spreadType,
+            cards_full: cardsFull,
             created_at: new Date().toISOString(),
         })
 

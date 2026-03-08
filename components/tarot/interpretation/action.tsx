@@ -194,10 +194,6 @@ export default function ActionSection({
     const selectedStyle =
         downloadStyles.find((style) => style.id === downloadStyleId) ||
         downloadStyles[0]
-    const activePreviewProgress =
-        downloadFormat === "video" ? videoProgress : previewProgress
-    const isActivePreviewLoading =
-        downloadFormat === "video" ? isVideoGenerating : isPreviewLoading
 
     const fetchShareImage = useCallback(
         async ({
@@ -1896,9 +1892,7 @@ export default function ActionSection({
                             className='w-full bg-background border border-border/40 rounded-md p-2'
                             placeholder={t("dialogs.feedback.placeholder")}
                             value={feedbackComment}
-                            onChange={(e) =>
-                                setFeedbackComment(e.target.value)
-                            }
+                            onChange={(e) => setFeedbackComment(e.target.value)}
                         />
                         <AlertDialogFooter>
                             <AlertDialogCancel>

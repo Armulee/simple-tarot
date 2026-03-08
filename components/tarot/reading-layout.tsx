@@ -122,7 +122,7 @@ export default function TarotReadingLayout({
                         readingId={readingId}
                         question={question}
                         cards={cards}
-                        initialInterpretation={initialInterpretation}
+                        initialInterpretation={interpretation ?? initialInterpretation ?? null}
                         ownerDid={ownerDid}
                         ownerUserId={ownerUserId}
                         isLargeScreen={true}

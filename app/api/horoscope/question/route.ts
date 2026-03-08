@@ -9,7 +9,11 @@ import { horoscopeInterpretationSchema } from "@/lib/astrology/schema"
 import { getHoroscopeInterpretationPrompt } from "@/lib/prompts"
 import { resolveQuestionTimeRangeAsync } from "@/lib/astrology/question-time-range"
 import { getCodexTransitWindow } from "@/lib/astrology/ephemeris-codex"
-import { isBirthChartSuitabilityQuestion } from "@/lib/astrology/question-intent"
+import {
+    isBirthChartSuitabilityQuestion,
+    classifyQuestionTopic,
+} from "@/lib/astrology/question-intent"
+import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
 import { normalizeConversationContext } from "@/lib/astrology/question-context"
 import {
     buildNatalLongitudes,
@@ -22,7 +26,8 @@ import {
 
 const MODEL = "google/gemini-2.0-flash"
 const DAY_MS = 24 * 60 * 60 * 1000
-const EXPLICIT_ASPECT_PADDING_DAYS = 30
+const ASPECT_PADDING_DAYS = 90
+const MIN_FILTERED_EVENTS = 3
 
 function addUtcDays(date: Date, days: number) {
     return new Date(date.getTime() + days * DAY_MS)
@@ -30,6 +35,45 @@ function addUtcDays(date: Date, days: number) {
 
 function toIsoDate(date: Date) {
     return date.toISOString().slice(0, 10)
+}
+
+function filterAspectsByRelevantPlanets(
+    aspects: PersonalizedTransitAspectsResult,
+    relevantPlanets: readonly string[],
+): PersonalizedTransitAspectsResult {
+    const planetSet = new Set(relevantPlanets)
+
+    const filteredExact = aspects.exact
+        ? {
+              ...aspects.exact,
+              events: aspects.exact.events.filter((e) =>
+                  planetSet.has(e.transitPlanet),
+              ),
+          }
+        : null
+    const filteredRange = aspects.range
+        ? {
+              ...aspects.range,
+              events: aspects.range.events.filter((e) =>
+                  planetSet.has(e.transitPlanet),
+              ),
+          }
+        : null
+
+    const exactTooFew =
+        filteredExact &&
+        filteredExact.events.length < MIN_FILTERED_EVENTS &&
+        (aspects.exact?.events.length ?? 0) >= MIN_FILTERED_EVENTS
+    const rangeTooFew =
+        filteredRange &&
+        filteredRange.events.length < MIN_FILTERED_EVENTS &&
+        (aspects.range?.events.length ?? 0) >= MIN_FILTERED_EVENTS
+
+    return {
+        ...aspects,
+        exact: exactTooFew ? aspects.exact : filteredExact,
+        range: rangeTooFew ? aspects.range : filteredRange,
+    }
 }
 
 const requestSchema = z.object({
@@ -94,40 +138,35 @@ export async function POST(req: Request) {
                 : null,
         })
         const codexTransit = await getCodexTransitWindow(questionRange)
-        const aspectRange =
-            questionRange.source === "explicit"
-                ? {
-                      ...questionRange,
-                      startDate: addUtcDays(
-                          questionRange.startDate,
-                          -EXPLICIT_ASPECT_PADDING_DAYS,
-                      ),
-                      endDate: addUtcDays(
-                          questionRange.startDate,
-                          EXPLICIT_ASPECT_PADDING_DAYS,
-                      ),
-                      startDateIso: toIsoDate(
-                          addUtcDays(
-                              questionRange.startDate,
-                              -EXPLICIT_ASPECT_PADDING_DAYS,
-                          ),
-                      ),
-                      endDateIso: toIsoDate(
-                          addUtcDays(
-                              questionRange.startDate,
-                              EXPLICIT_ASPECT_PADDING_DAYS,
-                          ),
-                      ),
-                      durationDays: EXPLICIT_ASPECT_PADDING_DAYS * 2,
-                  }
-                : questionRange
-        const aspectCodexTransit =
-            questionRange.source === "explicit"
-                ? await getCodexTransitWindow(aspectRange)
-                : codexTransit
+        const aspectRange = {
+            ...questionRange,
+            startDate: addUtcDays(
+                questionRange.startDate,
+                -ASPECT_PADDING_DAYS,
+            ),
+            endDate: addUtcDays(
+                questionRange.endDate,
+                ASPECT_PADDING_DAYS,
+            ),
+            startDateIso: toIsoDate(
+                addUtcDays(
+                    questionRange.startDate,
+                    -ASPECT_PADDING_DAYS,
+                ),
+            ),
+            endDateIso: toIsoDate(
+                addUtcDays(
+                    questionRange.endDate,
+                    ASPECT_PADDING_DAYS,
+                ),
+            ),
+            durationDays: questionRange.durationDays + ASPECT_PADDING_DAYS * 2,
+        }
+        const aspectCodexTransit = await getCodexTransitWindow(aspectRange)
         const suitabilityQuestion = isBirthChartSuitabilityQuestion(
             body.question,
         )
+        const questionTopic = classifyQuestionTopic(body.question)
         const conversationContext = normalizeConversationContext(
             body.conversationContext,
         )
@@ -153,7 +192,7 @@ export async function POST(req: Request) {
             buildTransitLongitudesFromSwissPlanets(
                 primaryTransitChart?.planets ?? {},
             )
-        const personalizedTransitAspects = buildPersonalizedTransitAspects({
+        const rawTransitAspects = buildPersonalizedTransitAspects({
             questionRange: {
                 source: questionRange.source,
                 startDateIso: questionRange.startDateIso,
@@ -163,6 +202,13 @@ export async function POST(req: Request) {
             codexRows: aspectCodexTransit.rows,
             fallbackExactTransitLongitudes,
         })
+        const personalizedTransitAspects =
+            questionTopic.topic !== "general"
+                ? filterAspectsByRelevantPlanets(
+                      rawTransitAspects,
+                      questionTopic.relevantPlanets,
+                  )
+                : rawTransitAspects
         const resolvedTime = resolveBirthTime({
             hour: body.birth.hour ?? null,
             minute: body.birth.minute ?? null,
@@ -202,6 +248,7 @@ export async function POST(req: Request) {
             isBirthChartSuitabilityQuestion: suitabilityQuestion,
             conversationContextText,
             userMainPoint: conversationContext?.userMainPoint ?? "",
+            questionTopic,
         })
 
         console.log(
@@ -211,10 +258,12 @@ export async function POST(req: Request) {
         const result = await streamObject({
             model: MODEL,
             schema: horoscopeInterpretationSchema,
-            system: `You are an expert astrologer who writes for a general audience.
+            system: `You are an expert astrologer who writes for a general audience with ZERO astrology knowledge.
 You respond as a female. Astra is a female oracle. Use feminine voice and perspective in all responses.
 Be clear, kind, and practical. Never claim fixed destiny.
-Write in plain, everyday language. Reference key planetary positions as evidence for your answer, but explain them simply for a general audience. Focus on what will happen and how the user might feel—answer their question directly.
+Write like a caring friend giving life advice — warm, conversational, and in plain everyday language. Write the way a native speaker would text a close friend. NEVER sound like an astrology textbook.
+
+ABSOLUTELY FORBIDDEN in interpretation text: planet names (Saturn, Jupiter, Mars, Venus, Rahu, ดาวเสาร์, ดาวพฤหัส, ดาวอังคาร, ดาวศุกร์, ราหู, จันทร์, etc.), zodiac sign names (Aries, Pisces, ราศีเมษ, ราศีมีน, etc.), and astrology terms (conjunction, opposition, square, trine, sextile, orb, transit, เล็ง, ตรีโกณ, จตุโกณ, ร่วม, etc.). Translate all astrological meaning into life impact — emotions, energy, timing, advice.
 
 CRITICAL: Write your interpretation in the EXACT SAME language as the user's question. If the question is in Thai, respond entirely in Thai. If in English, respond in English. Match whatever language the user used—never default to English when the question is in another language.
 
@@ -222,7 +271,7 @@ CRITICAL: When citing time periods, use dates in the SAME language as your outpu
 
 Output structure: Provide interpretation (main reading), conclusion (short calming wrap-up), and suggestions (3-5 follow-up questions the user could ask next, written as user questions).`,
             prompt,
-            temperature: 0.8,
+            temperature: 0.6,
         })
 
         result.object

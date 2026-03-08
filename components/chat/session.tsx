@@ -403,6 +403,17 @@ export default function ChatSession({
                         : m,
                 ),
             )
+            if (object.interpretation?.trim()) {
+                fetch("/api/tarot/versions", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        reading_id: lid,
+                        content: object.interpretation,
+                    }),
+                }).catch(() => {})
+            }
+
             interpretationLoadingIdRef.current = null
             setIsInterpreting(false)
         },
@@ -987,30 +998,6 @@ export default function ChatSession({
                 card.isReversed ? `${card.name} (Reversed)` : card.name,
             )
 
-            let situationData: {
-                topic: string
-                intent: string
-                emotion: string
-                focus: string
-                cardMeanings: string[][]
-            } | null = null
-
-            try {
-                const res = await fetch("/api/situation", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        question: lastQuestion,
-                        cards: cardNames,
-                    }),
-                })
-                if (res.ok) {
-                    situationData = await res.json()
-                }
-            } catch (err) {
-                console.error("[situation] extraction failed:", err)
-            }
-
             const loadingId = `assistant-interpretation-loading-${Date.now()}`
             setMessages((prev) => [
                 ...prev,
@@ -1046,6 +1033,34 @@ export default function ChatSession({
                 : null
             const conversationContext = buildConversationContext(lastQuestion)
 
+            let situationData: {
+                topic: string
+                intent: string
+                emotion: string
+                focus: string
+                cardMeanings: string[][]
+                cardReadingDirection?: string
+            } | null = null
+
+            try {
+                const res = await fetch("/api/situation", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        question: lastQuestion,
+                        cards: cardNames,
+                        conversationContext:
+                            conversationContext?.contextText ?? null,
+                        previousInterpretation: previousInterpretation ?? null,
+                    }),
+                })
+                if (res.ok) {
+                    situationData = await res.json()
+                }
+            } catch (err) {
+                console.error("[situation] extraction failed:", err)
+            }
+
             interpretationLoadingIdRef.current = loadingId
             submitInterpretation({
                 question: lastQuestion,
@@ -1062,6 +1077,8 @@ export default function ChatSession({
                           intent: situationData.intent,
                           emotion: situationData.emotion,
                           focus: situationData.focus,
+                          cardReadingDirection:
+                              situationData.cardReadingDirection,
                       }
                     : undefined,
                 cardEnergies: situationData?.cardMeanings,
@@ -1164,16 +1181,10 @@ export default function ChatSession({
             if (interpretationMode === "chat") {
                 return { ...decision, type: "chat" }
             }
-            if (
-                interpretationMode === "tarot" &&
-                decision.type === "horoscope"
-            ) {
+            if (interpretationMode === "tarot") {
                 return { ...decision, type: "draw" }
             }
-            if (
-                interpretationMode === "horoscope" &&
-                decision.type === "draw"
-            ) {
+            if (interpretationMode === "horoscope") {
                 return { ...decision, type: "horoscope" }
             }
             return decision
@@ -1419,6 +1430,114 @@ export default function ChatSession({
             })
         },
         [buildHoroscopeConversationContext, locale, messages, submitHoroscope],
+    )
+
+    const regenerateTarotAt = useCallback(
+        async (messageId: string) => {
+            const msg = messages.find((m) => m.id === messageId)
+            if (!msg || msg.variant !== "box" || !msg.cards?.length) return
+
+            const questionText = msg.question || lastQuestion || ""
+            const cardNames = msg.cards.map((c) => c.meaning)
+
+            setIsInterpreting(true)
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === messageId
+                        ? {
+                              ...m,
+                              text: "",
+                              insights: [],
+                              followUpConclusion: undefined,
+                              followUpSuggestions: undefined,
+                              followUpLoading: false,
+                              isLoading: true,
+                          }
+                        : m,
+                ),
+            )
+
+            const lastInterpretationMsg = [...messages]
+                .reverse()
+                .find(
+                    (m) =>
+                        m.id !== messageId &&
+                        m.variant === "box" &&
+                        !m.isLoading &&
+                        m.question &&
+                        m.text?.trim(),
+                )
+            const isFollowUp =
+                Boolean(decision?.isFollowUp) && !!lastInterpretationMsg
+            const previousQuestion = isFollowUp
+                ? (lastInterpretationMsg?.question ?? null)
+                : null
+            const previousInterpretation = isFollowUp
+                ? (lastInterpretationMsg?.text?.trim() ?? null)
+                : null
+            const conversationContext =
+                buildConversationContext(questionText)
+
+            let situationData: {
+                topic: string
+                intent: string
+                emotion: string
+                focus: string
+                cardMeanings: string[][]
+                cardReadingDirection?: string
+            } | null = null
+
+            try {
+                const res = await fetch("/api/situation", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        question: questionText,
+                        cards: cardNames,
+                        conversationContext:
+                            conversationContext?.contextText ?? null,
+                        previousInterpretation:
+                            previousInterpretation ?? null,
+                    }),
+                })
+                if (res.ok) {
+                    situationData = await res.json()
+                }
+            } catch (err) {
+                console.error("[situation] extraction failed:", err)
+            }
+
+            interpretationLoadingIdRef.current = messageId
+            submitInterpretation({
+                question: questionText,
+                cards: cardNames,
+                readingType: msg.spreadType ?? null,
+                isFollowUp,
+                previousQuestion,
+                previousInterpretation,
+                conversationContext,
+                locale,
+                situation: situationData
+                    ? {
+                          topic: situationData.topic,
+                          intent: situationData.intent,
+                          emotion: situationData.emotion,
+                          focus: situationData.focus,
+                          cardReadingDirection:
+                              situationData.cardReadingDirection,
+                      }
+                    : undefined,
+                cardEnergies: situationData?.cardMeanings,
+            })
+        },
+        [
+            messages,
+            lastQuestion,
+            decision?.isFollowUp,
+            buildConversationContext,
+            locale,
+            submitInterpretation,
+        ],
     )
 
     const refetchHoroscopeWithSystem = useCallback(
@@ -1764,6 +1883,10 @@ export default function ChatSession({
                     role: m.role,
                     text: m.text,
                 }))
+            const modeForApi =
+                interpretationMode !== "auto"
+                    ? interpretationMode
+                    : undefined
             const response = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -1771,6 +1894,7 @@ export default function ChatSession({
                     question: value,
                     history,
                     savedBirthInfo: savedBirthInfo ?? undefined,
+                    interpretationMode: modeForApi,
                 }),
                 signal: abortControllerRef.current.signal,
             })
@@ -1802,7 +1926,7 @@ export default function ChatSession({
             if (!parsed) throw new Error("Invalid decision payload")
             return parsed
         },
-        [messages, parseDecision, extractAssistantTextFromStream],
+        [messages, parseDecision, extractAssistantTextFromStream, interpretationMode],
     )
 
     const handleStopConsulting = useCallback(() => {
@@ -2393,6 +2517,17 @@ export default function ChatSession({
         [lastQuestion, spendStars, runInterpretationForCards],
     )
 
+    const handleTarotInterpretationChange = useCallback(
+        (messageId: string, text: string) => {
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === messageId ? { ...m, text } : m,
+                ),
+            )
+        },
+        [],
+    )
+
     const handleToggleAutoPick = useCallback(() => {
         setAutoPickOn((prev) => {
             const next = !prev
@@ -2640,6 +2775,8 @@ export default function ChatSession({
                 onUserDateFormSubmit={handleUserDateFormSubmit}
                 onCancelHoroscopeLoading={handleCancelHoroscopeLoading}
                 onRegenerateHoroscope={regenerateHoroscopeAt}
+                onRegenerateTarot={regenerateTarotAt}
+                onTarotInterpretationChange={handleTarotInterpretationChange}
                 onRefetchHoroscopeWithSystem={refetchHoroscopeWithSystem}
                 onToggleReaction={toggleReaction}
                 onReport={handleReport}

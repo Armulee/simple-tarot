@@ -314,6 +314,8 @@ type MessageListProps = {
     onUserDateFormSubmit: (value: HoroscopeBirthData) => Promise<void>
     onCancelHoroscopeLoading: () => void
     onRegenerateHoroscope?: (messageId: string) => void
+    onRegenerateTarot?: (messageId: string) => void
+    onTarotInterpretationChange?: (messageId: string, text: string) => void
     onRefetchHoroscopeWithSystem: (
         messageId: string,
         system: "western_tropical" | "vedic_sidereal",
@@ -362,6 +364,8 @@ export default function MessageList({
     onUserDateFormSubmit,
     onCancelHoroscopeLoading,
     onRegenerateHoroscope,
+    onRegenerateTarot,
+    onTarotInterpretationChange,
     onRefetchHoroscopeWithSystem,
     onToggleReaction,
     onReport,
@@ -728,6 +732,52 @@ export default function MessageList({
                                                         )}
                                                         interpretation={
                                                             message.text
+                                                        }
+                                                        messageId={
+                                                            message.id
+                                                        }
+                                                        readingId={
+                                                            message.id
+                                                        }
+                                                        onRegenerateTarot={
+                                                            onRegenerateTarot
+                                                        }
+                                                        insights={
+                                                            message.insights
+                                                        }
+                                                        conclusion={
+                                                            message.followUpConclusion
+                                                        }
+                                                        spreadType={
+                                                            message.spreadType ??
+                                                            undefined
+                                                        }
+                                                        cardsFull={
+                                                            message.cards
+                                                        }
+                                                        assistantText={
+                                                            messages
+                                                                .slice(
+                                                                    0,
+                                                                    messageIndex,
+                                                                )
+                                                                .reverse()
+                                                                .find(
+                                                                    (m) =>
+                                                                        m.role ===
+                                                                            "assistant" &&
+                                                                        m.variant ===
+                                                                            "plain",
+                                                                )?.text
+                                                        }
+                                                        onInterpretationChange={
+                                                            onTarotInterpretationChange
+                                                                ? (text: string) =>
+                                                                      onTarotInterpretationChange(
+                                                                          message.id,
+                                                                          text,
+                                                                      )
+                                                                : undefined
                                                         }
                                                     />
                                                 </div>

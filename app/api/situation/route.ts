@@ -5,35 +5,58 @@ import { supabaseAdmin } from "@/lib/supabase"
 import type { TarotCodexRow } from "@/lib/tarot/rag"
 import { getBaseCardName, isReversed } from "@/lib/tarot/rag"
 
-const MODEL = "openai/gpt-4o-mini"
+const MODEL = "openai/gpt-4.1-mini"
 
 const USER_SITUATION_PROMPT = `
-Extract the user's situation from the message.
+You are a tarot reasoning engine. Your job is to:
+1. Extract the user's situation (topic, intent, emotion, focus)
+2. Determine WHAT the tarot answer should be (cardReadingDirection)
 
-Return JSON only:
+topic examples: career, relationship, money, project, decision
+intent examples: reconciliation, success, change, uncertainty
+emotion examples: hope, anxiety, confusion, curiosity
 
-{
-"topic": "",
-"intent": "",
-"emotion": "",
-"focus": ""
-}
-
-topic examples:
-career, relationship, money, project, decision
-
-intent examples:
-reconciliation, success, change, uncertainty
-
-emotion examples:
-hope, anxiety, confusion, curiosity
+cardReadingDirection rules:
+- Write 3-5 sentences in ENGLISH (this is an internal directive for the narrator, never shown to users)
+- FIRST SENTENCE: State the verdict as a clear, direct answer (yes/no/maybe/warning + one-line reason)
+- NEXT SENTENCES: For EACH card drawn, write one sentence explaining what that specific card means for this question. Use the card name and its meaning from the provided data. Example: "Card 1 (The Fool) = the user would rush in naively without preparation. Card 2 (10 of Wands) = taking this on would become an overwhelming burden."
+- LAST SENTENCE: Give concrete, practical advice the user can act on
+- If this is a follow-up question, FIRST figure out what the user is referring to from the conversation context and previous reading, then reason about the cards in that specific context
+- Be SPECIFIC and DECISIVE — never say "it depends" or give wishy-washy maybe answers. Pick a side.
+- The narrator model is weak at reasoning — your direction IS the answer. If your direction is vague, the final answer will be vague.
 `
 
-const LOVE_TOPICS = ["relationship", "love", "dating", "romance", "marriage", "partner", "ex"]
-const CAREER_TOPICS = ["career", "job", "work", "project", "business", "promotion"]
-const FINANCIAL_TOPICS = ["money", "financial", "finance", "wealth", "investment", "debt"]
+const LOVE_TOPICS = [
+    "relationship",
+    "love",
+    "dating",
+    "romance",
+    "marriage",
+    "partner",
+    "ex",
+]
+const CAREER_TOPICS = [
+    "career",
+    "job",
+    "work",
+    "project",
+    "business",
+    "promotion",
+]
+const FINANCIAL_TOPICS = [
+    "money",
+    "financial",
+    "finance",
+    "wealth",
+    "investment",
+    "debt",
+]
 
-function pickMeaning(row: TarotCodexRow, topic: string, reversed: boolean): string {
+function pickMeaning(
+    row: TarotCodexRow,
+    topic: string,
+    reversed: boolean,
+): string {
     const t = topic.toLowerCase()
 
     if (LOVE_TOPICS.some((kw) => t.includes(kw))) {
@@ -45,7 +68,9 @@ function pickMeaning(row: TarotCodexRow, topic: string, reversed: boolean): stri
         if (val) return val
     }
     if (FINANCIAL_TOPICS.some((kw) => t.includes(kw))) {
-        const val = reversed ? row.reversed_meaning_financial : row.meaning_financial
+        const val = reversed
+            ? row.reversed_meaning_financial
+            : row.meaning_financial
         if (val) return val
     }
 
@@ -59,9 +84,59 @@ function splitIntoSentences(text: string): string[] {
         .filter(Boolean)
 }
 
+function buildGeneralMeaningSummary(
+    cards: string[],
+    codexMap: Map<string, TarotCodexRow>,
+): string {
+    return cards
+        .map((cardDisplay) => {
+            const baseName = getBaseCardName(cardDisplay)
+            const reversed = isReversed(cardDisplay)
+            const row = codexMap.get(baseName)
+            if (!row) return `${cardDisplay}: (no codex data)`
+            const meaning = reversed
+                ? row.reversed_meaning_general
+                : row.meaning_general
+            return `${cardDisplay}: ${meaning}`
+        })
+        .join("\n")
+}
+
+function buildSituationPrompt({
+    question,
+    cardSummary,
+    conversationContext,
+    previousInterpretation,
+}: {
+    question: string
+    cardSummary: string
+    conversationContext?: string | null
+    previousInterpretation?: string | null
+}) {
+    const parts: string[] = []
+
+    if (conversationContext) {
+        parts.push(`Conversation context:\n${conversationContext}`)
+    }
+    if (previousInterpretation) {
+        parts.push(`Previous tarot reading:\n${previousInterpretation}`)
+    }
+    if (cardSummary) {
+        parts.push(`Cards drawn and their meanings:\n${cardSummary}`)
+    }
+    parts.push(`User message:\n${question}`)
+
+    return parts.join("\n\n")
+}
+
 export async function POST(req: Request) {
     try {
-        let body: { question?: string; cards?: string[] }
+        let body: {
+            question?: string
+            cards?: string[]
+            conversationContext?: string | null
+            previousInterpretation?: string | null
+        }
         try {
             body = await req.json()
         } catch {
@@ -70,22 +145,13 @@ export async function POST(req: Request) {
             })
         }
 
-        const { question, cards } = body ?? {}
+        const { question, cards, conversationContext, previousInterpretation } =
+            body ?? {}
         if (!question) {
             return new Response("Question is required", { status: 400 })
         }
 
-        const { object: situation } = await generateObject({
-            model: MODEL,
-            schema: situationSchema,
-            system: USER_SITUATION_PROMPT,
-            prompt: question,
-        })
-
-        console.log("[situation] extracted:", situation)
-
-        let cardMeanings: string[][] = []
-
+        const codexMap = new Map<string, TarotCodexRow>()
         if (cards && cards.length > 0 && supabaseAdmin) {
             const baseNames = [...new Set(cards.map(getBaseCardName))]
             const { data, error } = await supabaseAdmin
@@ -97,11 +163,37 @@ export async function POST(req: Request) {
                 console.error("[situation] tarot_codex fetch error:", error)
             }
 
-            const codexMap = new Map<string, TarotCodexRow>()
             for (const row of data ?? []) {
                 codexMap.set(row.card_name, row as TarotCodexRow)
             }
+        }
 
+        const cardSummary =
+            cards && cards.length > 0
+                ? buildGeneralMeaningSummary(cards, codexMap)
+                : ""
+
+        const prompt = buildSituationPrompt({
+            question,
+            cardSummary,
+            conversationContext,
+            previousInterpretation,
+        })
+
+        const { object: situation } = await generateObject({
+            model: MODEL,
+            schema: situationSchema,
+            system: USER_SITUATION_PROMPT,
+            prompt,
+        })
+
+        console.log(
+            "[situation] extracted:",
+            JSON.stringify(situation, null, 2),
+        )
+
+        let cardMeanings: string[][] = []
+        if (cards && cards.length > 0) {
             cardMeanings = cards.map((cardDisplay) => {
                 const baseName = getBaseCardName(cardDisplay)
                 const reversed = isReversed(cardDisplay)

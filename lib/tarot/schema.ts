@@ -8,7 +8,7 @@ export const tarotInterpretationSchema = z.object({
     cardInsights: z
         .array(z.string())
         .describe(
-            "A short, punchy 1-sentence insight for each card. Jump straight to the meaning. Do NOT mention 'this card', 'the card', the card name, or the position label. OUTPUT THIS FIRST.",
+            "A short, punchy 1-sentence insight for each card. Jump straight to the meaning. Do NOT mention 'this card', 'the card', the card name, or the position label. OUTPUT THIS FIRST. Write in the SAME language as the user's question — never English unless the question is English.",
         ),
     keywords: z
         .string()

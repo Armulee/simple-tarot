@@ -70,7 +70,7 @@ export default function ShareSection({
 }: ShareSectionProps = {}) {
     const t = useTranslations("ReadingPage.interpretation.share")
     const tCommon = useTranslations(
-        "ReadingPage.interpretation.dialogs.unavailable"
+        "ReadingPage.interpretation.dialogs.unavailable",
     )
 
     const {
@@ -99,7 +99,7 @@ export default function ShareSection({
 
             try {
                 const response = await fetch(
-                    `/api/tarot/earned-stars?readingId=${readingId}`
+                    `/api/tarot/earned-stars?readingId=${readingId}`,
                 )
                 if (response.ok) {
                     const data = await response.json()
@@ -118,7 +118,7 @@ export default function ShareSection({
 
         try {
             const response = await fetch(
-                `/api/tarot/earned-stars?readingId=${readingId}`
+                `/api/tarot/earned-stars?readingId=${readingId}`,
             )
             if (response.ok) {
                 const data = await response.json()
@@ -134,7 +134,7 @@ export default function ShareSection({
         const handleEarnedStarsUpdate = () => {
             // Optimistically bump UI by +5 (capped), then reconcile with server
             setEarnedStars((prev) =>
-                Math.min((prev || 0) + starsPerVisit, maxStars)
+                Math.min((prev || 0) + starsPerVisit, maxStars),
             )
             refreshEarnedStars()
         }
@@ -142,7 +142,7 @@ export default function ShareSection({
         if (typeof window !== "undefined") {
             window.addEventListener(
                 "earned-stars-updated",
-                handleEarnedStarsUpdate
+                handleEarnedStarsUpdate,
             )
 
             // Cross-tab sync via BroadcastChannel when available
@@ -164,7 +164,7 @@ export default function ShareSection({
             if (typeof window !== "undefined") {
                 window.removeEventListener(
                     "earned-stars-updated",
-                    handleEarnedStarsUpdate
+                    handleEarnedStarsUpdate,
                 )
                 try {
                     const w = window as unknown as {
@@ -253,7 +253,7 @@ export default function ShareSection({
                 const cachedLink = shareLinkCache.get(
                     question,
                     cards,
-                    interpretation
+                    interpretation,
                 )
                 if (cachedLink) {
                     return cachedLink
@@ -280,7 +280,7 @@ export default function ShareSection({
                         typeof window !== "undefined"
                             ? window.location.origin
                             : "https://dooduang.ai"
-                    const link = `${origin}/share/tarot/${checkData.id}`
+                    const link = `${origin}/share/${checkData.id}`
 
                     // Cache the result
                     if (question && interpretation) {
@@ -288,7 +288,7 @@ export default function ShareSection({
                             question,
                             cards,
                             interpretation,
-                            link
+                            link,
                         )
                     }
 
@@ -320,7 +320,7 @@ export default function ShareSection({
                 typeof window !== "undefined"
                     ? window.location.origin
                     : "https://dooduang.ai"
-            const link = `${origin}/share/tarot/${id}`
+            const link = `${origin}/share/${id}`
 
             // Cache the result
             if (question && interpretation) {
@@ -483,15 +483,14 @@ export default function ShareSection({
                 href: () => null,
             },
         ],
-        [t]
+        [t],
     )
 
     const renderIcon = (icon: ReactNode) =>
         isValidElement(icon)
-            ? cloneElement(
-                  icon as ReactElement<{ className?: string }>,
-                  { className: "w-3 h-3 text-white" }
-              )
+            ? cloneElement(icon as ReactElement<{ className?: string }>, {
+                  className: "w-3 h-3 text-white",
+              })
             : icon
 
     if (variant === "compact") {
@@ -537,7 +536,11 @@ export default function ShareSection({
                                 return
                             }
                             if (href) {
-                                window.open(href, "_blank", "noopener,noreferrer")
+                                window.open(
+                                    href,
+                                    "_blank",
+                                    "noopener,noreferrer",
+                                )
                             }
                         }}
                         className='flex items-center justify-center h-6 w-6 rounded-full border border-white/10 bg-white/5 text-white/80 hover:text-white hover:border-white/30 transition-colors'
@@ -632,7 +635,7 @@ export default function ShareSection({
                                             window.open(
                                                 href,
                                                 "_blank",
-                                                "noopener,noreferrer"
+                                                "noopener,noreferrer",
                                             )
                                         }
                                     }}
@@ -759,7 +762,7 @@ export default function ShareSection({
                                             window.open(
                                                 href,
                                                 "_blank",
-                                                "noopener,noreferrer"
+                                                "noopener,noreferrer",
                                             )
                                         } else {
                                             // Unavailable platform: show dialog instead of copy fallback
