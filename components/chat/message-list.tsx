@@ -296,6 +296,7 @@ type MessageListProps = {
     isCheckingStars: boolean
     checkingStarsText: string
     showInsufficientStars: boolean
+    insufficientStarsType?: "tarot" | "horoscope"
     cardDrawSection: ReactNode
     hasAssistantResponse: boolean
     disclaimerText: string
@@ -350,6 +351,7 @@ export default function MessageList({
     isCheckingStars,
     checkingStarsText,
     showInsufficientStars,
+    insufficientStarsType = "tarot",
     cardDrawSection,
     hasAssistantResponse,
     disclaimerText,
@@ -1321,7 +1323,7 @@ export default function MessageList({
                         className='flex flex-col items-start gap-4 animate-fade-in'
                     >
                         <div className='w-full md:max-w-[85%] text-white/90 space-y-4'>
-                            <InsufficientStarsBlock />
+                            <InsufficientStarsBlock type={insufficientStarsType} />
                         </div>
                     </div>
                 )}

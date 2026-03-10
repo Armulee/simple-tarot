@@ -2201,6 +2201,8 @@
     "title": "Not Enough Stars",
     "descriptionLoggedIn": "You need at least 1 star to draw cards and get your reading. Top up your stars to continue your mystical journey.",
     "descriptionAnonymous": "You need at least 1 star to draw cards. Sign in to unlock 12 free stars with automatic 2-hourly refills!",
+    "descriptionHoroscopeLoggedIn": "You need at least 1 star to get your horoscope interpretation. Top up your stars to continue your cosmic journey.",
+    "descriptionHoroscopeAnonymous": "You need at least 1 star to get your horoscope interpretation. Sign in to unlock 12 free stars with automatic 2-hourly refills!",
     "quickTopUp": "Quick Top Up",
     "packsNotConfigured": "Star packs are not configured yet.",
     "proRequired": "Add-on packs are available for Pro subscribers only.",

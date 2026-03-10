@@ -327,6 +327,13 @@ export default function ChatSession({
     const [showInsufficientStars, setShowInsufficientStars] = useState<boolean>(
         initialSession?.showInsufficientStars ?? false,
     )
+    const [insufficientStarsType, setInsufficientStarsType] = useState<
+        "tarot" | "horoscope" | null
+    >(() =>
+        initialSession?.showInsufficientStars && initialSession?.decision?.type === "horoscope"
+            ? "horoscope"
+            : null,
+    )
     const [showCardDraw, setShowCardDraw] = useState(
         initialSession?.showCardDraw ?? false,
     )
@@ -953,17 +960,18 @@ export default function ChatSession({
         }
     }, [showCardDraw, cardsToSelect])
 
-    // Update showInsufficientStars based on star balance
+    // Update showInsufficientStars based on star balance (tarot draw)
     useEffect(() => {
         if (hasEnoughStars === true) {
             setShowInsufficientStars(false)
+            setInsufficientStarsType(null)
         } else if (
             showCardDraw &&
             cardsToSelect > 0 &&
             hasEnoughStars === false
         ) {
-            console.log("not sufficient stars")
             setShowInsufficientStars(true)
+            setInsufficientStarsType("tarot")
         }
     }, [hasEnoughStars, showCardDraw, cardsToSelect])
 
@@ -1795,6 +1803,12 @@ export default function ChatSession({
                         },
                     ])
                 }
+                const starOk = spendStars(1)
+                if (!starOk) {
+                    setShowInsufficientStars(true)
+                    setInsufficientStarsType("horoscope")
+                    return
+                }
                 await runHoroscopeReading(
                     birthToUse,
                     questionText,
@@ -1824,6 +1838,7 @@ export default function ChatSession({
             mergeHoroscopeBirth,
             pushToolCard,
             runHoroscopeReading,
+            spendStars,
             tHoroscope,
             horoscopeTransit,
         ],
@@ -1838,6 +1853,12 @@ export default function ChatSession({
                 pushToolCard(value)
                 return
             }
+            const starOk = spendStars(1)
+            if (!starOk) {
+                setShowInsufficientStars(true)
+                setInsufficientStarsType("horoscope")
+                return
+            }
             await runHoroscopeReading(value, questionText, horoscopeTransit)
         },
         [
@@ -1846,6 +1867,7 @@ export default function ChatSession({
             isHoroscopeReady,
             pushToolCard,
             runHoroscopeReading,
+            spendStars,
             horoscopeTransit,
         ],
     )
@@ -2090,6 +2112,7 @@ export default function ChatSession({
         setShuffleFn(null)
         setPickFn(null)
         setShowInsufficientStars(false)
+        setInsufficientStarsType(null)
         setHoroscopeBirth(null)
         setHoroscopeQuestion(null)
         setHoroscopeTransit(null)
@@ -2274,6 +2297,7 @@ export default function ChatSession({
         const ok = spendStars(1)
         if (!ok) {
             setShowInsufficientStars(true)
+            setInsufficientStarsType("horoscope")
             return
         }
         pendingAspectDetailRef.current = { aspectKey, event }
@@ -2508,7 +2532,11 @@ export default function ChatSession({
             if (!lastQuestion) return
 
             const starSuccess = spendStars(1)
-            if (!starSuccess) return
+            if (!starSuccess) {
+                setShowInsufficientStars(true)
+                setInsufficientStarsType("tarot")
+                return
+            }
 
             setShowCardDraw(false)
             setIsInterpreting(true)
@@ -2761,6 +2789,7 @@ export default function ChatSession({
                 isCheckingStars={isCheckingStars}
                 checkingStarsText={tHome("checkingStars")}
                 showInsufficientStars={showInsufficientStars}
+                insufficientStarsType={insufficientStarsType ?? (decision?.type === "horoscope" ? "horoscope" : "tarot")}
                 cardDrawSection={cardDrawSection}
                 hasAssistantResponse={hasAssistantResponse}
                 disclaimerText={disclaimerText}
