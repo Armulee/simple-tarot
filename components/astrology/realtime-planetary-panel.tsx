@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { type ReactNode, useState } from "react"
 import Image from "next/image"
 import {
     ChevronDown,
@@ -19,7 +19,10 @@ import {
 import { Calendar, Eye } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
-import type { SourceAspectEvent } from "@/components/chat/types"
+import type {
+    AspectInsightItem,
+    SourceAspectEvent,
+} from "@/components/chat/types"
 
 const PLANET_IMAGE_KEYS = new Set([
     "sun",
@@ -46,6 +49,8 @@ type PanelAspectEvent = {
     keyword: string
     sentiment: "good" | "bad" | "neutral"
     insight?: string
+    impact?: string
+    intensity?: "low" | "medium" | "high"
     dateText: string
     peakText?: string
     endText?: string
@@ -353,20 +358,72 @@ function AspectIcon({ aspectType }: { aspectType: string }) {
     return <Minus className='h-4 w-4 text-cyan-200' />
 }
 
+type ToggleItem = {
+    key: string
+    isOpen: boolean
+    button: ReactNode
+    content?: ReactNode
+}
+
+function ToggleButtonGroup({
+    items,
+}: {
+    items: Array<ToggleItem | null | undefined>
+}) {
+    const visible = items.filter(Boolean) as ToggleItem[]
+    if (visible.length === 0) return null
+
+    const firstOpenIdx = visible.findIndex((item) => item.isOpen && item.content)
+
+    if (firstOpenIdx === -1) {
+        return (
+            <div className='flex flex-wrap items-center gap-2'>
+                {visible.map((item) => (
+                    <div key={item.key}>{item.button}</div>
+                ))}
+            </div>
+        )
+    }
+
+    const before = visible.slice(0, firstOpenIdx + 1)
+    const openItem = visible[firstOpenIdx]
+    const after = visible.slice(firstOpenIdx + 1)
+
+    return (
+        <div className='space-y-2'>
+            <div className='flex flex-wrap items-center gap-2'>
+                {before.map((item) => (
+                    <div key={item.key}>{item.button}</div>
+                ))}
+            </div>
+            {openItem.content}
+            {after.length > 0 && (
+                <ToggleButtonGroup
+                    items={after}
+                />
+            )}
+        </div>
+    )
+}
+
 export default function RealtimePlanetaryPanel({
     chartData,
     personalizedTransitAspects,
     personalizedTransitAspectsMerged,
+    aspectInsights,
     onAskAspectDetail,
     askedAspectKeys,
     showBirthDetails,
     showTransitDetails,
     onToggleBirthDetails,
     onToggleTransitDetails,
+    birthDetailsContent,
+    transitDetailsContent,
 }: {
     chartData?: Record<string, unknown> | null
     personalizedTransitAspects?: PersonalizedTransitAspectsResult | null
     personalizedTransitAspectsMerged?: PersonalizedTransitAspectsResult | null
+    aspectInsights?: AspectInsightItem[]
     onAskAspectDetail?: (
         question: string,
         aspectKey: string,
@@ -377,6 +434,8 @@ export default function RealtimePlanetaryPanel({
     showTransitDetails?: boolean
     onToggleBirthDetails?: () => void
     onToggleTransitDetails?: () => void
+    birthDetailsContent?: ReactNode
+    transitDetailsContent?: ReactNode
 }) {
     const locale = useLocale()
     const t = useTranslations("PlanetaryPanel")
@@ -384,8 +443,8 @@ export default function RealtimePlanetaryPanel({
     const [hiddenImages, setHiddenImages] = useState<Record<string, boolean>>(
         {},
     )
-    const [showDailyVibes, setShowDailyVibes] = useState(false)
-    const [showLifeSituation, setShowLifeSituation] = useState(false)
+    const [showRelatedAspects, setShowRelatedAspects] = useState(false)
+    const [showAllAspects, setShowAllAspects] = useState(false)
     const [localShowBirthDetails, setLocalShowBirthDetails] = useState(false)
     const [localShowTransitDetails, setLocalShowTransitDetails] =
         useState(false)
@@ -408,6 +467,24 @@ export default function RealtimePlanetaryPanel({
     )
     if (allAspectEvents.length === 0) return null
 
+    const insightMap = new Map(
+        (aspectInsights ?? []).map((i) => [i.aspectKey, i]),
+    )
+    for (const ev of allAspectEvents) {
+        const ai = insightMap.get(ev.aspectKey)
+        if (ai) {
+            ev.impact = ai.impact
+            ev.intensity = ai.intensity
+        }
+    }
+    for (const ev of mergedAspectEvents) {
+        const ai = insightMap.get(ev.aspectKey)
+        if (ai) {
+            ev.impact = ai.impact
+            ev.intensity = ai.intensity
+        }
+    }
+
     const mergedKeys = new Set(
         mergedAspectEvents.map((event) => event.aspectKey),
     )
@@ -415,13 +492,32 @@ export default function RealtimePlanetaryPanel({
     const discussedEvents = hasMergedDiscussedEvents
         ? mergedAspectEvents
         : allAspectEvents
-    const lifeSituationEvents = hasMergedDiscussedEvents
+    const undiscussedEvents = hasMergedDiscussedEvents
         ? allAspectEvents.filter((event) => !mergedKeys.has(event.aspectKey))
         : []
-    const mainEvents = discussedEvents.filter((event) => event.tier === "main")
-    const minorEvents = discussedEvents.filter(
-        (event) => event.tier === "minor",
+
+    const highEvents = discussedEvents.filter((e) => e.intensity === "high")
+    const mediumEvents = discussedEvents.filter((e) => e.intensity === "medium")
+    const lowEvents = discussedEvents.filter(
+        (e) => !e.intensity || e.intensity === "low",
     )
+    const featuredEvents =
+        highEvents.length > 0
+            ? highEvents
+            : mediumEvents.length > 0
+              ? mediumEvents
+              : lowEvents
+    const featuredKeys = new Set(featuredEvents.map((e) => e.aspectKey))
+    const relatedEvents = discussedEvents.filter(
+        (e) => !featuredKeys.has(e.aspectKey) && (e.impact || e.intensity),
+    )
+    const allRemainingEvents = [
+        ...discussedEvents.filter(
+            (e) =>
+                !featuredKeys.has(e.aspectKey) && !e.impact && !e.intensity,
+        ),
+        ...undiscussedEvents,
+    ]
     const hasBirthDetails = Boolean(
         (chartData as { charts?: unknown[] } | null)?.charts?.length,
     )
@@ -522,6 +618,37 @@ export default function RealtimePlanetaryPanel({
         const displayKeyword = event.keyword?.trim() || defaultKeyword
         return (
             <div className='rounded-2xl border border-white/10 bg-white/5 p-3 space-y-2 min-w-[260px]'>
+                <div className='flex flex-wrap justify-between items-center gap-1.5'>
+                    {(event.impact || event.intensity) && (
+                        <>
+                            {event.impact && (
+                                <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-violet-500/10 border border-violet-500/20 text-violet-200'>
+                                    {t("impactLabel")}
+                                    <span className='text-violet-100'>
+                                        {event.impact}
+                                    </span>
+                                </span>
+                            )}
+                            {event.intensity && (
+                                <span
+                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border ${
+                                        event.intensity === "high"
+                                            ? "bg-rose-500/10 border-rose-500/20 text-rose-200"
+                                            : event.intensity === "medium"
+                                              ? "bg-amber-500/10 border-amber-500/20 text-amber-200"
+                                              : "bg-emerald-500/10 border-emerald-500/20 text-emerald-200"
+                                    }`}
+                                >
+                                    {t("intensityLabel")}
+                                    <span>
+                                        {t(`intensity.${event.intensity}`)}
+                                    </span>
+                                </span>
+                            )}
+                        </>
+                    )}
+                </div>
+
                 <div className='flex items-center justify-between gap-3'>
                     <div className='inline-flex items-center gap-2'>
                         <PlanetAvatar planet={event.transitPlanet} />
@@ -563,21 +690,18 @@ export default function RealtimePlanetaryPanel({
                 </div>
 
                 <div className='flex justify-between gap-2'>
-                    <div className='flex items-end gap-2'>
+                    <div className='flex items-end gap-1.5'>
                         {hasRealKeyword && (
-                            <div className='inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 backdrop-blur-md relative group/insight shadow-lg'>
-                                <span className='relative z-10'>
-                                    {sentimentIcon}
+                            <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-indigo-500/10 border border-indigo-500/20 text-indigo-200'>
+                                {sentimentIcon}
+                                <span className='font-serif italic text-indigo-100'>
+                                    {displayKeyword}
                                 </span>
-                                <p className='text-[10px] font-serif italic text-indigo-100 text-left leading-relaxed tracking-tight relative z-10'>
-                                    &ldquo;{displayKeyword}&rdquo;
-                                </p>
-                            </div>
+                            </span>
                         )}
-
-                        <p className='text-[10px] w-fit text-cyan-100/90 rounded-md border border-cyan-400/20 bg-cyan-500/10 px-2 py-1'>
+                        <span className='px-2 py-0.5 rounded-md text-[10px] text-cyan-100/90 border border-cyan-400/20 bg-cyan-500/10'>
                             {`orb ${event.orb.toFixed(1)}°`}
-                        </p>
+                        </span>
                     </div>
 
                     {askedAspectKeys?.[event.aspectKey] ? (
@@ -673,99 +797,130 @@ export default function RealtimePlanetaryPanel({
 
     return (
         <div className='space-y-4'>
-            {mainEvents.length > 0 && (
-                <div className='space-y-2'>
-                    <p className='text-xs uppercase tracking-[0.18em] text-white/55'>
-                        {t("mainEvents")}
-                    </p>
-                    <div className='grid gap-3 grid-cols-1 sm:grid-cols-2'>
-                        {mainEvents.map((event) => (
-                            <EventCard key={event.aspectKey} event={event} />
-                        ))}
-                    </div>
+            {featuredEvents.length > 0 && (
+                <div className='grid gap-3 grid-cols-1 sm:grid-cols-2'>
+                    {featuredEvents.map((event) => (
+                        <EventCard key={event.aspectKey} event={event} />
+                    ))}
                 </div>
             )}
 
-            <div className='space-y-2'>
-                <div className='flex flex-wrap items-center gap-2'>
-                    {minorEvents.length > 0 && (
-                        <button
-                            type='button'
-                            onClick={() => setShowDailyVibes((prev) => !prev)}
-                            className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
-                        >
-                            {showDailyVibes ? (
-                                <ChevronUp className='h-3.5 w-3.5' />
-                            ) : (
-                                <ChevronDown className='h-3.5 w-3.5' />
-                            )}
-                            {t("showDailyVibes", { count: minorEvents.length })}
-                        </button>
-                    )}
-                    {lifeSituationEvents.length > 0 && (
-                        <button
-                            type='button'
-                            onClick={() =>
-                                setShowLifeSituation((prev) => !prev)
-                            }
-                            className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
-                        >
-                            {showLifeSituation ? (
-                                <ChevronUp className='h-3.5 w-3.5' />
-                            ) : (
-                                <ChevronDown className='h-3.5 w-3.5' />
-                            )}
-                            {t("showLifeSituation", {
-                                count: lifeSituationEvents.length,
-                            })}
-                        </button>
-                    )}
-                    {hasBirthDetails && (
-                        <button
-                            type='button'
-                            onClick={handleToggleBirthDetails}
-                            className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
-                        >
-                            {resolvedShowBirthDetails ? (
-                                <ChevronUp className='h-3.5 w-3.5' />
-                            ) : (
-                                <ChevronDown className='h-3.5 w-3.5' />
-                            )}
-                            {t("showBirthDetails")}
-                        </button>
-                    )}
-                    {hasTransitDetails && (
-                        <button
-                            type='button'
-                            onClick={handleToggleTransitDetails}
-                            className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
-                        >
-                            {resolvedShowTransitDetails ? (
-                                <ChevronUp className='h-3.5 w-3.5' />
-                            ) : (
-                                <ChevronDown className='h-3.5 w-3.5' />
-                            )}
-                            {t("showTransitDetails")}
-                        </button>
-                    )}
-                </div>
-
-                {showDailyVibes && minorEvents.length > 0 && (
-                    <div className='grid gap-3 grid-cols-1 sm:grid-cols-2'>
-                        {minorEvents.map((event) => (
-                            <EventCard key={event.aspectKey} event={event} />
-                        ))}
-                    </div>
-                )}
-
-                {showLifeSituation && lifeSituationEvents.length > 0 && (
-                    <div className='grid gap-3 grid-cols-1 sm:grid-cols-2'>
-                        {lifeSituationEvents.map((event) => (
-                            <EventCard key={event.aspectKey} event={event} />
-                        ))}
-                    </div>
-                )}
-            </div>
+            <ToggleButtonGroup
+                items={[
+                    relatedEvents.length > 0
+                        ? {
+                              key: "related",
+                              isOpen: showRelatedAspects,
+                              button: (
+                                  <button
+                                      type='button'
+                                      onClick={() =>
+                                          setShowRelatedAspects(
+                                              (prev) => !prev,
+                                          )
+                                      }
+                                      className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
+                                  >
+                                      {showRelatedAspects ? (
+                                          <ChevronUp className='h-3.5 w-3.5' />
+                                      ) : (
+                                          <ChevronDown className='h-3.5 w-3.5' />
+                                      )}
+                                      {t("showRelatedAspects", {
+                                          count: relatedEvents.length,
+                                      })}
+                                  </button>
+                              ),
+                              content: (
+                                  <div className='grid gap-3 grid-cols-1 sm:grid-cols-2'>
+                                      {relatedEvents.map((event) => (
+                                          <EventCard
+                                              key={event.aspectKey}
+                                              event={event}
+                                          />
+                                      ))}
+                                  </div>
+                              ),
+                          }
+                        : null,
+                    allRemainingEvents.length > 0
+                        ? {
+                              key: "all",
+                              isOpen: showAllAspects,
+                              button: (
+                                  <button
+                                      type='button'
+                                      onClick={() =>
+                                          setShowAllAspects((prev) => !prev)
+                                      }
+                                      className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
+                                  >
+                                      {showAllAspects ? (
+                                          <ChevronUp className='h-3.5 w-3.5' />
+                                      ) : (
+                                          <ChevronDown className='h-3.5 w-3.5' />
+                                      )}
+                                      {t("showAllAspects", {
+                                          count: allRemainingEvents.length,
+                                      })}
+                                  </button>
+                              ),
+                              content: (
+                                  <div className='grid gap-3 grid-cols-1 sm:grid-cols-2'>
+                                      {allRemainingEvents.map((event) => (
+                                          <EventCard
+                                              key={event.aspectKey}
+                                              event={event}
+                                          />
+                                      ))}
+                                  </div>
+                              ),
+                          }
+                        : null,
+                    hasBirthDetails
+                        ? {
+                              key: "birth",
+                              isOpen: resolvedShowBirthDetails,
+                              button: (
+                                  <button
+                                      type='button'
+                                      onClick={handleToggleBirthDetails}
+                                      className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
+                                  >
+                                      {resolvedShowBirthDetails ? (
+                                          <ChevronUp className='h-3.5 w-3.5' />
+                                      ) : (
+                                          <ChevronDown className='h-3.5 w-3.5' />
+                                      )}
+                                      {t("showBirthDetails")}
+                                  </button>
+                              ),
+                              content: birthDetailsContent,
+                          }
+                        : null,
+                    hasTransitDetails
+                        ? {
+                              key: "transit",
+                              isOpen: resolvedShowTransitDetails,
+                              button: (
+                                  <button
+                                      type='button'
+                                      onClick={handleToggleTransitDetails}
+                                      className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
+                                  >
+                                      {resolvedShowTransitDetails ? (
+                                          <ChevronUp className='h-3.5 w-3.5' />
+                                      ) : (
+                                          <ChevronDown className='h-3.5 w-3.5' />
+                                      )}
+                                      {t("showTransitDetails")}
+                                  </button>
+                              ),
+                              content: transitDetailsContent,
+                          }
+                        : null,
+                ]}
+            />
         </div>
     )
 }

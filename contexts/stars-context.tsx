@@ -40,6 +40,8 @@ interface StarsContextType {
     nextRefillAt?: number | null
     refillCap: number
     refillCycleMs?: number | null
+    spendTrigger: number
+    lastSpendAmount: number
     firstLoginBonusGranted?: boolean
     firstTimeLoginGrant?: boolean
     subscription?: {
@@ -80,6 +82,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     const [firstTimeLoginGrant, setFirstTimeLoginGrant] = useState<
         boolean | undefined
     >(undefined)
+    const [spendTrigger, setSpendTrigger] = useState(0)
+    const [lastSpendAmount, setLastSpendAmount] = useState(0)
     const { user } = useAuth()
     const { subscription, refresh: refreshSubscription } =
         useActiveSubscription()
@@ -528,6 +532,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                 setEngagementStarsCurrent((prev: number | null) =>
                     Math.max(0, (prev ?? 0) - amount),
                 )
+                setLastSpendAmount(amount)
+                setSpendTrigger((prev) => prev + 1)
                 if (
                     user &&
                     currentDaily >= refillCap &&
@@ -631,6 +637,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             setStarsBalance,
             spendStars,
             resetStars,
+            spendTrigger,
+            lastSpendAmount,
             nextRefillAt,
             refillCap,
             refillCycleMs,
@@ -650,6 +658,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             setStarsBalance,
             spendStars,
             resetStars,
+            spendTrigger,
+            lastSpendAmount,
             nextRefillAt,
             refillCap,
             refillCycleMs,

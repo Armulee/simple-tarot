@@ -25,6 +25,16 @@ export const horoscopeInterpretationSchema = z.object({
                     .describe(
                         "One short sentence explaining how this aspect affects the user relative to natal baseline. MUST be in the SAME language as the user's question.",
                     ),
+                impact: z
+                    .string()
+                    .describe(
+                        "Life-area label for this aspect, e.g. 'Career', 'Finance', 'Relationship', 'Health', 'Family', 'Personal Growth', 'Education', 'Travel'. MUST be in the SAME language as the user's question (Thai question = Thai label such as 'การงาน', 'การเงิน', 'ความรัก').",
+                    ),
+                intensity: z
+                    .enum(["low", "medium", "high"])
+                    .describe(
+                        "How strongly this aspect affects the user right now: 'high' = major life impact, 'medium' = noticeable influence, 'low' = subtle background energy.",
+                    ),
             }),
         )
         .default([])

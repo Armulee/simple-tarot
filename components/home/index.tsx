@@ -135,7 +135,6 @@ export default function Home() {
 
     const shouldShowHero = !isLinking
     const shouldShowLearnMore = showLearnMore && !isLinking
-    const disclaimerText = tHome("disclaimer")
     const tHoroscope = useTranslations("HoroscopeChat")
 
     const randomQuestionPool = useMemo(() => {

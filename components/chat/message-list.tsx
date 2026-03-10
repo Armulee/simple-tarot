@@ -735,12 +735,8 @@ export default function MessageList({
                                                         interpretation={
                                                             message.text
                                                         }
-                                                        messageId={
-                                                            message.id
-                                                        }
-                                                        readingId={
-                                                            message.id
-                                                        }
+                                                        messageId={message.id}
+                                                        readingId={message.id}
                                                         onRegenerateTarot={
                                                             onRegenerateTarot
                                                         }
@@ -774,7 +770,9 @@ export default function MessageList({
                                                         }
                                                         onInterpretationChange={
                                                             onTarotInterpretationChange
-                                                                ? (text: string) =>
+                                                                ? (
+                                                                      text: string,
+                                                                  ) =>
                                                                       onTarotInterpretationChange(
                                                                           message.id,
                                                                           text,
@@ -865,6 +863,9 @@ export default function MessageList({
                                             personalizedTransitAspectsMerged={
                                                 message.personalizedTransitAspectsMerged
                                             }
+                                            aspectInsights={
+                                                message.aspectInsights
+                                            }
                                             onAskAspectDetail={
                                                 onAskAspectDetail
                                             }
@@ -911,43 +912,73 @@ export default function MessageList({
                                                     }),
                                                 )
                                             }
-                                        />
-                                        {message.chartData &&
-                                            !message.isLoading &&
-                                            (detailToggle.birth ||
-                                                detailToggle.transit) && (
-                                                <BirthChartCard
-                                                    chartData={
-                                                        message.chartData as Parameters<
-                                                            typeof BirthChartCard
-                                                        >[0]["chartData"]
-                                                    }
-                                                    question={message.question}
-                                                    planetMeanings={
-                                                        message.planetMeanings ??
-                                                        undefined
-                                                    }
-                                                    houseMeanings={
-                                                        message.houseMeanings ??
-                                                        undefined
-                                                    }
-                                                    onRefetchWithSystem={(
-                                                        system,
-                                                    ) =>
-                                                        onRefetchHoroscopeWithSystem(
-                                                            message.id,
+                                            birthDetailsContent={
+                                                message.chartData &&
+                                                !message.isLoading ? (
+                                                    <BirthChartCard
+                                                        chartData={
+                                                            message.chartData as Parameters<
+                                                                typeof BirthChartCard
+                                                            >[0]["chartData"]
+                                                        }
+                                                        question={
+                                                            message.question
+                                                        }
+                                                        planetMeanings={
+                                                            message.planetMeanings ??
+                                                            undefined
+                                                        }
+                                                        houseMeanings={
+                                                            message.houseMeanings ??
+                                                            undefined
+                                                        }
+                                                        onRefetchWithSystem={(
                                                             system,
-                                                        )
-                                                    }
-                                                    showBirthDetails={
-                                                        detailToggle.birth
-                                                    }
-                                                    showTransitDetails={
-                                                        detailToggle.transit
-                                                    }
-                                                    renderFromPanel
-                                                />
-                                            )}
+                                                        ) =>
+                                                            onRefetchHoroscopeWithSystem(
+                                                                message.id,
+                                                                system,
+                                                            )
+                                                        }
+                                                        showBirthDetails
+                                                        renderFromPanel
+                                                    />
+                                                ) : undefined
+                                            }
+                                            transitDetailsContent={
+                                                message.chartData &&
+                                                !message.isLoading ? (
+                                                    <BirthChartCard
+                                                        chartData={
+                                                            message.chartData as Parameters<
+                                                                typeof BirthChartCard
+                                                            >[0]["chartData"]
+                                                        }
+                                                        question={
+                                                            message.question
+                                                        }
+                                                        planetMeanings={
+                                                            message.planetMeanings ??
+                                                            undefined
+                                                        }
+                                                        houseMeanings={
+                                                            message.houseMeanings ??
+                                                            undefined
+                                                        }
+                                                        onRefetchWithSystem={(
+                                                            system,
+                                                        ) =>
+                                                            onRefetchHoroscopeWithSystem(
+                                                                message.id,
+                                                                system,
+                                                            )
+                                                        }
+                                                        showTransitDetails
+                                                        renderFromPanel
+                                                    />
+                                                ) : undefined
+                                            }
+                                        />
                                         <div className='rounded-2xl border border-white/10 bg-white/5 p-8 shadow-lg space-y-6'>
                                             <div className='flex items-center space-x-3'>
                                                 <div className='w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center'>

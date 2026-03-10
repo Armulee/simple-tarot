@@ -13,6 +13,8 @@ export type AspectInsightItem = {
     keyword: string
     sentiment: "good" | "bad" | "neutral"
     insight?: string
+    impact?: string
+    intensity?: "low" | "medium" | "high"
 }
 
 export type SourceAspectEvent = {

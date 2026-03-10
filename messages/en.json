@@ -2360,6 +2360,15 @@
     "mainEvents": "Main Events",
     "showDailyVibes": "Show Daily Vibes ({count})",
     "showLifeSituation": "Show All Planetary Aspects ({count})",
+    "showRelatedAspects": "Show Related ({count})",
+    "showAllAspects": "Show All ({count})",
+    "impactLabel": "Impact: ",
+    "intensityLabel": "Intensity: ",
+    "intensity": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
     "showBirthDetails": "Show Birth Details",
     "showTransitDetails": "Show Transit Details",
     "birthDetails": "Birth Details",

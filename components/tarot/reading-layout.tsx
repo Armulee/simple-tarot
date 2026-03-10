@@ -46,10 +46,12 @@ export default function TarotReadingLayout({
     const [interpretation, setInterpretation] = useState<string | null>(
         initialInterpretation ?? null
     )
-    const [isGenerating, setIsGenerating] = useState(false)
     const [streamingObject, setStreamingObject] = useState<
         Partial<TarotInterpretation> | null
     >(null)
+    const [isInterpretationFieldDone, setIsInterpretationFieldDone] = useState(
+        !!initialInterpretation
+    )
     return (
         <div className="hidden lg:block space-y-8">
             {/* Row 1: Cards (left) + Interpretation (right) */}
@@ -129,13 +131,14 @@ export default function TarotReadingLayout({
                         onInterpretationChange={(text) => {
                             setInterpretation(text)
                         }}
+                        onInterpretationFieldDone={setIsInterpretationFieldDone}
                         streamingObject={streamingObject}
                     />
                 </div>
             </div>
 
             {/* Row 2: Actions (left) + Share (right) */}
-            {(interpretation || isGenerating) && (
+            {(interpretation || isInterpretationFieldDone) && (
                 <div className="grid grid-cols-2 gap-8">
                     {/* Left Column: Actions */}
                     <div className="space-y-8">
@@ -146,9 +149,6 @@ export default function TarotReadingLayout({
                             readingId={readingId}
                             onInterpretationChange={(text) => {
                                 setInterpretation(text)
-                            }}
-                            onGeneratingChange={(loading) => {
-                                setIsGenerating(loading)
                             }}
                             onStreamingObjectChange={(obj) => {
                                 setStreamingObject(obj)
@@ -169,7 +169,7 @@ export default function TarotReadingLayout({
             )}
 
             {/* Row 3: Follow-up Input Centered */}
-            {(interpretation || isGenerating) && (
+            {(interpretation || isInterpretationFieldDone) && (
                 <div className="flex justify-center">
                     <div className="w-full max-w-2xl">
                         <div className="border-t border-border/50 pt-4">

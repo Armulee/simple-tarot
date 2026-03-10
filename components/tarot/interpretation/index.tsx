@@ -42,6 +42,7 @@ type ReadingProps = {
     isLargeScreen?: boolean
     readingType?: string | null
     onInterpretationChange?: (text: string | null) => void
+    onInterpretationFieldDone?: (done: boolean) => void
     /** Streaming object from sibling ActionSection (e.g. reading-layout regenerate) */
     streamingObject?: PartialTarotInterpretation | null
 }
@@ -56,6 +57,7 @@ export default function Interpretation({
     isLargeScreen = false,
     readingType: propReadingType,
     onInterpretationChange,
+    onInterpretationFieldDone,
     streamingObject: streamingObjectProp,
 }: ReadingProps) {
     const t = useTranslations("ReadingPage.interpretation")
@@ -202,6 +204,16 @@ export default function Interpretation({
             } catch {}
         },
     })
+
+    const isInterpretationFieldDone =
+        !!interpretation ||
+        !!object?.conclusion ||
+        !!streamingObjectProp?.conclusion ||
+        !!streamingObjectFromAction?.conclusion
+
+    useEffect(() => {
+        onInterpretationFieldDone?.(isInterpretationFieldDone)
+    }, [isInterpretationFieldDone, onInterpretationFieldDone])
 
     useEffect(() => {
         if (typeof onInterpretationChange === "function") {
@@ -614,7 +626,7 @@ export default function Interpretation({
                 </div>
             </Card>
 
-            {!isLargeScreen && (interpretation || isGenerating) && !error && (
+            {!isLargeScreen && isInterpretationFieldDone && !error && (
                 <div className='w-full max-w-4xl space-y-6'>
                     <ActionSection
                         question={question || ""}

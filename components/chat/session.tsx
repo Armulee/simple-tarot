@@ -82,6 +82,8 @@ function normalizeAspectInsights(
                     keyword?: string | null
                     sentiment?: string | null
                     insight?: string | null
+                    impact?: string | null
+                    intensity?: string | null
                 }
               | undefined
           >
@@ -95,6 +97,8 @@ function normalizeAspectInsights(
         const keyword = (item?.keyword ?? "").trim()
         const sentiment = (item?.sentiment ?? "").trim().toLowerCase()
         const insight = (item?.insight ?? "").trim()
+        const impact = (item?.impact ?? "").trim()
+        const intensity = (item?.intensity ?? "").trim().toLowerCase()
 
         if (!aspectKey || !keyword) continue
         if (seenAspectKeys.has(aspectKey)) continue
@@ -108,6 +112,14 @@ function normalizeAspectInsights(
 
         const normalized: AspectInsightItem = { aspectKey, keyword, sentiment }
         if (insight) normalized.insight = insight
+        if (impact) normalized.impact = impact
+        if (
+            intensity === "low" ||
+            intensity === "medium" ||
+            intensity === "high"
+        ) {
+            normalized.intensity = intensity
+        }
         clean.push(normalized)
         seenAspectKeys.add(aspectKey)
     }
@@ -330,7 +342,8 @@ export default function ChatSession({
     const [insufficientStarsType, setInsufficientStarsType] = useState<
         "tarot" | "horoscope" | null
     >(() =>
-        initialSession?.showInsufficientStars && initialSession?.decision?.type === "horoscope"
+        initialSession?.showInsufficientStars &&
+        initialSession?.decision?.type === "horoscope"
             ? "horoscope"
             : null,
     )
@@ -1483,8 +1496,7 @@ export default function ChatSession({
             const previousInterpretation = isFollowUp
                 ? (lastInterpretationMsg?.text?.trim() ?? null)
                 : null
-            const conversationContext =
-                buildConversationContext(questionText)
+            const conversationContext = buildConversationContext(questionText)
 
             let situationData: {
                 topic: string
@@ -1504,8 +1516,7 @@ export default function ChatSession({
                         cards: cardNames,
                         conversationContext:
                             conversationContext?.contextText ?? null,
-                        previousInterpretation:
-                            previousInterpretation ?? null,
+                        previousInterpretation: previousInterpretation ?? null,
                     }),
                 })
                 if (res.ok) {
@@ -1906,9 +1917,7 @@ export default function ChatSession({
                     text: m.text,
                 }))
             const modeForApi =
-                interpretationMode !== "auto"
-                    ? interpretationMode
-                    : undefined
+                interpretationMode !== "auto" ? interpretationMode : undefined
             const response = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -1948,7 +1957,12 @@ export default function ChatSession({
             if (!parsed) throw new Error("Invalid decision payload")
             return parsed
         },
-        [messages, parseDecision, extractAssistantTextFromStream, interpretationMode],
+        [
+            messages,
+            parseDecision,
+            extractAssistantTextFromStream,
+            interpretationMode,
+        ],
     )
 
     const handleStopConsulting = useCallback(() => {
@@ -2548,9 +2562,7 @@ export default function ChatSession({
     const handleTarotInterpretationChange = useCallback(
         (messageId: string, text: string) => {
             setMessages((prev) =>
-                prev.map((m) =>
-                    m.id === messageId ? { ...m, text } : m,
-                ),
+                prev.map((m) => (m.id === messageId ? { ...m, text } : m)),
             )
         },
         [],
@@ -2789,7 +2801,10 @@ export default function ChatSession({
                 isCheckingStars={isCheckingStars}
                 checkingStarsText={tHome("checkingStars")}
                 showInsufficientStars={showInsufficientStars}
-                insufficientStarsType={insufficientStarsType ?? (decision?.type === "horoscope" ? "horoscope" : "tarot")}
+                insufficientStarsType={
+                    insufficientStarsType ??
+                    (decision?.type === "horoscope" ? "horoscope" : "tarot")
+                }
                 cardDrawSection={cardDrawSection}
                 hasAssistantResponse={hasAssistantResponse}
                 disclaimerText={disclaimerText}

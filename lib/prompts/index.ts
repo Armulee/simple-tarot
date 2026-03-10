@@ -355,11 +355,13 @@ ${question}
 - aspectInsights: an array of aspect quick-insights ONLY for personalized aspects from <personalized_transit_aspects>.
 - aspectInsights MUST include ONLY aspects that you explicitly mention in interpretation text (do not output undisclosed extras).
 - If <personalized_transit_aspects> exists, always provide at least 1 aspectInsights item in the same response chunk as interpretation.
-- Each item must contain { aspectKey, keyword, sentiment, insight }.
+- Each item must contain { aspectKey, keyword, sentiment, insight, impact, intensity }.
 - aspectKey MUST exactly match an existing aspect event key from the provided personalized aspect data.
 - keyword: exactly ONE very short, card-ready keyword or compact phrase (same language as output) that captures practical impact now.
 - sentiment: exactly one of "good", "bad", or "neutral" based on impact tone.
 - insight: exactly ONE short sentence suitable for a compact event card.
+- impact: a life-area label such as "Career", "Finance", "Relationship", "Health", "Family", "Personal Growth", "Education", or "Travel". Write in the SAME language as the output (Thai question = Thai label e.g. "การงาน", "การเงิน", "ความรัก").
+- intensity: exactly one of "low", "medium", or "high". Use "high" only for the 1-2 strongest aspects most relevant to the question. Use "medium" for supporting aspects. Use "low" for subtle or background influences.
 - interpretation: 4-8 short sentences answering the question.
 - conclusion: A short, calming wrap-up that concludes the reading without sounding like a tagline.
 - suggestions: 3-5 concise follow-up questions the user could ask next. Write as user questions (e.g., "How should I handle this energy in my work life?").

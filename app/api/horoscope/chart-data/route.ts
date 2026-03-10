@@ -59,15 +59,18 @@ export async function POST(req: Request) {
         const body = requestSchema.parse(await req.json())
         const locale = body.locale || "en"
 
-        const questionRange = await resolveQuestionTimeRangeAsync(body.question, {
-            hintedTransitDate: body.transit
-                ? {
-                      day: body.transit.day ?? null,
-                      month: body.transit.month ?? null,
-                      year: body.transit.year ?? null,
-                  }
-                : null,
-        })
+        const questionRange = await resolveQuestionTimeRangeAsync(
+            body.question,
+            {
+                hintedTransitDate: body.transit
+                    ? {
+                          day: body.transit.day ?? null,
+                          month: body.transit.month ?? null,
+                          year: body.transit.year ?? null,
+                      }
+                    : null,
+            },
+        )
         const codexTransit = await getCodexTransitWindow(questionRange)
         const aspectRange = {
             ...questionRange,
@@ -75,21 +78,12 @@ export async function POST(req: Request) {
                 questionRange.startDate,
                 -ASPECT_PADDING_DAYS,
             ),
-            endDate: addUtcDays(
-                questionRange.endDate,
-                ASPECT_PADDING_DAYS,
-            ),
+            endDate: addUtcDays(questionRange.endDate, ASPECT_PADDING_DAYS),
             startDateIso: toIsoDate(
-                addUtcDays(
-                    questionRange.startDate,
-                    -ASPECT_PADDING_DAYS,
-                ),
+                addUtcDays(questionRange.startDate, -ASPECT_PADDING_DAYS),
             ),
             endDateIso: toIsoDate(
-                addUtcDays(
-                    questionRange.endDate,
-                    ASPECT_PADDING_DAYS,
-                ),
+                addUtcDays(questionRange.endDate, ASPECT_PADDING_DAYS),
             ),
             durationDays: questionRange.durationDays + ASPECT_PADDING_DAYS * 2,
         }

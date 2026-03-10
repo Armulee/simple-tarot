@@ -2362,6 +2362,15 @@
     "mainEvents": "เหตุการณ์หลัก",
     "showDailyVibes": "แสดง Daily Vibes ({count})",
     "showLifeSituation": "แสดงความสัมพันธ์ของดวงดาวทั้งหมด ({count})",
+    "showRelatedAspects": "แสดงข้อมูลที่เกี่ยวข้อง ({count})",
+    "showAllAspects": "แสดงทั้งหมด ({count})",
+    "impactLabel": "ด้าน: ",
+    "intensityLabel": "ระดับ: ",
+    "intensity": {
+      "low": "ต่ำ",
+      "medium": "ปานกลาง",
+      "high": "สูง"
+    },
     "showBirthDetails": "แสดงข้อมูลกำเนิด",
     "showTransitDetails": "แสดงข้อมูลจร",
     "birthDetails": "ข้อมูลกำเนิด",

@@ -366,7 +366,7 @@ function toWindowKey(event: PersonalizedTransitAspectExact) {
 function isDateWithinInclusive(
     targetDateIso: string,
     startDateIso: string,
-    endDateIso: string
+    endDateIso: string,
 ) {
     const target = toComparableDateValue(targetDateIso)
     const start = toComparableDateValue(startDateIso)
@@ -656,12 +656,9 @@ export function buildPersonalizedTransitAspects({
             : null
 
     const computedRange = computeRangeTransitAspects({
-        startDateIso:
-            codexRows[0]?.date ??
-            questionRange.startDateIso,
+        startDateIso: codexRows[0]?.date ?? questionRange.startDateIso,
         endDateIso:
-            codexRows[codexRows.length - 1]?.date ??
-            questionRange.endDateIso,
+            codexRows[codexRows.length - 1]?.date ?? questionRange.endDateIso,
         natalLongitudes,
         codexRows,
     })
