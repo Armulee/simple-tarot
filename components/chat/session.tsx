@@ -23,7 +23,7 @@ import {
 import { getDefaultAstrologySystem } from "@/lib/astrology/intake"
 import { buildConversationContextFromMessages } from "@/lib/astrology/question-context"
 import { chartDataToBirth, chartDataToTransit } from "@/lib/chart-data-to-birth"
-import { loadBirthFromStorage } from "@/lib/birth-storage"
+import { clearBirthFromStorage, loadBirthFromStorage } from "@/lib/birth-storage"
 import {
     loadAutoPickFromStorage,
     saveAutoPickToStorage,
@@ -1858,10 +1858,12 @@ export default function ChatSession({
     const handleUserDateFormSubmit = useCallback(
         async (value: HoroscopeBirthData) => {
             setHoroscopeBirth(value)
+            // Inline form manages remember/clear in localStorage; mirror that
+            // into action-trigger state so saved birth appears/editable immediately.
+            setSavedBirth(loadBirthFromStorage())
             const questionText =
                 horoscopeQuestion || lastQuestion || "General horoscope reading"
             if (!isHoroscopeReady(value)) {
-                pushToolCard(value)
                 return
             }
             const starOk = spendStars(1)
@@ -1876,7 +1878,6 @@ export default function ChatSession({
             horoscopeQuestion,
             lastQuestion,
             isHoroscopeReady,
-            pushToolCard,
             runHoroscopeReading,
             spendStars,
             horoscopeTransit,
@@ -2580,6 +2581,11 @@ export default function ChatSession({
         setSavedBirth(value)
     }, [])
 
+    const handleBirthModalRemove = useCallback(() => {
+        clearBirthFromStorage()
+        setSavedBirth(null)
+    }, [])
+
     const hasMessages = messages.length > 0
     const hasInterpretation = messages.some(
         (message) =>
@@ -2640,6 +2646,7 @@ export default function ChatSession({
                 initial={savedBirth}
                 currentLocation={currentLocationFallback}
                 onSubmit={handleBirthModalSubmit}
+                onRemove={handleBirthModalRemove}
                 title={tHoroscope("birthFormTitle")}
                 submitLabel={tHoroscope("birthFormSubmit")}
             />
