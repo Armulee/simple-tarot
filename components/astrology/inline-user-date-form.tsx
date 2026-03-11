@@ -467,11 +467,23 @@ export default function InlineUserDateForm({
         <div className='w-full md:max-w-[85%] overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-b from-white/[0.08] to-white/[0.02] shadow-xl shadow-black/20 backdrop-blur-sm'>
             {/* Header */}
             <div className='px-5 py-4 border-b border-white/10 space-y-2'>
-                <div className='flex items-center gap-2'>
-                    <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-primary'>
-                        <Sparkles className='h-4 w-4' />
+                <div className='flex items-start justify-between gap-3'>
+                    <div className='flex items-center gap-2 min-w-0'>
+                        <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-primary'>
+                            <Sparkles className='h-4 w-4' />
+                        </div>
+                        <span className='font-semibold text-white'>{title}</span>
                     </div>
-                    <span className='font-semibold text-white'>{title}</span>
+                    {onRemove && (
+                        <button
+                            type='button'
+                            onClick={handleRemove}
+                            className='inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white'
+                        >
+                            <X className='h-4 w-4' />
+                            <span>{t("removeBirth")}</span>
+                        </button>
+                    )}
                 </div>
                 {(() => {
                     const hasDateFromPrefill =
@@ -853,16 +865,6 @@ export default function InlineUserDateForm({
                 {/* Actions */}
                 <div className='flex items-center justify-between gap-3 pt-2'>
                     <div className='flex flex-wrap items-center gap-3'>
-                        {onRemove && (
-                            <button
-                                type='button'
-                                onClick={handleRemove}
-                                className='inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white'
-                            >
-                                <X className='h-4 w-4' />
-                                <span>{t("removeBirth")}</span>
-                            </button>
-                        )}
                         {!alwaysSave && (
                             <label className='flex items-center gap-2 cursor-pointer text-sm text-white/80 hover:text-white'>
                                 <Checkbox
