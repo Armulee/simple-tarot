@@ -187,10 +187,6 @@ export async function POST(req: Request) {
             }),
         })
 
-        result.object.then((obj) => {
-            console.log("[chat/decision] type:", obj.type)
-        })
-
         return result.toTextStreamResponse()
     } catch (error) {
         console.error("Error generating chat decision:", error)
