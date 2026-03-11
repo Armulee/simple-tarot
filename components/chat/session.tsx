@@ -1858,6 +1858,9 @@ export default function ChatSession({
     const handleUserDateFormSubmit = useCallback(
         async (value: HoroscopeBirthData) => {
             setHoroscopeBirth(value)
+            // Inline form manages remember/clear in localStorage; mirror that
+            // into action-trigger state so saved birth appears/editable immediately.
+            setSavedBirth(loadBirthFromStorage())
             const questionText =
                 horoscopeQuestion || lastQuestion || "General horoscope reading"
             if (!isHoroscopeReady(value)) {
