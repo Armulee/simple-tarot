@@ -1861,7 +1861,6 @@ export default function ChatSession({
             const questionText =
                 horoscopeQuestion || lastQuestion || "General horoscope reading"
             if (!isHoroscopeReady(value)) {
-                pushToolCard(value)
                 return
             }
             const starOk = spendStars(1)
@@ -1876,7 +1875,6 @@ export default function ChatSession({
             horoscopeQuestion,
             lastQuestion,
             isHoroscopeReady,
-            pushToolCard,
             runHoroscopeReading,
             spendStars,
             horoscopeTransit,
