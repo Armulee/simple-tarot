@@ -16,6 +16,7 @@ import {
     MapPin,
     Sparkles,
     ChevronDown,
+    X,
 } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -125,6 +126,8 @@ type Props = {
     submitLabel: string
     /** When true, always save to storage on submit and hide the remember checkbox */
     alwaysSave?: boolean
+    /** Called when user clears all entered/saved birth data */
+    onRemove?: () => void
 }
 
 function toDateInputValue(data: HoroscopeBirthData | null) {
@@ -271,6 +274,7 @@ export default function InlineUserDateForm({
     title,
     submitLabel,
     alwaysSave = false,
+    onRemove,
 }: Props) {
     const t = useTranslations("BirthForm")
     const [date, setDate] = useState(toDateInputValue(initial))
@@ -350,6 +354,30 @@ export default function InlineUserDateForm({
         if (typeof currentLocation.timezone === "number") {
             setTimezone(String(currentLocation.timezone))
         }
+    }
+
+    const resetForm = () => {
+        setDate("")
+        setDateInputValue("")
+        setDisplayAsBE(false)
+        setTimeMode("exact")
+        setTime("")
+        setTimeInputValue("")
+        setCountry("")
+        setState("")
+        setLat("")
+        setLng("")
+        setTimezone("")
+        setShowAdvanced(false)
+        setRememberBirth(false)
+        setCalendarOpen(false)
+        setTimePickerOpen(false)
+    }
+
+    const handleRemove = () => {
+        clearBirthFromStorage()
+        resetForm()
+        onRemove?.()
     }
 
     const submit = () => {
@@ -824,20 +852,31 @@ export default function InlineUserDateForm({
 
                 {/* Actions */}
                 <div className='flex items-center justify-between gap-3 pt-2'>
-                    {!alwaysSave && (
-                        <label className='flex items-center gap-2 cursor-pointer text-sm text-white/80 hover:text-white'>
-                            <Checkbox
-                                id='remember-birth'
-                                checked={rememberBirth}
-                                onCheckedChange={(c) =>
-                                    setRememberBirth(c === true)
-                                }
-                                className='border-white/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary'
-                            />
-                            <span>{t("rememberBirth")}</span>
-                        </label>
-                    )}
-                    {alwaysSave && <div />}
+                    <div className='flex flex-wrap items-center gap-3'>
+                        {onRemove && (
+                            <button
+                                type='button'
+                                onClick={handleRemove}
+                                className='inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white'
+                            >
+                                <X className='h-4 w-4' />
+                                <span>{t("removeBirth")}</span>
+                            </button>
+                        )}
+                        {!alwaysSave && (
+                            <label className='flex items-center gap-2 cursor-pointer text-sm text-white/80 hover:text-white'>
+                                <Checkbox
+                                    id='remember-birth'
+                                    checked={rememberBirth}
+                                    onCheckedChange={(c) =>
+                                        setRememberBirth(c === true)
+                                    }
+                                    className='border-white/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary'
+                                />
+                                <span>{t("rememberBirth")}</span>
+                            </label>
+                        )}
+                    </div>
                     <button
                         type='button'
                         onClick={submit}

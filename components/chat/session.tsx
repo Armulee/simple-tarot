@@ -23,7 +23,7 @@ import {
 import { getDefaultAstrologySystem } from "@/lib/astrology/intake"
 import { buildConversationContextFromMessages } from "@/lib/astrology/question-context"
 import { chartDataToBirth, chartDataToTransit } from "@/lib/chart-data-to-birth"
-import { loadBirthFromStorage } from "@/lib/birth-storage"
+import { clearBirthFromStorage, loadBirthFromStorage } from "@/lib/birth-storage"
 import {
     loadAutoPickFromStorage,
     saveAutoPickToStorage,
@@ -2580,6 +2580,11 @@ export default function ChatSession({
         setSavedBirth(value)
     }, [])
 
+    const handleBirthModalRemove = useCallback(() => {
+        clearBirthFromStorage()
+        setSavedBirth(null)
+    }, [])
+
     const hasMessages = messages.length > 0
     const hasInterpretation = messages.some(
         (message) =>
@@ -2640,6 +2645,7 @@ export default function ChatSession({
                 initial={savedBirth}
                 currentLocation={currentLocationFallback}
                 onSubmit={handleBirthModalSubmit}
+                onRemove={handleBirthModalRemove}
                 title={tHoroscope("birthFormTitle")}
                 submitLabel={tHoroscope("birthFormSubmit")}
             />

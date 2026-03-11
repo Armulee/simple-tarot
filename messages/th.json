@@ -2263,7 +2263,8 @@
     "latitude": "ละติจูด",
     "longitude": "ลองจิจูด",
     "timezone": "เขตเวลา (เช่น 7)",
-    "rememberBirth": "จำข้อมูลวันเกิดของฉัน"
+    "rememberBirth": "จำข้อมูลวันเกิดของฉัน",
+    "removeBirth": "ลบข้อมูล"
   },
   "HoroscopeChat": {
     "usingSavedBirthDate": "กำลังใช้ข้อมูลวันเกิดที่บันทึกไว้ทำนายดวง...",

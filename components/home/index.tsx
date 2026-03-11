@@ -20,7 +20,11 @@ import {
 } from "@/lib/detect-input-language"
 import ActionTrigger from "@/components/chat/action-trigger"
 import BirthInfoModal from "@/components/chat/birth-info-modal"
-import { loadBirthFromStorage, saveBirthToStorage } from "@/lib/birth-storage"
+import {
+    clearBirthFromStorage,
+    loadBirthFromStorage,
+    saveBirthToStorage,
+} from "@/lib/birth-storage"
 import {
     loadAutoPickFromStorage,
     saveAutoPickToStorage,
@@ -74,6 +78,11 @@ export default function Home() {
     const handleBirthModalSubmit = (birth: HoroscopeBirthData) => {
         saveBirthToStorage(birth)
         setSavedBirth(birth)
+    }
+
+    const handleBirthModalRemove = () => {
+        clearBirthFromStorage()
+        setSavedBirth(null)
     }
 
     const handleToggleAutoPick = () => {
@@ -264,6 +273,7 @@ export default function Home() {
                     onOpenChange={setShowBirthModal}
                     initial={savedBirth}
                     onSubmit={handleBirthModalSubmit}
+                    onRemove={handleBirthModalRemove}
                     title={tHoroscope("birthFormTitle")}
                     submitLabel={tHoroscope("birthFormSubmit")}
                 />
