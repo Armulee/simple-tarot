@@ -37,6 +37,18 @@ export async function POST(req: NextRequest) {
         const transit = body?.transit ?? {}
         const birthChart: ChartSnapshot = body?.birthChart ?? {}
         const transitChart: ChartSnapshot = body?.transitChart ?? {}
+        const systemMode: string | null =
+            typeof body?.systemMode === "string" && body.systemMode
+                ? body.systemMode
+                : null
+        const inputConfidence =
+            body?.inputConfidence && typeof body.inputConfidence === "object"
+                ? body.inputConfidence
+                : null
+        const swissephSnapshot =
+            body?.swissephSnapshot && typeof body.swissephSnapshot === "object"
+                ? body.swissephSnapshot
+                : null
 
         const requiredBirth = ["day", "month", "year"]
         const requiredTransit = ["day", "month", "year"]
@@ -106,6 +118,9 @@ export async function POST(req: NextRequest) {
             birth_planets: birthChart.planets ?? null,
             transit_houses: transitChart.houses ?? null,
             transit_planets: transitChart.planets ?? null,
+            system_mode: systemMode,
+            input_confidence: inputConfidence,
+            swisseph_snapshot: swissephSnapshot,
 
             summary: null,
             created_at: now,

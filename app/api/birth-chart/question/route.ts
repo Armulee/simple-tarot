@@ -1,6 +1,6 @@
 import { streamText } from "ai"
 
-const MODEL = "google/gemini-3-flash"
+const MODEL = "openai/gpt-4o-mini"
 
 export async function POST(req: Request) {
     try {
@@ -15,7 +15,8 @@ export async function POST(req: Request) {
         const result = streamText({
             model: MODEL,
             system: `You are an expert astrologer.
-            
+You respond as a female. Astra is a female oracle. Use feminine voice and perspective in all responses.
+
 Goal: Answer the user's question based on their birth chart details provided in the prompt.
 Write 2–5 short sentences (under ~100 words). Sound insightful, encouraging, and clear.
 
@@ -38,16 +39,10 @@ Rules:
             .then((usage) => {
                 const inputTokens = usage?.inputTokens
                 const outputTokens = usage?.outputTokens
-                const estimatedCost = costPerUsage(
-                    inputTokens,
-                    outputTokens,
-                    MODEL
-                )
                 console.log("AI usage (Birth Chart)", {
                     model: MODEL,
                     inputTokens,
                     outputTokens,
-                    estimatedCostUSD: estimatedCost,
                 })
             })
             .catch(() => {})
@@ -61,14 +56,3 @@ Rules:
     }
 }
 
-function costPerUsage(
-    input: number | undefined,
-    output: number | undefined,
-    model: string = MODEL
-) {
-    if (model === "openai/gpt-4.1-mini" && input && output) {
-        return input * (0.4 / 1000000) + output * (1.6 / 1000000)
-    }
-    // Fallback for other models
-    return 0
-}

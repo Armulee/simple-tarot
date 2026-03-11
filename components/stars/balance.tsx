@@ -14,6 +14,8 @@ export default function StarsBalance() {
         dailyStars,
         planStars,
         addonStars,
+        engagementStarsCurrent,
+        engagementStarsTotal,
         nextRefillAt,
         refillCap,
         subscription,
@@ -31,6 +33,10 @@ export default function StarsBalance() {
     const dailyValue = typeof dailyStars === "number" ? dailyStars : 0
     const planValue = typeof planStars === "number" ? planStars : 0
     const addonValue = typeof addonStars === "number" ? addonStars : 0
+    const engagementCurrent =
+        typeof engagementStarsCurrent === "number" ? engagementStarsCurrent : 0
+    const engagementTotal =
+        typeof engagementStarsTotal === "number" ? engagementStarsTotal : 0
     const currentStars = typeof stars === "number" ? stars : 0
     const planCap = subscription?.baseStars ?? 0
     const addonCap = subscription?.addonStars ?? 0
@@ -41,6 +47,10 @@ export default function StarsBalance() {
         planCap > 0 ? Math.min(100, (planValue / planCap) * 100) : 0
     const addonProgress =
         addonCap > 0 ? Math.min(100, (addonValue / addonCap) * 100) : 0
+    const engagementProgress =
+        engagementTotal > 0
+            ? Math.min(100, (engagementCurrent / engagementTotal) * 100)
+            : 0
 
     const planRefillLabel = subscription?.currentPeriodEnd
         ? formatRefillDate(subscription.currentPeriodEnd)
@@ -148,6 +158,17 @@ export default function StarsBalance() {
                                 </Link>
                             </div>
                         )}
+
+                        {engagementTotal > 0 && engagementCurrent > 0 && (
+                            <StarsGauge
+                                label={t("StarsBalance.engagementBalance", {
+                                    current: engagementCurrent,
+                                    total: engagementTotal,
+                                })}
+                                progress={engagementProgress}
+                                accent='violet'
+                            />
+                        )}
                     </div>
 
                     {!user && (
@@ -209,15 +230,19 @@ function StarsGauge({
     progress: number
     rightLabel?: string
     rightValue?: string
-    accent?: "amber" | "emerald"
+    accent?: "amber" | "emerald" | "violet"
 }) {
     const gradient =
         accent === "emerald"
             ? "from-emerald-400 via-emerald-500 to-emerald-600"
+            : accent === "violet"
+              ? "from-violet-400 via-purple-500 to-fuchsia-600"
             : "from-yellow-400 via-amber-500 to-orange-500"
     const glow =
         accent === "emerald"
             ? "from-emerald-400/50 via-emerald-500/50 to-emerald-600/50"
+            : accent === "violet"
+              ? "from-violet-400/50 via-purple-500/50 to-fuchsia-600/50"
             : "from-yellow-400/50 via-amber-500/50 to-orange-500/50"
 
     return (

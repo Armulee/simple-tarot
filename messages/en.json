@@ -218,14 +218,45 @@
   "Home": {
     "hero": {
       "line1": "Ask me anything",
-      "line2": "about your destiny"
+      "line2": "about your destiny",
+      "rotatingPhrasesWhite": [
+        "Step Into the ",
+        "Let the Tarot ",
+        "Guidance Through the Language of ",
+        "Personal ",
+        "Ask the ",
+        "Discover What the ",
+        "Written in the ",
+        "Your Cosmic Blueprint ",
+        "The Sky Has a Message ",
+        "Daily & Personalized ",
+        "Astrology ",
+        "Explore Your ",
+        "Star-Based "
+      ],
+      "rotatingPhrasesGradient": [
+        "Cards.",
+        "Reveal Your Path.",
+        "Symbols.",
+        "Tarot Readings.",
+        "Cards.",
+        "Cards Hold.",
+        "Stars.",
+        "Awaits.",
+        "for You.",
+        "Horoscopes.",
+        "Insights.",
+        "Birth Chart.",
+        "Guidance."
+      ]
     },
+    "description": "Your personalized AI fortune teller",
     "prompts": [
-      "What is the message I need to hear today?",
-      "How can I find clarity in my career path?",
-      "What should I focus on in love this month?",
       "What is blocking my next step forward?",
-      "How can I align with my true purpose?"
+      "How can I align with my true purpose?",
+      "What is the message for me from the stars?",
+      "What will happen in my career path?",
+      "What should I focus on in love this month?"
     ],
     "astrologyFeature": {
       "title1": "Starlit Transit",
@@ -234,10 +265,48 @@
       "instruction": "Enter your birth details, keep Transit set to now (or choose a date), add an optional question, then tap Start to generate your horoscope.",
       "cta": "Start your astrology reading"
     },
+    "getStarted": "Get Started",
+    "tourInstruction": "Type your question you want to ask your fate in here:",
+    "tourExamples": "e.g. \"What is the message I need to hear today?\" or \"How can I find clarity in my career?\"",
     "learnMore": "Learn More",
+    "quickCards": {
+      "cardReading": "Do the card reading",
+      "todayHoroscope": "Today horoscope"
+    },
+    "quickCardQuestions": {
+      "cardReading": "What is the message I need to hear today?",
+      "todayHoroscope": "What is my horoscope for today?"
+    },
     "selectedCards": "You have selected {selectedCount}/{cardsToSelect} cards",
+    "consulting": "Consulting",
+    "streamStopped": "Response stopped",
     "checkingStars": "Checking your star balance...",
-    "disclaimer": "Do not trust or rely on this interpretation blindly. AskingFate uses AI and may make mistakes. For important decisions, please consult a qualified professional."
+    "disclaimer": "Do not trust or rely on this interpretation blindly. AskingFate uses AI and may make mistakes. For important decisions, please consult a qualified professional.",
+    "readAloud": {
+      "play": "Read aloud",
+      "stop": "Stop reading",
+      "error": "Could not generate audio.",
+      "insufficientStars": "Not enough stars.",
+      "starCost": "star to generate",
+      "confirmTitle": "Generate voice",
+      "confirmDescription": "Generating voice costs one star.",
+      "doNotShowAgain": "Do not show again",
+      "confirm": "Generate",
+      "cancel": "Cancel"
+    }
+  },
+  "ActionTrigger": {
+    "autoPickLabel": "Auto pick card:",
+    "autoPickOn": "on",
+    "autoPickOff": "off",
+    "newBirthInfo": "New birth info",
+    "birthInfo": "Birth info: {date}"
+  },
+  "InterpretationMode": {
+    "auto": "Auto",
+    "tarot": "Tarot",
+    "horoscope": "Horoscope",
+    "chat": "Chat"
   },
   "About": {
     "whatIs": "What is",
@@ -766,6 +835,13 @@
     "planetaryStrengths": "Planetary Strengths",
     "yourHouses": "Your Houses",
     "planetaryPositions": "Planetary Positions",
+    "birthDetailsTitle": "Birth Details",
+    "birthDateLabel": "Birth date",
+    "birthTimeLabel": "Birth time",
+    "planetarySectionLabel": "Planetary",
+    "lifeAreasSectionLabel": "Life Areas",
+    "transitDetailsTitle": "Transit Details",
+    "transitDateLabel": "Transit date",
     "shareTitle": "Share Your Birth Chart",
     "shareDescription": "Share your cosmic blueprint with friends",
     "questionLabel": "Ask about your Chart",
@@ -798,7 +874,8 @@
         "exalted": "Exalted",
         "ownSign": "Own Sign",
         "debilitated": "Debilitated",
-        "normal": "Normal"
+        "normal": "Normal",
+        "retrograde": "Retrograde"
       }
     },
     "planets": {
@@ -829,6 +906,10 @@
       "Aquarius": "Aquarius",
       "Pisces": "Pisces"
     },
+    "systemWestern": "Western (Tropical)",
+    "systemVedic": "Vedic (Sidereal)",
+    "tabBirthChart": "Birth Chart",
+    "tabTransitChart": "Transit Chart",
     "houseMeanings": {
       "1": "Self & Identity",
       "2": "Money & Possessions",
@@ -1188,7 +1269,7 @@
       "linear": "Linear",
       "confirm": "Confirm Selection ({selected}/{total})",
       "shuffle": "Shuffle",
-      "consumeStar": "Starting the interpretation will consume 5 stars.",
+      "consumeStar": "Starting the interpretation will consume 1 star.",
       "random": "Pick For Me"
     },
     "editQuestion": {
@@ -1243,7 +1324,7 @@
       },
       "share": {
         "title": "Share Your Reading",
-        "desc": "Get 1 free star for each new person who visits your shared link ({earned}/{max})",
+        "desc": "Get 5 free stars for each new person who visits your shared link ({earned}/{max})",
         "learnMore": "Learn more",
         "more": "More",
         "facebook": "Facebook",
@@ -1839,7 +1920,7 @@
       "addonsQuestion": "Who can buy add-on star packs?",
       "addonsAnswer": "Add-on packs are available for Pro subscribers. They add a recurring star pool that refills each billing period until removed.",
       "refundQuestion": "Can I request a refund?",
-      "refundAnswer": "Eligible Stripe purchases can be refunded within 7 days from the billing page."
+      "refundAnswer": "You can request a refund if you have not used any stars from your current plan yet. Refund requests must be submitted within 7 days of the billing date."
     },
     "features": {
       "unlimitedReadings": "Unlimited Readings",
@@ -1935,7 +2016,15 @@
     "delete": "Delete",
     "deleteSuccess": "Reading deleted successfully",
     "deleteError": "Failed to delete reading",
-    "swipeToDelete": "Swipe left to delete"
+    "swipeToDelete": "Swipe left to delete",
+    "contextMenu": {
+      "openReading": "Open reading",
+      "openInNewTab": "Open in new tab",
+      "copyLink": "Copy link",
+      "share": "Share",
+      "linkCopied": "Link copied to clipboard",
+      "shareError": "Could not share"
+    }
   },
   "StarsBalance": {
     "available": "Stars available",
@@ -1945,6 +2034,7 @@
     "dailyBalance": "Daily stars: {current}/{total}",
     "planBalance": "Plan stars: {current}/{total}",
     "addonBalance": "Add-on stars: {current}/{total}",
+    "engagementBalance": "Engagement stars: {current}/{total}",
     "nextBilling": "Next billing {date}",
     "buyAddons": "Buy add-ons",
     "anonymousPrefix": "Anonymous User:",
@@ -2083,14 +2173,14 @@
       },
       "share": {
         "title": "Share a Reading",
-        "subtitle": "Share a link. Earn up to 3/day.",
-        "body": "Earn +1 star for each unique visitor who opens your shared reading—capped at 3 stars per day. Awards apply automatically.",
+        "subtitle": "Share a link. Earn from up to 3 visits/day.",
+        "body": "Earn +5 stars for each unique visitor who opens your shared reading—capped at 3 rewarded visits per day. Awards apply automatically.",
         "learnMore": "Learn More"
       },
       "refer": {
         "title": "Refer a Friend",
         "subtitle": "Invite friends. Earn together.",
-        "body": "Share your referral link. You and your friend each earn 5 stars (up to 10 friends per week). If 10 friends register within a week, you receive a 10‑star bonus. Stars are granted when invited friends complete registration.",
+        "body": "Share your referral link. You and your friend each earn 20 stars (up to 10 friends per week). If 10 friends register within a week, you receive a 50‑star bonus. Stars are granted when invited friends complete registration.",
         "learnMore": "Learn More",
         "viewReferral": "View Referral Link"
       }
@@ -2110,8 +2200,10 @@
   },
   "InsufficientStars": {
     "title": "Not Enough Stars",
-    "descriptionLoggedIn": "You need at least 5 stars to draw cards and get your reading. Top up your stars to continue your mystical journey.",
-    "descriptionAnonymous": "You need at least 5 stars to draw cards. Sign in to unlock 12 free stars with automatic 2-hourly refills!",
+    "descriptionLoggedIn": "You need at least 1 star to draw cards and get your reading. Top up your stars to continue your mystical journey.",
+    "descriptionAnonymous": "You need at least 1 star to draw cards. Sign in to unlock 12 free stars with automatic 2-hourly refills!",
+    "descriptionHoroscopeLoggedIn": "You need at least 1 star to get your horoscope interpretation. Top up your stars to continue your cosmic journey.",
+    "descriptionHoroscopeAnonymous": "You need at least 1 star to get your horoscope interpretation. Sign in to unlock 12 free stars with automatic 2-hourly refills!",
     "quickTopUp": "Quick Top Up",
     "packsNotConfigured": "Star packs are not configured yet.",
     "proRequired": "Add-on packs are available for Pro subscribers only.",
@@ -2122,7 +2214,7 @@
     "benefit2Desc": "Get stars every 2 hours",
     "signInButton": "Sign In to Continue",
     "signInNote": "Create a free account and get 12 stars to start your tarot journey",
-    "chatMessageLoggedIn": "It looks like you don't have enough stars to draw cards right now. You need at least 5 stars to continue with your reading. You can top up your stars instantly using one of the options below, or wait for your stars to refill automatically.",
+    "chatMessageLoggedIn": "It looks like you don't have enough stars to draw cards right now. You need at least 1 star to continue with your reading. You can top up your stars instantly using one of the options below, or wait for your stars to refill automatically.",
     "chatMessageAnonymous": "It looks like you don't have enough stars to draw cards right now. Sign in to unlock 12 free stars with automatic refills every 2 hours, or create an account to get started on your mystical journey!",
     "promoBasicTitle": "Upgrade to Pro for more stars",
     "promoGuestTitle": "Unlock more stars instantly",
@@ -2143,6 +2235,49 @@
     "upgradeNow": "Upgrade now",
     "getPlan": "Get {plan}",
     "savePercent": "Save {percent}%"
+  },
+  "BirthForm": {
+    "datePlaceholder": "dd/mm/yyyy",
+    "yearEraCE": "A.D.",
+    "yearEraBE": "B.E.",
+    "dateErrorDay": "Day must be between 1 and 31",
+    "dateErrorMonth": "Month must be between 1 and 12",
+    "missingTimeHint": "We need your birth time for precision.",
+    "missingDateHint": "We need your birth date.",
+    "timePlaceholder": "hh:mm",
+    "timePickerTitle": "Select time",
+    "timePickerHour": "Hour",
+    "timePickerMinute": "Minute",
+    "timePickerDone": "Done",
+    "birthDate": "Birth date",
+    "birthTime": "Birth time",
+    "exactTime": "Exact time",
+    "daytime": "Daytime",
+    "nighttime": "Nighttime",
+    "birthPlace": "Birth place (optional)",
+    "country": "Country",
+    "stateProvince": "State / Province",
+    "useCurrentLocation": "Use current location",
+    "advanced": "Advanced (lat, lng, timezone)",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "timezone": "Timezone (e.g. 7)",
+    "rememberBirth": "Remember my birth date",
+    "removeBirth": "Remove"
+  }, 
+  "HoroscopeChat": {
+    "usingSavedBirthDate": "Using your saved birth date for this interpretation...",
+    "loading": "Consulting your birth chart...",
+    "fallbackAnswerError": "I could not read this chart yet.",
+    "analysisFailed": "Sorry, horoscope analysis failed. Please try again.",
+    "parseFailed": "I couldn't parse those birth details. Please try again.",
+    "askBirthDate": "Please send your birth date first (DD/MM/YYYY or YYYY-MM-DD).",
+    "askBirthTime": "Now share your birth time. If unknown, just tell me day or night. Ascendant can shift about every 2 hours, so approximate time may reduce accuracy.",
+    "askBirthPlace": "Please share your birth place (city/country). If unknown, I can use your current location but the reading may be less accurate.",
+    "usingLocationFallback": "Using your current location as fallback. This can reduce precision for houses and ascendant.",
+    "processFailed": "Sorry, I couldn't process horoscope details right now.",
+    "birthFormTitle": "Fill your birth details",
+    "birthFormSubmit": "Use this birth data"
   },
   "Settings": {
     "title": "Settings",
@@ -2213,5 +2348,80 @@
       "medium": "Medium",
       "large": "Large"
     }
+  },
+  "PlanetaryPanel": {
+    "transitSuffix": " Transit",
+    "natalSuffix": " Natal",
+    "noChartPosition": "No chart position",
+    "defaultKeyword": "Personalized aspect",
+    "exactDatePrefix": "On {date}",
+    "rangeDate": "Starts {start} (peak {peak})",
+    "rangeDateStart": "Starts {start}",
+    "rangeDatePeak": "Peak {peak}",
+    "rangeDateEnd": "Ends {end}",
+    "mainEvents": "Main Events",
+    "showDailyVibes": "Show Daily Vibes ({count})",
+    "showLifeSituation": "Show All Planetary Aspects ({count})",
+    "showRelatedAspects": "Show Related ({count})",
+    "showAllAspects": "Show All ({count})",
+    "impactLabel": "Impact: ",
+    "intensityLabel": "Intensity: ",
+    "intensity": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "showBirthDetails": "Show Birth Details",
+    "showTransitDetails": "Show Transit Details",
+    "birthDetails": "Birth Details",
+    "transitDetails": "Transit Details",
+    "birthDateLabel": "Birth Date",
+    "birthTimeLabel": "Birth Time",
+    "transitDateLabel": "Transit Date",
+    "transitTimeLabel": "Transit Time",
+    "locationLabel": "Location",
+    "systemLabel": "System",
+    "ascendantLabel": "Ascendant",
+    "sunLabel": "Sun",
+    "moonLabel": "Moon",
+    "planets": {
+      "Sun": "Sun",
+      "Moon": "Moon",
+      "Mercury": "Mercury",
+      "Venus": "Venus",
+      "Mars": "Mars",
+      "Jupiter": "Jupiter",
+      "Saturn": "Saturn",
+      "Rahu": "Rahu",
+      "Ketu": "Ketu",
+      "Uranus": "Uranus",
+      "Neptune": "Neptune",
+      "Pluto": "Pluto",
+      "Ascendant": "Ascendant"
+    },
+    "aspects": {
+      "conjunction": "Conjunction",
+      "opposition": "Opposition",
+      "square": "Square",
+      "trine": "Trine",
+      "sextile": "Sextile"
+    },
+    "zodiac": {
+      "Aries": "Aries",
+      "Taurus": "Taurus",
+      "Gemini": "Gemini",
+      "Cancer": "Cancer",
+      "Leo": "Leo",
+      "Virgo": "Virgo",
+      "Libra": "Libra",
+      "Scorpio": "Scorpio",
+      "Sagittarius": "Sagittarius",
+      "Capricorn": "Capricorn",
+      "Aquarius": "Aquarius",
+      "Pisces": "Pisces"
+    },
+    "askMore": "Ask more",
+    "readDescription": "Read description",
+    "askAspectQuestion": "How does transit {transit} {aspect} natal {natal} affect me?"
   }
 }

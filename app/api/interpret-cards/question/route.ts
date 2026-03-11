@@ -1,27 +1,147 @@
-import { streamObject, type LanguageModel } from "ai"
-import { TAROT_SYSTEM_PROMPT } from "@/lib/prompts"
+import { streamObject } from "ai"
+import { getTarotReadingPrompt, TAROT_SYSTEM_PROMPT } from "@/lib/prompts"
 import { tarotInterpretationSchema } from "@/lib/tarot/schema"
+import {
+    fetchTarotCodexForCards,
+    extractTopicsFromQuestion,
+    buildRagContext,
+} from "@/lib/tarot/rag"
+import {
+    buildConversationContextPromptBlock,
+    normalizeConversationContext,
+} from "@/lib/astrology/question-context"
 
-const MODEL = "google/gemini-3-flash"
+const MODEL = "openai/gpt-4o-mini"
+
+function detectQuestionLanguage(text: string): string {
+    if (/[\u0E00-\u0E7F]/.test(text)) return "Thai"
+    if (/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text)) return "Japanese"
+    if (/[\uAC00-\uD7AF]/.test(text)) return "Korean"
+    if (/[\u0400-\u04FF]/.test(text)) return "Russian"
+    return "English"
+}
 
 export async function POST(req: Request) {
     try {
-        const { prompt } = await req.json()
+        const body = (await req.json()) as {
+            question?: string
+            cards?: string[]
+            readingType?: string | null
+            isFollowUp?: boolean
+            previousQuestion?: string | null
+            previousInterpretation?: string | null
+            conversationContext?: unknown
+            locale?: string
+            situation?: {
+                topic: string
+                intent: string
+                emotion: string
+                focus: string
+                cardReadingDirection?: string
+            }
+            cardEnergies?: string[][]
+        }
 
-        if (!prompt) {
-            return new Response("User prompt is required", {
+        const {
+            question,
+            cards,
+            readingType,
+            isFollowUp,
+            previousQuestion,
+            previousInterpretation,
+            conversationContext: rawContext,
+            situation,
+            cardEnergies,
+        } = body
+
+        if (!question || !Array.isArray(cards) || cards.length === 0) {
+            return new Response("Question and cards are required", {
                 status: 400,
             })
         }
 
+        let prompt = getTarotReadingPrompt({
+            question,
+            cards: cards.join(", "),
+            readingType: readingType ?? null,
+            isFollowUp: Boolean(isFollowUp),
+            previousQuestion: previousQuestion ?? null,
+            previousInterpretation: previousInterpretation ?? null,
+        })
+        const conversationContext = normalizeConversationContext(rawContext)
+        const contextBlock =
+            buildConversationContextPromptBlock(conversationContext)
+        if (contextBlock && !prompt.includes("<session_context>")) {
+            prompt = `${contextBlock}
+
+---
+
+${prompt}`
+        }
+
+        if (situation && cardEnergies && cardEnergies.length > 0) {
+            const situationBlock = `<user_situation>
+Topic: ${situation.topic}
+Intent: ${situation.intent}
+Emotion: ${situation.emotion}
+Focus: ${situation.focus}
+</user_situation>`
+
+            const directionBlock = situation.cardReadingDirection
+                ? `\n<reading_direction>\n${situation.cardReadingDirection}\n</reading_direction>`
+                : ""
+
+            const energyLines = cards
+                .map((card, i) => {
+                    const sentences = cardEnergies[i] ?? []
+                    return `${card}: ${sentences.join(". ")}`
+                })
+                .join("\n")
+
+            const energyBlock = `<card_energies>
+${energyLines}
+</card_energies>`
+
+            prompt = `${situationBlock}
+${directionBlock}
+
+${energyBlock}
+
+---
+
+${prompt}`
+        } else {
+            const codexMap = await fetchTarotCodexForCards(cards)
+            const topics = extractTopicsFromQuestion(question)
+            const ragContext = buildRagContext(cards, codexMap, topics)
+
+            if (ragContext) {
+                prompt = `${ragContext}
+---
+
+${prompt}`
+            }
+        }
+
+        const lang = detectQuestionLanguage(question)
+
         const result = await streamObject({
-            model: MODEL as unknown as LanguageModel,
-            maxOutputTokens: 4000,
+            model: MODEL,
+            temperature: 0.6,
             schema: tarotInterpretationSchema,
             system: TAROT_SYSTEM_PROMPT,
             prompt: `${prompt}
 
-        IMPORTANT: Respond in the language of the user's question`,
+LANGUAGE: The user's question is in ${lang}. You MUST write ALL output fields (cardInsights, keywords, interpretation, conclusion, suggestions) in ${lang}. The card_energies and reading_direction are English internal data — translate them into ${lang}. NEVER output English when the question is in ${lang}.
+
+CRITICAL NARRATOR RULE: If a <reading_direction> is provided, you MUST follow it exactly as your answer skeleton.
+- The reading_direction contains the verdict, card-by-card reasoning, and advice that a stronger reasoning model already determined.
+- Your ONLY job is to translate that reasoning into a warm, natural narrative in ${lang}.
+- Start with the verdict from reading_direction as your first sentence.
+- Weave each card's reasoning into the narrative without mentioning card names.
+- End with the practical advice from reading_direction.
+- Do NOT add your own reasoning. Do NOT contradict the reading_direction. Do NOT soften the verdict. Do NOT be more vague than the direction.
+- If reading_direction says "no", your answer says "no". If it says "warning", your answer warns clearly.`,
         })
 
         return result.toTextStreamResponse()
@@ -32,29 +152,3 @@ export async function POST(req: Request) {
         })
     }
 }
-
-// function costPerUsage(
-//     input: number | undefined,
-//     output: number | undefined,
-//     model: string = MODEL
-// ) {
-//     if (model === "openai/gpt-5-nano" && input && output) {
-//         return {
-//             input,
-//             output,
-//             cost: input * (0.05 / 1000000) + output * (0.4 / 1000000),
-//         }
-//     }
-//     if (model === "openai/gpt-4.1-mini" && input && output) {
-//         return input * (0.4 / 1000000) + output * (1.6 / 1000000)
-//     }
-//     if (model === "openai/gpt-5-mini" && input && output) {
-//         return input * (0.25 / 1000000) + output * (2 / 1000000)
-//     }
-//     if (model === "openai/gpt-5" && input && output) {
-//         return input * (1.25 / 1000000) + output * (10.0 / 1000000)
-//     }
-//     if (model === "openai/gpt-4o-mini" && input && output) {
-//         return input * (0.15 / 1000000) + output * (0.6 / 1000000)
-//     }
-// }

@@ -8,9 +8,10 @@ import {
     tarotInterpretationSchema,
     type TarotInterpretation,
 } from "@/lib/tarot/schema"
+
+type PartialTarotInterpretation = Partial<TarotInterpretation>
 import QuestionInput from "../../question-input"
 import { useTranslations } from "next-intl"
-import { getTarotReadingPrompt } from "@/lib/prompts"
 import { useAuth } from "@/hooks/use-auth"
 import { useTarot } from "@/contexts/tarot-context"
 import {
@@ -41,6 +42,9 @@ type ReadingProps = {
     isLargeScreen?: boolean
     readingType?: string | null
     onInterpretationChange?: (text: string | null) => void
+    onInterpretationFieldDone?: (done: boolean) => void
+    /** Streaming object from sibling ActionSection (e.g. reading-layout regenerate) */
+    streamingObject?: PartialTarotInterpretation | null
 }
 
 export default function Interpretation({
@@ -53,6 +57,8 @@ export default function Interpretation({
     isLargeScreen = false,
     readingType: propReadingType,
     onInterpretationChange,
+    onInterpretationFieldDone,
+    streamingObject: streamingObjectProp,
 }: ReadingProps) {
     const t = useTranslations("ReadingPage.interpretation")
     const { user, session } = useAuth()
@@ -66,9 +72,11 @@ export default function Interpretation({
 
     // --- State Declarations ---
     const [interpretation, setInterpretationState] = useState<string | null>(
-        initialInterpretation ?? null
+        initialInterpretation ?? null,
     )
     const [isGenerating, setIsGenerating] = useState(false)
+    const [streamingObjectFromAction, setStreamingObjectFromAction] =
+        useState<PartialTarotInterpretation | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
     const [isAuthLoading, setIsAuthLoading] = useState(true)
@@ -111,7 +119,12 @@ export default function Interpretation({
             }
         }
 
-        if (readingId && !initialInterpretation && !interpretation && !hasCheckedDB) {
+        if (
+            readingId &&
+            !initialInterpretation &&
+            !interpretation &&
+            !hasCheckedDB
+        ) {
             checkInterpretation()
         }
     }, [
@@ -151,9 +164,8 @@ export default function Interpretation({
                             "Content-Type": "application/json",
                         }
                         if (session?.access_token) {
-                            headers[
-                                "Authorization"
-                            ] = `Bearer ${session.access_token}`
+                            headers["Authorization"] =
+                                `Bearer ${session.access_token}`
                         }
 
                         await fetch("/api/tarot/update", {
@@ -193,6 +205,16 @@ export default function Interpretation({
         },
     })
 
+    const isInterpretationFieldDone =
+        !!interpretation ||
+        !!object?.conclusion ||
+        !!streamingObjectProp?.conclusion ||
+        !!streamingObjectFromAction?.conclusion
+
+    useEffect(() => {
+        onInterpretationFieldDone?.(isInterpretationFieldDone)
+    }, [isInterpretationFieldDone, onInterpretationFieldDone])
+
     useEffect(() => {
         if (typeof onInterpretationChange === "function") {
             const normalized =
@@ -208,7 +230,7 @@ export default function Interpretation({
         if (object?.cardInsights) {
             // Filter out null/undefined values and ensure it's a string array
             const insights = object.cardInsights.filter(
-                (insight): insight is string => typeof insight === "string"
+                (insight): insight is string => typeof insight === "string",
             )
             if (insights.length > 0) {
                 setContextCardInsights(insights)
@@ -310,15 +332,13 @@ export default function Interpretation({
 
             setIsGenerating(true)
             setError(null)
-            const cardNames = (cards ?? []).join(", ")
-
             // Try to include context from the previous reading when this is a follow-up
             let previousQuestion: string | null = null
             let previousInterpretation: string | null = null
             try {
                 if (typeof window !== "undefined") {
                     const rawBackup = localStorage.getItem(
-                        "reading-state-v1-backup"
+                        "reading-state-v1-backup",
                     )
                     if (rawBackup) {
                         const backup = JSON.parse(rawBackup) as {
@@ -333,16 +353,17 @@ export default function Interpretation({
                 }
             } catch {}
 
-            const prompt = getTarotReadingPrompt({
+            const cardArray = (cards ?? []).map((c) =>
+                typeof c === "string" ? c : String(c),
+            )
+            submit({
                 question: question ?? "",
-                cards: cardNames,
+                cards: cardArray,
                 readingType: propReadingType || readingType || null,
                 isFollowUp,
                 previousQuestion,
                 previousInterpretation,
             })
-
-            submit({ prompt })
         }
     }, [
         interpretation,
@@ -464,7 +485,11 @@ export default function Interpretation({
                                     Try Again
                                 </button>
                             </div>
-                        ) : isGenerating && !interpretation && !object ? (
+                        ) : isGenerating &&
+                          !interpretation &&
+                          !object &&
+                          !streamingObjectProp &&
+                          !streamingObjectFromAction ? (
                             <div className='flex justify-center py-6 text-sm text-muted-foreground'>
                                 Generating interpretation...
                             </div>
@@ -496,7 +521,7 @@ export default function Interpretation({
                                                             .map(
                                                                 (
                                                                     k: string,
-                                                                    i: number
+                                                                    i: number,
                                                                 ) => {
                                                                     const trimmed =
                                                                         k.trim()
@@ -513,15 +538,15 @@ export default function Interpretation({
                                                                         >
                                                                             {trimmed
                                                                                 .charAt(
-                                                                                    0
+                                                                                    0,
                                                                                 )
                                                                                 .toUpperCase() +
                                                                                 trimmed.slice(
-                                                                                    1
+                                                                                    1,
                                                                                 )}
                                                                         </span>
                                                                     )
-                                                                }
+                                                                },
                                                             )}
                                                     </div>
                                                 )}
@@ -538,17 +563,21 @@ export default function Interpretation({
                                     }
 
                                     // If we are currently generating, display the streaming object
-                                    if (object) {
+                                    const displayObject =
+                                        object ??
+                                        streamingObjectProp ??
+                                        streamingObjectFromAction
+                                    if (displayObject) {
                                         return (
                                             <>
-                                                {object.keywords && (
+                                                {displayObject.keywords && (
                                                     <div className='flex flex-wrap gap-2 mb-4'>
-                                                        {object.keywords
+                                                        {displayObject.keywords
                                                             .split(",")
                                                             .map(
                                                                 (
                                                                     k: string,
-                                                                    i: number
+                                                                    i: number,
                                                                 ) => {
                                                                     const trimmed =
                                                                         k.trim()
@@ -565,19 +594,19 @@ export default function Interpretation({
                                                                         >
                                                                             {trimmed
                                                                                 .charAt(
-                                                                                    0
+                                                                                    0,
                                                                                 )
                                                                                 .toUpperCase() +
                                                                                 trimmed.slice(
-                                                                                    1
+                                                                                    1,
                                                                                 )}
                                                                         </span>
                                                                     )
-                                                                }
+                                                                },
                                                             )}
                                                     </div>
                                                 )}
-                                                {object.interpretation}
+                                                {displayObject.interpretation}
 
                                                 {/* Disclaimer at the bottom (while generating) */}
                                                 <div className='mt-8 pt-6 border-t border-white/5 opacity-50'>
@@ -597,12 +626,12 @@ export default function Interpretation({
                 </div>
             </Card>
 
-            {!isLargeScreen && interpretation && !error && (
+            {!isLargeScreen && isInterpretationFieldDone && !error && (
                 <div className='w-full max-w-4xl space-y-6'>
                     <ActionSection
                         question={question || ""}
                         cards={cards || []}
-                        interpretation={interpretation}
+                        interpretation={interpretation ?? undefined}
                         readingId={readingId!}
                         onInterpretationChange={(text) =>
                             setInterpretationState(text)
@@ -610,11 +639,12 @@ export default function Interpretation({
                         onGeneratingChange={(loading) =>
                             setIsGenerating(loading)
                         }
+                        onStreamingObjectChange={setStreamingObjectFromAction}
                     />
                     <ShareSection
                         question={question || ""}
                         cards={cards || []}
-                        interpretation={interpretation}
+                        interpretation={interpretation ?? undefined}
                         readingId={readingId!}
                     />
                     <div className='border-t border-border/50 pt-4 flex justify-center'>

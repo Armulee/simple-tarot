@@ -1,7 +1,7 @@
-import { LanguageModel, streamObject } from "ai"
+import { streamObject } from "ai"
 import { astrologySummarySchema } from "@/lib/astrology/schema"
 
-const MODEL = "google/gemini-3-flash"
+const MODEL = "openai/gpt-4o-mini"
 
 export async function POST(req: Request) {
     try {
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
         }
 
         const result = streamObject({
-            model: MODEL as unknown as LanguageModel,
+            model: MODEL,
             schema: astrologySummarySchema,
             system: `You are an astrology interpretation engine.
 
@@ -28,6 +28,9 @@ Rules you MUST follow:
 - Write like a calm strategic life coach, not a fortune teller.
 - Base ALL analysis strictly on the provided data only.
 - If data is missing, do NOT invent information.
+- End the interpretation with a short invitation to continue the conversation.
+- Include 1-2 concrete "what to ask next" examples naturally in the interpretation.
+- Keep those next-question examples concise and practical.
 
 Tone:
 - Clear
@@ -51,5 +54,3 @@ IMPORTANT: Respond in the language of the user's question, ignoring the English 
         return new Response("Failed to generate summary", { status: 500 })
     }
 }
-
-

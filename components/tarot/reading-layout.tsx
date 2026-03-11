@@ -12,6 +12,7 @@ import ActionSection from "./interpretation/action"
 import ShareSection from "./interpretation/share"
 import QuestionInput from "../question-input"
 import { useTranslations } from "next-intl"
+import type { TarotInterpretation } from "@/lib/tarot/schema"
 
 type TarotCard = {
     id: number
@@ -44,6 +45,12 @@ export default function TarotReadingLayout({
     const t = useTranslations("ReadingPage.interpretation")
     const [interpretation, setInterpretation] = useState<string | null>(
         initialInterpretation ?? null
+    )
+    const [streamingObject, setStreamingObject] = useState<
+        Partial<TarotInterpretation> | null
+    >(null)
+    const [isInterpretationFieldDone, setIsInterpretationFieldDone] = useState(
+        !!initialInterpretation
     )
     return (
         <div className="hidden lg:block space-y-8">
@@ -117,29 +124,34 @@ export default function TarotReadingLayout({
                         readingId={readingId}
                         question={question}
                         cards={cards}
-                        initialInterpretation={initialInterpretation}
+                        initialInterpretation={interpretation ?? initialInterpretation ?? null}
                         ownerDid={ownerDid}
                         ownerUserId={ownerUserId}
                         isLargeScreen={true}
                         onInterpretationChange={(text) => {
                             setInterpretation(text)
                         }}
+                        onInterpretationFieldDone={setIsInterpretationFieldDone}
+                        streamingObject={streamingObject}
                     />
                 </div>
             </div>
 
             {/* Row 2: Actions (left) + Share (right) */}
-            {interpretation && (
+            {(interpretation || isInterpretationFieldDone) && (
                 <div className="grid grid-cols-2 gap-8">
                     {/* Left Column: Actions */}
                     <div className="space-y-8">
                         <ActionSection
                             question={question || ""}
                             cards={cards || []}
-                            interpretation={interpretation}
+                            interpretation={interpretation ?? undefined}
                             readingId={readingId}
                             onInterpretationChange={(text) => {
                                 setInterpretation(text)
+                            }}
+                            onStreamingObjectChange={(obj) => {
+                                setStreamingObject(obj)
                             }}
                         />
                     </div>
@@ -149,7 +161,7 @@ export default function TarotReadingLayout({
                         <ShareSection
                             question={question || ""}
                             cards={cards || []}
-                            interpretation={interpretation}
+                            interpretation={interpretation ?? undefined}
                             readingId={readingId}
                         />
                     </div>
@@ -157,7 +169,7 @@ export default function TarotReadingLayout({
             )}
 
             {/* Row 3: Follow-up Input Centered */}
-            {interpretation && (
+            {(interpretation || isInterpretationFieldDone) && (
                 <div className="flex justify-center">
                     <div className="w-full max-w-2xl">
                         <div className="border-t border-border/50 pt-4">

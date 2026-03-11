@@ -27,13 +27,23 @@ import { Card } from "@/components/ui/card"
 import { SUBSCRIPTION_PLANS } from "@/lib/payments/subscription-plans"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-export default function InsufficientStarsBlock() {
+type InsufficientStarsType = "tarot" | "horoscope"
+
+export default function InsufficientStarsBlock({
+    type = "tarot",
+}: {
+    type?: InsufficientStarsType
+}) {
     const { user } = useAuth()
     const { subscription } = useStars()
     const pathname = usePathname()
     const locale = useLocale()
     const currency = usePreferredCurrency("USD")
     const t = useTranslations("InsufficientStars")
+    const descLoggedInKey =
+        type === "horoscope" ? "descriptionHoroscopeLoggedIn" : "descriptionLoggedIn"
+    const descAnonymousKey =
+        type === "horoscope" ? "descriptionHoroscopeAnonymous" : "descriptionAnonymous"
     const formatDisplayCurrency = (amount: number) =>
         formatCurrency(amount, currency, locale).replace(/^US(?=\$)/, "")
 
@@ -75,7 +85,7 @@ export default function InsufficientStarsBlock() {
                         {t("title")}
                     </h3>
                     <p className="text-white/80 text-sm md:text-base leading-relaxed max-w-md mx-auto">
-                        {user ? t("descriptionLoggedIn") : t("descriptionAnonymous")}
+                        {user ? t(descLoggedInKey) : t(descAnonymousKey)}
                     </p>
                 </div>
 

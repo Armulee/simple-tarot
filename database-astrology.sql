@@ -41,6 +41,9 @@ CREATE TABLE IF NOT EXISTS astrology_readings (
 
     -- Generated summary (AI)
     summary TEXT,
+    system_mode TEXT,
+    input_confidence JSONB,
+    swisseph_snapshot JSONB,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -87,3 +90,8 @@ END $$;
 
 COMMENT ON TABLE astrology_readings IS 'Stores astrology readings with birth + transit snapshots and an optional AI-generated summary';
 
+-- Safe forward-compatible columns for SwissEph pipeline
+ALTER TABLE astrology_readings
+    ADD COLUMN IF NOT EXISTS system_mode TEXT,
+    ADD COLUMN IF NOT EXISTS input_confidence JSONB,
+    ADD COLUMN IF NOT EXISTS swisseph_snapshot JSONB;

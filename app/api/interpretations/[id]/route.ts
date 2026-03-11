@@ -10,7 +10,7 @@ export async function GET(_req: NextRequest, context: { params: Promise<{ id: st
 
     const { data, error } = await supabase
       .from("shared_tarot")
-      .select("id, question, cards, interpretation, created_at")
+      .select("id, question, cards, interpretation, assistant_text, insights, conclusion, spread_type, cards_full, created_at")
       .eq("id", id)
       .maybeSingle()
 

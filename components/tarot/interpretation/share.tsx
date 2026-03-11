@@ -70,7 +70,7 @@ export default function ShareSection({
 }: ShareSectionProps = {}) {
     const t = useTranslations("ReadingPage.interpretation.share")
     const tCommon = useTranslations(
-        "ReadingPage.interpretation.dialogs.unavailable"
+        "ReadingPage.interpretation.dialogs.unavailable",
     )
 
     const {
@@ -86,7 +86,9 @@ export default function ShareSection({
     const { user } = useAuth()
     const navGuardRef = useRef<HTMLDivElement>(null)
     const [earnedStars, setEarnedStars] = useState(0)
-    const maxStars = 3
+    const starsPerVisit = 5
+    const maxGrantsPerDay = 3
+    const maxStars = starsPerVisit * maxGrantsPerDay
     const [unavailableOpen, setUnavailableOpen] = useState(false)
     const [unavailableLabel, setUnavailableLabel] = useState<string>("")
 
@@ -97,7 +99,7 @@ export default function ShareSection({
 
             try {
                 const response = await fetch(
-                    `/api/tarot/earned-stars?readingId=${readingId}`
+                    `/api/tarot/earned-stars?readingId=${readingId}`,
                 )
                 if (response.ok) {
                     const data = await response.json()
@@ -116,7 +118,7 @@ export default function ShareSection({
 
         try {
             const response = await fetch(
-                `/api/tarot/earned-stars?readingId=${readingId}`
+                `/api/tarot/earned-stars?readingId=${readingId}`,
             )
             if (response.ok) {
                 const data = await response.json()
@@ -130,15 +132,17 @@ export default function ShareSection({
     // Listen for earned stars updates from other components
     useEffect(() => {
         const handleEarnedStarsUpdate = () => {
-            // Optimistically bump UI by +1 (capped), then reconcile with server
-            setEarnedStars((prev) => Math.min((prev || 0) + 1, maxStars))
+            // Optimistically bump UI by +5 (capped), then reconcile with server
+            setEarnedStars((prev) =>
+                Math.min((prev || 0) + starsPerVisit, maxStars),
+            )
             refreshEarnedStars()
         }
 
         if (typeof window !== "undefined") {
             window.addEventListener(
                 "earned-stars-updated",
-                handleEarnedStarsUpdate
+                handleEarnedStarsUpdate,
             )
 
             // Cross-tab sync via BroadcastChannel when available
@@ -160,7 +164,7 @@ export default function ShareSection({
             if (typeof window !== "undefined") {
                 window.removeEventListener(
                     "earned-stars-updated",
-                    handleEarnedStarsUpdate
+                    handleEarnedStarsUpdate,
                 )
                 try {
                     const w = window as unknown as {
@@ -174,7 +178,7 @@ export default function ShareSection({
                 } catch {}
             }
         }
-    }, [refreshEarnedStars, maxStars])
+    }, [refreshEarnedStars, maxStars, starsPerVisit])
 
     // Refresh when tab becomes visible (owner may be watching while others visit)
     useEffect(() => {
@@ -249,7 +253,7 @@ export default function ShareSection({
                 const cachedLink = shareLinkCache.get(
                     question,
                     cards,
-                    interpretation
+                    interpretation,
                 )
                 if (cachedLink) {
                     return cachedLink
@@ -276,7 +280,7 @@ export default function ShareSection({
                         typeof window !== "undefined"
                             ? window.location.origin
                             : "https://dooduang.ai"
-                    const link = `${origin}/share/tarot/${checkData.id}`
+                    const link = `${origin}/share/${checkData.id}`
 
                     // Cache the result
                     if (question && interpretation) {
@@ -284,7 +288,7 @@ export default function ShareSection({
                             question,
                             cards,
                             interpretation,
-                            link
+                            link,
                         )
                     }
 
@@ -316,7 +320,7 @@ export default function ShareSection({
                 typeof window !== "undefined"
                     ? window.location.origin
                     : "https://dooduang.ai"
-            const link = `${origin}/share/tarot/${id}`
+            const link = `${origin}/share/${id}`
 
             // Cache the result
             if (question && interpretation) {
@@ -479,18 +483,15 @@ export default function ShareSection({
                 href: () => null,
             },
         ],
-        [t]
+        [t],
     )
 
     const renderIcon = (icon: ReactNode) =>
         isValidElement(icon)
-            ? cloneElement(
-                  icon as ReactElement<{ className?: string }>,
-                  { className: "w-3 h-3 text-white" }
-              )
+            ? cloneElement(icon as ReactElement<{ className?: string }>, {
+                  className: "w-3 h-3 text-white",
+              })
             : icon
-
-    const [expandedShareId, setExpandedShareId] = useState<string | null>(null)
 
     if (variant === "compact") {
         return (
@@ -535,7 +536,11 @@ export default function ShareSection({
                                 return
                             }
                             if (href) {
-                                window.open(href, "_blank", "noopener,noreferrer")
+                                window.open(
+                                    href,
+                                    "_blank",
+                                    "noopener,noreferrer",
+                                )
                             }
                         }}
                         className='flex items-center justify-center h-6 w-6 rounded-full border border-white/10 bg-white/5 text-white/80 hover:text-white hover:border-white/30 transition-colors'
@@ -587,84 +592,69 @@ export default function ShareSection({
                         spaceBetween={4}
                         className='py-1'
                     >
-                        {shareOptions.map((option) => {
-                            const isExpanded = expandedShareId === option.id
-                            return (
-                                <SwiperSlide key={option.id}>
-                                    <button
-                                        type='button'
-                                        onClick={async () => {
-                                            setExpandedShareId((prev) =>
-                                                prev === option.id
-                                                    ? null
-                                                    : option.id
+                        {shareOptions.map((option) => (
+                            <SwiperSlide key={option.id}>
+                                <button
+                                    type='button'
+                                    onClick={async () => {
+                                        const link = await ensureShareLink()
+                                        if (!link) return
+                                        const text = question
+                                            ? `"${question}" — AI tarot interpretation`
+                                            : undefined
+                                        const href = option.href(link, text)
+                                        if (
+                                            option.id === "more" &&
+                                            typeof navigator !== "undefined" &&
+                                            typeof (
+                                                navigator as unknown as {
+                                                    share?: (data: {
+                                                        title?: string
+                                                        text?: string
+                                                        url?: string
+                                                    }) => Promise<void>
+                                                }
+                                            ).share === "function"
+                                        ) {
+                                            await (
+                                                navigator as unknown as {
+                                                    share: (data: {
+                                                        title?: string
+                                                        text?: string
+                                                        url?: string
+                                                    }) => Promise<void>
+                                                }
+                                            ).share({
+                                                title: "AskingFate",
+                                                text,
+                                                url: link,
+                                            })
+                                            return
+                                        }
+                                        if (href) {
+                                            window.open(
+                                                href,
+                                                "_blank",
+                                                "noopener,noreferrer",
                                             )
-                                            const link = await ensureShareLink()
-                                            if (!link) return
-                                            const text = question
-                                                ? `"${question}" — AI tarot interpretation`
-                                                : undefined
-                                            const href = option.href(link, text)
-                                            if (
-                                                option.id === "more" &&
-                                                typeof navigator !== "undefined" &&
-                                                typeof (
-                                                    navigator as unknown as {
-                                                        share?: (data: {
-                                                            title?: string
-                                                            text?: string
-                                                            url?: string
-                                                        }) => Promise<void>
-                                                    }
-                                                ).share === "function"
-                                            ) {
-                                                await (
-                                                    navigator as unknown as {
-                                                        share: (data: {
-                                                            title?: string
-                                                            text?: string
-                                                            url?: string
-                                                        }) => Promise<void>
-                                                    }
-                                                ).share({
-                                                    title: "AskingFate",
-                                                    text,
-                                                    url: link,
-                                                })
-                                                return
-                                            }
-                                            if (href) {
-                                                window.open(
-                                                    href,
-                                                    "_blank",
-                                                    "noopener,noreferrer"
-                                                )
-                                            }
-                                        }}
-                                        className={`group flex items-center gap-2 py-2 pr-2 pl-0 transition-all duration-300 hover:shadow-lg w-full ${
-                                            isExpanded
-                                                ? "rounded-xl pr-3 pl-0"
-                                                : "rounded-full"
-                                        }`}
-                                        title={option.label}
-                                        aria-label={option.label}
+                                        }
+                                    }}
+                                    className='group flex flex-col items-center gap-1.5 py-2 transition-all duration-300 hover:shadow-lg w-full'
+                                    aria-label={option.label}
+                                >
+                                    <div
+                                        className='relative w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
+                                        style={{ background: option.bg }}
                                     >
-                                        <div
-                                            className='relative w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
-                                            style={{ background: option.bg }}
-                                        >
-                                            {renderIcon(option.icon)}
-                                            <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
-                                        </div>
-                                        {isExpanded && (
-                                            <span className='text-xs text-white/80'>
-                                                {option.label}
-                                            </span>
-                                        )}
-                                    </button>
-                                </SwiperSlide>
-                            )
-                        })}
+                                        {renderIcon(option.icon)}
+                                        <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                                    </div>
+                                    <span className='text-[10px] text-white/70 leading-snug text-wrap text-pretty text-center'>
+                                        {option.label}
+                                    </span>
+                                </button>
+                            </SwiperSlide>
+                        ))}
                     </Swiper>
                 </div>
             </div>
@@ -772,7 +762,7 @@ export default function ShareSection({
                                             window.open(
                                                 href,
                                                 "_blank",
-                                                "noopener,noreferrer"
+                                                "noopener,noreferrer",
                                             )
                                         } else {
                                             // Unavailable platform: show dialog instead of copy fallback

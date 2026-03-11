@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
         if (!supabaseAdmin) {
             return NextResponse.json(
                 { error: "SUPABASE_NOT_CONFIGURED" },
-                { status: 500 }
+                { status: 500 },
             )
         }
 
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
         if (!readingId) {
             return NextResponse.json(
                 { error: "MISSING_READING_ID" },
-                { status: 400 }
+                { status: 400 },
             )
         }
 
@@ -31,12 +31,12 @@ export async function GET(req: NextRequest) {
         if (readingError || !reading) {
             return NextResponse.json(
                 { error: "READING_NOT_FOUND" },
-                { status: 404 }
+                { status: 404 },
             )
         }
 
         // Count earned stars from share_visit_awards table by OWNER for TODAY (Bangkok),
-        // so visits to both /tarot/[id] and /share/tarot/[id] are reflected.
+        // so visits to both /tarot/[id] and /share/[id] are reflected.
         const getBangkokDateKey = (): string => {
             const offsetMs = 7 * 60 * 60 * 1000
             const bkk = new Date(Date.now() + offsetMs)
@@ -63,14 +63,17 @@ export async function GET(req: NextRequest) {
             if (countError) {
                 return NextResponse.json(
                     { error: countError.message },
-                    { status: 400 }
+                    { status: 400 },
                 )
             }
             totalCount = count || 0
         }
 
-        const maxStars = 3
-        const earnedStars = Math.min(totalCount, maxStars)
+        const starsPerVisit = 5
+        const maxGrantsPerDay = 3
+        const maxStars = starsPerVisit * maxGrantsPerDay
+        const earnedStars =
+            Math.min(totalCount, maxGrantsPerDay) * starsPerVisit
 
         return NextResponse.json({
             earnedStars,

@@ -7,13 +7,12 @@ import { usePathname, useRouter } from "@/i18n/navigation"
 import { routing } from "@/i18n/routing"
 import { Button } from "@/components/ui/button"
 import { useEffect, useMemo, useState } from "react"
-import { Menu, LogIn, Check, Star, Plus } from "lucide-react"
+import { Menu, LogIn, Check, Plus } from "lucide-react"
 import { SidebarSheet } from "./sidebar-sheet"
+import { StarPill } from "./star-pill"
 import { UserProfile } from "@/components/user-profile"
 // Avatar imports removed (unused)
 import { useAuth } from "@/hooks/use-auth"
-import { useStars } from "@/contexts/stars-context"
-import { useStarConsent } from "@/components/star-consent"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -28,8 +27,6 @@ export function Navbar({ locale }: { locale: string }) {
     const router = useRouter()
     const pathname = usePathname()
     const { user, loading } = useAuth()
-    const { stars, initialized } = useStars()
-    const { choice, show } = useStarConsent()
 
     // Chat sessions live at `app/[locale]/[id]` where `id` is a NanoID(7).
     // `usePathname()` from next-intl returns the locale-less pathname (e.g. "/a1B2c3D").
@@ -292,70 +289,12 @@ export function Navbar({ locale }: { locale: string }) {
 
                         {/* Star balance pill - desktop */}
                         <div className='hidden lg:flex items-center'>
-                            <Link href='/stars'>
-                                <Button
-                                    variant='ghost'
-                                    className='h-10 px-3 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 text-yellow-300 border border-yellow-500/30 flex items-center gap-2'
-                                    onClick={(e) => {
-                                        if (
-                                            choice === null ||
-                                            choice === "declined"
-                                        ) {
-                                            e.preventDefault()
-                                            show()
-                                        }
-                                    }}
-                                >
-                                    <Star
-                                        className={`w-4 h-4 ${
-                                            initialized
-                                                ? ""
-                                                : "animate-spin-slow"
-                                        }`}
-                                        fill='currentColor'
-                                    />
-
-                                    {initialized && (
-                                        <span className='font-semibold'>
-                                            {stars ?? 0}
-                                        </span>
-                                    )}
-                                </Button>
-                            </Link>
+                            <StarPill size='md' />
                         </div>
 
                         {/* Mobile: Star balance next to sign-in/profile */}
                         <div className='lg:hidden flex items-center'>
-                            <Link href='/stars' className='mr-1'>
-                                <Button
-                                    variant='ghost'
-                                    className='h-9 px-2 rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 text-yellow-300 border border-yellow-500/30 flex items-center gap-1'
-                                    onClick={(e) => {
-                                        if (
-                                            choice === null ||
-                                            choice === "declined"
-                                        ) {
-                                            e.preventDefault()
-                                            show()
-                                        }
-                                    }}
-                                >
-                                    <Star
-                                        className={`w-4 h-4 ${
-                                            initialized
-                                                ? ""
-                                                : "animate-spin-slow"
-                                        }`}
-                                        fill='currentColor'
-                                    />
-
-                                    {initialized && (
-                                        <span className='font-semibold'>
-                                            {stars ?? 0}
-                                        </span>
-                                    )}
-                                </Button>
-                            </Link>
+                            <StarPill size='sm' />
                         </div>
 
                         {/* Desktop: User Profile / Sign In button */}

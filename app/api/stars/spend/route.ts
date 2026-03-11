@@ -21,7 +21,7 @@ export async function POST(req: Request) {
             if (currentErr) {
                 return NextResponse.json(
                     { error: currentErr.message },
-                    { status: 400 }
+                    { status: 400 },
                 )
             }
 
@@ -29,6 +29,8 @@ export async function POST(req: Request) {
                 daily_stars?: number
                 plan_stars?: number
                 addon_stars?: number
+                engagement_stars_current?: number
+                engagement_stars_total?: number
                 daily_last_refill_at?: string | null
                 plan_last_refill_at?: string | null
                 addon_last_refill_at?: string | null
@@ -36,6 +38,11 @@ export async function POST(req: Request) {
             const dailyStars = Number(row.daily_stars ?? 0)
             let planStars = Number(row.plan_stars ?? 0)
             let addonStars = Number(row.addon_stars ?? 0)
+            const starsBefore = dailyStars + planStars + addonStars
+            const engagementStarsCurrent = Number(
+                row.engagement_stars_current ?? 0,
+            )
+            const engagementStarsTotal = Number(row.engagement_stars_total ?? 0)
             let planLastRefillMs = row.plan_last_refill_at
                 ? new Date(row.plan_last_refill_at).getTime()
                 : null
@@ -110,6 +117,11 @@ export async function POST(req: Request) {
                             daily_stars: dailyStars,
                             plan_stars: planStars,
                             addon_stars: addonStars,
+                            engagement_stars_current: Math.max(
+                                0,
+                                engagementStarsCurrent - amount,
+                            ),
+                            engagement_stars_total: engagementStarsTotal,
                             current_stars: dailyStars + planStars + addonStars,
                             daily_last_refill_at: dailyLastRefillAt,
                         },
@@ -121,12 +133,25 @@ export async function POST(req: Request) {
                 dailyLastRefillAt = new Date().toISOString()
             }
 
+            const starsAfter = nextDaily + nextPlan + nextAddon
+            console.log("[stars/spend] authenticated", {
+                user_id: userId,
+                amount_before: starsBefore,
+                amount_spend: amount,
+                amount_after: starsAfter,
+            })
+
             const { data: updated } = await supabaseAdmin
                 .from("stars")
                 .update({
                     daily_stars: nextDaily,
                     plan_stars: nextPlan,
                     addon_stars: nextAddon,
+                    engagement_stars_current: Math.max(
+                        0,
+                        engagementStarsCurrent - amount,
+                    ),
+                    engagement_stars_total: engagementStarsTotal,
                     plan_last_refill_at: planLastRefillMs
                         ? new Date(planLastRefillMs).toISOString()
                         : null,
@@ -140,7 +165,7 @@ export async function POST(req: Request) {
                 })
                 .eq("user_id", userId)
                 .select(
-                    "daily_stars,plan_stars,addon_stars,current_stars,daily_last_refill_at"
+                    "daily_stars,plan_stars,addon_stars,engagement_stars_current,engagement_stars_total,current_stars,daily_last_refill_at",
                 )
                 .maybeSingle()
 
@@ -151,6 +176,12 @@ export async function POST(req: Request) {
                         daily_stars: updated?.daily_stars ?? nextDaily,
                         plan_stars: updated?.plan_stars ?? nextPlan,
                         addon_stars: updated?.addon_stars ?? nextAddon,
+                        engagement_stars_current:
+                            updated?.engagement_stars_current ??
+                            Math.max(0, engagementStarsCurrent - amount),
+                        engagement_stars_total:
+                            updated?.engagement_stars_total ??
+                            engagementStarsTotal,
                         current_stars:
                             updated?.current_stars ??
                             nextDaily + nextPlan + nextAddon,

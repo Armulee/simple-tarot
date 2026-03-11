@@ -1,13 +1,25 @@
 import { NextRequest, NextResponse } from "next/server"
 import { nanoid } from "nanoid"
-import { supabaseAdmin } from "@/lib/supabase"
-import { readAndVerifyDid } from "@/lib/server/did"
 import { generateText } from "ai"
+import { readAndVerifyDid } from "@/lib/server/did"
+import { supabaseAdmin } from "@/lib/supabase"
 
-const MAX_QUESTION_LENGTH = 500
-const MAX_MESSAGE_COUNT = 100
-const MAX_TOPIC_LENGTH = 80
-const TOPIC_MODEL = "openai/gpt-4.1-mini"
+const MODEL = "openai/gpt-4o-mini"
+
+function isAbortError(error: unknown) {
+    return (
+        error instanceof Error &&
+        (error.name === "AbortError" || error.message === "REQUEST_ABORTED")
+    )
+}
+
+function throwIfAborted(signal: AbortSignal) {
+    if (signal.aborted) {
+        const error = new Error("REQUEST_ABORTED")
+        error.name = "AbortError"
+        throw error
+    }
+}
 
 function cleanTopic(raw: string): string {
     return (
@@ -17,11 +29,13 @@ function cleanTopic(raw: string): string {
             .replace(/[.。!?！？:：;；]+$/g, "")
             .replace(/\s+/g, " ")
             .trim()
-            .slice(0, MAX_TOPIC_LENGTH)
     )
 }
 
-async function generateTopicFromQuestion(question: string): Promise<string> {
+async function generateTopicFromQuestion(
+    question: string,
+    abortSignal?: AbortSignal,
+): Promise<string> {
     const system = `You create a descriptive session topic from the user's first message.
 
 Rules:
@@ -38,11 +52,11 @@ ${question}
 Return a clear, descriptive session topic now.`
 
     const result = await generateText({
-        model: TOPIC_MODEL,
+        model: MODEL,
         temperature: 0.2,
-        maxOutputTokens: 30,
         system,
         prompt,
+        abortSignal,
     })
 
     const topic = cleanTopic(result.text ?? "")
@@ -51,6 +65,7 @@ Return a clear, descriptive session topic now.`
 
 export async function POST(req: NextRequest) {
     try {
+        throwIfAborted(req.signal)
         if (!supabaseAdmin) {
             return NextResponse.json(
                 { error: "SUPABASE_NOT_CONFIGURED" },
@@ -62,13 +77,15 @@ export async function POST(req: NextRequest) {
         if (!did) return NextResponse.json({ error: "NO_DID" }, { status: 400 })
 
         const body = await req.json()
-        const question = (body?.question ?? "").toString().slice(0, MAX_QUESTION_LENGTH)
+        throwIfAborted(req.signal)
+        const requestedId = (body?.id ?? "").toString().slice(0, 32).trim()
+        const question = (body?.question ?? "").toString()
         const ownerUserId: string | null =
             typeof body?.user_id === "string" && body.user_id
                 ? body.user_id
                 : null
         const rawMessages = Array.isArray(body?.messages)
-            ? body.messages.slice(0, MAX_MESSAGE_COUNT)
+            ? body.messages
             : []
         const messages =
             rawMessages.length > 0
@@ -93,15 +110,17 @@ export async function POST(req: NextRequest) {
 
         let topic = question
         try {
-            topic = await generateTopicFromQuestion(question)
+            topic = await generateTopicFromQuestion(question, req.signal)
         } catch {
             topic = cleanTopic(question)
         }
+        throwIfAborted(req.signal)
 
-        const sessionId = nanoid(12)
+        const sessionId = requestedId || nanoid(12)
         let attempts = 0
         let finalId = sessionId
         while (attempts < 5) {
+            throwIfAborted(req.signal)
             const { data: existing } = await supabaseAdmin
                 .from("chat_sessions")
                 .select("id")
@@ -113,6 +132,7 @@ export async function POST(req: NextRequest) {
             attempts++
         }
 
+        throwIfAborted(req.signal)
         const { error } = await supabaseAdmin.from("chat_sessions").insert({
             id: finalId,
             did,
@@ -133,6 +153,9 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ id: finalId })
     } catch (e: unknown) {
+        if (isAbortError(e)) {
+            return new NextResponse(null, { status: 499 })
+        }
         const message = e instanceof Error ? e.message : "INTERNAL_ERROR"
         return NextResponse.json({ error: message }, { status: 500 })
     }

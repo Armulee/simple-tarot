@@ -34,10 +34,13 @@ import { useTarot } from "@/contexts/tarot-context"
 import Image from "next/image"
 import { useStars } from "@/contexts/stars-context"
 import { experimental_useObject as useObject } from "@ai-sdk/react"
-import { tarotInterpretationSchema, type TarotInterpretation } from "@/lib/tarot/schema"
+import SharePreview from "@/components/tarot/share-preview"
+import {
+    tarotInterpretationSchema,
+    type TarotInterpretation,
+} from "@/lib/tarot/schema"
 import {
     AlertDialog,
-    AlertDialogAction,
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
@@ -59,7 +62,6 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
-import { getTarotReadingPrompt } from "@/lib/prompts"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 
@@ -70,7 +72,23 @@ interface ActionSectionProps {
     readingId?: string
     onInterpretationChange?: (text: string) => void
     onGeneratingChange?: (loading: boolean) => void
+    onStreamingObjectChange?: (obj: Partial<TarotInterpretation> | null) => void
     variant?: "full" | "compact" | "embedded"
+    mode?: "tarot" | "horoscope"
+    onRegenerateHoroscope?: (messageId: string) => void
+    onRegenerateTarot?: (messageId: string) => void
+    messageId?: string
+    insights?: string[]
+    conclusion?: string
+    spreadType?: string
+    cardsFull?: Array<{
+        id: number
+        name: string
+        image: string
+        meaning: string
+        isReversed: boolean
+    }>
+    assistantText?: string
 }
 
 export default function ActionSection({
@@ -80,7 +98,17 @@ export default function ActionSection({
     readingId: propReadingId,
     onInterpretationChange,
     onGeneratingChange,
+    onStreamingObjectChange,
     variant = "full",
+    mode = "tarot",
+    onRegenerateHoroscope,
+    onRegenerateTarot,
+    messageId,
+    insights: propInsights,
+    conclusion: propConclusion,
+    spreadType: propSpreadType,
+    cardsFull: propCardsFull,
+    assistantText: propAssistantText,
 }: ActionSectionProps = {}) {
     const t = useTranslations("ReadingPage.interpretation")
     const {
@@ -104,7 +132,7 @@ export default function ActionSection({
     const [isDownloading, setIsDownloading] = useState(false)
     const [downloadOpen, setDownloadOpen] = useState(false)
     const [downloadFormat, setDownloadFormat] = useState<"image" | "video">(
-        "image"
+        "image",
     )
     const [downloadStyleId, setDownloadStyleId] = useState("story")
     const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -118,11 +146,12 @@ export default function ActionSection({
     const previewCacheRef = useRef<Map<string, Blob>>(new Map())
     const videoCacheRef = useRef<Map<string, Blob>>(new Map())
     const [thumbnailUrls, setThumbnailUrls] = useState<Record<string, string>>(
-        {}
+        {},
     )
     const [showReport, setShowReport] = useState(false)
     const [reportReason, setReportReason] = useState("")
     const [reportDetails, setReportDetails] = useState("")
+    const [feedbackComment, setFeedbackComment] = useState("")
     const [voteState, setVoteState] = useState<"up" | "down" | null>(null)
     const [showFeedback, setShowFeedback] = useState(false)
     const [rating, setRating] = useState<number>(0)
@@ -160,15 +189,11 @@ export default function ActionSection({
                 height: 1080,
             },
         ],
-        [t]
+        [t],
     )
     const selectedStyle =
         downloadStyles.find((style) => style.id === downloadStyleId) ||
         downloadStyles[0]
-    const activePreviewProgress =
-        downloadFormat === "video" ? videoProgress : previewProgress
-    const isActivePreviewLoading =
-        downloadFormat === "video" ? isVideoGenerating : isPreviewLoading
 
     const fetchShareImage = useCallback(
         async ({
@@ -229,7 +254,7 @@ export default function ActionSection({
                 type: res.headers.get("Content-Type") || "image/png",
             })
         },
-        [question, cards, interpretation]
+        [question, cards, interpretation],
     )
 
     const createShareVideo = useCallback(
@@ -242,8 +267,7 @@ export default function ActionSection({
             signal?: AbortSignal
             onProgress?: (progress: number) => void
         }) => {
-            const cachedImage =
-                previewCacheRef.current.get(style.id) || null
+            const cachedImage = previewCacheRef.current.get(style.id) || null
             const baseBlob =
                 cachedImage ||
                 (await fetchShareImage({
@@ -256,7 +280,7 @@ export default function ActionSection({
                 typeof createImageBitmap === "function"
                     ? await createImageBitmap(baseBlob)
                     : await new Promise<HTMLImageElement>((resolve, reject) => {
-                      const img = new window.Image()
+                          const img = new window.Image()
                           img.onload = () => resolve(img)
                           img.onerror = () =>
                               reject(new Error("Failed to load image"))
@@ -270,7 +294,7 @@ export default function ActionSection({
             if (!ctx) throw new Error("Canvas not supported")
 
             const starCount = Math.round(
-                Math.max(120, (style.width * style.height) / 20000)
+                Math.max(120, (style.width * style.height) / 20000),
             )
             const stars = Array.from({ length: starCount }, () => ({
                 x: Math.random() * style.width,
@@ -301,7 +325,7 @@ export default function ActionSection({
 
             const stream = canvas.captureStream(30)
             const mimeType = MediaRecorder.isTypeSupported(
-                "video/webm;codecs=vp9"
+                "video/webm;codecs=vp9",
             )
                 ? "video/webm;codecs=vp9"
                 : "video/webm"
@@ -327,7 +351,7 @@ export default function ActionSection({
                     resolve(
                         new Blob(chunks, {
                             type: recorder.mimeType || "video/webm",
-                        })
+                        }),
                     )
                 }
 
@@ -356,7 +380,7 @@ export default function ActionSection({
                             0,
                             gx,
                             gy,
-                            orb.radius
+                            orb.radius,
                         )
                         gradient.addColorStop(0, orb.color)
                         gradient.addColorStop(1, "rgba(0,0,0,0)")
@@ -374,7 +398,7 @@ export default function ActionSection({
                             0.5 *
                                 Math.sin(
                                     t * Math.PI * 2 * star.twinkleSpeed +
-                                        star.twinkleOffset
+                                        star.twinkleOffset,
                                 )
                         const alpha = star.alpha * twinkle
                         ctx.fillStyle = `rgba(255,255,255,${alpha})`
@@ -408,7 +432,7 @@ export default function ActionSection({
             }
             return blob
         },
-        [fetchShareImage]
+        [fetchShareImage],
     )
 
     const loadVersions = useCallback(async () => {
@@ -421,7 +445,7 @@ export default function ActionSection({
 
             const res = await fetch(
                 `/api/tarot/versions?readingId=${readingId}`,
-                { headers }
+                { headers },
             )
             if (!res.ok) return
             const data = await res.json()
@@ -432,6 +456,48 @@ export default function ActionSection({
     useEffect(() => {
         void loadVersions()
     }, [loadVersions])
+
+    useEffect(() => {
+        if (!interpretation || !readingId) return
+        const timer = setTimeout(() => {
+            void loadVersions()
+        }, 1500)
+        return () => clearTimeout(timer)
+    }, [interpretation, readingId, loadVersions])
+
+    const contentType = mode === "horoscope" ? "horoscope" : "tarot"
+
+    useEffect(() => {
+        if (!readingId) return
+        fetch(
+            `/api/reactions?contentId=${readingId}&contentType=${contentType}`,
+        )
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (d?.reaction === "like") setVoteState("up")
+                else if (d?.reaction === "dislike") setVoteState("down")
+            })
+            .catch(() => {})
+    }, [readingId, contentType])
+
+    const persistVote = useCallback(
+        (next: "up" | "down" | null) => {
+            setVoteState(next)
+            if (!readingId) return
+            const reaction =
+                next === "up" ? "like" : next === "down" ? "dislike" : null
+            fetch("/api/reactions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    content_id: readingId,
+                    content_type: contentType,
+                    reaction,
+                }),
+            }).catch(() => {})
+        },
+        [readingId, contentType],
+    )
 
     useEffect(() => {
         if (!downloadOpen) {
@@ -451,7 +517,7 @@ export default function ActionSection({
             previewBlobRef.current = null
             setThumbnailUrls((current) => {
                 Object.values(current).forEach((url) =>
-                    URL.revokeObjectURL(url)
+                    URL.revokeObjectURL(url),
                 )
                 return {}
             })
@@ -490,9 +556,7 @@ export default function ActionSection({
             setPreviewError(null)
             setPreviewProgress(0)
             try {
-                const cachedBlob = previewCacheRef.current.get(
-                    selectedStyle.id
-                )
+                const cachedBlob = previewCacheRef.current.get(selectedStyle.id)
                 if (cachedBlob) {
                     const nextUrl = URL.createObjectURL(cachedBlob)
                     setPreviewUrl((current) => {
@@ -591,7 +655,7 @@ export default function ActionSection({
                         next[style.id] = url
                         return next
                     })
-                })
+                }),
             )
         }
 
@@ -683,8 +747,7 @@ export default function ActionSection({
             if (cachedPreview?.styleId === selectedStyle.id) {
                 blob = cachedPreview.blob
             } else {
-                blob =
-                    previewCacheRef.current.get(selectedStyle.id) || null
+                blob = previewCacheRef.current.get(selectedStyle.id) || null
             }
 
             if (!blob) {
@@ -767,6 +830,8 @@ export default function ActionSection({
             object: TarotInterpretation | undefined
         }) => {
             if (object) {
+                if (typeof onStreamingObjectChange === "function")
+                    onStreamingObjectChange(null)
                 const completion = `${object.keywords}\n\n${object.interpretation}`
                 if (typeof onInterpretationChange === "function") {
                     onInterpretationChange(completion)
@@ -780,9 +845,8 @@ export default function ActionSection({
                             "Content-Type": "application/json",
                         }
                         if (session?.access_token) {
-                            headers[
-                                "Authorization"
-                            ] = `Bearer ${session.access_token}`
+                            headers["Authorization"] =
+                                `Bearer ${session.access_token}`
                         }
 
                         await fetch("/api/tarot/update", {
@@ -810,6 +874,8 @@ export default function ActionSection({
             }
         },
         onError: () => {
+            if (typeof onStreamingObjectChange === "function")
+                onStreamingObjectChange(null)
             toast.error("Failed to generate a new interpretation")
             if (typeof onGeneratingChange === "function")
                 onGeneratingChange(false)
@@ -822,13 +888,22 @@ export default function ActionSection({
     useEffect(() => {
         if (object?.cardInsights) {
             const insights = object.cardInsights.filter(
-                (insight): insight is string => typeof insight === "string"
+                (insight): insight is string => typeof insight === "string",
             )
             if (insights.length > 0) {
                 setCardInsights(insights)
             }
         }
     }, [object?.cardInsights, setCardInsights])
+
+    // Sync streaming object to parent for regenerate flow (so parent can show streaming text)
+    useEffect(() => {
+        if (typeof onStreamingObjectChange === "function") {
+            onStreamingObjectChange(
+                object ? (object as Partial<TarotInterpretation>) : null,
+            )
+        }
+    }, [object, onStreamingObjectChange])
 
     useEffect(() => {
         const el = navGuardRef.current
@@ -864,7 +939,7 @@ export default function ActionSection({
 
     const ensureShareLink = useCallback(async (): Promise<string | null> => {
         try {
-            if (readingId) {
+            if (readingId && !messageId) {
                 const origin =
                     typeof window !== "undefined"
                         ? window.location.origin
@@ -890,7 +965,7 @@ export default function ActionSection({
                         typeof window !== "undefined"
                             ? window.location.origin
                             : "https://dooduang.ai"
-                    return `${origin}/share/tarot/${checkData.id}`
+                    return `${origin}/share/${checkData.id}`
                 }
             }
 
@@ -902,6 +977,11 @@ export default function ActionSection({
                     cards: cards,
                     interpretation,
                     user_id: user?.id ?? null,
+                    assistant_text: propAssistantText ?? null,
+                    insights: propInsights ?? null,
+                    conclusion: propConclusion ?? null,
+                    spread_type: propSpreadType ?? null,
+                    cards_full: propCardsFull ?? null,
                 }),
             })
             if (!res.ok) return null
@@ -910,27 +990,54 @@ export default function ActionSection({
                 typeof window !== "undefined"
                     ? window.location.origin
                     : "https://dooduang.ai"
-            return `${origin}/share/tarot/${id}`
+            return `${origin}/share/${id}`
         } catch {
             return null
         }
-    }, [readingId, question, cards, interpretation, user?.id])
+    }, [
+        readingId,
+        messageId,
+        question,
+        cards,
+        interpretation,
+        user?.id,
+        propAssistantText,
+        propInsights,
+        propConclusion,
+        propSpreadType,
+        propCardsFull,
+    ])
 
     const handleRegenerate = useCallback(async () => {
         try {
-            if (!Number.isFinite(stars as number) || (stars as number) < 5) {
+            if (!Number.isFinite(stars as number) || (stars as number) < 1) {
                 return
             }
 
-            const ok = await spendStars(5)
+            const ok = await spendStars(1)
             if (ok) {
-                toast.warning("-5 stars for regeneration", {
+                toast.warning("-1 star for regeneration", {
                     position: "bottom-center",
                 })
             } else {
                 toast.error("Not enough stars to regenerate")
                 return
             }
+
+            if (
+                mode === "horoscope" &&
+                typeof onRegenerateHoroscope === "function" &&
+                messageId
+            ) {
+                onRegenerateHoroscope(messageId)
+                return
+            }
+
+            if (typeof onRegenerateTarot === "function" && messageId) {
+                onRegenerateTarot(messageId)
+                return
+            }
+
             setPaidForInterpretation(true)
 
             if (typeof onInterpretationChange === "function") {
@@ -942,14 +1049,12 @@ export default function ActionSection({
             if (typeof onGeneratingChange === "function")
                 onGeneratingChange(true)
 
-            const cardNames = cards.join(", ")
-
             let previousQuestion: string | null = null
             let previousInterpretation: string | null = null
             try {
                 if (typeof window !== "undefined") {
                     const rawBackup = localStorage.getItem(
-                        "reading-state-v1-backup"
+                        "reading-state-v1-backup",
                     )
                     if (rawBackup) {
                         const backup = JSON.parse(rawBackup) as {
@@ -964,22 +1069,27 @@ export default function ActionSection({
                 }
             } catch {}
 
-            const prompt = getTarotReadingPrompt({
+            const cardArray = (cards ?? []).map((c) =>
+                typeof c === "string" ? c : String(c),
+            )
+            submit({
                 question: question || "",
-                cards: cardNames,
+                cards: cardArray,
                 readingType: readingType || null,
                 isFollowUp,
                 previousQuestion,
                 previousInterpretation,
             })
-
-            submit({ prompt })
         } catch (error) {
             console.error("Error regenerating interpretation:", error)
             if (typeof onGeneratingChange === "function")
                 onGeneratingChange(false)
         }
     }, [
+        mode,
+        onRegenerateHoroscope,
+        onRegenerateTarot,
+        messageId,
         question,
         cards,
         stars,
@@ -1000,7 +1110,7 @@ export default function ActionSection({
                 <span className='leading-tight text-center'>
                     <span className='block'>{t("buttons.regenerate")}</span>
                     <span className='block text-[10px] text-yellow-300'>
-                        -5{" "}
+                        -1{" "}
                         <Star
                             className='inline w-3 h-3 text-yellow-300'
                             fill='currentColor'
@@ -1153,7 +1263,7 @@ export default function ActionSection({
                   bg: "linear-gradient(135deg, var(--primary), var(--accent))",
                   description: t("actions.voteUpDesc"),
                   onClick: async () => {
-                      setVoteState("up")
+                      persistVote("up")
                   },
               }
             : {
@@ -1163,7 +1273,7 @@ export default function ActionSection({
                   bg: "linear-gradient(135deg, var(--primary), var(--accent))",
                   description: t("actions.removeVoteUpDesc"),
                   onClick: async () => {
-                      setVoteState(null)
+                      persistVote(null)
                   },
               },
         voteState !== "down"
@@ -1174,7 +1284,7 @@ export default function ActionSection({
                   bg: "linear-gradient(135deg, var(--primary), var(--accent))",
                   description: t("actions.voteDownDesc"),
                   onClick: async () => {
-                      setVoteState("down")
+                      persistVote("down")
                   },
               }
             : {
@@ -1184,7 +1294,7 @@ export default function ActionSection({
                   bg: "linear-gradient(135deg, var(--primary), var(--accent))",
                   description: t("actions.removeVoteDownDesc"),
                   onClick: async () => {
-                      setVoteState(null)
+                      persistVote(null)
                   },
               },
         {
@@ -1199,15 +1309,10 @@ export default function ActionSection({
 
     const renderIcon = (icon: ReactNode) =>
         isValidElement(icon)
-            ? cloneElement(
-                  icon as ReactElement<{ className?: string }>,
-                  { className: "w-3 h-3 text-white" }
-              )
+            ? cloneElement(icon as ReactElement<{ className?: string }>, {
+                  className: "w-3 h-3 text-white",
+              })
             : icon
-
-    const [expandedActionId, setExpandedActionId] = useState<string | null>(
-        null
-    )
 
     if (variant === "compact") {
         return (
@@ -1271,9 +1376,6 @@ export default function ActionSection({
                         className='py-1'
                     >
                         {actionOptions.map((action, index) => {
-                            const isExpanded =
-                                expandedActionId === action.id &&
-                                action.id !== "versions"
                             const labelText =
                                 typeof action.label === "string"
                                     ? action.label
@@ -1290,20 +1392,7 @@ export default function ActionSection({
                                             <SheetTrigger asChild>
                                                 <button
                                                     type='button'
-                                                    className={`group flex items-center gap-2 py-2 pr-2 pl-0 transition-all duration-300 hover:shadow-lg w-full ${
-                                                        isExpanded
-                                                            ? "rounded-xl pr-3 pl-0"
-                                                            : "rounded-full"
-                                                    }`}
-                                                    onClick={() =>
-                                                        setExpandedActionId(
-                                                            (prev) =>
-                                                                prev ===
-                                                                action.id
-                                                                    ? null
-                                                                    : action.id
-                                                        )
-                                                    }
+                                                    className='group flex flex-col items-center gap-1.5 py-2 transition-all duration-300 hover:shadow-lg w-full'
                                                     style={{
                                                         animationDelay: `${index * 50}ms`,
                                                         animationFillMode:
@@ -1313,19 +1402,18 @@ export default function ActionSection({
                                                     <div
                                                         className='relative w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
                                                         style={{
-                                                            background: action.bg,
+                                                            background:
+                                                                action.bg,
                                                         }}
                                                     >
                                                         {renderIcon(
-                                                            action.icon
+                                                            action.icon,
                                                         )}
                                                         <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
                                                     </div>
-                                                    {isExpanded && (
-                                                        <span className='text-xs text-white/80'>
-                                                            {labelText}
-                                                        </span>
-                                                    )}
+                                                    <span className='text-[10px] text-white/70 leading-snug text-wrap text-pretty text-center'>
+                                                        {labelText}
+                                                    </span>
                                                 </button>
                                             </SheetTrigger>
                                             <SheetContent
@@ -1374,12 +1462,12 @@ export default function ActionSection({
                                                             downloadFormat ===
                                                                 "video"
                                                                 ? "actions.downloadSheetTitleVideo"
-                                                                : "actions.downloadSheetTitleImage"
+                                                                : "actions.downloadSheetTitleImage",
                                                         )}
                                                     </SheetTitle>
                                                     <SheetDescription>
                                                         {t(
-                                                            "actions.downloadSheetDesc"
+                                                            "actions.downloadSheetDesc",
                                                         )}
                                                     </SheetDescription>
                                                     <div className='mt-4 flex justify-center'>
@@ -1388,7 +1476,7 @@ export default function ActionSection({
                                                                 type='button'
                                                                 onClick={() =>
                                                                     setDownloadFormat(
-                                                                        "image"
+                                                                        "image",
                                                                     )
                                                                 }
                                                                 className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
@@ -1399,14 +1487,14 @@ export default function ActionSection({
                                                                 }`}
                                                             >
                                                                 {t(
-                                                                    "actions.downloadTabImage"
+                                                                    "actions.downloadTabImage",
                                                                 )}
                                                             </button>
                                                             <button
                                                                 type='button'
                                                                 onClick={() =>
                                                                     setDownloadFormat(
-                                                                        "video"
+                                                                        "video",
                                                                     )
                                                                 }
                                                                 className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
@@ -1417,7 +1505,7 @@ export default function ActionSection({
                                                                 }`}
                                                             >
                                                                 {t(
-                                                                    "actions.downloadTabVideo"
+                                                                    "actions.downloadTabVideo",
                                                                 )}
                                                             </button>
                                                         </div>
@@ -1428,12 +1516,12 @@ export default function ActionSection({
                                                         <div className='flex items-center justify-between text-sm'>
                                                             <span className='font-medium'>
                                                                 {t(
-                                                                    "actions.downloadStylesTitle"
+                                                                    "actions.downloadStylesTitle",
                                                                 )}
                                                             </span>
                                                             <span className='text-xs text-muted-foreground'>
                                                                 {t(
-                                                                    "actions.downloadStylesHint"
+                                                                    "actions.downloadStylesHint",
                                                                 )}
                                                             </span>
                                                         </div>
@@ -1447,7 +1535,7 @@ export default function ActionSection({
                                                                         type='button'
                                                                         onClick={() =>
                                                                             setDownloadStyleId(
-                                                                                style.id
+                                                                                style.id,
                                                                             )
                                                                         }
                                                                         className={`flex h-36 flex-col rounded-lg border p-2 text-left transition ${
@@ -1459,16 +1547,20 @@ export default function ActionSection({
                                                                     >
                                                                         <div className='h-16 w-full overflow-hidden rounded-md border border-border/40 bg-muted/40'>
                                                                             {thumbnailUrls[
-                                                                                style.id
+                                                                                style
+                                                                                    .id
                                                                             ] ? (
                                                                                 <div className='relative h-full w-full'>
                                                                                     <img
                                                                                         src={
                                                                                             thumbnailUrls[
-                                                                                                style.id
+                                                                                                style
+                                                                                                    .id
                                                                                             ]
                                                                                         }
-                                                                                        alt={style.label}
+                                                                                        alt={
+                                                                                            style.label
+                                                                                        }
                                                                                         className='object-contain'
                                                                                     />
                                                                                 </div>
@@ -1489,7 +1581,7 @@ export default function ActionSection({
                                                                             }
                                                                         </div>
                                                                     </button>
-                                                                )
+                                                                ),
                                                             )}
                                                         </div>
                                                     </div>
@@ -1497,32 +1589,34 @@ export default function ActionSection({
                                                         <div className='flex items-center justify-between text-sm'>
                                                             <span className='font-medium'>
                                                                 {t(
-                                                                    "actions.downloadBrandingTitle"
+                                                                    "actions.downloadBrandingTitle",
                                                                 )}
                                                             </span>
                                                             <span className='text-xs text-muted-foreground'>
                                                                 {t(
-                                                                    "actions.downloadBrandingHint"
+                                                                    "actions.downloadBrandingHint",
                                                                 )}
                                                             </span>
                                                         </div>
                                                         <div className='relative w-full max-w-[430px] mx-auto overflow-hidden rounded-lg border bg-muted/20'>
-                                                            {isActivePreviewLoading ? (
-                                                                <div className='absolute inset-0 animate-pulse bg-muted/40' />
-                                                            ) : null}
-                                                            {previewUrl ? (
-                                                                <div className='relative h-full w-full'>
-                                                                    <img
-                                                                        src={
-                                                                            previewUrl
-                                                                        }
-                                                                        alt='Preview'
-                                                                        className='object-cover'
-                                                                    />
-                                                                </div>
-                                                            ) : (
-                                                                <div className='absolute inset-0 animate-pulse bg-muted/40' />
-                                                            )}
+                                                            <SharePreview
+                                                                question={
+                                                                    question
+                                                                }
+                                                                cards={cards}
+                                                                interpretation={
+                                                                    interpretation
+                                                                }
+                                                                aspectRatio={
+                                                                    downloadStyleId ===
+                                                                    "story"
+                                                                        ? "story"
+                                                                        : downloadStyleId ===
+                                                                            "square"
+                                                                          ? "square"
+                                                                          : "landscape"
+                                                                }
+                                                            />
                                                         </div>
                                                     </div>
                                                     <SheetFooter className='sticky bottom-0 z-10 gap-2 border-t border-white/10 bg-gradient-to-t from-[#0a0a1a]/95 via-[#0a0a1a]/90 to-transparent px-4 pb-4 pt-3 sm:flex-row sm:justify-end'>
@@ -1530,138 +1624,319 @@ export default function ActionSection({
                                                             type='button'
                                                             onClick={() =>
                                                                 setDownloadOpen(
-                                                                    false
+                                                                    false,
                                                                 )
                                                             }
                                                             className='w-full rounded-md border border-border/60 bg-background px-4 py-2 text-sm hover:bg-muted/40 sm:w-auto'
                                                         >
-                                                            {t("actions.cancel")}
+                                                            {t(
+                                                                "actions.cancel",
+                                                            )}
                                                         </button>
                                                         <button
                                                             type='button'
-                                                            onClick={handleDownload}
-                                                            disabled={isDownloading}
+                                                            onClick={
+                                                                handleDownload
+                                                            }
+                                                            disabled={
+                                                                isDownloading
+                                                            }
                                                             className='w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
                                                         >
                                                             {t(
-                                                                "actions.downloadButton"
+                                                                "actions.downloadButton",
                                                             )}
                                                         </button>
                                                     </SheetFooter>
                                                 </div>
                                             </SheetContent>
                                         </Sheet>
-                                ) : action.id === "versions" ? (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <button
-                                                type='button'
-                                                className={`group flex items-center gap-2 py-2 pr-2 pl-0 transition-all duration-300 hover:shadow-lg w-full ${
-                                                    isExpanded
-                                                        ? "rounded-xl pr-3 pl-0"
-                                                        : "rounded-full"
-                                                }`}
-                                                onClick={() =>
-                                                    setExpandedActionId(
-                                                        (prev) =>
-                                                            prev ===
-                                                            action.id
-                                                                ? null
-                                                                : action.id
-                                                    )
-                                                }
-                                                style={{
-                                                    animationDelay: `${index * 50}ms`,
-                                                    animationFillMode: "both",
-                                                }}
-                                            >
-                                                <div
-                                                    className='relative w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
+                                    ) : action.id === "versions" ? (
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <button
+                                                    type='button'
+                                                    className='group flex flex-col items-center gap-1.5 py-2 transition-all duration-300 hover:shadow-lg w-full'
                                                     style={{
-                                                        background: action.bg,
+                                                        animationDelay: `${index * 50}ms`,
+                                                        animationFillMode:
+                                                            "both",
                                                     }}
                                                 >
-                                                    {renderIcon(action.icon)}
-                                                    <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
-                                                </div>
-                                            </button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className='w-72'>
-                                            <div className='max-h-64 overflow-auto space-y-2'>
-                                                {versions.map((v) => (
-                                                    <button
-                                                        key={v.id}
-                                                        type='button'
-                                                        onClick={() => {
-                                                            if (typeof onInterpretationChange === "function") {
-                                                                onInterpretationChange(v.content)
-                                                            }
+                                                    <div
+                                                        className='relative w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
+                                                        style={{
+                                                            background:
+                                                                action.bg,
                                                         }}
-                                                        className='w-full text-left px-2 py-1 rounded hover:bg-white/10 text-sm'
                                                     >
-                                                        {new Date(
-                                                            v.created_at
-                                                        ).toLocaleString()}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </PopoverContent>
-                                    </Popover>
-                                ) : (
-                                    <button
-                                        type='button'
-                                        className={`group flex items-center gap-2 py-2 pr-2 pl-0 transition-all duration-300 hover:shadow-lg w-full ${
-                                            isExpanded
-                                                ? "rounded-xl pr-3 pl-0"
-                                                : "rounded-full"
-                                        }`}
-                                        onClick={() => {
-                                            setExpandedActionId((prev) =>
-                                                prev === action.id
-                                                    ? null
-                                                    : action.id
-                                            )
-                                            void action.onClick?.()
-                                        }}
-                                        style={{
-                                            animationDelay: `${index * 50}ms`,
-                                            animationFillMode: "both",
-                                        }}
-                                    >
-                                        <div
-                                            className='relative w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
-                                            style={{ background: action.bg }}
-                                        >
-                                            {renderIcon(action.icon)}
-                                            <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
-                                        </div>
-                                        {isExpanded && action.id !== "versions" && (
-                                            <div className='text-left'>
-                                                <div className='text-xs text-white/80'>
-                                                    {labelText}
+                                                        {renderIcon(
+                                                            action.icon,
+                                                        )}
+                                                        <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                                                    </div>
+                                                    <span className='text-[10px] text-white/70 text-center leading-tight truncate max-w-full'>
+                                                        {labelText}
+                                                    </span>
+                                                </button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-72 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 shadow-[0_12px_40px_-12px_rgba(234,179,8,0.35)] backdrop-blur-xl'>
+                                                <div className='max-h-64 overflow-auto space-y-1'>
+                                                    {versions.length === 0 ? (
+                                                        <div className='px-2 py-1.5 text-sm text-white font-medium'>
+                                                            Version 1 (current)
+                                                        </div>
+                                                    ) : (
+                                                        versions.map(
+                                                            (v, idx) => {
+                                                                const isCurrent =
+                                                                    interpretation?.trim() ===
+                                                                    v.content?.trim()
+                                                                return (
+                                                                    <button
+                                                                        key={
+                                                                            v.id
+                                                                        }
+                                                                        type='button'
+                                                                        onClick={() => {
+                                                                            if (
+                                                                                typeof onInterpretationChange ===
+                                                                                "function"
+                                                                            ) {
+                                                                                onInterpretationChange(
+                                                                                    v.content,
+                                                                                )
+                                                                            } else {
+                                                                                setInterpretation(
+                                                                                    v.content,
+                                                                                )
+                                                                            }
+                                                                        }}
+                                                                        className={`w-full text-left px-2 py-1.5 rounded hover:bg-white/10 text-sm ${
+                                                                            isCurrent
+                                                                                ? "text-white font-medium bg-white/5"
+                                                                                : "text-white/70"
+                                                                        }`}
+                                                                    >
+                                                                        Version{" "}
+                                                                        {idx +
+                                                                            1}
+                                                                        {isCurrent &&
+                                                                            " (current)"}
+                                                                    </button>
+                                                                )
+                                                            },
+                                                        )
+                                                    )}
                                                 </div>
+                                            </PopoverContent>
+                                        </Popover>
+                                    ) : (
+                                        <button
+                                            type='button'
+                                            className='group flex flex-col items-center gap-1.5 py-2 transition-all duration-300 hover:shadow-lg w-full'
+                                            onClick={() =>
+                                                void action.onClick?.()
+                                            }
+                                            style={{
+                                                animationDelay: `${index * 50}ms`,
+                                                animationFillMode: "both",
+                                            }}
+                                        >
+                                            <div
+                                                className='relative w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
+                                                style={{
+                                                    background: action.bg,
+                                                }}
+                                            >
+                                                {renderIcon(action.icon)}
+                                                <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                                            </div>
+                                            <div className='flex flex-col items-center'>
+                                                <span className='text-[10px] text-white/70 leading-snug text-wrap text-pretty text-center'>
+                                                    {labelText}
+                                                </span>
                                                 {action.id === "regen" && (
-                                                    <div className='text-[10px] text-yellow-300 flex items-center gap-1'>
-                                                        -5{" "}
+                                                    <span className='text-[9px] text-yellow-300 flex items-center gap-0.5'>
+                                                        -1{" "}
                                                         <Star
-                                                            className='w-3 h-3 text-yellow-300'
+                                                            className='w-2.5 h-2.5 text-yellow-300'
                                                             fill='currentColor'
                                                         />
-                                                    </div>
+                                                    </span>
                                                 )}
                                             </div>
-                                        )}
-                                    </button>
-                                )}
-                            </SwiperSlide>
-                        )
-                    })}
-                </Swiper>
-            </div>
-        </div>
-    )
-}
+                                        </button>
+                                    )}
+                                </SwiperSlide>
+                            )
+                        })}
+                    </Swiper>
+                </div>
 
+                {/* Report dialog */}
+                <AlertDialog open={showReport} onOpenChange={setShowReport}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                {t("dialogs.report.title")}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {t("dialogs.report.desc")}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className='space-y-2'>
+                            <select
+                                className='w-full bg-background border border-border/40 rounded-md p-2'
+                                value={reportReason}
+                                onChange={(e) =>
+                                    setReportReason(e.target.value)
+                                }
+                            >
+                                <option value=''>
+                                    {t("dialogs.report.reasons.select")}
+                                </option>
+                                <option value='inappropriate'>
+                                    {t("dialogs.report.reasons.inappropriate")}
+                                </option>
+                                <option value='spam'>
+                                    {t("dialogs.report.reasons.spam")}
+                                </option>
+                                <option value='harassment'>
+                                    {t("dialogs.report.reasons.harassment")}
+                                </option>
+                                <option value='privacy'>
+                                    {t("dialogs.report.reasons.privacy")}
+                                </option>
+                                <option value='other'>
+                                    {t("dialogs.report.reasons.other")}
+                                </option>
+                            </select>
+                            {reportReason && (
+                                <textarea
+                                    className='w-full bg-background border border-border/40 rounded-md p-2 min-h-[80px]'
+                                    placeholder={t(
+                                        "dialogs.report.placeholder",
+                                    )}
+                                    value={reportDetails}
+                                    onChange={(e) =>
+                                        setReportDetails(e.target.value)
+                                    }
+                                />
+                            )}
+                        </div>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>
+                                {t("dialogs.report.cancel")}
+                            </AlertDialogCancel>
+                            <button
+                                type='button'
+                                disabled={!reportReason}
+                                className='inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50'
+                                onClick={async () => {
+                                    try {
+                                        const res = await fetch(
+                                            "/api/reports",
+                                            {
+                                                method: "POST",
+                                                headers: {
+                                                    "Content-Type":
+                                                        "application/json",
+                                                },
+                                                body: JSON.stringify({
+                                                    reading_id: readingId,
+                                                    reason: reportReason,
+                                                    details:
+                                                        reportDetails ||
+                                                        undefined,
+                                                }),
+                                            },
+                                        )
+                                        if (res.ok) {
+                                            setShowReport(false)
+                                            setReportReason("")
+                                            setReportDetails("")
+                                        }
+                                    } catch {}
+                                }}
+                            >
+                                {t("dialogs.report.submit")}
+                            </button>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+
+                {/* Feedback dialog */}
+                <AlertDialog open={showFeedback} onOpenChange={setShowFeedback}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                {t("dialogs.feedback.title")}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {t("dialogs.feedback.desc")}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className='flex items-center justify-center gap-2 py-2'>
+                            {[1, 2, 3, 4, 5].map((n) => (
+                                <button
+                                    key={n}
+                                    type='button'
+                                    onClick={() => setRating(n)}
+                                    className={`w-8 h-8 rounded-full transition-colors ${rating >= n ? "bg-yellow-400" : "bg-zinc-700 hover:bg-zinc-600"}`}
+                                    aria-label={`Rate ${n}`}
+                                />
+                            ))}
+                        </div>
+                        <textarea
+                            className='w-full bg-background border border-border/40 rounded-md p-2'
+                            placeholder={t("dialogs.feedback.placeholder")}
+                            value={feedbackComment}
+                            onChange={(e) => setFeedbackComment(e.target.value)}
+                        />
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>
+                                {t("dialogs.feedback.cancel")}
+                            </AlertDialogCancel>
+                            <button
+                                type='button'
+                                disabled={rating === 0}
+                                className='inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50'
+                                onClick={async () => {
+                                    try {
+                                        const res = await fetch(
+                                            "/api/feedbacks",
+                                            {
+                                                method: "POST",
+                                                headers: {
+                                                    "Content-Type":
+                                                        "application/json",
+                                                },
+                                                body: JSON.stringify({
+                                                    reading_id: readingId,
+                                                    rating,
+                                                    comment:
+                                                        feedbackComment ||
+                                                        undefined,
+                                                }),
+                                            },
+                                        )
+                                        if (res.ok) {
+                                            setShowFeedback(false)
+                                            setFeedbackComment("")
+                                            setRating(0)
+                                        }
+                                    } catch {}
+                                }}
+                            >
+                                {t("dialogs.feedback.submit")}
+                            </button>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </div>
+        )
+    }
 
     return (
         <div className='relative overflow-hidden group bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/5 hover:bg-white/[0.06] hover:border-primary/20 transition-all duration-300'>
@@ -1797,12 +2072,12 @@ export default function ActionSection({
                                                         downloadFormat ===
                                                             "video"
                                                             ? "actions.downloadSheetTitleVideo"
-                                                            : "actions.downloadSheetTitleImage"
+                                                            : "actions.downloadSheetTitleImage",
                                                     )}
                                                 </SheetTitle>
                                                 <SheetDescription>
                                                     {t(
-                                                        "actions.downloadSheetDesc"
+                                                        "actions.downloadSheetDesc",
                                                     )}
                                                 </SheetDescription>
                                                 <div className='mt-4 flex justify-center'>
@@ -1811,7 +2086,7 @@ export default function ActionSection({
                                                             type='button'
                                                             onClick={() =>
                                                                 setDownloadFormat(
-                                                                    "image"
+                                                                    "image",
                                                                 )
                                                             }
                                                             className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
@@ -1822,14 +2097,14 @@ export default function ActionSection({
                                                             }`}
                                                         >
                                                             {t(
-                                                                "actions.downloadTabImage"
+                                                                "actions.downloadTabImage",
                                                             )}
                                                         </button>
                                                         <button
                                                             type='button'
                                                             onClick={() =>
                                                                 setDownloadFormat(
-                                                                    "video"
+                                                                    "video",
                                                                 )
                                                             }
                                                             className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
@@ -1840,7 +2115,7 @@ export default function ActionSection({
                                                             }`}
                                                         >
                                                             {t(
-                                                                "actions.downloadTabVideo"
+                                                                "actions.downloadTabVideo",
                                                             )}
                                                         </button>
                                                     </div>
@@ -1851,12 +2126,12 @@ export default function ActionSection({
                                                     <div className='flex items-center justify-between text-sm'>
                                                         <span className='font-medium'>
                                                             {t(
-                                                                "actions.downloadStylesTitle"
+                                                                "actions.downloadStylesTitle",
                                                             )}
                                                         </span>
                                                         <span className='text-xs text-muted-foreground'>
                                                             {t(
-                                                                "actions.downloadStylesHint"
+                                                                "actions.downloadStylesHint",
                                                             )}
                                                         </span>
                                                     </div>
@@ -1870,7 +2145,7 @@ export default function ActionSection({
                                                                     type='button'
                                                                     onClick={() =>
                                                                         setDownloadStyleId(
-                                                                            style.id
+                                                                            style.id,
                                                                         )
                                                                     }
                                                                     className={`flex h-36 flex-col rounded-lg border p-2 text-left transition ${
@@ -1923,7 +2198,7 @@ export default function ActionSection({
                                                                         }
                                                                     </div>
                                                                 </button>
-                                                            )
+                                                            ),
                                                         )}
                                                     </div>
                                                 </div>
@@ -1931,87 +2206,30 @@ export default function ActionSection({
                                                     <div className='flex items-center justify-between text-sm'>
                                                         <span className='font-medium'>
                                                             {t(
-                                                                "actions.downloadPreviewTitle"
+                                                                "actions.downloadPreviewTitle",
                                                             )}
                                                         </span>
                                                         <span className='text-xs text-muted-foreground'>
                                                             {selectedStyle.size}
                                                         </span>
                                                     </div>
-                                                    <div
-                                                        className='relative w-full max-w-[430px] mx-auto overflow-hidden rounded-lg border bg-muted/20'
-                                                        style={{
-                                                            aspectRatio: `${selectedStyle.width}/${selectedStyle.height}`,
-                                                        }}
-                                                    >
-                                                        {isActivePreviewLoading && (
-                                                            <div className='absolute left-3 right-3 top-3 z-10 h-2 overflow-hidden rounded-full bg-black/40'>
-                                                                <div
-                                                                    className={`h-full rounded-full bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 transition-all ${
-                                                                        activePreviewProgress ==
-                                                                        null
-                                                                            ? "animate-pulse w-2/3"
-                                                                            : ""
-                                                                    }`}
-                                                                    style={
-                                                                        activePreviewProgress ==
-                                                                        null
-                                                                            ? undefined
-                                                                            : {
-                                                                                  width: `${Math.max(
-                                                                                      6,
-                                                                                      Math.round(
-                                                                                          activePreviewProgress *
-                                                                                              100
-                                                                                      )
-                                                                                  )}%`,
-                                                                              }
-                                                                    }
-                                                                />
-                                                            </div>
-                                                        )}
-                                                        {downloadFormat ===
-                                                        "video" ? (
-                                                            isVideoGenerating ? (
-                                                                <div className='absolute inset-0 animate-pulse bg-muted/40' />
-                                                            ) : videoPreviewUrl ? (
-                                                                <video
-                                                                    src={
-                                                                        videoPreviewUrl
-                                                                    }
-                                                                    className='h-full w-full object-cover'
-                                                                    autoPlay
-                                                                    loop
-                                                                    muted
-                                                                    playsInline
-                                                                />
-                                                            ) : (
-                                                                <div className='absolute inset-0 flex items-center justify-center text-xs text-muted-foreground'>
-                                                                    {t(
-                                                                        "actions.downloadVideoPreviewFallback"
-                                                                    )}
-                                                                </div>
-                                                            )
-                                                        ) : isPreviewLoading ? (
-                                                            <div className='absolute inset-0 animate-pulse bg-muted/40' />
-                                                        ) : previewUrl ? (
-                                                            <Image
-                                                                src={previewUrl}
-                                                                alt={t(
-                                                                    "actions.downloadPreviewAlt"
-                                                                )}
-                                                                fill
-                                                                unoptimized
-                                                                className='object-cover'
-                                                            />
-                                                        ) : (
-                                                            <div className='absolute inset-0 flex items-center justify-center text-xs text-muted-foreground'>
-                                                                {previewError ||
-                                                                    t(
-                                                                        "actions.downloadPreviewFallback"
-                                                                    )}
-                                                            </div>
-                                                        )}
+                                                    <div className='relative w-full max-w-[430px] mx-auto overflow-hidden rounded-lg border bg-muted/20'>
+                                                        <SharePreview
+                                                            question={question}
+                                                            cards={cards}
+                                                            interpretation={
+                                                                interpretation
+                                                            }
+                                                            aspectRatio={
+                                                                downloadStyleId ===
+                                                                "story"
+                                                                    ? "story"
+                                                                    : downloadStyleId ===
+                                                                        "square"
+                                                                      ? "square"
+                                                                      : "landscape"
+                                                            }
+                                                        />
                                                     </div>
                                                 </div>
                                             </div>
@@ -2024,7 +2242,7 @@ export default function ActionSection({
                                                     }
                                                 >
                                                     {t(
-                                                        "actions.downloadCancel"
+                                                        "actions.downloadCancel",
                                                     )}
                                                 </button>
                                                 <button
@@ -2048,7 +2266,7 @@ export default function ActionSection({
                                                         downloadFormat ===
                                                             "video"
                                                             ? "actions.downloadVideoButton"
-                                                            : "actions.downloadButton"
+                                                            : "actions.downloadButton",
                                                     )}
                                                 </button>
                                             </SheetFooter>
@@ -2089,31 +2307,39 @@ export default function ActionSection({
                                             </PopoverTrigger>
                                             <PopoverContent className='w-72'>
                                                 <div className='max-h-64 overflow-auto space-y-2'>
-                                                    {versions.map((v, index) => (
-                                                        <button
-                                                            key={v.id}
-                                                            type='button'
-                                                            className='w-full text-left px-2 py-1 rounded hover:bg-white/10 text-sm'
-                                                            onClick={() => {
-                                                                if (
-                                                                    typeof onInterpretationChange ===
-                                                                    "function"
-                                                                )
-                                                                    onInterpretationChange(
-                                                                        v.content
-                                                                    )
-                                                                else
-                                                                    setInterpretation(
-                                                                        v.content
-                                                                    )
-                                                            }}
-                                                        >
-                                                            {`Version ${
-                                                                versions.length -
-                                                                index
-                                                            } • ${new Date(v.created_at).toLocaleString()}`}
-                                                        </button>
-                                                    ))}
+                                                    {versions.map(
+                                                        (v, index) => {
+                                                            const isCurrent =
+                                                                interpretation?.trim() ===
+                                                                v.content?.trim()
+                                                            return (
+                                                                <button
+                                                                    key={v.id}
+                                                                    type='button'
+                                                                    className={`w-full text-left px-2 py-1 rounded hover:bg-white/10 text-sm ${
+                                                                        isCurrent
+                                                                            ? "text-white font-medium bg-white/5"
+                                                                            : "text-white/70"
+                                                                    }`}
+                                                                    onClick={() => {
+                                                                        if (
+                                                                            typeof onInterpretationChange ===
+                                                                            "function"
+                                                                        )
+                                                                            onInterpretationChange(
+                                                                                v.content,
+                                                                            )
+                                                                        else
+                                                                            setInterpretation(
+                                                                                v.content,
+                                                                            )
+                                                                    }}
+                                                                >
+                                                                    {`Version ${index + 1}${isCurrent ? " (current)" : ""}`}
+                                                                </button>
+                                                            )
+                                                        },
+                                                    )}
                                                 </div>
                                             </PopoverContent>
                                         </Popover>
@@ -2172,7 +2398,7 @@ export default function ActionSection({
             {/* Removed inline star deduction note; using toast instead */}
 
             {/* Report dialog */}
-            <AlertDialog open={showReport}>
+            <AlertDialog open={showReport} onOpenChange={setShowReport}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
@@ -2207,9 +2433,9 @@ export default function ActionSection({
                                 {t("dialogs.report.reasons.other")}
                             </option>
                         </select>
-                        {reportReason === "other" && (
+                        {reportReason && (
                             <textarea
-                                className='w-full bg-background border border-border/40 rounded-md p-2'
+                                className='w-full bg-background border border-border/40 rounded-md p-2 min-h-[80px]'
                                 placeholder={t("dialogs.report.placeholder")}
                                 value={reportDetails}
                                 onChange={(e) =>
@@ -2219,12 +2445,14 @@ export default function ActionSection({
                         )}
                     </div>
                     <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setShowReport(false)}>
+                        <AlertDialogCancel>
                             {t("dialogs.report.cancel")}
                         </AlertDialogCancel>
-                        <AlertDialogAction
+                        <button
+                            type='button'
+                            disabled={!reportReason}
+                            className='inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50'
                             onClick={async () => {
-                                if (!reportReason) return
                                 try {
                                     const res = await fetch("/api/reports", {
                                         method: "POST",
@@ -2237,18 +2465,22 @@ export default function ActionSection({
                                             details: reportDetails || undefined,
                                         }),
                                     })
-                                    if (res.ok) setShowReport(false)
+                                    if (res.ok) {
+                                        setShowReport(false)
+                                        setReportReason("")
+                                        setReportDetails("")
+                                    }
                                 } catch {}
                             }}
                         >
                             {t("dialogs.report.submit")}
-                        </AlertDialogAction>
+                        </button>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
 
             {/* Feedback dialog */}
-            <AlertDialog open={showFeedback}>
+            <AlertDialog open={showFeedback} onOpenChange={setShowFeedback}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
@@ -2264,7 +2496,7 @@ export default function ActionSection({
                                 key={n}
                                 type='button'
                                 onClick={() => setRating(n)}
-                                className={`w-8 h-8 rounded-full ${rating >= n ? "bg-yellow-400" : "bg-zinc-700"}`}
+                                className={`w-8 h-8 rounded-full transition-colors ${rating >= n ? "bg-yellow-400" : "bg-zinc-700 hover:bg-zinc-600"}`}
                                 aria-label={`Rate ${n}`}
                             />
                         ))}
@@ -2272,16 +2504,17 @@ export default function ActionSection({
                     <textarea
                         className='w-full bg-background border border-border/40 rounded-md p-2'
                         placeholder={t("dialogs.feedback.placeholder")}
-                        value={reportDetails}
-                        onChange={(e) => setReportDetails(e.target.value)}
+                        value={feedbackComment}
+                        onChange={(e) => setFeedbackComment(e.target.value)}
                     />
                     <AlertDialogFooter>
-                        <AlertDialogCancel
-                            onClick={() => setShowFeedback(false)}
-                        >
+                        <AlertDialogCancel>
                             {t("dialogs.feedback.cancel")}
                         </AlertDialogCancel>
-                        <AlertDialogAction
+                        <button
+                            type='button'
+                            disabled={rating === 0}
+                            className='inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50'
                             onClick={async () => {
                                 try {
                                     const res = await fetch("/api/feedbacks", {
@@ -2292,15 +2525,20 @@ export default function ActionSection({
                                         body: JSON.stringify({
                                             reading_id: readingId,
                                             rating,
-                                            comment: reportDetails || undefined,
+                                            comment:
+                                                feedbackComment || undefined,
                                         }),
                                     })
-                                    if (res.ok) setShowFeedback(false)
+                                    if (res.ok) {
+                                        setShowFeedback(false)
+                                        setFeedbackComment("")
+                                        setRating(0)
+                                    }
                                 } catch {}
                             }}
                         >
                             {t("dialogs.feedback.submit")}
-                        </AlertDialogAction>
+                        </button>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

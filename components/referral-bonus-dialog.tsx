@@ -25,7 +25,7 @@ export default function ReferralBonusDialog({
     referralCode,
 }: ReferralBonusDialogProps) {
     const { user } = useAuth()
-    const { addStars, stars } = useStars()
+    const { stars } = useStars()
     const [isProcessing, setIsProcessing] = useState(false)
     const [success, setSuccess] = useState(false)
     const [currentStars, setCurrentStars] = useState(0)
@@ -51,9 +51,12 @@ export default function ReferralBonusDialog({
             if (response.ok) {
                 const result = await response.json()
                 if (result.success) {
-                    // Add 5 stars to current user
-                    addStars(5)
                     setSuccess(true)
+                    try {
+                        window.dispatchEvent(
+                            new CustomEvent("stars-balance-updated")
+                        )
+                    } catch {}
 
                     // Mark referral as processed and clear referral code
                     localStorage.setItem("referral_processed", "true")
@@ -65,7 +68,7 @@ export default function ReferralBonusDialog({
         } finally {
             setIsProcessing(false)
         }
-    }, [referralCode, user, addStars, stars])
+    }, [referralCode, user, stars])
 
     // Auto-process referral bonus when dialog opens
     useEffect(() => {
@@ -102,14 +105,14 @@ export default function ReferralBonusDialog({
                             Referral Bonus Granted!
                         </DialogTitle>
                         <DialogDescription className='text-center text-gray-300'>
-                            You and your referrer have each received 5 stars!
+                            You and your referrer have each received 20 stars!
                         </DialogDescription>
                     </DialogHeader>
                     <div className='space-y-4'>
                         <div className='text-center'>
                             <div className='text-3xl font-bold text-green-400 flex items-center justify-center gap-2'>
                                 <Star className='w-8 h-8' fill='currentColor' />
-                                {currentStars} + 5
+                                {currentStars} + 20
                             </div>
                             <p className='text-sm text-gray-400 mt-2'>
                                 Your new star balance
@@ -145,7 +148,7 @@ export default function ReferralBonusDialog({
                     <div className='text-center'>
                         <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-green-400 mx-auto mb-4'></div>
                         <p className='text-gray-300'>
-                            Adding 5 stars to your account...
+                            Adding 20 stars to your account...
                         </p>
                     </div>
                 </div>

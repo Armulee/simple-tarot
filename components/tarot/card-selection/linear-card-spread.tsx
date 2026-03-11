@@ -121,10 +121,13 @@ export function LinearCardSpread({
     onPartialSelect?: (
         card: BasicCard,
         action: "add" | "remove",
-        newSelectedCount: number
+        newSelectedCount: number,
     ) => void
     onProvideShuffle?: (fn: () => void, isShuffling?: boolean) => void
-    onProvideRandomPick?: (fn: () => void, isPicking?: boolean) => void
+    onProvideRandomPick?: (
+        fn: (times?: number) => void,
+        isPicking?: boolean,
+    ) => void
     onProvideSelectByIndices?: (fn: (indices: number[]) => void) => void
     swipeLabel?: string
 }) {
@@ -140,7 +143,7 @@ export function LinearCardSpread({
     } | null>(null)
     const [showSwipeOverlay, setShowSwipeOverlay] = useState(false)
     const [reversalByName, setReversalByName] = useState<Map<string, boolean>>(
-        () => new Map()
+        () => new Map(),
     )
     const [overlayCenter, setOverlayCenter] = useState<{
         x: number
@@ -184,77 +187,83 @@ export function LinearCardSpread({
         }
     }
 
-    const randomPick = async () => {
+    const randomPick = async (times = 1) => {
         if (isRandomPicking || selected.length >= cardsToSelect) return
-
-        // Find unselected cards
-        const unselectedNames = deckList.filter(
-            (name) => !selectedNames.has(name)
-        )
-        if (unselectedNames.length === 0) return
+        const pickTimes = Math.max(1, Math.floor(times))
 
         setIsRandomPicking(true)
+        try {
+            let nextSelected = [...selected]
+            let nextSelectedNames = new Set(selectedNames)
+            const nextReversalByName = new Map(reversalByName)
 
-        // Pick one randomly
-        const randomName =
-            unselectedNames[Math.floor(Math.random() * unselectedNames.length)]
+            for (
+                let pickIndex = 0;
+                pickIndex < pickTimes && nextSelected.length < cardsToSelect;
+                pickIndex++
+            ) {
+                const unselectedNames = deckList.filter(
+                    (name) => !nextSelectedNames.has(name),
+                )
+                if (unselectedNames.length === 0) break
 
-        // 0. Get element & Apply Aura INSTANTLY
-        const cardEl = deckRef.current?.querySelector(
-            `[data-card-name="${randomName}"]`
-        ) as HTMLElement
+                const randomName =
+                    unselectedNames[
+                        Math.floor(Math.random() * unselectedNames.length)
+                    ]
 
-        if (cardEl) {
-            // Instant application or very fast transition for aura
-            cardEl.style.transition = "box-shadow 300ms ease, filter 300ms ease"
-            cardEl.style.boxShadow =
-                "0 0 0 2px rgba(59,130,246,0.8), 0 0 24px 10px rgba(124,58,237,0.7), 0 0 60px 24px rgba(59,130,246,0.5)"
-            cardEl.style.filter = "saturate(1.2) brightness(1.05)"
+                // 0. Get element & apply aura before scrolling
+                const cardEl = deckRef.current?.querySelector(
+                    `[data-card-name="${randomName}"]`,
+                ) as HTMLElement
+
+                if (cardEl) {
+                    cardEl.style.transition =
+                        "box-shadow 300ms ease, filter 300ms ease"
+                    cardEl.style.boxShadow =
+                        "0 0 0 2px rgba(59,130,246,0.8), 0 0 24px 10px rgba(124,58,237,0.7), 0 0 60px 24px rgba(59,130,246,0.5)"
+                    cardEl.style.filter = "saturate(1.2) brightness(1.05)"
+                }
+
+                // 1. Scroll to card
+                const index = deckList.indexOf(randomName)
+                const swiper = swiperRef.current
+                if (swiper) {
+                    swiper.slideTo(index, 600)
+                    await new Promise((r) => setTimeout(r, 700))
+                }
+
+                // 2. Animate card up
+                const currentCardEl = deckRef.current?.querySelector(
+                    `[data-card-name="${randomName}"]`,
+                ) as HTMLElement
+
+                if (currentCardEl) {
+                    currentCardEl.style.transition =
+                        "transform 500ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 300ms ease, filter 300ms ease"
+                    currentCardEl.style.transform =
+                        "translateY(-120%) rotate(-6deg)"
+                    await new Promise((r) => setTimeout(r, 500))
+                }
+
+                // 3. Add to selected state
+                const mapped = nextReversalByName.get(randomName)
+                const isReversed = mapped != null ? mapped : Math.random() < 0.5
+                nextReversalByName.set(randomName, isReversed)
+
+                const nextCard = { name: randomName, isReversed }
+                nextSelected = [...nextSelected, nextCard]
+                nextSelectedNames = new Set(nextSelectedNames).add(randomName)
+
+                setReversalByName(new Map(nextReversalByName))
+                setSelected(nextSelected)
+                setSelectedNames(new Set(nextSelectedNames))
+                onPartialSelect?.(nextCard, "add", nextSelected.length)
+                finalizeIfDone(nextSelected)
+            }
+        } finally {
+            setIsRandomPicking(false)
         }
-
-        // 1. Scroll to card
-        const index = deckList.indexOf(randomName)
-        const swiper = swiperRef.current
-        if (swiper) {
-            swiper.slideTo(index, 600) // 600ms scroll
-            await new Promise((r) => setTimeout(r, 700)) // wait for scroll + buffer
-        }
-
-        // 2. Animate card up
-        // (Re-querying cardEl is safe/clean, but we can reuse if valid.
-        // Re-querying ensures we have the latest ref if DOM shifted, though unlikely here.)
-        const currentCardEl = deckRef.current?.querySelector(
-            `[data-card-name="${randomName}"]`
-        ) as HTMLElement
-
-        if (currentCardEl) {
-            // Apply transition and transform
-            currentCardEl.style.transition =
-                "transform 500ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 300ms ease, filter 300ms ease"
-            currentCardEl.style.transform = "translateY(-120%) rotate(-6deg)"
-
-            // Wait for animation
-            await new Promise((r) => setTimeout(r, 500))
-        }
-
-        // Determine reversal
-        const mapped = reversalByName.get(randomName)
-        const isReversed = mapped != null ? mapped : Math.random() < 0.5
-
-        // Update state
-        const nextCard = { name: randomName, isReversed }
-        const next = [...selected, nextCard]
-        setSelected(next)
-        setSelectedNames((prev) => new Set(prev).add(randomName))
-        pendingPartialRef.current = {
-            card: nextCard,
-            action: "add",
-            count: next.length,
-        }
-
-        // Finalize with delay to allow animation
-        finalizeIfDone(next)
-        setIsRandomPicking(false)
     }
 
     const shuffleUnselected = () => {
@@ -304,8 +313,8 @@ export function LinearCardSpread({
                 new Set(
                     indices
                         .map((value) => Math.floor(Number(value)))
-                        .filter((value) => Number.isFinite(value) && value > 0)
-                )
+                        .filter((value) => Number.isFinite(value) && value > 0),
+                ),
             )
 
             if (uniqueIndices.length === 0) return
@@ -338,7 +347,14 @@ export function LinearCardSpread({
             finalizeIfDone(nextSelected)
         })
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [deckList, reversalByName, selected, selectedNames, isShuffling, isRandomPicking])
+    }, [
+        deckList,
+        reversalByName,
+        selected,
+        selectedNames,
+        isShuffling,
+        isRandomPicking,
+    ])
 
     // Prevent macOS trackpad horizontal swipe from triggering browser back/forward
     // when interacting with this horizontal deck.
@@ -395,7 +411,7 @@ export function LinearCardSpread({
             const values = matrix.match(/-?\d+\.?\d*/g)
             if (values && (values.length === 6 || values.length === 16)) {
                 translateY = parseFloat(
-                    values[values.length === 6 ? 5 : 13] || "0"
+                    values[values.length === 6 ? 5 : 13] || "0",
                 )
             }
         }
@@ -407,7 +423,7 @@ export function LinearCardSpread({
         e:
             | React.MouseEvent<HTMLDivElement>
             | React.TouchEvent<HTMLDivElement>
-            | React.PointerEvent<HTMLDivElement>
+            | React.PointerEvent<HTMLDivElement>,
     ) => {
         if (startYRef.current == null || !activeElRef.current) return
         const isTouchEvent = "touches" in e
@@ -451,7 +467,7 @@ export function LinearCardSpread({
             setShowSwipeOverlay(false)
         }
 
-        // Aura when passed 3/4 height threshold
+        // Aura when passed 1/2 height threshold
         const draggedUp = -translateY
         const threshold = 0.5 * activeHeightRef.current
         if (draggedUp >= threshold) {
@@ -498,7 +514,7 @@ export function LinearCardSpread({
             const values = matrix.match(/-?\d+\.?\d*/g)
             if (values && (values.length === 6 || values.length === 16)) {
                 translateY = parseFloat(
-                    values[values.length === 6 ? 5 : 13] || "0"
+                    values[values.length === 6 ? 5 : 13] || "0",
                 )
             }
         }
@@ -590,149 +606,152 @@ export function LinearCardSpread({
                 }}
             >
                 <div className='w-full relative' ref={deckRef}>
-                {/* Controls are rendered by the parent */}
-                <Swiper
-                    onSwiper={(instance) => {
-                        swiperRef.current = instance
-                    }}
-                    modules={[FreeMode, Mousewheel]}
-                    freeMode={{
-                        enabled: true,
-                        momentum: true,
-                        sticky: false,
-                    }}
-                    slidesPerView='auto'
-                    spaceBetween={-40}
-                    grabCursor={true}
-                    mousewheel={{
-                        enabled: true,
-                        forceToAxis: true,
-                        sensitivity: 1,
-                        releaseOnEdges: false,
-                    }}
-                    scrollbar={{
-                        enabled: false,
-                    }}
-                    className='w-full px-4 relative z-10'
-                >
-                    {deckList.map((name, idx) => {
-                        const isSelected = selectedNames.has(name)
-                        return (
-                            <SwiperSlide
-                                key={`${name}-${idx}`}
-                                className='!w-28'
-                            >
-                                <div className='flex items-end justify-center h-52'>
-                                    <div
-                                        className={`w-24 h-36 rounded-[16px] bg-gradient-to-br from-[#15a6ff] via-[#b56cff] to-[#15a6ff] p-px shadow-2xl select-none touch-none ${
-                                            isSelected
-                                                ? "cursor-grab"
-                                                : "cursor-pointer"
-                                        }`}
-                                        data-card='true'
-                                        data-card-name={name}
-                                        onClick={(e) => {
-                                            if (suppressClickRef.current) {
-                                                e.preventDefault()
-                                                e.stopPropagation()
-                                                return
-                                            }
-                                            const cardRect =
-                                                e.currentTarget.getBoundingClientRect()
-                                            const parentRect =
-                                                deckRef.current?.getBoundingClientRect()
-                                            const parentLeft = parentRect
-                                                ? parentRect.left
-                                                : 0
-                                            const parentTop = parentRect
-                                                ? parentRect.top
-                                                : 0
-                                            const centerX =
-                                                cardRect.left -
-                                                parentLeft +
-                                                cardRect.width / 2
-                                            const centerY =
-                                                cardRect.top -
-                                                parentTop +
-                                                cardRect.height / 2
-                                            setOverlayCenter({
-                                                x: centerX,
-                                                y: centerY,
-                                            })
-                                            handleCardClick(name)
-                                        }}
-                                        onPointerDown={(
-                                            e: React.PointerEvent<HTMLDivElement>
-                                        ) => {
-                                            if (!e.isPrimary) return
-                                            startXRef.current = e.clientX
-                                            // Keep move/up events on this element even if pointer leaves
-                                            try {
-                                                e.currentTarget.setPointerCapture(
-                                                    e.pointerId
+                    {/* Controls are rendered by the parent */}
+                    <Swiper
+                        onSwiper={(instance) => {
+                            swiperRef.current = instance
+                        }}
+                        modules={[FreeMode, Mousewheel]}
+                        freeMode={{
+                            enabled: true,
+                            momentum: true,
+                            sticky: false,
+                        }}
+                        slidesPerView='auto'
+                        spaceBetween={-40}
+                        grabCursor={true}
+                        mousewheel={{
+                            enabled: true,
+                            forceToAxis: true,
+                            sensitivity: 1,
+                            releaseOnEdges: false,
+                        }}
+                        scrollbar={{
+                            enabled: false,
+                        }}
+                        className='w-full px-4 relative z-10'
+                    >
+                        {deckList.map((name, idx) => {
+                            const isSelected = selectedNames.has(name)
+                            return (
+                                <SwiperSlide
+                                    key={`${name}-${idx}`}
+                                    className='!w-28'
+                                >
+                                    <div className='flex items-end justify-center h-52'>
+                                        <div
+                                            className={`w-24 h-36 rounded-[16px] bg-gradient-to-br from-[#15a6ff] via-[#b56cff] to-[#15a6ff] p-px shadow-2xl select-none touch-none ${
+                                                isSelected
+                                                    ? "cursor-grab"
+                                                    : "cursor-pointer"
+                                            }`}
+                                            data-card='true'
+                                            data-card-name={name}
+                                            onClick={(e) => {
+                                                if (suppressClickRef.current) {
+                                                    e.preventDefault()
+                                                    e.stopPropagation()
+                                                    return
+                                                }
+                                                const cardRect =
+                                                    e.currentTarget.getBoundingClientRect()
+                                                const parentRect =
+                                                    deckRef.current?.getBoundingClientRect()
+                                                const parentLeft = parentRect
+                                                    ? parentRect.left
+                                                    : 0
+                                                const parentTop = parentRect
+                                                    ? parentRect.top
+                                                    : 0
+                                                const centerX =
+                                                    cardRect.left -
+                                                    parentLeft +
+                                                    cardRect.width / 2
+                                                const centerY =
+                                                    cardRect.top -
+                                                    parentTop +
+                                                    cardRect.height / 2
+                                                setOverlayCenter({
+                                                    x: centerX,
+                                                    y: centerY,
+                                                })
+                                                handleCardClick(name)
+                                            }}
+                                            onPointerDown={(
+                                                e: React.PointerEvent<HTMLDivElement>,
+                                            ) => {
+                                                if (!e.isPrimary) return
+                                                startXRef.current = e.clientX
+                                                // Keep move/up events on this element even if pointer leaves
+                                                try {
+                                                    e.currentTarget.setPointerCapture(
+                                                        e.pointerId,
+                                                    )
+                                                } catch {}
+                                                // Do not show or position overlay on pointer down.
+                                                // Overlay should only appear and position on click.
+                                                handleDown(
+                                                    e.clientY,
+                                                    e.currentTarget,
+                                                    name,
                                                 )
-                                            } catch {}
-                                            // Do not show or position overlay on pointer down.
-                                            // Overlay should only appear and position on click.
-                                            handleDown(
-                                                e.clientY,
-                                                e.currentTarget,
-                                                name
-                                            )
-                                        }}
-                                        onPointerMove={(
-                                            e: React.PointerEvent<HTMLDivElement>
-                                        ) => handleMove(e)}
-                                        onPointerUp={handleUp}
-                                        onPointerCancel={handleUp}
-                                        role='button'
-                                        aria-label={swipeLabel ?? t("swipeUpToSelect")}
-                                    >
-                                        <div className='w-full h-full rounded-[14px] bg-white p-[3px]'>
-                                            <div
-                                                className='relative w-full h-full rounded-[12px] overflow-hidden border border-white/10 shadow-[inset_0_0_30px_rgba(0,0,0,0.6)]'
-                                                style={{
-                                                    background:
-                                                        "linear-gradient(135deg, #05081a, #1a0b2e 60%, #3b0f4a), radial-gradient(circle at 30% 20%, #7b2cbf 0%, transparent 40%), radial-gradient(circle at 70% 80%, #00bcd4 0%, transparent 45%)",
-                                                }}
-                                            >
+                                            }}
+                                            onPointerMove={(
+                                                e: React.PointerEvent<HTMLDivElement>,
+                                            ) => handleMove(e)}
+                                            onPointerUp={handleUp}
+                                            onPointerCancel={handleUp}
+                                            role='button'
+                                            aria-label={
+                                                swipeLabel ??
+                                                t("swipeUpToSelect")
+                                            }
+                                        >
+                                            <div className='w-full h-full rounded-[14px] bg-white p-[3px]'>
                                                 <div
-                                                    className='absolute inset-0 pointer-events-none'
+                                                    className='relative w-full h-full rounded-[12px] overflow-hidden border border-white/10 shadow-[inset_0_0_30px_rgba(0,0,0,0.6)]'
                                                     style={{
                                                         background:
-                                                            "radial-gradient(1px 1px at 20% 30%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 80% 60%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 40% 80%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 60% 20%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 75% 25%, #ffffff 99%, transparent 100%)",
+                                                            "linear-gradient(135deg, #05081a, #1a0b2e 60%, #3b0f4a), radial-gradient(circle at 30% 20%, #7b2cbf 0%, transparent 40%), radial-gradient(circle at 70% 80%, #00bcd4 0%, transparent 45%)",
                                                     }}
-                                                />
-                                                <div className='relative flex items-center justify-center h-full'>
-                                                    <div className='text-amber-300 text-xl'>
-                                                        ✷
+                                                >
+                                                    <div
+                                                        className='absolute inset-0 pointer-events-none'
+                                                        style={{
+                                                            background:
+                                                                "radial-gradient(1px 1px at 20% 30%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 80% 60%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 40% 80%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 60% 20%, #ffffff 99%, transparent 100%), radial-gradient(1px 1px at 75% 25%, #ffffff 99%, transparent 100%)",
+                                                        }}
+                                                    />
+                                                    <div className='relative flex items-center justify-center h-full'>
+                                                        <div className='text-amber-300 text-xl'>
+                                                            ✷
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </SwiperSlide>
-                        )
-                    })}
-                </Swiper>
+                                </SwiperSlide>
+                            )
+                        })}
+                    </Swiper>
 
-                <SwipeUpOverlay
-                    isVisible={showSwipeOverlay}
-                    onClose={() => setShowSwipeOverlay(false)}
-                    center={overlayCenter}
-                    deckRect={(() => {
-                        const r = deckRef.current?.getBoundingClientRect()
-                        return {
-                            left: r?.left ?? 0,
-                            top: r?.top ?? 0,
-                            right: r?.right ?? 0,
-                            bottom: r?.bottom ?? 0,
-                        }
-                    })()}
-                    onRecenter={(c) => setOverlayCenter(c)}
-                    label={swipeLabel}
-                />
+                    <SwipeUpOverlay
+                        isVisible={showSwipeOverlay}
+                        onClose={() => setShowSwipeOverlay(false)}
+                        center={overlayCenter}
+                        deckRect={(() => {
+                            const r = deckRef.current?.getBoundingClientRect()
+                            return {
+                                left: r?.left ?? 0,
+                                top: r?.top ?? 0,
+                                right: r?.right ?? 0,
+                                bottom: r?.bottom ?? 0,
+                            }
+                        })()}
+                        onRecenter={(c) => setOverlayCenter(c)}
+                        label={swipeLabel}
+                    />
                 </div>
             </div>
             <p className='mt-4 text-xs text-muted-foreground w-full text-center'>

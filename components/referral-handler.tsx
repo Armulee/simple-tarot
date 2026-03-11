@@ -67,7 +67,7 @@ export default function ReferralHandler() {
                     </div>
                     <div className='text-4xl font-bold text-green-400 flex items-center justify-center gap-2'>
                         <Star className='w-8 h-8' fill="currentColor" />
-                        5 Stars
+                        20 Stars
                     </div>
                     <p className='text-sm text-white/70 mt-2'>
                         Plus your initial account bonus

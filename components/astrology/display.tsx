@@ -53,6 +53,9 @@ export type AstrologyReading = {
 
     question?: string | null
     summary?: string | null
+    system_mode?: string | null
+    input_confidence?: Record<string, unknown> | null
+    swisseph_snapshot?: Record<string, unknown> | null
 
     birth_houses?: Record<string, unknown> | null
     birth_planets?: Record<string, unknown> | null
