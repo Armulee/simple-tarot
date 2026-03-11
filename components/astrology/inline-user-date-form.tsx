@@ -16,6 +16,7 @@ import {
     MapPin,
     Sparkles,
     ChevronDown,
+    X,
 } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -125,6 +126,8 @@ type Props = {
     submitLabel: string
     /** When true, always save to storage on submit and hide the remember checkbox */
     alwaysSave?: boolean
+    /** When provided, shows a remove (X) button that clears form, localStorage, and calls this callback (e.g. to close modal) */
+    onRemove?: () => void
 }
 
 function toDateInputValue(data: HoroscopeBirthData | null) {
@@ -271,6 +274,7 @@ export default function InlineUserDateForm({
     title,
     submitLabel,
     alwaysSave = false,
+    onRemove,
 }: Props) {
     const t = useTranslations("BirthForm")
     const [date, setDate] = useState(toDateInputValue(initial))
@@ -439,11 +443,27 @@ export default function InlineUserDateForm({
         <div className='w-full md:max-w-[85%] overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-b from-white/[0.08] to-white/[0.02] shadow-xl shadow-black/20 backdrop-blur-sm'>
             {/* Header */}
             <div className='px-5 py-4 border-b border-white/10 space-y-2'>
-                <div className='flex items-center gap-2'>
-                    <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-primary'>
-                        <Sparkles className='h-4 w-4' />
+                <div className='flex items-center justify-between gap-2'>
+                    <div className='flex items-center gap-2'>
+                        <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-primary'>
+                            <Sparkles className='h-4 w-4' />
+                        </div>
+                        <span className='font-semibold text-white'>{title}</span>
                     </div>
-                    <span className='font-semibold text-white'>{title}</span>
+                    {onRemove && (
+                        <button
+                            type='button'
+                            onClick={() => {
+                                clearBirthFromStorage()
+                                onRemove()
+                            }}
+                            className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors'
+                            aria-label={t("removeBirth")}
+                            title={t("removeBirth")}
+                        >
+                            <X className='h-4 w-4' />
+                        </button>
+                    )}
                 </div>
                 {(() => {
                     const hasDateFromPrefill =

@@ -264,6 +264,7 @@ export default function Home() {
                     onOpenChange={setShowBirthModal}
                     initial={savedBirth}
                     onSubmit={handleBirthModalSubmit}
+                    onRemove={() => setSavedBirth(null)}
                     title={tHoroscope("birthFormTitle")}
                     submitLabel={tHoroscope("birthFormSubmit")}
                 />

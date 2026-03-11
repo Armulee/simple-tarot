@@ -2261,7 +2261,8 @@
     "latitude": "Latitude",
     "longitude": "Longitude",
     "timezone": "Timezone (e.g. 7)",
-    "rememberBirth": "Remember my birth date"
+    "rememberBirth": "Remember my birth date",
+    "removeBirth": "Clear form and close"
   }, 
   "HoroscopeChat": {
     "usingSavedBirthDate": "Using your saved birth date for this interpretation...",
