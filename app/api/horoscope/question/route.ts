@@ -268,6 +268,14 @@ Output structure: Provide interpretation (main reading), conclusion (short calmi
             temperature: 0.6,
         })
 
+        result.object
+            .then((obj) => {
+                console.log(obj)
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+
         return result.toTextStreamResponse()
     } catch (error) {
         console.error("[horoscope/question] request failed:", error)
