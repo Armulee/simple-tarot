@@ -55,6 +55,8 @@ export default function Home() {
     const [autoPickOn, setAutoPickOn] = useState(() =>
         loadAutoPickFromStorage(),
     )
+    const linkingAbortControllerRef = useRef<AbortController | null>(null)
+    const linkingRequestIdRef = useRef(0)
 
     useEffect(() => {
         const timer = window.setTimeout(() => {
@@ -75,6 +77,15 @@ export default function Home() {
         return () => ro.disconnect()
     }, [])
 
+    useEffect(() => {
+        return () => {
+            if (linkingAbortControllerRef.current) {
+                linkingAbortControllerRef.current.abort()
+                linkingAbortControllerRef.current = null
+            }
+        }
+    }, [])
+
     const handleBirthModalSubmit = (birth: HoroscopeBirthData) => {
         saveBirthToStorage(birth)
         setSavedBirth(birth)
@@ -93,6 +104,18 @@ export default function Home() {
         })
     }
 
+    const handleStopLinking = () => {
+        linkingRequestIdRef.current += 1
+        if (linkingAbortControllerRef.current) {
+            linkingAbortControllerRef.current.abort()
+            linkingAbortControllerRef.current = null
+        }
+        setIsLinking(false)
+        setQuestion(linkingQuestion ?? "")
+        setLinkingQuestion(null)
+        setError(null)
+    }
+
     const createSessionAndRedirect = async (value: string) => {
         const trimmed = value.trim()
         if (!trimmed || isLinking) return
@@ -100,6 +123,13 @@ export default function Home() {
             show()
             return
         }
+        linkingRequestIdRef.current += 1
+        const requestId = linkingRequestIdRef.current
+        if (linkingAbortControllerRef.current) {
+            linkingAbortControllerRef.current.abort()
+        }
+        const controller = new AbortController()
+        linkingAbortControllerRef.current = controller
         setQuestion("")
         setError(null)
         setLinkingQuestion(trimmed)
@@ -108,6 +138,7 @@ export default function Home() {
             const response = await fetch("/api/chat-sessions/create", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                signal: controller.signal,
                 body: JSON.stringify({
                     question: trimmed,
                     user_id: user?.id ?? null,
@@ -120,10 +151,17 @@ export default function Home() {
                     ],
                 }),
             })
+            if (
+                requestId !== linkingRequestIdRef.current ||
+                controller.signal.aborted
+            ) {
+                return
+            }
             const payload = await response.json()
             if (!response.ok || !payload?.id) {
                 throw new Error("Failed to create session")
             }
+            linkingAbortControllerRef.current = null
             const detectedLocale = detectInputLanguage(trimmed)
             const targetLocale =
                 detectedLocale && isSupportedLocale(detectedLocale)
@@ -132,12 +170,19 @@ export default function Home() {
             try {
                 router.prefetch(`/${targetLocale}/${payload.id}`)
             } catch {}
-            window.setTimeout(() => {
-                router.push(`/${targetLocale}/${payload.id}`)
-            }, 250)
-        } catch {
+            router.push(`/${targetLocale}/${payload.id}`)
+        } catch (error) {
+            if (requestId !== linkingRequestIdRef.current) return
+            linkingAbortControllerRef.current = null
+            if (error instanceof Error && error.name === "AbortError") {
+                setIsLinking(false)
+                setQuestion(trimmed)
+                setLinkingQuestion(null)
+                return
+            }
             setIsLinking(false)
             setLinkingQuestion(null)
+            setQuestion(trimmed)
             setError("Sorry, something went wrong. Please try again.")
         }
     }
@@ -283,6 +328,7 @@ export default function Home() {
                     value={question}
                     onChange={setQuestion}
                     onSubmit={createSessionAndRedirect}
+                    onStop={handleStopLinking}
                     isLoading={isLinking}
                     centered
                     className='w-full'
