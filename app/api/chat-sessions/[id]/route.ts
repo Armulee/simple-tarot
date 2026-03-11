@@ -119,9 +119,10 @@ export async function DELETE(
             )
         }
 
-        // Get user from auth header
+        // Allow deletion by signed-in owner or the same DID used to create it.
         const user = await getUserFromAuth(req)
-        if (!user) {
+        const did = await readAndVerifyDid()
+        if (!user && !did) {
             return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 })
         }
 
@@ -132,7 +133,7 @@ export async function DELETE(
         // First verify the user owns this chat session
         const { data: session, error: fetchError } = await supabaseAdmin
             .from("chat_sessions")
-            .select("id, owner_user_id")
+            .select("id, owner_user_id, did")
             .eq("id", id)
             .maybeSingle()
 
@@ -144,8 +145,11 @@ export async function DELETE(
             return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 })
         }
 
+        const ownedByUser = !!user && session.owner_user_id === user.id
+        const ownedByDid = !!did && session.did === did
+
         // Check ownership
-        if (session.owner_user_id !== user.id) {
+        if (!ownedByUser && !ownedByDid) {
             return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 })
         }
 

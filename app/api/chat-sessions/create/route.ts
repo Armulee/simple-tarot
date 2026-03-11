@@ -78,6 +78,7 @@ export async function POST(req: NextRequest) {
 
         const body = await req.json()
         throwIfAborted(req.signal)
+        const requestedId = (body?.id ?? "").toString().slice(0, 32).trim()
         const question = (body?.question ?? "").toString()
         const ownerUserId: string | null =
             typeof body?.user_id === "string" && body.user_id
@@ -115,7 +116,7 @@ export async function POST(req: NextRequest) {
         }
         throwIfAborted(req.signal)
 
-        const sessionId = nanoid(12)
+        const sessionId = requestedId || nanoid(12)
         let attempts = 0
         let finalId = sessionId
         while (attempts < 5) {

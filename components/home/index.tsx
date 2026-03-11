@@ -57,6 +57,7 @@ export default function Home() {
     )
     const linkingAbortControllerRef = useRef<AbortController | null>(null)
     const linkingRequestIdRef = useRef(0)
+    const pendingSessionIdRef = useRef<string | null>(null)
 
     useEffect(() => {
         const timer = window.setTimeout(() => {
@@ -104,16 +105,51 @@ export default function Home() {
         })
     }
 
+    const createPendingSessionId = () =>
+        Array.from(crypto.getRandomValues(new Uint8Array(12)))
+            .map((value) => value.toString(36))
+            .join("")
+            .slice(0, 12)
+
+    const cleanupPendingSession = async (sessionId: string) => {
+        const headers: Record<string, string> = {
+            "Content-Type": "application/json",
+        }
+
+        for (const delay of [0, 300, 1000, 2500]) {
+            if (delay > 0) {
+                await new Promise((resolve) => window.setTimeout(resolve, delay))
+            }
+
+            try {
+                const response = await fetch(`/api/chat-sessions/${sessionId}`, {
+                    method: "DELETE",
+                    headers,
+                })
+                if (response.ok || response.status === 404) {
+                    return
+                }
+            } catch {
+                // ignore transient cleanup failures and retry
+            }
+        }
+    }
+
     const handleStopLinking = () => {
+        const pendingSessionId = pendingSessionIdRef.current
         linkingRequestIdRef.current += 1
         if (linkingAbortControllerRef.current) {
             linkingAbortControllerRef.current.abort()
             linkingAbortControllerRef.current = null
         }
+        pendingSessionIdRef.current = null
         setIsLinking(false)
         setQuestion(linkingQuestion ?? "")
         setLinkingQuestion(null)
         setError(null)
+        if (pendingSessionId) {
+            void cleanupPendingSession(pendingSessionId)
+        }
     }
 
     const createSessionAndRedirect = async (value: string) => {
@@ -125,11 +161,13 @@ export default function Home() {
         }
         linkingRequestIdRef.current += 1
         const requestId = linkingRequestIdRef.current
+        const pendingSessionId = createPendingSessionId()
         if (linkingAbortControllerRef.current) {
             linkingAbortControllerRef.current.abort()
         }
         const controller = new AbortController()
         linkingAbortControllerRef.current = controller
+        pendingSessionIdRef.current = pendingSessionId
         setQuestion("")
         setError(null)
         setLinkingQuestion(trimmed)
@@ -140,6 +178,7 @@ export default function Home() {
                 headers: { "Content-Type": "application/json" },
                 signal: controller.signal,
                 body: JSON.stringify({
+                    id: pendingSessionId,
                     question: trimmed,
                     user_id: user?.id ?? null,
                     messages: [
@@ -162,6 +201,7 @@ export default function Home() {
                 throw new Error("Failed to create session")
             }
             linkingAbortControllerRef.current = null
+            pendingSessionIdRef.current = null
             const detectedLocale = detectInputLanguage(trimmed)
             const targetLocale =
                 detectedLocale && isSupportedLocale(detectedLocale)
@@ -174,10 +214,14 @@ export default function Home() {
         } catch (error) {
             if (requestId !== linkingRequestIdRef.current) return
             linkingAbortControllerRef.current = null
+            if (pendingSessionIdRef.current === pendingSessionId) {
+                pendingSessionIdRef.current = null
+            }
             if (error instanceof Error && error.name === "AbortError") {
                 setIsLinking(false)
                 setQuestion(trimmed)
                 setLinkingQuestion(null)
+                void cleanupPendingSession(pendingSessionId)
                 return
             }
             setIsLinking(false)
