@@ -80,6 +80,8 @@ export type ChatMessage = {
             followUpSuggestions?: string[]
         }
     >
+    /** True when a stream was manually stopped and partial text should be preserved */
+    streamStopped?: boolean
 }
 
 export type ChatDecision = {

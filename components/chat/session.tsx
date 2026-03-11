@@ -372,6 +372,7 @@ export default function ChatSession({
     const prevIsInterpretingRef = useRef(false)
     const hasBootstrapped = useRef(false)
     const persistTimeoutRef = useRef<number | null>(null)
+    const consultingLoadingIdRef = useRef<string | null>(null)
     const interpretationLoadingIdRef = useRef<string | null>(null)
     const horoscopeTargetMessageIdRef = useRef<string | null>(null)
     const horoscopeIsRefetchRef = useRef(false)
@@ -411,6 +412,7 @@ export default function ChatSession({
                               text: object.interpretation || m.text,
                               insights: insights ?? m.insights,
                               isLoading: false,
+                              streamStopped: false,
                               followUpConclusion: object.conclusion?.trim(),
                               followUpSuggestions: object.suggestions
                                   ?.map((s) =>
@@ -560,6 +562,7 @@ export default function ChatSession({
                         followUpSuggestions:
                             suggestions.length > 0 ? suggestions : undefined,
                         isLoading: false,
+                        streamStopped: false,
                     }
                     if (m.chartData) {
                         const chartDataObj = m.chartData as Record<
@@ -791,6 +794,41 @@ export default function ChatSession({
         )
     }, [horoscopeObject])
 
+    const freezeStoppedPlainMessage = useCallback((targetId: string) => {
+        setMessages((prev) => {
+            const target = prev.find((m) => m.id === targetId)
+            if (!target) return prev
+            if (!target.text?.trim()) {
+                return prev.filter((m) => m.id !== targetId)
+            }
+            return prev.map((m) =>
+                m.id === targetId
+                    ? {
+                          ...m,
+                          isLoading: false,
+                          streamStopped: true,
+                      }
+                    : m,
+            )
+        })
+    }, [])
+
+    const finalizeConsultingStream = useCallback(() => {
+        const targetId = consultingLoadingIdRef.current
+        if (!targetId) return false
+
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort()
+            abortControllerRef.current = null
+        }
+
+        freezeStoppedPlainMessage(targetId)
+        consultingLoadingIdRef.current = null
+        setConsulting(false)
+        setIsInterpreting(false)
+        return true
+    }, [freezeStoppedPlainMessage])
+
     const finalizeTarotInterpretationStream = useCallback(() => {
         const targetId = interpretationLoadingIdRef.current
         if (!targetId) return false
@@ -819,6 +857,7 @@ export default function ChatSession({
                               suggestions ?? m.followUpSuggestions,
                           followUpLoading: false,
                           isLoading: false,
+                          streamStopped: true,
                       }
                     : m,
             ),
@@ -870,6 +909,7 @@ export default function ChatSession({
                     followUpSuggestions: suggestions ?? m.followUpSuggestions,
                     followUpLoading: false,
                     isLoading: false,
+                    streamStopped: true,
                 }
             }),
         )
@@ -1502,6 +1542,7 @@ export default function ChatSession({
                               followUpConclusion: undefined,
                               followUpSuggestions: undefined,
                               isLoading: true,
+                              streamStopped: false,
                           }
                         : m,
                 ),
@@ -1565,6 +1606,7 @@ export default function ChatSession({
                               followUpSuggestions: undefined,
                               followUpLoading: false,
                               isLoading: true,
+                              streamStopped: false,
                           }
                         : m,
                 ),
@@ -1735,6 +1777,7 @@ export default function ChatSession({
                               followUpConclusion: undefined,
                               followUpSuggestions: undefined,
                               isLoading: true,
+                              streamStopped: false,
                               interpretationCache: {
                                   ...m.interpretationCache,
                                   [currentSystem]: cacheEntry,
@@ -2059,6 +2102,11 @@ export default function ChatSession({
     )
 
     const handleStopStreaming = useCallback(() => {
+        if (consultingLoadingIdRef.current) {
+            finalizeConsultingStream()
+            return
+        }
+
         if (interpretationLoadingIdRef.current) {
             finalizeTarotInterpretationStream()
             return
@@ -2075,7 +2123,11 @@ export default function ChatSession({
         }
         setConsulting(false)
         setIsInterpreting(false)
-    }, [finalizeHoroscopeStream, finalizeTarotInterpretationStream])
+    }, [
+        finalizeConsultingStream,
+        finalizeHoroscopeStream,
+        finalizeTarotInterpretationStream,
+    ])
 
     const handleCancelHoroscopeLoading = useCallback(() => {
         stopHoroscope()
@@ -2257,6 +2309,7 @@ export default function ChatSession({
             resetInteractiveStateForRewrite()
 
             const assistantLoadingId = `assistant-${Date.now()}`
+            consultingLoadingIdRef.current = assistantLoadingId
             setMessages([
                 ...baseMessages,
                 {
@@ -2311,10 +2364,12 @@ export default function ChatSession({
                                   ...m,
                                   text: nextDecision.assistantText ?? m.text,
                                   isLoading: false,
+                                  streamStopped: false,
                               }
                             : m,
                     ),
                 )
+                consultingLoadingIdRef.current = null
 
                 if (nextDecision.type === "draw") {
                     setShowCardDraw(true)
@@ -2328,9 +2383,10 @@ export default function ChatSession({
             } catch (err) {
                 setConsulting(false)
                 if (err instanceof Error && err.name === "AbortError") {
-                    setMessages((prev) =>
-                        prev.filter((m) => m.id !== assistantLoadingId),
-                    )
+                    freezeStoppedPlainMessage(assistantLoadingId)
+                    if (consultingLoadingIdRef.current === assistantLoadingId) {
+                        consultingLoadingIdRef.current = null
+                    }
                     return
                 }
 
@@ -2341,16 +2397,21 @@ export default function ChatSession({
                                   ...m,
                                   text: "Sorry, something went wrong. Please try again.",
                                   isLoading: false,
+                                  streamStopped: false,
                               }
                             : m,
                     ),
                 )
+                if (consultingLoadingIdRef.current === assistantLoadingId) {
+                    consultingLoadingIdRef.current = null
+                }
             }
         },
         [
             applyInterpretationModeOverride,
             consulting,
             fetchDecision,
+            freezeStoppedPlainMessage,
             getDefaultSystemByLocale,
             handleHoroscopeInput,
             isHoroscopeReady,
@@ -2479,6 +2540,7 @@ export default function ChatSession({
             resetInteractiveStateForRewrite()
 
             const assistantLoadingId = `assistant-${Date.now()}`
+            consultingLoadingIdRef.current = assistantLoadingId
 
             if (shouldAppendUserMessage) {
                 setMessages((prev) => [
@@ -2556,10 +2618,12 @@ export default function ChatSession({
                                   ...m,
                                   text: nextDecision.assistantText ?? m.text,
                                   isLoading: false,
+                                  streamStopped: false,
                               }
                             : m,
                     ),
                 )
+                consultingLoadingIdRef.current = null
 
                 if (nextDecision.type === "draw") {
                     setShowCardDraw(true)
@@ -2573,9 +2637,10 @@ export default function ChatSession({
             } catch (err) {
                 setConsulting(false)
                 if (err instanceof Error && err.name === "AbortError") {
-                    setMessages((prev) =>
-                        prev.filter((m) => m.id !== assistantLoadingId),
-                    )
+                    freezeStoppedPlainMessage(assistantLoadingId)
+                    if (consultingLoadingIdRef.current === assistantLoadingId) {
+                        consultingLoadingIdRef.current = null
+                    }
                     return
                 }
 
@@ -2586,15 +2651,20 @@ export default function ChatSession({
                                   ...m,
                                   text: "Sorry, something went wrong. Please try again.",
                                   isLoading: false,
+                                  streamStopped: false,
                               }
                             : m,
                     ),
                 )
+                if (consultingLoadingIdRef.current === assistantLoadingId) {
+                    consultingLoadingIdRef.current = null
+                }
             }
         },
         [
             applyInterpretationModeOverride,
             fetchDecision,
+            freezeStoppedPlainMessage,
             getDefaultSystemByLocale,
             handleHoroscopeInput,
             isHoroscopeReady,
