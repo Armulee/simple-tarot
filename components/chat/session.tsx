@@ -685,82 +685,99 @@ export default function ChatSession({
         [buildConversationContext],
     )
 
+    const streamedTarotInsights =
+        interpretationObject?.cardInsights?.filter(
+            (s): s is string => typeof s === "string",
+        ) ?? undefined
+    const streamedTarotSuggestions =
+        interpretationObject?.suggestions
+            ?.map((s) => (typeof s === "string" ? s.trim() : ""))
+            .filter(Boolean)
+            .slice(0, 5) ?? undefined
+    const streamedTarotInterpretation =
+        interpretationObject?.interpretation ?? undefined
+    const streamedTarotConclusion =
+        interpretationObject?.conclusion?.trim() ?? undefined
+    const streamedTarotKey = JSON.stringify({
+        interpretation: streamedTarotInterpretation ?? null,
+        conclusion: streamedTarotConclusion ?? null,
+        insights: streamedTarotInsights ?? null,
+        suggestions: streamedTarotSuggestions ?? null,
+    })
+
     // Stream interpretation object updates to the loading message
     useEffect(() => {
         const lid = interpretationLoadingIdRef.current
         if (!lid || !interpretationObject) return
-        const insights =
-            interpretationObject.cardInsights?.filter(
-                (s): s is string => typeof s === "string",
-            ) ?? undefined
-        const suggestions =
-            interpretationObject.suggestions
-                ?.map((s) => (typeof s === "string" ? s.trim() : ""))
-                .filter(Boolean)
-                .slice(0, 5) ?? undefined
         setMessages((prev) =>
             prev.map((m) =>
                 m.id === lid
                     ? {
                           ...m,
                           text:
-                              interpretationObject.interpretation ??
-                              m.text ??
-                              "",
-                          insights: insights ?? m.insights,
+                              streamedTarotInterpretation ?? m.text ?? "",
+                          insights: streamedTarotInsights ?? m.insights,
                           followUpConclusion:
-                              interpretationObject.conclusion?.trim() ??
-                              m.followUpConclusion,
+                              streamedTarotConclusion ?? m.followUpConclusion,
                           followUpSuggestions:
-                              suggestions ?? m.followUpSuggestions,
+                              streamedTarotSuggestions ?? m.followUpSuggestions,
                       }
                     : m,
             ),
         )
-    }, [interpretationObject])
+    }, [interpretationObject, streamedTarotKey])
+
+    const streamedHoroscopeSuggestions =
+        horoscopeObject?.suggestions
+            ?.map((s) => (typeof s === "string" ? s.trim() : ""))
+            .filter(Boolean)
+            .slice(0, 5) ?? undefined
+    const streamedHoroscopeInterpretation =
+        horoscopeObject?.interpretation ?? undefined
+    const streamedHoroscopeAspectInsights = normalizeAspectInsights(
+        horoscopeObject?.aspectInsights,
+    )
+    const streamedHoroscopeConclusion =
+        horoscopeObject?.conclusion?.trim() ?? undefined
+    const streamedHoroscopeKey = JSON.stringify({
+        interpretation: streamedHoroscopeInterpretation ?? null,
+        conclusion: streamedHoroscopeConclusion ?? null,
+        suggestions: streamedHoroscopeSuggestions ?? null,
+        aspectInsights: streamedHoroscopeAspectInsights ?? null,
+    })
 
     // Stream horoscope object updates to the loading message
     useEffect(() => {
         const targetId = horoscopeTargetMessageIdRef.current
         if (!targetId || !horoscopeObject) return
-        const suggestions =
-            horoscopeObject.suggestions
-                ?.map((s) => (typeof s === "string" ? s.trim() : ""))
-                .filter(Boolean)
-                .slice(0, 5) ?? undefined
-        const streamedInterpretation =
-            horoscopeObject.interpretation ?? undefined
-        const streamedAspectInsights = normalizeAspectInsights(
-            horoscopeObject.aspectInsights,
-        )
-        const streamedConclusion =
-            horoscopeObject.conclusion?.trim() ?? undefined
         setMessages((prev) =>
             prev.map((m) =>
                 m.id !== targetId
                     ? m
                     : (() => {
                           const nextText =
-                              streamedInterpretation ?? m.text ?? ""
+                              streamedHoroscopeInterpretation ?? m.text ?? ""
                           const nextAspectInsights =
-                              streamedAspectInsights ?? m.aspectInsights
+                              streamedHoroscopeAspectInsights ?? m.aspectInsights
                           const shouldMergeAspects =
-                              !!streamedAspectInsights &&
+                              !!streamedHoroscopeAspectInsights &&
                               !areAspectInsightsEqual(
-                                  streamedAspectInsights,
+                                  streamedHoroscopeAspectInsights,
                                   m.aspectInsights,
                               )
                           const nextPersonalizedTransitAspectsMerged =
                               shouldMergeAspects
                                   ? buildDiscussedAspectsFromInsights(
                                         m.personalizedTransitAspects,
-                                        streamedAspectInsights,
+                                        streamedHoroscopeAspectInsights,
                                     )
                                   : m.personalizedTransitAspectsMerged
                           const nextConclusion =
-                              streamedConclusion ?? m.followUpConclusion
+                              streamedHoroscopeConclusion ??
+                              m.followUpConclusion
                           const nextSuggestions =
-                              suggestions ?? m.followUpSuggestions
+                              streamedHoroscopeSuggestions ??
+                              m.followUpSuggestions
 
                           const changed =
                               nextText !== m.text ||
@@ -789,7 +806,7 @@ export default function ChatSession({
                       })(),
             ),
         )
-    }, [horoscopeObject])
+    }, [horoscopeObject, streamedHoroscopeKey])
 
     useEffect(() => {
         return () => {
