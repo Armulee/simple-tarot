@@ -791,6 +791,98 @@ export default function ChatSession({
         )
     }, [horoscopeObject])
 
+    const finalizeTarotInterpretationStream = useCallback(() => {
+        const targetId = interpretationLoadingIdRef.current
+        if (!targetId) return false
+
+        const insights =
+            interpretationObject?.cardInsights?.filter(
+                (s): s is string => typeof s === "string",
+            ) ?? undefined
+        const suggestions =
+            interpretationObject?.suggestions
+                ?.map((s) => (typeof s === "string" ? s.trim() : ""))
+                .filter(Boolean)
+                .slice(0, 5) ?? undefined
+
+        setMessages((prev) =>
+            prev.map((m) =>
+                m.id === targetId
+                    ? {
+                          ...m,
+                          text: interpretationObject?.interpretation ?? m.text ?? "",
+                          insights: insights ?? m.insights,
+                          followUpConclusion:
+                              interpretationObject?.conclusion?.trim() ??
+                              m.followUpConclusion,
+                          followUpSuggestions:
+                              suggestions ?? m.followUpSuggestions,
+                          followUpLoading: false,
+                          isLoading: false,
+                      }
+                    : m,
+            ),
+        )
+
+        interpretationLoadingIdRef.current = null
+        setIsInterpreting(false)
+        stopInterpretation()
+        return true
+    }, [interpretationObject, stopInterpretation])
+
+    const finalizeHoroscopeStream = useCallback(() => {
+        const targetId = horoscopeTargetMessageIdRef.current
+        if (!targetId) return false
+
+        const suggestions =
+            horoscopeObject?.suggestions
+                ?.map((s) => (typeof s === "string" ? s.trim() : ""))
+                .filter(Boolean)
+                .slice(0, 5) ?? undefined
+        const streamedAspectInsights = normalizeAspectInsights(
+            horoscopeObject?.aspectInsights,
+        )
+        const streamedInterpretation = horoscopeObject?.interpretation ?? undefined
+        const streamedConclusion = horoscopeObject?.conclusion?.trim() ?? undefined
+
+        setMessages((prev) =>
+            prev.map((m) => {
+                if (m.id !== targetId) return m
+
+                const nextAspectInsights =
+                    streamedAspectInsights ?? m.aspectInsights
+                const nextPersonalizedTransitAspectsMerged =
+                    streamedAspectInsights
+                        ? buildDiscussedAspectsFromInsights(
+                              m.personalizedTransitAspects,
+                              streamedAspectInsights,
+                          )
+                        : m.personalizedTransitAspectsMerged
+
+                return {
+                    ...m,
+                    text: streamedInterpretation ?? m.text ?? "",
+                    aspectInsights: nextAspectInsights,
+                    personalizedTransitAspectsMerged:
+                        nextPersonalizedTransitAspectsMerged,
+                    followUpConclusion:
+                        streamedConclusion ?? m.followUpConclusion,
+                    followUpSuggestions: suggestions ?? m.followUpSuggestions,
+                    followUpLoading: false,
+                    isLoading: false,
+                }
+            }),
+        )
+
+        horoscopeTargetMessageIdRef.current = null
+        horoscopeIsRefetchRef.current = false
+        horoscopeRefetchSystemRef.current = null
+        horoscopeCachedBeforeRefetchRef.current = null
+        setIsInterpreting(false)
+        stopHoroscope()
+        return true
+    }, [horoscopeObject, stopHoroscope])
+
     useEffect(() => {
         return () => {
             if (abortControllerRef.current) {
@@ -1966,14 +2058,24 @@ export default function ChatSession({
         ],
     )
 
-    const handleStopConsulting = useCallback(() => {
+    const handleStopStreaming = useCallback(() => {
+        if (interpretationLoadingIdRef.current) {
+            finalizeTarotInterpretationStream()
+            return
+        }
+
+        if (horoscopeTargetMessageIdRef.current) {
+            finalizeHoroscopeStream()
+            return
+        }
+
         if (abortControllerRef.current) {
             abortControllerRef.current.abort()
             abortControllerRef.current = null
         }
         setConsulting(false)
         setIsInterpreting(false)
-    }, [])
+    }, [finalizeHoroscopeStream, finalizeTarotInterpretationStream])
 
     const handleCancelHoroscopeLoading = useCallback(() => {
         stopHoroscope()
@@ -2708,7 +2810,7 @@ export default function ChatSession({
                 value={question}
                 onChange={setQuestion}
                 onSubmit={handleSubmit}
-                onStop={handleStopConsulting}
+                onStop={handleStopStreaming}
                 isLoading={isChatLoading}
                 centered
                 placeholder={
