@@ -22,6 +22,8 @@ type BirthInfoModalProps = {
     onSubmit: (value: HoroscopeBirthData) => void
     title: string
     submitLabel: string
+    /** Called when user clicks remove (X) - e.g. to clear savedBirth state */
+    onRemove?: () => void
 }
 
 export default function BirthInfoModal({
@@ -32,10 +34,16 @@ export default function BirthInfoModal({
     onSubmit,
     title,
     submitLabel,
+    onRemove,
 }: BirthInfoModalProps) {
     const handleSubmit = (value: HoroscopeBirthData) => {
         onSubmit(value)
         onOpenChange(false)
+    }
+
+    const handleRemove = () => {
+        onOpenChange(false)
+        onRemove?.()
     }
 
     return (
@@ -49,6 +57,7 @@ export default function BirthInfoModal({
                     title={title}
                     submitLabel={submitLabel}
                     alwaysSave
+                    onRemove={handleRemove}
                 />
             </DialogContent>
         </Dialog>

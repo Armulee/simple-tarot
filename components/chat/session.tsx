@@ -2640,6 +2640,7 @@ export default function ChatSession({
                 initial={savedBirth}
                 currentLocation={currentLocationFallback}
                 onSubmit={handleBirthModalSubmit}
+                onRemove={() => setSavedBirth(null)}
                 title={tHoroscope("birthFormTitle")}
                 submitLabel={tHoroscope("birthFormSubmit")}
             />
