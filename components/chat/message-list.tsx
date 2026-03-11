@@ -1232,6 +1232,14 @@ export default function MessageList({
                                     </div>
                                 </>
                             )}
+                            {message.role === "assistant" &&
+                                message.variant !== "tool" &&
+                                message.streamStopped && (
+                                    <div className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90'>
+                                        <Square className='h-3.5 w-3.5 shrink-0 fill-current' />
+                                        {t("streamStopped")}
+                                    </div>
+                                )}
                             {/* Assistant actions: like/dislike/report/share (plain only) */}
                             {message.role === "assistant" &&
                                 message.variant !== "tool" && (
