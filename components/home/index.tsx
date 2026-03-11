@@ -116,7 +116,7 @@ export default function Home() {
             "Content-Type": "application/json",
         }
 
-        for (const delay of [0, 300, 1000, 2500]) {
+        for (const delay of [0, 300, 1000, 2500, 5000]) {
             if (delay > 0) {
                 await new Promise((resolve) => window.setTimeout(resolve, delay))
             }
@@ -126,7 +126,7 @@ export default function Home() {
                     method: "DELETE",
                     headers,
                 })
-                if (response.ok || response.status === 404) {
+                if (response.ok) {
                     return
                 }
             } catch {
