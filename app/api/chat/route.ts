@@ -16,18 +16,16 @@ horoscope
 Definitions:
 
 chat
-- explanations
-- definitions
-- knowledge questions
-- general conversation
+- general greetings (hi, hello)
+- technical definitions of astrology/tarot
+- "Who are you?" or "What can you do?"
+- (DO NOT use chat for advice, strategy, or problem-solving; use 'draw' for those)
 
 draw
-- questions about the user's life situation
-- relationship, career, decisions
-- "what will happen"
-- "is this good"
-- "how will this go"
-- updates about their situation
+- questions about the user's life situation, projects, or business
+- career, money, "how to grow my business/app", decisions
+- "what will happen", "is this good", "how will this go"
+- goals, obstacles, and seeking guidance or solutions
 
 horoscope
 - timing questions
