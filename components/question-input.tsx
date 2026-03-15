@@ -13,6 +13,20 @@ import { useStarConsent } from "@/components/star-consent"
 import InterpretationModeSelector from "@/components/chat/interpretation-mode-selector"
 import type { InterpretationMode } from "@/lib/interpretation-mode-storage"
 
+const INPUT_BORDER_BY_MODE: Record<InterpretationMode, string> = {
+    auto: "border-border/60 focus:border-primary/60 focus:ring-primary/40",
+    chat: "border-emerald-400/30 focus:border-emerald-400/60 focus:ring-emerald-400/30",
+    tarot: "border-purple-400/30 focus:border-purple-400/60 focus:ring-purple-400/30",
+    horoscope: "border-blue-400/30 focus:border-blue-400/60 focus:ring-blue-400/30",
+}
+
+const INPUT_GLOW_BY_MODE: Record<InterpretationMode, string> = {
+    auto: "shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)]",
+    chat: "shadow-[0_10px_30px_-10px_rgba(52,211,153,0.3)]",
+    tarot: "shadow-[0_10px_30px_-10px_rgba(168,85,247,0.3)]",
+    horoscope: "shadow-[0_10px_30px_-10px_rgba(96,165,250,0.3)]",
+}
+
 export default function QuestionInput({
     id = "question-input",
     label = "",
@@ -215,7 +229,7 @@ export default function QuestionInput({
                         id={id}
                         name={id}
                         placeholder={placeholder || t("placeholder")}
-                        className={`relative z-10 w-full pl-4 pr-15 py-2 text-white placeholder:text-white/70 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 focus:border-primary/60 focus:ring-2 focus:ring-primary/40 rounded-2xl resize-y shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] resize-none`}
+                        className={`relative z-10 w-full pl-4 pr-15 py-2 text-white placeholder:text-white/70 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border ${INPUT_BORDER_BY_MODE[interpretationMode ?? "auto"]} focus:ring-2 rounded-2xl resize-y ${INPUT_GLOW_BY_MODE[interpretationMode ?? "auto"]} resize-none transition-[border-color,box-shadow] duration-500`}
                         onFocus={() => {
                             if (choice === null || choice === "declined") show()
                         }}

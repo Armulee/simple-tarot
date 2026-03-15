@@ -29,6 +29,14 @@ const DAY_MS = 24 * 60 * 60 * 1000
 const ASPECT_PADDING_DAYS = 90
 const MIN_FILTERED_EVENTS = 3
 
+function detectQuestionLanguage(text: string): string {
+    if (/[\u0E00-\u0E7F]/.test(text)) return "Thai"
+    if (/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text)) return "Japanese"
+    if (/[\uAC00-\uD7AF]/.test(text)) return "Korean"
+    if (/[\u0400-\u04FF]/.test(text)) return "Russian"
+    return "English"
+}
+
 function addUtcDays(date: Date, days: number) {
     return new Date(date.getTime() + days * DAY_MS)
 }
@@ -166,6 +174,9 @@ export async function POST(req: Request) {
         )
         const conversationContextText = conversationContext?.contextText ?? ""
 
+        const questionLang = detectQuestionLanguage(body.question)
+        const chartLocale = questionLang === "Thai" ? "th" : "en"
+
         const chartDataResult = await buildChartData(
             {
                 birth: body.birth,
@@ -175,7 +186,7 @@ export async function POST(req: Request) {
                 transitDataSource: codexTransit.source,
                 codexTransitSummary: codexTransit.summary,
             },
-            locale,
+            chartLocale,
         )
         const primaryBirthChart = chartDataResult.charts?.[0]
         const primaryTransitChart = chartDataResult.transit?.charts?.[0]
@@ -243,6 +254,7 @@ export async function POST(req: Request) {
             conversationContextText,
             userMainPoint: conversationContext?.userMainPoint ?? "",
             questionTopic,
+            questionLanguage: questionLang,
         })
 
         console.log(
@@ -259,7 +271,8 @@ Write like a caring friend giving life advice — warm, conversational, and in p
 
 ABSOLUTELY FORBIDDEN in interpretation text: planet names (Saturn, Jupiter, Mars, Venus, Rahu, ดาวเสาร์, ดาวพฤหัส, ดาวอังคาร, ดาวศุกร์, ราหู, จันทร์, etc.), zodiac sign names (Aries, Pisces, ราศีเมษ, ราศีมีน, etc.), and astrology terms (conjunction, opposition, square, trine, sextile, orb, transit, เล็ง, ตรีโกณ, จตุโกณ, ร่วม, etc.). Translate all astrological meaning into life impact — emotions, energy, timing, advice.
 
-CRITICAL: Write your interpretation in the EXACT SAME language as the user's question. If the question is in Thai, respond entirely in Thai. If in English, respond in English. Match whatever language the user used—never default to English when the question is in another language.
+LANGUAGE DETECTION RESULT: The user's question is in ${questionLang}.
+CRITICAL: You MUST write your ENTIRE response (interpretation, conclusion, suggestions, aspectInsights) in ${questionLang}. Do NOT use any other language. If the question is in English, every single word of your output must be in English. If in Thai, every word in Thai. Ignore the language of any chart data or internal context — ONLY the user's question language matters.
 
 CRITICAL: When citing time periods, use dates in the SAME language as your output. Thai output = Thai month names (กุมภาพันธ์, มีนาคม, etc.). English output = English month names (February, March, etc.). Example: Thai "22 กุมภาพันธ์ 2026 ถึง 22 กุมภาพันธ์ 2028"; English "February 22, 2026 to February 22, 2028". Do NOT use ISO format (YYYY-MM-DD). Never mix languages (e.g. Thai text with "February").
 

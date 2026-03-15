@@ -85,6 +85,14 @@ Examples (Thai horoscope):
 - User: "เดือนนี้จะเป็นยังไง" → "อยากรู้ภาพรวมของเดือนนี้เลยใช่มั้ย? ดวงดาวช่วยบอกจังหวะพลังงานและโอกาสที่กำลังจะเข้ามาได้ดีมากเลย มาดูดวงกันเลยนะ!"
 `
 
+function detectQuestionLanguage(text: string): string {
+    if (/[\u0E00-\u0E7F]/.test(text)) return "Thai"
+    if (/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text)) return "Japanese"
+    if (/[\uAC00-\uD7AF]/.test(text)) return "Korean"
+    if (/[\u0400-\u04FF]/.test(text)) return "Russian"
+    return "English"
+}
+
 const MODE_TO_TYPE: Record<string, string> = {
     tarot: "draw",
     horoscope: "horoscope",
@@ -117,6 +125,8 @@ function getChatDecisionPrompt({
         ? `\nThe user has locked the mode to "${forcedType}". You MUST set type to "${forcedType}" and write assistantText matching that type.\n`
         : ""
 
+    const detectedLang = detectQuestionLanguage(question)
+
     return `
 Conversation:
 ${historyText}
@@ -124,6 +134,8 @@ ${historyText}
 User message:
 ${question}
 ${modeInstruction}
+DETECTED LANGUAGE: The user's message is in ${detectedLang}. You MUST write assistantText entirely in ${detectedLang}. Ignore the language of conversation history — only the current user message language matters.
+
 Classify the intent and return JSON.
 `
 }

@@ -251,6 +251,7 @@ export function getHoroscopeInterpretationPrompt({
     conversationContextText,
     userMainPoint,
     questionTopic,
+    questionLanguage,
 }: {
     question: string
     systemMode: "western_tropical" | "vedic_sidereal" | "both"
@@ -277,6 +278,7 @@ export function getHoroscopeInterpretationPrompt({
     conversationContextText?: string
     userMainPoint?: string
     questionTopic?: QuestionTopicResult
+    questionLanguage?: string
 }) {
     return `<role>
 You are an expert astrologer AI system for 'AskingFate'.
@@ -350,7 +352,8 @@ ${question}
 </critical_rules>
 
 <output_and_language_rules>
-- ABSOLUTE RULE: You MUST write aspectInsights, interpretation, conclusion, and suggestions entirely in the EXACT SAME language as the <user_question>. Infer language from the question text only. Thai question = Thai output. English question = English output. NEVER default to English when the question is in another language.
+- DETECTED LANGUAGE: The user's question is in ${questionLanguage || "English"}. You MUST write ALL output in ${questionLanguage || "English"} only.
+- ABSOLUTE RULE: You MUST write aspectInsights, interpretation, conclusion, and suggestions entirely in ${questionLanguage || "English"}. Do NOT use any other language regardless of the language of chart data or context provided above.
 - When output is Thai, ALL dates must use Thai month names (กุมภาพันธ์ not February). When output is English, use English month names.
 - aspectInsights: an array of aspect quick-insights ONLY for personalized aspects from <personalized_transit_aspects>.
 - aspectInsights MUST include ONLY aspects that you explicitly mention in interpretation text (do not output undisclosed extras).
