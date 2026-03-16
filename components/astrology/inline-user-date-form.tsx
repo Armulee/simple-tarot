@@ -128,6 +128,8 @@ type Props = {
     alwaysSave?: boolean
     /** Called when user clears all entered/saved birth data */
     onRemove?: () => void
+    secondaryActionLabel?: string
+    onSecondaryAction?: () => void
 }
 
 function toDateInputValue(data: HoroscopeBirthData | null) {
@@ -275,6 +277,8 @@ export default function InlineUserDateForm({
     submitLabel,
     alwaysSave = false,
     onRemove,
+    secondaryActionLabel,
+    onSecondaryAction,
 }: Props) {
     const t = useTranslations("BirthForm")
     const [date, setDate] = useState(toDateInputValue(initial))
@@ -879,14 +883,25 @@ export default function InlineUserDateForm({
                             </label>
                         )}
                     </div>
-                    <button
-                        type='button'
-                        onClick={submit}
-                        disabled={!canSubmit}
-                        className='rounded-xl bg-primary/90 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary disabled:opacity-40 disabled:shadow-none'
-                    >
-                        {submitLabel}
-                    </button>
+                    <div className='flex flex-wrap items-center justify-end gap-2'>
+                        {secondaryActionLabel && onSecondaryAction ? (
+                            <button
+                                type='button'
+                                onClick={onSecondaryAction}
+                                className='rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-medium text-white/85 transition-all hover:border-white/25 hover:bg-white/10 hover:text-white'
+                            >
+                                {secondaryActionLabel}
+                            </button>
+                        ) : null}
+                        <button
+                            type='button'
+                            onClick={submit}
+                            disabled={!canSubmit}
+                            className='rounded-xl bg-primary/90 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary disabled:opacity-40 disabled:shadow-none'
+                        >
+                            {submitLabel}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
