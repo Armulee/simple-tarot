@@ -1,7 +1,7 @@
 import { generateObject } from "ai"
 import { z } from "zod"
 
-const MODEL = "openai/gpt-4o-mini"
+const MODEL = "deepseek/deepseek-v3.2"
 
 const timeRangeSchema = z.object({
     timeRangeDays: z

@@ -1,7 +1,7 @@
 import { streamObject } from "ai"
 import { astrologySummarySchema } from "@/lib/astrology/schema"
 
-const MODEL = "openai/gpt-4o-mini"
+const MODEL = "deepseek/deepseek-v3.2"
 
 export async function POST(req: Request) {
     try {

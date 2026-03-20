@@ -2,7 +2,7 @@ import { streamObject } from "ai"
 
 import { chatDecisionSchema } from "@/lib/chat/decision-schema"
 
-const MODEL = "openai/gpt-4o-mini"
+const MODEL = "deepseek/deepseek-v3.2"
 
 const CHAT_DECISION_SYSTEM_PROMPT = `
 You are Astra, an oracle for AskingFate.

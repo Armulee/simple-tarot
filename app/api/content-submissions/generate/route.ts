@@ -11,7 +11,7 @@ import {
     type LanguageCode,
 } from "@/lib/content-generator"
 
-const MODEL = "openai/gpt-4o-mini"
+const MODEL = "deepseek/deepseek-v3.2"
 
 const OUTPUT_DIRECTIVES: Record<ContentTypeKey, string> = {
     shortText:

@@ -4,7 +4,7 @@ import { z } from "zod"
 import { AGENT_SYSTEM_PROMPT } from "@/lib/agent/system-prompt"
 import type { AgentAction, AgentRequestPayload, AgentResponse } from "@/types/agent"
 
-const MODEL = "openai/gpt-4o-mini"
+const MODEL = "deepseek/deepseek-v3.2"
 
 function buildPrompt(payload: AgentRequestPayload) {
     const messages = payload.messages

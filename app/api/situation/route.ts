@@ -5,7 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase"
 import type { TarotCodexRow } from "@/lib/tarot/rag"
 import { getBaseCardName, isReversed } from "@/lib/tarot/rag"
 
-const MODEL = "openai/gpt-4.1-mini"
+const MODEL = "deepseek/deepseek-v3.2"
 
 const USER_SITUATION_PROMPT = `
 You are a tarot reasoning engine. Your job is to:

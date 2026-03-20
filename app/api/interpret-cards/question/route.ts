@@ -11,7 +11,7 @@ import {
     normalizeConversationContext,
 } from "@/lib/astrology/question-context"
 
-const MODEL = "openai/gpt-4o-mini"
+const MODEL = "deepseek/deepseek-v3.2"
 
 function detectQuestionLanguage(text: string): string {
     if (/[\u0E00-\u0E7F]/.test(text)) return "Thai"

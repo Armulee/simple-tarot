@@ -4,7 +4,7 @@ import { getDefaultAstrologySystem } from "@/lib/astrology/intake"
 import { selectTransitDateFromSources } from "@/lib/astrology/transit-date-extract"
 import { resolveLocationFromCountryState } from "@/lib/location"
 
-const MODEL = "openai/gpt-4o-mini"
+const MODEL = "deepseek/deepseek-v3.2"
 
 const extractSchema = z.object({
     birthDate: z

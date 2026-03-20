@@ -4,7 +4,7 @@ import { generateText } from "ai"
 import { readAndVerifyDid } from "@/lib/server/did"
 import { supabaseAdmin } from "@/lib/supabase"
 
-const MODEL = "openai/gpt-4o-mini"
+const MODEL = "deepseek/deepseek-v3.2"
 
 function isAbortError(error: unknown) {
     return (
