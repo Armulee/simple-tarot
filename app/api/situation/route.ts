@@ -17,13 +17,17 @@ intent examples: reconciliation, success, change, uncertainty
 emotion examples: hope, anxiety, confusion, curiosity
 
 cardReadingDirection rules:
-- Write 3-5 sentences in ENGLISH (this is an internal directive for the narrator, never shown to users)
-- FIRST SENTENCE: State the verdict as a clear, direct answer (yes/no/maybe/warning + one-line reason)
-- NEXT SENTENCES: For EACH card drawn, write one sentence explaining what that specific card means for this question. Use the card name and its meaning from the provided data. Example: "Card 1 (The Fool) = the user would rush in naively without preparation. Card 2 (10 of Wands) = taking this on would become an overwhelming burden."
-- LAST SENTENCE: Give concrete, practical advice the user can act on
+- Write 3-6 sentences in ENGLISH (this is an internal directive for the narrator, never shown to users)
+- Detect the question type first:
+  A) YES/NO question (e.g. "will I…", "should I…", "is this…") → FIRST SENTENCE must be a clear verdict (yes/no/maybe/warning + one-line reason)
+  B) HOW/STRATEGY question (e.g. "how should I…", "what approach…", "ยังไงให้…", "ทำยังไง") → FIRST SENTENCE must be the core strategy or actionable approach, NOT "yes you will succeed"
+  C) WHAT/WHO/WHEN question → FIRST SENTENCE must directly answer what/who/when
+- NEXT SENTENCES: For EACH card drawn, write one sentence explaining what that specific card means for this question IN THE PRACTICAL DOMAIN of the question. Do NOT just restate the card's textbook meaning — translate the symbolism into concrete, domain-specific advice. Example for a content strategy question: "Card 1 (Justice) = the user should focus on comparison-style or fact-checking content that helps the audience make fair judgments, not generic 'be honest' advice."
+- LAST SENTENCE: Give concrete, practical advice the user can act on — specific enough that they could start doing it today
 - If this is a follow-up question, FIRST figure out what the user is referring to from the conversation context and previous reading, then reason about the cards in that specific context
 - Be SPECIFIC and DECISIVE — never say "it depends" or give wishy-washy maybe answers. Pick a side.
 - The narrator model is weak at reasoning — your direction IS the answer. If your direction is vague, the final answer will be vague.
+- CRITICAL: Never give generic self-help advice like "be honest and transparent". Always tie card meanings to the SPECIFIC domain the user asked about (content strategy, business, relationships, etc.) with actionable details.
 `
 
 const LOVE_TOPICS = [
@@ -186,11 +190,6 @@ export async function POST(req: Request) {
             system: USER_SITUATION_PROMPT,
             prompt,
         })
-
-        console.log(
-            "[situation] extracted:",
-            JSON.stringify(situation, null, 2),
-        )
 
         let cardMeanings: string[][] = []
         if (cards && cards.length > 0) {
