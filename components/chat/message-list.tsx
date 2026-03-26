@@ -22,6 +22,7 @@ import RealtimePlanetaryPanel from "@/components/astrology/realtime-planetary-pa
 import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
 import type { HoroscopeBirthData } from "@/types/horoscope"
 import type { ChatMessage, SourceAspectEvent } from "./types"
+import { LoadingDotsText } from "./loading-dots-text"
 import { useTranslations } from "next-intl"
 import {
     ChevronDown,
@@ -280,7 +281,6 @@ type MessageListProps = {
     isChatLoading: boolean
     consulting: boolean
     isInterpreting: boolean
-    loadingDots: number
     positionMeanings: Record<string, string[]>
     hasInterpretation: boolean
     assistantReactions: Record<string, "like" | "dislike" | null>
@@ -341,7 +341,6 @@ export default function MessageList({
     isChatLoading,
     consulting,
     isInterpreting,
-    loadingDots,
     positionMeanings,
     hasInterpretation,
     assistantReactions,
@@ -617,9 +616,22 @@ export default function MessageList({
                                                                 ] ? (
                                                                     <span className='inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-2 py-1 backdrop-blur-xl shadow-[0_0_12px_-3px_rgba(56,189,248,0.3)] text-[10px] font-medium text-white/90'>
                                                                         <Loader2 className='h-2.5 w-2.5 animate-spin shrink-0' />
-                                                                        {`${consultingBase}${".".repeat(
-                                                                            loadingDots,
-                                                                        )}`}
+                                                                        <LoadingDotsText
+                                                                            active={
+                                                                                !!(
+                                                                                    message.isLoading &&
+                                                                                    !message
+                                                                                        .insights?.[
+                                                                                        index
+                                                                                    ]
+                                                                                )
+                                                                            }
+                                                                            getText={(
+                                                                                d,
+                                                                            ) =>
+                                                                                `${consultingBase}${".".repeat(d)}`
+                                                                            }
+                                                                        />
                                                                     </span>
                                                                 ) : (
                                                                     message
@@ -707,9 +719,17 @@ export default function MessageList({
                                             !message.text?.trim() ? (
                                                 <span className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90'>
                                                     <Loader2 className='h-4 w-4 animate-spin shrink-0' />
-                                                    {`${consultingBase}${".".repeat(
-                                                        loadingDots,
-                                                    )}`}
+                                                    <LoadingDotsText
+                                                        active={
+                                                            !!(
+                                                                message.isLoading &&
+                                                                !message.text?.trim()
+                                                            )
+                                                        }
+                                                        getText={(d) =>
+                                                            `${consultingBase}${".".repeat(d)}`
+                                                        }
+                                                    />
                                                 </span>
                                             ) : (
                                                 renderInlineBoldMarkdown(
@@ -1057,11 +1077,18 @@ export default function MessageList({
                                                         >
                                                             <Square className='h-3.5 w-3.5 shrink-0 fill-current' />
                                                             <Loader2 className='h-4 w-4 animate-spin shrink-0' />
-                                                            {formatHoroscopeLoadingText(
-                                                                message.horoscopeBirthData,
-                                                                loadingDots,
-                                                                consultingBase,
-                                                            )}
+                                                            <LoadingDotsText
+                                                                active={
+                                                                    !!message.isLoading
+                                                                }
+                                                                getText={(d) =>
+                                                                    formatHoroscopeLoadingText(
+                                                                        message.horoscopeBirthData,
+                                                                        d,
+                                                                        consultingBase,
+                                                                    )
+                                                                }
+                                                            />
                                                         </button>
                                                     </div>
                                                 )}
@@ -1220,9 +1247,17 @@ export default function MessageList({
                                         !message.text?.trim() ? (
                                             <span className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90'>
                                                 <Loader2 className='h-4 w-4 animate-spin shrink-0' />
-                                                {`${consultingBase}${".".repeat(
-                                                    loadingDots,
-                                                )}`}
+                                                <LoadingDotsText
+                                                    active={
+                                                        !!(
+                                                            message.isLoading &&
+                                                            !message.text?.trim()
+                                                        )
+                                                    }
+                                                    getText={(d) =>
+                                                        `${consultingBase}${".".repeat(d)}`
+                                                    }
+                                                />
                                             </span>
                                         ) : (
                                             renderInlineBoldMarkdown(

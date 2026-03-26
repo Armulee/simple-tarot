@@ -9,6 +9,12 @@ export const chatDecisionSchema = z.object({
     assistantText: z
         .string()
         .describe("Bridge response in the SAME language as the user's message"),
+    isFollowUp: z
+        .boolean()
+        .optional()
+        .describe(
+            "True if the user's question is a follow-up to a previous reading or answer in the session context",
+        ),
 })
 
 export type ChatDecisionSchema = z.infer<typeof chatDecisionSchema>

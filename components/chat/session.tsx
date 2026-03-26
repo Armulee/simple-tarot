@@ -21,9 +21,15 @@ import {
     type AspectKeywordItem,
 } from "@/lib/astrology/transit-aspects"
 import { getDefaultAstrologySystem } from "@/lib/astrology/intake"
-import { buildConversationContextFromMessages } from "@/lib/astrology/question-context"
+import {
+    buildConversationContextFromMessages,
+    buildSessionContextSummary,
+} from "@/lib/astrology/question-context"
 import { chartDataToBirth, chartDataToTransit } from "@/lib/chart-data-to-birth"
-import { clearBirthFromStorage, loadBirthFromStorage } from "@/lib/birth-storage"
+import {
+    clearBirthFromStorage,
+    loadBirthFromStorage,
+} from "@/lib/birth-storage"
 import {
     loadAutoPickFromStorage,
     saveAutoPickToStorage,
@@ -289,7 +295,6 @@ export default function ChatSession({
     const [lastQuestion, setLastQuestion] = useState(
         initialSession?.question ?? "",
     )
-    const [loadingDots, setLoadingDots] = useState(1)
     const [selectedCount, setSelectedCount] = useState(0)
     const [shuffleFn, setShuffleFn] = useState<(() => void) | null>(null)
     const [pickFn, setPickFn] = useState<((times?: number) => void) | null>(
@@ -701,25 +706,35 @@ export default function ChatSession({
                 ?.map((s) => (typeof s === "string" ? s.trim() : ""))
                 .filter(Boolean)
                 .slice(0, 5) ?? undefined
-        setMessages((prev) =>
-            prev.map((m) =>
-                m.id === lid
+        setMessages((prev) => {
+            const m = prev.find((x) => x.id === lid)
+            if (!m) return prev
+
+            const nextText = interpretationObject.interpretation ?? m.text ?? ""
+            const nextInsights = insights ?? m.insights
+            const nextConclusion =
+                interpretationObject.conclusion?.trim() ?? m.followUpConclusion
+            const nextSuggestions = suggestions ?? m.followUpSuggestions
+
+            const changed =
+                nextText !== m.text ||
+                !areStringArraysEqual(nextInsights, m.insights) ||
+                nextConclusion !== m.followUpConclusion ||
+                !areStringArraysEqual(nextSuggestions, m.followUpSuggestions)
+            if (!changed) return prev
+
+            return prev.map((mm) =>
+                mm.id === lid
                     ? {
                           ...m,
-                          text:
-                              interpretationObject.interpretation ??
-                              m.text ??
-                              "",
-                          insights: insights ?? m.insights,
-                          followUpConclusion:
-                              interpretationObject.conclusion?.trim() ??
-                              m.followUpConclusion,
-                          followUpSuggestions:
-                              suggestions ?? m.followUpSuggestions,
+                          text: nextText,
+                          insights: nextInsights,
+                          followUpConclusion: nextConclusion,
+                          followUpSuggestions: nextSuggestions,
                       }
-                    : m,
-            ),
-        )
+                    : mm,
+            )
+        })
     }, [interpretationObject])
 
     // Stream horoscope object updates to the loading message
@@ -738,60 +753,48 @@ export default function ChatSession({
         )
         const streamedConclusion =
             horoscopeObject.conclusion?.trim() ?? undefined
-        setMessages((prev) =>
-            prev.map((m) =>
-                m.id !== targetId
-                    ? m
-                    : (() => {
-                          const nextText =
-                              streamedInterpretation ?? m.text ?? ""
-                          const nextAspectInsights =
-                              streamedAspectInsights ?? m.aspectInsights
-                          const shouldMergeAspects =
-                              !!streamedAspectInsights &&
-                              !areAspectInsightsEqual(
-                                  streamedAspectInsights,
-                                  m.aspectInsights,
-                              )
-                          const nextPersonalizedTransitAspectsMerged =
-                              shouldMergeAspects
-                                  ? buildDiscussedAspectsFromInsights(
-                                        m.personalizedTransitAspects,
-                                        streamedAspectInsights,
-                                    )
-                                  : m.personalizedTransitAspectsMerged
-                          const nextConclusion =
-                              streamedConclusion ?? m.followUpConclusion
-                          const nextSuggestions =
-                              suggestions ?? m.followUpSuggestions
+        setMessages((prev) => {
+            const m = prev.find((x) => x.id === targetId)
+            if (!m) return prev
 
-                          const changed =
-                              nextText !== m.text ||
-                              !areAspectInsightsEqual(
-                                  nextAspectInsights,
-                                  m.aspectInsights,
-                              ) ||
-                              nextPersonalizedTransitAspectsMerged !==
-                                  m.personalizedTransitAspectsMerged ||
-                              nextConclusion !== m.followUpConclusion ||
-                              !areStringArraysEqual(
-                                  nextSuggestions,
-                                  m.followUpSuggestions,
-                              )
-                          if (!changed) return m
+            const nextText = streamedInterpretation ?? m.text ?? ""
+            const nextAspectInsights =
+                streamedAspectInsights ?? m.aspectInsights
+            const shouldMergeAspects =
+                !!streamedAspectInsights &&
+                !areAspectInsightsEqual(
+                    streamedAspectInsights,
+                    m.aspectInsights,
+                )
+            const nextPersonalizedTransitAspectsMerged = shouldMergeAspects
+                ? buildDiscussedAspectsFromInsights(
+                      m.personalizedTransitAspects,
+                      streamedAspectInsights,
+                  )
+                : m.personalizedTransitAspectsMerged
+            const nextConclusion = streamedConclusion ?? m.followUpConclusion
+            const nextSuggestions = suggestions ?? m.followUpSuggestions
 
-                          return {
-                              ...m,
-                              text: nextText,
-                              aspectInsights: nextAspectInsights,
-                              personalizedTransitAspectsMerged:
-                                  nextPersonalizedTransitAspectsMerged,
-                              followUpConclusion: nextConclusion,
-                              followUpSuggestions: nextSuggestions,
-                          }
-                      })(),
-            ),
-        )
+            const changed =
+                nextText !== m.text ||
+                !areAspectInsightsEqual(nextAspectInsights, m.aspectInsights) ||
+                nextPersonalizedTransitAspectsMerged !==
+                    m.personalizedTransitAspectsMerged ||
+                nextConclusion !== m.followUpConclusion ||
+                !areStringArraysEqual(nextSuggestions, m.followUpSuggestions)
+            if (!changed) return prev
+
+            const nextMessage = {
+                ...m,
+                text: nextText,
+                aspectInsights: nextAspectInsights,
+                personalizedTransitAspectsMerged:
+                    nextPersonalizedTransitAspectsMerged,
+                followUpConclusion: nextConclusion,
+                followUpSuggestions: nextSuggestions,
+            }
+            return prev.map((mm) => (mm.id === targetId ? nextMessage : mm))
+        })
     }, [horoscopeObject])
 
     const freezeStoppedPlainMessage = useCallback((targetId: string) => {
@@ -848,7 +851,10 @@ export default function ChatSession({
                 m.id === targetId
                     ? {
                           ...m,
-                          text: interpretationObject?.interpretation ?? m.text ?? "",
+                          text:
+                              interpretationObject?.interpretation ??
+                              m.text ??
+                              "",
                           insights: insights ?? m.insights,
                           followUpConclusion:
                               interpretationObject?.conclusion?.trim() ??
@@ -881,8 +887,10 @@ export default function ChatSession({
         const streamedAspectInsights = normalizeAspectInsights(
             horoscopeObject?.aspectInsights,
         )
-        const streamedInterpretation = horoscopeObject?.interpretation ?? undefined
-        const streamedConclusion = horoscopeObject?.conclusion?.trim() ?? undefined
+        const streamedInterpretation =
+            horoscopeObject?.interpretation ?? undefined
+        const streamedConclusion =
+            horoscopeObject?.conclusion?.trim() ?? undefined
 
         setMessages((prev) =>
             prev.map((m) => {
@@ -1085,17 +1093,6 @@ export default function ChatSession({
         const nextLocale = hasThai ? "th" : "en"
         setAiLocale((prev) => (prev === nextLocale ? prev : nextLocale))
     }, [messages])
-
-    useEffect(() => {
-        if (!isInterpreting) {
-            setLoadingDots(1)
-            return
-        }
-        const interval = window.setInterval(() => {
-            setLoadingDots((prev) => (prev >= 3 ? 1 : prev + 1))
-        }, 1000)
-        return () => window.clearInterval(interval)
-    }, [isInterpreting])
 
     useEffect(() => {
         if (!showCardDraw) {
@@ -2052,6 +2049,7 @@ export default function ChatSession({
                     role: m.role,
                     text: m.text,
                 }))
+            const contextSummary = buildSessionContextSummary(messages)
             const modeForApi =
                 interpretationMode !== "auto" ? interpretationMode : undefined
             const response = await fetch("/api/chat", {
@@ -2062,9 +2060,12 @@ export default function ChatSession({
                     history,
                     savedBirthInfo: savedBirthInfo ?? undefined,
                     interpretationMode: modeForApi,
+                    contextSummary: contextSummary || undefined,
                 }),
                 signal: abortControllerRef.current.signal,
             })
+
+            console.log(contextSummary)
 
             if (!response.ok || !response.body) {
                 throw new Error("Failed to consult")
@@ -2970,7 +2971,6 @@ export default function ChatSession({
                 isChatLoading={isChatLoading}
                 consulting={consulting}
                 isInterpreting={isInterpreting}
-                loadingDots={loadingDots}
                 positionMeanings={POSITION_MEANINGS}
                 hasInterpretation={hasInterpretation}
                 assistantReactions={assistantReactions}
