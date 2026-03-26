@@ -302,6 +302,7 @@ type MessageListProps = {
     disclaimerText: string
     birthFormTitle: string
     birthFormSubmit: string
+    birthFormSecondaryActionLabel?: string
     onRegenerateAt: (messageIndex: number) => void
     onStartEditAt: (messageIndex: number) => void
     onCancelEdit: () => void
@@ -325,6 +326,7 @@ type MessageListProps = {
     onReport: (id: string, text: string) => void
     onShare: (id: string, text: string) => void
     onReadAloud: (id: string, text: string) => void
+    onBirthFormSecondaryAction?: () => void
     readAloudLoadingMessageId: string | null
     readAloudPlayingMessageId: string | null
     lastAssistantMessageRef: RefObject<HTMLDivElement | null>
@@ -356,6 +358,7 @@ export default function MessageList({
     disclaimerText,
     birthFormTitle,
     birthFormSubmit,
+    birthFormSecondaryActionLabel,
     onRegenerateAt,
     onStartEditAt,
     onCancelEdit,
@@ -371,6 +374,7 @@ export default function MessageList({
     onToggleReaction,
     onReport,
     onShare,
+    onBirthFormSecondaryAction,
     lastAssistantMessageRef,
     insufficientStarsRef,
     messagesEndRef,
@@ -1189,6 +1193,12 @@ export default function MessageList({
                                     onSubmit={onUserDateFormSubmit}
                                     title={birthFormTitle}
                                     submitLabel={birthFormSubmit}
+                                    secondaryActionLabel={
+                                        birthFormSecondaryActionLabel
+                                    }
+                                    onSecondaryAction={
+                                        onBirthFormSecondaryAction
+                                    }
                                 />
                             ) : (
                                 /* Plain variant: simple assistant text (chat decision, bridge message) */

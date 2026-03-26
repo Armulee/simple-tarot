@@ -2265,7 +2265,8 @@
     "longitude": "ลองจิจูด",
     "timezone": "เขตเวลา (เช่น 7)",
     "rememberBirth": "จำข้อมูลวันเกิดของฉัน",
-    "removeBirth": "ลบข้อมูล"
+    "removeBirth": "ลบข้อมูล",
+    "drawCardsInstead": "ดูไพ่แทน"
   },
   "HoroscopeChat": {
     "usingSavedBirthDate": "กำลังใช้ข้อมูลวันเกิดที่บันทึกไว้ทำนายดวง...",

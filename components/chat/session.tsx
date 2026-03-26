@@ -36,6 +36,7 @@ import {
 } from "@/lib/auto-pick-storage"
 import {
     loadInterpretationModeFromStorage,
+    saveInterpretationModeToStorage,
     type InterpretationMode,
 } from "@/lib/interpretation-mode-storage"
 import {
@@ -235,6 +236,7 @@ export default function ChatSession({
     const tHome = useTranslations("Home")
     const tReadingTypes = useTranslations("Reading.types")
     const tHoroscope = useTranslations("HoroscopeChat")
+    const tBirthForm = useTranslations("BirthForm")
 
     const POSITION_MEANINGS: Record<string, string[]> = {
         simple: [tReadingTypes("simple.title")],
@@ -2750,6 +2752,48 @@ export default function ChatSession({
         })
     }, [])
 
+    const handleSwitchBirthFormToTarot = useCallback(() => {
+        const nextQuestion =
+            horoscopeQuestion?.trim() ||
+            lastQuestion.trim() ||
+            question.trim() ||
+            "Tarot reading"
+        const nextDecision: ChatDecision = {
+            type: "draw",
+            assistantText: decision?.assistantText ?? "",
+            ...chooseTarotSpread(nextQuestion),
+        }
+
+        saveInterpretationModeToStorage("tarot")
+        saveAutoPickToStorage(false)
+        setInterpretationMode("tarot")
+        setAutoPickOn(false)
+        setQuestion("")
+        setLastQuestion(nextQuestion)
+        setDecision(nextDecision)
+        setShowCardDraw(true)
+        setIsInterpreting(false)
+        setSelectedCount(0)
+        setShuffleFn(null)
+        setPickFn(null)
+        setSelectByIndicesFn(null)
+        setShowInsufficientStars(false)
+        setInsufficientStarsType(null)
+        setHoroscopeBirth(null)
+        setHoroscopeQuestion(null)
+        setHoroscopeTransit(null)
+        setMessages((prev) =>
+            prev.filter(
+                (message) =>
+                    !(
+                        message.variant === "tool" &&
+                        (message.toolType === "user-date-form" ||
+                            message.toolType === "transit-date-form")
+                    ),
+            ),
+        )
+    }, [decision?.assistantText, horoscopeQuestion, lastQuestion, question])
+
     const handleBirthModalSubmit = useCallback((value: HoroscopeBirthData) => {
         setSavedBirth(value)
     }, [])
@@ -2989,6 +3033,7 @@ export default function ChatSession({
                 disclaimerText={disclaimerText}
                 birthFormTitle={tHoroscope("birthFormTitle")}
                 birthFormSubmit={tHoroscope("birthFormSubmit")}
+                birthFormSecondaryActionLabel={tBirthForm("drawCardsInstead")}
                 onRegenerateAt={handleRegenerateAt}
                 onStartEditAt={handleStartEditAt}
                 onCancelEdit={handleCancelEdit}
@@ -3005,6 +3050,7 @@ export default function ChatSession({
                 onReport={handleReport}
                 onShare={handleShare}
                 onReadAloud={handleReadAloud}
+                onBirthFormSecondaryAction={handleSwitchBirthFormToTarot}
                 readAloudLoadingMessageId={readAloudLoadingMessageId}
                 readAloudPlayingMessageId={readAloudPlayingMessageId}
                 lastAssistantMessageRef={lastAssistantMessageRef}
