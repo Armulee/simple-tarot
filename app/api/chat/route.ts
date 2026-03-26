@@ -37,11 +37,22 @@ Important rule:
 If the user is talking about their own situation or asking how something will go,
 choose "draw" even if the question is vague.
 
+FOLLOW-UP DETECTION (read "Session context" carefully):
+
+You may receive a "Session context" block describing previous readings and interactions.
+Use it to detect follow-up questions:
+
+- If the user's message is a follow-up to a PREVIOUS TAROT reading (e.g. asking "who?", "is it a girl?", "tell me more", "what does that mean?", clarifying something from the reading), classify as "draw" and set isFollowUp to true.
+- If the user's message is a follow-up to a PREVIOUS HOROSCOPE reading, classify as "horoscope" and set isFollowUp to true.
+- If the user's message is clearly about a NEW, UNRELATED topic, classify normally and set isFollowUp to false.
+- Short vague questions like "really?", "who?", "how?", "why?", "tell me more" after a reading are almost always follow-ups — use the session context to determine which feature they relate to.
+
 Return JSON only:
 
 {
 "type":"chat"|"draw"|"horoscope",
-"assistantText":"response to the user"
+"assistantText":"response to the user",
+"isFollowUp":true|false
 }
 
 assistantText rules:
@@ -53,6 +64,7 @@ If draw:
 - Empathize or reflect on what the user asked about (1-2 sentences).
 - Build anticipation for the tarot reading (1-2 sentences).
 - Invite them to draw their cards (1 sentence).
+- If this is a follow-up, reference what was revealed before and express excitement about diving deeper.
 
 If horoscope:
 - Acknowledge the user's curiosity about timing (1-2 sentences).
@@ -73,6 +85,9 @@ Write the way a real person would text a friend.
 Examples (English draw):
 - User: "will I get the job?" → "That's such an exciting crossroads to be at! It's clear this opportunity means a lot to you. The tarot cards can give us some real insight into the energy around this. Let's draw some cards and see what they reveal!"
 - User: "Tomorrow what will I be?" → "Ooh curious about what tomorrow has in store? I love that you're thinking ahead! The cards are great at picking up on the energy that's heading your way. Let's draw and see what they have to say!"
+
+Examples (English follow-up draw):
+- Session context says tarot reading with 2 of Cups about partnership. User: "is it a girl?" → type "draw", isFollowUp true. "Ooh you want to know more about who this partnership energy is pointing to! The cards can definitely give us more detail on that. Let's draw again and see what comes up!"
 
 Examples (English horoscope):
 - User: "what does this month look like for me?" → "Great question! The stars can tell us a lot about the energy and opportunities coming your way this month. Let's take a look at your horoscope and see what's in store!"
@@ -103,10 +118,12 @@ function getChatDecisionPrompt({
     question,
     history,
     interpretationMode,
+    contextSummary,
 }: {
     question: string
     history?: Array<{ role: "user" | "assistant"; text: string }>
     interpretationMode?: string | null
+    contextSummary?: string | null
 }) {
     const historyText =
         history && history.length
@@ -115,6 +132,11 @@ function getChatDecisionPrompt({
                   .map((m) => `${m.role}: ${m.text}`)
                   .join("\n")
             : "None"
+
+    const contextBlock =
+        contextSummary && contextSummary.trim()
+            ? `Session context (previous readings/interactions):\n${contextSummary.trim()}\n\n`
+            : ""
 
     const forcedType =
         interpretationMode && MODE_TO_TYPE[interpretationMode]
@@ -128,7 +150,7 @@ function getChatDecisionPrompt({
     const detectedLang = detectQuestionLanguage(question)
 
     return `
-Conversation:
+${contextBlock}Recent conversation:
 ${historyText}
 
 User message:
@@ -171,6 +193,7 @@ export async function POST(req: Request) {
             history?: unknown
             savedBirthInfo?: string | null
             interpretationMode?: string | null
+            contextSummary?: string | null
         }
         try {
             body = await req.json()
@@ -179,7 +202,8 @@ export async function POST(req: Request) {
                 status: 400,
             })
         }
-        const { question, history, interpretationMode } = body ?? {}
+        const { question, history, interpretationMode, contextSummary } =
+            body ?? {}
         const normalizedHistory = normalizeHistory(history)
 
         if (!question) {
@@ -194,11 +218,17 @@ export async function POST(req: Request) {
                 question,
                 history: normalizedHistory,
                 interpretationMode,
+                contextSummary,
             }),
         })
 
         result.object.then((obj) => {
-            console.log("[chat/decision] type:", obj.type)
+            console.log(
+                "[chat/decision] type:",
+                obj.type,
+                "isFollowUp:",
+                obj.isFollowUp ?? false,
+            )
         })
 
         return result.toTextStreamResponse()

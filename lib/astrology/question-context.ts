@@ -289,3 +289,80 @@ ${context.contextText}
 Main point to preserve:
 ${context.userMainPoint || "N/A"}`
 }
+
+// ---------------------------------------------------------------------------
+// Session context summary for the chat decision classifier
+// ---------------------------------------------------------------------------
+
+const MAX_SUMMARY = 500
+
+type SessionMessageShape = MessageShape & {
+    cards?: { name: string; slug?: string }[]
+    question?: string
+}
+
+function summarizeTarotReading(msg: SessionMessageShape): string {
+    const cardNames =
+        msg.cards && msg.cards.length > 0
+            ? msg.cards.map((c) => c.name).join(", ")
+            : null
+    const snippet = shorten(cleanText(msg.text ?? ""), 120)
+    if (cardNames) return `Tarot reading (${cardNames}): ${snippet}`
+    return `Tarot reading: ${snippet}`
+}
+
+function summarizeHoroscope(msg: SessionMessageShape): string {
+    const snippet = shorten(cleanText(msg.text ?? ""), 120)
+    return `Horoscope reading: ${snippet}`
+}
+
+/**
+ * Builds a compact session context string from the full message history.
+ * Captures which features were used (tarot, horoscope) along with key details
+ * so the chat-decision classifier can route follow-up questions correctly.
+ */
+export function buildSessionContextSummary(
+    messages: SessionMessageShape[],
+): string {
+    const parts: string[] = []
+
+    const userQuestions: string[] = []
+    const readings: string[] = []
+
+    for (const msg of messages) {
+        if (isNoiseMessage(msg)) continue
+
+        if (msg.role === "user") {
+            userQuestions.push(shorten(cleanText(msg.text ?? ""), 80))
+        } else if (msg.role === "assistant") {
+            if (msg.variant === "box" && msg.text?.trim()) {
+                readings.push(summarizeTarotReading(msg))
+            } else if (msg.variant === "horoscope" && msg.text?.trim()) {
+                readings.push(summarizeHoroscope(msg))
+            }
+        }
+    }
+
+    if (userQuestions.length > 0) {
+        const recent = userQuestions.slice(-3)
+        parts.push(`User asked: ${recent.join(" -> ")}`)
+    }
+
+    if (readings.length > 0) {
+        const recent = readings.slice(-2)
+        parts.push(recent.join(" | "))
+    }
+
+    if (parts.length === 0) return ""
+
+    const lastFeature =
+        readings.length > 0
+            ? readings[readings.length - 1].startsWith("Horoscope")
+                ? "horoscope"
+                : "tarot"
+            : "chat"
+
+    parts.push(`Last feature used: ${lastFeature}`)
+
+    return shorten(parts.join("\n"), MAX_SUMMARY)
+}

@@ -21,9 +21,15 @@ import {
     type AspectKeywordItem,
 } from "@/lib/astrology/transit-aspects"
 import { getDefaultAstrologySystem } from "@/lib/astrology/intake"
-import { buildConversationContextFromMessages } from "@/lib/astrology/question-context"
+import {
+    buildConversationContextFromMessages,
+    buildSessionContextSummary,
+} from "@/lib/astrology/question-context"
 import { chartDataToBirth, chartDataToTransit } from "@/lib/chart-data-to-birth"
-import { clearBirthFromStorage, loadBirthFromStorage } from "@/lib/birth-storage"
+import {
+    clearBirthFromStorage,
+    loadBirthFromStorage,
+} from "@/lib/birth-storage"
 import {
     loadAutoPickFromStorage,
     saveAutoPickToStorage,
@@ -704,22 +710,17 @@ export default function ChatSession({
             const m = prev.find((x) => x.id === lid)
             if (!m) return prev
 
-            const nextText =
-                interpretationObject.interpretation ?? m.text ?? ""
+            const nextText = interpretationObject.interpretation ?? m.text ?? ""
             const nextInsights = insights ?? m.insights
             const nextConclusion =
-                interpretationObject.conclusion?.trim() ??
-                m.followUpConclusion
+                interpretationObject.conclusion?.trim() ?? m.followUpConclusion
             const nextSuggestions = suggestions ?? m.followUpSuggestions
 
             const changed =
                 nextText !== m.text ||
                 !areStringArraysEqual(nextInsights, m.insights) ||
                 nextConclusion !== m.followUpConclusion ||
-                !areStringArraysEqual(
-                    nextSuggestions,
-                    m.followUpSuggestions,
-                )
+                !areStringArraysEqual(nextSuggestions, m.followUpSuggestions)
             if (!changed) return prev
 
             return prev.map((mm) =>
@@ -771,23 +772,16 @@ export default function ChatSession({
                       streamedAspectInsights,
                   )
                 : m.personalizedTransitAspectsMerged
-            const nextConclusion =
-                streamedConclusion ?? m.followUpConclusion
+            const nextConclusion = streamedConclusion ?? m.followUpConclusion
             const nextSuggestions = suggestions ?? m.followUpSuggestions
 
             const changed =
                 nextText !== m.text ||
-                !areAspectInsightsEqual(
-                    nextAspectInsights,
-                    m.aspectInsights,
-                ) ||
+                !areAspectInsightsEqual(nextAspectInsights, m.aspectInsights) ||
                 nextPersonalizedTransitAspectsMerged !==
                     m.personalizedTransitAspectsMerged ||
                 nextConclusion !== m.followUpConclusion ||
-                !areStringArraysEqual(
-                    nextSuggestions,
-                    m.followUpSuggestions,
-                )
+                !areStringArraysEqual(nextSuggestions, m.followUpSuggestions)
             if (!changed) return prev
 
             const nextMessage = {
@@ -799,9 +793,7 @@ export default function ChatSession({
                 followUpConclusion: nextConclusion,
                 followUpSuggestions: nextSuggestions,
             }
-            return prev.map((mm) =>
-                mm.id === targetId ? nextMessage : mm,
-            )
+            return prev.map((mm) => (mm.id === targetId ? nextMessage : mm))
         })
     }, [horoscopeObject])
 
@@ -859,7 +851,10 @@ export default function ChatSession({
                 m.id === targetId
                     ? {
                           ...m,
-                          text: interpretationObject?.interpretation ?? m.text ?? "",
+                          text:
+                              interpretationObject?.interpretation ??
+                              m.text ??
+                              "",
                           insights: insights ?? m.insights,
                           followUpConclusion:
                               interpretationObject?.conclusion?.trim() ??
@@ -892,8 +887,10 @@ export default function ChatSession({
         const streamedAspectInsights = normalizeAspectInsights(
             horoscopeObject?.aspectInsights,
         )
-        const streamedInterpretation = horoscopeObject?.interpretation ?? undefined
-        const streamedConclusion = horoscopeObject?.conclusion?.trim() ?? undefined
+        const streamedInterpretation =
+            horoscopeObject?.interpretation ?? undefined
+        const streamedConclusion =
+            horoscopeObject?.conclusion?.trim() ?? undefined
 
         setMessages((prev) =>
             prev.map((m) => {
@@ -2052,6 +2049,7 @@ export default function ChatSession({
                     role: m.role,
                     text: m.text,
                 }))
+            const contextSummary = buildSessionContextSummary(messages)
             const modeForApi =
                 interpretationMode !== "auto" ? interpretationMode : undefined
             const response = await fetch("/api/chat", {
@@ -2062,9 +2060,12 @@ export default function ChatSession({
                     history,
                     savedBirthInfo: savedBirthInfo ?? undefined,
                     interpretationMode: modeForApi,
+                    contextSummary: contextSummary || undefined,
                 }),
                 signal: abortControllerRef.current.signal,
             })
+
+            console.log(contextSummary)
 
             if (!response.ok || !response.body) {
                 throw new Error("Failed to consult")
