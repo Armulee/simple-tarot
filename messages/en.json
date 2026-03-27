@@ -1281,7 +1281,9 @@
       "swords": "Swords",
       "wands": "Wands",
       "pentacles": "Pentacles",
-      "manualSelected": "{selected} of {total} selected"
+      "manualSelected": "{selected} of {total} selected",
+      "upright": "Upright",
+      "reversedTab": "Reversed"
     },
     "editQuestion": {
       "title": "Edit Your Question",

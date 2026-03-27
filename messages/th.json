@@ -1294,7 +1294,9 @@
       "swords": "ดาบ",
       "wands": "ไม้เท้า",
       "pentacles": "เหรียญ",
-      "manualSelected": "{selected} จาก {total} ที่เลือกแล้ว"
+      "manualSelected": "{selected} จาก {total} ที่เลือกแล้ว",
+      "upright": "หน้าตั้ง",
+      "reversedTab": "กลับหัว"
     },
     "editQuestion": {
       "title": "แก้ไขคำถามของคุณ",
