@@ -1,8 +1,16 @@
 "use client"
 
-import { RotateCw, Sparkles, Star } from "lucide-react"
+import { useState } from "react"
+import { RotateCw, Sparkles, Star, MoreVertical, Hand } from "lucide-react"
 import type { RefObject } from "react"
+import { useTranslations } from "next-intl"
 import { LinearCardSpread } from "@/components/tarot/card-selection/linear-card-spread"
+import { ManualCardSelectionDialog } from "@/components/tarot/card-selection/manual-card-selection-dialog"
+import {
+    Popover,
+    PopoverTrigger,
+    PopoverContent,
+} from "@/components/ui/popover"
 import type { CardUiText } from "./types"
 
 type DrawCardSectionProps = {
@@ -34,6 +42,10 @@ export default function DrawCardSection({
     onProvideSelectByIndices,
     containerRef,
 }: DrawCardSectionProps) {
+    const t = useTranslations("ReadingPage.chooseCards")
+    const [manualDialogOpen, setManualDialogOpen] = useState(false)
+    const [popoverOpen, setPopoverOpen] = useState(false)
+
     return (
         <div
             ref={containerRef}
@@ -71,6 +83,34 @@ export default function DrawCardSection({
                         <Sparkles className='w-3.5 h-3.5' />
                         {cardUi.pick}
                     </button>
+
+                    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                        <PopoverTrigger asChild>
+                            <button
+                                type='button'
+                                className='flex items-center justify-center w-8 h-8 rounded-full border border-white/10 text-white/80 hover:text-white hover:border-white/30 transition-colors'
+                                aria-label={t("options")}
+                            >
+                                <MoreVertical className='w-4 h-4' />
+                            </button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                            align='end'
+                            className='w-56 bg-[#1a0b2e] border-purple-500/20 p-1'
+                        >
+                            <button
+                                type='button'
+                                className='flex items-center gap-3 w-full rounded-lg px-3 py-2.5 text-sm text-white/90 hover:bg-white/10 transition-colors text-left'
+                                onClick={() => {
+                                    setPopoverOpen(false)
+                                    setManualDialogOpen(true)
+                                }}
+                            >
+                                <Hand className='w-4 h-4 text-purple-300' />
+                                {t("manualSelect")}
+                            </button>
+                        </PopoverContent>
+                    </Popover>
                 </div>
             </div>
             <LinearCardSpread
@@ -81,6 +121,13 @@ export default function DrawCardSection({
                 onProvideRandomPick={(fn) => onProvideRandomPick(fn)}
                 onProvideSelectByIndices={(fn) => onProvideSelectByIndices(fn)}
                 swipeLabel={cardUi.swipe}
+            />
+
+            <ManualCardSelectionDialog
+                open={manualDialogOpen}
+                onOpenChange={setManualDialogOpen}
+                cardsToSelect={cardsToSelect}
+                onCardsSelected={onCardsSelected}
             />
         </div>
     )

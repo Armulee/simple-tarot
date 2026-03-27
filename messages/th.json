@@ -1283,7 +1283,18 @@
       "confirm": "ยืนยันการเลือก ({selected}/{total})",
       "shuffle": "สับไพ่",
       "consumeStar": "การจั่วไพ่จะใช้ดวงดาว 1 ดวง",
-      "random": "เลือกให้หน่อย"
+      "random": "เลือกให้หน่อย",
+      "options": "ตัวเลือก",
+      "manualSelect": "เลือกไพ่ด้วยตนเอง",
+      "manualSelectTitle": "เลือกไพ่ของคุณ",
+      "manualSelectDesc": "เลือก {count} ใบจากสำรับไพ่ทั้งหมด",
+      "majorArcana": "เมเจอร์ อาร์คานา",
+      "minorArcana": "ไมเนอร์ อาร์คานา",
+      "cups": "ถ้วย",
+      "swords": "ดาบ",
+      "wands": "ไม้เท้า",
+      "pentacles": "เหรียญ",
+      "manualSelected": "{selected} จาก {total} ที่เลือกแล้ว"
     },
     "editQuestion": {
       "title": "แก้ไขคำถามของคุณ",

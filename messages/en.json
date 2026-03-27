@@ -1270,7 +1270,18 @@
       "confirm": "Confirm Selection ({selected}/{total})",
       "shuffle": "Shuffle",
       "consumeStar": "Starting the interpretation will consume 1 star.",
-      "random": "Pick For Me"
+      "random": "Pick For Me",
+      "options": "Options",
+      "manualSelect": "Manually Select Card",
+      "manualSelectTitle": "Choose Your Cards",
+      "manualSelectDesc": "Select {count} {count, plural, one {card} other {cards}} from the full deck",
+      "majorArcana": "Major Arcana",
+      "minorArcana": "Minor Arcana",
+      "cups": "Cups",
+      "swords": "Swords",
+      "wands": "Wands",
+      "pentacles": "Pentacles",
+      "manualSelected": "{selected} of {total} selected"
     },
     "editQuestion": {
       "title": "Edit Your Question",
