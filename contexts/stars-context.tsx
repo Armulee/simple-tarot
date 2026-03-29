@@ -58,7 +58,7 @@ interface StarsContextType {
 }
 
 const StarsContext = createContext<StarsContextType | undefined>(undefined)
-const DEFAULT_STARS = 5
+const DEFAULT_STARS = 3
 const REFILL_INTERVAL_MS_AUTH = 2 * 60 * 60 * 1000 // 2 hours for logged-in users
 
 export function StarsProvider({ children }: { children: ReactNode }) {
@@ -88,7 +88,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     const { subscription, refresh: refreshSubscription } =
         useActiveSubscription()
 
-    const refillCap = user ? 12 : 5
+    const refillCap = user ? 6 : 3
 
     const stars = useMemo(() => {
         if (dailyStars === null && planStars === null && addonStars === null) {
@@ -236,8 +236,8 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             const detail = (e as CustomEvent<CookieConsentChangedDetail>)
                 ?.detail
             if (detail?.choice === "accepted") {
-                // Immediately show 5 locally, then reconcile from server
-                setDailyStars(5)
+                // Immediately show 3 locally, then reconcile from server
+                setDailyStars(3)
                 setPlanStars(0)
                 setAddonStars(0)
                 setEngagementStarsCurrent(0)

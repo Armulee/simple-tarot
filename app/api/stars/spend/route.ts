@@ -129,7 +129,7 @@ export async function POST(req: Request) {
                 })
             }
 
-            if (dailyStars >= 12 && nextDaily < 12) {
+            if (dailyStars >= 6 && nextDaily < 6) {
                 dailyLastRefillAt = new Date().toISOString()
             }
 

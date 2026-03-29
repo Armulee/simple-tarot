@@ -184,7 +184,7 @@ export default function StarsBalance() {
                                         </p>
                                         <p className='text-xs text-gray-400'>
                                             Sign in to increase your maximum
-                                            stars from 5 to 12.
+                                            stars from 3 to 6.
                                         </p>
                                     </div>
                                 </div>

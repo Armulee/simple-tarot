@@ -158,8 +158,8 @@ export async function starSet(user: User, balance: number): Promise<StarState> {
     if (!res.ok) throw new Error(json.error || "STAR_SET_FAILED")
     const row = json.data?.[0]
     return {
-        currentStars: row?.current_stars ?? 5,
-        dailyStars: row?.daily_stars ?? 5,
+        currentStars: row?.current_stars ?? 6,
+        dailyStars: row?.daily_stars ?? 6,
         planStars: row?.plan_stars ?? 0,
         addonStars: row?.addon_stars ?? 0,
         engagementStarsCurrent: Number(row?.engagement_stars_current ?? 0),
