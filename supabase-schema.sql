@@ -63,9 +63,9 @@ create table if not exists public.stars (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade,
   anon_device_id text,
-  current_stars integer not null default 5 check (current_stars >= 0),
+  current_stars integer not null default 3 check (current_stars >= 0),
   last_refill_at timestamptz not null default now(),
-  daily_stars integer not null default 5,
+  daily_stars integer not null default 3,
   daily_last_refill_at timestamptz not null default now(),
   plan_stars integer not null default 0,
   plan_last_refill_at timestamptz,
@@ -152,7 +152,7 @@ begin
 end;
 $$ language plpgsql immutable;
 
--- Get/create and normalize state. On first login, create a new user row with default 12 daily stars.
+-- Get/create and normalize state. On first login, create a new user row with default 6 daily stars.
 create or replace function public.star_get_or_create(
   p_anon_device_id text,
   p_user_id uuid default null
@@ -175,7 +175,7 @@ create or replace function public.star_get_or_create(
 ) as $$
 declare
   v_state public.stars%rowtype;
-  v_cap integer := case when p_user_id is null then 5 else 12 end;
+  v_cap integer := case when p_user_id is null then 3 else 6 end;
   v_now timestamptz := now();
   v_new_current integer;
   v_new_last timestamptz;
@@ -220,7 +220,7 @@ begin
             first_time_login_grant,
             updated_at
           )
-          values (p_user_id, 12, v_now, 0, 0, 12, v_now, true, true, v_now)
+          values (p_user_id, 6, v_now, 0, 0, 6, v_now, true, true, v_now)
           returning * into v_state;
         else
           insert into public.stars (
@@ -235,7 +235,7 @@ begin
             first_time_login_grant,
             updated_at
           )
-          values (p_user_id, 12, v_now, 0, 0, 12, v_now, true, true, v_now)
+          values (p_user_id, 6, v_now, 0, 0, 6, v_now, true, true, v_now)
           returning * into v_state;
         end if;
       else
@@ -251,7 +251,7 @@ begin
           first_time_login_grant,
           updated_at
         )
-        values (p_user_id, 12, v_now, 0, 0, 12, v_now, true, true, v_now)
+        values (p_user_id, 6, v_now, 0, 0, 6, v_now, true, true, v_now)
         returning * into v_state;
       end if;
     end if;
@@ -274,16 +274,16 @@ begin
     select * into v_state from public.stars s where s.anon_device_id = p_anon_device_id;
     if not found then
       insert into public.stars (anon_device_id, daily_stars, daily_last_refill_at, current_stars, last_refill_at)
-           values (p_anon_device_id, 5, v_now, 5, v_now)
+           values (p_anon_device_id, 3, v_now, 3, v_now)
       returning * into v_state;
     end if;
 
     if (v_state.daily_last_refill_at at time zone 'Asia/Bangkok')::date < (v_now at time zone 'Asia/Bangkok')::date then
       update public.stars s
-         set daily_stars = 5,
+         set daily_stars = 3,
              daily_last_refill_at = v_now,
              last_refill_at = v_now,
-             current_stars = 5,
+             current_stars = 3,
              updated_at = v_now
        where s.id = v_state.id
        returning * into v_state;
@@ -326,7 +326,7 @@ create or replace function public.star_spend(
 ) as $$
 declare
   v_row public.stars%rowtype;
-  v_cap integer := case when p_user_id is null then 5 else 12 end;
+  v_cap integer := case when p_user_id is null then 3 else 6 end;
   v_now timestamptz := now();
   v_new_daily integer;
   v_new_last timestamptz;
@@ -345,7 +345,7 @@ begin
       from public._star_apply_refill(v_row.daily_stars, v_row.daily_last_refill_at, v_now, v_cap, 2);
   else
     if (v_row.daily_last_refill_at at time zone 'Asia/Bangkok')::date < (v_now at time zone 'Asia/Bangkok')::date then
-      v_new_daily := 5;
+      v_new_daily := 3;
       v_new_last := v_now;
     end if;
   end if;
@@ -517,7 +517,7 @@ create policy "Users can view own subscriptions" on public.billing_subscriptions
 
 -- Insert/update policies are intentionally omitted; use service role via server routes
 
--- Set stars to an absolute balance (authenticated users only). This enables pack purchases to exceed 12.
+-- Set stars to an absolute balance (authenticated users only). This enables pack purchases to exceed 6.
 drop function if exists public.star_set(text, integer, uuid);
 create or replace function public.star_set(
   p_anon_device_id text,
@@ -545,7 +545,7 @@ begin
   end if;
 
   select * from public.star_get_or_create(p_anon_device_id, p_user_id) into v_row;
-  v_daily := least(12, v_target);
+  v_daily := least(6, v_target);
   v_plan := greatest(0, v_target - v_daily);
   v_addon := 0;
 

@@ -2,7 +2,7 @@
 -- Anonymous users spend from anon_stars only, reset at midnight Asia/Bangkok (UTC+7).
 
 alter table public.stars
-    add column if not exists anon_stars integer not null default 5,
+    add column if not exists anon_stars integer not null default 3,
     add column if not exists anon_last_refill_at timestamptz;
 
 update public.stars
@@ -10,7 +10,7 @@ set
     anon_stars = case
         when user_id is null then greatest(
             0,
-            coalesce(anon_stars, daily_stars, current_stars, 5)
+            coalesce(anon_stars, daily_stars, current_stars, 3)
         )
         else 0
     end,
@@ -22,12 +22,12 @@ set
     ),
     daily_stars = case
         when user_id is null then coalesce(daily_stars, 0)
-        else coalesce(daily_stars, 12)
+        else coalesce(daily_stars, 6)
     end,
     current_stars = case
         when user_id is null then greatest(
             0,
-            coalesce(anon_stars, daily_stars, current_stars, 5)
+            coalesce(anon_stars, daily_stars, current_stars, 3)
         )
         else greatest(0, coalesce(daily_stars, 0))
             + greatest(0, coalesce(plan_stars, 0))
@@ -60,7 +60,7 @@ create or replace function public.star_get_or_create(
 ) as $$
 declare
     v_state public.stars%rowtype;
-    v_cap integer := 12;
+    v_cap integer := 6;
     v_now timestamptz := now();
     v_new_daily integer;
     v_new_last timestamptz;
@@ -86,7 +86,7 @@ begin
                 first_time_login_grant,
                 updated_at
             )
-            values (p_user_id, 0, null, 12, v_now, 0, 0, 12, v_now, true, true, v_now)
+            values (p_user_id, 0, null, 6, v_now, 0, 0, 6, v_now, true, true, v_now)
             returning * into v_state;
         end if;
 
@@ -133,16 +133,16 @@ begin
                 last_refill_at,
                 updated_at
             )
-            values (p_anon_device_id, 5, v_now, 0, 0, 0, 5, v_now, v_now)
+            values (p_anon_device_id, 3, v_now, 0, 0, 0, 3, v_now, v_now)
             returning * into v_state;
         end if;
 
         if (coalesce(v_state.anon_last_refill_at, v_state.last_refill_at, v_now) at time zone 'Asia/Bangkok')::date
            < (v_now at time zone 'Asia/Bangkok')::date then
             update public.stars s
-            set anon_stars = 5,
+            set anon_stars = 3,
                 anon_last_refill_at = v_now,
-                current_stars = 5,
+                current_stars = 3,
                 last_refill_at = v_now,
                 updated_at = v_now
             where s.id = v_state.id
@@ -305,11 +305,11 @@ begin
         plan_stars = v_plan,
         addon_stars = v_addon,
         daily_last_refill_at = case
-            when coalesce(v_state.daily_stars, 0) >= 12 and v_daily < 12 then v_now
+            when coalesce(v_state.daily_stars, 0) >= 6 and v_daily < 6 then v_now
             else v_state.daily_last_refill_at
         end,
         last_refill_at = case
-            when coalesce(v_state.daily_stars, 0) >= 12 and v_daily < 12 then v_now
+            when coalesce(v_state.daily_stars, 0) >= 6 and v_daily < 6 then v_now
             else v_state.last_refill_at
         end,
         current_stars = v_daily + v_plan + v_addon,
@@ -368,8 +368,8 @@ begin
         returning * into v_state;
     else
         update public.stars s
-        set daily_stars = least(12, greatest(0, coalesce(s.daily_stars, 0)) + v_delta),
-            current_stars = least(12, greatest(0, coalesce(s.daily_stars, 0)) + v_delta)
+        set daily_stars = least(6, greatest(0, coalesce(s.daily_stars, 0)) + v_delta),
+            current_stars = least(6, greatest(0, coalesce(s.daily_stars, 0)) + v_delta)
                 + greatest(0, coalesce(s.plan_stars, 0))
                 + greatest(0, coalesce(s.addon_stars, 0)),
             updated_at = v_now

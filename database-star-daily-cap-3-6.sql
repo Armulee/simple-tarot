@@ -1,53 +1,73 @@
--- Migration: split daily/plan/add-on star balances
--- Adds daily/plan/addon columns and replaces star functions.
+-- Migration: reduce free daily star caps — anonymous 5→3, authenticated 12→6.
+-- Run after deploying app code that expects the new caps. Recreates star RPCs from supabase-schema.sql.
 
-alter table public.stars
-    add column if not exists daily_stars integer not null default 3,
-    add column if not exists daily_last_refill_at timestamptz not null default now(),
-    add column if not exists plan_stars integer not null default 0,
-    add column if not exists plan_last_refill_at timestamptz,
-    add column if not exists addon_stars integer not null default 0,
-    add column if not exists addon_last_refill_at timestamptz,
-    add column if not exists engagement_stars_current integer not null default 0,
-    add column if not exists engagement_stars_total integer not null default 0;
+-- Column defaults for new rows (existing DBs may still have old defaults)
+alter table public.stars alter column daily_stars set default 3;
+alter table public.stars alter column current_stars set default 3;
 
--- Backfill balances by splitting current_stars into daily + plan
-update public.stars
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'stars' and column_name = 'anon_stars'
+  ) then
+    execute 'alter table public.stars alter column anon_stars set default 3';
+  end if;
+end $$;
+
+-- Clamp existing balances to new caps (preserve plan/add-on pools)
+update public.stars s
 set
-    daily_stars = case
-        when user_id is null then least(current_stars, 3)
-        else least(current_stars, 6)
-    end,
-    plan_stars = greatest(
-        0,
-        current_stars - case
-            when user_id is null then least(current_stars, 3)
-            else least(current_stars, 6)
-        end
-    ),
-    addon_stars = coalesce(addon_stars, 0),
-    engagement_stars_current = coalesce(engagement_stars_current, 0),
-    engagement_stars_total = coalesce(engagement_stars_total, 0),
-    daily_last_refill_at = coalesce(daily_last_refill_at, last_refill_at, now()),
-    plan_last_refill_at = coalesce(plan_last_refill_at, last_refill_at),
-    addon_last_refill_at = coalesce(addon_last_refill_at, last_refill_at),
-    current_stars = (
-        case
-            when user_id is null then least(current_stars, 3)
-            else least(current_stars, 6)
-        end
-    ) + greatest(
-        0,
-        current_stars - case
-            when user_id is null then least(current_stars, 3)
-            else least(current_stars, 6)
-        end
-    ) + coalesce(addon_stars, 0);
+  daily_stars = v.new_daily,
+  current_stars = v.new_daily + coalesce(s.plan_stars, 0) + coalesce(s.addon_stars, 0)
+from (
+  select id, least(daily_stars, 6) as new_daily
+  from public.stars
+  where user_id is not null
+) v
+where s.id = v.id
+  and s.daily_stars > 6;
+
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'stars' and column_name = 'anon_stars'
+  ) then
+    -- Legacy anon_stars bucket: balance may live in anon_stars while daily_stars is 0.
+    -- Align both to the same capped primary pool so new RPCs (daily_stars only) stay correct.
+    update public.stars s
+    set
+      anon_stars = v.p,
+      daily_stars = v.p,
+      current_stars = v.p + coalesce(s.plan_stars, 0) + coalesce(s.addon_stars, 0)
+    from (
+      select
+        id,
+        least(greatest(0, coalesce(anon_stars, daily_stars, 0)), 3) as p
+      from public.stars
+      where user_id is null
+    ) v
+    where s.id = v.id
+      and greatest(0, coalesce(s.anon_stars, s.daily_stars, 0)) <> v.p;
+  else
+    update public.stars s
+    set
+      daily_stars = v.new_daily,
+      current_stars = v.new_daily + coalesce(s.plan_stars, 0) + coalesce(s.addon_stars, 0)
+    from (
+      select id, least(coalesce(daily_stars, 0), 3) as new_daily
+      from public.stars
+      where user_id is null
+    ) v
+    where s.id = v.id
+      and coalesce(s.daily_stars, 0) > 3;
+  end if;
+end $$;
 
 drop function if exists public.star_spend(text, integer, uuid);
 drop function if exists public.star_add(text, integer, uuid);
 drop function if exists public.star_get_or_create(text, uuid);
-drop function if exists public.star_set(text, integer, uuid);
 
 create or replace function public._star_apply_refill(
   p_current integer,
@@ -377,6 +397,11 @@ begin
 end;
 $$ language plpgsql security definer set search_path = public;
 
+grant execute on function public.star_get_or_create(text, uuid) to anon, authenticated;
+grant execute on function public.star_spend(text, integer, uuid) to anon, authenticated;
+grant execute on function public.star_add(text, integer, uuid) to anon, authenticated;
+
+drop function if exists public.star_set(text, integer, uuid);
 create or replace function public.star_set(
   p_anon_device_id text,
   p_new_balance integer,
@@ -443,7 +468,4 @@ begin
 end;
 $$ language plpgsql security definer set search_path = public;
 
-grant execute on function public.star_get_or_create(text, uuid) to anon, authenticated;
-grant execute on function public.star_spend(text, integer, uuid) to anon, authenticated;
-grant execute on function public.star_add(text, integer, uuid) to anon, authenticated;
 grant execute on function public.star_set(text, integer, uuid) to authenticated;
