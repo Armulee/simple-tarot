@@ -4,7 +4,6 @@ import { useEffect, useState, useMemo, useRef } from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
-import { useStarConsent } from "@/components/star-consent"
 import { LoopingTypewriterText } from "@/components/home/looping-typewriter-text"
 import QuestionInput from "@/components/question-input"
 import Footer from "@/components/footer/footer"
@@ -36,8 +35,6 @@ export default function Home() {
     const locale = useLocale()
     const router = useRouter()
     const { user } = useAuth()
-    const { choice, show } = useStarConsent()
-
     const [question, setQuestion] = useState("")
     const [isLinking, setIsLinking] = useState(false)
     const [linkingQuestion, setLinkingQuestion] = useState<string | null>(null)
@@ -155,10 +152,6 @@ export default function Home() {
     const createSessionAndRedirect = async (value: string) => {
         const trimmed = value.trim()
         if (!trimmed || isLinking) return
-        if (choice === null || choice === "declined") {
-            show()
-            return
-        }
         linkingRequestIdRef.current += 1
         const requestId = linkingRequestIdRef.current
         const pendingSessionId = createPendingSessionId()

@@ -11,14 +11,10 @@
     "notice": "We're in beta! You may encounter bugs and some features are still in development."
   },
   "StarConsent": {
-    "title": "Introducing Star Currency",
-    "description": "Stars let you reveal AI interpretations and unlock features. We use cookies to remember your preferences. Please note that AI interpretations are for entertainment purposes only and may be inaccurate; their value depends on your personal interpretation. We are not responsible for any actions taken based on these interpretations.",
-    "privacyPrefix": "Read our ",
-    "privacyLink": "Privacy Policy",
-    "termsConnector": " and ",
-    "termsLink": "Terms of Service",
-    "decline": "Decline",
-    "accept": "Accept"
+    "noticeHeading": "Notice",
+    "noticeBody": "This experience provides tarot-based guidance for self-reflection and entertainment purposes. It may not align with certain religious beliefs and is not a substitute for medical, financial, or legal advice.",
+    "checkboxLabel": "I understand and wish to continue",
+    "continue": "Continue"
   },
   "Admin": {
     "title": "Admin Dashboard",

@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react"
 import { Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useStars } from "@/contexts/stars-context"
-import { useStarConsent } from "@/components/star-consent"
 
 const SPARKLE_COUNT = 6
 const ANIMATION_DURATION_MS = 850
@@ -35,7 +34,6 @@ function generateSparkles(): SparkleStyle[] {
 
 export function StarPill({ size }: { size: "sm" | "md" }) {
     const { stars, initialized, spendTrigger, lastSpendAmount } = useStars()
-    const { choice, show } = useStarConsent()
     const prevTriggerRef = useRef(spendTrigger)
     const [animating, setAnimating] = useState(false)
     const [displayAmount, setDisplayAmount] = useState(0)
@@ -62,12 +60,6 @@ export function StarPill({ size }: { size: "sm" | "md" }) {
                 className={`relative overflow-visible rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 text-yellow-300 border border-yellow-500/30 flex items-center ${
                     isMd ? "h-10 px-3 gap-2" : "h-9 px-2 gap-1"
                 } ${animating ? "star-spend-glow" : ""}`}
-                onClick={(e) => {
-                    if (choice === null || choice === "declined") {
-                        e.preventDefault()
-                        show()
-                    }
-                }}
             >
                 {/* Sparkle particles */}
                 {animating &&

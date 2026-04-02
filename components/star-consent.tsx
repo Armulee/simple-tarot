@@ -15,7 +15,7 @@ import {
     DialogTitle,
     DialogDescription,
 } from "@/components/ui/dialog"
-import Link from "next/link"
+import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import { Sparkle } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -29,7 +29,6 @@ type StarConsentContextType = {
     open: boolean
     show: () => void
     accept: () => void
-    decline: () => void
 }
 
 const StarConsentContext = createContext<StarConsentContextType | undefined>(
@@ -52,14 +51,29 @@ export function StarConsentProvider({
 }) {
     const [open, setOpen] = useState(false)
     const [choice, setChoice] = useState<ConsentChoice>(null)
+    const [understood, setUnderstood] = useState(false)
 
     useEffect(() => {
         if (typeof window === "undefined") return
         try {
             const saved = window.localStorage.getItem(CONSENT_KEY)
-            if (saved === "accepted" || saved === "declined") setChoice(saved)
-        } catch {}
+            if (saved === "accepted") {
+                setChoice("accepted")
+                setOpen(false)
+            } else {
+                if (saved === "declined") setChoice("declined")
+                else setChoice(null)
+                setOpen(true)
+            }
+        } catch {
+            setChoice(null)
+            setOpen(true)
+        }
     }, [])
+
+    useEffect(() => {
+        if (open) setUnderstood(false)
+    }, [open])
 
     useEffect(() => {
         // Force a re-render/event dispatch on the next tick to ensure listeners are ready
@@ -78,9 +92,12 @@ export function StarConsentProvider({
                 )
             }
         }, 100)
-        
+
         return () => clearTimeout(timer)
     }, [open])
+
+    const consentPending =
+        choice === null || choice === "declined"
 
     const show = useCallback(() => {
         setOpen(true)
@@ -90,13 +107,12 @@ export function StarConsentProvider({
         try {
             window.localStorage.setItem(CONSENT_KEY, "accepted")
         } catch {}
-        // Ask server to generate DID HttpOnly cookie
         try {
             await fetch("/api/device/init", { method: "POST" })
         } catch {}
         setChoice("accepted")
         setOpen(false)
-        // Emit a custom event for listeners (e.g., stars-context) to initialize
+        setUnderstood(false)
         if (typeof window !== "undefined") {
             window.dispatchEvent(
                 new CustomEvent("cookie-consent-changed", {
@@ -106,70 +122,61 @@ export function StarConsentProvider({
         }
     }, [])
 
-    const decline = useCallback(() => {
-        try {
-            window.localStorage.setItem(CONSENT_KEY, "declined")
-        } catch {}
-        setChoice("declined")
-        setOpen(false)
-        if (typeof window !== "undefined") {
-            window.dispatchEvent(
-                new CustomEvent("cookie-consent-changed", {
-                    detail: { choice: "declined" },
-                })
-            )
-        }
-    }, [])
-
     const value = useMemo<StarConsentContextType>(
-        () => ({ choice, open, show, accept, decline }),
-        [choice, open, show, accept, decline]
+        () => ({ choice, open, show, accept }),
+        [choice, open, show, accept]
     )
 
-    const t = useTranslations()
+    const t = useTranslations("StarConsent")
+
+    const handleDialogOpenChange = (next: boolean) => {
+        if (!next && consentPending) return
+        setOpen(next)
+    }
 
     return (
         <StarConsentContext.Provider value={value}>
             {children}
-            <Dialog open={open} onOpenChange={setOpen}>
-                <StarsDialog className='fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 relative overflow-hidden'>
+            <Dialog open={open} onOpenChange={handleDialogOpenChange}>
+                <StarsDialog
+                    hideCloseButton
+                    className='relative overflow-hidden'
+                    onInteractOutside={(e) => {
+                        if (consentPending) e.preventDefault()
+                    }}
+                    onEscapeKeyDown={(e) => {
+                        if (consentPending) e.preventDefault()
+                    }}
+                >
                     <DialogHeader>
                         <DialogTitle className='text-yellow-300 font-serif text-xl'>
-                            {t("StarConsent.title")}
+                            {t("noticeHeading")}
                         </DialogTitle>
-                        <DialogDescription className='text-white/85'>
-                            {t("StarConsent.description")}
+                        <DialogDescription asChild>
+                            <p className='text-white/85 text-sm leading-relaxed'>
+                                {t("noticeBody")}
+                            </p>
                         </DialogDescription>
                     </DialogHeader>
-                    <div className='text-xs text-white/70 mb-3'>
-                        {t("StarConsent.privacyPrefix")}
-                        <Link
-                            href='/privacy-policy'
-                            className='underline text-yellow-300 hover:text-yellow-200'
-                        >
-                            {t("StarConsent.privacyLink")}
-                        </Link>
-                        {t("StarConsent.termsConnector")}
-                        <Link
-                            href='/terms-of-service'
-                            className='underline text-yellow-300 hover:text-yellow-200'
-                        >
-                            {t("StarConsent.termsLink")}
-                        </Link>
-                        .
-                    </div>
-                    <div className='flex gap-3 justify-end'>
+                    <label className='mt-5 flex cursor-pointer items-start gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-3 text-left text-sm text-white/90'>
+                        <Checkbox
+                            checked={understood}
+                            onCheckedChange={(v) =>
+                                setUnderstood(v === true)
+                            }
+                            className='mt-0.5 border-white/30 data-[state=checked]:bg-yellow-400 data-[state=checked]:text-black data-[state=checked]:border-yellow-400'
+                            aria-label={t("checkboxLabel")}
+                        />
+                        <span>{t("checkboxLabel")}</span>
+                    </label>
+                    <div className='mt-6 flex justify-end'>
                         <button
-                            onClick={decline}
-                            className='px-3 py-2 rounded-md border border-white/20 text-white hover:bg-white/10'
+                            type='button'
+                            disabled={!understood}
+                            onClick={() => void accept()}
+                            className='px-4 py-2 rounded-md bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.45)] disabled:opacity-40 disabled:pointer-events-none disabled:shadow-none'
                         >
-                            {t("StarConsent.decline")}
-                        </button>
-                        <button
-                            onClick={accept}
-                            className='px-3 py-2 rounded-md bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border border-yellow-500/40 hover:from-yellow-300 hover:to-yellow-500 shadow-[0_12px_30px_-10px_rgba(234,179,8,0.45)]'
-                        >
-                            {t("StarConsent.accept")}
+                            {t("continue")}
                         </button>
                     </div>
                 </StarsDialog>
@@ -181,16 +188,17 @@ export function StarConsentProvider({
 export function StarsDialog({
     children,
     className,
-}: {
-    children: React.ReactNode
-    className?: string
-}) {
+    hideCloseButton,
+    ...contentProps
+}: React.ComponentProps<typeof DialogContent>) {
     return (
         <DialogContent
+            hideCloseButton={hideCloseButton}
             className={cn(
                 "max-w-lg w-[92vw] border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(234,179,8,0.35)]",
                 className
             )}
+            {...contentProps}
         >
             {/* Beautiful ping orbs */}
             <Sparkle
