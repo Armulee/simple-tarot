@@ -16,6 +16,7 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Link } from "@/i18n/navigation"
 import { cn } from "@/lib/utils"
 import { Sparkle } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -158,6 +159,23 @@ export function StarConsentProvider({
                             </p>
                         </DialogDescription>
                     </DialogHeader>
+                    <p className='mt-4 text-xs text-white/70'>
+                        {t("privacyPrefix")}
+                        <Link
+                            href='/privacy-policy'
+                            className='underline text-yellow-300 hover:text-yellow-200'
+                        >
+                            {t("privacyLink")}
+                        </Link>
+                        {t("termsConnector")}
+                        <Link
+                            href='/terms-of-service'
+                            className='underline text-yellow-300 hover:text-yellow-200'
+                        >
+                            {t("termsLink")}
+                        </Link>
+                        .
+                    </p>
                     <label className='mt-5 flex cursor-pointer items-start gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-3 text-left text-sm text-white/90'>
                         <Checkbox
                             checked={understood}

@@ -13,6 +13,10 @@
   "StarConsent": {
     "noticeHeading": "Notice",
     "noticeBody": "This experience provides tarot-based guidance for self-reflection and entertainment purposes. It may not align with certain religious beliefs and is not a substitute for medical, financial, or legal advice.",
+    "privacyPrefix": "Read our ",
+    "privacyLink": "Privacy Policy",
+    "termsConnector": " and ",
+    "termsLink": "Terms of Service",
     "checkboxLabel": "I understand and wish to continue",
     "continue": "Continue"
   },
