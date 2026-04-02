@@ -23,13 +23,22 @@ function tsToMs(ts?: string | null): number | null {
     return Number.isFinite(ms) ? ms : null
 }
 
+/** Anonymous cap must match server `star_spend` / `star_get_or_create` (see supabase-schema). */
+const ANON_DAILY_CAP = 3
+
 function resolvePrimaryStars(
     user: User | null,
     row: Record<string, unknown> | undefined
 ): number {
-    const daily = Number(row?.daily_stars ?? 0)
-    const anon = Number(row?.anon_stars ?? daily)
-    return user ? daily : anon
+    const daily = Math.max(0, Number(row?.daily_stars ?? 0))
+    if (user) return daily
+    // Legacy DBs may still have balance in `anon_stars` while RPC spends only `daily_stars`.
+    const anonRaw = row?.anon_stars
+    const anon =
+        anonRaw === undefined || anonRaw === null
+            ? daily
+            : Math.max(0, Number(anonRaw))
+    return Math.min(ANON_DAILY_CAP, Math.max(daily, anon))
 }
 
 function resolvePrimaryLastRefill(

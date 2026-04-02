@@ -202,20 +202,50 @@ export async function POST(req: Request) {
         // This was causing double deduction
 
         if (error) {
+            console.error("[stars/spend] authenticated RPC error", {
+                message: error.message,
+                code: error.code,
+                user_id: userId,
+                amount,
+            })
             return NextResponse.json({ error: error.message }, { status: 400 })
+        }
+        const authRow = data?.[0] as { ok?: boolean; daily_stars?: number } | undefined
+        if (authRow && authRow.ok === false) {
+            console.warn("[stars/spend] authenticated spend rejected (ok:false)", {
+                user_id: userId,
+                amount,
+                daily_stars: authRow.daily_stars,
+            })
         }
         return NextResponse.json({ data })
     }
 
     // Anonymous: require DID
-    if (!did) return NextResponse.json({ error: "NO_DID" }, { status: 400 })
+    if (!did) {
+        console.warn("[stars/spend] NO_DID — device cookie missing or invalid")
+        return NextResponse.json({ error: "NO_DID" }, { status: 400 })
+    }
     const { data, error } = await supabase.rpc("star_spend", {
         p_anon_device_id: did,
         p_amount: amount,
         p_user_id: null,
     })
     if (error) {
+        console.error("[stars/spend] anonymous RPC error", {
+            message: error.message,
+            code: error.code,
+            amount,
+        })
         return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+    const spendRow = data?.[0] as { ok?: boolean; daily_stars?: number } | undefined
+    if (spendRow && spendRow.ok === false) {
+        console.warn("[stars/spend] anonymous spend rejected (ok:false)", {
+            amount,
+            daily_stars: spendRow.daily_stars,
+            hint: "Often daily_stars out of sync with legacy anon_stars — run database-star-anon-stars-spend-sync.sql",
+        })
     }
     return NextResponse.json({ data })
 }
