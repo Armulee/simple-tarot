@@ -139,22 +139,54 @@ drop function if exists public.star_spend(text, integer, uuid);
 drop function if exists public.star_add(text, integer, uuid);
 drop function if exists public.star_get_or_create(text, uuid);
 drop function if exists public._star_apply_refill(integer, timestamptz, timestamptz, integer, integer);
+drop function if exists public._star_bangkok_date_safe(timestamptz, timestamptz);
 drop function if exists public._star_coerce_refill_ts(timestamptz, timestamptz);
 
 -- Replace corrupt / unparseable refill timestamps (e.g. legacy "0") so AT TIME ZONE never throws 22008.
+-- Uses text first: some DBs store values that error as soon as they are passed as timestamptz to a function.
 create or replace function public._star_coerce_refill_ts(
   p_ts timestamptz,
   p_fallback timestamptz
 ) returns timestamptz as $$
+declare
+  v_txt text;
+  v_parsed timestamptz;
 begin
   if p_ts is null then
     return p_fallback;
   end if;
-  perform (p_ts at time zone 'Asia/Bangkok');
-  return p_ts;
+  v_txt := trim(both from p_ts::text);
+  if v_txt in ('0', '', '-infinity', 'infinity') then
+    return p_fallback;
+  end if;
+  begin
+    v_parsed := v_txt::timestamptz;
+  exception
+    when others then
+      return p_fallback;
+  end;
+  begin
+    perform (v_parsed at time zone 'Asia/Bangkok');
+    return v_parsed;
+  exception
+    when others then
+      return p_fallback;
+  end;
+end;
+$$ language plpgsql stable;
+
+-- Bangkok calendar date without leaking invalid ts through AT TIME ZONE on the caller side.
+create or replace function public._star_bangkok_date_safe(
+  p_ts timestamptz,
+  p_fallback timestamptz
+) returns date as $$
+declare
+  v_safe timestamptz := public._star_coerce_refill_ts(p_ts, p_fallback);
+begin
+  return (v_safe at time zone 'Asia/Bangkok')::date;
 exception
   when others then
-    return p_fallback;
+    return (p_fallback at time zone 'Asia/Bangkok')::date;
 end;
 $$ language plpgsql stable;
 
@@ -334,7 +366,7 @@ begin
        returning * into v_state;
     end if;
 
-    if (v_dl_safe at time zone 'Asia/Bangkok')::date < (v_now at time zone 'Asia/Bangkok')::date then
+    if public._star_bangkok_date_safe(v_dl_safe, v_now) < public._star_bangkok_date_safe(v_now, v_now) then
       update public.stars s
          set daily_stars = 3,
              daily_last_refill_at = v_now,
@@ -422,11 +454,15 @@ begin
   v_new_last := public._star_coerce_refill_ts(v_row.daily_last_refill_at, v_now);
 
   if p_user_id is not null then
-    select new_current, coalesce(new_last_refill, v_row.daily_last_refill_at)
+    select new_current,
+           public._star_coerce_refill_ts(
+             coalesce(new_last_refill, v_row.daily_last_refill_at),
+             v_now
+           )
       into v_new_daily, v_new_last
       from public._star_apply_refill(v_row.daily_stars, v_row.daily_last_refill_at, v_now, v_cap, 2);
   else
-    if (v_new_last at time zone 'Asia/Bangkok')::date < (v_now at time zone 'Asia/Bangkok')::date then
+    if public._star_bangkok_date_safe(v_new_last, v_now) < public._star_bangkok_date_safe(v_now, v_now) then
       v_new_daily := 3;
       v_new_last := v_now;
     end if;
@@ -551,6 +587,7 @@ $$ language plpgsql security definer set search_path = public;
 
 -- Grants
 grant execute on function public._star_coerce_refill_ts(timestamptz, timestamptz) to anon, authenticated;
+grant execute on function public._star_bangkok_date_safe(timestamptz, timestamptz) to anon, authenticated;
 grant execute on function public.star_get_or_create(text, uuid) to anon, authenticated;
 grant execute on function public.star_spend(text, integer, uuid) to anon, authenticated;
 grant execute on function public.star_add(text, integer, uuid) to anon, authenticated;
