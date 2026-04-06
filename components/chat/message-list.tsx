@@ -45,31 +45,11 @@ import {
 } from "lucide-react"
 
 function formatHoroscopeLoadingText(
-    birth: HoroscopeBirthData | null | undefined,
+    _birth: HoroscopeBirthData | null | undefined,
     dots: number,
     consultingBase: string,
 ): string {
-    if (!birth?.day || !birth?.month || !birth?.year) {
-        return `${consultingBase}${".".repeat(dots)}`
-    }
-    const date = new Date(birth.year, birth.month - 1, birth.day)
-    const dateStr = date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-    })
-    let suffix = ""
-    if (birth.hour != null && birth.minute != null) {
-        const h = birth.hour
-        const ampm = h >= 12 ? "PM" : "AM"
-        const displayHour = h % 12 || 12
-        suffix = `, ${displayHour}:${String(birth.minute).padStart(2, "0")} ${ampm}`
-    } else if (birth.timeHint === "day") {
-        suffix = " (daytime)"
-    } else if (birth.timeHint === "night") {
-        suffix = " (nighttime)"
-    }
-    return `${dateStr}${suffix}${".".repeat(dots)}`
+    return `${consultingBase}${".".repeat(dots)}`
 }
 
 function renderInlineBoldMarkdown(text: string): ReactNode[] {
@@ -293,6 +273,7 @@ type MessageListProps = {
         lng?: number
         timezone?: number
     } | null
+    isHoroscopeIntakeActive?: boolean
     isCheckingStars: boolean
     checkingStarsText: string
     showInsufficientStars: boolean
@@ -347,6 +328,7 @@ export default function MessageList({
     messageNotices,
     horoscopeBirth,
     currentLocationFallback,
+    isHoroscopeIntakeActive = false,
     isCheckingStars,
     checkingStarsText,
     showInsufficientStars,
@@ -1179,7 +1161,10 @@ export default function MessageList({
                                         )}
                                 </>
                             ) : /* Tool variant: inline birth/transit date form */
-                            message.variant === "tool" ? (
+                            message.variant === "tool" &&
+                              message.toolType ===
+                                  "user-date-form" ? null : message.variant ===
+                              "tool" ? (
                                 <InlineUserDateForm
                                     initial={
                                         message.toolBirthPrefill ||
@@ -1189,6 +1174,7 @@ export default function MessageList({
                                     onSubmit={onUserDateFormSubmit}
                                     title={birthFormTitle}
                                     submitLabel={birthFormSubmit}
+                                    variant='inlineSticky'
                                 />
                             ) : (
                                 /* Plain variant: simple assistant text (chat decision, bridge message) */
@@ -1363,7 +1349,7 @@ export default function MessageList({
                         </div>
                     )
                 })}
-                {consulting &&
+                {(consulting || isHoroscopeIntakeActive) &&
                     messages.length > 0 &&
                     !messages.some(
                         (m) => m.variant === "horoscope" && m.isLoading,
@@ -1372,7 +1358,13 @@ export default function MessageList({
                         (m) => m.variant === "plain" && m.isLoading,
                     ) && (
                         <div className='flex flex-col items-start gap-4'>
-                            <ConsultingBadge />
+                            <ConsultingBadge
+                                label={
+                                    isHoroscopeIntakeActive
+                                        ? "Please enter your birth date"
+                                        : consultingBase
+                                }
+                            />
                         </div>
                     )}
 
@@ -1397,7 +1389,9 @@ export default function MessageList({
                         className='flex flex-col items-start gap-4 animate-fade-in'
                     >
                         <div className='w-full md:max-w-[85%] text-white/90 space-y-4'>
-                            <InsufficientStarsBlock type={insufficientStarsType} />
+                            <InsufficientStarsBlock
+                                type={insufficientStarsType}
+                            />
                         </div>
                     </div>
                 )}

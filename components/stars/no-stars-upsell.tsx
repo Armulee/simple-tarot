@@ -12,10 +12,10 @@ import "swiper/css/free-mode"
 
 import { Checkout } from "@/components/checkout"
 import { useAuth } from "@/hooks/use-auth"
-import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
 import {
     STAR_PACKS,
     getPackPrice,
+    getPackPriceId,
 } from "@/lib/payments/star-products"
 import { formatCurrency } from "@/lib/payments/currency-utils"
 import { useStars } from "@/contexts/stars-context"
@@ -25,7 +25,7 @@ export default function NoStarsUpsell() {
     const { subscription } = useStars()
     const pathname = usePathname()
     const locale = useLocale()
-    const currency = usePreferredCurrency("USD")
+    const currency = locale === "th" ? "THB" : "USD"
 
     const packs = useMemo(() => {
         return STAR_PACKS.filter((p) => !!p.id)
@@ -64,18 +64,16 @@ export default function NoStarsUpsell() {
                                 className='w-full'
                             >
                                 {packs.map((p) => {
-                                    const price =
-                                        p.id != null
-                                            ? getPackPrice(p.id, currency)
-                                            : null
-                                    const priceLabel =
-                                        price != null
-                                            ? formatCurrency(
-                                                  price,
-                                                  currency,
-                                                  locale
-                                              )
-                                            : null
+                                    const price = getPackPrice(p, currency)
+                                    const priceLabel = formatCurrency(
+                                        price,
+                                        currency,
+                                        locale
+                                    )
+                                    const stripePackId = getPackPriceId(
+                                        p,
+                                        currency
+                                    )
 
                                     return (
                                         <SwiperSlide
@@ -84,13 +82,13 @@ export default function NoStarsUpsell() {
                                         >
                                             <Checkout
                                                 mode='addon'
-                                                packId={p.id ?? ""}
+                                                packId={stripePackId}
                                                 currency={currency}
                                                 customTrigger={
                                                     <button
                                                         type='button'
                                                         className='w-full rounded-xl border border-yellow-500/30 bg-white/5 hover:bg-white/8 transition px-3 py-3 text-left'
-                                                        disabled={!p.id}
+                                                        disabled={!stripePackId}
                                                     >
                                                         <div className='flex items-center justify-between gap-2'>
                                                             <div className='inline-flex items-center gap-2'>
@@ -102,11 +100,9 @@ export default function NoStarsUpsell() {
                                                                     {p.stars}
                                                                 </span>
                                                             </div>
-                                                            {priceLabel && (
-                                                                <span className='text-xs text-white/70'>
-                                                                    {priceLabel}
-                                                                </span>
-                                                            )}
+                                                            <span className='text-xs text-white/70'>
+                                                                {priceLabel}
+                                                            </span>
                                                         </div>
                                                         <div className='mt-1 text-xs text-white/65'>
                                                             {p.name}

@@ -29,6 +29,7 @@ import { chartDataToBirth, chartDataToTransit } from "@/lib/chart-data-to-birth"
 import {
     clearBirthFromStorage,
     loadBirthFromStorage,
+    saveBirthToStorage,
 } from "@/lib/birth-storage"
 import {
     loadAutoPickFromStorage,
@@ -43,7 +44,10 @@ import {
     setSkipReadAloudConfirm,
 } from "@/lib/read-aloud-confirm-storage"
 import { pickRandomCards } from "@/lib/tarot/pick-random-cards"
-import { resolveLocationFromCoords } from "@/lib/location"
+import {
+    resolveLocationFromCoords,
+    resolveLocationFromCountryState,
+} from "@/lib/location"
 import type {
     HoroscopeBirthData,
     HoroscopeTransitData,
@@ -52,6 +56,7 @@ import DrawCardSection from "@/components/chat/draw-card-section"
 import ActionTrigger from "@/components/chat/action-trigger"
 import BirthInfoModal from "@/components/chat/birth-info-modal"
 import MessageList from "@/components/chat/message-list"
+import { LocationSelector } from "@/components/ui/location-selector"
 import {
     Dialog,
     DialogContent,
@@ -235,6 +240,7 @@ export default function ChatSession({
     const tHome = useTranslations("Home")
     const tReadingTypes = useTranslations("Reading.types")
     const tHoroscope = useTranslations("HoroscopeChat")
+    const tActionTrigger = useTranslations("ActionTrigger")
 
     const POSITION_MEANINGS: Record<string, string[]> = {
         simple: [tReadingTypes("simple.title")],
@@ -340,6 +346,9 @@ export default function ChatSession({
         lng?: number
         timezone?: number
     } | null>(null)
+    const [showLocationDialog, setShowLocationDialog] = useState(false)
+    const [locationDraftCountry, setLocationDraftCountry] = useState("")
+    const [locationDraftState, setLocationDraftState] = useState("")
     const abortControllerRef = useRef<AbortController | null>(null)
     const [showInsufficientStars, setShowInsufficientStars] = useState<boolean>(
         initialSession?.showInsufficientStars ?? false,
@@ -1349,50 +1358,70 @@ export default function ChatSession({
         ) as "western_tropical" | "vedic_sidereal"
     }, [locale, currentLocationFallback?.country])
 
+    const ensureBirthTimeDefaults = useCallback(
+        (data: HoroscopeBirthData | null): HoroscopeBirthData | null => {
+            if (!data) return null
+            if (data.hour != null && data.minute != null) return data
+            return {
+                ...data,
+                hour: 0,
+                minute: 0,
+                timeHint: data.timeHint ?? "unknown",
+            }
+        },
+        [],
+    )
+
     const isHoroscopeReady = useCallback((data: HoroscopeBirthData | null) => {
         if (!data) return false
         const hasDate = Boolean(data.day && data.month && data.year)
-        const hasTime =
-            (data.hour != null && data.minute != null) ||
-            data.timeHint === "day" ||
-            data.timeHint === "night"
         const hasLocation = Boolean(
             data.country &&
                 data.lat != null &&
                 data.lng != null &&
                 data.timezone != null,
         )
-        return hasDate && hasTime && hasLocation
+        return hasDate && hasLocation
     }, [])
 
     const mergeHoroscopeBirth = useCallback(
         (
             current: HoroscopeBirthData | null,
             incoming: HoroscopeExtractResponse,
-        ): HoroscopeBirthData => ({
-            day: incoming?.birthDate?.day ?? current?.day ?? null,
-            month: incoming?.birthDate?.month ?? current?.month ?? null,
-            year: incoming?.birthDate?.year ?? current?.year ?? null,
-            hour: incoming?.birthTime?.hour ?? current?.hour ?? null,
-            minute: incoming?.birthTime?.minute ?? current?.minute ?? null,
-            timeHint:
-                incoming?.birthTime?.timeHint ?? current?.timeHint ?? "unknown",
-            timezone: incoming?.location?.timezone ?? current?.timezone ?? null,
-            lat: incoming?.location?.lat ?? current?.lat ?? null,
-            lng: incoming?.location?.lng ?? current?.lng ?? null,
-            country: incoming?.location?.country ?? current?.country ?? null,
-            state: incoming?.location?.state ?? current?.state ?? null,
-            usedLocationFallback:
-                incoming?.location?.usedLocationFallback ??
-                current?.usedLocationFallback ??
-                false,
-        }),
-        [],
+        ): HoroscopeBirthData => {
+            const merged: HoroscopeBirthData = {
+                day: incoming?.birthDate?.day ?? current?.day ?? null,
+                month: incoming?.birthDate?.month ?? current?.month ?? null,
+                year: incoming?.birthDate?.year ?? current?.year ?? null,
+                hour: incoming?.birthTime?.hour ?? current?.hour ?? null,
+                minute: incoming?.birthTime?.minute ?? current?.minute ?? null,
+                timeHint:
+                    incoming?.birthTime?.timeHint ??
+                    current?.timeHint ??
+                    "unknown",
+                timezone:
+                    incoming?.location?.timezone ?? current?.timezone ?? null,
+                lat: incoming?.location?.lat ?? current?.lat ?? null,
+                lng: incoming?.location?.lng ?? current?.lng ?? null,
+                country:
+                    incoming?.location?.country ?? current?.country ?? null,
+                state: incoming?.location?.state ?? current?.state ?? null,
+                usedLocationFallback:
+                    incoming?.location?.usedLocationFallback ??
+                    current?.usedLocationFallback ??
+                    false,
+            }
+            return ensureBirthTimeDefaults(merged) ?? merged
+        },
+        [ensureBirthTimeDefaults],
     )
 
     const pushToolCard = useCallback((birth: HoroscopeBirthData | null) => {
         setMessages((prev) => [
-            ...prev,
+            ...prev.filter(
+                (m) =>
+                    !(m.variant === "tool" && m.toolType === "user-date-form"),
+            ),
             {
                 id: `assistant-tool-user-date-form-${Date.now()}`,
                 role: "assistant",
@@ -1410,6 +1439,7 @@ export default function ChatSession({
             questionText: string,
             transit?: HoroscopeTransitData | null,
         ) => {
+            const normalizedBirth = ensureBirthTimeDefaults(birth) ?? birth
             setIsInterpreting(true)
             const loadingId = `assistant-horoscope-loading-${Date.now()}`
             horoscopeIsRefetchRef.current = false
@@ -1441,7 +1471,7 @@ export default function ChatSession({
                         variant: "horoscope" as const,
                         isLoading: true,
                         question: questionText,
-                        horoscopeBirthData: birth,
+                        horoscopeBirthData: normalizedBirth,
                         ...(pendingAspect && {
                             sourceAspectKey: pendingAspect.aspectKey,
                             sourceAspectEvent: pendingAspect.event,
@@ -1456,18 +1486,18 @@ export default function ChatSession({
                 locale,
                 system: horoscopeSystem,
                 birth: {
-                    day: birth.day,
-                    month: birth.month,
-                    year: birth.year,
-                    hour: birth.hour,
-                    minute: birth.minute,
-                    timeHint: birth.timeHint,
-                    timezone: birth.timezone,
-                    lat: birth.lat,
-                    lng: birth.lng,
-                    country: birth.country,
-                    state: birth.state,
-                    usedLocationFallback: birth.usedLocationFallback,
+                    day: normalizedBirth.day,
+                    month: normalizedBirth.month,
+                    year: normalizedBirth.year,
+                    hour: normalizedBirth.hour,
+                    minute: normalizedBirth.minute,
+                    timeHint: normalizedBirth.timeHint,
+                    timezone: normalizedBirth.timezone,
+                    lat: normalizedBirth.lat,
+                    lng: normalizedBirth.lng,
+                    country: normalizedBirth.country,
+                    state: normalizedBirth.state,
+                    usedLocationFallback: normalizedBirth.usedLocationFallback,
                 },
                 transit: transit
                     ? {
@@ -1490,6 +1520,7 @@ export default function ChatSession({
         },
         [
             buildHoroscopeConversationContext,
+            ensureBirthTimeDefaults,
             horoscopeSystem,
             locale,
             submitHoroscope,
@@ -1825,7 +1856,10 @@ export default function ChatSession({
     const handleHoroscopeInput = useCallback(
         async (
             value: string,
-            options: { appendUserMessage?: boolean } = {},
+            options: {
+                appendUserMessage?: boolean
+                birthDetailsOnly?: boolean
+            } = {},
         ) => {
             const trimmed = value.trim()
             if (!trimmed) return
@@ -1930,11 +1964,20 @@ export default function ChatSession({
                     return
                 }
 
-                const questionText =
-                    trimmed ||
-                    horoscopeQuestion ||
-                    lastQuestion ||
-                    "General horoscope reading"
+                const questionText = options.birthDetailsOnly
+                    ? horoscopeQuestion ||
+                      lastQuestion ||
+                      "General horoscope reading"
+                    : trimmed ||
+                      horoscopeQuestion ||
+                      lastQuestion ||
+                      "General horoscope reading"
+                const normalizedBirth =
+                    ensureBirthTimeDefaults(birthToUse) ?? birthToUse
+                if (normalizedBirth) {
+                    saveBirthToStorage(normalizedBirth)
+                    setSavedBirth(normalizedBirth)
+                }
                 if (birthToUse.usedLocationFallback) {
                     setMessages((prev) => [
                         ...prev,
@@ -1953,7 +1996,7 @@ export default function ChatSession({
                     return
                 }
                 await runHoroscopeReading(
-                    birthToUse,
+                    normalizedBirth,
                     questionText,
                     transitToUse,
                 )
@@ -1980,6 +2023,7 @@ export default function ChatSession({
             locale,
             mergeHoroscopeBirth,
             pushToolCard,
+            ensureBirthTimeDefaults,
             runHoroscopeReading,
             spendStars,
             tHoroscope,
@@ -1990,9 +2034,9 @@ export default function ChatSession({
     const handleUserDateFormSubmit = useCallback(
         async (value: HoroscopeBirthData) => {
             setHoroscopeBirth(value)
-            // Inline form manages remember/clear in localStorage; mirror that
-            // into action-trigger state so saved birth appears/editable immediately.
-            setSavedBirth(loadBirthFromStorage())
+            // Inline form now auto-saves on submit; mirror persisted state
+            // into the birth-info trigger immediately.
+            setSavedBirth(loadBirthFromStorage() ?? value)
             const questionText =
                 horoscopeQuestion || lastQuestion || "General horoscope reading"
             if (!isHoroscopeReady(value)) {
@@ -2707,6 +2751,13 @@ export default function ChatSession({
                 return
             }
         }
+        if (isHoroscopeIntakeActive) {
+            await handleHoroscopeInput(value, {
+                birthDetailsOnly: true,
+            })
+            setQuestion("")
+            return
+        }
         if (horoscopeQuestion || horoscopeBirth) {
             await handleHoroscopeInput(value)
             setQuestion("")
@@ -2757,6 +2808,15 @@ export default function ChatSession({
     const handleBirthModalRemove = useCallback(() => {
         clearBirthFromStorage()
         setSavedBirth(null)
+    }, [])
+
+    const clearHoroscopeIntakeMessages = useCallback(() => {
+        setMessages((prev) =>
+            prev.filter(
+                (m) =>
+                    !(m.variant === "tool" && m.toolType === "user-date-form"),
+            ),
+        )
     }, [])
 
     const hasMessages = messages.length > 0
@@ -2810,6 +2870,114 @@ export default function ChatSession({
             onProvideSelectByIndices={(fn) => setSelectByIndicesFn(() => fn)}
         />
     ) : null
+
+    const activeHoroscopeIntakeMessage = useMemo(() => {
+        let latest: ChatMessage | null = null
+        for (let i = messages.length - 1; i >= 0; i -= 1) {
+            const message = messages[i]
+            if (message.variant === "horoscope" && !message.isLoading) {
+                break
+            }
+            if (
+                message.variant === "tool" &&
+                message.toolType === "user-date-form"
+            ) {
+                latest = message
+                break
+            }
+        }
+        return latest
+    }, [messages])
+    const isHoroscopeIntakeActive = Boolean(activeHoroscopeIntakeMessage)
+
+    const formattedCurrentLocationLabel = useMemo(() => {
+        if (
+            !currentLocationFallback?.country &&
+            !currentLocationFallback?.state
+        ) {
+            return tActionTrigger("locationUnknown")
+        }
+        if (
+            currentLocationFallback?.state &&
+            currentLocationFallback?.country
+        ) {
+            return `${currentLocationFallback.state}, ${currentLocationFallback.country}`
+        }
+        return (
+            currentLocationFallback?.country ||
+            currentLocationFallback?.state ||
+            tActionTrigger("locationUnknown")
+        )
+    }, [currentLocationFallback, tActionTrigger])
+
+    const resolvedDraftLocation = useMemo(() => {
+        const country = locationDraftCountry.trim()
+        const state = locationDraftState.trim()
+        if (!country) return null
+        return resolveLocationFromCountryState(country, state || undefined)
+    }, [locationDraftCountry, locationDraftState])
+
+    const openLocationDialog = useCallback(() => {
+        setLocationDraftCountry(currentLocationFallback?.country ?? "")
+        setLocationDraftState(currentLocationFallback?.state ?? "")
+        setShowLocationDialog(true)
+    }, [currentLocationFallback])
+
+    const handleSaveLocationDialog = useCallback(() => {
+        const country = locationDraftCountry.trim()
+        const state = locationDraftState.trim()
+        if (!country) {
+            setShowLocationDialog(false)
+            return
+        }
+        if (resolvedDraftLocation) {
+            setCurrentLocationFallback({
+                country: resolvedDraftLocation.countryName,
+                state: resolvedDraftLocation.stateName || undefined,
+                lat: resolvedDraftLocation.latitude,
+                lng: resolvedDraftLocation.longitude,
+                timezone: resolvedDraftLocation.timezone,
+            })
+        } else {
+            setCurrentLocationFallback({
+                country,
+                state: state || undefined,
+            })
+        }
+        setShowLocationDialog(false)
+    }, [locationDraftCountry, locationDraftState, resolvedDraftLocation])
+
+    const handleCancelHoroscopeIntake = useCallback(() => {
+        clearHoroscopeIntakeMessages()
+        setHoroscopeQuestion(null)
+        setHoroscopeBirth(null)
+        setHoroscopeTransit(null)
+        setQuestion("")
+    }, [clearHoroscopeIntakeMessages])
+
+    const handleChooseCardInstead = useCallback(() => {
+        const tarotQuestion =
+            horoscopeQuestion || lastQuestion || question.trim()
+        if (!tarotQuestion) return
+        clearHoroscopeIntakeMessages()
+        setHoroscopeQuestion(null)
+        setHoroscopeBirth(null)
+        setHoroscopeTransit(null)
+        setInterpretationMode("tarot")
+        setDecision({
+            type: "draw",
+            assistantText: "",
+            ...chooseTarotSpread(tarotQuestion),
+        })
+        setShowCardDraw(true)
+        setLastQuestion(tarotQuestion)
+        setQuestion("")
+    }, [
+        clearHoroscopeIntakeMessages,
+        horoscopeQuestion,
+        lastQuestion,
+        question,
+    ])
 
     const inputSection = (
         <>
@@ -2876,6 +3044,76 @@ export default function ChatSession({
                 </DialogContent>
             </Dialog>
 
+            <Dialog
+                open={showLocationDialog}
+                onOpenChange={setShowLocationDialog}
+            >
+                <DialogContent className='sm:max-w-lg border-white/10 bg-[#0a0912]'>
+                    <DialogHeader>
+                        <DialogTitle>
+                            {tActionTrigger("locationDialogTitle")}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {tActionTrigger("locationDialogDescription")}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className='space-y-4'>
+                        <LocationSelector
+                            selectedCountry={locationDraftCountry}
+                            selectedState={locationDraftState}
+                            onCountryChange={setLocationDraftCountry}
+                            onStateChange={setLocationDraftState}
+                        />
+                        <div className='grid grid-cols-2 gap-3 rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-white/70'>
+                            <div>
+                                <span className='text-white/50'>
+                                    {tActionTrigger("latitude")}
+                                </span>
+                                <p className='mt-1 text-white'>
+                                    {resolvedDraftLocation?.latitude?.toFixed(
+                                        4,
+                                    ) ??
+                                        currentLocationFallback?.lat?.toFixed(
+                                            4,
+                                        ) ??
+                                        "-"}
+                                </p>
+                            </div>
+                            <div>
+                                <span className='text-white/50'>
+                                    {tActionTrigger("longitude")}
+                                </span>
+                                <p className='mt-1 text-white'>
+                                    {resolvedDraftLocation?.longitude?.toFixed(
+                                        4,
+                                    ) ??
+                                        currentLocationFallback?.lng?.toFixed(
+                                            4,
+                                        ) ??
+                                        "-"}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter className='gap-2'>
+                        <button
+                            type='button'
+                            onClick={() => setShowLocationDialog(false)}
+                            className='rounded-lg border border-white/20 px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white'
+                        >
+                            {tActionTrigger("cancelIntake")}
+                        </button>
+                        <button
+                            type='button'
+                            onClick={handleSaveLocationDialog}
+                            className='rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90'
+                        >
+                            {tActionTrigger("saveLocation")}
+                        </button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             <QuestionInput
                 id='home-question-input'
                 value={question}
@@ -2885,13 +3123,19 @@ export default function ChatSession({
                 isLoading={isChatLoading}
                 centered
                 placeholder={
-                    canShowCardDrawSection
-                        ? cardUi.pickAllPlaceholder
-                        : undefined
+                    isHoroscopeIntakeActive
+                        ? tHoroscope("composerBirthPlaceholder")
+                        : canShowCardDrawSection
+                          ? cardUi.pickAllPlaceholder
+                          : undefined
                 }
                 className='w-full'
-                interpretationMode={interpretationMode}
-                onInterpretationModeChange={setInterpretationMode}
+                interpretationMode={
+                    isHoroscopeIntakeActive ? undefined : interpretationMode
+                }
+                onInterpretationModeChange={
+                    isHoroscopeIntakeActive ? undefined : setInterpretationMode
+                }
                 actionTrigger={
                     <ActionTrigger
                         autoPickOn={autoPickOn}
@@ -2904,6 +3148,12 @@ export default function ChatSession({
                         cardUi={cardUi}
                         onScrollToDraw={handleScrollToDraw}
                         onPickAll={() => handlePickAll(cardsToSelect)}
+                        intakeMode={isHoroscopeIntakeActive}
+                        intakeHelperText={tActionTrigger("birthTimeHelper")}
+                        currentLocationLabel={formattedCurrentLocationLabel}
+                        onLocationClick={openLocationDialog}
+                        onCancelIntake={handleCancelHoroscopeIntake}
+                        onChooseCardInstead={handleChooseCardInstead}
                     />
                 }
                 disclaimerText={disclaimerText}
@@ -2977,6 +3227,7 @@ export default function ChatSession({
                 messageNotices={messageNotices}
                 horoscopeBirth={horoscopeBirth}
                 currentLocationFallback={currentLocationFallback}
+                isHoroscopeIntakeActive={isHoroscopeIntakeActive}
                 isCheckingStars={isCheckingStars}
                 checkingStarsText={tHome("checkingStars")}
                 showInsufficientStars={showInsufficientStars}

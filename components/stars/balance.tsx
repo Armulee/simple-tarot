@@ -18,6 +18,7 @@ export default function StarsBalance() {
         engagementStarsTotal,
         nextRefillAt,
         refillCap,
+        refillCycleMs,
         subscription,
     } = useStars()
     const { user } = useAuth()
@@ -55,6 +56,13 @@ export default function StarsBalance() {
     const planRefillLabel = subscription?.currentPeriodEnd
         ? formatRefillDate(subscription.currentPeriodEnd)
         : ""
+    const timeLeft = nextRefillAt ? Math.max(0, nextRefillAt - now) : 0
+    const refillCycle = refillCycleMs ?? 2 * 60 * 60 * 1000
+    const dailyRefillProgress = nextRefillAt
+        ? Math.min(100, Math.max(0, (1 - timeLeft / refillCycle) * 100))
+        : dailyValue >= dailyCap
+          ? 100
+          : 0
     const dailyRefillLabel = nextRefillAt
         ? formatRelativeTime(nextRefillAt, now)
         : "-"
@@ -123,7 +131,8 @@ export default function StarsBalance() {
                             }
                             progress={dailyProgress}
                             rightLabel={t("StarsBalance.nextRefill")}
-                                rightValue={dailyRefillLabel || undefined}
+                            rightValue={dailyRefillLabel || undefined}
+                            rightProgress={dailyRefillProgress}
                         />
 
                         {subscription && (
@@ -224,12 +233,14 @@ function StarsGauge({
     progress,
     rightLabel,
     rightValue,
+    rightProgress,
     accent = "amber",
 }: {
     label: string
     progress: number
     rightLabel?: string
     rightValue?: string
+    rightProgress?: number
     accent?: "amber" | "emerald" | "violet"
 }) {
     const gradient =
@@ -255,6 +266,7 @@ function StarsGauge({
                     <RefillIndicator
                         label={rightLabel ?? "Next refill"}
                         value={rightValue}
+                        progress={rightProgress}
                         compact
                     />
                 ) : null}
@@ -278,10 +290,12 @@ function StarsGauge({
 function RefillIndicator({
     label,
     value,
+    progress = 0,
     compact = false,
 }: {
     label: string
     value: string
+    progress?: number
     compact?: boolean
 }) {
     return (
@@ -291,10 +305,21 @@ function RefillIndicator({
             ) : null}
             <div className='flex flex-col items-end gap-2'>
                 <span className='text-xs text-gray-300'>{label}</span>
-                <div className='px-3 py-1 rounded-full bg-gradient-to-r from-yellow-400/20 to-amber-500/20 border border-yellow-500/30'>
-                    <span className='text-white font-bold font-mono text-[11px]'>
-                        {value}
-                    </span>
+                <div className='flex min-w-[7.5rem] flex-col gap-1 rounded-xl border border-yellow-500/30 bg-gradient-to-r from-yellow-400/20 to-amber-500/20 px-3 py-2'>
+                    <div className='flex items-center justify-between gap-2'>
+                        <span className='text-white font-bold font-mono text-[11px]'>
+                            {value}
+                        </span>
+                        <span className='text-[10px] font-semibold uppercase tracking-[0.2em] text-yellow-200/80'>
+                            {Math.round(progress)}%
+                        </span>
+                    </div>
+                    <div className='h-1.5 overflow-hidden rounded-full bg-black/25'>
+                        <div
+                            className='h-full rounded-full bg-gradient-to-r from-yellow-300 via-amber-400 to-orange-500 transition-all duration-700 ease-out'
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
                 </div>
             </div>
         </div>

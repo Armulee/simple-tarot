@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { usePathname } from "@/i18n/navigation"
 import {
     Home,
@@ -34,11 +34,12 @@ import { supabase } from "@/lib/supabase"
 import { PlanChangeDialog } from "@/components/subscription/plan-change-dialog"
 import {
     SUBSCRIPTION_PLANS,
-    getPlanPriceUsd,
+    getPlanPrice,
     getPlanStars,
     type BillingCycle,
     type SubscriptionPlanTier,
 } from "@/lib/payments/subscription-plans"
+import { formatCurrency } from "@/lib/payments/currency-utils"
 import { toast } from "sonner"
 
 interface SidebarSheetProps {
@@ -68,6 +69,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
         subscription,
     } = useStars()
     const pathname = usePathname()
+    const locale = useLocale()
     const t = useTranslations("Sidebar")
     const starsT = useTranslations("StarsPage")
     const a = useTranslations("Auth.SignIn")
@@ -111,14 +113,12 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
     const dailyValue = typeof dailyStars === "number" ? dailyStars : 0
     const progress = dailyValue >= refillCap ? 100 : timeProgress
     const isProSubscriber = subscription?.tier === "pro"
+    const displayCurrency = locale === "th" ? "THB" : "USD"
     const currentPlanPrice = subscription
-        ? getPlanPriceUsd(subscription.tier, subscription.cycle)
+        ? getPlanPrice(subscription.tier, subscription.cycle, displayCurrency)
         : null
-    const formatUsd = (amount: number) =>
-        new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-        }).format(amount)
+    const formatPrice = (amount: number) =>
+        formatCurrency(amount, displayCurrency, locale).replace(/^US(?=\$)/, "")
     const formatRefillDate = (timestamp?: number | null) => {
         if (!timestamp) return "-"
         return new Intl.DateTimeFormat("en-US", {
@@ -146,14 +146,14 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
           }`
         : "-"
     const currentPlanPriceLabel =
-        currentPlanPrice != null ? formatUsd(currentPlanPrice) : "-"
+        currentPlanPrice != null ? formatPrice(currentPlanPrice) : "-"
     const targetPlanPriceLabel = pendingChange
-        ? formatUsd(pendingChange.targetPriceUsd)
+        ? formatPrice(pendingChange.targetPriceUsd)
         : "-"
     const differenceUsd = pendingChange
         ? Math.max(0, pendingChange.targetPriceUsd - (currentPlanPrice ?? 0))
         : 0
-    const differenceLabel = formatUsd(differenceUsd)
+    const differenceLabel = formatPrice(differenceUsd)
     const refillDateLabel = formatRefillDate(subscription?.currentPeriodEnd)
     const currentStarsValue = typeof stars === "number" ? stars : 0
     const projectedStarsValue = pendingChange
@@ -181,7 +181,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
             return "subscribe"
         }
         if (currentPlanPrice == null) return "upgrade"
-        const targetPrice = getPlanPriceUsd(tier, cycle)
+        const targetPrice = getPlanPrice(tier, cycle, displayCurrency)
         return targetPrice >= currentPlanPrice ? "upgrade" : "downgrade"
     }
 
@@ -443,9 +443,10 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                                 billingCycle
                                                             )
                                                         const targetPriceUsd =
-                                                            getPlanPriceUsd(
+                                                            getPlanPrice(
                                                                 plan.id as SubscriptionPlanTier,
-                                                                billingCycle
+                                                                billingCycle,
+                                                                displayCurrency
                                                             )
                                                         const isDowngrade =
                                                             action ===

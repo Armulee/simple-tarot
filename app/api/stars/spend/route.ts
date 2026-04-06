@@ -263,17 +263,19 @@ export async function POST(req: Request) {
         console.warn("[stars/spend] NO_DID — device cookie missing or invalid")
         return NextResponse.json({ error: "NO_DID" }, { status: 400 })
     }
-    // Repair corrupt refill timestamps (e.g. "0") before spend — anon client may lack UPDATE on stars.
+    // Repair corrupt refill timestamps (e.g. epoch-zero "0") before spend.
     if (supabaseAdmin) {
-        const { error: repairErr } = await supabaseAdmin.rpc(
-            "star_get_or_create",
-            {
-                p_anon_device_id: did,
-                p_user_id: null,
-            },
-        )
+        const { error: repairErr } = await supabaseAdmin
+            .from("stars")
+            .update({
+                daily_last_refill_at: new Date().toISOString(),
+                last_refill_at: new Date().toISOString(),
+            })
+            .eq("anon_device_id", did)
+            .lt("daily_last_refill_at", "1970-01-02T00:00:00Z")
+
         if (repairErr) {
-            console.error("[stars/spend] star_get_or_create(repair anon) failed", {
+            console.error("[stars/spend] timestamp repair failed", {
                 message: repairErr.message,
                 code: repairErr.code,
                 did_prefix: `${did.slice(0, 8)}…`,

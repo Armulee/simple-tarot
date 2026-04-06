@@ -69,7 +69,8 @@ If draw:
 If horoscope:
 - Acknowledge the user's curiosity about timing (1-2 sentences).
 - Build anticipation for the astrological reading (1-2 sentences).
-- Invite them to start the horoscope reading (1 sentence).
+- If the user does NOT already have saved birth data, explicitly ask them to send their birth date to begin, and mention that birth time helps accuracy.
+- If the user already has saved birth data, invite them to start the horoscope reading naturally without asking for birth details again.
 
 If chat:
 - Answer naturally and warmly. 2-4 sentences.
@@ -119,11 +120,13 @@ function getChatDecisionPrompt({
     history,
     interpretationMode,
     contextSummary,
+    savedBirthInfo,
 }: {
     question: string
     history?: Array<{ role: "user" | "assistant"; text: string }>
     interpretationMode?: string | null
     contextSummary?: string | null
+    savedBirthInfo?: string | null
 }) {
     const historyText =
         history && history.length
@@ -148,6 +151,9 @@ function getChatDecisionPrompt({
         : ""
 
     const detectedLang = detectQuestionLanguage(question)
+    const savedBirthBlock = savedBirthInfo
+        ? `Saved birth profile: available (${savedBirthInfo}).`
+        : "Saved birth profile: not available. If you choose horoscope, ask the user to send their birth date and mention that birth time improves accuracy."
 
     return `
 ${contextBlock}Recent conversation:
@@ -156,6 +162,7 @@ ${historyText}
 User message:
 ${question}
 ${modeInstruction}
+${savedBirthBlock}
 DETECTED LANGUAGE: The user's message is in ${detectedLang}. You MUST write assistantText entirely in ${detectedLang}. Ignore the language of conversation history — only the current user message language matters.
 
 Classify the intent and return JSON.
@@ -202,7 +209,13 @@ export async function POST(req: Request) {
                 status: 400,
             })
         }
-        const { question, history, interpretationMode, contextSummary } =
+        const {
+            question,
+            history,
+            interpretationMode,
+            contextSummary,
+            savedBirthInfo,
+        } =
             body ?? {}
         const normalizedHistory = normalizeHistory(history)
 
@@ -219,6 +232,7 @@ export async function POST(req: Request) {
                 history: normalizedHistory,
                 interpretationMode,
                 contextSummary,
+                savedBirthInfo,
             }),
         })
 
