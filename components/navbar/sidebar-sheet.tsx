@@ -74,13 +74,12 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
     const starsT = useTranslations("StarsPage")
     const a = useTranslations("Auth.SignIn")
     const [timeLeft, setTimeLeft] = useState(0)
-    const [billingCycle, setBillingCycle] =
-        useState<BillingCycle>("monthly")
+    const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly")
     const [planChangeTarget, setPlanChangeTarget] = useState<string | null>(
-        null
+        null,
     )
     const [pendingChange, setPendingChange] = useState<PlanChangePrompt | null>(
-        null
+        null,
     )
     useEffect(() => {
         if (!nextRefillAt) {
@@ -161,7 +160,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
             ? Math.max(
                   0,
                   currentStarsValue +
-                      (pendingChange.targetStars - currentPlanStars)
+                      (pendingChange.targetStars - currentPlanStars),
               )
             : pendingChange.targetStars
         : currentStarsValue
@@ -174,7 +173,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
 
     const getPlanAction = (
         tier: SubscriptionPlanTier,
-        cycle: BillingCycle
+        cycle: BillingCycle,
     ): "upgrade" | "downgrade" | "subscribe" => {
         if (!subscription) return "subscribe"
         if (subscription.tier === tier && subscription.cycle === cycle) {
@@ -187,7 +186,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
 
     const handlePlanChange = async (
         priceId: string,
-        action?: "upgrade" | "downgrade"
+        action?: "upgrade" | "downgrade",
     ) => {
         if (!priceId || planChangeTarget) return
         setPlanChangeTarget(priceId)
@@ -216,11 +215,11 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
             if (action === "downgrade") {
                 toast.success(
                     starsT("subscribe.downgradeSuccess") ||
-                        "Downgrade successful"
+                        "Downgrade successful",
                 )
             } else {
                 toast.success(
-                    starsT("subscribe.upgradeSuccess") || "Plan updated"
+                    starsT("subscribe.upgradeSuccess") || "Plan updated",
                 )
             }
         } catch (error) {
@@ -230,8 +229,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                       "Please sign in first."
                     : error instanceof Error
                       ? error.message
-                      : starsT("subscribe.upgradeError") ||
-                        "Upgrade failed."
+                      : starsT("subscribe.upgradeError") || "Upgrade failed."
             toast.error(message)
         } finally {
             setPlanChangeTarget(null)
@@ -354,7 +352,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                             </div>
                                             <div className='text-2xl font-bold text-yellow-400'>
                                                 {initialized ? (
-                                                    stars ?? 0
+                                                    (stars ?? 0)
                                                 ) : (
                                                     <Skeleton className='h-8 w-8 rounded' />
                                                 )}
@@ -402,7 +400,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                             type='button'
                                                             onClick={() =>
                                                                 setBillingCycle(
-                                                                    cycle
+                                                                    cycle,
                                                                 )
                                                             }
                                                             className={`rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest transition-all duration-300 ${
@@ -412,13 +410,12 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                                     : "text-white/60 hover:text-white"
                                                             }`}
                                                         >
-                                                            {cycle ===
-                                                            "monthly"
+                                                            {cycle === "monthly"
                                                                 ? starsT(
-                                                                      "subscribe.monthly"
+                                                                      "subscribe.monthly",
                                                                   )
                                                                 : starsT(
-                                                                      "subscribe.annual"
+                                                                      "subscribe.annual",
                                                                   )}
                                                         </button>
                                                     ))}
@@ -431,7 +428,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                                     plan.id &&
                                                                 subscription.cycle ===
                                                                     billingCycle
-                                                            )
+                                                            ),
                                                     ).map((plan) => {
                                                         const priceId =
                                                             plan.priceIds?.[
@@ -440,13 +437,13 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                         const action =
                                                             getPlanAction(
                                                                 plan.id as SubscriptionPlanTier,
-                                                                billingCycle
+                                                                billingCycle,
                                                             )
                                                         const targetPriceUsd =
                                                             getPlanPrice(
                                                                 plan.id as SubscriptionPlanTier,
                                                                 billingCycle,
-                                                                displayCurrency
+                                                                displayCurrency,
                                                             )
                                                         const isDowngrade =
                                                             action ===
@@ -476,8 +473,10 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                                                 plan
                                                                                     .billing?.[
                                                                                     billingCycle
-                                                                                ]?.stars ?? 0,
-                                                                        }
+                                                                                ]
+                                                                                    ?.stars ??
+                                                                                0,
+                                                                        },
                                                                     )
                                                                 }
                                                                 disabled={
@@ -489,23 +488,21 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                                 <div className='flex items-center justify-between'>
                                                                     <span className='font-semibold'>
                                                                         {starsT(
-                                                                            `subscribe.${plan.id}.title`
+                                                                            `subscribe.${plan.id}.title`,
                                                                         )}
                                                                     </span>
                                                                     <span className='text-[10px] uppercase tracking-widest inline-flex items-center gap-1'>
                                                                         {action ===
-                                                                        "downgrade"
-                                                                            ? (
-                                                                                  <ArrowDownRight className='h-3 w-3 text-red-200' />
-                                                                              )
-                                                                            : null}
+                                                                        "downgrade" ? (
+                                                                            <ArrowDownRight className='h-3 w-3 text-red-200' />
+                                                                        ) : null}
                                                                         {action ===
                                                                         "downgrade"
                                                                             ? starsT(
-                                                                                  "subscribe.downgrade"
+                                                                                  "subscribe.downgrade",
                                                                               )
                                                                             : starsT(
-                                                                                  "subscribe.upgrade"
+                                                                                  "subscribe.upgrade",
                                                                               )}
                                                                     </span>
                                                                 </div>
@@ -517,7 +514,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                                     }`}
                                                                 >
                                                                     {starsT(
-                                                                        `subscribe.${plan.id}.subtitle`
+                                                                        `subscribe.${plan.id}.subtitle`,
                                                                     )}
                                                                 </div>
                                                             </button>
@@ -548,48 +545,48 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                 pendingChange?.action ===
                                                 "downgrade"
                                                     ? starsT(
-                                                          "subscribe.downgradeDialogTitle"
+                                                          "subscribe.downgradeDialogTitle",
                                                       )
                                                     : starsT(
-                                                          "subscribe.upgradeDialogTitle"
+                                                          "subscribe.upgradeDialogTitle",
                                                       )
                                             }
                                             description={
                                                 pendingChange?.action ===
                                                 "downgrade"
                                                     ? starsT(
-                                                          "subscribe.downgradeDialogDescription"
+                                                          "subscribe.downgradeDialogDescription",
                                                       )
                                                     : starsT(
                                                           "subscribe.upgradeDialogDescription",
                                                           {
                                                               amount: differenceLabel,
-                                                          }
+                                                          },
                                                       )
                                             }
                                             summaryTitle={starsT(
-                                                "subscribe.summaryTitle"
+                                                "subscribe.summaryTitle",
                                             )}
                                             starsTitle={starsT(
-                                                "subscribe.starsSummaryTitle"
+                                                "subscribe.starsSummaryTitle",
                                             )}
                                             currentPlanLabel={starsT(
-                                                "subscribe.currentPlanLabel"
+                                                "subscribe.currentPlanLabel",
                                             )}
                                             targetPlanLabel={starsT(
-                                                "subscribe.targetPlanLabel"
+                                                "subscribe.targetPlanLabel",
                                             )}
                                             differenceLabel={starsT(
-                                                "subscribe.differenceLabel"
+                                                "subscribe.differenceLabel",
                                             )}
                                             refillLabel={starsT(
-                                                "subscribe.refillLabel"
+                                                "subscribe.refillLabel",
                                             )}
                                             currentStarsLabel={starsT(
-                                                "subscribe.currentStarsLabel"
+                                                "subscribe.currentStarsLabel",
                                             )}
                                             projectedStarsLabel={starsT(
-                                                "subscribe.projectedStarsLabel"
+                                                "subscribe.projectedStarsLabel",
                                             )}
                                             currentPlan={{
                                                 name: currentPlanName,
@@ -612,10 +609,10 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                     : `${currentStarsValue}`
                                             }
                                             confirmLabel={starsT(
-                                                "subscribe.dialogConfirm"
+                                                "subscribe.dialogConfirm",
                                             )}
                                             cancelLabel={starsT(
-                                                "subscribe.dialogCancel"
+                                                "subscribe.dialogCancel",
                                             )}
                                         />
 
@@ -640,7 +637,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                             href='/stars/purchase'
                                                             onClick={() =>
                                                                 onOpenChange(
-                                                                    false
+                                                                    false,
                                                                 )
                                                             }
                                                             className='inline-flex items-center justify-center rounded-full border border-yellow-500/30 bg-yellow-500/15 px-3 py-1 text-[11px] font-semibold text-yellow-100 transition-colors hover:bg-yellow-500/25 relative z-20'
@@ -649,9 +646,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                                         </Link>
                                                     ) : (
                                                         <span className='text-[10px] text-yellow-200/70'>
-                                                            {t(
-                                                                "proTopUpOnly"
-                                                            )}
+                                                            {t("proTopUpOnly")}
                                                         </span>
                                                     )}
                                                 </div>

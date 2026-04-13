@@ -1361,7 +1361,7 @@ export default function MessageList({
                             <ConsultingBadge
                                 label={
                                     isHoroscopeIntakeActive
-                                        ? "Please enter your birth date"
+                                        ? t("enterBirthDate")
                                         : consultingBase
                                 }
                             />

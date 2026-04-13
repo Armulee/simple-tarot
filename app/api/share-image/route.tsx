@@ -167,8 +167,7 @@ export async function POST(req: Request) {
         const isWideLayout = imageWidth >= imageHeight
         const paddingBottom = basePadding + (isWideLayout ? 140 : 0)
 
-        // Generate stars for background (denser for richer texture)
-        const stars = generateStars(140, imageWidth, imageHeight)
+        const stars = generateStars(50, imageWidth, imageHeight)
 
         const imageResponse = new ImageResponse(
             (
@@ -192,32 +191,29 @@ export async function POST(req: Request) {
                         overflow: "hidden",
                     }}
                 >
-                    {/* Enhanced glow blobs with multiple layers - Deep blue space theme */}
                     <div
                         style={{
                             position: "absolute",
-                            top: -180,
-                            left: -200,
-                            width: 600,
-                            height: 600,
+                            top: -280,
+                            left: -300,
+                            width: 900,
+                            height: 900,
                             borderRadius: 9999,
                             background:
-                                "radial-gradient(circle at 30% 30%, rgba(37, 99, 235, 0.35), rgba(30, 64, 175, 0.25) 40%, rgba(37, 99, 235, 0.00) 70%)",
-                            filter: "blur(40px)",
+                                "radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.22), rgba(30, 64, 175, 0.12) 40%, rgba(37, 99, 235, 0.00) 70%)",
                             opacity: 0.6,
                         }}
                     />
                     <div
                         style={{
                             position: "absolute",
-                            bottom: -250,
-                            right: -240,
-                            width: 800,
-                            height: 800,
+                            bottom: -350,
+                            right: -340,
+                            width: 1100,
+                            height: 1100,
                             borderRadius: 9999,
                             background:
-                                "radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.3), rgba(37, 99, 235, 0.2) 40%, rgba(59, 130, 246, 0.00) 70%)",
-                            filter: "blur(45px)",
+                                "radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.18), rgba(37, 99, 235, 0.1) 40%, rgba(59, 130, 246, 0.00) 70%)",
                             opacity: 0.55,
                         }}
                     />
@@ -227,12 +223,11 @@ export async function POST(req: Request) {
                             top: "50%",
                             left: "50%",
                             transform: "translate(-50%, -50%)",
-                            width: 900,
-                            height: 900,
+                            width: 1200,
+                            height: 1200,
                             borderRadius: 9999,
                             background:
-                                "radial-gradient(circle at center, rgba(30, 58, 138, 0.2), rgba(2, 6, 23, 0.00) 60%)",
-                            filter: "blur(60px)",
+                                "radial-gradient(circle at center, rgba(30, 58, 138, 0.12), rgba(2, 6, 23, 0.00) 60%)",
                             opacity: 0.4,
                         }}
                     />
@@ -263,21 +258,19 @@ export async function POST(req: Request) {
                             pointerEvents: "none",
                         }}
                     />
-                    {/* Larger glow stars */}
-                    {stars.slice(0, 36).map((star, idx) => (
+                    {stars.slice(0, 12).map((star, idx) => (
                         <div
                             key={`glow-${idx}`}
                             style={{
                                 position: "absolute",
                                 left: star.left,
                                 top: star.top,
-                                width: star.size * 5,
-                                height: star.size * 5,
+                                width: star.size * 6,
+                                height: star.size * 6,
                                 borderRadius: "50%",
                                 background:
-                                    "radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0))",
-                                opacity: 0.35,
-                                filter: "blur(1.2px)",
+                                    "radial-gradient(circle, rgba(255,255,255,0.7), rgba(255,255,255,0))",
+                                opacity: 0.3,
                                 transform: "translate(-50%, -50%)",
                             }}
                         />
@@ -297,8 +290,7 @@ export async function POST(req: Request) {
                             position: "absolute",
                             top: 120,
                             right: 120,
-                            opacity: 0.35,
-                            filter: "blur(0.4px)",
+                            opacity: 0.3,
                         }}
                     >
                         <path d='M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z' />
@@ -317,8 +309,7 @@ export async function POST(req: Request) {
                             position: "absolute",
                             bottom: 220,
                             left: 140,
-                            opacity: 0.3,
-                            filter: "blur(0.6px)",
+                            opacity: 0.25,
                         }}
                     >
                         <path d='M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z' />
@@ -527,27 +518,13 @@ export async function POST(req: Request) {
                                                 background: "rgba(10,8,26,0.4)",
                                             }}
                                         >
-                                            {/* Enhanced glow effect */}
                                             <div
                                                 style={{
                                                     position: "absolute",
-                                                    inset: -40,
+                                                    inset: -60,
                                                     background:
-                                                        "radial-gradient(circle at 30% 20%, rgba(99,102,241,0.45), rgba(99,102,241,0.0) 50%), radial-gradient(circle at 70% 80%, rgba(234,179,8,0.35), rgba(234,179,8,0.0) 55%), radial-gradient(circle at 50% 50%, rgba(139,92,246,0.25), transparent 60%)",
-                                                    filter: "blur(24px)",
-                                                    opacity: 1,
-                                                }}
-                                            />
-                                            {/* Border glow */}
-                                            <div
-                                                style={{
-                                                    position: "absolute",
-                                                    inset: -2,
-                                                    borderRadius: 22,
-                                                    background:
-                                                        "linear-gradient(135deg, rgba(234,179,8,0.3), rgba(139,92,246,0.3), rgba(56,189,248,0.3))",
-                                                    filter: "blur(8px)",
-                                                    opacity: 0.6,
+                                                        "radial-gradient(circle at 30% 20%, rgba(99,102,241,0.3), rgba(99,102,241,0.0) 50%), radial-gradient(circle at 70% 80%, rgba(234,179,8,0.22), rgba(234,179,8,0.0) 55%)",
+                                                    opacity: 0.8,
                                                 }}
                                             />
                                             <img

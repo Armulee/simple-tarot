@@ -51,12 +51,12 @@ export async function generateMetadata({
 
     if (!data) {
         return {
-            title: "Chat Not Found | Asking Fate",
+            title: "Chat Not Found | AskingFate",
         }
     }
 
     const question = getCleanQuestionText(data.question || "Chat Session")
-    const title = `"${question}" - Asking Fate`
+    const title = `"${question}" - AskingFate`
     const description = `Discover the cosmic insights from this AI-powered chat about "${question}".`
 
     return {

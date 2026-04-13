@@ -304,7 +304,7 @@ const ReadingCard = ({
         try {
             if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
                 await navigator.share({
-                    title: "Asking Fate",
+                    title: "AskingFate",
                     text,
                     url,
                 })

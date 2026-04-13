@@ -50,12 +50,13 @@ export async function generateMetadata({
         metadataBase: getMetadataBase(),
         title: t("title"),
         description: t("description"),
+        keywords: t("keywords"),
         generator: "v0.app",
         openGraph: {
             type: "website",
             locale,
             url: baseUrl,
-            siteName: "Asking Fate",
+            siteName: "AskingFate",
             title: t("title"),
             description: t("description"),
             images: [
@@ -111,7 +112,7 @@ export async function generateMetadata({
             "apple-mobile-web-app-capable": "yes",
             "mobile-web-app-capable": "yes",
             "apple-mobile-web-app-status-bar-style": "black-translucent",
-            "apple-mobile-web-app-title": "Asking Fate",
+            "apple-mobile-web-app-title": "AskingFate",
         },
     }
 }

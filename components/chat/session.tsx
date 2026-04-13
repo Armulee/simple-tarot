@@ -280,7 +280,7 @@ export default function ChatSession({
     }
 
     const locale = useLocale()
-    const [aiLocale, setAiLocale] = useState<"en" | "th" | null>(null)
+    const [aiLocale, setAiLocale] = useState<"en" | "th" | "lo" | null>(null)
     const { stars, spendStars, initialized: starsInitialized } = useStars()
     const [question, setQuestion] = useState("")
     const promptsRaw = tHome.raw("prompts")
@@ -1098,8 +1098,9 @@ export default function ChatSession({
             .reverse()
             .find((message) => message.role === "assistant" && message.text)
         if (!lastAssistant?.text) return
+        const hasLao = /[\u0E80-\u0EFF]/.test(lastAssistant.text)
         const hasThai = /[\u0E00-\u0E7F]/.test(lastAssistant.text)
-        const nextLocale = hasThai ? "th" : "en"
+        const nextLocale = hasLao ? "lo" : hasThai ? "th" : "en"
         setAiLocale((prev) => (prev === nextLocale ? prev : nextLocale))
     }, [messages])
 

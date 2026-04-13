@@ -145,6 +145,7 @@ export default function ActionSection({
     const previewBlobRef = useRef<{ styleId: string; blob: Blob } | null>(null)
     const previewCacheRef = useRef<Map<string, Blob>>(new Map())
     const videoCacheRef = useRef<Map<string, Blob>>(new Map())
+    const inFlightRef = useRef<Map<string, Promise<Blob>>>(new Map())
     const [thumbnailUrls, setThumbnailUrls] = useState<Record<string, string>>(
         {},
     )
@@ -170,9 +171,9 @@ export default function ActionSection({
             {
                 id: "story",
                 label: t("actions.downloadStyleStory"),
-                size: "1170 × 2532",
-                width: 1170,
-                height: 2532,
+                size: "1080 × 1920",
+                width: 1080,
+                height: 1920,
             },
             {
                 id: "square",
@@ -207,52 +208,65 @@ export default function ActionSection({
             signal?: AbortSignal
             onProgress?: (progress: number | null) => void
         }) => {
-            const res = await fetch("/api/share-image", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    question,
-                    cards,
-                    interpretation,
-                    width,
-                    height,
-                    branding: "AskingFate",
-                    type: "image",
-                }),
-                signal,
-            })
-            if (!res.ok) throw new Error("Preview failed")
+            const key = `${width}x${height}`
+            const existing = inFlightRef.current.get(key)
+            if (existing) return existing
 
-            const contentLength = res.headers.get("Content-Length")
-            if (!res.body || !contentLength) {
-                onProgress?.(null)
-                return await res.blob()
-            }
+            const promise = (async () => {
+                const res = await fetch("/api/share-image", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        question,
+                        cards,
+                        interpretation,
+                        width,
+                        height,
+                        branding: "AskingFate",
+                        type: "image",
+                    }),
+                    signal,
+                })
+                if (!res.ok) throw new Error("Preview failed")
 
-            const total = Number(contentLength)
-            if (!Number.isFinite(total) || total <= 0) {
-                onProgress?.(null)
-                return await res.blob()
-            }
-
-            const reader = res.body.getReader()
-            const chunks: BlobPart[] = []
-            let received = 0
-
-            while (true) {
-                const { done, value } = await reader.read()
-                if (done) break
-                if (value) {
-                    chunks.push(value as BlobPart)
-                    received += value.length
-                    onProgress?.(Math.min(received / total, 1))
+                const contentLength = res.headers.get("Content-Length")
+                if (!res.body || !contentLength) {
+                    onProgress?.(null)
+                    return await res.blob()
                 }
-            }
 
-            onProgress?.(1)
-            return new Blob(chunks, {
-                type: res.headers.get("Content-Type") || "image/png",
-            })
+                const total = Number(contentLength)
+                if (!Number.isFinite(total) || total <= 0) {
+                    onProgress?.(null)
+                    return await res.blob()
+                }
+
+                const reader = res.body.getReader()
+                const chunks: BlobPart[] = []
+                let received = 0
+
+                while (true) {
+                    const { done, value } = await reader.read()
+                    if (done) break
+                    if (value) {
+                        chunks.push(value as BlobPart)
+                        received += value.length
+                        onProgress?.(Math.min(received / total, 1))
+                    }
+                }
+
+                onProgress?.(1)
+                return new Blob(chunks, {
+                    type: res.headers.get("Content-Type") || "image/png",
+                })
+            })()
+
+            inFlightRef.current.set(key, promise)
+            try {
+                return await promise
+            } finally {
+                inFlightRef.current.delete(key)
+            }
         },
         [question, cards, interpretation],
     )
@@ -543,6 +557,7 @@ export default function ActionSection({
         })
         previewCacheRef.current.clear()
         videoCacheRef.current.clear()
+        inFlightRef.current.clear()
     }, [downloadOpen, question, cards, interpretation])
 
     useEffect(() => {
