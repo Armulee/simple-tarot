@@ -367,14 +367,7 @@ export default function ShareSection({
                 bg: "linear-gradient(135deg, #E4405F, #C13584)",
                 href: () => null,
             },
-            {
-                id: "threads",
-                label: t("threads"),
-                icon: <SiThreads className='w-5.5 h-5.5 text-white' />,
-                bg: "linear-gradient(135deg, #000000, #333333)",
-                href: (u: string, t?: string) =>
-                    `https://www.threads.net/intent/post?url=${encodeURIComponent(u)}${t ? `&text=${encodeURIComponent(t)}` : ""}`,
-            },
+
             {
                 id: "tiktok",
                 label: t("tiktok"),
@@ -389,6 +382,14 @@ export default function ShareSection({
                 bg: "linear-gradient(135deg, #000000, #333333)",
                 href: (u: string, t?: string) =>
                     `https://twitter.com/intent/tweet?url=${encodeURIComponent(u)}${t ? `&text=${encodeURIComponent(t)}` : ""}`,
+            },
+            {
+                id: "threads",
+                label: t("threads"),
+                icon: <SiThreads className='w-5.5 h-5.5 text-white' />,
+                bg: "linear-gradient(135deg, #000000, #333333)",
+                href: (u: string, t?: string) =>
+                    `https://www.threads.net/intent/post?url=${encodeURIComponent(u)}${t ? `&text=${encodeURIComponent(t)}` : ""}`,
             },
             {
                 id: "line",
@@ -489,7 +490,7 @@ export default function ShareSection({
     const renderIcon = (icon: ReactNode) =>
         isValidElement(icon)
             ? cloneElement(icon as ReactElement<{ className?: string }>, {
-                  className: "w-3 h-3 text-white",
+                  className: "w-4 h-4 text-white",
               })
             : icon
 
@@ -556,133 +557,157 @@ export default function ShareSection({
 
     if (variant === "embedded") {
         return (
-            <div className='space-y-2'>
-                <p className='flex flex-wrap items-center gap-2 text-xs text-white/50'>
-                    <span className='uppercase tracking-[0.2em]'>Shares</span>
-                    <span>
-                        {t("desc", {
-                            earned: earnedStars,
-                            max: maxStars,
-                        })}
-                    </span>
-                </p>
+            <div className='relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] transition hover:border-accent/40'>
                 <div
-                    ref={navGuardRef}
-                    style={{
-                        overscrollBehaviorX: "none",
-                        touchAction: "pan-y pinch-zoom",
-                    }}
-                >
-                    <Swiper
-                        modules={[FreeMode, Mousewheel]}
-                        freeMode
-                        mousewheel={{
-                            forceToAxis: true,
-                            sensitivity: 1,
-                            releaseOnEdges: true,
-                        }}
-                        slidesPerView={5.5}
-                        breakpoints={{
-                            640: { slidesPerView: 5.5 },
-                            768: { slidesPerView: 6.5 },
-                            1024: { slidesPerView: 8 },
-                            1280: { slidesPerView: 9.5 },
-                            1536: { slidesPerView: 10.5 },
-                        }}
-                        spaceBetween={4}
-                        className='py-1'
-                    >
-                        {shareOptions.map((option) => (
-                            <SwiperSlide key={option.id}>
-                                <button
-                                    type='button'
-                                    onClick={async () => {
-                                        const link = await ensureShareLink()
-                                        if (!link) return
-                                        const text = question
-                                            ? `"${question}" — AI tarot interpretation`
-                                            : undefined
-                                        const href = option.href(link, text)
-                                        if (
-                                            option.id === "more" &&
-                                            typeof navigator !== "undefined" &&
-                                            typeof (
-                                                navigator as unknown as {
-                                                    share?: (data: {
-                                                        title?: string
-                                                        text?: string
-                                                        url?: string
-                                                    }) => Promise<void>
-                                                }
-                                            ).share === "function"
-                                        ) {
-                                            await (
-                                                navigator as unknown as {
-                                                    share: (data: {
-                                                        title?: string
-                                                        text?: string
-                                                        url?: string
-                                                    }) => Promise<void>
-                                                }
-                                            ).share({
-                                                title: "AskingFate",
-                                                text,
-                                                url: link,
-                                            })
-                                            return
-                                        }
-                                        if (href) {
-                                            window.open(
-                                                href,
-                                                "_blank",
-                                                "noopener,noreferrer",
-                                            )
-                                        }
-                                    }}
-                                    className='group flex flex-col items-center gap-1.5 py-2 transition-all duration-300 hover:shadow-lg w-full'
-                                    aria-label={option.label}
-                                >
-                                    <div
-                                        className='relative w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
-                                        style={{ background: option.bg }}
-                                    >
-                                        {renderIcon(option.icon)}
-                                        <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
-                                    </div>
-                                    <span className='text-[10px] text-white/70 leading-snug text-wrap text-pretty text-center'>
-                                        {option.label}
-                                    </span>
-                                </button>
-                            </SwiperSlide>
-                        ))}
-                    </Swiper>
-                </div>
-            </div>
-        )
-    }
-
-    return (
-        <div className='relative overflow-hidden group bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/5 hover:bg-white/[0.06] hover:border-primary/20 transition-all duration-300'>
-            {/* Content */}
-            <div className='relative'>
-                {/* Header with padding */}
-                <div className='px-6 pt-6 pb-4'>
-                    <div className='flex items-center gap-3 mb-6 animate-fade-up'>
-                        <div className='p-2 rounded-full bg-primary/20 backdrop-blur-sm group-hover:bg-primary/30 transition-all duration-300'>
-                            <Share2 className='w-5 h-5 text-primary group-hover:scale-110 transition-transform duration-300' />
-                        </div>
-                        <div>
-                            <h3 className='font-serif font-semibold text-lg text-foreground group-hover:text-primary/90 transition-colors duration-300'>
+                    aria-hidden
+                    className='pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(120%_120%_at_0%_0%,rgba(99,102,241,0.18),rgba(168,85,247,0.12)_35%,rgba(34,211,238,0.10)_70%,transparent_80%)] blur-xl opacity-90'
+                />
+                <div className='relative py-4'>
+                    <div className='mb-6 flex items-center gap-2.5'>
+                        <div className='min-w-0 flex-1 px-4'>
+                            <p className='text-sm font-semibold uppercase tracking-wider text-white/88'>
                                 {t("title")}
-                            </h3>
-                            <p className='text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300'>
+                            </p>
+                            <p className='mt-0.5 text-[11px] leading-snug text-white/70'>
                                 {t("desc", {
                                     earned: earnedStars,
                                     max: maxStars,
                                 })}{" "}
                                 <Link
                                     href='/articles/share-rewards'
-                                    className='underline underline-offset-2 text-blue-300 hover:text-blue-200'
+                                    className='underline underline-offset-2 hover:text-cyan-100'
+                                >
+                                    {t("learnMore")}
+                                </Link>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div
+                        ref={navGuardRef}
+                        style={{
+                            overscrollBehaviorX: "none",
+                            touchAction: "pan-y pinch-zoom",
+                        }}
+                    >
+                        <Swiper
+                            modules={[FreeMode, Mousewheel]}
+                            freeMode
+                            mousewheel={{
+                                forceToAxis: true,
+                                sensitivity: 1,
+                                releaseOnEdges: true,
+                            }}
+                            slidesPerView={5.5}
+                            breakpoints={{
+                                640: { slidesPerView: 5.5 },
+                                768: { slidesPerView: 6.5 },
+                                1024: { slidesPerView: 8 },
+                                1280: { slidesPerView: 9.5 },
+                                1536: { slidesPerView: 10.5 },
+                            }}
+                            spaceBetween={4}
+                            className='py-1'
+                        >
+                            {shareOptions.map((option) => (
+                                <SwiperSlide key={option.id}>
+                                    <button
+                                        type='button'
+                                        onClick={async () => {
+                                            const link = await ensureShareLink()
+                                            if (!link) return
+                                            const text = question
+                                                ? `"${question}" — AI tarot interpretation`
+                                                : undefined
+                                            const href = option.href(link, text)
+                                            if (
+                                                option.id === "more" &&
+                                                typeof navigator !==
+                                                    "undefined" &&
+                                                typeof (
+                                                    navigator as unknown as {
+                                                        share?: (data: {
+                                                            title?: string
+                                                            text?: string
+                                                            url?: string
+                                                        }) => Promise<void>
+                                                    }
+                                                ).share === "function"
+                                            ) {
+                                                await (
+                                                    navigator as unknown as {
+                                                        share: (data: {
+                                                            title?: string
+                                                            text?: string
+                                                            url?: string
+                                                        }) => Promise<void>
+                                                    }
+                                                ).share({
+                                                    title: "AskingFate",
+                                                    text,
+                                                    url: link,
+                                                })
+                                                return
+                                            }
+                                            if (href) {
+                                                window.open(
+                                                    href,
+                                                    "_blank",
+                                                    "noopener,noreferrer",
+                                                )
+                                            }
+                                        }}
+                                        className='group flex w-full flex-col items-center gap-1.5 py-2 transition-all duration-300'
+                                        aria-label={option.label}
+                                    >
+                                        <div
+                                            className='relative flex h-9 w-9 items-center justify-center rounded-full shadow-[0_6px_18px_-6px_rgba(0,0,0,0.6)] ring-1 ring-white/15 transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_10px_24px_-6px_rgba(168,85,247,0.55)] group-hover:ring-white/40'
+                                            style={{
+                                                background: option.bg,
+                                            }}
+                                        >
+                                            {renderIcon(option.icon)}
+                                            <div className='absolute inset-0 rounded-full bg-white/25 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
+                                        </div>
+                                        <span className='text-[10px] leading-snug text-white/75 text-pretty text-wrap text-center group-hover:text-white'>
+                                            {option.label}
+                                        </span>
+                                    </button>
+                                </SwiperSlide>
+                            ))}
+                        </Swiper>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div className='group relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] transition hover:border-accent/40'>
+            <div
+                aria-hidden
+                className='pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(120%_120%_at_0%_0%,rgba(99,102,241,0.18),rgba(168,85,247,0.12)_35%,rgba(34,211,238,0.10)_70%,transparent_80%)] blur-xl opacity-90'
+            />
+            {/* Content */}
+            <div className='relative'>
+                {/* Header with padding */}
+                <div className='px-6 pt-6 pb-4'>
+                    <div className='mb-6 flex animate-fade-up items-center gap-3'>
+                        <div className='rounded-full bg-white/10 p-2 backdrop-blur-sm transition-all duration-300 group-hover:bg-white/15'>
+                            <Share2 className='h-5 w-5 text-cyan-200/90 transition-transform duration-300 group-hover:scale-110 group-hover:text-white' />
+                        </div>
+                        <div>
+                            <h3 className='font-serif text-lg font-semibold text-white/90 transition-colors duration-300 group-hover:text-white'>
+                                {t("title")}
+                            </h3>
+                            <p className='text-sm text-white/65 transition-colors duration-300 group-hover:text-white/80'>
+                                {t("desc", {
+                                    earned: earnedStars,
+                                    max: maxStars,
+                                })}{" "}
+                                <Link
+                                    href='/articles/share-rewards'
+                                    className='underline underline-offset-2 text-cyan-200/90 hover:text-cyan-100'
                                 >
                                     {t("learnMore")}
                                 </Link>

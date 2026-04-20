@@ -36,7 +36,7 @@ type ChatDecision = {
     type: "chat" | "draw"
     spreadType: string
     cardCount: number
-    assistantText: string
+    assistantText?: string
 }
 
 type ReadingRow = {

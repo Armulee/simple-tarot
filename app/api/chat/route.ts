@@ -32,6 +32,28 @@ horoscope
 - today / tomorrow / this month / this year
 - astrology timing
 
+If type is "draw", you MUST also choose ONE tarot spread:
+
+simple
+- 1 card
+- best for quick yes/no, a single focus, or a very narrow question
+
+general
+- 3 cards
+- best for a normal situation reading with a little context, tension, and direction
+
+detailed
+- 5 cards
+- best for multi-layered questions that need obstacles, hidden factors, advice, and outcome
+
+expanded
+- 7 cards
+- best for relationship dynamics, multiple forces, strengths/weaknesses, or a broader situation map
+
+celtic
+- 10 cards
+- only choose this if the user clearly wants a deep, comprehensive, or "tell me everything" style reading
+
 Important rule:
 
 If the user is talking about their own situation or asking how something will go,
@@ -51,54 +73,17 @@ Return JSON only:
 
 {
 "type":"chat"|"draw"|"horoscope",
-"assistantText":"response to the user",
-"isFollowUp":true|false
+"isFollowUp":true|false,
+"spreadType":"simple"|"general"|"detailed"|"expanded"|"celtic",
+"spreadReason":"short reason"
 }
 
-assistantText rules:
-
-Personality: warm, encouraging, like a caring friend who genuinely wants to help.
-Tone: positive and supportive, acknowledge the user's feelings or situation before inviting the action.
-
-If draw:
-- Empathize or reflect on what the user asked about (1-2 sentences).
-- Build anticipation for the tarot reading (1-2 sentences).
-- Invite them to draw their cards (1 sentence).
-- If this is a follow-up, reference what was revealed before and express excitement about diving deeper.
-
-If horoscope:
-- Acknowledge the user's curiosity about timing (1-2 sentences).
-- Build anticipation for the astrological reading (1-2 sentences).
-- If the user does NOT already have saved birth data, explicitly ask them to send their birth date to begin, and mention that birth time helps accuracy.
-- If the user already has saved birth data, invite them to start the horoscope reading naturally without asking for birth details again.
-
-If chat:
-- Answer naturally and warmly. 2-4 sentences.
-
-Write 4-6 sentences for draw and horoscope.
+If type is NOT "draw", omit spreadType and spreadReason.
 
 CRITICAL LANGUAGE RULE:
-You MUST reply in the SAME language the user wrote in.
-If the user writes in English, reply in English. If Thai, reply in Thai. Never mix.
-Write like a native speaker of that language. Avoid formal, robotic, or translated-sounding phrasing.
-Write the way a real person would text a friend.
+Use the user's language to help classification accuracy.
 
-Examples (English draw):
-- User: "will I get the job?" → "That's such an exciting crossroads to be at! It's clear this opportunity means a lot to you. The tarot cards can give us some real insight into the energy around this. Let's draw some cards and see what they reveal!"
-- User: "Tomorrow what will I be?" → "Ooh curious about what tomorrow has in store? I love that you're thinking ahead! The cards are great at picking up on the energy that's heading your way. Let's draw and see what they have to say!"
 
-Examples (English follow-up draw):
-- Session context says tarot reading with 2 of Cups about partnership. User: "is it a girl?" → type "draw", isFollowUp true. "Ooh you want to know more about who this partnership energy is pointing to! The cards can definitely give us more detail on that. Let's draw again and see what comes up!"
-
-Examples (English horoscope):
-- User: "what does this month look like for me?" → "Great question! The stars can tell us a lot about the energy and opportunities coming your way this month. Let's take a look at your horoscope and see what's in store!"
-
-Examples (Thai draw):
-- User: "พรุ่งนี้กูจะเป็นยังไงบ้าง" → "อยากรู้เรื่องพรุ่งนี้เลยใช่มั้ย? เป็นเรื่องดีนะที่อยากเตรียมตัวรับมือกับสิ่งที่จะเกิดขึ้น ไพ่ทาโรต์ช่วยให้เห็นภาพรวมของพลังงานในวันพรุ่งนี้ได้ดีมากเลย มาจั่วไพ่กันเลยดีกว่า แล้วไพ่จะบอกเราเอง!"
-- User: "เขารักเราจริงมั้ย" → "เรื่องความรักมันเป็นเรื่องที่ทำให้คิดมากได้จริงๆ นะ เข้าใจเลยว่าอยากรู้ว่าอีกฝ่ายรู้สึกยังไง ไพ่ทาโรต์ช่วยให้เราเห็นมุมที่ซ่อนอยู่ได้นะ มาลองจั่วไพ่ดูกันเลย!"
-
-Examples (Thai horoscope):
-- User: "เดือนนี้จะเป็นยังไง" → "อยากรู้ภาพรวมของเดือนนี้เลยใช่มั้ย? ดวงดาวช่วยบอกจังหวะพลังงานและโอกาสที่กำลังจะเข้ามาได้ดีมากเลย มาดูดวงกันเลยนะ!"
 `
 
 function detectQuestionLanguage(text: string): string {
@@ -148,7 +133,7 @@ function getChatDecisionPrompt({
             : null
 
     const modeInstruction = forcedType
-        ? `\nThe user has locked the mode to "${forcedType}". You MUST set type to "${forcedType}" and write assistantText matching that type.\n`
+        ? `\nThe user has locked the mode to "${forcedType}". You MUST set type to "${forcedType}". If the forced type is "draw", you must still choose the best spreadType and spreadReason.\n`
         : ""
 
     const detectedLang = detectQuestionLanguage(question)
@@ -164,7 +149,7 @@ User message:
 ${question}
 ${modeInstruction}
 ${savedBirthBlock}
-DETECTED LANGUAGE: The user's message is in ${detectedLang}. You MUST write assistantText entirely in ${detectedLang}. Ignore the language of conversation history — only the current user message language matters.
+DETECTED LANGUAGE: The user's message is in ${detectedLang}. Ignore the language of conversation history — only the current user message language matters.
 
 Classify the intent and return JSON.
 `
@@ -216,8 +201,7 @@ export async function POST(req: Request) {
             interpretationMode,
             contextSummary,
             savedBirthInfo,
-        } =
-            body ?? {}
+        } = body ?? {}
         const normalizedHistory = normalizeHistory(history)
 
         if (!question) {

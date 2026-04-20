@@ -81,7 +81,7 @@ import type {
     SourceAspectEvent,
 } from "@/components/chat/types"
 
-import { chooseTarotSpread } from "@/lib/chat/decision-schema"
+import { getTarotCardCount } from "@/lib/chat/decision-schema"
 
 export type { ChatDecision } from "@/components/chat/types"
 
@@ -423,6 +423,8 @@ export default function ChatSession({
                     m.id === lid
                         ? {
                               ...m,
+                              keyMessage:
+                                  object.keyMessage?.trim() || m.keyMessage,
                               text: object.interpretation || m.text,
                               insights: insights ?? m.insights,
                               isLoading: false,
@@ -433,7 +435,7 @@ export default function ChatSession({
                                       typeof s === "string" ? s.trim() : "",
                                   )
                                   .filter(Boolean)
-                                  .slice(0, 5),
+                                  .slice(0, 4),
                               followUpLoading: false,
                           }
                         : m,
@@ -714,18 +716,21 @@ export default function ChatSession({
             interpretationObject.suggestions
                 ?.map((s) => (typeof s === "string" ? s.trim() : ""))
                 .filter(Boolean)
-                .slice(0, 5) ?? undefined
+                .slice(0, 4) ?? undefined
         setMessages((prev) => {
             const m = prev.find((x) => x.id === lid)
             if (!m) return prev
 
             const nextText = interpretationObject.interpretation ?? m.text ?? ""
+            const nextKeyMessage =
+                interpretationObject.keyMessage?.trim() ?? m.keyMessage
             const nextInsights = insights ?? m.insights
             const nextConclusion =
                 interpretationObject.conclusion?.trim() ?? m.followUpConclusion
             const nextSuggestions = suggestions ?? m.followUpSuggestions
 
             const changed =
+                nextKeyMessage !== m.keyMessage ||
                 nextText !== m.text ||
                 !areStringArraysEqual(nextInsights, m.insights) ||
                 nextConclusion !== m.followUpConclusion ||
@@ -736,6 +741,7 @@ export default function ChatSession({
                 mm.id === lid
                     ? {
                           ...m,
+                          keyMessage: nextKeyMessage,
                           text: nextText,
                           insights: nextInsights,
                           followUpConclusion: nextConclusion,
@@ -853,13 +859,16 @@ export default function ChatSession({
             interpretationObject?.suggestions
                 ?.map((s) => (typeof s === "string" ? s.trim() : ""))
                 .filter(Boolean)
-                .slice(0, 5) ?? undefined
+                .slice(0, 4) ?? undefined
 
         setMessages((prev) =>
             prev.map((m) =>
                 m.id === targetId
                     ? {
                           ...m,
+                          keyMessage:
+                              interpretationObject?.keyMessage?.trim() ??
+                              m.keyMessage,
                           text:
                               interpretationObject?.interpretation ??
                               m.text ??
@@ -1165,6 +1174,7 @@ export default function ChatSession({
                     id: loadingId,
                     role: "assistant",
                     text: "",
+                    keyMessage: "",
                     variant: "box",
                     cards: drawnCards,
                     insights: [],
@@ -1351,6 +1361,24 @@ export default function ChatSession({
         },
         [interpretationMode],
     )
+
+    const normalizeDrawDecision = useCallback((decision: ChatDecision) => {
+        if (decision.type !== "draw") {
+            return {
+                ...decision,
+                spreadType: undefined,
+                cardCount: undefined,
+                spreadReason: undefined,
+            }
+        }
+
+        const spreadType = decision.spreadType ?? "simple"
+        return {
+            ...decision,
+            spreadType,
+            cardCount: getTarotCardCount(spreadType),
+        }
+    }, [])
 
     const getDefaultSystemByLocale = useCallback(() => {
         return getDefaultAstrologySystem(
@@ -1629,6 +1657,7 @@ export default function ChatSession({
                     m.id === messageId
                         ? {
                               ...m,
+                              keyMessage: undefined,
                               text: "",
                               insights: [],
                               followUpConclusion: undefined,
@@ -2061,26 +2090,10 @@ export default function ChatSession({
         ],
     )
 
-    const extractAssistantTextFromStream = useCallback(
-        (raw: string): string => {
-            const match = raw.match(
-                /"assistantText"\s*:\s*"((?:[^"\\]|\\.)*)"?/,
-            )
-            if (!match) return ""
-            const s = match[1]
-            return s
-                .replace(/\\\\/g, "\\")
-                .replace(/\\n/g, "\n")
-                .replace(/\\"/g, '"')
-        },
-        [],
-    )
-
     const fetchDecision = useCallback(
         async (
             value: string,
             historyOverride?: { role: string; text: string }[],
-            onChunk?: (partialAssistantText: string) => void,
             savedBirthInfo?: string | null,
         ) => {
             if (abortControllerRef.current) {
@@ -2125,10 +2138,6 @@ export default function ChatSession({
                     const { done, value: chunk } = await reader.read()
                     if (done) break
                     buffer += decoder.decode(chunk, { stream: true })
-                    if (onChunk) {
-                        const partial = extractAssistantTextFromStream(buffer)
-                        if (partial) onChunk(partial)
-                    }
                 }
                 buffer += decoder.decode()
             } finally {
@@ -2142,9 +2151,76 @@ export default function ChatSession({
         [
             messages,
             parseDecision,
-            extractAssistantTextFromStream,
             interpretationMode,
         ],
+    )
+
+    const streamAssistantResponse = useCallback(
+        async ({
+            question,
+            type,
+            isFollowUp,
+            historyOverride,
+            savedBirthInfo,
+            onChunk,
+        }: {
+            question: string
+            type: ChatDecision["type"]
+            isFollowUp?: boolean
+            historyOverride?: { role: string; text: string }[]
+            savedBirthInfo?: string | null
+            onChunk?: (text: string) => void
+        }) => {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort()
+            }
+            abortControllerRef.current = new AbortController()
+
+            const history =
+                historyOverride ??
+                messages.map((m) => ({
+                    role: m.role,
+                    text: m.text,
+                }))
+            const contextSummary = buildSessionContextSummary(messages)
+            const response = await fetch("/api/chat/respond", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    question,
+                    type,
+                    isFollowUp,
+                    history,
+                    savedBirthInfo: savedBirthInfo ?? undefined,
+                    contextSummary: contextSummary || undefined,
+                }),
+                signal: abortControllerRef.current.signal,
+            })
+
+            if (!response.ok || !response.body) {
+                throw new Error("Failed to generate chat response")
+            }
+
+            const reader = response.body.getReader()
+            const decoder = new TextDecoder()
+            let text = ""
+
+            try {
+                while (true) {
+                    const { done, value: chunk } = await reader.read()
+                    if (done) break
+                    text += decoder.decode(chunk, { stream: true })
+                    onChunk?.(text)
+                }
+                text += decoder.decode()
+                onChunk?.(text)
+            } finally {
+                reader.releaseLock()
+            }
+
+            return text
+        },
+        [messages],
     )
 
     const handleStopStreaming = useCallback(() => {
@@ -2382,7 +2458,18 @@ export default function ChatSession({
                 let nextDecision = await fetchDecision(
                     trimmed,
                     history,
-                    (partial) => {
+                    savedBirthInfo,
+                )
+                nextDecision = applyInterpretationModeOverride(nextDecision)
+                nextDecision = normalizeDrawDecision(nextDecision)
+                setDecision(nextDecision)
+                const assistantText = await streamAssistantResponse({
+                    question: trimmed,
+                    type: nextDecision.type,
+                    isFollowUp: nextDecision.isFollowUp,
+                    historyOverride: history,
+                    savedBirthInfo,
+                    onChunk: (partial) => {
                         setMessages((prev) =>
                             prev.map((m) =>
                                 m.id === assistantLoadingId
@@ -2391,16 +2478,7 @@ export default function ChatSession({
                             ),
                         )
                     },
-                    savedBirthInfo,
-                )
-                nextDecision = applyInterpretationModeOverride(nextDecision)
-                if (nextDecision.type === "draw") {
-                    nextDecision = {
-                        ...nextDecision,
-                        ...chooseTarotSpread(trimmed),
-                    }
-                }
-                setDecision(nextDecision)
+                })
                 setConsulting(false)
 
                 setMessages((prev) =>
@@ -2408,7 +2486,7 @@ export default function ChatSession({
                         m.id === assistantLoadingId
                             ? {
                                   ...m,
-                                  text: nextDecision.assistantText ?? m.text,
+                                  text: assistantText || m.text,
                                   isLoading: false,
                                   streamStopped: false,
                               }
@@ -2462,6 +2540,8 @@ export default function ChatSession({
             handleHoroscopeInput,
             isHoroscopeReady,
             isInterpreting,
+            normalizeDrawDecision,
+            streamAssistantResponse,
         ],
     )
 
@@ -2633,7 +2713,27 @@ export default function ChatSession({
                 let nextDecision = await fetchDecision(
                     trimmed,
                     history,
-                    (partial) => {
+                    savedBirthInfo,
+                )
+                nextDecision = applyInterpretationModeOverride(nextDecision)
+                if (options.forceChatOnly) {
+                    nextDecision = {
+                        ...nextDecision,
+                        type: "chat",
+                        spreadType: undefined,
+                        cardCount: undefined,
+                        spreadReason: undefined,
+                    }
+                }
+                nextDecision = normalizeDrawDecision(nextDecision)
+                setDecision(nextDecision)
+                const assistantText = await streamAssistantResponse({
+                    question: trimmed,
+                    type: nextDecision.type,
+                    isFollowUp: nextDecision.isFollowUp,
+                    historyOverride: history,
+                    savedBirthInfo,
+                    onChunk: (partial) => {
                         setMessages((prev) =>
                             prev.map((m) =>
                                 m.id === assistantLoadingId
@@ -2642,19 +2742,7 @@ export default function ChatSession({
                             ),
                         )
                     },
-                    savedBirthInfo,
-                )
-                nextDecision = applyInterpretationModeOverride(nextDecision)
-                if (options.forceChatOnly) {
-                    nextDecision = { ...nextDecision, type: "chat" }
-                }
-                if (nextDecision.type === "draw") {
-                    nextDecision = {
-                        ...nextDecision,
-                        ...chooseTarotSpread(trimmed),
-                    }
-                }
-                setDecision(nextDecision)
+                })
                 setConsulting(false)
 
                 setMessages((prev) =>
@@ -2662,7 +2750,7 @@ export default function ChatSession({
                         m.id === assistantLoadingId
                             ? {
                                   ...m,
-                                  text: nextDecision.assistantText ?? m.text,
+                                  text: assistantText || m.text,
                                   isLoading: false,
                                   streamStopped: false,
                               }
@@ -2715,6 +2803,8 @@ export default function ChatSession({
             handleHoroscopeInput,
             isHoroscopeReady,
             messages,
+            normalizeDrawDecision,
+            streamAssistantResponse,
         ],
     )
 
@@ -2956,7 +3046,7 @@ export default function ChatSession({
         setQuestion("")
     }, [clearHoroscopeIntakeMessages])
 
-    const handleChooseCardInstead = useCallback(() => {
+    const handleChooseCardInstead = useCallback(async () => {
         const tarotQuestion =
             horoscopeQuestion || lastQuestion || question.trim()
         if (!tarotQuestion) return
@@ -2965,18 +3055,42 @@ export default function ChatSession({
         setHoroscopeBirth(null)
         setHoroscopeTransit(null)
         setInterpretationMode("tarot")
-        setDecision({
-            type: "draw",
-            assistantText: "",
-            ...chooseTarotSpread(tarotQuestion),
-        })
+        try {
+            const savedBirth = loadBirthFromStorage()
+            const savedBirthInfo =
+                savedBirth && isHoroscopeReady(savedBirth)
+                    ? "saved_profile_in_action_trigger"
+                    : null
+            const aiDecision = await fetchDecision(
+                tarotQuestion,
+                undefined,
+                savedBirthInfo,
+            )
+            setDecision({
+                ...normalizeDrawDecision({
+                    ...aiDecision,
+                    type: "draw",
+                }),
+                assistantText: "",
+            })
+        } catch {
+            setDecision({
+                type: "draw",
+                assistantText: "",
+                spreadType: "simple",
+                cardCount: getTarotCardCount("simple"),
+            })
+        }
         setShowCardDraw(true)
         setLastQuestion(tarotQuestion)
         setQuestion("")
     }, [
         clearHoroscopeIntakeMessages,
+        fetchDecision,
         horoscopeQuestion,
+        isHoroscopeReady,
         lastQuestion,
+        normalizeDrawDecision,
         question,
     ])
 

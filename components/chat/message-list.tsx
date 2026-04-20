@@ -6,12 +6,17 @@ import {
     type ReactNode,
     type RefObject,
     type SetStateAction,
+    useCallback,
+    useLayoutEffect,
     useMemo,
+    useRef,
     useState,
 } from "react"
 import { Badge } from "@/components/ui/badge"
 import { CardImage } from "@/components/card-image"
-import ActionSection from "@/components/tarot/interpretation/action"
+import ActionSection, {
+    type ActionSectionProps,
+} from "@/components/tarot/interpretation/action"
 import ShareSection from "@/components/tarot/interpretation/share"
 import InsufficientStarsBlock from "@/components/stars/insufficient-stars-block"
 import { ConsultingBadge } from "@/components/consulting-badge"
@@ -24,9 +29,11 @@ import type { HoroscopeBirthData } from "@/types/horoscope"
 import type { ChatMessage, SourceAspectEvent } from "./types"
 import { LoadingDotsText } from "./loading-dots-text"
 import { useTranslations } from "next-intl"
+import { toast } from "sonner"
 import {
     ChevronDown,
     ChevronRight,
+    Copy,
     Flag,
     Layers,
     Loader2,
@@ -42,6 +49,8 @@ import {
     Triangle,
     Minus,
     X,
+    Sparkle,
+    Share,
 } from "lucide-react"
 
 function formatHoroscopeLoadingText(
@@ -89,6 +98,115 @@ function renderInlineBoldMarkdown(text: string): ReactNode[] {
     return nodes
 }
 
+const INTERPRETATION_FILLER_PREFIXES = [
+    /^(?:i\s+(?:feel|sense|believe|think)\s+(?:that\s+)*)/i,
+    /^(?:it\s+(?:feels|seems|looks)\s+like\s+)/i,
+    /^(?:for\s+(?:this|the)\s+(?:project|reading|situation|question|matter)\s*,?\s*)/i,
+    /^(?:the\s+cards?\s+(?:show|suggest|indicate|reveal)\s+(?:that\s+)*)/i,
+    /^(?:this\s+(?:reading|spread)\s+(?:shows|suggests|reveals)\s+(?:that\s+)*)/i,
+]
+
+function stripMarkdownFormatting(text: string): string {
+    return text.replace(/\*\*/g, "").replace(/`/g, "").trim()
+}
+
+function capitalizeFirstCharacter(text: string): string {
+    if (!text) return text
+    return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
+function trimInterpretationLead(paragraph: string): string {
+    let cleaned = paragraph.trim()
+    let changed = true
+
+    while (changed) {
+        changed = false
+        for (const pattern of INTERPRETATION_FILLER_PREFIXES) {
+            const next = cleaned.replace(pattern, "").trim()
+            if (next !== cleaned) {
+                cleaned = next
+                changed = true
+            }
+        }
+    }
+
+    return capitalizeFirstCharacter(cleaned)
+}
+
+function splitIntoSentences(text: string): string[] {
+    const normalized = stripMarkdownFormatting(text).replace(/\s+/g, " ").trim()
+    if (!normalized) return []
+
+    const matches = normalized.match(/[^.!?\n]+(?:[.!?]+|$)/g)
+    return (matches ?? [normalized])
+        .map((sentence) => sentence.trim())
+        .filter(Boolean)
+}
+
+function normalizeComparisonText(text: string): string {
+    return stripMarkdownFormatting(text)
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase()
+}
+
+function shouldShowKeyMessage(
+    keyMessage: string | undefined,
+    detail: string,
+): boolean {
+    const summary = normalizeComparisonText(keyMessage ?? "")
+    const body = normalizeComparisonText(detail)
+
+    if (!summary || !body) return false
+    if (summary === body) return false
+
+    const openingSentences = splitIntoSentences(detail).slice(0, 2).join(" ")
+    return normalizeComparisonText(openingSentences) !== summary
+}
+
+function formatInterpretationBody(text: string, question?: string): string[] {
+    const normalized = text.replace(/\r\n/g, "\n").trim()
+    if (!normalized) {
+        return []
+    }
+
+    const baseParagraphs = normalized
+        .split(/\n{2,}/)
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean)
+
+    const cleanedParagraphs = (
+        baseParagraphs.length > 0 ? baseParagraphs : [normalized]
+    )
+        .map((paragraph, index) =>
+            index === 0 ? trimInterpretationLead(paragraph) : paragraph.trim(),
+        )
+        .filter(Boolean)
+
+    const allSentences = cleanedParagraphs.flatMap((paragraph) =>
+        splitIntoSentences(paragraph),
+    )
+    const normalizedQuestion = normalizeComparisonText(question ?? "")
+    const filteredSentences =
+        normalizedQuestion.length > 12
+            ? allSentences.filter((sentence) => {
+                  const normalizedSentence = normalizeComparisonText(sentence)
+                  return !normalizedSentence.includes(normalizedQuestion)
+              })
+            : allSentences
+    const sentencesToShow = (
+        filteredSentences.length > 0 ? filteredSentences : allSentences
+    )
+        .slice(0, 2)
+        .filter(Boolean)
+
+    if (sentencesToShow.length > 0) {
+        return [sentencesToShow.join(" ")]
+    }
+
+    return cleanedParagraphs.slice(0, 1)
+}
+
 function ChartDataCollapsible({
     chartData,
 }: {
@@ -114,6 +232,96 @@ function ChartDataCollapsible({
                 <pre className='p-3 text-[10px] text-white/60 overflow-x-auto max-h-64 overflow-y-auto font-mono whitespace-pre-wrap break-words border-t border-white/5'>
                     {jsonStr}
                 </pre>
+            )}
+        </div>
+    )
+}
+
+const TAROT_AI_HEADER_ROW_GAP_PX = 12
+const TAROT_AI_HEADER_MEASURE_PAD_PX = 2
+const TAROT_AI_HEADER_SCREEN_EDGE_PAD_PX = 12
+
+function TarotInterpretationHeaderBar({
+    isLoading,
+    ...actionSectionProps
+}: {
+    isLoading: boolean
+} & Omit<ActionSectionProps, "variant" | "compactAvailableWidthPx">) {
+    const headerRowRef = useRef<HTMLDivElement>(null)
+    const pillRef = useRef<HTMLDivElement>(null)
+    const [compactAvailableWidthPx, setCompactAvailableWidthPx] = useState<
+        number | undefined
+    >(undefined)
+
+    const measureAvailability = useCallback(() => {
+        const rowEl = headerRowRef.current
+        const pillEl = pillRef.current
+        if (!rowEl || !pillEl || isLoading) return
+        const rowRect = rowEl.getBoundingClientRect()
+        const pillRect = pillEl.getBoundingClientRect()
+        const fromFlexRow =
+            rowRect.width -
+            pillRect.width -
+            TAROT_AI_HEADER_ROW_GAP_PX -
+            TAROT_AI_HEADER_MEASURE_PAD_PX
+        const screenW =
+            typeof window !== "undefined" ? window.innerWidth : rowRect.width
+        const fromScreenRight =
+            screenW - pillRect.right - TAROT_AI_HEADER_SCREEN_EDGE_PAD_PX
+        const next = Math.max(
+            0,
+            Math.min(fromFlexRow, fromScreenRight),
+        )
+        setCompactAvailableWidthPx((prev) =>
+            prev !== undefined && Math.abs(prev - next) < 0.5 ? prev : next,
+        )
+    }, [isLoading])
+
+    useLayoutEffect(() => {
+        if (isLoading) return
+        const run = () => {
+            requestAnimationFrame(() => measureAvailability())
+        }
+        run()
+        const ro = new ResizeObserver(run)
+        const row = headerRowRef.current
+        const pill = pillRef.current
+        if (row) ro.observe(row)
+        if (pill) ro.observe(pill)
+        window.addEventListener("resize", run)
+        window.visualViewport?.addEventListener("resize", run)
+        return () => {
+            ro.disconnect()
+            window.removeEventListener("resize", run)
+            window.visualViewport?.removeEventListener("resize", run)
+        }
+    }, [isLoading, measureAvailability])
+
+    return (
+        <div
+            ref={headerRowRef}
+            className='flex min-w-0 items-center justify-between gap-3'
+        >
+            <div
+                ref={pillRef}
+                className='flex w-fit shrink-0 items-center space-x-3 rounded-full bg-primary/20 px-4 py-2'
+            >
+                <Sparkle
+                    fill='currentColor'
+                    className='h-4 w-4 shrink-0 text-accent'
+                />
+                <div>
+                    <p className='whitespace-nowrap text-sm text-accent'>
+                        AI Interpretation
+                    </p>
+                </div>
+            </div>
+            {!isLoading && (
+                <ActionSection
+                    variant='compact'
+                    compactAvailableWidthPx={compactAvailableWidthPx}
+                    {...actionSectionProps}
+                />
             )}
         </div>
     )
@@ -358,6 +566,7 @@ export default function MessageList({
     messagesEndRef,
 }: MessageListProps) {
     const t = useTranslations("Home")
+    const tReading = useTranslations("ReadingPage.interpretation")
     const tPanel = useTranslations("PlanetaryPanel")
     const consultingBase = t("consulting")
     const [panelDetailToggles, setPanelDetailToggles] = useState<
@@ -382,6 +591,30 @@ export default function MessageList({
                         birth: false,
                         transit: false,
                     }
+                    const formattedTarotInterpretation =
+                        message.variant === "box"
+                            ? formatInterpretationBody(
+                                  message.text || "",
+                                  message.question,
+                              )
+                            : []
+                    const showKeyMessage =
+                        message.variant === "box" &&
+                        shouldShowKeyMessage(
+                            message.keyMessage,
+                            message.text || "",
+                        )
+                    const tarotShareText =
+                        message.variant === "box"
+                            ? [
+                                  message.question?.trim(),
+                                  message.keyMessage?.trim(),
+                                  message.text?.trim(),
+                              ]
+                                  .filter((s): s is string => Boolean(s))
+                                  .join("\n\n")
+                            : ""
+
                     // --- User message: user's question with edit/regenerate actions ---
                     if (message.role === "user") {
                         const isEditing = editingMessageId === message.id
@@ -452,6 +685,48 @@ export default function MessageList({
                                     )}
                                 </div>
                                 <div className='flex items-center gap-2 text-[11px] text-white/60'>
+                                    <button
+                                        type='button'
+                                        className='flex items-center justify-center h-6 w-6 rounded-full hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40'
+                                        onClick={async () => {
+                                            const text =
+                                                message.text?.trim() ?? ""
+                                            if (!text) return
+                                            try {
+                                                if (
+                                                    navigator.clipboard &&
+                                                    window.isSecureContext
+                                                ) {
+                                                    await navigator.clipboard.writeText(
+                                                        text,
+                                                    )
+                                                    toast.success(
+                                                        t("copyPromptSuccess"),
+                                                    )
+                                                } else {
+                                                    toast.error(
+                                                        t(
+                                                            "copyPromptUnavailable",
+                                                        ),
+                                                    )
+                                                }
+                                            } catch {
+                                                toast.error(
+                                                    t("copyPromptFailed"),
+                                                )
+                                            }
+                                        }}
+                                        disabled={
+                                            consulting ||
+                                            isInterpreting ||
+                                            isEditing ||
+                                            !message.text?.trim()
+                                        }
+                                        aria-label={t("copyPrompt")}
+                                        title={t("copyPrompt")}
+                                    >
+                                        <Copy className='w-3 h-3' />
+                                    </button>
                                     <button
                                         type='button'
                                         className='flex items-center justify-center h-6 w-6 rounded-full hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40'
@@ -581,15 +856,13 @@ export default function MessageList({
                                                             </p>
                                                             <Badge
                                                                 variant='secondary'
-                                                                className='bg-white/20 text-white/90 border-primary/30 truncate block max-w-full text-[10px]'
+                                                                className='block max-w-full truncate rounded-full border border-amber-200/30 bg-amber-300/12 px-2.5 py-1 text-[10px] font-medium text-amber-100'
                                                             >
                                                                 {card.meaning}
                                                             </Badge>
                                                         </div>
-                                                        <div className='w-fit px-3 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 backdrop-blur-md relative group/insight animate-fade-in shadow-lg'>
-                                                            <div className='absolute -top-1 -left-1 w-2 h-2 border-t border-l border-primary/40 rounded-tl-sm' />
-                                                            <div className='absolute -bottom-1 -right-1 w-2 h-2 border-b border-r border-primary/40 rounded-br-sm' />
-                                                            <p className='text-[10px] font-serif italic text-indigo-100 leading-relaxed'>
+                                                        <div className='mt-0.5 w-full rounded-r-xl border-l-2 border-indigo-300/60 bg-indigo-400/[0.04] py-2 pr-3 pl-4 animate-fade-in'>
+                                                            <p className='text-[10px] font-serif italic leading-relaxed text-white/76'>
                                                                 &ldquo;
                                                                 {message.isLoading &&
                                                                 !message
@@ -635,21 +908,54 @@ export default function MessageList({
                             {/* Box variant: tarot interpretation with cards, insights, actions, share */}
                             {message.variant === "box" ? (
                                 <>
-                                    <div className='w-full md:max-w-[85%] rounded-2xl border border-white/10 bg-white/5 p-8 shadow-lg space-y-6'>
-                                        <div className='flex items-center space-x-3'>
-                                            <div className='w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center'>
-                                                <Sparkles className='w-5 h-5 text-primary' />
-                                            </div>
-                                            <div>
-                                                <h2 className='font-serif font-semibold text-xl text-white'>
-                                                    Interpretation
-                                                </h2>
-                                                <p className='text-sm text-white/40'>
-                                                    AI-powered tarot reading
+                                    <div className='w-full md:max-w-[85%] space-y-6'>
+                                        <TarotInterpretationHeaderBar
+                                            isLoading={!!message.isLoading}
+                                            question={message.question}
+                                            cards={message.cards?.map(
+                                                (card) => card.meaning,
+                                            )}
+                                            interpretation={message.text}
+                                            messageId={message.id}
+                                            readingId={message.id}
+                                            onRegenerateTarot={onRegenerateTarot}
+                                            insights={message.insights}
+                                            conclusion={
+                                                message.followUpConclusion
+                                            }
+                                            spreadType={
+                                                message.spreadType ?? undefined
+                                            }
+                                            cardsFull={message.cards}
+                                            assistantText={
+                                                messages
+                                                    .slice(0, messageIndex)
+                                                    .reverse()
+                                                    .find(
+                                                        (m) =>
+                                                            m.role ===
+                                                                "assistant" &&
+                                                            m.variant ===
+                                                                "plain",
+                                                    )?.text
+                                            }
+                                            onInterpretationChange={
+                                                onTarotInterpretationChange
+                                                    ? (text: string) =>
+                                                          onTarotInterpretationChange(
+                                                              message.id,
+                                                              text,
+                                                          )
+                                                    : undefined
+                                            }
+                                        />
+                                        {!message.isLoading &&
+                                            messageNotices[message.id] && (
+                                                <p className='-mt-3 text-right text-[11px] text-white/45'>
+                                                    {messageNotices[message.id]}
                                                 </p>
-                                            </div>
-                                        </div>
-                                        <div className='text-white/90 leading-relaxed whitespace-pre-wrap'>
+                                            )}
+                                        <div className='space-y-5 text-white/90 leading-relaxed'>
                                             {/* {!message.isLoading &&
                                                 !!message.text?.trim() && (
                                                     <button
@@ -714,75 +1020,120 @@ export default function MessageList({
                                                     />
                                                 </span>
                                             ) : (
-                                                renderInlineBoldMarkdown(
-                                                    message.text || "",
-                                                )
+                                                <>
+                                                    {showKeyMessage && (
+                                                        <div className='rounded-2xl border border-indigo-300/20 bg-indigo-400/[0.07] px-4 py-3 shadow-[0_8px_24px_-18px_rgba(129,140,248,0.75)]'>
+                                                            <div className='mb-1 flex items-start justify-between gap-3'>
+                                                                <div>
+                                                                    <p className='min-w-0 flex-1 text-[11px] font-semibold uppercase tracking-wider text-indigo-100/70'>
+                                                                        {tReading(
+                                                                            "actions.keyMessage",
+                                                                        )}
+                                                                    </p>
+                                                                    <p className='text-sm leading-7 text-white/92'>
+                                                                        {
+                                                                            message.keyMessage
+                                                                        }
+                                                                    </p>
+                                                                </div>
+                                                                <button
+                                                                    type='button'
+                                                                    onClick={() =>
+                                                                        onShare(
+                                                                            message.id,
+                                                                            tarotShareText ||
+                                                                                message.text ||
+                                                                                "",
+                                                                        )
+                                                                    }
+                                                                    className='group relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/60 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl text-white shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] transition hover:scale-105 hover:border-accent/40 hover:shadow-[0_12px_32px_-10px_rgba(139,92,246,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40'
+                                                                    aria-label={tReading(
+                                                                        "actions.share",
+                                                                    )}
+                                                                    title={tReading(
+                                                                        "actions.share",
+                                                                    )}
+                                                                >
+                                                                    <span
+                                                                        aria-hidden
+                                                                        className='pointer-events-none absolute inset-0 rounded-full bg-gradient-to-r from-indigo-400/45 via-purple-400/45 to-cyan-400/45 opacity-80 transition group-hover:opacity-0'
+                                                                    />
+                                                                    <Share className='relative z-10 h-4.5 w-4.5 shrink-0 drop-shadow-sm' />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    <div className='space-y-4 text-[15px] leading-8 text-white/84'>
+                                                        {formattedTarotInterpretation.map(
+                                                            (
+                                                                paragraph,
+                                                                paragraphIndex,
+                                                            ) => (
+                                                                <p
+                                                                    key={`${message.id}-paragraph-${paragraphIndex}`}
+                                                                >
+                                                                    {renderInlineBoldMarkdown(
+                                                                        paragraph,
+                                                                    )}
+                                                                </p>
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                </>
                                             )}
                                         </div>
                                         {!message.isLoading && (
                                             <div className='pt-4 border-t border-white/5 space-y-4'>
-                                                <div className='space-y-2'>
-                                                    <p className='text-[11px] uppercase tracking-[0.2em] text-white/50'>
-                                                        Actions
-                                                    </p>
-                                                    <ActionSection
-                                                        variant='embedded'
-                                                        question={
-                                                            message.question
+                                                {/* <div className='grid grid-cols-3 gap-2'>
+                                                    <button
+                                                        type='button'
+                                                        onClick={() =>
+                                                            handleCopyReading(
+                                                                message.id,
+                                                                message.text ||
+                                                                    "",
+                                                            )
                                                         }
-                                                        cards={message.cards?.map(
-                                                            (card) =>
-                                                                card.meaning,
+                                                        className='inline-flex min-h-10 items-center justify-center rounded-full border border-white/10 bg-transparent px-3 text-[13px] font-medium text-white/78 transition hover:border-white/20 hover:bg-white/[0.05] hover:text-white'
+                                                    >
+                                                        {copiedReadingId ===
+                                                        message.id
+                                                            ? tReading(
+                                                                  "actions.copiedLink",
+                                                              )
+                                                            : tReading(
+                                                                  "actions.copyResult",
+                                                              )}
+                                                    </button>
+                                                    <button
+                                                        type='button'
+                                                        onClick={() =>
+                                                            onShare(
+                                                                message.id,
+                                                                message.text ||
+                                                                    "",
+                                                            )
+                                                        }
+                                                        className='inline-flex min-h-10 items-center justify-center rounded-full border border-white/10 bg-transparent px-3 text-[13px] font-medium text-white/78 transition hover:border-white/20 hover:bg-white/[0.05] hover:text-white'
+                                                    >
+                                                        {tReading(
+                                                            "actions.share",
                                                         )}
-                                                        interpretation={
-                                                            message.text
+                                                    </button>
+                                                    <button
+                                                        type='button'
+                                                        onClick={() =>
+                                                            onApplySuggestedQuestion(
+                                                                tarotFollowUpPrompt,
+                                                            )
                                                         }
-                                                        messageId={message.id}
-                                                        readingId={message.id}
-                                                        onRegenerateTarot={
-                                                            onRegenerateTarot
-                                                        }
-                                                        insights={
-                                                            message.insights
-                                                        }
-                                                        conclusion={
-                                                            message.followUpConclusion
-                                                        }
-                                                        spreadType={
-                                                            message.spreadType ??
-                                                            undefined
-                                                        }
-                                                        cardsFull={
-                                                            message.cards
-                                                        }
-                                                        assistantText={
-                                                            messages
-                                                                .slice(
-                                                                    0,
-                                                                    messageIndex,
-                                                                )
-                                                                .reverse()
-                                                                .find(
-                                                                    (m) =>
-                                                                        m.role ===
-                                                                            "assistant" &&
-                                                                        m.variant ===
-                                                                            "plain",
-                                                                )?.text
-                                                        }
-                                                        onInterpretationChange={
-                                                            onTarotInterpretationChange
-                                                                ? (
-                                                                      text: string,
-                                                                  ) =>
-                                                                      onTarotInterpretationChange(
-                                                                          message.id,
-                                                                          text,
-                                                                      )
-                                                                : undefined
-                                                        }
-                                                    />
-                                                </div>
+                                                        className='inline-flex min-h-10 items-center justify-center rounded-full border border-white/10 bg-transparent px-3 text-[13px] font-medium text-white/78 transition hover:border-white/20 hover:bg-white/[0.05] hover:text-white'
+                                                    >
+                                                        {tReading(
+                                                            "actions.askFollowUp",
+                                                        )}
+                                                    </button>
+                                                </div> */}
                                                 <ShareSection
                                                     variant='embedded'
                                                     question={message.question}
@@ -1077,6 +1428,15 @@ export default function MessageList({
                                             </div>
                                             {!message.isLoading && (
                                                 <div className='pt-4 border-t border-white/5 space-y-4'>
+                                                    <ShareSection
+                                                        variant='embedded'
+                                                        question={
+                                                            message.question
+                                                        }
+                                                        interpretation={
+                                                            message.text
+                                                        }
+                                                    />
                                                     <div className='space-y-2'>
                                                         <p className='text-[11px] uppercase tracking-[0.2em] text-white/50'>
                                                             Actions
@@ -1098,15 +1458,6 @@ export default function MessageList({
                                                             }
                                                         />
                                                     </div>
-                                                    <ShareSection
-                                                        variant='embedded'
-                                                        question={
-                                                            message.question
-                                                        }
-                                                        interpretation={
-                                                            message.text
-                                                        }
-                                                    />
                                                     {message.chartData && (
                                                         <ChartDataCollapsible
                                                             chartData={

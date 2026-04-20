@@ -26,6 +26,7 @@ import {
     FaComment,
     FaCheck,
     FaXmark,
+    FaCopy,
 } from "react-icons/fa6"
 import { Sparkle, Star } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
@@ -62,10 +63,17 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
+import { MoreHorizontal } from "lucide-react"
 
-interface ActionSectionProps {
+export interface ActionSectionProps {
     question?: string
     cards?: string[]
     interpretation?: string
@@ -89,6 +97,37 @@ interface ActionSectionProps {
         isReversed: boolean
     }>
     assistantText?: string
+    /** When set (e.g. from layout: row width − pill width − gap), drives how many icons show in `compact`. */
+    compactAvailableWidthPx?: number
+}
+
+const COMPACT_ACTION_BUTTON_PX = 32
+const COMPACT_ACTION_GAP_PX = 6
+
+function getCompactVisibleActionCountFromWidth(availablePx: number, total: number) {
+    if (total <= 0) return 0
+    if (!Number.isFinite(availablePx) || availablePx <= 0) return 1
+
+    const rowWidth = (n: number) =>
+        n * COMPACT_ACTION_BUTTON_PX +
+        Math.max(0, n - 1) * COMPACT_ACTION_GAP_PX
+
+    for (let n = total; n >= 1; n--) {
+        const need =
+            n >= total
+                ? rowWidth(n)
+                : rowWidth(n + 1)
+        if (need <= availablePx) return n
+    }
+    return 1
+}
+
+function getCompactVisibleActionCountViewportFallback(width: number) {
+    if (width < 480) return 3
+    if (width < 640) return 4
+    if (width < 768) return 5
+    if (width < 1024) return 6
+    return 6
 }
 
 export default function ActionSection({
@@ -109,6 +148,7 @@ export default function ActionSection({
     spreadType: propSpreadType,
     cardsFull: propCardsFull,
     assistantText: propAssistantText,
+    compactAvailableWidthPx: propCompactAvailableWidthPx,
 }: ActionSectionProps = {}) {
     const t = useTranslations("ReadingPage.interpretation")
     const {
@@ -135,13 +175,13 @@ export default function ActionSection({
         "image",
     )
     const [downloadStyleId, setDownloadStyleId] = useState("story")
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-    const [previewError, setPreviewError] = useState<string | null>(null)
+    const [, setPreviewUrl] = useState<string | null>(null)
+    const [, setPreviewError] = useState<string | null>(null)
     const [isPreviewLoading, setIsPreviewLoading] = useState(false)
-    const [previewProgress, setPreviewProgress] = useState<number | null>(null)
-    const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null)
+    const [, setPreviewProgress] = useState<number | null>(null)
+    const [, setVideoPreviewUrl] = useState<string | null>(null)
     const [isVideoGenerating, setIsVideoGenerating] = useState(false)
-    const [videoProgress, setVideoProgress] = useState<number | null>(null)
+    const [, setVideoProgress] = useState<number | null>(null)
     const previewBlobRef = useRef<{ styleId: string; blob: Blob } | null>(null)
     const previewCacheRef = useRef<Map<string, Blob>>(new Map())
     const videoCacheRef = useRef<Map<string, Blob>>(new Map())
@@ -156,6 +196,10 @@ export default function ActionSection({
     const [voteState, setVoteState] = useState<"up" | "down" | null>(null)
     const [showFeedback, setShowFeedback] = useState(false)
     const [rating, setRating] = useState<number>(0)
+    const [versionsOpen, setVersionsOpen] = useState(false)
+    const [viewportWidth, setViewportWidth] = useState<number>(() =>
+        typeof window === "undefined" ? 0 : window.innerWidth,
+    )
     const navGuardRef = useRef<HTMLDivElement>(null)
     const [versions, setVersions] = useState<
         Array<{
@@ -196,16 +240,22 @@ export default function ActionSection({
         downloadStyles.find((style) => style.id === downloadStyleId) ||
         downloadStyles[0]
 
+    useEffect(() => {
+        if (typeof window === "undefined") return
+        const handleResize = () => setViewportWidth(window.innerWidth)
+        handleResize()
+        window.addEventListener("resize", handleResize)
+        return () => window.removeEventListener("resize", handleResize)
+    }, [])
+
     const fetchShareImage = useCallback(
         async ({
             width,
             height,
-            signal,
             onProgress,
         }: {
             width: number
             height: number
-            signal?: AbortSignal
             onProgress?: (progress: number | null) => void
         }) => {
             const key = `${width}x${height}`
@@ -225,7 +275,6 @@ export default function ActionSection({
                         branding: "AskingFate",
                         type: "image",
                     }),
-                    signal,
                 })
                 if (!res.ok) throw new Error("Preview failed")
 
@@ -287,7 +336,6 @@ export default function ActionSection({
                 (await fetchShareImage({
                     width: style.width,
                     height: style.height,
-                    signal,
                 }))
 
             const baseImage =
@@ -563,7 +611,6 @@ export default function ActionSection({
     useEffect(() => {
         if (!downloadOpen) return
 
-        const controller = new AbortController()
         let isActive = true
 
         const fetchPreview = async () => {
@@ -588,7 +635,6 @@ export default function ActionSection({
                 const blob = await fetchShareImage({
                     width: selectedStyle.width,
                     height: selectedStyle.height,
-                    signal: controller.signal,
                     onProgress: (progress) => {
                         if (!isActive) return
                         setPreviewProgress(progress)
@@ -606,7 +652,7 @@ export default function ActionSection({
                     blob,
                 }
             } catch (error) {
-                if (!isActive || controller.signal.aborted) return
+                if (!isActive) return
                 console.error("Preview error:", error)
                 setPreviewError(t("actions.downloadPreviewError"))
                 setPreviewProgress(null)
@@ -619,7 +665,6 @@ export default function ActionSection({
 
         return () => {
             isActive = false
-            controller.abort()
         }
     }, [
         downloadOpen,
@@ -637,7 +682,6 @@ export default function ActionSection({
     useEffect(() => {
         if (!downloadOpen) return
 
-        const controller = new AbortController()
         let cancelled = false
 
         const loadThumbnails = async () => {
@@ -650,12 +694,11 @@ export default function ActionSection({
                             blob = await fetchShareImage({
                                 width: style.width,
                                 height: style.height,
-                                signal: controller.signal,
                             })
                             if (cancelled) return
                             previewCacheRef.current.set(style.id, blob)
                         } catch (error) {
-                            if (controller.signal.aborted) return
+                            if (cancelled) return
                             console.error("Thumbnail error:", error)
                             return
                         }
@@ -678,7 +721,6 @@ export default function ActionSection({
 
         return () => {
             cancelled = true
-            controller.abort()
         }
     }, [
         downloadOpen,
@@ -1200,7 +1242,7 @@ export default function ActionSection({
             icon: copiedText ? (
                 <FaCheck className='w-6 h-6 text-white' />
             ) : (
-                <FaRegFileLines className='w-6 h-6 text-white' />
+                <FaCopy className='w-6 h-6 text-white' />
             ),
             bg: "linear-gradient(135deg, var(--primary), var(--accent))",
             description: copiedText
@@ -1325,33 +1367,531 @@ export default function ActionSection({
     const renderIcon = (icon: ReactNode) =>
         isValidElement(icon)
             ? cloneElement(icon as ReactElement<{ className?: string }>, {
-                  className: "w-3 h-3 text-white",
+                  className: "w-4 h-4 text-white",
               })
             : icon
 
+    const compactPriorityOrder = [
+        "regen",
+        "download",
+        "copy-link",
+        "versions",
+        "copy-text",
+        "vote-up",
+        "vote-up-cancel",
+        "vote-down",
+        "vote-down-cancel",
+        "report",
+        "feedback",
+    ]
+    const compactPriorityMap = new Map(
+        compactPriorityOrder.map((id, index) => [id, index]),
+    )
+    const compactActionOptions = [...actionOptions].sort((a, b) => {
+        const aPriority = compactPriorityMap.get(a.id) ?? 999
+        const bPriority = compactPriorityMap.get(b.id) ?? 999
+        return aPriority - bPriority
+    })
+    const compactVisibleCount =
+        propCompactAvailableWidthPx !== undefined
+            ? getCompactVisibleActionCountFromWidth(
+                  propCompactAvailableWidthPx,
+                  compactActionOptions.length,
+              )
+            : getCompactVisibleActionCountViewportFallback(viewportWidth)
+    const compactVisibleActionOptions = compactActionOptions.slice(
+        0,
+        compactVisibleCount,
+    )
+    const compactOverflowActionOptions = compactActionOptions.slice(
+        compactVisibleCount,
+    )
+    const compactButtonClass =
+        "inline-flex h-8 w-8 items-center justify-center rounded-full border border-accent/30 bg-accent/40 text-white transition hover:scale-105 hover:border-accent/45 hover:bg-accent/50"
+
+    const getCompactActionLabel = (action: (typeof actionOptions)[number]) =>
+        typeof action.label === "string"
+            ? action.label
+            : action.id === "regen"
+              ? t("buttons.regenerate")
+              : action.id === "versions"
+                ? t("actions.versions")
+                : action.id
+
+    const handleCompactActionClick = (
+        action: (typeof actionOptions)[number],
+    ) => {
+        if (action.id === "download") {
+            setDownloadOpen(true)
+            return
+        }
+        if (action.id === "versions") {
+            setVersionsOpen(true)
+            return
+        }
+        void action.onClick?.()
+    }
+
     if (variant === "compact") {
         return (
-            <div className='flex flex-wrap items-center gap-2'>
-                {actionOptions.map((action) => (
-                    <button
-                        key={action.id}
-                        type='button'
-                        onClick={() => action.onClick?.()}
-                        className='flex items-center justify-center h-6 w-6 rounded-full border border-white/10 bg-white/5 text-white/80 hover:text-white hover:border-white/30 transition-colors'
-                        title={
-                            typeof action.label === "string"
-                                ? action.label
-                                : undefined
-                        }
-                        aria-label={
-                            typeof action.label === "string"
-                                ? action.label
-                                : action.id
-                        }
+            <div className='relative'>
+                <div className='flex items-center gap-1.5'>
+                    {compactVisibleActionOptions.map((action) => (
+                        <button
+                            key={action.id}
+                            type='button'
+                            onClick={() => handleCompactActionClick(action)}
+                            className={compactButtonClass}
+                            title={getCompactActionLabel(action)}
+                            aria-label={getCompactActionLabel(action)}
+                            disabled={
+                                action.id === "versions" &&
+                                versions.length === 0
+                            }
+                        >
+                            {renderIcon(action.icon)}
+                        </button>
+                    ))}
+                    {compactOverflowActionOptions.length > 0 && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button
+                                    type='button'
+                                    className={compactButtonClass}
+                                    aria-label='More actions'
+                                    title='More actions'
+                                >
+                                    <MoreHorizontal className='h-4 w-4' />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                align='end'
+                                className='w-52 border-white/10 bg-[#0b1020]/95 text-white backdrop-blur-xl'
+                            >
+                                {compactOverflowActionOptions.map((action) => (
+                                    <DropdownMenuItem
+                                        key={action.id}
+                                        onClick={() =>
+                                            handleCompactActionClick(action)
+                                        }
+                                        disabled={
+                                            action.id === "versions" &&
+                                            versions.length === 0
+                                        }
+                                        className='gap-2 text-white/85 focus:bg-white/10 focus:text-white'
+                                    >
+                                        {renderIcon(action.icon)}
+                                        {getCompactActionLabel(action)}
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
+                </div>
+
+                <Sheet open={downloadOpen} onOpenChange={setDownloadOpen}>
+                    <SheetContent
+                        side='bottom'
+                        className='max-h-[85vh] overflow-auto border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 shadow-[0_12px_40px_-12px_rgba(234,179,8,0.35)] backdrop-blur-xl'
                     >
-                        {renderIcon(action.icon)}
-                    </button>
-                ))}
+                        <Sparkle
+                            className='absolute top-10 left-10 w-3 h-3 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                            style={{ animationDelay: "0.6s" }}
+                        />
+                        <Sparkle
+                            className='absolute top-20 right-16 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                            style={{ animationDelay: "1.4s" }}
+                        />
+                        <Sparkle
+                            className='absolute bottom-14 left-16 w-3.5 h-3.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                            style={{ animationDelay: "2.3s" }}
+                        />
+                        <Sparkle
+                            className='absolute bottom-20 right-20 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
+                            style={{ animationDelay: "3.1s" }}
+                        />
+                        <div className='pointer-events-none absolute inset-0 opacity-40'>
+                            <div className='cosmic-stars-layer-3' />
+                            <div className='cosmic-stars-layer-4' />
+                            <div className='cosmic-stars-layer-5' />
+                        </div>
+                        <div className='pointer-events-none absolute -top-20 -left-20 h-64 w-64 rounded-full bg-gradient-to-br from-yellow-300/20 via-yellow-500/10 to-transparent blur-3xl animate-pulse' />
+                        <div
+                            className='pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-gradient-to-tl from-yellow-400/20 via-yellow-600/10 to-transparent blur-[90px] animate-pulse'
+                            style={{ animationDelay: "0.8s" }}
+                        />
+                        <SheetHeader>
+                            <SheetTitle>
+                                {t(
+                                    downloadFormat === "video"
+                                        ? "actions.downloadSheetTitleVideo"
+                                        : "actions.downloadSheetTitleImage",
+                                )}
+                            </SheetTitle>
+                            <SheetDescription>
+                                {t("actions.downloadSheetDesc")}
+                            </SheetDescription>
+                            <div className='mt-4 flex justify-center'>
+                                <div className='inline-flex h-10 items-center justify-center rounded-full bg-white/5 border border-white/10 p-1 text-white'>
+                                    <button
+                                        type='button'
+                                        onClick={() =>
+                                            setDownloadFormat("image")
+                                        }
+                                        className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                                            downloadFormat === "image"
+                                                ? "bg-white/15 text-white shadow"
+                                                : "text-white/70"
+                                        }`}
+                                    >
+                                        {t("actions.downloadTabImage")}
+                                    </button>
+                                    <button
+                                        type='button'
+                                        onClick={() =>
+                                            setDownloadFormat("video")
+                                        }
+                                        className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                                            downloadFormat === "video"
+                                                ? "bg-white/15 text-white shadow"
+                                                : "text-white/70"
+                                        }`}
+                                    >
+                                        {t("actions.downloadTabVideo")}
+                                    </button>
+                                </div>
+                            </div>
+                        </SheetHeader>
+                        <div className='px-4 pb-4 space-y-5'>
+                            <div className='space-y-2'>
+                                <div className='flex items-center justify-between text-sm'>
+                                    <span className='font-medium'>
+                                        {t("actions.downloadStylesTitle")}
+                                    </span>
+                                    <span className='text-xs text-muted-foreground'>
+                                        {t("actions.downloadStylesHint")}
+                                    </span>
+                                </div>
+                                <div className='grid grid-cols-3 gap-2'>
+                                    {downloadStyles.map((style) => (
+                                        <button
+                                            key={style.id}
+                                            type='button'
+                                            onClick={() =>
+                                                setDownloadStyleId(style.id)
+                                            }
+                                            className={`flex h-36 flex-col rounded-lg border p-2 text-left transition ${
+                                                downloadStyleId === style.id
+                                                    ? "border-primary bg-primary/10"
+                                                    : "border-border/60 bg-muted/30 hover:bg-muted/50"
+                                            }`}
+                                        >
+                                            <div className='h-16 w-full overflow-hidden rounded-md border border-border/40 bg-muted/40'>
+                                                {thumbnailUrls[style.id] ? (
+                                                    <div className='relative h-full w-full'>
+                                                        <Image
+                                                            src={
+                                                                thumbnailUrls[
+                                                                    style.id
+                                                                ]
+                                                            }
+                                                            alt={`${style.label} preview`}
+                                                            fill
+                                                            unoptimized
+                                                            className='object-contain'
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className='flex h-full w-full items-center justify-center'>
+                                                        <div
+                                                            className='h-full rounded-sm bg-muted/60'
+                                                            style={{
+                                                                aspectRatio: `${style.width}/${style.height}`,
+                                                                maxWidth:
+                                                                    "100%",
+                                                            }}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className='mt-2 text-xs font-medium text-foreground'>
+                                                {style.label}
+                                            </div>
+                                            <div className='text-[11px] text-muted-foreground'>
+                                                {style.size}
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className='space-y-2'>
+                                <div className='flex items-center justify-between text-sm'>
+                                    <span className='font-medium'>
+                                        {t("actions.downloadPreviewTitle")}
+                                    </span>
+                                    <span className='text-xs text-muted-foreground'>
+                                        {selectedStyle.size}
+                                    </span>
+                                </div>
+                                <div className='relative w-full max-w-[430px] mx-auto overflow-hidden rounded-lg border bg-muted/20'>
+                                    <SharePreview
+                                        question={question}
+                                        cards={cards}
+                                        interpretation={interpretation}
+                                        aspectRatio={
+                                            downloadStyleId === "story"
+                                                ? "story"
+                                                : downloadStyleId === "square"
+                                                  ? "square"
+                                                  : "landscape"
+                                        }
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <SheetFooter className='sticky bottom-0 z-10 gap-2 border-t border-white/10 bg-gradient-to-t from-[#0a0a1a]/95 via-[#0a0a1a]/90 to-transparent px-4 pb-4 pt-3 sm:flex-row sm:justify-end'>
+                            <button
+                                type='button'
+                                className='w-full rounded-md border border-border/60 bg-background px-4 py-2 text-sm hover:bg-muted/40 sm:w-auto'
+                                onClick={() => setDownloadOpen(false)}
+                            >
+                                {t("actions.downloadCancel")}
+                            </button>
+                            <button
+                                type='button'
+                                className='w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
+                                onClick={() =>
+                                    downloadFormat === "video"
+                                        ? handleVideoDownload()
+                                        : handleDownload()
+                                }
+                                disabled={
+                                    downloadFormat === "video"
+                                        ? isVideoGenerating
+                                        : isDownloading || isPreviewLoading
+                                }
+                            >
+                                {t(
+                                    downloadFormat === "video"
+                                        ? "actions.downloadVideoButton"
+                                        : "actions.downloadButton",
+                                )}
+                            </button>
+                        </SheetFooter>
+                    </SheetContent>
+                </Sheet>
+
+                <Sheet open={versionsOpen} onOpenChange={setVersionsOpen}>
+                    <SheetContent
+                        side='bottom'
+                        className='max-h-[70vh] overflow-auto border border-white/10 bg-[#0b1020]/95 text-white backdrop-blur-xl'
+                    >
+                        <SheetHeader>
+                            <SheetTitle>{t("actions.versions")}</SheetTitle>
+                            <SheetDescription>
+                                {t("actions.versionsDesc")}
+                            </SheetDescription>
+                        </SheetHeader>
+                        <div className='mt-4 space-y-2'>
+                            {versions.length > 0 ? (
+                                versions.map((v, index) => {
+                                    const isCurrent =
+                                        interpretation?.trim() ===
+                                        v.content?.trim()
+                                    return (
+                                        <button
+                                            key={v.id}
+                                            type='button'
+                                            className={`w-full rounded-lg px-3 py-2 text-left text-sm transition ${
+                                                isCurrent
+                                                    ? "bg-white/10 font-medium text-white"
+                                                    : "bg-white/5 text-white/75 hover:bg-white/10"
+                                            }`}
+                                            onClick={() => {
+                                                if (
+                                                    typeof onInterpretationChange ===
+                                                    "function"
+                                                ) {
+                                                    onInterpretationChange(
+                                                        v.content,
+                                                    )
+                                                } else {
+                                                    setInterpretation(v.content)
+                                                }
+                                                setVersionsOpen(false)
+                                            }}
+                                        >
+                                            {`Version ${index + 1}${isCurrent ? " (current)" : ""}`}
+                                        </button>
+                                    )
+                                })
+                            ) : (
+                                <p className='text-sm text-white/60'>
+                                    {t("actions.versionsDesc")}
+                                </p>
+                            )}
+                        </div>
+                    </SheetContent>
+                </Sheet>
+
+                <AlertDialog open={showReport} onOpenChange={setShowReport}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                {t("dialogs.report.title")}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {t("dialogs.report.desc")}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className='space-y-2'>
+                            <select
+                                className='w-full bg-background border border-border/40 rounded-md p-2'
+                                value={reportReason}
+                                onChange={(e) =>
+                                    setReportReason(e.target.value)
+                                }
+                            >
+                                <option value=''>
+                                    {t("dialogs.report.reasons.select")}
+                                </option>
+                                <option value='inappropriate'>
+                                    {t("dialogs.report.reasons.inappropriate")}
+                                </option>
+                                <option value='spam'>
+                                    {t("dialogs.report.reasons.spam")}
+                                </option>
+                                <option value='harassment'>
+                                    {t("dialogs.report.reasons.harassment")}
+                                </option>
+                                <option value='privacy'>
+                                    {t("dialogs.report.reasons.privacy")}
+                                </option>
+                                <option value='other'>
+                                    {t("dialogs.report.reasons.other")}
+                                </option>
+                            </select>
+                            {reportReason && (
+                                <textarea
+                                    className='w-full bg-background border border-border/40 rounded-md p-2 min-h-[80px]'
+                                    placeholder={t(
+                                        "dialogs.report.placeholder",
+                                    )}
+                                    value={reportDetails}
+                                    onChange={(e) =>
+                                        setReportDetails(e.target.value)
+                                    }
+                                />
+                            )}
+                        </div>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>
+                                {t("dialogs.report.cancel")}
+                            </AlertDialogCancel>
+                            <button
+                                type='button'
+                                disabled={!reportReason}
+                                className='inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50'
+                                onClick={async () => {
+                                    try {
+                                        const res = await fetch(
+                                            "/api/reports",
+                                            {
+                                                method: "POST",
+                                                headers: {
+                                                    "Content-Type":
+                                                        "application/json",
+                                                },
+                                                body: JSON.stringify({
+                                                    reading_id: readingId,
+                                                    reason: reportReason,
+                                                    details:
+                                                        reportDetails ||
+                                                        undefined,
+                                                }),
+                                            },
+                                        )
+                                        if (res.ok) {
+                                            setShowReport(false)
+                                            setReportReason("")
+                                            setReportDetails("")
+                                        }
+                                    } catch {}
+                                }}
+                            >
+                                {t("dialogs.report.submit")}
+                            </button>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+
+                <AlertDialog open={showFeedback} onOpenChange={setShowFeedback}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                {t("dialogs.feedback.title")}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {t("dialogs.feedback.desc")}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className='flex items-center justify-center gap-2 py-2'>
+                            {[1, 2, 3, 4, 5].map((n) => (
+                                <button
+                                    key={n}
+                                    type='button'
+                                    onClick={() => setRating(n)}
+                                    className={`w-8 h-8 rounded-full transition-colors ${rating >= n ? "bg-yellow-400" : "bg-zinc-700 hover:bg-zinc-600"}`}
+                                    aria-label={`Rate ${n}`}
+                                />
+                            ))}
+                        </div>
+                        <textarea
+                            className='w-full bg-background border border-border/40 rounded-md p-2'
+                            placeholder={t("dialogs.feedback.placeholder")}
+                            value={feedbackComment}
+                            onChange={(e) => setFeedbackComment(e.target.value)}
+                        />
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>
+                                {t("dialogs.feedback.cancel")}
+                            </AlertDialogCancel>
+                            <button
+                                type='button'
+                                disabled={rating === 0}
+                                className='inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50'
+                                onClick={async () => {
+                                    try {
+                                        const res = await fetch(
+                                            "/api/feedbacks",
+                                            {
+                                                method: "POST",
+                                                headers: {
+                                                    "Content-Type":
+                                                        "application/json",
+                                                },
+                                                body: JSON.stringify({
+                                                    reading_id: readingId,
+                                                    rating,
+                                                    comment:
+                                                        feedbackComment ||
+                                                        undefined,
+                                                }),
+                                            },
+                                        )
+                                        if (res.ok) {
+                                            setShowFeedback(false)
+                                            setFeedbackComment("")
+                                            setRating(0)
+                                        }
+                                    } catch {}
+                                }}
+                            >
+                                {t("dialogs.feedback.submit")}
+                            </button>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         )
     }
@@ -1566,7 +2106,7 @@ export default function ActionSection({
                                                                                     .id
                                                                             ] ? (
                                                                                 <div className='relative h-full w-full'>
-                                                                                    <img
+                                                                                    <Image
                                                                                         src={
                                                                                             thumbnailUrls[
                                                                                                 style
@@ -1576,6 +2116,8 @@ export default function ActionSection({
                                                                                         alt={
                                                                                             style.label
                                                                                         }
+                                                                                        fill
+                                                                                        unoptimized
                                                                                         className='object-contain'
                                                                                     />
                                                                                 </div>

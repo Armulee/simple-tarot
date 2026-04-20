@@ -305,7 +305,11 @@
       "doNotShowAgain": "Do not show again",
       "confirm": "Generate",
       "cancel": "Cancel"
-    }
+    },
+    "copyPrompt": "Copy prompt",
+    "copyPromptSuccess": "Prompt copied to clipboard",
+    "copyPromptFailed": "Could not copy prompt",
+    "copyPromptUnavailable": "Copy is not available in this context"
   },
   "ActionTrigger": {
     "autoPickLabel": "Auto pick card:",
@@ -1389,7 +1393,11 @@
         "copiedLink": "Copied!",
         "linkCopiedDesc": "Link copied to clipboard",
         "shareDesc": "Share this reading",
+        "share": "Share",
         "copyResult": "Copy Interpretation",
+        "askFollowUp": "Ask Follow-up",
+        "askFollowUpPrompt": "Can you expand on this reading for me?",
+        "keyMessage": "Key Message",
         "textCopiedDesc": "Text copied to clipboard",
         "download": "Download",
         "downloadDesc": "Save image",

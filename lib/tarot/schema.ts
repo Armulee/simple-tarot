@@ -8,17 +8,22 @@ export const tarotInterpretationSchema = z.object({
     cardInsights: z
         .array(z.string())
         .describe(
-            "A short, punchy 1-sentence insight for each card. Jump straight to the meaning. Do NOT mention 'this card', 'the card', the card name, or the position label. OUTPUT THIS FIRST. Write in the SAME language as the user's question — never English unless the question is English.",
+            "A short 1-sentence meaning for each card in the context of the user's question. Focus on what that specific card contributes to the reading, not the overall answer. Mainly describe the card's meaning as it relates to the question in an impersonal, objective way. Do NOT make it sound like the keyMessage or a summary of the whole reading. Do NOT address the user directly or mention the user as an entity. Do NOT use wording like 'you', 'yourself', 'คุณ', 'ตัวเอง', or similar forms. Do NOT open with hedging feeling phrases like 'may feel', 'might feel', 'อาจจะรู้สึกว่า', or similar soft-openers. Do NOT mention 'this card', 'the card', the card name, or the position label. OUTPUT THIS FIRST. Write in the SAME language as the user's question — never English unless the question is English.",
         ),
     keywords: z
         .string()
         .describe(
             "Three comma-separated keywords reflecting the overall vibe of the reading.",
         ),
+    keyMessage: z
+        .string()
+        .describe(
+            "A short 1-sentence summary of the reading's most important takeaway. Optionally use 2 very short sentences only if needed. This must feel like a concise summary, not a restatement of the full interpretation.",
+        ),
     interpretation: z
         .string()
         .describe(
-            "The main 6-12 sentence reading based on the question and spread, in a warm and conversational tone.",
+            "The main detailed body of the reading in 1-2 sentences, in a warm and conversational tone. Expand on the keyMessage with supporting detail and practical guidance. Do not repeat the keyMessage verbatim, and do not restate the user's question.",
         ),
     conclusion: z
         .string()
@@ -28,9 +33,9 @@ export const tarotInterpretationSchema = z.object({
     suggestions: z
         .array(z.string())
         .min(3)
-        .max(5)
+        .max(4)
         .describe(
-            "3-5 concise, specific follow-up questions the user could ask next. Write as user questions.",
+            "3-4 concise follow-up questions the user could naturally ask next in real life. Keep them generic and user-relatable. Do NOT make them depend on the exact wording of the generated interpretation, keyMessage, or conclusion. Write as user questions.",
         ),
 })
 

@@ -318,7 +318,11 @@
       "doNotShowAgain": "ບໍ່ສະແດງອີກ",
       "confirm": "ສ້າງ",
       "cancel": "ຍົກເລີກ"
-    }
+    },
+    "copyPrompt": "ສຳເນົາຄຳຖາມ",
+    "copyPromptSuccess": "ສຳເນົາຄຳຖາມແລ້ວ",
+    "copyPromptFailed": "ບໍ່ສາມາດສຳເນົາຄຳຖາມໄດ້",
+    "copyPromptUnavailable": "ບໍ່ສາມາດສຳເນົາໃນບໍລິບົດນີ້ໄດ້"
   },
   "ActionTrigger": {
     "autoPickLabel": "ເລືອກໄພ່ໃຫ້ອັດຕະໂນມັດ:",
@@ -1402,7 +1406,11 @@
         "copiedLink": "ຄັດລອກແລ້ວ!",
         "linkCopiedDesc": "ຄັດລອກລິ້ງຮຽບຮ້ອຍ",
         "shareDesc": "ແຊຣ໌ການອ່ານນີ້",
+        "share": "ແຊຣ໌",
         "copyResult": "ຄັດລອກຄຳທຳນາຍ",
+        "askFollowUp": "ຖາມຕໍ່",
+        "askFollowUpPrompt": "ຊ່ວຍຂະຫຍາຍຄຳທຳນາຍນີ້ໃຫ້ເພີ່ມເຕີມໄດ້ບໍ?",
+        "keyMessage": "ສາລະສຳຄັນ",
         "textCopiedDesc": "ຄັດລອກຂໍ້ຄວາມຮຽບຮ້ອຍ",
         "download": "ດາວໂຫຼດ",
         "downloadDesc": "ບັນທຶກຮູບພາບ",

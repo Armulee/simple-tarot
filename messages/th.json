@@ -318,7 +318,11 @@
       "doNotShowAgain": "ไม่แสดงอีก",
       "confirm": "สร้าง",
       "cancel": "ยกเลิก"
-    }
+    },
+    "copyPrompt": "คัดลอกคำถาม",
+    "copyPromptSuccess": "คัดลอกคำถามแล้ว",
+    "copyPromptFailed": "ไม่สามารถคัดลอกคำถามได้",
+    "copyPromptUnavailable": "ไม่สามารถคัดลอกในบริบทนี้ได้"
   },
   "ActionTrigger": {
     "autoPickLabel": "เลือกไพ่ให้อัตโนมัติ:",
@@ -1402,7 +1406,11 @@
         "copiedLink": "คัดลอกแล้ว!",
         "linkCopiedDesc": "คัดลอกลิงก์เรียบร้อย",
         "shareDesc": "แชร์การอ่านนี้",
+        "share": "แชร์",
         "copyResult": "คัดลอกคำทำนาย",
+        "askFollowUp": "ถามต่อ",
+        "askFollowUpPrompt": "ช่วยขยายความคำทำนายนี้เพิ่มเติมได้ไหม",
+        "keyMessage": "ข้อความหลัก",
         "textCopiedDesc": "คัดลอกข้อความเรียบร้อย",
         "download": "ดาวน์โหลด",
         "downloadDesc": "บันทึกรูปภาพ",

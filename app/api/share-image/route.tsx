@@ -87,7 +87,7 @@ async function readImageAsBase64(slug: string) {
             "public",
             "assets",
             "rider-waite-tarot",
-            `${slug}.png`
+            `${slug}.png`,
         )
         const buffer = await readFile(filePath)
         const base64 = buffer.toString("base64")
@@ -152,20 +152,34 @@ export async function POST(req: Request) {
         const logoBase64 = await readLogoAsBase64()
         const logoSrc = logoBase64 || `${origin}/assets/logo.png`
 
-        const displayQuestion = truncate(safeQuestion, 140)
-        const displayInterpretation = truncate(safeInterpretation, 780)
-
-        // Extract keywords and content from interpretation
-        const { keywords, content } = extractKeywordsAndContent(
-            displayInterpretation
-        )
-        const finalInterpretation = content || displayInterpretation || "—"
-
         const imageWidth = Number(width) || 1080
         const imageHeight = Number(height) || 1920
         const basePadding = 72
         const isWideLayout = imageWidth >= imageHeight
+        const isStoryAspect = imageHeight > imageWidth * 1.5
         const paddingBottom = basePadding + (isWideLayout ? 140 : 0)
+        const cardScale = isStoryAspect ? 0.5 : 0.7
+        const maxInterpretChars = isStoryAspect ? 400 : isWideLayout ? 200 : 280
+
+        const displayQuestion = truncate(safeQuestion, 140)
+        const displayInterpretation = truncate(
+            safeInterpretation,
+            maxInterpretChars,
+        )
+
+        // Extract keywords and content from interpretation
+        const { keywords, content } = extractKeywordsAndContent(
+            displayInterpretation,
+        )
+        const finalInterpretation = content || displayInterpretation || "—"
+
+        const isHorizontal = !isStoryAspect
+        const hCardScale = 0.4
+        const maxContentWidth = isStoryAspect
+            ? 980
+            : isWideLayout
+              ? 1600
+              : 980
 
         const stars = generateStars(50, imageWidth, imageHeight)
 
@@ -357,20 +371,21 @@ export async function POST(req: Request) {
                             position: "relative",
                             display: "flex",
                             flexDirection: "column",
-                            gap: 36,
-                            maxWidth: 980,
+                            gap: isHorizontal ? 24 : 36,
+                            maxWidth: maxContentWidth,
                             width: "100%",
                             margin: "0 auto",
+                            flex: 1,
+                            minHeight: 0,
                         }}
                     >
-                        {/* Enhanced Brand */}
+                        {/* Brand pill */}
                         <div
                             style={{
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "flex-end",
                                 gap: 16,
-                                marginBottom: 8,
                                 position: "relative",
                                 alignSelf: "flex-end",
                                 padding: "10px 16px",
@@ -402,315 +417,662 @@ export async function POST(req: Request) {
                             </div>
                         </div>
 
-                        {/* Enhanced Question card */}
-                        <div
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                borderRadius: 32,
-                                padding: "20px 0",
-                                alignItems: "center",
-                                textAlign: "center",
-                                position: "relative",
-                                maxWidth: "100%",
-                            }}
-                        >
-                            {/* Decorative corner accent */}
-                            <div
-                                style={{
-                                    position: "absolute",
-                                    top: 0,
-                                    right: 0,
-                                    width: 120,
-                                    height: 120,
-                                    borderRadius: "0 32px 0 100%",
-                                    background:
-                                        "radial-gradient(circle at top right, rgba(234,179,8,0.15), transparent 70%)",
-                                    opacity: 0.6,
-                                }}
-                            />
-                            <div
-                                style={{
-                                    fontSize: 25,
-                                    opacity: 0.9,
-                                    marginBottom: 16,
-                                    fontWeight: 600,
-                                    letterSpacing: 0.5,
-                                    textTransform: "uppercase",
-                                    color: "rgba(204, 203, 203, 0.95)",
-                                    textAlign: "center",
-                                }}
-                            >
-                                Question
-                            </div>
-                            <div
-                                style={{
-                                    fontFamily:
-                                        "ui-serif, Georgia, Cambria, Times New Roman, Times, serif",
-                                    fontSize: 48,
-                                    fontWeight: 900,
-                                    lineHeight: 1.2,
-                                    textShadow:
-                                        "0 4px 20px rgba(56,189,248,0.3), 0 2px 8px rgba(139,92,246,0.2)",
-                                    color: "rgba(255,255,255,0.98)",
-                                    letterSpacing: 0,
-                                    textAlign: "center",
-                                    maxWidth: "100%",
-                                    wordBreak: "break-word",
-                                    overflowWrap: "break-word",
-                                }}
-                            >
-                                {`"${displayQuestion}"`}
-                            </div>
-                        </div>
-
-                        {/* Enhanced Selected cards row */}
-                        {parsedCards.length > 0 ? (
+                        {isHorizontal ? (
+                            /* ===== HORIZONTAL LAYOUT (square / landscape) ===== */
                             <div
                                 style={{
                                     display: "flex",
-                                    flexDirection: "column",
-                                    gap: 18,
-                                    marginTop: 8,
-                                    alignItems: "center",
+                                    flex: 1,
+                                    minHeight: 0,
+                                    gap: 36,
+                                    alignItems: "stretch",
                                 }}
                             >
-                                <div
-                                    style={{
-                                        fontSize: 24,
-                                        letterSpacing: 1.2,
-                                        textTransform: "uppercase",
-                                        color: "rgba(255,255,255,0.7)",
-                                    }}
-                                >
-                                    Your cards
-                                </div>
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        gap: 24,
-                                        flexWrap: "wrap",
-                                        alignItems: "flex-start",
-                                        justifyContent: "center",
-                                    }}
-                                >
-                                {parsedCards.slice(0, 3).map((c, idx) => (
+                                {/* Left column — card(s) */}
+                                {parsedCards.length > 0 && (
                                     <div
-                                        key={`card-${c.slug}-${idx}`}
                                         style={{
                                             display: "flex",
                                             flexDirection: "column",
-                                            gap: 14,
+                                            alignItems: "center",
+                                            gap: 12,
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                fontSize: 18,
+                                                letterSpacing: 1,
+                                                textTransform: "uppercase",
+                                                color: "rgba(255,255,255,0.6)",
+                                            }}
+                                        >
+                                            Your cards
+                                        </div>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: 16,
+                                                alignItems: "center",
+                                            }}
+                                        >
+                                            {parsedCards
+                                                .slice(0, 3)
+                                                .map((c, idx) => (
+                                                    <div
+                                                        key={`card-${c.slug}-${idx}`}
+                                                        style={{
+                                                            display: "flex",
+                                                            flexDirection:
+                                                                "column",
+                                                            alignItems:
+                                                                "center",
+                                                            gap: 8,
+                                                        }}
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                width:
+                                                                    500 *
+                                                                    hCardScale,
+                                                                height:
+                                                                    864 *
+                                                                    hCardScale,
+                                                                borderRadius: 14,
+                                                                position:
+                                                                    "relative",
+                                                                overflow:
+                                                                    "hidden",
+                                                                boxShadow:
+                                                                    "0 16px 50px -12px rgba(234,179,8,0.6), 0 6px 16px rgba(139,92,246,0.3), 0 0 0 2px rgba(255,255,255,0.15)",
+                                                                border: "2px solid rgba(255,255,255,0.2)",
+                                                                display: "flex",
+                                                                background:
+                                                                    "rgba(10,8,26,0.4)",
+                                                            }}
+                                                        >
+                                                            <div
+                                                                style={{
+                                                                    position:
+                                                                        "absolute",
+                                                                    inset: -40,
+                                                                    background:
+                                                                        "radial-gradient(circle at 30% 20%, rgba(99,102,241,0.3), rgba(99,102,241,0.0) 50%), radial-gradient(circle at 70% 80%, rgba(234,179,8,0.22), rgba(234,179,8,0.0) 55%)",
+                                                                    opacity: 0.8,
+                                                                }}
+                                                            />
+                                                            <img
+                                                                src={c.src}
+                                                                style={{
+                                                                    position:
+                                                                        "absolute",
+                                                                    inset: 0,
+                                                                    objectFit:
+                                                                        "cover",
+                                                                    transform:
+                                                                        c.isReversed
+                                                                            ? "rotate(180deg)"
+                                                                            : "rotate(0deg)",
+                                                                    borderRadius: 12,
+                                                                }}
+                                                            />
+                                                            <div
+                                                                style={{
+                                                                    position:
+                                                                        "absolute",
+                                                                    inset: 0,
+                                                                    background:
+                                                                        "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.1) 100%)",
+                                                                    borderRadius: 12,
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <div
+                                                            style={{
+                                                                fontSize: 16,
+                                                                color: "rgba(255,255,255,0.7)",
+                                                                textAlign:
+                                                                    "center",
+                                                                maxWidth:
+                                                                    500 *
+                                                                    hCardScale,
+                                                                lineHeight: 1.3,
+                                                            }}
+                                                        >
+                                                            {c.name}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Right column — question + interpretation */}
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        flex: 1,
+                                        minHeight: 0,
+                                        gap: 20,
+                                    }}
+                                >
+                                    {/* Question */}
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                fontSize: 20,
+                                                fontWeight: 600,
+                                                letterSpacing: 0.5,
+                                                textTransform: "uppercase",
+                                                color: "rgba(204,203,203,0.95)",
+                                                marginBottom: 10,
+                                            }}
+                                        >
+                                            Question
+                                        </div>
+                                        <div
+                                            style={{
+                                                fontFamily:
+                                                    "ui-serif, Georgia, Cambria, Times New Roman, Times, serif",
+                                                fontSize: 36,
+                                                fontWeight: 900,
+                                                lineHeight: 1.2,
+                                                textShadow:
+                                                    "0 3px 14px rgba(56,189,248,0.25)",
+                                                color: "rgba(255,255,255,0.98)",
+                                                wordBreak: "break-word",
+                                                overflowWrap: "break-word",
+                                            }}
+                                        >
+                                            {`"${displayQuestion}"`}
+                                        </div>
+                                    </div>
+
+                                    {/* Interpretation card */}
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            borderRadius: 24,
+                                            padding: 36,
+                                            background:
+                                                "linear-gradient(135deg, rgba(30,41,59,0.6) 0%, rgba(99,102,241,0.25) 35%, rgba(34,211,238,0.16) 80%)",
+                                            boxShadow:
+                                                "0 20px 60px -20px rgba(56,189,248,0.5), 0 0 0 1px rgba(255,255,255,0.12), inset 0 1px 0 rgba(255,255,255,0.2)",
+                                            border: "1px solid rgba(255,255,255,0.16)",
+                                            position: "relative",
+                                            flex: 1,
+                                            minHeight: 0,
+                                            overflow: "hidden",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                position: "absolute",
+                                                top: 0,
+                                                left: 0,
+                                                width: 100,
+                                                height: 100,
+                                                borderRadius: "24px 0 0 0",
+                                                background:
+                                                    "radial-gradient(circle at top left, rgba(139,92,246,0.2), transparent 70%)",
+                                                opacity: 0.7,
+                                            }}
+                                        />
+                                        {/* Header */}
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: 10,
+                                                marginBottom: 24,
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    width: 56,
+                                                    height: 56,
+                                                    borderRadius: 9999,
+                                                    marginRight: 16,
+                                                    background:
+                                                        "radial-gradient(circle at 30% 30%, rgba(59,130,246,0.28), rgba(99,102,241,0.1))",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    boxShadow:
+                                                        "0 6px 20px rgba(56,189,248,0.2)",
+                                                }}
+                                            >
+                                                <svg
+                                                    width='36'
+                                                    height='36'
+                                                    viewBox='0 0 24 24'
+                                                    fill='none'
+                                                    stroke='rgba(255,255,255,0.95)'
+                                                    strokeWidth='1.6'
+                                                    strokeLinecap='round'
+                                                    strokeLinejoin='round'
+                                                    xmlns='http://www.w3.org/2000/svg'
+                                                >
+                                                    <path d='M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z' />
+                                                </svg>
+                                            </div>
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                }}
+                                            >
+                                                <div
+                                                    style={{
+                                                        fontFamily:
+                                                            "ui-serif, Georgia, Cambria, Times New Roman, Times, serif",
+                                                        fontSize: 36,
+                                                        fontWeight: 600,
+                                                        color: "rgba(255,255,255,1)",
+                                                        lineHeight: 1.2,
+                                                    }}
+                                                >
+                                                    Interpretation
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        fontSize: 26,
+                                                        color: "rgba(255,255,255,0.6)",
+                                                        marginTop: 2,
+                                                        lineHeight: 1.3,
+                                                    }}
+                                                >
+                                                    AI-powered analysis of your
+                                                    cards
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {/* Keywords */}
+                                        {keywords.length > 0 && (
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    flexWrap: "wrap",
+                                                    gap: 14,
+                                                }}
+                                            >
+                                                {keywords.map(
+                                                    (keyword, idx) => (
+                                                        <div
+                                                            key={`keyword-${idx}`}
+                                                            style={{
+                                                                padding:
+                                                                    "6px 18px",
+                                                                borderRadius: 9999,
+                                                                background:
+                                                                    "rgba(255,255,255,0.1)",
+                                                                border: "1px solid rgba(255,255,255,0.2)",
+                                                                color: "rgba(255,255,255,0.95)",
+                                                                fontSize: 24,
+                                                                fontWeight: 500,
+                                                                whiteSpace:
+                                                                    "nowrap",
+                                                            }}
+                                                        >
+                                                            {keyword}
+                                                        </div>
+                                                    ),
+                                                )}
+                                            </div>
+                                        )}
+                                        {/* Body */}
+                                        <div
+                                            style={{
+                                                fontSize: 28,
+                                                lineHeight: 1.6,
+                                                whiteSpace: "pre-line",
+                                                color: "rgba(255,255,255,0.95)",
+                                                fontWeight: 400,
+                                                marginTop: 20,
+                                                textShadow:
+                                                    "0 2px 6px rgba(0,0,0,0.2)",
+                                                wordBreak: "break-word",
+                                                overflowWrap: "break-word",
+                                                flex: 1,
+                                                minHeight: 0,
+                                                overflow: "hidden",
+                                            }}
+                                        >
+                                            {finalInterpretation}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            /* ===== STORY LAYOUT (vertical) ===== */
+                            <>
+                                {/* Question */}
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        borderRadius: 32,
+                                        padding: "20px 0",
+                                        alignItems: "center",
+                                        textAlign: "center",
+                                        position: "relative",
+                                        maxWidth: "100%",
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            fontSize: 25,
+                                            opacity: 0.9,
+                                            marginBottom: 16,
+                                            fontWeight: 600,
+                                            letterSpacing: 0.5,
+                                            textTransform: "uppercase",
+                                            color: "rgba(204,203,203,0.95)",
+                                            textAlign: "center",
+                                        }}
+                                    >
+                                        Question
+                                    </div>
+                                    <div
+                                        style={{
+                                            fontFamily:
+                                                "ui-serif, Georgia, Cambria, Times New Roman, Times, serif",
+                                            fontSize: 48,
+                                            fontWeight: 900,
+                                            lineHeight: 1.2,
+                                            textShadow:
+                                                "0 4px 20px rgba(56,189,248,0.3), 0 2px 8px rgba(139,92,246,0.2)",
+                                            color: "rgba(255,255,255,0.98)",
+                                            textAlign: "center",
+                                            maxWidth: "100%",
+                                            wordBreak: "break-word",
+                                            overflowWrap: "break-word",
+                                        }}
+                                    >
+                                        {`"${displayQuestion}"`}
+                                    </div>
+                                </div>
+
+                                {/* Cards */}
+                                {parsedCards.length > 0 ? (
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: 18,
+                                            marginTop: 8,
                                             alignItems: "center",
                                         }}
                                     >
                                         <div
                                             style={{
-                                                width: 500 * 0.7,
-                                                height: 864 * 0.7,
-                                                borderRadius: 20,
-                                                position: "relative",
-                                                overflow: "hidden",
-                                                boxShadow:
-                                                    "0 24px 80px -20px rgba(234,179,8,0.7), 0 8px 24px rgba(139,92,246,0.4), 0 0 0 2px rgba(255,255,255,0.15)",
-                                                border: "2px solid rgba(255,255,255,0.2)",
-                                                display: "flex",
-                                                background: "rgba(10,8,26,0.4)",
+                                                fontSize: 24,
+                                                letterSpacing: 1.2,
+                                                textTransform: "uppercase",
+                                                color: "rgba(255,255,255,0.7)",
                                             }}
                                         >
-                                            <div
-                                                style={{
-                                                    position: "absolute",
-                                                    inset: -60,
-                                                    background:
-                                                        "radial-gradient(circle at 30% 20%, rgba(99,102,241,0.3), rgba(99,102,241,0.0) 50%), radial-gradient(circle at 70% 80%, rgba(234,179,8,0.22), rgba(234,179,8,0.0) 55%)",
-                                                    opacity: 0.8,
-                                                }}
-                                            />
-                                            <img
-                                                src={c.src}
-                                                style={{
-                                                    position: "absolute",
-                                                    inset: 0,
-                                                    objectFit: "cover",
-                                                    transform: c.isReversed
-                                                        ? "rotate(180deg)"
-                                                        : "rotate(0deg)",
-                                                    borderRadius: 18,
-                                                }}
-                                            />
-                                            {/* Overlay gradient for depth */}
-                                            <div
-                                                style={{
-                                                    position: "absolute",
-                                                    inset: 0,
-                                                    background:
-                                                        "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.1) 100%)",
-                                                    borderRadius: 18,
-                                                }}
-                                            />
+                                            Your cards
+                                        </div>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                gap: 24,
+                                                flexWrap: "wrap",
+                                                alignItems: "flex-start",
+                                                justifyContent: "center",
+                                            }}
+                                        >
+                                            {parsedCards
+                                                .slice(0, 3)
+                                                .map((c, idx) => (
+                                                    <div
+                                                        key={`card-${c.slug}-${idx}`}
+                                                        style={{
+                                                            display: "flex",
+                                                            flexDirection:
+                                                                "column",
+                                                            gap: 14,
+                                                            alignItems:
+                                                                "center",
+                                                        }}
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                width:
+                                                                    500 *
+                                                                    cardScale,
+                                                                height:
+                                                                    864 *
+                                                                    cardScale,
+                                                                borderRadius: 20,
+                                                                position:
+                                                                    "relative",
+                                                                overflow:
+                                                                    "hidden",
+                                                                boxShadow:
+                                                                    "0 24px 80px -20px rgba(234,179,8,0.7), 0 8px 24px rgba(139,92,246,0.4), 0 0 0 2px rgba(255,255,255,0.15)",
+                                                                border: "2px solid rgba(255,255,255,0.2)",
+                                                                display: "flex",
+                                                                background:
+                                                                    "rgba(10,8,26,0.4)",
+                                                            }}
+                                                        >
+                                                            <div
+                                                                style={{
+                                                                    position:
+                                                                        "absolute",
+                                                                    inset: -60,
+                                                                    background:
+                                                                        "radial-gradient(circle at 30% 20%, rgba(99,102,241,0.3), rgba(99,102,241,0.0) 50%), radial-gradient(circle at 70% 80%, rgba(234,179,8,0.22), rgba(234,179,8,0.0) 55%)",
+                                                                    opacity: 0.8,
+                                                                }}
+                                                            />
+                                                            <img
+                                                                src={c.src}
+                                                                style={{
+                                                                    position:
+                                                                        "absolute",
+                                                                    inset: 0,
+                                                                    objectFit:
+                                                                        "cover",
+                                                                    transform:
+                                                                        c.isReversed
+                                                                            ? "rotate(180deg)"
+                                                                            : "rotate(0deg)",
+                                                                    borderRadius: 18,
+                                                                }}
+                                                            />
+                                                            <div
+                                                                style={{
+                                                                    position:
+                                                                        "absolute",
+                                                                    inset: 0,
+                                                                    background:
+                                                                        "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.1) 100%)",
+                                                                    borderRadius: 18,
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <div
+                                                            style={{
+                                                                fontSize: 22,
+                                                                color: "rgba(255,255,255,0.7)",
+                                                                textAlign:
+                                                                    "center",
+                                                                maxWidth:
+                                                                    500 *
+                                                                    cardScale,
+                                                                lineHeight: 1.3,
+                                                            }}
+                                                        >
+                                                            {c.name}
+                                                        </div>
+                                                    </div>
+                                                ))}
                                         </div>
                                     </div>
-                                ))}
-                                </div>
-                            </div>
-                        ) : null}
+                                ) : null}
 
-                        {/* Enhanced Interpretation card */}
-                        <div
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                marginTop: 32,
-                                marginBottom: 42,
-                                borderRadius: 32,
-                                padding: 60,
-                                background:
-                                    "linear-gradient(135deg, rgba(30,41,59,0.6) 0%, rgba(99,102,241,0.25) 35%, rgba(34,211,238,0.16) 80%)",
-                                boxShadow:
-                                    "0 30px 90px -35px rgba(56,189,248,0.65), 0 0 0 1px rgba(255,255,255,0.12), inset 0 1px 0 rgba(255,255,255,0.2)",
-                                border: "1px solid rgba(255,255,255,0.16)",
-                                position: "relative",
-                                maxWidth: "100%",
-                            }}
-                        >
-                            {/* Decorative corner accent */}
-                            <div
-                                style={{
-                                    position: "absolute",
-                                    top: 0,
-                                    left: 0,
-                                    width: 140,
-                                    height: 140,
-                                    borderRadius: "32px 0 0 0",
-                                    background:
-                                        "radial-gradient(circle at top left, rgba(139,92,246,0.2), transparent 70%)",
-                                    opacity: 0.7,
-                                }}
-                            />
-
-                            {/* Interpretation Header */}
-                            <div
-                                style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 12,
-                                    marginBottom: 60,
-                                }}
-                            >
-                                {/* Sparkles icon container */}
-                                <div
-                                    style={{
-                                        width: 88,
-                                        height: 88,
-                                        borderRadius: 9999,
-                                        marginRight: 24,
-                                        background:
-                                            "radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.28), rgba(99, 102, 241, 0.1))",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        boxShadow:
-                                            "0 10px 30px rgba(56,189,248,0.25)",
-                                    }}
-                                >
-                                    <svg
-                                        width='64'
-                                        height='64'
-                                        viewBox='0 0 24 24'
-                                        fill='none'
-                                        stroke='rgba(255, 255, 255, 0.95)'
-                                        strokeWidth='1.6'
-                                        strokeLinecap='round'
-                                        strokeLinejoin='round'
-                                        xmlns='http://www.w3.org/2000/svg'
-                                    >
-                                        <path d='M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z' />
-                                    </svg>
-                                </div>
+                                {/* Interpretation */}
                                 <div
                                     style={{
                                         display: "flex",
                                         flexDirection: "column",
+                                        marginTop: 32,
+                                        marginBottom: 42,
+                                        borderRadius: 32,
+                                        padding: 60,
+                                        background:
+                                            "linear-gradient(135deg, rgba(30,41,59,0.6) 0%, rgba(99,102,241,0.25) 35%, rgba(34,211,238,0.16) 80%)",
+                                        boxShadow:
+                                            "0 30px 90px -35px rgba(56,189,248,0.65), 0 0 0 1px rgba(255,255,255,0.12), inset 0 1px 0 rgba(255,255,255,0.2)",
+                                        border: "1px solid rgba(255,255,255,0.16)",
+                                        position: "relative",
+                                        maxWidth: "100%",
+                                        flex: 1,
+                                        minHeight: 0,
+                                        overflow: "hidden",
                                     }}
                                 >
                                     <div
                                         style={{
-                                            fontFamily:
-                                                "ui-serif, Georgia, Cambria, Times New Roman, Times, serif",
-                                            fontSize: 50,
-                                            fontWeight: 600,
-                                            color: "rgba(255,255,255,1)",
-                                            lineHeight: 1.2,
-                                            letterSpacing: 0,
+                                            position: "absolute",
+                                            top: 0,
+                                            left: 0,
+                                            width: 140,
+                                            height: 140,
+                                            borderRadius: "32px 0 0 0",
+                                            background:
+                                                "radial-gradient(circle at top left, rgba(139,92,246,0.2), transparent 70%)",
+                                            opacity: 0.7,
+                                        }}
+                                    />
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 12,
+                                            marginBottom: 60,
                                         }}
                                     >
-                                        Interpretation
+                                        <div
+                                            style={{
+                                                width: 88,
+                                                height: 88,
+                                                borderRadius: 9999,
+                                                marginRight: 24,
+                                                background:
+                                                    "radial-gradient(circle at 30% 30%, rgba(59,130,246,0.28), rgba(99,102,241,0.1))",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                boxShadow:
+                                                    "0 10px 30px rgba(56,189,248,0.25)",
+                                            }}
+                                        >
+                                            <svg
+                                                width='64'
+                                                height='64'
+                                                viewBox='0 0 24 24'
+                                                fill='none'
+                                                stroke='rgba(255,255,255,0.95)'
+                                                strokeWidth='1.6'
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                xmlns='http://www.w3.org/2000/svg'
+                                            >
+                                                <path d='M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z' />
+                                            </svg>
+                                        </div>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                flexDirection: "column",
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    fontFamily:
+                                                        "ui-serif, Georgia, Cambria, Times New Roman, Times, serif",
+                                                    fontSize: 50,
+                                                    fontWeight: 600,
+                                                    color: "rgba(255,255,255,1)",
+                                                    lineHeight: 1.2,
+                                                }}
+                                            >
+                                                Interpretation
+                                            </div>
+                                            <div
+                                                style={{
+                                                    fontSize: 40,
+                                                    color: "rgba(255,255,255,0.7)",
+                                                    marginTop: 4,
+                                                    lineHeight: 1.3,
+                                                }}
+                                            >
+                                                AI-powered analysis of your
+                                                cards
+                                            </div>
+                                        </div>
                                     </div>
+                                    {keywords.length > 0 && (
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                flexWrap: "wrap",
+                                                gap: 30,
+                                            }}
+                                        >
+                                            {keywords.map((keyword, idx) => (
+                                                <div
+                                                    key={`keyword-${idx}`}
+                                                    style={{
+                                                        padding: "10px 30px",
+                                                        borderRadius: 9999,
+                                                        background:
+                                                            "rgba(255,255,255,0.1)",
+                                                        border: "1px solid rgba(255,255,255,0.2)",
+                                                        color: "rgba(255,255,255,0.95)",
+                                                        fontSize: 40,
+                                                        fontWeight: 500,
+                                                        whiteSpace: "nowrap",
+                                                    }}
+                                                >
+                                                    {keyword}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                     <div
                                         style={{
                                             fontSize: 40,
-                                            color: "rgba(255,255,255,0.7)",
-                                            marginTop: 4,
-                                            lineHeight: 1.3,
-                                            letterSpacing: 0,
+                                            lineHeight: 1.6,
+                                            whiteSpace: "pre-line",
+                                            color: "rgba(255,255,255,0.95)",
+                                            fontWeight: 400,
+                                            marginTop: 40,
+                                            textShadow:
+                                                "0 2px 8px rgba(0,0,0,0.2)",
+                                            wordBreak: "break-word",
+                                            overflowWrap: "break-word",
+                                            flex: 1,
+                                            minHeight: 0,
+                                            overflow: "hidden",
                                         }}
                                     >
-                                        AI-powered analysis of your cards
+                                        {finalInterpretation}
                                     </div>
                                 </div>
-                            </div>
-
-                            {/* Keywords badges */}
-                            {keywords.length > 0 && (
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        flexWrap: "wrap",
-                                        gap: 30,
-                                    }}
-                                >
-                                    {keywords.map((keyword, idx) => (
-                                        <div
-                                            key={`keyword-${idx}`}
-                                            style={{
-                                                padding: "10px 30px",
-                                                borderRadius: 9999,
-                                                background:
-                                                    "rgba(255,255,255,0.1)",
-                                                border: "1px solid rgba(255,255,255,0.2)",
-                                                color: "rgba(255,255,255,0.95)",
-                                                fontSize: 40,
-                                                fontWeight: 500,
-                                                whiteSpace: "nowrap",
-                                            }}
-                                        >
-                                            {keyword}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Interpretation content */}
-                            <div
-                                style={{
-                                    display: "block",
-                                    fontSize: 40,
-                                    lineHeight: 1.6,
-                                    whiteSpace: "pre-line",
-                                    color: "rgba(255,255,255,0.95)",
-                                    fontWeight: 400,
-                                    letterSpacing: 0,
-                                    marginTop: 40,
-                                    textShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                                    maxWidth: "100%",
-                                    wordBreak: "break-word",
-                                    overflowWrap: "break-word",
-                                }}
-                            >
-                                {finalInterpretation}
-                            </div>
-                        </div>
+                            </>
+                        )}
                     </div>
 
                     {/* Footer removed per branding */}
@@ -719,7 +1081,7 @@ export async function POST(req: Request) {
             {
                 width: imageWidth,
                 height: imageHeight,
-            }
+            },
         )
 
         const arrayBuffer = await imageResponse.arrayBuffer()
@@ -733,7 +1095,7 @@ export async function POST(req: Request) {
         console.error("Share image generation error:", e)
         return new Response(
             `Failed to generate image: ${e instanceof Error ? e.message : String(e)}`,
-            { status: 500 }
+            { status: 500 },
         )
     }
 }

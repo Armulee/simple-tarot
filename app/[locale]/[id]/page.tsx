@@ -21,9 +21,11 @@ function isChatDecision(value: unknown): value is ChatDecision {
     const v = value as Record<string, unknown>
     return (
         (v.type === "chat" || v.type === "draw" || v.type === "horoscope") &&
-        typeof v.spreadType === "string" &&
-        typeof v.cardCount === "number" &&
-        typeof v.assistantText === "string"
+        (v.spreadType === undefined || typeof v.spreadType === "string") &&
+        (v.cardCount === undefined || typeof v.cardCount === "number") &&
+        (v.spreadReason === undefined || typeof v.spreadReason === "string") &&
+        (v.assistantText === undefined || typeof v.assistantText === "string") &&
+        (v.isFollowUp === undefined || typeof v.isFollowUp === "boolean")
     )
 }
 

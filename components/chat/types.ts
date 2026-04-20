@@ -35,6 +35,7 @@ export type ChatMessage = {
     id: string
     role: "user" | "assistant"
     text: string
+    keyMessage?: string
     variant?: "plain" | "box" | "horoscope" | "tool"
     cards?: TarotCard[]
     insights?: string[]
@@ -88,7 +89,8 @@ export type ChatDecision = {
     type: "chat" | "draw" | "horoscope"
     spreadType?: string
     cardCount?: number
-    assistantText: string
+    spreadReason?: string
+    assistantText?: string
     /** True if the user's message is directly related to the last message (follow-up) */
     isFollowUp?: boolean
 }

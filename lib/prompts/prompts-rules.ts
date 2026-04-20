@@ -81,7 +81,7 @@ export const outputRules = `
 
 <language_mirroring>
 - Infer the response language ONLY from the user's question text.
-- Write ALL output (cardInsights, keywords, interpretation, conclusion, suggestions) in the SAME language as the question.
+- Write ALL output (cardInsights, keywords, keyMessage, interpretation, conclusion, suggestions) in the SAME language as the question.
 - English question -> English. Thai question -> Thai. Spanish -> Spanish. Any language -> match it.
 </language_mirroring>
 </strict_output_rules>
@@ -89,11 +89,38 @@ export const outputRules = `
 <output_schema>
 Return valid JSON only. CRITICAL: Output cardInsights FIRST (they appear above the main reading in the UI).
 {
-  "cardInsights": ["Insight 1 (No card names)", "Insight 2 (No card names)", ...],
+  "cardInsights": ["A one-sentence meaning for card 1 as it relates to the user's question. Impersonal wording only. Not a summary of the whole reading.", "A one-sentence meaning for card 2 as it relates to the user's question. Impersonal wording only. Not a summary of the whole reading.", ...],
   "keywords": "keyword1, keyword2, keyword3",
-  "interpretation": "The narrative reading. Pure text. No card names. No Markdown. Starts with the answer.",
+  "keyMessage": "A short summary of the most important takeaway. 1 short sentence, optionally 2 very short sentences.",
+  "interpretation": "A concise 1-2 sentence detail paragraph. Pure text. No card names. No Markdown. Expands on the keyMessage without repeating it verbatim and does not restate the user's question.",
   "conclusion": "A short, calming wrap-up.",
-  "suggestions": ["Follow-up 1", "Follow-up 2", "Follow-up 3"]
+  "suggestions": ["Follow-up 1", "Follow-up 2", "Follow-up 3", "Follow-up 4"]
 }
 </output_schema>
+
+<cardinsight_rules>
+- Each item in cardInsights must describe the meaning of one specific card as it relates to the user's question.
+- cardInsights are per-card meanings, not the main takeaway and not a mini version of keyMessage.
+- Think "what energy or role is this card adding?" not "what is the final answer?"
+- Keep each cardInsights item to one short sentence.
+- Write cardInsights in an impersonal, objective style.
+- Do NOT address the user directly or mention the user as an entity.
+- Do NOT use wording like "you", "yourself", "คุณ", "ตัวเอง", or similar user-referential forms.
+- Do NOT open with hedging phrases like "may feel", "might feel", "อาจจะรู้สึกว่า", or similar soft-openers.
+- Do not mention card names, position labels, or say "this card".
+</cardinsight_rules>
+
+<suggestion_rules>
+- Return only 3-4 suggestions.
+- Suggestions must feel like natural real-life questions the user could genuinely ask next.
+- Keep suggestions generic enough to stand on their own.
+- Do NOT make suggestions depend on the exact wording of the generated interpretation, keyMessage, or conclusion.
+- Do NOT quote or closely paraphrase the AI-generated reading.
+- Write each suggestion as a user question.
+</suggestion_rules>
+
+<follow_up_prior_reading>
+- When the prompt includes a prior interpretation or session context for a follow-up: use it only to understand topic continuity. It is not the answer.
+- keyMessage, interpretation, conclusion, and cardInsights must follow from the current spread and reading_direction. Do NOT copy or closely paraphrase the prior interpretation. Do not meta-reference "last time" unless the user explicitly asks about the earlier reading.
+</follow_up_prior_reading>
 `

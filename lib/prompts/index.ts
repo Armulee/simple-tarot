@@ -125,7 +125,13 @@ ${previousInterpretation}
 
 <cards>${cards}</cards>
 
-<instruction>Answer the follow-up directly. No card names. No Markdown. Respond in the SAME language as the follow-up question. Output JSON only.</instruction>`
+<follow_up_rules>
+REFERENCE ONLY: <previous_interpretation> and session context exist so you understand topic continuity and what the user is clarifying. They are NOT the answer and NOT evidence for this draw.
+GROUND TRUTH: The authoritative source for this reading is ONLY the current spread in <cards> (and any <card_energies> / <reading_direction> blocks added below). keyMessage, interpretation, conclusion, and cardInsights must follow from THIS draw.
+NO PARROTING: Do NOT copy, quote, or closely paraphrase <previous_interpretation>. Do NOT recycle the prior verdict or advice as if it were new—if the cards align, say so in fresh words tied to the current symbols.
+NO META CALLBACKS: Do NOT say things like "last time", "as before", "continuing from the earlier reading", or "like we said" unless the follow-up question explicitly asks about the prior reading.
+STYLE: Answer the follow-up directly. No card names. No Markdown. Same language as the follow-up question. Output JSON only.
+</follow_up_rules>`
     }
 
     return `

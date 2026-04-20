@@ -628,6 +628,12 @@ export default function Interpretation({
 
             {!isLargeScreen && isInterpretationFieldDone && !error && (
                 <div className='w-full max-w-4xl space-y-6'>
+                    <ShareSection
+                        question={question || ""}
+                        cards={cards || []}
+                        interpretation={interpretation ?? undefined}
+                        readingId={readingId!}
+                    />
                     <ActionSection
                         question={question || ""}
                         cards={cards || []}
@@ -640,12 +646,6 @@ export default function Interpretation({
                             setIsGenerating(loading)
                         }
                         onStreamingObjectChange={setStreamingObjectFromAction}
-                    />
-                    <ShareSection
-                        question={question || ""}
-                        cards={cards || []}
-                        interpretation={interpretation ?? undefined}
-                        readingId={readingId!}
                     />
                     <div className='border-t border-border/50 pt-4 flex justify-center'>
                         <div className='w-full max-w-2xl'>
