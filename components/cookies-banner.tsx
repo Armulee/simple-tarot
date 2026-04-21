@@ -14,6 +14,7 @@ type CookiesBannerProps = {
     translations: NoticeTranslations["cookies"]
     preferences: CookiePreferences
     className?: string
+    variant?: "default" | "floating-pill"
     onAcceptAll: () => void
     onRejectAll: () => void
     onSavePreferences: (preferences: CookiePreferences) => void
@@ -24,6 +25,7 @@ export function CookiesBanner({
     translations,
     preferences,
     className,
+    variant = "default",
     onAcceptAll,
     onRejectAll,
     onSavePreferences,
@@ -40,7 +42,14 @@ export function CookiesBanner({
 
     return (
         <div className={cn("w-full", className)}>
-            <section className='mx-auto w-full max-w-4xl overflow-hidden rounded-2xl border border-[rgba(200,180,140,0.22)] bg-[rgba(10,10,26,0.92)] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)] backdrop-blur-xl'>
+            <section
+                className={cn(
+                    "relative mx-auto w-full overflow-hidden border border-[rgba(200,180,140,0.22)] bg-[rgba(10,10,26,0.92)] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)] backdrop-blur-xl text-left",
+                    variant === "floating-pill"
+                        ? "max-w-[360px] rounded-[28px]"
+                        : "max-w-4xl rounded-2xl",
+                )}
+            >
                 <div className='pointer-events-none absolute inset-0 opacity-30'>
                     <div className='cosmic-stars-layer-3' />
                 </div>
@@ -66,16 +75,15 @@ export function CookiesBanner({
                                 >
                                     {translations.learnMoreLabel}
                                 </Link>
-                                <Button
+                                <button
                                     type='button'
-                                    variant='ghost'
                                     onClick={() =>
                                         setManageOpen((current) => !current)
                                     }
-                                    className='justify-center border border-[rgba(200,180,140,0.18)] bg-transparent text-[rgba(232,224,208,0.88)] hover:bg-[rgba(200,180,140,0.08)] hover:text-white'
+                                    className='inline-flex text-xs text-[rgba(200,180,140,0.82)] underline decoration-dotted underline-offset-4 transition-colors hover:text-white'
                                 >
                                     {translations.managePreferences}
-                                </Button>
+                                </button>
                             </div>
 
                             <div className='grid grid-cols-2 gap-2'>

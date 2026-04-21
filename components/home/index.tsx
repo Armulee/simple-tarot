@@ -54,6 +54,7 @@ export default function Home() {
     const fixedBarRef = useRef<HTMLDivElement>(null)
     const [fixedBarHeight, setFixedBarHeight] = useState(0)
     const [showBirthModal, setShowBirthModal] = useState(false)
+    const [isDesktop, setIsDesktop] = useState(false)
     const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(
         () => loadBirthFromStorage(),
     )
@@ -81,6 +82,16 @@ export default function Home() {
         })
         ro.observe(el)
         return () => ro.disconnect()
+    }, [])
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia("(min-width: 1024px)")
+        const syncDesktop = () => {
+            setIsDesktop(mediaQuery.matches)
+        }
+        syncDesktop()
+        mediaQuery.addEventListener("change", syncDesktop)
+        return () => mediaQuery.removeEventListener("change", syncDesktop)
     }, [])
 
     useEffect(() => {
@@ -235,6 +246,8 @@ export default function Home() {
     const shouldShowHero = !isLinking
     const shouldShowLearnMore = showLearnMore && !isLinking
     const tHoroscope = useTranslations("HoroscopeChat")
+    const cookieBannerVisible = !cookieConsent.decisionMade
+    const showQuickCards = isDesktop || !cookieBannerVisible
 
     const randomQuestionPool = useMemo(() => {
         const prompts = tHome.raw("prompts")
@@ -351,11 +364,59 @@ export default function Home() {
                 ref={fixedBarRef}
                 className='fixed bottom-0 left-0 right-0 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 transition-all duration-500'
             >
-                <div className='transition-all duration-300 opacity-100'>
-                    <HomeQuickCards
-                        onCardClick={createSessionAndRedirect}
-                        disabled={isLinking}
-                    />
+                <div className='mx-auto w-full max-w-3xl px-4'>
+                    <div className='relative min-h-[72px]'>
+                        {showQuickCards ? (
+                            <div className='transition-all duration-300 opacity-100'>
+                                <HomeQuickCards
+                                    onCardClick={createSessionAndRedirect}
+                                    disabled={isLinking}
+                                />
+                            </div>
+                        ) : null}
+
+                        {cookieBannerVisible && isDesktop ? (
+                            <div className='pointer-events-auto absolute bottom-0 right-0 z-20 hidden w-full max-w-[360px] lg:block'>
+                                <CookiesBanner
+                                    visible
+                                    variant='floating-pill'
+                                    translations={{
+                                        bannerTitle: "Cookie preferences",
+                                        bannerDescription:
+                                            "We use cookies to improve your experience and analyze traffic.",
+                                        managePreferences:
+                                            "Manage Preferences",
+                                        acceptAll: "Accept All",
+                                        rejectAll: "Reject All",
+                                        savePreferences: "Save Preferences",
+                                        preferencesTitle:
+                                            "Manage cookie categories",
+                                        preferencesDescription:
+                                            "Non-essential categories stay off until you explicitly enable them.",
+                                        essentialTitle:
+                                            "Essential cookies",
+                                        essentialDescription:
+                                            "Required for core site functions, secure sessions, and anonymous star balance continuity.",
+                                        analyticsTitle:
+                                            "Analytics cookies",
+                                        analyticsDescription:
+                                            "Allows privacy-friendly Vercel Analytics so we can understand traffic and improve the product.",
+                                        marketingTitle:
+                                            "Marketing cookies",
+                                        marketingDescription:
+                                            "Reserved for future campaign or personalization tools. No marketing scripts run unless you opt in.",
+                                        alwaysOnLabel: "Always on",
+                                        learnMoreLabel:
+                                            "Learn more in our Privacy Policy",
+                                    }}
+                                    preferences={cookieConsent.preferences}
+                                    onAcceptAll={acceptAllCookies}
+                                    onRejectAll={rejectAllCookies}
+                                    onSavePreferences={saveCookiePreferences}
+                                />
+                            </div>
+                        ) : null}
+                    </div>
                 </div>
 
                 <BirthInfoModal
@@ -401,9 +462,9 @@ export default function Home() {
                     wrapperClassName='mt-4'
                     inputWrapperClassName='w-full'
                 />
-                <div className='mx-auto w-full max-w-3xl px-4 pb-3 transition-all duration-300'>
+                <div className='mx-auto w-full max-w-3xl px-4 pb-3 transition-all duration-300 lg:hidden'>
                     <CookiesBanner
-                        visible={!cookieConsent.decisionMade}
+                        visible={cookieBannerVisible}
                         className='mt-[-8px]'
                         translations={{
                             bannerTitle: "Cookie preferences",
