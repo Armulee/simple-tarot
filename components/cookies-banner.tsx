@@ -13,6 +13,7 @@ type CookiesBannerProps = {
     visible: boolean
     translations: NoticeTranslations["cookies"]
     preferences: CookiePreferences
+    className?: string
     onAcceptAll: () => void
     onRejectAll: () => void
     onSavePreferences: (preferences: CookiePreferences) => void
@@ -22,6 +23,7 @@ export function CookiesBanner({
     visible,
     translations,
     preferences,
+    className,
     onAcceptAll,
     onRejectAll,
     onSavePreferences,
@@ -37,13 +39,13 @@ export function CookiesBanner({
     if (!visible) return null
 
     return (
-        <div className='pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-3 sm:px-4 sm:pb-4'>
-            <section className='pointer-events-auto mx-auto w-full max-w-4xl overflow-hidden rounded-2xl border border-[rgba(200,180,140,0.22)] bg-[rgba(10,10,26,0.92)] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)] backdrop-blur-xl'>
+        <div className={cn("w-full", className)}>
+            <section className='mx-auto w-full max-w-4xl overflow-hidden rounded-2xl border border-[rgba(200,180,140,0.22)] bg-[rgba(10,10,26,0.92)] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)] backdrop-blur-xl'>
                 <div className='pointer-events-none absolute inset-0 opacity-30'>
                     <div className='cosmic-stars-layer-3' />
                 </div>
                 <div className='relative z-10 p-4 sm:p-5'>
-                    <div className='flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between'>
+                    <div className='space-y-4'>
                         <div className='max-w-2xl space-y-2'>
                             <div className='flex items-center gap-2 text-[rgba(200,180,140,0.76)]'>
                                 <ShieldCheck className='h-4 w-4' />
@@ -54,38 +56,45 @@ export function CookiesBanner({
                             <p className='text-sm leading-6 text-[rgba(232,224,208,0.78)]'>
                                 {translations.bannerDescription}
                             </p>
-                            <Link
-                                href='/privacy-policy'
-                                className='inline-flex text-xs text-[rgba(200,180,140,0.82)] underline decoration-dotted underline-offset-4'
-                            >
-                                {translations.learnMoreLabel}
-                            </Link>
                         </div>
 
-                        <div className='flex flex-col gap-2 sm:flex-row sm:flex-wrap lg:max-w-xl lg:justify-end'>
-                            <Button
-                                type='button'
-                                variant='ghost'
-                                onClick={() => setManageOpen((current) => !current)}
-                                className='justify-center border border-[rgba(200,180,140,0.18)] bg-transparent text-[rgba(232,224,208,0.88)] hover:bg-[rgba(200,180,140,0.08)] hover:text-white'
-                            >
-                                {translations.managePreferences}
-                            </Button>
-                            <Button
-                                type='button'
-                                variant='ghost'
-                                onClick={onRejectAll}
-                                className='justify-center border border-[rgba(200,180,140,0.18)] bg-transparent text-[rgba(232,224,208,0.88)] hover:bg-[rgba(200,180,140,0.08)] hover:text-white'
-                            >
-                                {translations.rejectAll}
-                            </Button>
-                            <Button
-                                type='button'
-                                onClick={onAcceptAll}
-                                className='justify-center border border-[rgba(200,180,140,0.38)] bg-[rgba(200,180,140,0.12)] text-[rgba(245,239,227,0.96)] hover:bg-[rgba(200,180,140,0.18)]'
-                            >
-                                {translations.acceptAll}
-                            </Button>
+                        <div className='flex flex-col gap-3'>
+                            <div className='flex items-center justify-between gap-3'>
+                                <Link
+                                    href='/privacy-policy'
+                                    className='inline-flex text-xs text-[rgba(200,180,140,0.82)] underline decoration-dotted underline-offset-4'
+                                >
+                                    {translations.learnMoreLabel}
+                                </Link>
+                                <Button
+                                    type='button'
+                                    variant='ghost'
+                                    onClick={() =>
+                                        setManageOpen((current) => !current)
+                                    }
+                                    className='justify-center border border-[rgba(200,180,140,0.18)] bg-transparent text-[rgba(232,224,208,0.88)] hover:bg-[rgba(200,180,140,0.08)] hover:text-white'
+                                >
+                                    {translations.managePreferences}
+                                </Button>
+                            </div>
+
+                            <div className='grid grid-cols-2 gap-2'>
+                                <Button
+                                    type='button'
+                                    variant='ghost'
+                                    onClick={onRejectAll}
+                                    className='w-full justify-center border border-[rgba(200,180,140,0.18)] bg-transparent text-[rgba(232,224,208,0.88)] hover:bg-[rgba(200,180,140,0.08)] hover:text-white'
+                                >
+                                    {translations.rejectAll}
+                                </Button>
+                                <Button
+                                    type='button'
+                                    onClick={onAcceptAll}
+                                    className='w-full justify-center border border-[rgba(200,180,140,0.38)] bg-[rgba(200,180,140,0.12)] text-[rgba(245,239,227,0.96)] hover:bg-[rgba(200,180,140,0.18)]'
+                                >
+                                    {translations.acceptAll}
+                                </Button>
+                            </div>
                         </div>
                     </div>
 

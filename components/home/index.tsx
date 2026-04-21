@@ -13,6 +13,8 @@ import {
     loadInterpretationModeFromStorage,
     type InterpretationMode,
 } from "@/lib/interpretation-mode-storage"
+import { useStarConsent } from "@/components/star-consent"
+import { CookiesBanner } from "@/components/cookies-banner"
 import {
     detectInputLanguage,
     isSupportedLocale,
@@ -35,6 +37,12 @@ export default function Home() {
     const locale = useLocale()
     const router = useRouter()
     const { user } = useAuth()
+    const {
+        cookieConsent,
+        acceptAllCookies,
+        rejectAllCookies,
+        saveCookiePreferences,
+    } = useStarConsent()
     const [question, setQuestion] = useState("")
     const [isLinking, setIsLinking] = useState(false)
     const [linkingQuestion, setLinkingQuestion] = useState<string | null>(null)
@@ -393,6 +401,39 @@ export default function Home() {
                     wrapperClassName='mt-4'
                     inputWrapperClassName='w-full'
                 />
+                <div className='mx-auto w-full max-w-3xl px-4 pb-3 transition-all duration-300'>
+                    <CookiesBanner
+                        visible={!cookieConsent.decisionMade}
+                        className='mt-[-8px]'
+                        translations={{
+                            bannerTitle: "Cookie preferences",
+                            bannerDescription:
+                                "We use cookies to improve your experience and analyze traffic.",
+                            managePreferences: "Manage Preferences",
+                            acceptAll: "Accept All",
+                            rejectAll: "Reject All",
+                            savePreferences: "Save Preferences",
+                            preferencesTitle: "Manage cookie categories",
+                            preferencesDescription:
+                                "Non-essential categories stay off until you explicitly enable them.",
+                            essentialTitle: "Essential cookies",
+                            essentialDescription:
+                                "Required for core site functions, secure sessions, and anonymous star balance continuity.",
+                            analyticsTitle: "Analytics cookies",
+                            analyticsDescription:
+                                "Allows privacy-friendly Vercel Analytics so we can understand traffic and improve the product.",
+                            marketingTitle: "Marketing cookies",
+                            marketingDescription:
+                                "Reserved for future campaign or personalization tools. No marketing scripts run unless you opt in.",
+                            alwaysOnLabel: "Always on",
+                            learnMoreLabel: "Learn more in our Privacy Policy",
+                        }}
+                        preferences={cookieConsent.preferences}
+                        onAcceptAll={acceptAllCookies}
+                        onRejectAll={rejectAllCookies}
+                        onSavePreferences={saveCookiePreferences}
+                    />
+                </div>
                 <div className='opacity-100'>
                     <Footer />
                 </div>

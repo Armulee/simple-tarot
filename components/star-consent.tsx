@@ -28,7 +28,6 @@ import { Link } from "@/i18n/navigation"
 import { cn } from "@/lib/utils"
 import { Sparkle } from "lucide-react"
 import { useLocale } from "next-intl"
-import { CookiesBanner } from "@/components/cookies-banner"
 import {
     COOKIE_PREFERENCES_EVENT,
     NOTICE_CONSENT_EVENT,
@@ -58,6 +57,8 @@ type StarConsentContextType = {
     noticeAcknowledged: boolean
     open: boolean
     cookieConsent: CookieConsentState
+    cookieBannerVisible: boolean
+    cookieTranslations: NoticeTranslations["cookies"]
     analyticsEnabled: boolean
     language: NoticeLanguage
     activeTrigger: NoticeTrigger | null
@@ -348,6 +349,8 @@ export function StarConsentProvider({
             noticeAcknowledged,
             open,
             cookieConsent,
+            cookieBannerVisible: !cookieConsent.decisionMade,
+            cookieTranslations: content.cookies,
             analyticsEnabled:
                 cookieConsent.decisionMade && cookieConsent.preferences.analytics,
             language,
@@ -362,6 +365,7 @@ export function StarConsentProvider({
             noticeAcknowledged,
             open,
             cookieConsent,
+            content.cookies,
             language,
             activeTrigger,
             show,
@@ -381,7 +385,6 @@ export function StarConsentProvider({
     }
 
     const handleDialogOpenChange = (next: boolean) => {
-        if (!next && !noticeAcknowledged) return
         setOpen(next)
         if (!next) {
             setActiveTrigger(null)
@@ -396,17 +399,44 @@ export function StarConsentProvider({
                 <StarsDialog
                     hideCloseButton
                     className='relative flex !h-[90dvh] !max-w-[540px] flex-col !overflow-hidden !rounded-[3px] !border-[0.5px] !border-[rgba(200,180,140,0.3)] !bg-[#13121f] !p-0 !shadow-none'
-                    onInteractOutside={(e) => {
-                        if (!noticeAcknowledged) e.preventDefault()
-                    }}
-                    onEscapeKeyDown={(e) => {
-                        if (!noticeAcknowledged) e.preventDefault()
-                    }}
                 >
                     <div className='relative z-10 flex min-h-0 h-full w-full flex-1 flex-col'>
                         <CornerAccents />
 
-                        <div className='shrink-0 border-b border-[rgba(200,180,140,0.1)] px-6 pb-4 pt-4'>
+                        <div className='relative shrink-0 border-b border-[rgba(200,180,140,0.1)] px-6 pb-4 pt-4'>
+                            <div className='absolute right-4 top-4 z-10 w-[168px] sm:w-[190px]'>
+                                <label className='mb-1 block text-right text-[10px] uppercase tracking-[0.24em] text-[rgba(200,180,140,0.58)]'>
+                                    {content.modal.languageLabel}
+                                </label>
+                                <Select
+                                    value={language}
+                                    onValueChange={(value) => {
+                                        if (isSupportedNoticeLanguage(value)) {
+                                            setLanguage(value)
+                                        }
+                                    }}
+                                >
+                                    <SelectTrigger className='h-9 w-full border-[rgba(200,180,140,0.18)] bg-[rgba(255,255,255,0.02)] text-[rgba(232,224,208,0.88)] [&_svg]:text-[rgba(232,224,208,0.62)]'>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className='border-[rgba(200,180,140,0.18)] bg-[#171522] text-[rgba(232,224,208,0.88)]'>
+                                        {NOTICE_LANGUAGE_OPTIONS.map((option) => (
+                                            <SelectItem
+                                                key={option.value}
+                                                value={option.value}
+                                                className='focus:bg-[rgba(200,180,140,0.1)] focus:text-white'
+                                            >
+                                                {option.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <div className='mt-1 min-h-[14px] text-right text-[10px] text-[rgba(232,224,208,0.4)]'>
+                                    {isTranslating
+                                        ? content.modal.languageLoadingLabel
+                                        : null}
+                                </div>
+                            </div>
                             <div className='mb-2 flex justify-center'>
                                 <CelestialIcon />
                             </div>
@@ -418,43 +448,6 @@ export function StarConsentProvider({
                                     {content.modal.noticeHeading}
                                 </DialogTitle>
                             </DialogHeader>
-                            <div className='flex justify-end'>
-                                <div className='w-full max-w-[190px]'>
-                                    <label className='mb-1 block text-right text-[10px] uppercase tracking-[0.24em] text-[rgba(200,180,140,0.58)]'>
-                                        {content.modal.languageLabel}
-                                    </label>
-                                    <Select
-                                        value={language}
-                                        onValueChange={(value) => {
-                                            if (isSupportedNoticeLanguage(value)) {
-                                                setLanguage(value)
-                                            }
-                                        }}
-                                    >
-                                        <SelectTrigger className='h-9 w-full border-[rgba(200,180,140,0.18)] bg-[rgba(255,255,255,0.02)] text-[rgba(232,224,208,0.88)] [&_svg]:text-[rgba(232,224,208,0.62)]'>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent className='border-[rgba(200,180,140,0.18)] bg-[#171522] text-[rgba(232,224,208,0.88)]'>
-                                            {NOTICE_LANGUAGE_OPTIONS.map(
-                                                (option) => (
-                                                    <SelectItem
-                                                        key={option.value}
-                                                        value={option.value}
-                                                        className='focus:bg-[rgba(200,180,140,0.1)] focus:text-white'
-                                                    >
-                                                        {option.label}
-                                                    </SelectItem>
-                                                ),
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                    <div className='mt-1 text-right text-[10px] text-[rgba(232,224,208,0.4)]'>
-                                        {isTranslating
-                                            ? content.modal.languageLoadingLabel
-                                            : null}
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                         <div className='relative min-h-0 flex-1'>
@@ -595,14 +588,6 @@ export function StarConsentProvider({
                 </StarsDialog>
             </Dialog>
 
-            <CookiesBanner
-                visible={!cookieConsent.decisionMade}
-                translations={content.cookies}
-                preferences={cookieConsent.preferences}
-                onAcceptAll={acceptAllCookies}
-                onRejectAll={rejectAllCookies}
-                onSavePreferences={saveCookiePreferences}
-            />
         </StarConsentContext.Provider>
     )
 }
