@@ -2,7 +2,6 @@ import type React from "react"
 import type { Metadata } from "next"
 import { NextIntlClientProvider } from "next-intl"
 import { Playfair_Display, Source_Sans_3 } from "next/font/google"
-import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import { TarotProvider } from "@/contexts/tarot-context"
 import { StarsProvider } from "@/contexts/stars-context"
@@ -18,6 +17,7 @@ import { routing } from "@/i18n/routing"
 import { notFound } from "next/navigation"
 import { getMessages, getTranslations } from "next-intl/server"
 import { getMetadataBase } from "@/lib/seo"
+import { ConsentAwareAnalytics } from "@/components/consent-aware-analytics"
 // StarConsentProvider and ReferralProvider are composed inside StarsProvider
 
 /* Updated fonts to match mystical design brief */
@@ -168,7 +168,7 @@ export default async function RootLayout({
                         closeButton
                     />
                 </NextIntlClientProvider>
-                <Analytics />
+                <ConsentAwareAnalytics />
             </body>
         </html>
     )

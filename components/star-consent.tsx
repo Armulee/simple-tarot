@@ -12,25 +12,60 @@ import React, {
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
-    DialogDescription,
 } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import { Link } from "@/i18n/navigation"
 import { cn } from "@/lib/utils"
 import { Sparkle } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale } from "next-intl"
+import { CookiesBanner } from "@/components/cookies-banner"
+import {
+    COOKIE_PREFERENCES_EVENT,
+    NOTICE_CONSENT_EVENT,
+    DEFAULT_COOKIE_CONSENT_STATE,
+    type CookieConsentState,
+    type CookiePreferences,
+    hasAnalyticsConsent,
+    hasNoticeAcknowledgement,
+    readCookieConsentState,
+    readLegacyCombinedConsent,
+    readNoticeAcknowledgement,
+    writeCookieConsentState,
+    writeNoticeAcknowledgement,
+} from "@/lib/consent-storage"
+import {
+    getNoticeTranslations,
+    isSupportedNoticeLanguage,
+    loadNoticeTranslations,
+    NOTICE_LANGUAGE_OPTIONS,
+    type NoticeLanguage,
+    type NoticeTranslations,
+} from "@/lib/notice-translations"
 
-type ConsentChoice = "accepted" | "declined" | null
-
-const CONSENT_KEY = "cookie-consent-v1"
+type NoticeTrigger = "question-input" | "star-balance" | "manual"
 
 type StarConsentContextType = {
-    choice: ConsentChoice
+    noticeAcknowledged: boolean
     open: boolean
-    show: () => void
-    accept: () => void
+    cookieConsent: CookieConsentState
+    analyticsEnabled: boolean
+    language: NoticeLanguage
+    activeTrigger: NoticeTrigger | null
+    show: (trigger?: NoticeTrigger) => void
+    accept: () => Promise<void>
+    acceptAllCookies: () => void
+    rejectAllCookies: () => void
+    saveCookiePreferences: (preferences: CookiePreferences) => void
 }
 
 const StarConsentContext = createContext<StarConsentContextType | undefined>(
@@ -77,7 +112,7 @@ function CelestialIcon() {
 
 function CornerAccents() {
     const base =
-        "pointer-events-none absolute w-[15px] h-[15px] border-[rgba(200,180,140,0.45)]"
+        "pointer-events-none absolute h-[15px] w-[15px] border-[rgba(200,180,140,0.45)]"
     return (
         <>
             <div className={cn(base, "-top-px -left-px border-t border-l")} />
@@ -92,16 +127,41 @@ function CornerAccents() {
     )
 }
 
+function buildCookieState(preferences: CookiePreferences): CookieConsentState {
+    return {
+        decisionMade: true,
+        preferences: {
+            essential: true,
+            analytics: preferences.analytics,
+            marketing: preferences.marketing,
+        },
+        updatedAt: Date.now(),
+    }
+}
+
 export function StarConsentProvider({
     children,
 }: {
     children: React.ReactNode
 }) {
+    const locale = useLocale()
+    const initialLanguage = isSupportedNoticeLanguage(locale) ? locale : "en"
     const [open, setOpen] = useState(false)
-    const [choice, setChoice] = useState<ConsentChoice>(null)
+    const [noticeAcknowledged, setNoticeAcknowledged] = useState(false)
+    const [cookieConsent, setCookieConsent] = useState<CookieConsentState>(
+        DEFAULT_COOKIE_CONSENT_STATE,
+    )
     const [understood, setUnderstood] = useState(false)
     const [scrolledToEnd, setScrolledToEnd] = useState(false)
     const [scrollHintVisible, setScrollHintVisible] = useState(false)
+    const [language, setLanguage] = useState<NoticeLanguage>(initialLanguage)
+    const [content, setContent] = useState<NoticeTranslations>(() =>
+        getNoticeTranslations(initialLanguage),
+    )
+    const [isTranslating, setIsTranslating] = useState(false)
+    const [activeTrigger, setActiveTrigger] = useState<NoticeTrigger | null>(
+        null,
+    )
     const scrollHintTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
     const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -119,21 +179,48 @@ export function StarConsentProvider({
 
     useEffect(() => {
         if (typeof window === "undefined") return
-        try {
-            const saved = window.localStorage.getItem(CONSENT_KEY)
-            if (saved === "accepted") {
-                setChoice("accepted")
-                setOpen(false)
-            } else {
-                if (saved === "declined") setChoice("declined")
-                else setChoice(null)
-                setOpen(true)
+
+        let nextNoticeAcknowledged = readNoticeAcknowledgement()
+        let nextCookieConsent = readCookieConsentState()
+        const legacyConsent = readLegacyCombinedConsent()
+
+        if (legacyConsent === "accepted") {
+            if (!nextNoticeAcknowledged) {
+                writeNoticeAcknowledgement(true)
+                nextNoticeAcknowledged = true
             }
-        } catch {
-            setChoice(null)
-            setOpen(true)
+            if (!nextCookieConsent.decisionMade) {
+                nextCookieConsent = buildCookieState({
+                    essential: true,
+                    analytics: true,
+                    marketing: false,
+                })
+                writeCookieConsentState(nextCookieConsent)
+            }
         }
+
+        setNoticeAcknowledged(nextNoticeAcknowledged)
+        setCookieConsent(nextCookieConsent)
     }, [])
+
+    useEffect(() => {
+        let cancelled = false
+        setIsTranslating(true)
+        void loadNoticeTranslations(language)
+            .then((translations) => {
+                if (!cancelled) {
+                    setContent(translations)
+                }
+            })
+            .finally(() => {
+                if (!cancelled) {
+                    setIsTranslating(false)
+                }
+            })
+        return () => {
+            cancelled = true
+        }
+    }, [language])
 
     useEffect(() => {
         if (open) {
@@ -145,16 +232,6 @@ export function StarConsentProvider({
             if (scrollHintTimer.current) clearTimeout(scrollHintTimer.current)
         }
     }, [open])
-
-    const flashScrollHint = useCallback(() => {
-        if (scrolledToEnd) return
-        setScrollHintVisible(true)
-        if (scrollHintTimer.current) clearTimeout(scrollHintTimer.current)
-        scrollHintTimer.current = setTimeout(
-            () => setScrollHintVisible(false),
-            2500,
-        )
-    }, [scrolledToEnd])
 
     useEffect(() => {
         if (!open) return
@@ -174,56 +251,126 @@ export function StarConsentProvider({
     }, [open, checkScrollEnd])
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            if (open) {
-                window.dispatchEvent(
-                    new CustomEvent("toaster-position-change", {
-                        detail: { position: "top-center" },
-                    }),
-                )
-            } else {
-                window.dispatchEvent(
-                    new CustomEvent("toaster-position-change", {
-                        detail: { position: "bottom-center" },
-                    }),
-                )
-            }
+        if (typeof window === "undefined") return
+        const timer = window.setTimeout(() => {
+            window.dispatchEvent(
+                new CustomEvent("toaster-position-change", {
+                    detail: {
+                        position: open ? "top-center" : "bottom-center",
+                    },
+                }),
+            )
         }, 100)
 
-        return () => clearTimeout(timer)
+        return () => window.clearTimeout(timer)
     }, [open])
 
-    const consentPending = choice === null || choice === "declined"
+    const flashScrollHint = useCallback(() => {
+        if (scrolledToEnd) return
+        setScrollHintVisible(true)
+        if (scrollHintTimer.current) clearTimeout(scrollHintTimer.current)
+        scrollHintTimer.current = setTimeout(
+            () => setScrollHintVisible(false),
+            2500,
+        )
+    }, [scrolledToEnd])
 
-    const show = useCallback(() => {
-        setOpen(true)
-    }, [])
-
-    const accept = useCallback(async () => {
-        try {
-            window.localStorage.setItem(CONSENT_KEY, "accepted")
-        } catch {}
-        try {
-            await fetch("/api/device/init", { method: "POST" })
-        } catch {}
-        setChoice("accepted")
-        setOpen(false)
-        setUnderstood(false)
+    const persistCookieConsent = useCallback((nextState: CookieConsentState) => {
+        setCookieConsent(nextState)
+        writeCookieConsentState(nextState)
         if (typeof window !== "undefined") {
             window.dispatchEvent(
-                new CustomEvent("cookie-consent-changed", {
-                    detail: { choice: "accepted" },
+                new CustomEvent(COOKIE_PREFERENCES_EVENT, {
+                    detail: nextState,
                 }),
             )
         }
     }, [])
 
-    const value = useMemo<StarConsentContextType>(
-        () => ({ choice, open, show, accept }),
-        [choice, open, show, accept],
+    const show = useCallback(
+        (trigger: NoticeTrigger = "manual") => {
+            if (noticeAcknowledged) return
+            setActiveTrigger(trigger)
+            setOpen(true)
+        },
+        [noticeAcknowledged],
     )
 
-    const t = useTranslations("StarConsent")
+    const accept = useCallback(async () => {
+        writeNoticeAcknowledgement(true)
+        setNoticeAcknowledged(true)
+        setOpen(false)
+        setActiveTrigger(null)
+        setUnderstood(false)
+        try {
+            await fetch("/api/device/init", { method: "POST" })
+        } catch {
+            // Best-effort only.
+        }
+        if (typeof window !== "undefined") {
+            window.dispatchEvent(
+                new CustomEvent(NOTICE_CONSENT_EVENT, {
+                    detail: { acknowledged: true },
+                }),
+            )
+        }
+    }, [])
+
+    const acceptAllCookies = useCallback(() => {
+        persistCookieConsent(
+            buildCookieState({
+                essential: true,
+                analytics: true,
+                marketing: true,
+            }),
+        )
+    }, [persistCookieConsent])
+
+    const rejectAllCookies = useCallback(() => {
+        persistCookieConsent(
+            buildCookieState({
+                essential: true,
+                analytics: false,
+                marketing: false,
+            }),
+        )
+    }, [persistCookieConsent])
+
+    const saveCookiePreferences = useCallback(
+        (preferences: CookiePreferences) => {
+            persistCookieConsent(buildCookieState(preferences))
+        },
+        [persistCookieConsent],
+    )
+
+    const value = useMemo<StarConsentContextType>(
+        () => ({
+            noticeAcknowledged,
+            open,
+            cookieConsent,
+            analyticsEnabled:
+                cookieConsent.decisionMade && cookieConsent.preferences.analytics,
+            language,
+            activeTrigger,
+            show,
+            accept,
+            acceptAllCookies,
+            rejectAllCookies,
+            saveCookiePreferences,
+        }),
+        [
+            noticeAcknowledged,
+            open,
+            cookieConsent,
+            language,
+            activeTrigger,
+            show,
+            accept,
+            acceptAllCookies,
+            rejectAllCookies,
+            saveCookiePreferences,
+        ],
+    )
 
     const richB = {
         b: (chunks: React.ReactNode) => (
@@ -234,112 +381,145 @@ export function StarConsentProvider({
     }
 
     const handleDialogOpenChange = (next: boolean) => {
-        if (!next && consentPending) return
+        if (!next && !noticeAcknowledged) return
         setOpen(next)
+        if (!next) {
+            setActiveTrigger(null)
+        }
     }
 
     return (
         <StarConsentContext.Provider value={value}>
             {children}
+
             <Dialog open={open} onOpenChange={handleDialogOpenChange}>
                 <StarsDialog
                     hideCloseButton
-                    className='relative flex !max-w-[500px] flex-col !overflow-hidden !p-0 h-[90dvh] !border-[0.5px] !border-[rgba(200,180,140,0.3)] !rounded-[3px] !bg-[#13121f] !shadow-none'
+                    className='relative flex !h-[90dvh] !max-w-[540px] flex-col !overflow-hidden !rounded-[3px] !border-[0.5px] !border-[rgba(200,180,140,0.3)] !bg-[#13121f] !p-0 !shadow-none'
                     onInteractOutside={(e) => {
-                        if (consentPending) e.preventDefault()
+                        if (!noticeAcknowledged) e.preventDefault()
                     }}
                     onEscapeKeyDown={(e) => {
-                        if (consentPending) e.preventDefault()
+                        if (!noticeAcknowledged) e.preventDefault()
                     }}
                 >
-                    <div className='relative z-10 flex min-h-0 w-full h-full flex-1 flex-col'>
+                    <div className='relative z-10 flex min-h-0 h-full w-full flex-1 flex-col'>
                         <CornerAccents />
 
-                        {/* Scrollable consent copy */}
-                        <div className='relative h-[60dvh] shrink-0'>
+                        <div className='shrink-0 border-b border-[rgba(200,180,140,0.1)] px-6 pb-4 pt-4'>
+                            <div className='mb-2 flex justify-center'>
+                                <CelestialIcon />
+                            </div>
+                            <p className='text-center font-serif text-[10px] font-normal uppercase tracking-[0.28em] text-[rgba(200,180,140,0.6)]'>
+                                {content.modal.eyebrow}
+                            </p>
+                            <DialogHeader className='mt-1 mb-3 text-center'>
+                                <DialogTitle className='font-serif text-[26px] font-medium leading-tight text-[#e8e0d0]'>
+                                    {content.modal.noticeHeading}
+                                </DialogTitle>
+                            </DialogHeader>
+                            <div className='flex justify-end'>
+                                <div className='w-full max-w-[190px]'>
+                                    <label className='mb-1 block text-right text-[10px] uppercase tracking-[0.24em] text-[rgba(200,180,140,0.58)]'>
+                                        {content.modal.languageLabel}
+                                    </label>
+                                    <Select
+                                        value={language}
+                                        onValueChange={(value) => {
+                                            if (isSupportedNoticeLanguage(value)) {
+                                                setLanguage(value)
+                                            }
+                                        }}
+                                    >
+                                        <SelectTrigger className='h-9 w-full border-[rgba(200,180,140,0.18)] bg-[rgba(255,255,255,0.02)] text-[rgba(232,224,208,0.88)] [&_svg]:text-[rgba(232,224,208,0.62)]'>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent className='border-[rgba(200,180,140,0.18)] bg-[#171522] text-[rgba(232,224,208,0.88)]'>
+                                            {NOTICE_LANGUAGE_OPTIONS.map(
+                                                (option) => (
+                                                    <SelectItem
+                                                        key={option.value}
+                                                        value={option.value}
+                                                        className='focus:bg-[rgba(200,180,140,0.1)] focus:text-white'
+                                                    >
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ),
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                    <div className='mt-1 text-right text-[10px] text-[rgba(232,224,208,0.4)]'>
+                                        {isTranslating
+                                            ? content.modal.languageLoadingLabel
+                                            : null}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='relative min-h-0 flex-1'>
                             <div
                                 ref={scrollRef}
                                 role='region'
-                                aria-label={t("consentScrollRegionLabel")}
+                                aria-label={content.modal.consentScrollRegionLabel}
                                 tabIndex={0}
                                 onScroll={checkScrollEnd}
-                                className='consent-scrollbar absolute inset-0 overscroll-y-contain border-b border-[rgba(200,180,140,0.1)] px-6 pt-4 pb-14'
+                                className='consent-scrollbar absolute inset-0 overscroll-y-contain px-6 py-5 pb-14'
                             >
-                                {/* Icon */}
-                                <div className='flex justify-center mb-2'>
-                                    <CelestialIcon />
+                                <div className='mb-5 flex items-center gap-2.5'>
+                                    <div className='h-px flex-1 bg-[rgba(200,180,140,0.16)]' />
+                                    <div className='h-1 w-1 rounded-full bg-[rgba(200,180,140,0.32)]' />
+                                    <div className='h-px flex-1 bg-[rgba(200,180,140,0.16)]' />
                                 </div>
 
-                                {/* Eyebrow */}
-                                <p className='font-serif text-[10px] font-normal tracking-[0.28em] uppercase text-[rgba(200,180,140,0.6)] text-center'>
-                                    {t("eyebrow")}
-                                </p>
-
-                                {/* Title */}
-                                <DialogHeader className='mb-6'>
-                                    <DialogTitle className='font-serif text-[26px] font-medium text-[#e8e0d0] text-center leading-tight'>
-                                        {t("noticeHeading")}
-                                    </DialogTitle>
-                                </DialogHeader>
-
-                                {/* Divider */}
-                                <div className='flex items-center gap-2.5 mb-5'>
-                                    <div className='flex-1 h-px bg-[rgba(200,180,140,0.16)]' />
-                                    <div className='w-1 h-1 rounded-full bg-[rgba(200,180,140,0.32)]' />
-                                    <div className='flex-1 h-px bg-[rgba(200,180,140,0.16)]' />
-                                </div>
-
-                                {/* Section 1: Experience */}
-                                <p className='text-md font-medium uppercase text-[rgba(200,180,140,0.48)] mb-2'>
-                                    {t("experienceSectionLabel")}
+                                <p className='mb-2 text-md font-medium uppercase text-[rgba(200,180,140,0.48)]'>
+                                    {content.modal.experienceSectionLabel}
                                 </p>
                                 <DialogDescription asChild>
-                                    <p className='text-[13.5px] font-light text-[rgba(232,224,208,0.62)] leading-[1.78] mb-4'>
-                                        {t.rich("experienceBody", richB)}
+                                    <p className='mb-4 text-[13.5px] leading-[1.78] font-light text-[rgba(232,224,208,0.62)]'>
+                                        {richText(content.modal.experienceBody, richB)}
                                     </p>
                                 </DialogDescription>
 
-                                {/* Section divider */}
-                                <div className='h-px bg-[rgba(200,180,140,0.1)] my-5' />
+                                <div className='my-5 h-px bg-[rgba(200,180,140,0.1)]' />
 
-                                {/* Section 2: Limitation of Liability */}
-                                <p className='text-md font-medium uppercase text-[rgba(200,180,140,0.48)] mb-2'>
-                                    {t("liabilitySectionLabel")}
+                                <p className='mb-2 text-md font-medium uppercase text-[rgba(200,180,140,0.48)]'>
+                                    {content.modal.liabilitySectionLabel}
                                 </p>
-                                <p className='text-[13.5px] font-light text-[rgba(232,224,208,0.62)] leading-[1.78] mb-4'>
-                                    {t.rich("liabilityBody", richB)}
+                                <p className='mb-4 text-[13.5px] leading-[1.78] font-light text-[rgba(232,224,208,0.62)]'>
+                                    {richText(content.modal.liabilityBody, richB)}
                                 </p>
 
-                                {/* Section divider */}
-                                <div className='h-px bg-[rgba(200,180,140,0.1)] my-5' />
+                                <div className='my-5 h-px bg-[rgba(200,180,140,0.1)]' />
 
-                                {/* Section 3: Religious & Cultural Sensitivity */}
-                                <p className='text-md font-medium uppercase text-[rgba(200,180,140,0.48)] mb-2'>
-                                    {t("religiousSectionLabel")}
+                                <p className='mb-2 text-md font-medium uppercase text-[rgba(200,180,140,0.48)]'>
+                                    {content.modal.religiousSectionLabel}
                                 </p>
-                                <p className='text-[13.5px] font-light text-[rgba(232,224,208,0.62)] leading-[1.78] mb-4'>
-                                    {t.rich("religiousBody", richB)}
+                                <p className='mb-4 text-[13.5px] leading-[1.78] font-light text-[rgba(232,224,208,0.62)]'>
+                                    {richText(content.modal.religiousBody, richB)}
                                 </p>
 
-                                {/* Section divider */}
-                                <div className='h-px bg-[rgba(200,180,140,0.1)] my-5' />
+                                <div className='my-5 h-px bg-[rgba(200,180,140,0.1)]' />
 
-                                {/* Section 4: Cookies */}
-                                <p className='text-md font-medium uppercase text-[rgba(200,180,140,0.48)] mb-2'>
-                                    {t("cookieSectionLabel")}
+                                <p className='mb-2 text-md font-medium uppercase text-[rgba(200,180,140,0.48)]'>
+                                    {content.modal.legalLinksLabel}
                                 </p>
-                                <p className='text-[13.5px] font-light text-[rgba(232,224,208,0.62)] leading-[1.78] pb-1'>
-                                    {t.rich("cookieBody", richB)}
+                                <div className='flex flex-wrap gap-3 pb-2 text-[13px] text-[rgba(232,224,208,0.72)]'>
                                     <Link
                                         href='/privacy-policy'
-                                        className='underline decoration-dotted text-[rgba(200,180,140,0.45)]'
+                                        className='underline decoration-dotted text-[rgba(200,180,140,0.72)] underline-offset-4'
                                     >
-                                        {t("privacyLink")}
+                                        {content.modal.privacyLink}
                                     </Link>
-                                </p>
+                                    <Link
+                                        href='/terms-of-service'
+                                        className='underline decoration-dotted text-[rgba(200,180,140,0.72)] underline-offset-4'
+                                    >
+                                        {content.modal.termsLink}
+                                    </Link>
+                                </div>
                             </div>
 
-                            {/* Gradient fade overlay */}
                             <div
                                 className={cn(
                                     "pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#13121f] via-[#13121f]/70 to-transparent transition-opacity duration-300",
@@ -348,19 +528,17 @@ export function StarConsentProvider({
                             />
                         </div>
 
-                        {/* Fixed footer: checkbox + proceed */}
-                        <footer className='fixed bottom-0 left-0 right-0 shrink-0 bg-[#13121f]/95 px-6 pb-4 pt-3 backdrop-blur-sm'>
-                            {/* Inline toast */}
+                        <footer className='relative shrink-0 border-t border-[rgba(200,180,140,0.1)] bg-[#13121f]/95 px-6 pb-4 pt-3 backdrop-blur-sm'>
                             <div
                                 role='alert'
                                 className={cn(
                                     "absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border-[0.5px] border-[rgba(200,180,140,0.25)] bg-[#1a1826] px-4 py-1.5 text-[10.5px] text-[rgba(200,180,140,0.7)] shadow-lg transition-all duration-300",
                                     scrollHintVisible
                                         ? "translate-y-0 opacity-100"
-                                        : "translate-y-2 opacity-0 pointer-events-none",
+                                        : "pointer-events-none translate-y-2 opacity-0",
                                 )}
                             >
-                                {t("scrollToEndHint")}
+                                {content.modal.scrollToEndHint}
                             </div>
 
                             <div
@@ -373,7 +551,7 @@ export function StarConsentProvider({
                             >
                                 <label
                                     className={cn(
-                                        "flex items-start gap-3 rounded-[2px] border-[0.5px] px-4 py-3 select-none transition-colors duration-200",
+                                        "flex select-none items-start gap-3 rounded-[2px] border-[0.5px] px-4 py-3 transition-colors duration-200",
                                         !scrolledToEnd &&
                                             !understood &&
                                             "cursor-not-allowed opacity-60",
@@ -387,18 +565,18 @@ export function StarConsentProvider({
                                     <Checkbox
                                         checked={understood}
                                         disabled={!scrolledToEnd && !understood}
-                                        onCheckedChange={(v) =>
-                                            setUnderstood(v === true)
+                                        onCheckedChange={(value) =>
+                                            setUnderstood(value === true)
                                         }
-                                        className='mt-0.5 h-[15px] w-[15px] shrink-0 rounded-[2px] border-[0.5px] border-[rgba(200,180,140,0.38)] data-[state=checked]:bg-[rgba(200,180,140,0.2)] data-[state=checked]:border-[rgba(200,180,140,0.68)] data-[state=checked]:text-[rgba(200,180,140,0.9)]'
-                                        aria-label={t("checkboxMain")}
+                                        className='mt-0.5 h-[15px] w-[15px] shrink-0 rounded-[2px] border-[0.5px] border-[rgba(200,180,140,0.38)] data-[state=checked]:border-[rgba(200,180,140,0.68)] data-[state=checked]:bg-[rgba(200,180,140,0.2)] data-[state=checked]:text-[rgba(200,180,140,0.9)]'
+                                        aria-label={content.modal.checkboxMain}
                                     />
                                     <div>
-                                        <div className='text-[13px] font-normal text-[rgba(232,224,208,0.82)] leading-normal mb-0.5'>
-                                            {t("checkboxMain")}
+                                        <div className='mb-0.5 text-[13px] leading-normal font-normal text-[rgba(232,224,208,0.82)]'>
+                                            {content.modal.checkboxMain}
                                         </div>
-                                        <div className='text-[11.5px] font-light text-[rgba(232,224,208,0.36)] leading-snug'>
-                                            {t("checkboxSub")}
+                                        <div className='text-[11.5px] leading-snug font-light text-[rgba(232,224,208,0.36)]'>
+                                            {content.modal.checkboxSub}
                                         </div>
                                     </div>
                                 </label>
@@ -408,14 +586,23 @@ export function StarConsentProvider({
                                 type='button'
                                 disabled={!understood}
                                 onClick={() => void accept()}
-                                className='w-full py-3.5 bg-transparent border-[0.5px] rounded-[2px] text-[11px] font-normal tracking-[0.18em] uppercase transition-all duration-300 disabled:border-[rgba(200,180,140,0.2)] disabled:text-[rgba(232,224,208,0.32)] disabled:cursor-not-allowed enabled:border-[rgba(200,180,140,0.55)] enabled:text-[rgba(232,224,208,0.88)] enabled:cursor-pointer enabled:hover:bg-[rgba(200,180,140,0.07)] enabled:hover:border-[rgba(200,180,140,0.8)] enabled:active:scale-[0.99]'
+                                className='w-full rounded-[2px] border-[0.5px] bg-transparent py-3.5 text-[11px] font-normal uppercase tracking-[0.18em] transition-all duration-300 disabled:cursor-not-allowed disabled:border-[rgba(200,180,140,0.2)] disabled:text-[rgba(232,224,208,0.32)] enabled:cursor-pointer enabled:border-[rgba(200,180,140,0.55)] enabled:text-[rgba(232,224,208,0.88)] enabled:hover:border-[rgba(200,180,140,0.8)] enabled:hover:bg-[rgba(200,180,140,0.07)] enabled:active:scale-[0.99]'
                             >
-                                {t("enterButton")}
+                                {content.modal.enterButton}
                             </button>
                         </footer>
                     </div>
                 </StarsDialog>
             </Dialog>
+
+            <CookiesBanner
+                visible={!cookieConsent.decisionMade}
+                translations={content.cookies}
+                preferences={cookieConsent.preferences}
+                onAcceptAll={acceptAllCookies}
+                onRejectAll={rejectAllCookies}
+                onSavePreferences={saveCookiePreferences}
+            />
         </StarConsentContext.Provider>
     )
 }
@@ -495,11 +682,29 @@ export function StarsDialog({
     )
 }
 
+function richText(
+    text: string,
+    components: {
+        b: (chunks: React.ReactNode) => React.ReactNode
+    },
+) {
+    const parts = text.split(/(<b>.*?<\/b>)/g)
+    return parts.map((part, index) => {
+        if (part.startsWith("<b>") && part.endsWith("</b>")) {
+            return (
+                <React.Fragment key={index}>
+                    {components.b(part.slice(3, -4))}
+                </React.Fragment>
+            )
+        }
+        return <React.Fragment key={index}>{part}</React.Fragment>
+    })
+}
+
+export function hasNoticeConsent(): boolean {
+    return hasNoticeAcknowledgement()
+}
+
 export function hasCookieConsent(): boolean {
-    if (typeof window === "undefined") return false
-    try {
-        return window.localStorage.getItem(CONSENT_KEY) === "accepted"
-    } catch {
-        return false
-    }
+    return hasAnalyticsConsent()
 }

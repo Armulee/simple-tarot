@@ -20,7 +20,7 @@ import {
     type StarState,
 } from "@/lib/stars"
 import {
-    hasCookieConsent,
+    hasNoticeConsent,
     StarConsentProvider,
 } from "@/components/star-consent"
 import { ReferralProvider } from "@/contexts/referral-context"
@@ -189,7 +189,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             // but we can also proceed if !initialized is checked below
         }
 
-        if (!hasCookieConsent()) {
+        if (!hasNoticeConsent()) {
             setInitialized(false)
             return
         }
@@ -229,13 +229,13 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     ]) // Only depend on user.id, not the whole user object
 
     // Initialize stars after consent is accepted
-    type CookieConsentChangedDetail = { choice: "accepted" | "declined" }
+    type NoticeConsentChangedDetail = { acknowledged: boolean }
     useEffect(() => {
         let cancelled = false
         const onConsent = (e: Event) => {
-            const detail = (e as CustomEvent<CookieConsentChangedDetail>)
+            const detail = (e as CustomEvent<NoticeConsentChangedDetail>)
                 ?.detail
-            if (detail?.choice === "accepted") {
+            if (detail?.acknowledged) {
                 // Immediately show 3 locally, then reconcile from server
                 setDailyStars(3)
                 setPlanStars(0)
@@ -265,7 +265,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         }
         if (typeof window !== "undefined") {
             window.addEventListener(
-                "cookie-consent-changed",
+                "notice-consent-changed",
                 onConsent as EventListener,
             )
         }
@@ -273,7 +273,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             cancelled = true
             if (typeof window !== "undefined") {
                 window.removeEventListener(
-                    "cookie-consent-changed",
+                    "notice-consent-changed",
                     onConsent as EventListener,
                 )
             }
@@ -303,7 +303,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     // Reconcile periodically and on visibility change / cross-tab events
     useEffect(() => {
         // if (!initialized) return
-        if (!hasCookieConsent()) return
+        if (!hasNoticeConsent()) return
         let cancelled = false
         const reconcile = async () => {
             try {

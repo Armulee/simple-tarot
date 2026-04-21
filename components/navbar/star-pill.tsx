@@ -1,10 +1,11 @@
 "use client"
 
-import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useStars } from "@/contexts/stars-context"
+import { useStarConsent } from "@/components/star-consent"
 
 const SPARKLE_COUNT = 6
 const ANIMATION_DURATION_MS = 850
@@ -34,6 +35,8 @@ function generateSparkles(): SparkleStyle[] {
 
 export function StarPill({ size }: { size: "sm" | "md" }) {
     const { stars, initialized, spendTrigger, lastSpendAmount } = useStars()
+    const { noticeAcknowledged, show } = useStarConsent()
+    const router = useRouter()
     const prevTriggerRef = useRef(spendTrigger)
     const [animating, setAnimating] = useState(false)
     const [displayAmount, setDisplayAmount] = useState(0)
@@ -52,10 +55,20 @@ export function StarPill({ size }: { size: "sm" | "md" }) {
     }, [spendTrigger, lastSpendAmount])
 
     const isMd = size === "md"
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        if (!noticeAcknowledged) {
+            event.preventDefault()
+            show("star-balance")
+            return
+        }
+        router.push("/stars")
+    }
 
     return (
-        <Link href='/stars' className={isMd ? undefined : "mr-1"}>
+        <div className={isMd ? undefined : "mr-1"}>
             <Button
+                type='button'
+                onClick={handleClick}
                 variant='ghost'
                 className={`relative overflow-visible rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 text-yellow-300 border border-yellow-500/30 flex items-center ${
                     isMd ? "h-10 px-3 gap-2" : "h-9 px-2 gap-1"
@@ -106,6 +119,6 @@ export function StarPill({ size }: { size: "sm" | "md" }) {
                     </span>
                 )}
             </Button>
-        </Link>
+        </div>
     )
 }
