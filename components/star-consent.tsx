@@ -404,39 +404,6 @@ export function StarConsentProvider({
                         <CornerAccents />
 
                         <div className='relative shrink-0 border-b border-[rgba(200,180,140,0.1)] px-6 pb-4 pt-4'>
-                            <div className='absolute right-4 top-4 z-10 w-[168px] sm:w-[190px]'>
-                                <label className='mb-1 block text-right text-[10px] uppercase tracking-[0.24em] text-[rgba(200,180,140,0.58)]'>
-                                    {content.modal.languageLabel}
-                                </label>
-                                <Select
-                                    value={language}
-                                    onValueChange={(value) => {
-                                        if (isSupportedNoticeLanguage(value)) {
-                                            setLanguage(value)
-                                        }
-                                    }}
-                                >
-                                    <SelectTrigger className='h-9 w-full border-[rgba(200,180,140,0.18)] bg-[rgba(255,255,255,0.02)] text-[rgba(232,224,208,0.88)] [&_svg]:text-[rgba(232,224,208,0.62)]'>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className='border-[rgba(200,180,140,0.18)] bg-[#171522] text-[rgba(232,224,208,0.88)]'>
-                                        {NOTICE_LANGUAGE_OPTIONS.map((option) => (
-                                            <SelectItem
-                                                key={option.value}
-                                                value={option.value}
-                                                className='focus:bg-[rgba(200,180,140,0.1)] focus:text-white'
-                                            >
-                                                {option.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <div className='mt-1 min-h-[14px] text-right text-[10px] text-[rgba(232,224,208,0.4)]'>
-                                    {isTranslating
-                                        ? content.modal.languageLoadingLabel
-                                        : null}
-                                </div>
-                            </div>
                             <div className='mb-2 flex justify-center'>
                                 <CelestialIcon />
                             </div>
@@ -463,6 +430,42 @@ export function StarConsentProvider({
                                     <div className='h-px flex-1 bg-[rgba(200,180,140,0.16)]' />
                                     <div className='h-1 w-1 rounded-full bg-[rgba(200,180,140,0.32)]' />
                                     <div className='h-px flex-1 bg-[rgba(200,180,140,0.16)]' />
+                                </div>
+
+                                <div className='mb-6 flex justify-end'>
+                                    <div className='w-full max-w-[168px] sm:max-w-[190px]'>
+                                        <label className='mb-1 block text-right text-[10px] uppercase tracking-[0.24em] text-[rgba(200,180,140,0.58)]'>
+                                            {content.modal.languageLabel}
+                                        </label>
+                                        <Select
+                                            value={language}
+                                            onValueChange={(value) => {
+                                                if (isSupportedNoticeLanguage(value)) {
+                                                    setLanguage(value)
+                                                }
+                                            }}
+                                        >
+                                            <SelectTrigger className='h-9 w-full border-[rgba(200,180,140,0.18)] bg-[rgba(255,255,255,0.02)] text-[rgba(232,224,208,0.88)] [&_svg]:text-[rgba(232,224,208,0.62)]'>
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent className='border-[rgba(200,180,140,0.18)] bg-[#171522] text-[rgba(232,224,208,0.88)]'>
+                                                {NOTICE_LANGUAGE_OPTIONS.map((option) => (
+                                                    <SelectItem
+                                                        key={option.value}
+                                                        value={option.value}
+                                                        className='focus:bg-[rgba(200,180,140,0.1)] focus:text-white'
+                                                    >
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <div className='mt-1 min-h-[14px] text-right text-[10px] text-[rgba(232,224,208,0.4)]'>
+                                            {isTranslating
+                                                ? content.modal.languageLoadingLabel
+                                                : null}
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <p className='mb-2 text-md font-medium uppercase text-[rgba(200,180,140,0.48)]'>
