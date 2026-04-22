@@ -17,13 +17,14 @@ import { cn } from "@/lib/utils"
 import type {
     AgeGateBirthData,
     AgeGateState,
-    UserAgeCategory,
 } from "@/lib/age-gate-storage"
+import type { NoticeTranslations } from "@/lib/notice-translations"
 
 type AgeGateDialogProps = {
     open: boolean
     blockedState: AgeGateState | null
     initialBirth?: AgeGateBirthData | null
+    translations: NoticeTranslations["ageGate"]
     onSubmit: (birth: AgeGateBirthData) => void
 }
 
@@ -64,6 +65,7 @@ export function AgeGateDialog({
     open,
     blockedState,
     initialBirth = null,
+    translations,
     onSubmit,
 }: AgeGateDialogProps) {
     const [draft, setDraft] = useState<DraftState>(() =>
@@ -124,9 +126,7 @@ export function AgeGateDialog({
         }
     }, [draft])
 
-    const blockedCategory: UserAgeCategory | null = blockedState?.category ?? null
-
-    if (blockedCategory === "blocked") {
+    if (blockedState?.category === "blocked") {
         return (
             <AlertDialog open>
                 <AlertDialogContent className='border-[rgba(200,180,140,0.22)] bg-[#13121f] text-[rgba(245,239,227,0.95)] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.85)]'>
@@ -141,22 +141,21 @@ export function AgeGateDialog({
                             <ShieldAlert className='h-5 w-5' />
                         </div>
                         <AlertDialogTitle className='font-serif text-2xl text-[rgba(245,239,227,0.96)]'>
-                            Access unavailable
+                            {translations.blockedTitle}
                         </AlertDialogTitle>
                         <AlertDialogDescription className='space-y-3 text-left text-[rgba(232,224,208,0.72)]'>
+                            <p>{translations.blockedBody}</p>
                             <p>
-                                AskingFate is not available to children under
-                                thirteen (13) years old. Based on the birth date
-                                provided, this account or device remains ineligible
-                                to use the platform.
-                            </p>
-                            <p>
-                                This restriction is permanently stored on this
-                                device to enforce child-safety requirements.
+                                <a
+                                    href='mailto:admin@askingfate.com'
+                                    className='underline decoration-dotted underline-offset-4 text-[rgba(200,180,140,0.9)]'
+                                >
+                                    {translations.blockedSupportLabel}
+                                </a>
                             </p>
                             {blockedState?.birth ? (
                                 <p className='text-[rgba(232,224,208,0.52)]'>
-                                    Recorded birth date:{" "}
+                                    {translations.blockedBirthLabel}:{" "}
                                     {formatBirthDate(blockedState.birth)}
                                 </p>
                             ) : null}
@@ -181,17 +180,11 @@ export function AgeGateDialog({
                         <Stars className='h-5 w-5' />
                     </div>
                     <AlertDialogTitle className='font-serif text-2xl text-[rgba(245,239,227,0.96)]'>
-                        Natal chart casting
+                        {translations.gateTitle}
                     </AlertDialogTitle>
                     <AlertDialogDescription className='space-y-2 text-left text-[rgba(232,224,208,0.72)]'>
-                        <p>
-                            Before continuing, please confirm your birth date so
-                            we can apply our platform age-safety rules.
-                        </p>
-                        <p>
-                            Birth time is optional. If omitted, it will default to
-                            00:00.
-                        </p>
+                        <p>{translations.gateIntro}</p>
+                        <p>{translations.gateTimeNote}</p>
                     </AlertDialogDescription>
                 </AlertDialogHeader>
 
@@ -205,7 +198,7 @@ export function AgeGateDialog({
                             min={1}
                             max={31}
                             placeholder='DD'
-                            label='Day'
+                            label={translations.dayLabel}
                         />
                         <CustomDatePicker
                             value={draft.month}
@@ -218,7 +211,7 @@ export function AgeGateDialog({
                             min={1}
                             max={12}
                             placeholder='MM'
-                            label='Month'
+                            label={translations.monthLabel}
                         />
                         <CustomDatePicker
                             value={draft.year}
@@ -231,7 +224,7 @@ export function AgeGateDialog({
                             min={1900}
                             max={new Date().getFullYear()}
                             placeholder='YYYY'
-                            label='Year'
+                            label={translations.yearLabel}
                         />
                     </div>
 
@@ -239,7 +232,7 @@ export function AgeGateDialog({
                         <div className='mb-3 flex items-center gap-2 text-[rgba(200,180,140,0.82)]'>
                             <Clock3 className='h-4 w-4' />
                             <span className='text-xs uppercase tracking-[0.24em]'>
-                                Optional birth time
+                                {translations.optionalTimeLabel}
                             </span>
                         </div>
                         <div className='grid grid-cols-2 gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-center'>
@@ -254,7 +247,7 @@ export function AgeGateDialog({
                                 min={0}
                                 max={23}
                                 placeholder='00'
-                                label='Hour'
+                                label={translations.hourLabel}
                             />
                             <div className='hidden text-center text-2xl text-[rgba(232,224,208,0.6)] sm:block'>
                                 :
@@ -270,29 +263,22 @@ export function AgeGateDialog({
                                 min={0}
                                 max={59}
                                 placeholder='00'
-                                label='Minute'
+                                label={translations.minuteLabel}
                             />
                         </div>
                         <div className='mt-3 flex items-center gap-2 text-[11px] text-[rgba(232,224,208,0.52)]'>
                             <MoonStar className='h-4 w-4' />
-                            <span>
-                                Leave the time as 00:00 if you do not know it.
-                            </span>
+                            <span>{translations.optionalTimeHint}</span>
                         </div>
                     </div>
 
                     <div className='rounded-2xl border border-[rgba(200,180,140,0.12)] bg-[rgba(255,255,255,0.02)] p-4 text-sm leading-6 text-[rgba(232,224,208,0.68)]'>
-                        We use this information to determine whether you are
-                        blocked under 13, classified as a minor (13-17), or
-                        classified as an adult (18+). That status will be saved
-                        locally and used later to select the appropriate response
-                        safeguards.
+                        {translations.statusSummary}
                     </div>
 
                     {attemptedSubmit && !parsed.valid ? (
                         <div className='rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200'>
-                            Please enter a valid birth date. Birth time is optional,
-                            but the date is required.
+                            {translations.invalidDateMessage}
                         </div>
                     ) : null}
                 </div>
@@ -309,7 +295,7 @@ export function AgeGateDialog({
                             "w-full border border-[rgba(200,180,140,0.38)] bg-[rgba(200,180,140,0.12)] text-[rgba(245,239,227,0.96)] hover:bg-[rgba(200,180,140,0.18)] sm:w-auto",
                         )}
                     >
-                        Continue
+                        {translations.continueButton}
                     </Button>
                 </AlertDialogFooter>
             </AlertDialogContent>

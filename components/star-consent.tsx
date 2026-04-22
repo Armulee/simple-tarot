@@ -684,6 +684,7 @@ export function StarConsentProvider({
                     ageGateState.category === "blocked" ? ageGateState : null
                 }
                 initialBirth={ageGateState.birth}
+                translations={content.ageGate}
                 onSubmit={handleAgeGateSubmit}
             />
 

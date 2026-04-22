@@ -25,6 +25,25 @@ export type NoticeTranslations = {
         checkboxSub: string
         enterButton: string
     }
+    ageGate: {
+        blockedTitle: string
+        blockedBody: string
+        blockedSupportLabel: string
+        blockedBirthLabel: string
+        gateTitle: string
+        gateIntro: string
+        gateTimeNote: string
+        optionalTimeLabel: string
+        optionalTimeHint: string
+        statusSummary: string
+        invalidDateMessage: string
+        continueButton: string
+        dayLabel: string
+        monthLabel: string
+        yearLabel: string
+        hourLabel: string
+        minuteLabel: string
+    }
     cookies: {
         bannerTitle: string
         bannerDescription: string
@@ -87,6 +106,30 @@ const NOTICE_TRANSLATIONS: Record<NoticeLanguage, NoticeTranslations> = {
                 "I understand this content is for entertainment and self-reflection only.",
             enterButton: "Enter the Reading",
         },
+        ageGate: {
+            blockedTitle: "Access unavailable",
+            blockedBody:
+                "AskingFate is not available to children under thirteen (13) years old. Based on the birth date provided, this device is currently ineligible to use the platform.",
+            blockedSupportLabel: "Contact support",
+            blockedBirthLabel: "Recorded birth date",
+            gateTitle: "Natal chart casting",
+            gateIntro:
+                "Before continuing, please confirm your birth date so we can apply our platform age-safety rules.",
+            gateTimeNote:
+                "Birth time is optional. If omitted, it will default to 00:00.",
+            optionalTimeLabel: "Optional birth time",
+            optionalTimeHint: "Leave the time as 00:00 if you do not know it.",
+            statusSummary:
+                "We use this information to determine whether you are blocked under 13, classified as a minor (13-17), or classified as an adult (18+). That status will be saved locally and used later to select the appropriate response safeguards.",
+            invalidDateMessage:
+                "Please enter a valid birth date. Birth time is optional, but the date is required.",
+            continueButton: "Continue",
+            dayLabel: "Day",
+            monthLabel: "Month",
+            yearLabel: "Year",
+            hourLabel: "Hour",
+            minuteLabel: "Minute",
+        },
         cookies: {
             bannerTitle: "Cookie preferences",
             bannerDescription:
@@ -143,6 +186,31 @@ const NOTICE_TRANSLATIONS: Record<NoticeLanguage, NoticeTranslations> = {
                 "ฉันเข้าใจว่าเนื้อหานี้มีไว้เพื่อความบันเทิงและการสะท้อนตนเองเท่านั้น",
             enterButton: "เข้าสู่การทำนาย",
         },
+        ageGate: {
+            blockedTitle: "ไม่สามารถเข้าใช้งานได้",
+            blockedBody:
+                "AskingFate ไม่เปิดให้เด็กอายุต่ำกว่าสิบสาม (13) ปีใช้งาน จากวันเกิดที่ให้ไว้ อุปกรณ์นี้จึงยังไม่มีสิทธิ์เข้าใช้แพลตฟอร์มในขณะนี้",
+            blockedSupportLabel: "ติดต่อฝ่ายสนับสนุน",
+            blockedBirthLabel: "วันเกิดที่บันทึกไว้",
+            gateTitle: "การผูกดวงกำเนิด",
+            gateIntro:
+                "ก่อนดำเนินการต่อ โปรดยืนยันวันเกิดของคุณเพื่อให้เราบังคับใช้กฎความปลอดภัยด้านอายุของแพลตฟอร์มได้อย่างถูกต้อง",
+            gateTimeNote:
+                "เวลาเกิดเป็นข้อมูลไม่บังคับ หากไม่ระบุ ระบบจะใช้ค่าเริ่มต้นเป็น 00:00",
+            optionalTimeLabel: "เวลาเกิด (ไม่บังคับ)",
+            optionalTimeHint:
+                "หากไม่ทราบเวลาเกิด สามารถปล่อยไว้เป็น 00:00 ได้",
+            statusSummary:
+                "เราจะใช้ข้อมูลนี้เพื่อตรวจสอบว่าคุณถูกบล็อกเนื่องจากอายุต่ำกว่า 13 ปี เป็นผู้เยาว์ (13-17 ปี) หรือเป็นผู้ใหญ่ (18 ปีขึ้นไป) สถานะดังกล่าวจะถูกบันทึกไว้ในอุปกรณ์และใช้ภายหลังเพื่อเลือกมาตรการตอบกลับที่เหมาะสม",
+            invalidDateMessage:
+                "โปรดกรอกวันเกิดให้ถูกต้อง เวลาเกิดเป็นข้อมูลไม่บังคับ แต่จำเป็นต้องระบุวันเกิด",
+            continueButton: "ดำเนินการต่อ",
+            dayLabel: "วัน",
+            monthLabel: "เดือน",
+            yearLabel: "ปี",
+            hourLabel: "ชั่วโมง",
+            minuteLabel: "นาที",
+        },
         cookies: {
             bannerTitle: "การตั้งค่าคุกกี้",
             bannerDescription:
@@ -198,6 +266,31 @@ const NOTICE_TRANSLATIONS: Record<NoticeLanguage, NoticeTranslations> = {
             checkboxSub:
                 "ຂ້ອຍເຂົ້າໃຈວ່າເນື້ອຫານີ້ມີໄວ້ເພື່ອຄວາມບັນເທີງ ແລະ ການສະທ້ອນຕົນເອງເທົ່ານັ້ນ",
             enterButton: "ເຂົ້າສູ່ການອ່ານ",
+        },
+        ageGate: {
+            blockedTitle: "ບໍ່ສາມາດເຂົ້າໃຊ້ໄດ້",
+            blockedBody:
+                "AskingFate ບໍ່ອະນຸຍາດໃຫ້ເດັກທີ່ອາຍຸຕ່ຳກວ່າສິບສາມ (13) ປີໃຊ້ງານ. ອີງຕາມວັນເກີດທີ່ໄດ້ລະບຸ, ອຸປະກອນນີ້ຍັງບໍ່ມີສິດເຂົ້າໃຊ້ແພລດຟອມໃນຂະນະນີ້",
+            blockedSupportLabel: "ຕິດຕໍ່ຝ່າຍຊ່ວຍເຫຼືອ",
+            blockedBirthLabel: "ວັນເກີດທີ່ບັນທຶກໄວ້",
+            gateTitle: "ການຜູກດວງກຳເນີດ",
+            gateIntro:
+                "ກ່ອນດຳເນີນການຕໍ່ ກະລຸນາຢືນຢັນວັນເກີດຂອງທ່ານ ເພື່ອໃຫ້ພວກເຮົານຳໃຊ້ກົດຄວາມປອດໄພດ້ານອາຍຸຂອງແພລດຟອມໄດ້ຢ່າງຖືກຕ້ອງ",
+            gateTimeNote:
+                "ເວລາເກີດເປັນຂໍ້ມູນທາງເລືອກ. ຖ້າບໍ່ລະບຸ ລະບົບຈະໃຊ້ຄ່າເລີ່ມຕົ້ນເປັນ 00:00",
+            optionalTimeLabel: "ເວລາເກີດ (ທາງເລືອກ)",
+            optionalTimeHint:
+                "ຖ້າທ່ານບໍ່ຮູ້ເວລາເກີດ ສາມາດປະໄວ້ເປັນ 00:00 ໄດ້",
+            statusSummary:
+                "ພວກເຮົາຈະໃຊ້ຂໍ້ມູນນີ້ເພື່ອກຳນົດວ່າທ່ານຖືກບລັອກເນື່ອງຈາກອາຍຸຕ່ຳກວ່າ 13 ປີ, ເປັນຜູ້ເຍົາ (13-17 ປີ), ຫຼື ເປັນຜູ້ໃຫຍ່ (18+). ສະຖານະນີ້ຈະຖືກບັນທຶກໄວ້ໃນອຸປະກອນ ແລະ ຈະຖືກໃຊ້ພາຍຫຼັງເພື່ອເລືອກມາດຕະການຕອບກັບທີ່ເໝາະສົມ",
+            invalidDateMessage:
+                "ກະລຸນາປ້ອນວັນເກີດໃຫ້ຖືກຕ້ອງ. ເວລາເກີດເປັນທາງເລືອກ ແຕ່ຈຳເປັນຕ້ອງລະບຸວັນເກີດ",
+            continueButton: "ດຳເນີນການຕໍ່",
+            dayLabel: "ວັນ",
+            monthLabel: "ເດືອນ",
+            yearLabel: "ປີ",
+            hourLabel: "ຊົ່ວໂມງ",
+            minuteLabel: "ນາທີ",
         },
         cookies: {
             bannerTitle: "ການຕັ້ງຄ່າຄຸກກີ",

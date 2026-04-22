@@ -88,7 +88,7 @@ export function readAgeGateState(): AgeGateState {
                   }
                 : null
 
-        return {
+        const state: AgeGateState = {
             category:
                 parsed?.category === "minor" ||
                 parsed?.category === "adult" ||
@@ -100,6 +100,16 @@ export function readAgeGateState(): AgeGateState {
             checkedAt:
                 typeof parsed?.checkedAt === "number" ? parsed.checkedAt : null,
         }
+
+        if (state.birth) {
+            const refreshed = buildAgeGateState(
+                state.birth,
+                state.checkedAt ?? Date.now(),
+            )
+            return refreshed
+        }
+
+        return state
     } catch {
         return DEFAULT_AGE_GATE_STATE
     }
