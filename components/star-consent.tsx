@@ -50,6 +50,18 @@ import {
     type NoticeLanguage,
     type NoticeTranslations,
 } from "@/lib/notice-translations"
+import { AgeGateDialog } from "@/components/age-gate-dialog"
+import {
+    AGE_GATE_EVENT,
+    buildAgeGateState,
+    DEFAULT_AGE_GATE_STATE,
+    type AgeGateBirthData,
+    type AgeGateState,
+    type UserAgeCategory,
+    hasAgeGateAccess as readHasAgeGateAccess,
+    readAgeGateState,
+    writeAgeGateState,
+} from "@/lib/age-gate-storage"
 
 type NoticeTrigger = "question-input" | "star-balance" | "manual"
 
@@ -57,6 +69,10 @@ type StarConsentContextType = {
     noticeAcknowledged: boolean
     open: boolean
     cookieConsent: CookieConsentState
+    ageGateState: AgeGateState
+    hasAgeGateAccess: boolean
+    userAgeCategory: UserAgeCategory
+    isMinorUser: boolean
     cookieBannerVisible: boolean
     cookieTranslations: NoticeTranslations["cookies"]
     analyticsEnabled: boolean
@@ -148,9 +164,13 @@ export function StarConsentProvider({
     const locale = useLocale()
     const initialLanguage = isSupportedNoticeLanguage(locale) ? locale : "en"
     const [open, setOpen] = useState(false)
+    const [ageGateOpen, setAgeGateOpen] = useState(false)
     const [noticeAcknowledged, setNoticeAcknowledged] = useState(false)
     const [cookieConsent, setCookieConsent] = useState<CookieConsentState>(
         DEFAULT_COOKIE_CONSENT_STATE,
+    )
+    const [ageGateState, setAgeGateState] = useState<AgeGateState>(
+        DEFAULT_AGE_GATE_STATE,
     )
     const [understood, setUnderstood] = useState(false)
     const [scrolledToEnd, setScrolledToEnd] = useState(false)
@@ -183,6 +203,7 @@ export function StarConsentProvider({
 
         let nextNoticeAcknowledged = readNoticeAcknowledgement()
         let nextCookieConsent = readCookieConsentState()
+        const nextAgeGateState = readAgeGateState()
         const legacyConsent = readLegacyCombinedConsent()
 
         if (legacyConsent === "accepted") {
@@ -202,6 +223,14 @@ export function StarConsentProvider({
 
         setNoticeAcknowledged(nextNoticeAcknowledged)
         setCookieConsent(nextCookieConsent)
+        setAgeGateState(nextAgeGateState)
+        if (
+            nextNoticeAcknowledged &&
+            nextAgeGateState.category !== "adult" &&
+            nextAgeGateState.category !== "minor"
+        ) {
+            setAgeGateOpen(true)
+        }
     }, [])
 
     useEffect(() => {
@@ -288,13 +317,34 @@ export function StarConsentProvider({
         }
     }, [])
 
+    const persistAgeGateState = useCallback((nextState: AgeGateState) => {
+        setAgeGateState(nextState)
+        writeAgeGateState(nextState)
+        if (typeof window !== "undefined") {
+            window.dispatchEvent(
+                new CustomEvent(AGE_GATE_EVENT, {
+                    detail: nextState,
+                }),
+            )
+        }
+    }, [])
+
     const show = useCallback(
         (trigger: NoticeTrigger = "manual") => {
-            if (noticeAcknowledged) return
-            setActiveTrigger(trigger)
-            setOpen(true)
+            if (ageGateState.category === "blocked") {
+                setAgeGateOpen(true)
+                return
+            }
+            if (!noticeAcknowledged) {
+                setActiveTrigger(trigger)
+                setOpen(true)
+                return
+            }
+            if (!readHasAgeGateAccess()) {
+                setAgeGateOpen(true)
+            }
         },
-        [noticeAcknowledged],
+        [ageGateState.category, noticeAcknowledged],
     )
 
     const accept = useCallback(async () => {
@@ -315,7 +365,19 @@ export function StarConsentProvider({
                 }),
             )
         }
+        if (!readHasAgeGateAccess()) {
+            setAgeGateOpen(true)
+        }
     }, [])
+
+    const handleAgeGateSubmit = useCallback(
+        (birth: AgeGateBirthData) => {
+            const nextState = buildAgeGateState(birth)
+            persistAgeGateState(nextState)
+            setAgeGateOpen(nextState.category === "blocked")
+        },
+        [persistAgeGateState],
+    )
 
     const acceptAllCookies = useCallback(() => {
         persistCookieConsent(
@@ -349,6 +411,12 @@ export function StarConsentProvider({
             noticeAcknowledged,
             open,
             cookieConsent,
+            ageGateState,
+            hasAgeGateAccess:
+                ageGateState.category === "minor" ||
+                ageGateState.category === "adult",
+            userAgeCategory: ageGateState.category,
+            isMinorUser: ageGateState.category === "minor",
             cookieBannerVisible: !cookieConsent.decisionMade,
             cookieTranslations: content.cookies,
             analyticsEnabled:
@@ -365,6 +433,7 @@ export function StarConsentProvider({
             noticeAcknowledged,
             open,
             cookieConsent,
+            ageGateState,
             content.cookies,
             language,
             activeTrigger,
@@ -608,6 +677,15 @@ export function StarConsentProvider({
                     </div>
                 </StarsDialog>
             </Dialog>
+
+            <AgeGateDialog
+                open={ageGateOpen || ageGateState.category === "blocked"}
+                blockedState={
+                    ageGateState.category === "blocked" ? ageGateState : null
+                }
+                initialBirth={ageGateState.birth}
+                onSubmit={handleAgeGateSubmit}
+            />
 
         </StarConsentContext.Provider>
     )

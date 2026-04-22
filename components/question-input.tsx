@@ -79,7 +79,7 @@ export default function QuestionInput({
     inputWrapperClassName?: string
 }) {
     const t = useTranslations("QuestionInput")
-    const { noticeAcknowledged, show } = useStarConsent()
+    const { noticeAcknowledged, hasAgeGateAccess, show } = useStarConsent()
     // removed unused pathname
     const [internalQuestion, setInternalQuestion] = useState("")
     const [isSmallDevice, setIsSmallDevice] = useState(false)
@@ -212,7 +212,7 @@ export default function QuestionInput({
     }
 
     const triggerNotice = () => {
-        if (!noticeAcknowledged) {
+        if (!noticeAcknowledged || !hasAgeGateAccess) {
             show("question-input")
         }
     }

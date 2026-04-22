@@ -42,6 +42,7 @@ export default function Home() {
         acceptAllCookies,
         rejectAllCookies,
         saveCookiePreferences,
+        ageGateState,
     } = useStarConsent()
     const [question, setQuestion] = useState("")
     const [isLinking, setIsLinking] = useState(false)
@@ -91,6 +92,35 @@ export default function Home() {
             }
         }
     }, [])
+
+    useEffect(() => {
+        if (!ageGateState.birth) return
+        const nextBirth = {
+            year: ageGateState.birth.year,
+            month: ageGateState.birth.month,
+            day: ageGateState.birth.day,
+            hour: ageGateState.birth.hour,
+            minute: ageGateState.birth.minute,
+            timeHint: "unknown" as const,
+            timezone: null,
+            lat: null,
+            lng: null,
+            country: null,
+            state: null,
+            usedLocationFallback: false,
+        }
+        setSavedBirth((current) => {
+            const sameBirth =
+                current?.year === nextBirth.year &&
+                current?.month === nextBirth.month &&
+                current?.day === nextBirth.day &&
+                current?.hour === nextBirth.hour &&
+                current?.minute === nextBirth.minute
+            if (sameBirth) return current
+            return nextBirth
+        })
+        saveBirthToStorage(nextBirth)
+    }, [ageGateState.birth])
 
     const handleBirthModalSubmit = (birth: HoroscopeBirthData) => {
         saveBirthToStorage(birth)

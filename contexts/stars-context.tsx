@@ -20,7 +20,7 @@ import {
     type StarState,
 } from "@/lib/stars"
 import {
-    hasNoticeConsent,
+    hasFullConsentAccess,
     StarConsentProvider,
 } from "@/components/star-consent"
 import { ReferralProvider } from "@/contexts/referral-context"
@@ -189,7 +189,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             // but we can also proceed if !initialized is checked below
         }
 
-        if (!hasNoticeConsent()) {
+        if (!hasFullConsentAccess()) {
             setInitialized(false)
             return
         }
@@ -303,7 +303,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     // Reconcile periodically and on visibility change / cross-tab events
     useEffect(() => {
         // if (!initialized) return
-        if (!hasNoticeConsent()) return
+        if (!hasFullConsentAccess()) return
         let cancelled = false
         const reconcile = async () => {
             try {

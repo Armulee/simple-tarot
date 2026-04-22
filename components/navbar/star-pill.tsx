@@ -35,7 +35,7 @@ function generateSparkles(): SparkleStyle[] {
 
 export function StarPill({ size }: { size: "sm" | "md" }) {
     const { stars, initialized, spendTrigger, lastSpendAmount } = useStars()
-    const { noticeAcknowledged, show } = useStarConsent()
+    const { noticeAcknowledged, hasAgeGateAccess, show } = useStarConsent()
     const router = useRouter()
     const prevTriggerRef = useRef(spendTrigger)
     const [animating, setAnimating] = useState(false)
@@ -56,7 +56,7 @@ export function StarPill({ size }: { size: "sm" | "md" }) {
 
     const isMd = size === "md"
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        if (!noticeAcknowledged) {
+        if (!noticeAcknowledged || !hasAgeGateAccess) {
             event.preventDefault()
             show("star-balance")
             return
