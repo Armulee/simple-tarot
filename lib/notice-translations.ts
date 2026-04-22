@@ -12,6 +12,10 @@ export type NoticeTranslations = {
         liabilityBody: string
         religiousSectionLabel: string
         religiousBody: string
+        ageSectionLabel: string
+        ageBody: string
+        safetySectionLabel: string
+        safetyBody: string
         legalLinksLabel: string
         privacyLink: string
         termsLink: string
@@ -66,6 +70,12 @@ const NOTICE_TRANSLATIONS: Record<NoticeLanguage, NoticeTranslations> = {
             religiousSectionLabel: "Religious & Cultural Sensitivity",
             religiousBody:
                 "This service employs tarot divination and astrological methodologies that may be <b>incompatible with, contrary to, or expressly prohibited by</b> certain religious doctrines, ecclesiastical laws, cultural traditions, or systems of spiritual belief. The Provider makes <b>no representation or warranty</b> regarding the compatibility of this service with any particular faith tradition, denomination, sect, or religious order. The Provider shall not be held liable for any consequence whatsoever arising from the User's engagement with this service, including but not limited to <b>excommunication, ecclesiastical censure, religious penalties, spiritual sanctions, loss of communal standing, disciplinary action imposed by religious authorities</b>, or any other adverse outcome attributable to the User's participation. By proceeding, the User acknowledges and accepts full responsibility for determining whether the use of this service is consistent with the User's own religious obligations, spiritual convictions, and community standards.",
+            ageSectionLabel: "Age Eligibility",
+            ageBody:
+                "This service is <b>not directed to, and may not be used by, children under thirteen (13) years of age</b>. By proceeding, the User represents and warrants that the User is at least thirteen (13) years old. If the User is under eighteen (18) years of age, the User must use this service only with the involvement, supervision, and consent of a parent or legal guardian, and the Provider may limit, filter, or withhold certain features, prompts, or responses accordingly.",
+            safetySectionLabel: "Sensitive Content & Moderation",
+            safetyBody:
+                "The Provider respects lawful freedom of expression; however, the Provider reserves the right, in its sole discretion, to <b>filter, restrict, refuse, or moderate</b> prompts, responses, or other content involving sexual material, nudity, exploitation, grooming, abuse, self-harm, suicide, eating disorders, substance misuse, criminal conduct, harassment, hateful conduct, extremism, or graphic violence. For Users under eighteen (18), moderation standards shall be <b>materially more restrictive</b>. In particular, responses to minors may be omitted, summarized, sanitized, or declined where content concerns sexual themes, explicit anatomy, fetishes, intimate conduct, coercive dynamics, adult-minor relationships, or any other topic that may be unsafe, age-inappropriate, exploitative, or unlawful. The Provider may also refuse content that could facilitate illegal acts, exploit vulnerability, or endanger a minor's physical, mental, or emotional well-being.",
             legalLinksLabel: "Related policies",
             privacyLink: "Privacy Policy",
             termsLink: "Terms of Service",
@@ -116,6 +126,12 @@ const NOTICE_TRANSLATIONS: Record<NoticeLanguage, NoticeTranslations> = {
             religiousSectionLabel: "ความอ่อนไหวทางศาสนาและวัฒนธรรม",
             religiousBody:
                 "บริการนี้ใช้วิธีการทำนายด้วยไพ่ทาโรต์และโหราศาสตร์ซึ่งอาจ<b>ไม่สอดคล้อง ขัดแย้ง หรือถูกห้ามโดยชัดแจ้ง</b>ตามหลักคำสอนทางศาสนา กฎหมายทางศาสนจักร ประเพณีทางวัฒนธรรม หรือระบบความเชื่อทางจิตวิญญาณบางประการ ผู้ให้บริการ<b>ไม่ได้รับรองหรือรับประกัน</b>ใด ๆ เกี่ยวกับความเข้ากันได้ของบริการนี้กับศาสนา นิกาย สำนัก หรือคณะสงฆ์ใดเป็นการเฉพาะ ผู้ให้บริการจะไม่รับผิดชอบต่อผลกระทบใด ๆ ที่เกิดจากการใช้บริการของผู้ใช้ รวมถึงแต่ไม่จำกัดเพียง<b>การถูกขับออกจากศาสนา การตำหนิจากศาสนจักร บทลงโทษทางศาสนา การลงทัณฑ์ทางจิตวิญญาณ การสูญเสียสถานะในชุมชน การลงโทษทางวินัยที่กำหนดโดยผู้มีอำนาจทางศาสนา</b> หรือผลลัพธ์อันไม่พึงประสงค์อื่นใดที่เกิดจากการมีส่วนร่วมของผู้ใช้ การดำเนินการต่อถือว่าผู้ใช้รับทราบและยอมรับความรับผิดชอบอย่างเต็มที่ในการพิจารณาว่าการใช้บริการนี้สอดคล้องกับพันธกรณีทางศาสนา ความเชื่อทางจิตวิญญาณ และมาตรฐานชุมชนของผู้ใช้เอง",
+            ageSectionLabel: "ข้อกำหนดอายุผู้ใช้",
+            ageBody:
+                "บริการนี้<b>มิได้มีเจตนาให้เด็กอายุต่ำกว่าสิบสาม (13) ปีใช้งาน และห้ามเด็กอายุต่ำกว่าสิบสาม (13) ปีใช้บริการนี้</b> โดยการดำเนินการต่อ ผู้ใช้รับรองและยืนยันว่าตนมีอายุอย่างน้อยสิบสาม (13) ปีบริบูรณ์ หากผู้ใช้มีอายุต่ำกว่าสิบแปด (18) ปี ผู้ใช้ต้องใช้บริการนี้ภายใต้การมีส่วนร่วม การกำกับดูแล และความยินยอมของบิดามารดาหรือผู้ปกครองโดยชอบด้วยกฎหมาย และผู้ให้บริการอาจจำกัด กรอง หรือระงับคุณสมบัติ คำสั่ง หรือคำตอบบางประเภทตามความเหมาะสม",
+            safetySectionLabel: "เนื้อหาอ่อนไหวและการกำกับดูแล",
+            safetyBody:
+                "ผู้ให้บริการเคารพเสรีภาพในการแสดงออกที่ชอบด้วยกฎหมาย อย่างไรก็ดี ผู้ให้บริการขอสงวนสิทธิแต่เพียงผู้เดียวในการ<b>กรอง จำกัด ปฏิเสธ หรือควบคุมดูแล</b>คำสั่ง คำตอบ หรือเนื้อหาอื่นใดที่เกี่ยวข้องกับเรื่องทางเพศ ภาพเปลือย การแสวงหาประโยชน์ การชักจูงเด็ก การล่วงละเมิด การทำร้ายตนเอง การฆ่าตัวตาย ความผิดปกติด้านการกิน การใช้สารเสพติด การกระทำผิดกฎหมาย การคุกคาม ความเกลียดชัง แนวคิดสุดโต่ง หรือความรุนแรงอย่างโจ่งแจ้ง สำหรับผู้ใช้ที่มีอายุต่ำกว่าสิบแปด (18) ปี มาตรฐานการกำกับดูแลจะ<b>เข้มงวดกว่าปกติอย่างมีนัยสำคัญ</b> โดยเฉพาะอย่างยิ่ง คำตอบสำหรับผู้เยาว์อาจถูกตัดทอน สรุป ปรับให้ปลอดภัย หรือปฏิเสธ หากเกี่ยวข้องกับประเด็นทางเพศ กายวิภาคโดยเปิดเผย รสนิยมทางเพศเชิงเร้าอารมณ์ พฤติกรรมใกล้ชิด พลวัตเชิงบังคับ ความสัมพันธ์ระหว่างผู้ใหญ่กับผู้เยาว์ หรือหัวข้ออื่นใดที่อาจไม่ปลอดภัย ไม่เหมาะสมกับวัย มีลักษณะแสวงหาประโยชน์ หรือผิดกฎหมาย ผู้ให้บริการอาจปฏิเสธเนื้อหาที่อาจเอื้อให้เกิดการกระทำผิดกฎหมาย ฉวยโอกาสจากความเปราะบาง หรือเป็นอันตรายต่อสวัสดิภาพทางกาย จิตใจ หรืออารมณ์ของผู้เยาว์ได้เช่นกัน",
             legalLinksLabel: "นโยบายที่เกี่ยวข้อง",
             privacyLink: "นโยบายความเป็นส่วนตัว",
             termsLink: "ข้อกำหนดการใช้งาน",
@@ -166,6 +182,12 @@ const NOTICE_TRANSLATIONS: Record<NoticeLanguage, NoticeTranslations> = {
             religiousSectionLabel: "ຄວາມອ່ອນໄຫວທາງສາສະໜາ ແລະ ວັດທະນະທຳ",
             religiousBody:
                 "ບໍລິການນີ້ໃຊ້ວິທີການທຳນາຍດ້ວຍໄພ່ທາໂຣ ແລະ ໂຫລາສາດ ເຊິ່ງອາດ<b>ບໍ່ສອດຄ່ອງ ຂັດແຍ່ງ ຫຼື ຖືກຫ້າມໂດຍຊັດແຈ້ງ</b>ຕາມຫຼັກຄຳສອນທາງສາສະໜາ ກົດໝາຍທາງສາສະໜະຈັກ ປະເພນີທາງວັດທະນະທຳ ຫຼື ລະບົບຄວາມເຊື່ອທາງຈິດວິນຍານບາງປະການ ຜູ້ໃຫ້ບໍລິການ<b>ບໍ່ໄດ້ຮັບຮອງ ຫຼື ຮັບປະກັນ</b>ໃດໆກ່ຽວກັບຄວາມເຂົ້າກັນໄດ້ຂອງບໍລິການນີ້ກັບສາສະໜາ ນິກາຍ ສຳນັກ ຫຼື ຄະນະສົງໃດເປັນການສະເພາະ ຜູ້ໃຫ້ບໍລິການຈະບໍ່ຮັບຜິດຊອບຕໍ່ຜົນກະທົບໃດໆທີ່ເກີດຈາກການໃຊ້ບໍລິການຂອງຜູ້ໃຊ້ ລວມເຖິງແຕ່ບໍ່ຈຳກັດພຽງ<b>ການຖືກຂັບອອກຈາກສາສະໜາ ການຕຳໜິຈາກສາສະໜະຈັກ ບົດລົງໂທດທາງສາສະໜາ ການລົງທັນທາງຈິດວິນຍານ ການສູນເສຍສະຖານະໃນຊຸມຊົນ ການລົງໂທດທາງວິໄນທີ່ກຳນົດໂດຍຜູ້ມີອຳນາດທາງສາສະໜາ</b> ຫຼື ຜົນໄດ້ຮັບອັນບໍ່ພຶງປະສົງອື່ນໃດທີ່ເກີດຈາກການມີສ່ວນຮ່ວມຂອງຜູ້ໃຊ້ ການດຳເນີນການຕໍ່ຖືວ່າຜູ້ໃຊ້ຮັບຊາບ ແລະ ຍອມຮັບຄວາມຮັບຜິດຊອບຢ່າງເຕັມທີ່ໃນການພິຈາລະນາວ່າການໃຊ້ບໍລິການນີ້ສອດຄ່ອງກັບພັນທະກິດທາງສາສະໜາ ຄວາມເຊື່ອທາງຈິດວິນຍານ ແລະ ມາດຕະຖານຊຸມຊົນຂອງຜູ້ໃຊ້ເອງ",
+            ageSectionLabel: "ຂໍ້ກຳນົດອາຍຸຜູ້ໃຊ້",
+            ageBody:
+                "ບໍລິການນີ້<b>ບໍ່ໄດ້ຈັດເຮັດຂຶ້ນສຳລັບເດັກທີ່ອາຍຸຕ່ຳກວ່າສິບສາມ (13) ປີ ແລະ ເດັກທີ່ອາຍຸຕ່ຳກວ່າສິບສາມ (13) ປີຫ້າມໃຊ້ບໍລິການນີ້</b> ໂດຍການດຳເນີນການຕໍ່ ຜູ້ໃຊ້ຮັບຮອງ ແລະ ຢືນຢັນວ່າຕົນມີອາຍຸຢ່າງນ້ອຍສິບສາມ (13) ປີບໍລິບູນ ຖ້າຜູ້ໃຊ້ມີອາຍຸຕ່ຳກວ່າສິບແປດ (18) ປີ ຜູ້ໃຊ້ຕ້ອງໃຊ້ບໍລິການນີ້ພາຍໃຕ້ການມີສ່ວນຮ່ວມ ການກຳກັບດູແລ ແລະ ຄວາມຍິນຍອມຂອງພໍ່ແມ່ ຫຼື ຜູ້ປົກຄອງຕາມກົດໝາຍ ແລະ ຜູ້ໃຫ້ບໍລິການອາດຈຳກັດ ກັ່ນກອງ ຫຼື ລະງັບບາງຄຸນສົມບັດ ຄຳສັ່ງ ຫຼື ຄຳຕອບຕາມຄວາມເໝາະສົມ",
+            safetySectionLabel: "ເນື້ອຫາອ່ອນໄຫວ ແລະ ການກຳກັບດູແລ",
+            safetyBody:
+                "ຜູ້ໃຫ້ບໍລິການເຄົາລົບເສລີພາບໃນການສະແດງອອກທີ່ຊອບດ້ວຍກົດໝາຍ ແນວໃດກໍຕາມ ຜູ້ໃຫ້ບໍລິການຂໍສະຫງວນສິດແຕ່ພຽງຜູ້ດຽວໃນການ<b>ກັ່ນກອງ ຈຳກັດ ປະຕິເສດ ຫຼື ກຳກັບດູແລ</b>ຄຳສັ່ງ ຄຳຕອບ ຫຼື ເນື້ອຫາອື່ນໃດທີ່ກ່ຽວກັບເລື່ອງທາງເພດ ພາບໂປ້ເປືອຍ ການຂູດຮີດ ການລໍ້ລວງເດັກ ການລະເມີດ ການທຳຮ້າຍຕົນເອງ ການຂ້າຕົວຕາຍ ຄວາມຜິດປົກກະຕິດ້ານການກິນ ການໃຊ້ສານເສບຕິດ ການກະທຳຜິດກົດໝາຍ ການຄຸກຄາມ ຄວາມກຽດຊັງ ແນວຄິດຮຸນແຮງສຸດຂົດ ຫຼື ຄວາມຮຸນແຮງທີ່ໂຈ່ງແຈ້ງ ສຳລັບຜູ້ໃຊ້ທີ່ອາຍຸຕ່ຳກວ່າສິບແປດ (18) ປີ ມາດຕະຖານການກຳກັບດູແລຈະ<b>ເຂັ້ມງວດກວ່າປົກກະຕິຢ່າງມີນັຍສຳຄັນ</b> ໂດຍສະເພາະ ຄຳຕອບສຳລັບຜູ້ເຍົາອາດຖືກຕັດອອກ ສະຫຼຸບ ປັບໃຫ້ປອດໄພ ຫຼື ປະຕິເສດ ຫາກເນື້ອຫາກ່ຽວກັບປະເດັນທາງເພດ ກາຍະວິພາກແບບເປີດເຜີຍ ຄວາມຕື່ນເຕັ້ນທາງເພດ ພຶດຕິກຳໃກ້ຊິດ ຄວາມສຳພັນແບບບັງຄັບ ຄວາມສຳພັນລະຫວ່າງຜູ້ໃຫຍ່ກັບເດັກ ຫຼື ຫົວຂໍ້ອື່ນໃດທີ່ອາດບໍ່ປອດໄພ ບໍ່ເໝາະສົມກັບໄວ ມີລັກສະນະຂູດຮີດ ຫຼື ຜິດກົດໝາຍ ຜູ້ໃຫ້ບໍລິການອາດປະຕິເສດເນື້ອຫາທີ່ອາດເອື້ອໃຫ້ເກີດການກະທຳຜິດກົດໝາຍ ຂູດຮີດຄວາມເປາະບາງ ຫຼື ເປັນອັນຕະລາຍຕໍ່ສຸຂະພາບກາຍ ຈິດໃຈ ຫຼື ອາລົມຂອງຜູ້ເຍົາໄດ້ເຊັ່ນກັນ",
             legalLinksLabel: "ນະໂຍບາຍທີ່ກ່ຽວຂ້ອງ",
             privacyLink: "ນະໂຍບາຍຄວາມເປັນສ່ວນຕົວ",
             termsLink: "ຂໍ້ກຳນົດການໃຊ້ງານ",

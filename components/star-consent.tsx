@@ -498,6 +498,24 @@ export function StarConsentProvider({
                                 <div className='my-5 h-px bg-[rgba(200,180,140,0.1)]' />
 
                                 <p className='mb-2 text-md font-medium uppercase text-[rgba(200,180,140,0.48)]'>
+                                    {content.modal.ageSectionLabel}
+                                </p>
+                                <p className='mb-4 text-[13.5px] leading-[1.78] font-light text-[rgba(232,224,208,0.62)]'>
+                                    {richText(content.modal.ageBody, richB)}
+                                </p>
+
+                                <div className='my-5 h-px bg-[rgba(200,180,140,0.1)]' />
+
+                                <p className='mb-2 text-md font-medium uppercase text-[rgba(200,180,140,0.48)]'>
+                                    {content.modal.safetySectionLabel}
+                                </p>
+                                <p className='mb-4 text-[13.5px] leading-[1.78] font-light text-[rgba(232,224,208,0.62)]'>
+                                    {richText(content.modal.safetyBody, richB)}
+                                </p>
+
+                                <div className='my-5 h-px bg-[rgba(200,180,140,0.1)]' />
+
+                                <p className='mb-2 text-md font-medium uppercase text-[rgba(200,180,140,0.48)]'>
                                     {content.modal.legalLinksLabel}
                                 </p>
                                 <div className='flex flex-wrap gap-3 pb-2 text-[13px] text-[rgba(232,224,208,0.72)]'>
