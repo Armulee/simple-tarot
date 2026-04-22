@@ -789,6 +789,10 @@ export function hasNoticeConsent(): boolean {
     return hasNoticeAcknowledgement()
 }
 
+export function hasFullConsentAccess(): boolean {
+    return hasNoticeAcknowledgement() && readHasAgeGateAccess()
+}
+
 export function hasCookieConsent(): boolean {
     return hasAnalyticsConsent()
 }
