@@ -1,17 +1,16 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import { ShieldCheck } from "lucide-react"
 import { Link } from "@/i18n/navigation"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 import type { CookiePreferences } from "@/lib/consent-storage"
-import type { NoticeTranslations } from "@/lib/notice-translations"
 
 type CookiesBannerProps = {
     visible: boolean
-    translations: NoticeTranslations["cookies"]
     preferences: CookiePreferences
     className?: string
     variant?: "default" | "floating-pill"
@@ -22,7 +21,6 @@ type CookiesBannerProps = {
 
 export function CookiesBanner({
     visible,
-    translations,
     preferences,
     className,
     variant = "default",
@@ -30,6 +28,7 @@ export function CookiesBanner({
     onRejectAll,
     onSavePreferences,
 }: CookiesBannerProps) {
+    const t = useTranslations("StarConsent.cookies")
     const [manageOpen, setManageOpen] = useState(false)
     const [draftPreferences, setDraftPreferences] =
         useState<CookiePreferences>(preferences)
@@ -59,11 +58,11 @@ export function CookiesBanner({
                             <div className='flex items-center gap-2 text-[rgba(200,180,140,0.76)]'>
                                 <ShieldCheck className='h-4 w-4' />
                                 <span className='text-[11px] uppercase tracking-[0.24em]'>
-                                    {translations.bannerTitle}
+                                    {t("bannerTitle")}
                                 </span>
                             </div>
                             <p className='text-sm leading-6 text-[rgba(232,224,208,0.78)]'>
-                                {translations.bannerDescription}
+                                {t("bannerDescription")}
                             </p>
                         </div>
 
@@ -73,7 +72,7 @@ export function CookiesBanner({
                                     href='/privacy-policy'
                                     className='inline-flex text-xs text-[rgba(200,180,140,0.82)] underline decoration-dotted underline-offset-4'
                                 >
-                                    {translations.learnMoreLabel}
+                                    {t("learnMoreLabel")}
                                 </Link>
                                 <button
                                     type='button'
@@ -82,7 +81,7 @@ export function CookiesBanner({
                                     }
                                     className='inline-flex text-xs text-[rgba(200,180,140,0.82)] underline decoration-dotted underline-offset-4 transition-colors hover:text-white'
                                 >
-                                    {translations.managePreferences}
+                                    {t("managePreferences")}
                                 </button>
                             </div>
 
@@ -93,14 +92,14 @@ export function CookiesBanner({
                                     onClick={onRejectAll}
                                     className='w-full justify-center border border-[rgba(200,180,140,0.18)] bg-transparent text-[rgba(232,224,208,0.88)] hover:bg-[rgba(200,180,140,0.08)] hover:text-white'
                                 >
-                                    {translations.rejectAll}
+                                    {t("rejectAll")}
                                 </Button>
                                 <Button
                                     type='button'
                                     onClick={onAcceptAll}
                                     className='w-full justify-center border border-[rgba(200,180,140,0.38)] bg-[rgba(200,180,140,0.12)] text-[rgba(245,239,227,0.96)] hover:bg-[rgba(200,180,140,0.18)]'
                                 >
-                                    {translations.acceptAll}
+                                    {t("acceptAll")}
                                 </Button>
                             </div>
                         </div>
@@ -118,30 +117,24 @@ export function CookiesBanner({
                             <div className='rounded-xl border border-[rgba(200,180,140,0.14)] bg-[rgba(19,18,31,0.78)] p-4'>
                                 <div className='mb-4 space-y-1'>
                                     <h3 className='text-sm font-medium text-[rgba(245,239,227,0.94)]'>
-                                        {translations.preferencesTitle}
+                                        {t("preferencesTitle")}
                                     </h3>
                                     <p className='text-xs leading-5 text-[rgba(232,224,208,0.62)]'>
-                                        {translations.preferencesDescription}
+                                        {t("preferencesDescription")}
                                     </p>
                                 </div>
 
                                 <div className='space-y-3'>
                                     <PreferenceRow
-                                        title={translations.essentialTitle}
-                                        description={
-                                            translations.essentialDescription
-                                        }
+                                        title={t("essentialTitle")}
+                                        description={t("essentialDescription")}
                                         checked
                                         disabled
-                                        trailingLabel={
-                                            translations.alwaysOnLabel
-                                        }
+                                        trailingLabel={t("alwaysOnLabel")}
                                     />
                                     <PreferenceRow
-                                        title={translations.analyticsTitle}
-                                        description={
-                                            translations.analyticsDescription
-                                        }
+                                        title={t("analyticsTitle")}
+                                        description={t("analyticsDescription")}
                                         checked={
                                             draftPreferences.analytics
                                         }
@@ -153,10 +146,8 @@ export function CookiesBanner({
                                         }
                                     />
                                     <PreferenceRow
-                                        title={translations.marketingTitle}
-                                        description={
-                                            translations.marketingDescription
-                                        }
+                                        title={t("marketingTitle")}
+                                        description={t("marketingDescription")}
                                         checked={
                                             draftPreferences.marketing
                                         }
@@ -176,7 +167,7 @@ export function CookiesBanner({
                                         onClick={onRejectAll}
                                         className='border border-[rgba(200,180,140,0.18)] bg-transparent text-[rgba(232,224,208,0.88)] hover:bg-[rgba(200,180,140,0.08)] hover:text-white'
                                     >
-                                        {translations.rejectAll}
+                                        {t("rejectAll")}
                                     </Button>
                                     <Button
                                         type='button'
@@ -186,7 +177,7 @@ export function CookiesBanner({
                                         }}
                                         className='border border-[rgba(200,180,140,0.38)] bg-[rgba(200,180,140,0.12)] text-[rgba(245,239,227,0.96)] hover:bg-[rgba(200,180,140,0.18)]'
                                     >
-                                        {translations.savePreferences}
+                                        {t("savePreferences")}
                                     </Button>
                                 </div>
                             </div>

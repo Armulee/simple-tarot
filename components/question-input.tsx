@@ -106,6 +106,10 @@ export default function QuestionInput({
         const currentValue =
             (question || "").trim() || (defaultValue || "").trim()
         if (currentValue) {
+            if (!noticeAcknowledged || !hasAgeGateAccess) {
+                show("question-input")
+                return
+            }
             if (onSubmit) {
                 void onSubmit(currentValue)
                 return

@@ -1,30 +1,29 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { useTranslations } from "next-intl"
 import {
-    AlertDialog,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
+    Dialog,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
 import { CustomDatePicker } from "@/components/ui/custom-date-picker"
 import { CustomTimePicker } from "@/components/ui/custom-time-picker"
-import { Clock3, MoonStar, ShieldAlert, Stars } from "lucide-react"
+import {
+    CelestialIcon,
+    CornerAccents,
+    StarsDialog,
+} from "@/components/star-consent"
+import { Clock3, MoonStar, ShieldAlert } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type {
-    AgeGateBirthData,
-    AgeGateState,
-} from "@/lib/age-gate-storage"
-import type { NoticeTranslations } from "@/lib/notice-translations"
+import type { AgeGateBirthData, AgeGateState } from "@/lib/age-gate-storage"
 
 type AgeGateDialogProps = {
     open: boolean
     blockedState: AgeGateState | null
     initialBirth?: AgeGateBirthData | null
-    translations: NoticeTranslations["ageGate"]
+    onOpenChange?: (open: boolean) => void
     onSubmit: (birth: AgeGateBirthData) => void
 }
 
@@ -65,19 +64,23 @@ export function AgeGateDialog({
     open,
     blockedState,
     initialBirth = null,
-    translations,
+    onOpenChange,
     onSubmit,
 }: AgeGateDialogProps) {
+    const t = useTranslations("StarConsent.ageGate")
     const [draft, setDraft] = useState<DraftState>(() =>
         buildInitialDraft(initialBirth),
     )
     const [attemptedSubmit, setAttemptedSubmit] = useState(false)
 
     useEffect(() => {
-        if (!open) return
         setDraft(buildInitialDraft(initialBirth))
+    }, [initialBirth])
+
+    useEffect(() => {
+        if (open) return
         setAttemptedSubmit(false)
-    }, [open, initialBirth])
+    }, [open])
 
     const parsed = useMemo(() => {
         const day = Number.parseInt(draft.day, 10)
@@ -128,177 +131,219 @@ export function AgeGateDialog({
 
     if (blockedState?.category === "blocked") {
         return (
-            <AlertDialog open>
-                <AlertDialogContent className='border-[rgba(200,180,140,0.22)] bg-[#13121f] text-[rgba(245,239,227,0.95)] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.85)]'>
-                    <div className='pointer-events-none absolute inset-0 opacity-30'>
-                        <div className='cosmic-stars-layer-3' />
-                    </div>
-                    <div className='pointer-events-none absolute -top-16 -left-16 h-40 w-40 rounded-full bg-gradient-to-br from-yellow-300/20 via-yellow-500/10 to-transparent blur-3xl' />
-                    <div className='pointer-events-none absolute -bottom-16 -right-16 h-48 w-48 rounded-full bg-gradient-to-tl from-red-400/20 via-red-600/10 to-transparent blur-3xl' />
+            <Dialog open>
+                <StarsDialog
+                    hideCloseButton
+                    onEscapeKeyDown={(event) => event.preventDefault()}
+                    onPointerDownOutside={(event) => event.preventDefault()}
+                    onInteractOutside={(event) => event.preventDefault()}
+                    className='relative flex max-w-[480px] flex-col !overflow-hidden !rounded-[3px] !border-[0.5px] !border-[rgba(200,180,140,0.3)] !bg-[#13121f] !p-0 !shadow-none'
+                >
+                    <div className='relative z-10 flex w-full flex-col'>
+                        <CornerAccents />
 
-                    <AlertDialogHeader className='relative z-10 text-left'>
-                        <div className='mb-2 inline-flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(200,180,140,0.24)] bg-[rgba(200,180,140,0.08)] text-[rgba(200,180,140,0.88)]'>
-                            <ShieldAlert className='h-5 w-5' />
-                        </div>
-                        <AlertDialogTitle className='font-serif text-2xl text-[rgba(245,239,227,0.96)]'>
-                            {translations.blockedTitle}
-                        </AlertDialogTitle>
-                        <AlertDialogDescription className='space-y-3 text-left text-[rgba(232,224,208,0.72)]'>
-                            <p>{translations.blockedBody}</p>
-                            <p>
-                                <a
-                                    href='mailto:admin@askingfate.com'
-                                    className='underline decoration-dotted underline-offset-4 text-[rgba(200,180,140,0.9)]'
-                                >
-                                    {translations.blockedSupportLabel}
-                                </a>
+                        <div className='relative shrink-0 border-b border-[rgba(200,180,140,0.1)] px-6 pb-5 pt-6'>
+                            <div className='mb-2 flex justify-center'>
+                                <div className='relative inline-flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(200,180,140,0.28)] bg-[rgba(200,180,140,0.06)] text-[rgba(200,180,140,0.88)] shadow-[0_0_24px_-6px_rgba(200,180,140,0.35)]'>
+                                    <ShieldAlert className='h-5 w-5' />
+                                </div>
+                            </div>
+                            <p className='text-center font-serif text-[10px] font-normal uppercase tracking-[0.28em] text-[rgba(200,180,140,0.6)]'>
+                                {t("blockedTitle")}
                             </p>
-                            {blockedState?.birth ? (
-                                <p className='text-[rgba(232,224,208,0.52)]'>
-                                    {translations.blockedBirthLabel}:{" "}
-                                    {formatBirthDate(blockedState.birth)}
-                                </p>
-                            ) : null}
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                </AlertDialogContent>
-            </AlertDialog>
+                            <DialogHeader className='mt-1 text-center'>
+                                <DialogTitle className='font-serif text-[22px] font-medium leading-tight text-[#e8e0d0]'>
+                                    {t("blockedTitle")}
+                                </DialogTitle>
+                            </DialogHeader>
+                        </div>
+
+                        <div className='px-6 py-6'>
+                            <DialogDescription asChild>
+                                <div className='space-y-3 text-left text-[13px] leading-[1.8] font-light text-[rgba(232,224,208,0.7)]'>
+                                    <p>{t("blockedBody")}</p>
+                                    <p>
+                                        <a
+                                            href='mailto:admin@askingfate.com'
+                                            className='underline decoration-dotted underline-offset-4 text-[rgba(200,180,140,0.9)] hover:text-[rgba(245,239,227,0.95)]'
+                                        >
+                                            {t("blockedSupportLabel")}
+                                        </a>
+                                    </p>
+                                    {blockedState?.birth ? (
+                                        <p className='border-t border-[rgba(200,180,140,0.1)] pt-3 text-[11.5px] text-[rgba(232,224,208,0.5)]'>
+                                            {t("blockedBirthLabel")}:{" "}
+                                            <span className='font-serif tracking-wider text-[rgba(232,224,208,0.72)]'>
+                                                {formatBirthDate(
+                                                    blockedState.birth,
+                                                )}
+                                            </span>
+                                        </p>
+                                    ) : null}
+                                </div>
+                            </DialogDescription>
+                        </div>
+                    </div>
+                </StarsDialog>
+            </Dialog>
         )
     }
 
     return (
-        <AlertDialog open={open}>
-            <AlertDialogContent className='border-[rgba(200,180,140,0.22)] bg-[#13121f] text-[rgba(245,239,227,0.95)] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.85)] sm:max-w-[680px]'>
-                <div className='pointer-events-none absolute inset-0 opacity-30'>
-                    <div className='cosmic-stars-layer-3' />
-                </div>
-                <div className='pointer-events-none absolute -top-20 -left-16 h-40 w-40 rounded-full bg-gradient-to-br from-yellow-300/20 via-yellow-500/10 to-transparent blur-3xl' />
-                <div className='pointer-events-none absolute -bottom-20 -right-20 h-56 w-56 rounded-full bg-gradient-to-tl from-indigo-400/18 via-purple-500/10 to-transparent blur-3xl' />
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <StarsDialog
+                hideCloseButton
+                className='relative flex max-h-[92dvh] max-w-[560px] flex-col !overflow-hidden !rounded-[3px] !border-[0.5px] !border-[rgba(200,180,140,0.3)] !bg-[#13121f] !p-0 !shadow-none'
+            >
+                <div className='relative z-10 flex min-h-0 h-full w-full flex-1 flex-col'>
+                    <CornerAccents />
 
-                <AlertDialogHeader className='relative z-10 text-left'>
-                    <div className='mb-2 inline-flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(200,180,140,0.24)] bg-[rgba(200,180,140,0.08)] text-[rgba(200,180,140,0.88)]'>
-                        <Stars className='h-5 w-5' />
-                    </div>
-                    <AlertDialogTitle className='font-serif text-2xl text-[rgba(245,239,227,0.96)]'>
-                        {translations.gateTitle}
-                    </AlertDialogTitle>
-                    <AlertDialogDescription className='space-y-2 text-left text-[rgba(232,224,208,0.72)]'>
-                        <p>{translations.gateIntro}</p>
-                        <p>{translations.gateTimeNote}</p>
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-
-                <div className='relative z-10 space-y-5'>
-                    <div className='grid grid-cols-3 gap-3'>
-                        <CustomDatePicker
-                            value={draft.day}
-                            onChange={(value) =>
-                                setDraft((current) => ({ ...current, day: value }))
-                            }
-                            min={1}
-                            max={31}
-                            placeholder='DD'
-                            label={translations.dayLabel}
-                        />
-                        <CustomDatePicker
-                            value={draft.month}
-                            onChange={(value) =>
-                                setDraft((current) => ({
-                                    ...current,
-                                    month: value,
-                                }))
-                            }
-                            min={1}
-                            max={12}
-                            placeholder='MM'
-                            label={translations.monthLabel}
-                        />
-                        <CustomDatePicker
-                            value={draft.year}
-                            onChange={(value) =>
-                                setDraft((current) => ({
-                                    ...current,
-                                    year: value,
-                                }))
-                            }
-                            min={1900}
-                            max={new Date().getFullYear()}
-                            placeholder='YYYY'
-                            label={translations.yearLabel}
-                        />
+                    <div className='relative shrink-0 border-b border-[rgba(200,180,140,0.1)] px-6 pb-5 pt-6'>
+                        <div className='mb-2 flex justify-center'>
+                            <CelestialIcon />
+                        </div>
+                        <p className='text-center font-serif text-[10px] font-normal uppercase tracking-[0.28em] text-[rgba(200,180,140,0.6)]'>
+                            {t("gateTitle")}
+                        </p>
+                        <DialogHeader className='mt-1 text-center'>
+                            <DialogTitle className='font-serif text-[22px] font-medium leading-tight text-[#e8e0d0]'>
+                                {t("gateTitle")}
+                            </DialogTitle>
+                        </DialogHeader>
                     </div>
 
-                    <div className='rounded-2xl border border-[rgba(200,180,140,0.12)] bg-[rgba(255,255,255,0.02)] p-4'>
-                        <div className='mb-3 flex items-center gap-2 text-[rgba(200,180,140,0.82)]'>
-                            <Clock3 className='h-4 w-4' />
-                            <span className='text-xs uppercase tracking-[0.24em]'>
-                                {translations.optionalTimeLabel}
+                    <div className='relative min-h-0 flex-1 overflow-y-auto consent-scrollbar px-6 py-5'>
+                        <DialogDescription asChild>
+                            <p className='mb-5 text-center text-[13px] leading-[1.78] font-light text-[rgba(232,224,208,0.62)]'>
+                                {t("gateIntro")}
+                            </p>
+                        </DialogDescription>
+
+                        <div className='mb-2 flex items-center gap-2 text-[rgba(200,180,140,0.72)]'>
+                            <span className='h-px flex-1 bg-[rgba(200,180,140,0.12)]' />
+                            <span className='text-[10px] uppercase tracking-[0.28em]'>
+                                {t("gateTitle")}
                             </span>
+                            <span className='h-px flex-1 bg-[rgba(200,180,140,0.12)]' />
                         </div>
-                        <div className='grid grid-cols-2 gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-center'>
-                            <CustomTimePicker
-                                value={draft.hour}
+
+                        <div className='grid grid-cols-3 gap-2 sm:gap-3'>
+                            <CustomDatePicker
+                                value={draft.day}
                                 onChange={(value) =>
                                     setDraft((current) => ({
                                         ...current,
-                                        hour: value,
+                                        day: value,
                                     }))
                                 }
-                                min={0}
-                                max={23}
-                                placeholder='00'
-                                label={translations.hourLabel}
+                                min={1}
+                                max={31}
+                                placeholder='DD'
+                                label={t("dayLabel")}
                             />
-                            <div className='hidden text-center text-2xl text-[rgba(232,224,208,0.6)] sm:block'>
-                                :
+                            <CustomDatePicker
+                                value={draft.month}
+                                onChange={(value) =>
+                                    setDraft((current) => ({
+                                        ...current,
+                                        month: value,
+                                    }))
+                                }
+                                min={1}
+                                max={12}
+                                placeholder='MM'
+                                label={t("monthLabel")}
+                            />
+                            <CustomDatePicker
+                                value={draft.year}
+                                onChange={(value) =>
+                                    setDraft((current) => ({
+                                        ...current,
+                                        year: value,
+                                    }))
+                                }
+                                min={1900}
+                                max={new Date().getFullYear()}
+                                placeholder='YYYY'
+                                label={t("yearLabel")}
+                            />
+                        </div>
+
+                        <div className='mt-6 rounded-[3px] border-[0.5px] border-[rgba(200,180,140,0.14)] bg-[rgba(255,255,255,0.015)] p-4'>
+                            <div className='mb-3 flex items-center gap-2 text-[rgba(200,180,140,0.72)]'>
+                                <span className='h-px flex-1 bg-[rgba(200,180,140,0.12)]' />
+                                <Clock3 className='h-3.5 w-3.5' />
+                                <span className='text-[10px] uppercase tracking-[0.28em]'>
+                                    {t("optionalTimeLabel")}
+                                </span>
+                                <span className='h-px flex-1 bg-[rgba(200,180,140,0.12)]' />
                             </div>
-                            <CustomTimePicker
-                                value={draft.minute}
-                                onChange={(value) =>
-                                    setDraft((current) => ({
-                                        ...current,
-                                        minute: value,
-                                    }))
-                                }
-                                min={0}
-                                max={59}
-                                placeholder='00'
-                                label={translations.minuteLabel}
-                            />
+
+                            <div className='grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3'>
+                                <CustomTimePicker
+                                    value={draft.hour}
+                                    onChange={(value) =>
+                                        setDraft((current) => ({
+                                            ...current,
+                                            hour: value,
+                                        }))
+                                    }
+                                    min={0}
+                                    max={23}
+                                    placeholder='00'
+                                    label={t("hourLabel")}
+                                />
+                                <div className='select-none text-center font-serif text-2xl text-[rgba(200,180,140,0.5)]'>
+                                    :
+                                </div>
+                                <CustomTimePicker
+                                    value={draft.minute}
+                                    onChange={(value) =>
+                                        setDraft((current) => ({
+                                            ...current,
+                                            minute: value,
+                                        }))
+                                    }
+                                    min={0}
+                                    max={59}
+                                    placeholder='00'
+                                    label={t("minuteLabel")}
+                                />
+                            </div>
+                            <div className='mt-3 flex items-start gap-2 text-[11px] leading-snug text-[rgba(232,224,208,0.48)]'>
+                                <MoonStar className='mt-0.5 h-3.5 w-3.5 shrink-0 text-[rgba(200,180,140,0.6)]' />
+                                <span>{t("optionalTimeHint")}</span>
+                            </div>
                         </div>
-                        <div className='mt-3 flex items-center gap-2 text-[11px] text-[rgba(232,224,208,0.52)]'>
-                            <MoonStar className='h-4 w-4' />
-                            <span>{translations.optionalTimeHint}</span>
-                        </div>
+
+                        {attemptedSubmit && !parsed.valid ? (
+                            <div className='mt-4 rounded-[3px] border-[0.5px] border-red-500/30 bg-red-500/10 px-4 py-3 text-[12.5px] text-red-200/90'>
+                                {t("invalidDateMessage")}
+                            </div>
+                        ) : null}
                     </div>
 
-                    <div className='rounded-2xl border border-[rgba(200,180,140,0.12)] bg-[rgba(255,255,255,0.02)] p-4 text-sm leading-6 text-[rgba(232,224,208,0.68)]'>
-                        {translations.statusSummary}
-                    </div>
-
-                    {attemptedSubmit && !parsed.valid ? (
-                        <div className='rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200'>
-                            {translations.invalidDateMessage}
-                        </div>
-                    ) : null}
+                    <footer className='relative shrink-0 border-t border-[rgba(200,180,140,0.1)] bg-[#13121f]/95 px-6 pb-5 pt-4 backdrop-blur-sm'>
+                        <button
+                            type='button'
+                            onClick={() => {
+                                setAttemptedSubmit(true)
+                                if (!parsed.valid) return
+                                onSubmit(parsed.birth)
+                            }}
+                            className={cn(
+                                "w-full rounded-[2px] border-[0.5px] bg-transparent py-3.5 text-[11px] font-normal uppercase tracking-[0.18em] transition-all duration-300",
+                                "border-[rgba(200,180,140,0.55)] text-[rgba(232,224,208,0.88)]",
+                                "hover:border-[rgba(200,180,140,0.8)] hover:bg-[rgba(200,180,140,0.07)]",
+                                "active:scale-[0.99]",
+                                "cursor-pointer",
+                            )}
+                        >
+                            {t("continueButton")}
+                        </button>
+                    </footer>
                 </div>
-
-                <AlertDialogFooter className='relative z-10'>
-                    <Button
-                        type='button'
-                        onClick={() => {
-                            setAttemptedSubmit(true)
-                            if (!parsed.valid) return
-                            onSubmit(parsed.birth)
-                        }}
-                        className={cn(
-                            "w-full border border-[rgba(200,180,140,0.38)] bg-[rgba(200,180,140,0.12)] text-[rgba(245,239,227,0.96)] hover:bg-[rgba(200,180,140,0.18)] sm:w-auto",
-                        )}
-                    >
-                        {translations.continueButton}
-                    </Button>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+            </StarsDialog>
+        </Dialog>
     )
 }

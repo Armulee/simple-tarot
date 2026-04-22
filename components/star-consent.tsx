@@ -24,10 +24,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Link } from "@/i18n/navigation"
+import { Link, usePathname, useRouter } from "@/i18n/navigation"
+import { routing } from "@/i18n/routing"
 import { cn } from "@/lib/utils"
 import { Sparkle } from "lucide-react"
-import { useLocale } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import {
     COOKIE_PREFERENCES_EVENT,
     NOTICE_CONSENT_EVENT,
@@ -42,14 +43,6 @@ import {
     writeCookieConsentState,
     writeNoticeAcknowledgement,
 } from "@/lib/consent-storage"
-import {
-    getNoticeTranslations,
-    isSupportedNoticeLanguage,
-    loadNoticeTranslations,
-    NOTICE_LANGUAGE_OPTIONS,
-    type NoticeLanguage,
-    type NoticeTranslations,
-} from "@/lib/notice-translations"
 import { AgeGateDialog } from "@/components/age-gate-dialog"
 import {
     AGE_GATE_EVENT,
@@ -65,6 +58,9 @@ import {
 
 type NoticeTrigger = "question-input" | "star-balance" | "manual"
 
+const REOPEN_NOTICE_AFTER_LOCALE_CHANGE_KEY =
+    "askingfate-reopen-notice-after-locale-change"
+
 type StarConsentContextType = {
     noticeAcknowledged: boolean
     open: boolean
@@ -74,9 +70,7 @@ type StarConsentContextType = {
     userAgeCategory: UserAgeCategory
     isMinorUser: boolean
     cookieBannerVisible: boolean
-    cookieTranslations: NoticeTranslations["cookies"]
     analyticsEnabled: boolean
-    language: NoticeLanguage
     activeTrigger: NoticeTrigger | null
     show: (trigger?: NoticeTrigger) => void
     accept: () => Promise<void>
@@ -98,7 +92,7 @@ export function useStarConsent() {
     return ctx
 }
 
-function CelestialIcon() {
+export function CelestialIcon() {
     return (
         <svg width='40' height='40' viewBox='0 0 40 40' fill='none' aria-hidden>
             <circle
@@ -127,7 +121,7 @@ function CelestialIcon() {
     )
 }
 
-function CornerAccents() {
+export function CornerAccents() {
     const base =
         "pointer-events-none absolute h-[15px] w-[15px] border-[rgba(200,180,140,0.45)]"
     return (
@@ -161,8 +155,11 @@ export function StarConsentProvider({
 }: {
     children: React.ReactNode
 }) {
+    const tModal = useTranslations("StarConsent.modal")
+    const tLanguages = useTranslations("Languages")
     const locale = useLocale()
-    const initialLanguage = isSupportedNoticeLanguage(locale) ? locale : "en"
+    const pathname = usePathname()
+    const router = useRouter()
     const [open, setOpen] = useState(false)
     const [ageGateOpen, setAgeGateOpen] = useState(false)
     const [noticeAcknowledged, setNoticeAcknowledged] = useState(false)
@@ -175,14 +172,10 @@ export function StarConsentProvider({
     const [understood, setUnderstood] = useState(false)
     const [scrolledToEnd, setScrolledToEnd] = useState(false)
     const [scrollHintVisible, setScrollHintVisible] = useState(false)
-    const [language, setLanguage] = useState<NoticeLanguage>(initialLanguage)
-    const [content, setContent] = useState<NoticeTranslations>(() =>
-        getNoticeTranslations(initialLanguage),
-    )
-    const [isTranslating, setIsTranslating] = useState(false)
     const [activeTrigger, setActiveTrigger] = useState<NoticeTrigger | null>(
         null,
     )
+    const [isSwitchingLocale, setIsSwitchingLocale] = useState(false)
     const scrollHintTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
     const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -205,6 +198,16 @@ export function StarConsentProvider({
         let nextCookieConsent = readCookieConsentState()
         const nextAgeGateState = readAgeGateState()
         const legacyConsent = readLegacyCombinedConsent()
+        const shouldReopenNoticeAfterLocaleChange =
+            window.sessionStorage.getItem(
+                REOPEN_NOTICE_AFTER_LOCALE_CHANGE_KEY,
+            ) === "true"
+
+        if (shouldReopenNoticeAfterLocaleChange) {
+            window.sessionStorage.removeItem(
+                REOPEN_NOTICE_AFTER_LOCALE_CHANGE_KEY,
+            )
+        }
 
         if (legacyConsent === "accepted") {
             if (!nextNoticeAcknowledged) {
@@ -224,6 +227,10 @@ export function StarConsentProvider({
         setNoticeAcknowledged(nextNoticeAcknowledged)
         setCookieConsent(nextCookieConsent)
         setAgeGateState(nextAgeGateState)
+        if (shouldReopenNoticeAfterLocaleChange && !nextNoticeAcknowledged) {
+            setOpen(true)
+            return
+        }
         if (
             nextNoticeAcknowledged &&
             nextAgeGateState.category !== "adult" &&
@@ -232,25 +239,6 @@ export function StarConsentProvider({
             setAgeGateOpen(true)
         }
     }, [])
-
-    useEffect(() => {
-        let cancelled = false
-        setIsTranslating(true)
-        void loadNoticeTranslations(language)
-            .then((translations) => {
-                if (!cancelled) {
-                    setContent(translations)
-                }
-            })
-            .finally(() => {
-                if (!cancelled) {
-                    setIsTranslating(false)
-                }
-            })
-        return () => {
-            cancelled = true
-        }
-    }, [language])
 
     useEffect(() => {
         if (open) {
@@ -305,17 +293,20 @@ export function StarConsentProvider({
         )
     }, [scrolledToEnd])
 
-    const persistCookieConsent = useCallback((nextState: CookieConsentState) => {
-        setCookieConsent(nextState)
-        writeCookieConsentState(nextState)
-        if (typeof window !== "undefined") {
-            window.dispatchEvent(
-                new CustomEvent(COOKIE_PREFERENCES_EVENT, {
-                    detail: nextState,
-                }),
-            )
-        }
-    }, [])
+    const persistCookieConsent = useCallback(
+        (nextState: CookieConsentState) => {
+            setCookieConsent(nextState)
+            writeCookieConsentState(nextState)
+            if (typeof window !== "undefined") {
+                window.dispatchEvent(
+                    new CustomEvent(COOKIE_PREFERENCES_EVENT, {
+                        detail: nextState,
+                    }),
+                )
+            }
+        },
+        [],
+    )
 
     const persistAgeGateState = useCallback((nextState: AgeGateState) => {
         setAgeGateState(nextState)
@@ -327,6 +318,23 @@ export function StarConsentProvider({
                 }),
             )
         }
+    }, [])
+
+    const persistNoticeAcknowledgement = useCallback(() => {
+        writeNoticeAcknowledgement(true)
+        setNoticeAcknowledged(true)
+        if (typeof window !== "undefined") {
+            window.dispatchEvent(
+                new CustomEvent(NOTICE_CONSENT_EVENT, {
+                    detail: { acknowledged: true },
+                }),
+            )
+        }
+    }, [])
+
+    const triggerStarsRefresh = useCallback(() => {
+        if (typeof window === "undefined") return
+        window.dispatchEvent(new CustomEvent("stars-balance-updated"))
     }, [])
 
     const show = useCallback(
@@ -348,7 +356,6 @@ export function StarConsentProvider({
     )
 
     const accept = useCallback(async () => {
-        writeNoticeAcknowledgement(true)
         setNoticeAcknowledged(true)
         setOpen(false)
         setActiveTrigger(null)
@@ -358,25 +365,41 @@ export function StarConsentProvider({
         } catch {
             // Best-effort only.
         }
-        if (typeof window !== "undefined") {
-            window.dispatchEvent(
-                new CustomEvent(NOTICE_CONSENT_EVENT, {
-                    detail: { acknowledged: true },
-                }),
-            )
-        }
         if (!readHasAgeGateAccess()) {
             setAgeGateOpen(true)
         }
     }, [])
 
+    const handleAgeGateOpenChange = useCallback(
+        (nextOpen: boolean) => {
+            if (ageGateState.category === "blocked") {
+                setAgeGateOpen(true)
+                return
+            }
+            if (!nextOpen && !readHasAgeGateAccess()) {
+                setNoticeAcknowledged(false)
+                setActiveTrigger(null)
+            }
+            setAgeGateOpen(nextOpen)
+        },
+        [ageGateState.category],
+    )
+
     const handleAgeGateSubmit = useCallback(
         (birth: AgeGateBirthData) => {
             const nextState = buildAgeGateState(birth)
             persistAgeGateState(nextState)
+            persistNoticeAcknowledgement()
+            if (
+                nextState.category === "minor" ||
+                nextState.category === "adult"
+            ) {
+                triggerStarsRefresh()
+            }
+            setActiveTrigger(null)
             setAgeGateOpen(nextState.category === "blocked")
         },
-        [persistAgeGateState],
+        [persistAgeGateState, persistNoticeAcknowledgement, triggerStarsRefresh],
     )
 
     const acceptAllCookies = useCallback(() => {
@@ -418,10 +441,9 @@ export function StarConsentProvider({
             userAgeCategory: ageGateState.category,
             isMinorUser: ageGateState.category === "minor",
             cookieBannerVisible: !cookieConsent.decisionMade,
-            cookieTranslations: content.cookies,
             analyticsEnabled:
-                cookieConsent.decisionMade && cookieConsent.preferences.analytics,
-            language,
+                cookieConsent.decisionMade &&
+                cookieConsent.preferences.analytics,
             activeTrigger,
             show,
             accept,
@@ -434,8 +456,6 @@ export function StarConsentProvider({
             open,
             cookieConsent,
             ageGateState,
-            content.cookies,
-            language,
             activeTrigger,
             show,
             accept,
@@ -460,6 +480,23 @@ export function StarConsentProvider({
         }
     }
 
+    const handleLocaleChange = (nextLocale: string) => {
+        if (nextLocale === locale) return
+        if (!routing.locales.includes(nextLocale as (typeof routing.locales)[number]))
+            return
+
+        setIsSwitchingLocale(true)
+        if (typeof window !== "undefined") {
+            window.sessionStorage.setItem(
+                REOPEN_NOTICE_AFTER_LOCALE_CHANGE_KEY,
+                "true",
+            )
+        }
+        router.replace(pathname, {
+            locale: nextLocale as (typeof routing.locales)[number],
+        })
+    }
+
     return (
         <StarConsentContext.Provider value={value}>
             {children}
@@ -477,11 +514,11 @@ export function StarConsentProvider({
                                 <CelestialIcon />
                             </div>
                             <p className='text-center font-serif text-[10px] font-normal uppercase tracking-[0.28em] text-[rgba(200,180,140,0.6)]'>
-                                {content.modal.eyebrow}
+                                {tModal("eyebrow")}
                             </p>
                             <DialogHeader className='mt-1 mb-3 text-center'>
                                 <DialogTitle className='font-serif text-[26px] font-medium leading-tight text-[#e8e0d0]'>
-                                    {content.modal.noticeHeading}
+                                    {tModal("noticeHeading")}
                                 </DialogTitle>
                             </DialogHeader>
                         </div>
@@ -490,115 +527,108 @@ export function StarConsentProvider({
                             <div
                                 ref={scrollRef}
                                 role='region'
-                                aria-label={content.modal.consentScrollRegionLabel}
+                                aria-label={tModal("consentScrollRegionLabel")}
                                 tabIndex={0}
                                 onScroll={checkScrollEnd}
                                 className='consent-scrollbar absolute inset-0 overscroll-y-contain px-6 py-5 pb-14'
                             >
-                                <div className='mb-5 flex items-center gap-2.5'>
-                                    <div className='h-px flex-1 bg-[rgba(200,180,140,0.16)]' />
-                                    <div className='h-1 w-1 rounded-full bg-[rgba(200,180,140,0.32)]' />
-                                    <div className='h-px flex-1 bg-[rgba(200,180,140,0.16)]' />
-                                </div>
-
                                 <div className='mb-6'>
                                     <div className='w-full max-w-[168px] sm:max-w-[190px]'>
                                         <label className='mb-1 block text-left text-[10px] uppercase tracking-[0.24em] text-[rgba(200,180,140,0.58)]'>
-                                            {content.modal.languageLabel}
+                                            {tModal("languageLabel")}
                                         </label>
                                         <Select
-                                            value={language}
-                                            onValueChange={(value) => {
-                                                if (isSupportedNoticeLanguage(value)) {
-                                                    setLanguage(value)
-                                                }
-                                            }}
+                                            value={locale}
+                                            onValueChange={handleLocaleChange}
+                                            disabled={isSwitchingLocale}
                                         >
                                             <SelectTrigger className='h-9 w-full border-[rgba(200,180,140,0.18)] bg-[rgba(255,255,255,0.02)] text-[rgba(232,224,208,0.88)] [&_svg]:text-[rgba(232,224,208,0.62)]'>
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent className='border-[rgba(200,180,140,0.18)] bg-[#171522] text-[rgba(232,224,208,0.88)]'>
-                                                {NOTICE_LANGUAGE_OPTIONS.map((option) => (
+                                                {routing.locales.map((availableLocale) => (
                                                     <SelectItem
-                                                        key={option.value}
-                                                        value={option.value}
+                                                        key={availableLocale}
+                                                        value={availableLocale}
                                                         className='focus:bg-[rgba(200,180,140,0.1)] focus:text-white'
                                                     >
-                                                        {option.label}
+                                                        {tLanguages(
+                                                            availableLocale,
+                                                        )}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                         <div className='mt-1 min-h-[14px] text-left text-[10px] text-[rgba(232,224,208,0.4)]'>
-                                            {isTranslating
-                                                ? content.modal.languageLoadingLabel
+                                            {isSwitchingLocale
+                                                ? tModal("languageLoadingLabel")
                                                 : null}
                                         </div>
                                     </div>
                                 </div>
 
                                 <p className='mb-2 text-md font-medium uppercase text-[rgba(200,180,140,0.48)]'>
-                                    {content.modal.experienceSectionLabel}
+                                    {tModal("experienceSectionLabel")}
                                 </p>
                                 <DialogDescription asChild>
                                     <p className='mb-4 text-[13.5px] leading-[1.78] font-light text-[rgba(232,224,208,0.62)]'>
-                                        {richText(content.modal.experienceBody, richB)}
+                                        {tModal.rich("experienceBody", richB)}
                                     </p>
                                 </DialogDescription>
 
                                 <div className='my-5 h-px bg-[rgba(200,180,140,0.1)]' />
 
                                 <p className='mb-2 text-md font-medium uppercase text-[rgba(200,180,140,0.48)]'>
-                                    {content.modal.liabilitySectionLabel}
+                                    {tModal("liabilitySectionLabel")}
                                 </p>
                                 <p className='mb-4 text-[13.5px] leading-[1.78] font-light text-[rgba(232,224,208,0.62)]'>
-                                    {richText(content.modal.liabilityBody, richB)}
+                                    {tModal.rich("liabilityBody", richB)}
                                 </p>
 
                                 <div className='my-5 h-px bg-[rgba(200,180,140,0.1)]' />
 
                                 <p className='mb-2 text-md font-medium uppercase text-[rgba(200,180,140,0.48)]'>
-                                    {content.modal.religiousSectionLabel}
+                                    {tModal("religiousSectionLabel")}
                                 </p>
                                 <p className='mb-4 text-[13.5px] leading-[1.78] font-light text-[rgba(232,224,208,0.62)]'>
-                                    {richText(content.modal.religiousBody, richB)}
+                                    {tModal.rich("religiousBody", richB)}
                                 </p>
 
                                 <div className='my-5 h-px bg-[rgba(200,180,140,0.1)]' />
 
                                 <p className='mb-2 text-md font-medium uppercase text-[rgba(200,180,140,0.48)]'>
-                                    {content.modal.ageSectionLabel}
+                                    {tModal("ageSectionLabel")}
                                 </p>
                                 <p className='mb-4 text-[13.5px] leading-[1.78] font-light text-[rgba(232,224,208,0.62)]'>
-                                    {richText(content.modal.ageBody, richB)}
+                                    {tModal.rich("ageBody", richB)}
                                 </p>
 
                                 <div className='my-5 h-px bg-[rgba(200,180,140,0.1)]' />
 
                                 <p className='mb-2 text-md font-medium uppercase text-[rgba(200,180,140,0.48)]'>
-                                    {content.modal.safetySectionLabel}
+                                    {tModal("safetySectionLabel")}
                                 </p>
                                 <p className='mb-4 text-[13.5px] leading-[1.78] font-light text-[rgba(232,224,208,0.62)]'>
-                                    {richText(content.modal.safetyBody, richB)}
+                                    {tModal.rich("safetyBody", richB)}
                                 </p>
 
                                 <div className='my-5 h-px bg-[rgba(200,180,140,0.1)]' />
 
                                 <p className='mb-2 text-md font-medium uppercase text-[rgba(200,180,140,0.48)]'>
-                                    {content.modal.legalLinksLabel}
+                                    {tModal("legalLinksLabel")}
                                 </p>
                                 <div className='flex flex-wrap gap-3 pb-2 text-[13px] text-[rgba(232,224,208,0.72)]'>
                                     <Link
                                         href='/privacy-policy'
                                         className='underline decoration-dotted text-[rgba(200,180,140,0.72)] underline-offset-4'
                                     >
-                                        {content.modal.privacyLink}
+                                        {tModal("privacyLink")}
                                     </Link>
                                     <Link
                                         href='/terms-of-service'
                                         className='underline decoration-dotted text-[rgba(200,180,140,0.72)] underline-offset-4'
                                     >
-                                        {content.modal.termsLink}
+                                        {tModal("termsLink")}
                                     </Link>
                                 </div>
                             </div>
@@ -621,7 +651,7 @@ export function StarConsentProvider({
                                         : "pointer-events-none translate-y-2 opacity-0",
                                 )}
                             >
-                                {content.modal.scrollToEndHint}
+                                {tModal("scrollToEndHint")}
                             </div>
 
                             <div
@@ -652,14 +682,14 @@ export function StarConsentProvider({
                                             setUnderstood(value === true)
                                         }
                                         className='mt-0.5 h-[15px] w-[15px] shrink-0 rounded-[2px] border-[0.5px] border-[rgba(200,180,140,0.38)] data-[state=checked]:border-[rgba(200,180,140,0.68)] data-[state=checked]:bg-[rgba(200,180,140,0.2)] data-[state=checked]:text-[rgba(200,180,140,0.9)]'
-                                        aria-label={content.modal.checkboxMain}
+                                        aria-label={tModal("checkboxMain")}
                                     />
                                     <div>
                                         <div className='mb-0.5 text-[13px] leading-normal font-normal text-[rgba(232,224,208,0.82)]'>
-                                            {content.modal.checkboxMain}
+                                            {tModal("checkboxMain")}
                                         </div>
                                         <div className='text-[11.5px] leading-snug font-light text-[rgba(232,224,208,0.36)]'>
-                                            {content.modal.checkboxSub}
+                                            {tModal("checkboxSub")}
                                         </div>
                                     </div>
                                 </label>
@@ -671,7 +701,7 @@ export function StarConsentProvider({
                                 onClick={() => void accept()}
                                 className='w-full rounded-[2px] border-[0.5px] bg-transparent py-3.5 text-[11px] font-normal uppercase tracking-[0.18em] transition-all duration-300 disabled:cursor-not-allowed disabled:border-[rgba(200,180,140,0.2)] disabled:text-[rgba(232,224,208,0.32)] enabled:cursor-pointer enabled:border-[rgba(200,180,140,0.55)] enabled:text-[rgba(232,224,208,0.88)] enabled:hover:border-[rgba(200,180,140,0.8)] enabled:hover:bg-[rgba(200,180,140,0.07)] enabled:active:scale-[0.99]'
                             >
-                                {content.modal.enterButton}
+                                {tModal("enterButton")}
                             </button>
                         </footer>
                     </div>
@@ -684,10 +714,9 @@ export function StarConsentProvider({
                     ageGateState.category === "blocked" ? ageGateState : null
                 }
                 initialBirth={ageGateState.birth}
-                translations={content.ageGate}
+                onOpenChange={handleAgeGateOpenChange}
                 onSubmit={handleAgeGateSubmit}
             />
-
         </StarConsentContext.Provider>
     )
 }
@@ -707,47 +736,43 @@ export function StarsDialog({
             )}
             {...contentProps}
         >
-            {/* Beautiful ping orbs */}
-            <Sparkle
-                className='absolute top-16 left-16 w-3 h-3 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                style={{ animationDelay: "0.5s" }}
-            />
-            <Sparkle
-                className='absolute top-24 right-20 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                style={{ animationDelay: "1.2s" }}
-            />
-            <Sparkle
-                className='absolute top-40 left-1/3 w-2.5 h-2.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                style={{ animationDelay: "2.8s" }}
-            />
-            <Sparkle
-                className='absolute top-32 right-1/4 w-1.5 h-1.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                style={{ animationDelay: "3.5s" }}
-            />
-            <Sparkle
-                className='absolute bottom-20 left-20 w-3.5 h-3.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                style={{ animationDelay: "1.8s" }}
-            />
-            <Sparkle
-                className='absolute bottom-32 right-16 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                style={{ animationDelay: "4.2s" }}
-            />
-            <Sparkle
-                className='absolute bottom-16 right-1/3 w-2.5 h-2.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                style={{ animationDelay: "2.1s" }}
-            />
-            <Sparkle
-                className='absolute top-1/2 left-12 w-1.5 h-1.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                style={{ animationDelay: "3.8s" }}
-            />
-            <Sparkle
-                className='absolute top-1/3 right-12 w-3 h-3 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                style={{ animationDelay: "0.9s" }}
-            />
-            <Sparkle
-                className='absolute bottom-1/3 left-1/4 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                style={{ animationDelay: "4.7s" }}
-            />
+            {/* Keep sparkles in the header/footer bands, away from readable body copy. */}
+            <div className='pointer-events-none absolute inset-x-0 top-0 h-28 overflow-hidden'>
+                <Sparkle
+                    className='absolute top-12 left-16 h-3 w-3 rounded-full fill-yellow-400 opacity-45 animate-ping'
+                    style={{ animationDelay: "0.5s" }}
+                />
+                <Sparkle
+                    className='absolute top-20 right-20 h-2 w-2 rounded-full fill-yellow-400 opacity-40 animate-ping'
+                    style={{ animationDelay: "1.2s" }}
+                />
+                <Sparkle
+                    className='absolute top-10 left-1/3 h-2.5 w-2.5 rounded-full fill-yellow-400 opacity-35 animate-ping'
+                    style={{ animationDelay: "2.8s" }}
+                />
+                <Sparkle
+                    className='absolute top-24 right-1/4 h-1.5 w-1.5 rounded-full fill-yellow-400 opacity-40 animate-ping'
+                    style={{ animationDelay: "3.5s" }}
+                />
+            </div>
+            <div className='pointer-events-none absolute inset-x-0 bottom-0 h-28 overflow-hidden'>
+                <Sparkle
+                    className='absolute bottom-12 left-20 h-3.5 w-3.5 rounded-full fill-yellow-400 opacity-40 animate-ping'
+                    style={{ animationDelay: "1.8s" }}
+                />
+                <Sparkle
+                    className='absolute bottom-20 right-16 h-2 w-2 rounded-full fill-yellow-400 opacity-35 animate-ping'
+                    style={{ animationDelay: "4.2s" }}
+                />
+                <Sparkle
+                    className='absolute bottom-10 right-1/3 h-2.5 w-2.5 rounded-full fill-yellow-400 opacity-40 animate-ping'
+                    style={{ animationDelay: "2.1s" }}
+                />
+                <Sparkle
+                    className='absolute bottom-24 left-1/4 h-2 w-2 rounded-full fill-yellow-400 opacity-35 animate-ping'
+                    style={{ animationDelay: "4.7s" }}
+                />
+            </div>
 
             {/* Deep-space stars background */}
             <div className='pointer-events-none absolute inset-0 opacity-40'>
@@ -765,25 +790,6 @@ export function StarsDialog({
             {children}
         </DialogContent>
     )
-}
-
-function richText(
-    text: string,
-    components: {
-        b: (chunks: React.ReactNode) => React.ReactNode
-    },
-) {
-    const parts = text.split(/(<b>.*?<\/b>)/g)
-    return parts.map((part, index) => {
-        if (part.startsWith("<b>") && part.endsWith("</b>")) {
-            return (
-                <React.Fragment key={index}>
-                    {components.b(part.slice(3, -4))}
-                </React.Fragment>
-            )
-        }
-        return <React.Fragment key={index}>{part}</React.Fragment>
-    })
 }
 
 export function hasNoticeConsent(): boolean {

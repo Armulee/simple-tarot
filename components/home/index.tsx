@@ -193,6 +193,10 @@ export default function Home() {
     const createSessionAndRedirect = async (value: string) => {
         const trimmed = value.trim()
         if (!trimmed || isLinking) return
+        if (!noticeAcknowledged || !hasAgeGateAccess) {
+            show("question-input")
+            return
+        }
         linkingRequestIdRef.current += 1
         const requestId = linkingRequestIdRef.current
         const pendingSessionId = createPendingSessionId()
@@ -448,29 +452,6 @@ export default function Home() {
                     <CookiesBanner
                         visible={cookieBannerVisible}
                         className='mt-[-8px]'
-                        translations={{
-                            bannerTitle: "Cookie preferences",
-                            bannerDescription:
-                                "We use cookies to improve your experience and analyze traffic.",
-                            managePreferences: "Manage Preferences",
-                            acceptAll: "Accept All",
-                            rejectAll: "Reject All",
-                            savePreferences: "Save Preferences",
-                            preferencesTitle: "Manage cookie categories",
-                            preferencesDescription:
-                                "Non-essential categories stay off until you explicitly enable them.",
-                            essentialTitle: "Essential cookies",
-                            essentialDescription:
-                                "Required for core site functions, secure sessions, and anonymous star balance continuity.",
-                            analyticsTitle: "Analytics cookies",
-                            analyticsDescription:
-                                "Allows privacy-friendly Vercel Analytics so we can understand traffic and improve the product.",
-                            marketingTitle: "Marketing cookies",
-                            marketingDescription:
-                                "Reserved for future campaign or personalization tools. No marketing scripts run unless you opt in.",
-                            alwaysOnLabel: "Always on",
-                            learnMoreLabel: "Learn more in our Privacy Policy",
-                        }}
                         preferences={cookieConsent.preferences}
                         onAcceptAll={acceptAllCookies}
                         onRejectAll={rejectAllCookies}
