@@ -501,9 +501,9 @@ export function StarConsentProvider({
                                     <div className='h-px flex-1 bg-[rgba(200,180,140,0.16)]' />
                                 </div>
 
-                                <div className='mb-6 flex justify-end'>
+                                <div className='mb-6'>
                                     <div className='w-full max-w-[168px] sm:max-w-[190px]'>
-                                        <label className='mb-1 block text-right text-[10px] uppercase tracking-[0.24em] text-[rgba(200,180,140,0.58)]'>
+                                        <label className='mb-1 block text-left text-[10px] uppercase tracking-[0.24em] text-[rgba(200,180,140,0.58)]'>
                                             {content.modal.languageLabel}
                                         </label>
                                         <Select
@@ -529,7 +529,7 @@ export function StarConsentProvider({
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <div className='mt-1 min-h-[14px] text-right text-[10px] text-[rgba(232,224,208,0.4)]'>
+                                        <div className='mt-1 min-h-[14px] text-left text-[10px] text-[rgba(232,224,208,0.4)]'>
                                             {isTranslating
                                                 ? content.modal.languageLoadingLabel
                                                 : null}

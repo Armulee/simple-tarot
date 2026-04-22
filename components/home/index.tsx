@@ -43,6 +43,9 @@ export default function Home() {
         rejectAllCookies,
         saveCookiePreferences,
         ageGateState,
+        noticeAcknowledged,
+        hasAgeGateAccess,
+        show,
     } = useStarConsent()
     const [question, setQuestion] = useState("")
     const [isLinking, setIsLinking] = useState(false)
@@ -288,6 +291,14 @@ export default function Home() {
         ]
     }
 
+    const handleGetStarted = () => {
+        if (!noticeAcknowledged || !hasAgeGateAccess) {
+            show("manual")
+            return
+        }
+        createSessionAndRedirect(pickRandomQuestion())
+    }
+
     const { heroPhrases, splitAtPerPhrase } = useMemo(() => {
         const firstPhrase = `${tHome("hero.line1")} ${tHome("hero.line2")}`
         const rawWhite = tHome.raw("hero.rotatingPhrasesWhite")
@@ -332,11 +343,7 @@ export default function Home() {
                         <div className='w-[300px] mx-auto flex flex-col gap-2 justify-center items-center'>
                             <button
                                 type='button'
-                                onClick={() =>
-                                    createSessionAndRedirect(
-                                        pickRandomQuestion(),
-                                    )
-                                }
+                                onClick={handleGetStarted}
                                 disabled={isLinking}
                                 className='w-full rounded-full bg-gradient-to-r from-primary via-accent to-primary px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/25 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed'
                             >
