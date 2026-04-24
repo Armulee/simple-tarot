@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useCallback } from "react"
+import React, { useState, useCallback, useEffect } from "react"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
 import { Check, RotateCcw } from "lucide-react"
@@ -79,17 +79,24 @@ export function ManualCardSelectionDialog({
                     ...prev,
                     { name: card.name, isReversed: isReversedMode },
                 ]
-                if (next.length === cardsToSelect) {
-                    setTimeout(() => {
-                        onCardsSelected(next)
-                        onOpenChange(false)
-                    }, 400)
-                }
                 return next
             })
         },
-        [cardsToSelect, onCardsSelected, onOpenChange, isReversedMode],
+        [cardsToSelect, isReversedMode],
     )
+
+    useEffect(() => {
+        if (!open || selected.length !== cardsToSelect) return
+
+        const timeout = window.setTimeout(() => {
+            onCardsSelected(selected)
+            onOpenChange(false)
+        }, 400)
+
+        return () => {
+            window.clearTimeout(timeout)
+        }
+    }, [cardsToSelect, onCardsSelected, onOpenChange, open, selected])
 
     const handleOpenChange = (nextOpen: boolean) => {
         if (!nextOpen) {

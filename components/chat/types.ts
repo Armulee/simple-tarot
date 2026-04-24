@@ -151,6 +151,9 @@ export type CardUiText = {
     consumeStar: string
     shuffle: string
     pick: string
+    cardCount: (cardsToSelect: number) => string
+    decreaseCardCount: string
+    increaseCardCount: string
     swipe: string
     drawCta: (cardsToSelect: number) => string
     topUpCta: (cardsToSelect: number) => string

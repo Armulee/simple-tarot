@@ -302,6 +302,10 @@ export default function ChatSession({
         initialSession?.question ?? "",
     )
     const [selectedCount, setSelectedCount] = useState(0)
+    const [cardCountOverride, setCardCountOverride] = useState<number | null>(
+        null,
+    )
+    const [cardSelectionResetSignal, setCardSelectionResetSignal] = useState(0)
     const [shuffleFn, setShuffleFn] = useState<(() => void) | null>(null)
     const [pickFn, setPickFn] = useState<((times?: number) => void) | null>(
         null,
@@ -1025,7 +1029,14 @@ export default function ChatSession({
     const hasAssistantResponse = messages.some(
         (message) => message.role === "assistant",
     )
-    const cardsToSelect = useMemo(() => decision?.cardCount ?? 0, [decision])
+    const defaultCardsToSelect = useMemo(
+        () => decision?.cardCount ?? 0,
+        [decision],
+    )
+    const cardsToSelect = useMemo(
+        () => cardCountOverride ?? defaultCardsToSelect,
+        [cardCountOverride, defaultCardsToSelect],
+    )
     const isChatLoading = consulting || isInterpreting
 
     const effectiveLocale = normalizeLocale(aiLocale ?? locale)
@@ -1066,6 +1077,12 @@ export default function ChatSession({
             window.clearInterval(interval)
         }
     }, [prompts.length])
+
+    useEffect(() => {
+        setCardCountOverride(null)
+        setSelectedCount(0)
+        setCardSelectionResetSignal((prev) => prev + 1)
+    }, [decision])
 
     useEffect(() => {
         const prevLen = prevMessagesLengthRef.current
@@ -2400,6 +2417,8 @@ export default function ChatSession({
         setShowCardDraw(false)
         setIsInterpreting(false)
         setSelectedCount(0)
+        setCardCountOverride(null)
+        setCardSelectionResetSignal((prev) => prev + 1)
         setShuffleFn(null)
         setPickFn(null)
         setShowInsufficientStars(false)
@@ -2945,6 +2964,20 @@ export default function ChatSession({
         }
     }
 
+    const handleCardsToSelectChange = useCallback(
+        (nextCount: number) => {
+            const boundedCount = Math.max(1, Math.min(10, Math.floor(nextCount)))
+            setCardCountOverride(
+                boundedCount === defaultCardsToSelect ? null : boundedCount,
+            )
+            if (selectedCount > boundedCount) {
+                setSelectedCount(0)
+                setCardSelectionResetSignal((prev) => prev + 1)
+            }
+        },
+        [defaultCardsToSelect, selectedCount],
+    )
+
     const cardDrawSection = canShowCardDrawSection ? (
         <DrawCardSection
             containerRef={cardDrawTargetRef}
@@ -2956,9 +2989,11 @@ export default function ChatSession({
             pickFn={pickFn}
             onCardsSelected={handleCardsSelected}
             onSelectedCountChange={setSelectedCount}
+            onCardsToSelectChange={handleCardsToSelectChange}
             onProvideShuffle={(fn) => setShuffleFn(() => fn)}
             onProvideRandomPick={(fn) => setPickFn(() => fn)}
             onProvideSelectByIndices={(fn) => setSelectByIndicesFn(() => fn)}
+            selectionResetSignal={cardSelectionResetSignal}
         />
     ) : null
 

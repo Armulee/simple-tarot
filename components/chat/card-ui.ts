@@ -30,6 +30,10 @@ export const CARD_UI_TEXT: Record<"en" | "th" | "lo", CardUiText> = {
         consumeStar: "Drawing cards will consume 1 star",
         shuffle: "Shuffle",
         pick: "Pick me",
+        cardCount: (cardsToSelect: number) =>
+            `Cards to draw: ${cardsToSelect}`,
+        decreaseCardCount: "Decrease card count",
+        increaseCardCount: "Increase card count",
         swipe: "Swipe up on a card to select",
         drawCta: (cardsToSelect: number) =>
             `Scroll to draw card section ${cardsToSelect} cards`,
@@ -44,6 +48,10 @@ export const CARD_UI_TEXT: Record<"en" | "th" | "lo", CardUiText> = {
         consumeStar: "การจั่วไพ่จะใช้ดวงดาว 1 ดวง",
         shuffle: "สับไพ่",
         pick: "เลือกให้หน่อย",
+        cardCount: (cardsToSelect: number) =>
+            `จำนวนไพ่ที่ต้องการจั่ว: ${cardsToSelect}`,
+        decreaseCardCount: "ลดจำนวนไพ่",
+        increaseCardCount: "เพิ่มจำนวนไพ่",
         swipe: "ปัดขึ้นบนไพ่เพื่อเลือก",
         drawCta: (cardsToSelect: number) =>
             `เลื่อนไปที่ส่วนจั่วไพ่ ${cardsToSelect} ใบ`,
@@ -58,6 +66,10 @@ export const CARD_UI_TEXT: Record<"en" | "th" | "lo", CardUiText> = {
         consumeStar: "ການຈັ່ວໄພ່ຈະໃຊ້ດວງດາວ 1 ດວງ",
         shuffle: "ສັບໄພ່",
         pick: "ເລືອກໃຫ້ໜ່ອຍ",
+        cardCount: (cardsToSelect: number) =>
+            `ຈໍານວນໄພ່ທີ່ຈະຈັ່ວ: ${cardsToSelect}`,
+        decreaseCardCount: "ຫຼຸດຈໍານວນໄພ່",
+        increaseCardCount: "ເພີ່ມຈໍານວນໄພ່",
         swipe: "ປັດຂຶ້ນເທິງໄພ່ເພື່ອເລືອກ",
         drawCta: (cardsToSelect: number) =>
             `ເລື່ອນໄປທີ່ສ່ວນຈັ່ວໄພ່ ${cardsToSelect} ໃບ`,
