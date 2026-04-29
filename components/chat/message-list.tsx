@@ -25,6 +25,7 @@ import InlineUserDateForm from "@/components/astrology/inline-user-date-form"
 import { BirthChartCard } from "@/components/astrology/birth-chart-card"
 import RealtimePlanetaryPanel from "@/components/astrology/realtime-planetary-panel"
 import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
+import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
 import type { HoroscopeBirthData } from "@/types/horoscope"
 import type { ChatMessage, SourceAspectEvent } from "./types"
 import { LoadingDotsText } from "./loading-dots-text"
@@ -42,7 +43,6 @@ import {
     RotateCw,
     Send,
     Share2,
-    Sparkles,
     Square,
     ThumbsDown,
     ThumbsUp,
@@ -1207,309 +1207,233 @@ export default function MessageList({
                                             />
                                         </div>
                                     )}
-                                    <div className='w-full md:max-w-[85%] space-y-6'>
-                                        <RealtimePlanetaryPanel
-                                            chartData={message.chartData}
-                                            personalizedTransitAspects={
-                                                message.personalizedTransitAspects
+                                    <div className='w-full md:max-w-[85%]'>
+                                        <HoroscopeReadingTabs
+                                            message={message}
+                                            onApplySuggestedQuestion={
+                                                onApplySuggestedQuestion
                                             }
-                                            personalizedTransitAspectsMerged={
-                                                message.personalizedTransitAspectsMerged
-                                            }
-                                            aspectInsights={
-                                                message.aspectInsights
-                                            }
-                                            onAskAspectDetail={
-                                                onAskAspectDetail
-                                            }
-                                            askedAspectKeys={askedAspectKeys}
-                                            showBirthDetails={
-                                                detailToggle.birth
-                                            }
-                                            showTransitDetails={
-                                                detailToggle.transit
-                                            }
-                                            onToggleBirthDetails={() =>
-                                                setPanelDetailToggles(
-                                                    (prev) => ({
-                                                        ...prev,
-                                                        [message.id]: {
-                                                            birth: !(
-                                                                prev[message.id]
-                                                                    ?.birth ??
-                                                                false
-                                                            ),
-                                                            transit:
-                                                                prev[message.id]
-                                                                    ?.transit ??
-                                                                false,
-                                                        },
-                                                    }),
-                                                )
-                                            }
-                                            onToggleTransitDetails={() =>
-                                                setPanelDetailToggles(
-                                                    (prev) => ({
-                                                        ...prev,
-                                                        [message.id]: {
-                                                            birth:
-                                                                prev[message.id]
-                                                                    ?.birth ??
-                                                                false,
-                                                            transit: !(
-                                                                prev[message.id]
-                                                                    ?.transit ??
-                                                                false
-                                                            ),
-                                                        },
-                                                    }),
-                                                )
-                                            }
-                                            birthDetailsContent={
-                                                message.chartData &&
-                                                !message.isLoading ? (
-                                                    <BirthChartCard
-                                                        chartData={
-                                                            message.chartData as Parameters<
-                                                                typeof BirthChartCard
-                                                            >[0]["chartData"]
-                                                        }
-                                                        question={
-                                                            message.question
-                                                        }
-                                                        planetMeanings={
-                                                            message.planetMeanings ??
-                                                            undefined
-                                                        }
-                                                        houseMeanings={
-                                                            message.houseMeanings ??
-                                                            undefined
-                                                        }
-                                                        onRefetchWithSystem={(
-                                                            system,
-                                                        ) =>
-                                                            onRefetchHoroscopeWithSystem(
-                                                                message.id,
-                                                                system,
-                                                            )
-                                                        }
-                                                        showBirthDetails
-                                                        renderFromPanel
-                                                    />
-                                                ) : undefined
-                                            }
-                                            transitDetailsContent={
-                                                message.chartData &&
-                                                !message.isLoading ? (
-                                                    <BirthChartCard
-                                                        chartData={
-                                                            message.chartData as Parameters<
-                                                                typeof BirthChartCard
-                                                            >[0]["chartData"]
-                                                        }
-                                                        question={
-                                                            message.question
-                                                        }
-                                                        planetMeanings={
-                                                            message.planetMeanings ??
-                                                            undefined
-                                                        }
-                                                        houseMeanings={
-                                                            message.houseMeanings ??
-                                                            undefined
-                                                        }
-                                                        onRefetchWithSystem={(
-                                                            system,
-                                                        ) =>
-                                                            onRefetchHoroscopeWithSystem(
-                                                                message.id,
-                                                                system,
-                                                            )
-                                                        }
-                                                        showTransitDetails
-                                                        renderFromPanel
-                                                    />
-                                                ) : undefined
-                                            }
-                                        />
-                                        <div className='rounded-2xl border border-white/10 bg-white/5 p-8 shadow-lg space-y-6'>
-                                            <div className='flex items-center space-x-3'>
-                                                <div className='w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center'>
-                                                    <Sparkles className='w-5 h-5 text-primary' />
-                                                </div>
-                                                <div>
-                                                    <h2 className='font-serif font-semibold text-xl text-white'>
-                                                        Interpretation
-                                                    </h2>
-                                                    <p className='text-sm text-white/40'>
-                                                        AI-powered astrology
-                                                        reading
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className='text-white/90 leading-relaxed whitespace-pre-wrap'>
-                                                {/* {!message.isLoading &&
-                                                    !!message.text?.trim() && (
-                                                        <button
-                                                            type='button'
-                                                            className='inline-flex items-center justify-center h-5 w-5 rounded-full hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40 align-middle mr-2'
-                                                            onClick={() =>
-                                                                onReadAloud(
-                                                                    message.id,
-                                                                    message.text,
-                                                                )
-                                                            }
-                                                            disabled={
-                                                                readAloudLoadingMessageId ===
-                                                                message.id
-                                                            }
-                                                            aria-label={
-                                                                readAloudPlayingMessageId ===
-                                                                message.id
-                                                                    ? t(
-                                                                          "readAloud.stop",
-                                                                      )
-                                                                    : t(
-                                                                          "readAloud.play",
-                                                                      )
-                                                            }
-                                                            title={
-                                                                readAloudPlayingMessageId ===
-                                                                message.id
-                                                                    ? t(
-                                                                          "readAloud.stop",
-                                                                      )
-                                                                    : t(
-                                                                          "readAloud.play",
-                                                                      )
-                                                            }
-                                                        >
-                                                            {readAloudLoadingMessageId ===
-                                                            message.id ? (
-                                                                <Loader2 className='w-3 h-3 animate-spin' />
-                                                            ) : readAloudPlayingMessageId ===
-                                                              message.id ? (
-                                                                <Square className='w-3 h-3 fill-current' />
-                                                            ) : (
-                                                                <Volume2 className='w-3 h-3' />
-                                                            )}
-                                                        </button>
-                                                    )} */}
-                                                {renderInlineBoldMarkdown(
-                                                    message.text || "",
-                                                )}
-                                                {message.isLoading && (
-                                                    <div className='mt-3'>
-                                                        <button
-                                                            type='button'
-                                                            onClick={
-                                                                onCancelHoroscopeLoading
-                                                            }
-                                                            title='Click to cancel and edit birth details'
-                                                            className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90 hover:text-white transition-colors cursor-pointer'
-                                                        >
-                                                            <Square className='h-3.5 w-3.5 shrink-0 fill-current' />
-                                                            <Loader2 className='h-4 w-4 animate-spin shrink-0' />
-                                                            <LoadingDotsText
-                                                                active={
-                                                                    !!message.isLoading
+                                            aspectPanel={
+                                                <RealtimePlanetaryPanel
+                                                    chartData={
+                                                        message.chartData
+                                                    }
+                                                    personalizedTransitAspects={
+                                                        message.personalizedTransitAspects
+                                                    }
+                                                    personalizedTransitAspectsMerged={
+                                                        message.personalizedTransitAspectsMerged
+                                                    }
+                                                    aspectInsights={
+                                                        message.aspectInsights
+                                                    }
+                                                    onAskAspectDetail={
+                                                        onAskAspectDetail
+                                                    }
+                                                    askedAspectKeys={
+                                                        askedAspectKeys
+                                                    }
+                                                    showBirthDetails={
+                                                        detailToggle.birth
+                                                    }
+                                                    showTransitDetails={
+                                                        detailToggle.transit
+                                                    }
+                                                    onToggleBirthDetails={() =>
+                                                        setPanelDetailToggles(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                [message.id]: {
+                                                                    birth: !(
+                                                                        prev[
+                                                                            message
+                                                                                .id
+                                                                        ]
+                                                                            ?.birth ??
+                                                                        false
+                                                                    ),
+                                                                    transit:
+                                                                        prev[
+                                                                            message
+                                                                                .id
+                                                                        ]
+                                                                            ?.transit ??
+                                                                        false,
+                                                                },
+                                                            }),
+                                                        )
+                                                    }
+                                                    onToggleTransitDetails={() =>
+                                                        setPanelDetailToggles(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                [message.id]: {
+                                                                    birth:
+                                                                        prev[
+                                                                            message
+                                                                                .id
+                                                                        ]
+                                                                            ?.birth ??
+                                                                        false,
+                                                                    transit: !(
+                                                                        prev[
+                                                                            message
+                                                                                .id
+                                                                        ]
+                                                                            ?.transit ??
+                                                                        false
+                                                                    ),
+                                                                },
+                                                            }),
+                                                        )
+                                                    }
+                                                    birthDetailsContent={
+                                                        message.chartData &&
+                                                        !message.isLoading ? (
+                                                            <BirthChartCard
+                                                                chartData={
+                                                                    message.chartData as Parameters<
+                                                                        typeof BirthChartCard
+                                                                    >[0]["chartData"]
                                                                 }
-                                                                getText={(d) =>
-                                                                    formatHoroscopeLoadingText(
-                                                                        message.horoscopeBirthData,
-                                                                        d,
-                                                                        consultingBase,
+                                                                question={
+                                                                    message.question
+                                                                }
+                                                                planetMeanings={
+                                                                    message.planetMeanings ??
+                                                                    undefined
+                                                                }
+                                                                houseMeanings={
+                                                                    message.houseMeanings ??
+                                                                    undefined
+                                                                }
+                                                                onRefetchWithSystem={(
+                                                                    system,
+                                                                ) =>
+                                                                    onRefetchHoroscopeWithSystem(
+                                                                        message.id,
+                                                                        system,
                                                                     )
                                                                 }
+                                                                showBirthDetails
+                                                                renderFromPanel
                                                             />
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {!message.isLoading && (
-                                                <div className='pt-4 border-t border-white/5 space-y-4'>
-                                                    <ShareSection
-                                                        variant='embedded'
-                                                        question={
-                                                            message.question
+                                                        ) : undefined
+                                                    }
+                                                    transitDetailsContent={
+                                                        message.chartData &&
+                                                        !message.isLoading ? (
+                                                            <BirthChartCard
+                                                                chartData={
+                                                                    message.chartData as Parameters<
+                                                                        typeof BirthChartCard
+                                                                    >[0]["chartData"]
+                                                                }
+                                                                question={
+                                                                    message.question
+                                                                }
+                                                                planetMeanings={
+                                                                    message.planetMeanings ??
+                                                                    undefined
+                                                                }
+                                                                houseMeanings={
+                                                                    message.houseMeanings ??
+                                                                    undefined
+                                                                }
+                                                                onRefetchWithSystem={(
+                                                                    system,
+                                                                ) =>
+                                                                    onRefetchHoroscopeWithSystem(
+                                                                        message.id,
+                                                                        system,
+                                                                    )
+                                                                }
+                                                                showTransitDetails
+                                                                renderFromPanel
+                                                            />
+                                                        ) : undefined
+                                                    }
+                                                />
+                                            }
+                                            loadingNode={
+                                                message.isLoading ? (
+                                                    <button
+                                                        type='button'
+                                                        onClick={
+                                                            onCancelHoroscopeLoading
                                                         }
-                                                        interpretation={
-                                                            message.text
-                                                        }
-                                                    />
-                                                    <div className='space-y-2'>
-                                                        <p className='text-[11px] uppercase tracking-[0.2em] text-white/50'>
-                                                            Actions
-                                                        </p>
-                                                        <ActionSection
+                                                        title='Click to cancel and edit birth details'
+                                                        className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 text-sm font-medium text-white/90 shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] backdrop-blur-xl transition-colors hover:text-white'
+                                                    >
+                                                        <Square className='h-3.5 w-3.5 shrink-0 fill-current' />
+                                                        <Loader2 className='h-4 w-4 shrink-0 animate-spin' />
+                                                        <LoadingDotsText
+                                                            active={
+                                                                !!message.isLoading
+                                                            }
+                                                            getText={(d) =>
+                                                                formatHoroscopeLoadingText(
+                                                                    message.horoscopeBirthData,
+                                                                    d,
+                                                                    consultingBase,
+                                                                )
+                                                            }
+                                                        />
+                                                    </button>
+                                                ) : undefined
+                                            }
+                                            footerActions={
+                                                !message.isLoading ? (
+                                                    <div className='space-y-4'>
+                                                        {message.followUpConclusion && (
+                                                            <p className='text-sm leading-7 text-white/78'>
+                                                                {renderInlineBoldMarkdown(
+                                                                    message.followUpConclusion,
+                                                                )}
+                                                            </p>
+                                                        )}
+                                                        <ShareSection
                                                             variant='embedded'
-                                                            mode='horoscope'
                                                             question={
                                                                 message.question
                                                             }
                                                             interpretation={
                                                                 message.text
                                                             }
-                                                            messageId={
-                                                                message.id
-                                                            }
-                                                            onRegenerateHoroscope={
-                                                                onRegenerateHoroscope
-                                                            }
                                                         />
-                                                    </div>
-                                                    {message.chartData && (
-                                                        <ChartDataCollapsible
-                                                            chartData={
-                                                                message.chartData
-                                                            }
-                                                        />
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    {!message.isLoading &&
-                                        (message.followUpConclusion ||
-                                            (Array.isArray(
-                                                message.followUpSuggestions,
-                                            ) &&
-                                                message.followUpSuggestions
-                                                    .length > 0)) && (
-                                            <div className='w-full md:max-w-[85%] space-y-2 pt-4'>
-                                                {message.followUpConclusion && (
-                                                    <p className='text-white'>
-                                                        {renderInlineBoldMarkdown(
-                                                            message.followUpConclusion,
-                                                        )}
-                                                    </p>
-                                                )}
-                                                {Array.isArray(
-                                                    message.followUpSuggestions,
-                                                ) &&
-                                                    message.followUpSuggestions
-                                                        .length > 0 && (
-                                                        <div className='flex flex-wrap gap-2'>
-                                                            {message.followUpSuggestions.map(
-                                                                (s) => (
-                                                                    <button
-                                                                        key={s}
-                                                                        type='button'
-                                                                        onClick={() =>
-                                                                            onApplySuggestedQuestion(
-                                                                                s,
-                                                                            )
-                                                                        }
-                                                                        className='rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition px-3 py-1.5 text-xs text-left text-white/80 hover:text-white'
-                                                                    >
-                                                                        {s}
-                                                                    </button>
-                                                                ),
-                                                            )}
+                                                        <div className='space-y-2'>
+                                                            <p className='text-[11px] uppercase tracking-[0.2em] text-white/50'>
+                                                                Actions
+                                                            </p>
+                                                            <ActionSection
+                                                                variant='embedded'
+                                                                mode='horoscope'
+                                                                question={
+                                                                    message.question
+                                                                }
+                                                                interpretation={
+                                                                    message.text
+                                                                }
+                                                                messageId={
+                                                                    message.id
+                                                                }
+                                                                onRegenerateHoroscope={
+                                                                    onRegenerateHoroscope
+                                                                }
+                                                            />
                                                         </div>
-                                                    )}
-                                            </div>
-                                        )}
+                                                        {message.chartData && (
+                                                            <ChartDataCollapsible
+                                                                chartData={
+                                                                    message.chartData
+                                                                }
+                                                            />
+                                                        )}
+                                                    </div>
+                                                ) : undefined
+                                            }
+                                        />
+                                    </div>
                                 </>
                             ) : /* Tool variant: inline birth/transit date form */
                             message.variant === "tool" &&

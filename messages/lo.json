@@ -2459,6 +2459,10 @@
     "showLifeSituation": "ສະແດງຄວາມສຳພັນຂອງດວງດາວທັງໝົດ ({count})",
     "showRelatedAspects": "ສະແດງຂໍ້ມູນທີ່ກ່ຽວຂ້ອງ ({count})",
     "showAllAspects": "ສະແດງທັງໝົດ ({count})",
+    "showMore": "ສະແດງເພີ່ມເຕີມ",
+    "showTechnical": "ສະແດງຂໍ້ມູນເຕັກນິກ",
+    "hideTechnical": "ເຊື່ອງຂໍ້ມູນເຕັກນິກ",
+    "defaultInsight": "ພະລັງງານນີ້ກະທົບກັບຈັງຫວະຊີວິດຂອງທ່ານໃນຊ່ວງນີ້",
     "impactLabel": "ດ້ານ: ",
     "intensityLabel": "ລະດັບ: ",
     "intensity": {

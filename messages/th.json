@@ -2459,6 +2459,10 @@
     "showLifeSituation": "แสดงความสัมพันธ์ของดวงดาวทั้งหมด ({count})",
     "showRelatedAspects": "แสดงข้อมูลที่เกี่ยวข้อง ({count})",
     "showAllAspects": "แสดงทั้งหมด ({count})",
+    "showMore": "แสดงเพิ่มเติม",
+    "showTechnical": "ดูข้อมูลเทคนิค",
+    "hideTechnical": "ซ่อนข้อมูลเทคนิค",
+    "defaultInsight": "พลังงานนี้กำลังส่งผลกับจังหวะชีวิตของคุณในช่วงนี้",
     "impactLabel": "ด้าน: ",
     "intensityLabel": "ระดับ: ",
     "intensity": {
