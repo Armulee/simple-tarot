@@ -1,7 +1,8 @@
 "use client"
 
 import { type ReactNode, useMemo, useState } from "react"
-import { AlertTriangle, HeartPulse, Sparkles } from "lucide-react"
+import { AlertTriangle, HeartPulse, Sparkles, Star } from "lucide-react"
+import { useLocale } from "next-intl"
 import type { ChatMessage } from "@/components/chat/types"
 
 type HoroscopeTab = "overview" | "aspects" | "interpretation"
@@ -61,19 +62,24 @@ function splitSentences(text: string): string[] {
         .filter(Boolean)
 }
 
-function formatBirthDate(message: ChatMessage): string {
+function formatBirthDate(message: ChatMessage, locale: string): string {
     const birth = message.horoscopeBirthData
     if (!birth?.day || !birth.month || !birth.year) return "-"
-    return `${String(birth.day).padStart(2, "0")}/${String(birth.month).padStart(2, "0")}/${birth.year}`
+    const date = new Date(birth.year, birth.month - 1, birth.day)
+    return date.toLocaleDateString(locale.startsWith("th") ? "th-TH" : "en-US", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+    })
 }
 
-function getRating(message: ChatMessage): string {
+function getRating(message: ChatMessage): number {
     const insights = message.aspectInsights ?? []
     const high = insights.filter((item) => item.intensity === "high").length
     const medium = insights.filter((item) => item.intensity === "medium").length
-    if (high >= 2) return "★★★★★"
-    if (high >= 1 || medium >= 2) return "★★★★☆"
-    return "★★★☆☆"
+    if (high >= 2) return 5
+    if (high >= 1 || medium >= 2) return 4
+    return 3
 }
 
 function getOverviewSummary(message: ChatMessage): string {
@@ -167,6 +173,7 @@ export default function HoroscopeReadingTabs({
     onApplySuggestedQuestion: (question: string) => void
 }) {
     const [activeTab, setActiveTab] = useState<HoroscopeTab>("overview")
+    const locale = useLocale()
     const summary = getOverviewSummary(message)
     const domainPills = getDomainPills(message)
     const timelineChunks = useMemo(
@@ -176,22 +183,23 @@ export default function HoroscopeReadingTabs({
     const suggestions = Array.isArray(message.followUpSuggestions)
         ? message.followUpSuggestions
         : []
+    const rating = getRating(message)
 
     return (
-        <section className='relative overflow-hidden rounded-[16px] border border-white/10 bg-[#08080F] p-3 shadow-[0_18px_60px_-34px_rgba(99,102,241,0.85)]'>
+        <section className='relative overflow-hidden rounded-[16px] bg-[#08080F] p-3 shadow-[0_18px_60px_-34px_rgba(99,102,241,0.85)]'>
             <div className='pointer-events-none absolute inset-0 opacity-80 [background-image:radial-gradient(circle_at_18%_12%,rgba(139,92,246,0.22),transparent_30%),radial-gradient(circle_at_84%_4%,rgba(56,189,248,0.14),transparent_28%),radial-gradient(circle_at_50%_110%,rgba(232,168,76,0.10),transparent_35%)]' />
             <div className='pointer-events-none absolute inset-0 opacity-35 [background-image:radial-gradient(circle,rgba(255,255,255,0.5)_1px,transparent_1px)] [background-size:26px_26px]' />
-            <div className='relative space-y-4'>
-                <div className='grid grid-cols-3 gap-1 rounded-full border border-white/10 bg-white/[0.04] p-1 backdrop-blur-md'>
+            <div className='relative space-y-5'>
+                <div className='flex gap-3 overflow-x-auto pb-1'>
                     {TABS.map((tab) => (
                         <button
                             key={tab.id}
                             type='button'
                             onClick={() => setActiveTab(tab.id)}
-                            className={`rounded-full px-3 py-2 text-xs font-medium transition ${
+                            className={`shrink-0 rounded-full px-6 py-3 text-base font-semibold transition ${
                                 activeTab === tab.id
-                                    ? "bg-white/12 text-white shadow-[0_0_24px_-10px_rgba(255,255,255,0.85)]"
-                                    : "text-white/55 hover:bg-white/[0.06] hover:text-white/85"
+                                    ? "bg-white/[0.13] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_12px_30px_-18px_rgba(255,255,255,0.75)]"
+                                    : "bg-white/[0.055] text-white/32 hover:bg-white/[0.08] hover:text-white/65"
                             }`}
                         >
                             {tab.label}
@@ -200,57 +208,75 @@ export default function HoroscopeReadingTabs({
                 </div>
 
                 {activeTab === "overview" && (
-                    <div className='space-y-4'>
-                        <div className='rounded-[16px] border border-white/10 bg-[linear-gradient(135deg,rgba(99,102,241,0.26),rgba(34,211,238,0.12)_50%,rgba(232,168,76,0.14))] p-5'>
-                            <div className='mb-4 flex items-start justify-between gap-3'>
-                                <div>
-                                    <p className='text-[11px] uppercase tracking-[0.24em] text-white/50'>
-                                        ภาพรวมดวง
+                    <div className='space-y-5'>
+                        <div className='relative overflow-hidden rounded-[30px] border border-violet-300/15 bg-[linear-gradient(135deg,rgba(50,32,92,0.58),rgba(19,24,54,0.74)_48%,rgba(10,15,36,0.92))] px-5 py-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_18px_60px_-30px_rgba(124,58,237,0.75)]'>
+                            <div className='pointer-events-none absolute inset-0 [background-image:radial-gradient(circle_at_74%_18%,rgba(255,255,255,0.38)_1.5px,transparent_2px),radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.28)_1px,transparent_1.5px),radial-gradient(circle_at_19%_67%,rgba(255,255,255,0.24)_1px,transparent_1.5px)] [background-size:190px_160px,130px_120px,160px_140px] opacity-45' />
+                            <div className='relative mb-4 flex items-start justify-between gap-3'>
+                                <div className='min-w-0'>
+                                    <p className='text-sm text-white/38'>
+                                        {formatBirthDate(message, locale)}
                                     </p>
-                                    <p className='mt-1 text-lg font-semibold text-white'>
-                                        {getRating(message)}
-                                    </p>
+                                    <h2 className='mt-2 text-3xl font-bold leading-tight text-white'>
+                                        ดวงวันนี้
+                                    </h2>
                                 </div>
-                                <div className='rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-white/70'>
-                                    {formatBirthDate(message)}
+                                <div className='inline-flex shrink-0 items-center gap-2 rounded-full border border-emerald-300/35 bg-emerald-300/[0.08] px-4 py-2 text-base font-semibold text-emerald-200 shadow-[0_0_24px_-12px_rgba(74,222,128,0.9)]'>
+                                    <span className='flex h-7 w-7 items-center justify-center rounded-full bg-amber-300 text-[#2b2206] shadow-[0_0_18px_-5px_rgba(251,191,36,0.9)]'>
+                                        <Star className='h-4 w-4 fill-current' />
+                                    </span>
+                                    <span>{rating} ดาว</span>
                                 </div>
                             </div>
-                            <p className='text-sm leading-7 text-white/88'>
+
+                            <p className='relative max-w-[92%] text-[18px] leading-9 text-white/72'>
                                 {summary}
                             </p>
-                        </div>
 
-                        {domainPills.length > 0 && (
-                            <div className='flex flex-wrap gap-2'>
-                                {domainPills.map((pill) => (
-                                    <span
-                                        key={pill.domain}
-                                        className='inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-white/78'
-                                    >
-                                        <span>{pill.domain}</span>
+                            {domainPills.length > 0 && (
+                                <div className='relative mt-7 flex flex-wrap gap-3'>
+                                    {domainPills.map((pill) => (
                                         <span
-                                            className='h-1.5 w-1.5 rounded-full'
+                                            key={pill.domain}
+                                            className='inline-flex items-center gap-2 rounded-[14px] border px-4 py-2 text-base text-white/70 backdrop-blur-md'
                                             style={{
-                                                backgroundColor:
-                                                    getIntensityColor(
+                                                borderColor: `${getIntensityColor(pill.intensity)}42`,
+                                                backgroundColor: `${getIntensityColor(pill.intensity)}12`,
+                                            }}
+                                        >
+                                            <span
+                                                className='h-2.5 w-2.5 rounded-full'
+                                                style={{
+                                                    backgroundColor:
+                                                        getIntensityColor(
+                                                            pill.intensity,
+                                                        ),
+                                                }}
+                                            />
+                                            <span>{pill.domain}</span>
+                                            <span
+                                                className='font-semibold'
+                                                style={{
+                                                    color: getIntensityColor(
                                                         pill.intensity,
                                                     ),
-                                            }}
-                                        />
-                                        <span className='text-white/55'>
-                                            {getIntensityLabel(pill.intensity)}
+                                                }}
+                                            >
+                                                {getIntensityLabel(
+                                                    pill.intensity,
+                                                )}
+                                            </span>
                                         </span>
-                                    </span>
-                                ))}
-                            </div>
-                        )}
+                                    ))}
+                                </div>
+                            )}
+                        </div>
 
                         {suggestions.length > 0 && (
-                            <div className='space-y-2'>
-                                <p className='text-[11px] uppercase tracking-[0.22em] text-white/45'>
-                                    คำถามต่อยอด
+                            <div className='space-y-3'>
+                                <p className='px-2 text-base text-white/32'>
+                                    ถามต่อ
                                 </p>
-                                <div className='flex flex-wrap gap-2'>
+                                <div className='space-y-3'>
                                     {suggestions.map((suggestion) => (
                                         <button
                                             key={suggestion}
@@ -260,9 +286,10 @@ export default function HoroscopeReadingTabs({
                                                     suggestion,
                                                 )
                                             }
-                                            className='rounded-full border border-cyan-300/15 bg-cyan-300/[0.07] px-3 py-1.5 text-left text-xs text-cyan-50/85 transition hover:border-cyan-200/30 hover:bg-cyan-300/[0.12]'
+                                            className='group flex w-full items-center gap-4 rounded-[22px] border border-white/10 bg-white/[0.035] px-5 py-4 text-left text-lg leading-7 text-white/58 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] transition hover:border-white/18 hover:bg-white/[0.055] hover:text-white/78'
                                         >
-                                            {suggestion}
+                                            <Sparkles className='h-5 w-5 shrink-0 text-white/28 transition group-hover:text-cyan-200/70' />
+                                            <span>{suggestion}</span>
                                         </button>
                                     ))}
                                 </div>
