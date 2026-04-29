@@ -2368,7 +2368,10 @@
     "processFailed": "Sorry, I couldn't process horoscope details right now.",
     "birthFormTitle": "Fill your birth details",
     "birthFormSubmit": "Use this birth data",
-    "composerBirthPlaceholder": "Type your birth date, birth time, and location here. Any date format is okay."
+    "composerBirthPlaceholder": "Type your birth date, birth time, and location here. Any date format is okay.",
+    "underAgeWarningTitle": "Birth date not allowed",
+    "underAgeWarningBody": "AskingFate is not available to users under thirteen (13) years old. Your previous birth date has been restored.",
+    "underAgeWarningClose": "Close"
   },
   "Settings": {
     "title": "Settings",

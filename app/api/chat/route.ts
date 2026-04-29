@@ -139,7 +139,7 @@ function getChatDecisionPrompt({
     const detectedLang = detectQuestionLanguage(question)
     const savedBirthBlock = savedBirthInfo
         ? `Saved birth profile: available (${savedBirthInfo}).`
-        : "Saved birth profile: not available. If you choose horoscope, ask the user to send their birth date and mention that birth time improves accuracy."
+        : "Saved birth profile: not available. If you choose horoscope, do not ask for birth date in the chat response; the app will collect or reuse birth data through the birth profile flow."
 
     return `
 ${contextBlock}Recent conversation:

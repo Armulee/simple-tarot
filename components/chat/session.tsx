@@ -27,10 +27,10 @@ import {
 } from "@/lib/astrology/question-context"
 import { chartDataToBirth, chartDataToTransit } from "@/lib/chart-data-to-birth"
 import {
-    clearBirthFromStorage,
     loadBirthFromStorage,
     saveBirthToStorage,
 } from "@/lib/birth-storage"
+import { calculateAgeFromBirthDate } from "@/lib/age-gate-storage"
 import {
     loadAutoPickFromStorage,
     saveAutoPickToStorage,
@@ -377,6 +377,8 @@ export default function ChatSession({
     const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(
         () => loadBirthFromStorage(),
     )
+    const [showUnderAgeBirthWarning, setShowUnderAgeBirthWarning] =
+        useState(false)
     const [editingMessageId, setEditingMessageId] = useState<string | null>(
         null,
     )
@@ -1430,6 +1432,10 @@ export default function ChatSession({
         return hasDate && hasLocation
     }, [])
 
+    const hasBirthDate = useCallback((data: HoroscopeBirthData | null) => {
+        return Boolean(data?.day && data?.month && data?.year)
+    }, [])
+
     const mergeHoroscopeBirth = useCallback(
         (
             current: HoroscopeBirthData | null,
@@ -1948,7 +1954,9 @@ export default function ChatSession({
                 }
 
                 const extracted = await response.json()
-                const nextBirth = mergeHoroscopeBirth(horoscopeBirth, extracted)
+                const storedBirth = loadBirthFromStorage()
+                const currentBirth = storedBirth ?? horoscopeBirth
+                const nextBirth = mergeHoroscopeBirth(currentBirth, extracted)
                 setHoroscopeBirth(nextBirth)
 
                 if (
@@ -1970,18 +1978,8 @@ export default function ChatSession({
                     )
                 }
 
-                const readyFromApi = Boolean(
-                    extracted?.readiness?.readyForCalculation,
-                )
-                const savedBirth = loadBirthFromStorage()
-                const birthToUse =
-                    savedBirth && isHoroscopeReady(savedBirth)
-                        ? savedBirth
-                        : nextBirth
-                const ready =
-                    readyFromApi ||
-                    isHoroscopeReady(nextBirth) ||
-                    isHoroscopeReady(birthToUse)
+                const birthToUse = nextBirth
+                const ready = isHoroscopeReady(birthToUse)
                 const transitMentioned = Boolean(extracted?.transit?.mentioned)
                 const hasTransitFromExtract =
                     transitMentioned &&
@@ -2468,9 +2466,7 @@ export default function ChatSession({
                     text: m.text,
                 }))
                 const savedBirth = loadBirthFromStorage()
-                const hasSavedBirthReady =
-                    savedBirth && isHoroscopeReady(savedBirth)
-                const savedBirthInfo = hasSavedBirthReady
+                const savedBirthInfo = hasBirthDate(savedBirth)
                     ? "saved_profile_in_action_trigger"
                     : null
 
@@ -2557,7 +2553,7 @@ export default function ChatSession({
             freezeStoppedPlainMessage,
             getDefaultSystemByLocale,
             handleHoroscopeInput,
-            isHoroscopeReady,
+            hasBirthDate,
             isInterpreting,
             normalizeDrawDecision,
             streamAssistantResponse,
@@ -2723,9 +2719,7 @@ export default function ChatSession({
                               text: m.text,
                           }))
                 const savedBirth = loadBirthFromStorage()
-                const hasSavedBirthReady =
-                    savedBirth && isHoroscopeReady(savedBirth)
-                const savedBirthInfo = hasSavedBirthReady
+                const savedBirthInfo = hasBirthDate(savedBirth)
                     ? "saved_profile_in_action_trigger"
                     : null
 
@@ -2820,7 +2814,7 @@ export default function ChatSession({
             freezeStoppedPlainMessage,
             getDefaultSystemByLocale,
             handleHoroscopeInput,
-            isHoroscopeReady,
+            hasBirthDate,
             messages,
             normalizeDrawDecision,
             streamAssistantResponse,
@@ -2915,10 +2909,22 @@ export default function ChatSession({
         setSavedBirth(value)
     }, [])
 
-    const handleBirthModalRemove = useCallback(() => {
-        clearBirthFromStorage()
-        setSavedBirth(null)
-    }, [])
+    const handleBirthModalBeforeSubmit = useCallback(
+        (value: HoroscopeBirthData) => {
+            if (!value.year || !value.month || !value.day) return true
+            const age = calculateAgeFromBirthDate({
+                year: value.year,
+                month: value.month,
+                day: value.day,
+            })
+            if (age >= 13) return true
+
+            setShowUnderAgeBirthWarning(true)
+            setSavedBirth(loadBirthFromStorage())
+            return false
+        },
+        [],
+    )
 
     const clearHoroscopeIntakeMessages = useCallback(() => {
         setMessages((prev) =>
@@ -3092,10 +3098,9 @@ export default function ChatSession({
         setInterpretationMode("tarot")
         try {
             const savedBirth = loadBirthFromStorage()
-            const savedBirthInfo =
-                savedBirth && isHoroscopeReady(savedBirth)
-                    ? "saved_profile_in_action_trigger"
-                    : null
+            const savedBirthInfo = hasBirthDate(savedBirth)
+                ? "saved_profile_in_action_trigger"
+                : null
             const aiDecision = await fetchDecision(
                 tarotQuestion,
                 undefined,
@@ -3122,8 +3127,8 @@ export default function ChatSession({
     }, [
         clearHoroscopeIntakeMessages,
         fetchDecision,
+        hasBirthDate,
         horoscopeQuestion,
-        isHoroscopeReady,
         lastQuestion,
         normalizeDrawDecision,
         question,
@@ -3137,10 +3142,35 @@ export default function ChatSession({
                 initial={savedBirth}
                 currentLocation={currentLocationFallback}
                 onSubmit={handleBirthModalSubmit}
-                onRemove={handleBirthModalRemove}
+                onBeforeSubmit={handleBirthModalBeforeSubmit}
                 title={tHoroscope("birthFormTitle")}
                 submitLabel={tHoroscope("birthFormSubmit")}
             />
+
+            <Dialog
+                open={showUnderAgeBirthWarning}
+                onOpenChange={setShowUnderAgeBirthWarning}
+            >
+                <DialogContent className='sm:max-w-md border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl'>
+                    <DialogHeader>
+                        <DialogTitle className='text-yellow-200 font-serif text-xl'>
+                            {tHoroscope("underAgeWarningTitle")}
+                        </DialogTitle>
+                        <DialogDescription className='text-white/70'>
+                            {tHoroscope("underAgeWarningBody")}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <button
+                            type='button'
+                            onClick={() => setShowUnderAgeBirthWarning(false)}
+                            className='rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90'
+                        >
+                            {tHoroscope("underAgeWarningClose")}
+                        </button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             <Dialog
                 open={readAloudConfirmOpen}

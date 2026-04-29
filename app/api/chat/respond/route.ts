@@ -49,8 +49,8 @@ If mode is draw:
 If mode is horoscope:
 - Return EXACTLY ONE sentence.
 - It MUST NOT exceed 60 characters.
-- If birth data is not available, ask for their birth date and mention that birth time helps.
-- If birth data is already available, invite them to begin the horoscope reading naturally.
+- Invite them to begin the horoscope reading naturally.
+- Do not ask for birth date or birth time.
 `
 
 function detectQuestionLanguage(text: string): string {

@@ -22,10 +22,15 @@ import {
 import ActionTrigger from "@/components/chat/action-trigger"
 import BirthInfoModal from "@/components/chat/birth-info-modal"
 import {
-    clearBirthFromStorage,
-    loadBirthFromStorage,
-    saveBirthToStorage,
-} from "@/lib/birth-storage"
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import { loadBirthFromStorage, saveBirthToStorage } from "@/lib/birth-storage"
+import { calculateAgeFromBirthDate } from "@/lib/age-gate-storage"
 import {
     loadAutoPickFromStorage,
     saveAutoPickToStorage,
@@ -58,6 +63,8 @@ export default function Home() {
     const fixedBarRef = useRef<HTMLDivElement>(null)
     const [fixedBarHeight, setFixedBarHeight] = useState(0)
     const [showBirthModal, setShowBirthModal] = useState(false)
+    const [showUnderAgeBirthWarning, setShowUnderAgeBirthWarning] =
+        useState(false)
     const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(
         () => loadBirthFromStorage(),
     )
@@ -125,14 +132,21 @@ export default function Home() {
         saveBirthToStorage(nextBirth)
     }, [ageGateState.birth])
 
+    const handleBirthModalBeforeSubmit = (birth: HoroscopeBirthData) => {
+        if (!birth.year || !birth.month || !birth.day) return true
+        const age = calculateAgeFromBirthDate({
+            year: birth.year,
+            month: birth.month,
+            day: birth.day,
+        })
+        if (age >= 13) return true
+        setShowUnderAgeBirthWarning(true)
+        return false
+    }
+
     const handleBirthModalSubmit = (birth: HoroscopeBirthData) => {
         saveBirthToStorage(birth)
         setSavedBirth(birth)
-    }
-
-    const handleBirthModalRemove = () => {
-        clearBirthFromStorage()
-        setSavedBirth(null)
     }
 
     const handleToggleAutoPick = () => {
@@ -410,10 +424,37 @@ export default function Home() {
                     onOpenChange={setShowBirthModal}
                     initial={savedBirth}
                     onSubmit={handleBirthModalSubmit}
-                    onRemove={handleBirthModalRemove}
+                    onBeforeSubmit={handleBirthModalBeforeSubmit}
                     title={tHoroscope("birthFormTitle")}
                     submitLabel={tHoroscope("birthFormSubmit")}
                 />
+
+                <Dialog
+                    open={showUnderAgeBirthWarning}
+                    onOpenChange={setShowUnderAgeBirthWarning}
+                >
+                    <DialogContent className='sm:max-w-md border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl'>
+                        <DialogHeader>
+                            <DialogTitle className='text-yellow-200 font-serif text-xl'>
+                                {tHoroscope("underAgeWarningTitle")}
+                            </DialogTitle>
+                            <DialogDescription className='text-white/70'>
+                                {tHoroscope("underAgeWarningBody")}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <button
+                                type='button'
+                                onClick={() =>
+                                    setShowUnderAgeBirthWarning(false)
+                                }
+                                className='rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90'
+                            >
+                                {tHoroscope("underAgeWarningClose")}
+                            </button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
                 <QuestionInput
                     id='home-question-input'

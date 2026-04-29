@@ -3,11 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import { resolveLocationFromCountryState } from "@/lib/location"
-import {
-    clearBirthFromStorage,
-    loadBirthFromStorage,
-    saveBirthToStorage,
-} from "@/lib/birth-storage"
+import { loadBirthFromStorage, saveBirthToStorage } from "@/lib/birth-storage"
 import type { HoroscopeBirthData } from "@/types/horoscope"
 import {
     Calendar,
@@ -17,7 +13,6 @@ import {
     Sparkles,
     ChevronDown,
     Send,
-    X,
 } from "lucide-react"
 import {
     Popover,
@@ -122,12 +117,11 @@ type Props = {
         timezone?: number
     } | null
     onSubmit: (value: HoroscopeBirthData) => void
+    onBeforeSubmit?: (value: HoroscopeBirthData) => boolean
     title: string
     submitLabel: string
     /** When true, always save to storage on submit */
     alwaysSave?: boolean
-    /** Called when user clears all entered/saved birth data */
-    onRemove?: () => void
     variant?: "default" | "inlineSticky"
 }
 
@@ -289,10 +283,10 @@ export default function InlineUserDateForm({
     initial,
     currentLocation,
     onSubmit,
+    onBeforeSubmit,
     title,
     submitLabel,
     alwaysSave = false,
-    onRemove,
     variant = "default",
 }: Props) {
     const t = useTranslations("BirthForm")
@@ -330,28 +324,33 @@ export default function InlineUserDateForm({
     const [timeInputValue, setTimeInputValue] = useState("")
     const [isSubmitted, setIsSubmitted] = useState(false)
 
+    const applyBirthToForm = (birth: HoroscopeBirthData | null) => {
+        setDate(toDateInputValue(birth))
+        setDateInputValue("")
+        setDisplayAsBE(false)
+        setTimeMode(getInitialTimeMode(birth))
+        setTime(
+            birth?.hour != null && birth?.minute != null
+                ? `${String(birth.hour).padStart(2, "0")}:${String(birth.minute).padStart(2, "0")}`
+                : "",
+        )
+        setTimeInputValue("")
+        setCountry(birth?.country || "")
+        setState(birth?.state || "")
+        setLat(birth?.lat != null ? String(birth.lat) : "")
+        setLng(birth?.lng != null ? String(birth.lng) : "")
+        setTimezone(birth?.timezone != null ? String(birth.timezone) : "")
+        setShowLocationSettings(hasLocationDetails(birth))
+    }
+
     useEffect(() => {
         setIsSubmitted(false)
         const saved = loadBirthFromStorage()
         if (saved && !initial?.day && !initial?.month && !initial?.year) {
-            setDate(toDateInputValue(saved))
-            setDateInputValue("")
-            setDisplayAsBE(false)
-            setTimeMode(getInitialTimeMode(saved))
-            setTime(
-                saved.hour != null && saved.minute != null
-                    ? `${String(saved.hour).padStart(2, "0")}:${String(saved.minute).padStart(2, "0")}`
-                    : "",
-            )
-            setCountry(saved.country || "")
-            setState(saved.state || "")
-            setLat(saved.lat != null ? String(saved.lat) : "")
-            setLng(saved.lng != null ? String(saved.lng) : "")
-            setTimezone(saved.timezone != null ? String(saved.timezone) : "")
-            setShowLocationSettings(hasLocationDetails(saved))
+            applyBirthToForm(saved)
             return
         }
-        setShowLocationSettings(hasLocationDetails(initial))
+        applyBirthToForm(initial)
     }, [initial])
 
     const dateInputDisplay = date
@@ -381,31 +380,6 @@ export default function InlineUserDateForm({
         if (typeof currentLocation.timezone === "number") {
             setTimezone(String(currentLocation.timezone))
         }
-    }
-
-    const resetForm = () => {
-        setDate("")
-        setDateInputValue("")
-        setDisplayAsBE(false)
-        setTimeMode("exact")
-        setTime("")
-        setTimeInputValue("")
-        setCountry("")
-        setState("")
-        setLat("")
-        setLng("")
-        setTimezone("")
-        setShowAdvanced(false)
-        setShowLocationSettings(false)
-        setCalendarOpen(false)
-        setTimePickerOpen(false)
-        setIsSubmitted(false)
-    }
-
-    const handleRemove = () => {
-        clearBirthFromStorage()
-        resetForm()
-        onRemove?.()
     }
 
     const submit = () => {
@@ -483,10 +457,12 @@ export default function InlineUserDateForm({
             state: resolvedState,
             usedLocationFallback,
         }
+        if (onBeforeSubmit && !onBeforeSubmit(payload)) {
+            applyBirthToForm(loadBirthFromStorage() ?? initial)
+            return
+        }
         if (shouldPersistBirth) {
             saveBirthToStorage(payload)
-        } else if (loadBirthFromStorage()) {
-            clearBirthFromStorage()
         }
         onSubmit(payload)
         if (isInlineSticky) {
@@ -532,16 +508,6 @@ export default function InlineUserDateForm({
                             ) : null}
                         </div>
                     </div>
-                    {onRemove && (
-                        <button
-                            type='button'
-                            onClick={handleRemove}
-                            className='inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white'
-                        >
-                            <X className='h-4 w-4' />
-                            <span>{t("removeBirth")}</span>
-                        </button>
-                    )}
                 </div>
                 {(() => {
                     const hasDateFromPrefill =

@@ -20,7 +20,7 @@ type BirthInfoModalProps = {
         timezone?: number
     } | null
     onSubmit: (value: HoroscopeBirthData) => void
-    onRemove?: () => void
+    onBeforeSubmit?: (value: HoroscopeBirthData) => boolean
     title: string
     submitLabel: string
 }
@@ -31,17 +31,12 @@ export default function BirthInfoModal({
     initial,
     currentLocation,
     onSubmit,
-    onRemove,
+    onBeforeSubmit,
     title,
     submitLabel,
 }: BirthInfoModalProps) {
     const handleSubmit = (value: HoroscopeBirthData) => {
         onSubmit(value)
-        onOpenChange(false)
-    }
-
-    const handleRemove = () => {
-        onRemove?.()
         onOpenChange(false)
     }
 
@@ -53,7 +48,7 @@ export default function BirthInfoModal({
                     initial={initial}
                     currentLocation={currentLocation}
                     onSubmit={handleSubmit}
-                    onRemove={handleRemove}
+                    onBeforeSubmit={onBeforeSubmit}
                     title={title}
                     submitLabel={submitLabel}
                     alwaysSave
