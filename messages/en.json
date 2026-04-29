@@ -50,6 +50,7 @@
       "detectLocationButton": "Detect location",
       "detectLocationLoading": "Detecting...",
       "detectLocationError": "We could not detect your location. You can select it manually or continue without it.",
+      "scrollHint": "Scroll for optional details",
       "statusSummary": "We use your birth details to calculate your natal chart and to determine whether you are blocked under 13, classified as a minor (13-17), or classified as an adult (18+). That status will be saved locally and used later to apply the appropriate policy safeguards.",
       "invalidDateMessage": "Please enter a valid birth date. Birth time is optional, but the date is required.",
       "continueButton": "Continue",
@@ -61,7 +62,7 @@
     },
     "cookies": {
       "bannerTitle": "Cookie preferences",
-      "bannerDescription": "AskingFate uses cookies for essential site functions and, with your permission, analytics and future personalization. You can accept all, reject non-essential cookies, or manage preferences below.",
+      "bannerDescription": "We use cookies to improve your experience and analyze traffic.",
       "managePreferences": "Manage Preferences",
       "acceptAll": "Accept All",
       "rejectAll": "Reject All",

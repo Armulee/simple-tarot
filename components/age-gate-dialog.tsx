@@ -16,7 +16,14 @@ import {
     CornerAccents,
     StarsDialog,
 } from "@/components/star-consent"
-import { Clock3, LocateFixed, MapPin, MoonStar, ShieldAlert } from "lucide-react"
+import {
+    ChevronDown,
+    Clock3,
+    LocateFixed,
+    MapPin,
+    MoonStar,
+    ShieldAlert,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
     resolveLocationFromCoords,
@@ -358,6 +365,60 @@ export function AgeGateDialog({
                             />
                         </div>
 
+                        <div className='sticky top-0 z-10 -mx-2 mt-4 flex justify-center bg-gradient-to-b from-[#13121f] via-[#13121f]/90 to-transparent px-2 pb-5 pt-1'>
+                            <div className='inline-flex animate-bounce items-center gap-2 rounded-full border border-[rgba(200,180,140,0.25)] bg-[rgba(19,18,31,0.88)] px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-[rgba(232,224,208,0.66)] shadow-[0_0_28px_-10px_rgba(200,180,140,0.75)]'>
+                                <span>{t("scrollHint")}</span>
+                                <ChevronDown className='h-3.5 w-3.5 text-[rgba(200,180,140,0.75)]' />
+                            </div>
+                        </div>
+
+                        <div className='mt-1 rounded-[3px] border-[0.5px] border-[rgba(200,180,140,0.14)] bg-[rgba(255,255,255,0.015)] p-4'>
+                            <div className='mb-3 flex items-center gap-2 text-[rgba(200,180,140,0.72)]'>
+                                <span className='h-px flex-1 bg-[rgba(200,180,140,0.12)]' />
+                                <Clock3 className='h-3.5 w-3.5' />
+                                <span className='text-[10px] uppercase tracking-[0.28em]'>
+                                    {t("optionalTimeLabel")}
+                                </span>
+                                <span className='h-px flex-1 bg-[rgba(200,180,140,0.12)]' />
+                            </div>
+
+                            <div className='grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3'>
+                                <CustomTimePicker
+                                    value={draft.hour}
+                                    onChange={(value) =>
+                                        setDraft((current) => ({
+                                            ...current,
+                                            hour: value,
+                                        }))
+                                    }
+                                    min={0}
+                                    max={23}
+                                    placeholder='00'
+                                    label={t("hourLabel")}
+                                />
+                                <div className='select-none text-center font-serif text-2xl text-[rgba(200,180,140,0.5)]'>
+                                    :
+                                </div>
+                                <CustomTimePicker
+                                    value={draft.minute}
+                                    onChange={(value) =>
+                                        setDraft((current) => ({
+                                            ...current,
+                                            minute: value,
+                                        }))
+                                    }
+                                    min={0}
+                                    max={59}
+                                    placeholder='00'
+                                    label={t("minuteLabel")}
+                                />
+                            </div>
+                            <div className='mt-3 flex items-start gap-2 text-[11px] leading-snug text-[rgba(232,224,208,0.48)]'>
+                                <MoonStar className='mt-0.5 h-3.5 w-3.5 shrink-0 text-[rgba(200,180,140,0.6)]' />
+                                <span>{t("optionalTimeHint")}</span>
+                            </div>
+                        </div>
+
                         <div className='mt-6 rounded-[3px] border-[0.5px] border-[rgba(200,180,140,0.14)] bg-[rgba(255,255,255,0.015)] p-4'>
                             <div className='mb-3 flex items-center gap-2 text-[rgba(200,180,140,0.72)]'>
                                 <span className='h-px flex-1 bg-[rgba(200,180,140,0.12)]' />
@@ -410,53 +471,6 @@ export function AgeGateDialog({
                                         {t("detectLocationError")}
                                     </p>
                                 ) : null}
-                            </div>
-                        </div>
-
-                        <div className='mt-6 rounded-[3px] border-[0.5px] border-[rgba(200,180,140,0.14)] bg-[rgba(255,255,255,0.015)] p-4'>
-                            <div className='mb-3 flex items-center gap-2 text-[rgba(200,180,140,0.72)]'>
-                                <span className='h-px flex-1 bg-[rgba(200,180,140,0.12)]' />
-                                <Clock3 className='h-3.5 w-3.5' />
-                                <span className='text-[10px] uppercase tracking-[0.28em]'>
-                                    {t("optionalTimeLabel")}
-                                </span>
-                                <span className='h-px flex-1 bg-[rgba(200,180,140,0.12)]' />
-                            </div>
-
-                            <div className='grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3'>
-                                <CustomTimePicker
-                                    value={draft.hour}
-                                    onChange={(value) =>
-                                        setDraft((current) => ({
-                                            ...current,
-                                            hour: value,
-                                        }))
-                                    }
-                                    min={0}
-                                    max={23}
-                                    placeholder='00'
-                                    label={t("hourLabel")}
-                                />
-                                <div className='select-none text-center font-serif text-2xl text-[rgba(200,180,140,0.5)]'>
-                                    :
-                                </div>
-                                <CustomTimePicker
-                                    value={draft.minute}
-                                    onChange={(value) =>
-                                        setDraft((current) => ({
-                                            ...current,
-                                            minute: value,
-                                        }))
-                                    }
-                                    min={0}
-                                    max={59}
-                                    placeholder='00'
-                                    label={t("minuteLabel")}
-                                />
-                            </div>
-                            <div className='mt-3 flex items-start gap-2 text-[11px] leading-snug text-[rgba(232,224,208,0.48)]'>
-                                <MoonStar className='mt-0.5 h-3.5 w-3.5 shrink-0 text-[rgba(200,180,140,0.6)]' />
-                                <span>{t("optionalTimeHint")}</span>
                             </div>
                         </div>
 
