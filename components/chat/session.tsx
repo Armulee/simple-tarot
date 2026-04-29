@@ -45,7 +45,6 @@ import {
 } from "@/lib/read-aloud-confirm-storage"
 import { pickRandomCards } from "@/lib/tarot/pick-random-cards"
 import {
-    resolveLocationFromCoords,
     resolveLocationFromCountryState,
 } from "@/lib/location"
 import type {
@@ -349,7 +348,24 @@ export default function ChatSession({
         lat?: number
         lng?: number
         timezone?: number
-    } | null>(null)
+    } | null>(() => {
+        const saved = loadBirthFromStorage()
+        if (
+            saved?.country &&
+            saved.lat != null &&
+            saved.lng != null &&
+            saved.timezone != null
+        ) {
+            return {
+                country: saved.country,
+                state: saved.state ?? undefined,
+                lat: saved.lat,
+                lng: saved.lng,
+                timezone: saved.timezone,
+            }
+        }
+        return null
+    })
     const [showLocationDialog, setShowLocationDialog] = useState(false)
     const [locationDraftCountry, setLocationDraftCountry] = useState("")
     const [locationDraftState, setLocationDraftState] = useState("")
@@ -976,26 +992,6 @@ export default function ChatSession({
             })
             readAloudObjectUrlsRef.current = {}
         }
-    }, [])
-
-    useEffect(() => {
-        if (!navigator?.geolocation) return
-        navigator.geolocation.getCurrentPosition(
-            async (pos) => {
-                const lat = pos.coords.latitude
-                const lng = pos.coords.longitude
-                const resolved = await resolveLocationFromCoords(lat, lng)
-                setCurrentLocationFallback({
-                    country: resolved?.countryName || undefined,
-                    state: resolved?.stateName || undefined,
-                    lat,
-                    lng,
-                    timezone: resolved?.timezone,
-                })
-            },
-            () => {},
-            { enableHighAccuracy: true, timeout: 6000 },
-        )
     }, [])
 
     const persistSession = useCallback(
@@ -1936,7 +1932,6 @@ export default function ChatSession({
                     body: JSON.stringify({
                         message: trimmed,
                         locale,
-                        currentLocation: currentLocationFallback ?? undefined,
                     }),
                 })
 
@@ -1954,8 +1949,15 @@ export default function ChatSession({
                 }
 
                 const extracted = await response.json()
+                const extractedHasBirthDate = Boolean(
+                    extracted?.birthDate?.day &&
+                        extracted?.birthDate?.month &&
+                        extracted?.birthDate?.year,
+                )
                 const storedBirth = loadBirthFromStorage()
-                const currentBirth = storedBirth ?? horoscopeBirth
+                const currentBirth = extractedHasBirthDate
+                    ? horoscopeBirth
+                    : storedBirth ?? horoscopeBirth
                 const nextBirth = mergeHoroscopeBirth(currentBirth, extracted)
                 setHoroscopeBirth(nextBirth)
 
@@ -1972,8 +1974,7 @@ export default function ChatSession({
                     setHoroscopeSystem(
                         getDefaultAstrologySystem(
                             locale,
-                            nextBirth?.country ??
-                                currentLocationFallback?.country,
+                            nextBirth?.country ?? undefined,
                         ) as "western_tropical" | "vedic_sidereal",
                     )
                 }
@@ -2060,7 +2061,6 @@ export default function ChatSession({
             }
         },
         [
-            currentLocationFallback,
             horoscopeBirth,
             horoscopeQuestion,
             isHoroscopeReady,

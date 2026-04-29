@@ -52,7 +52,12 @@
       "monthLabel": "ເດືອນ",
       "yearLabel": "ປີ",
       "hourLabel": "ຊົ່ວໂມງ",
-      "minuteLabel": "ນາທີ"
+      "minuteLabel": "ນາທີ",
+      "optionalLocationLabel": "ສະຖານທີ່ (ທາງເລືອກ)",
+      "optionalLocationHint": "ເລືອກປະເທດ ແລະ ແຂວງ/ລັດ ຫຼື ອະນຸຍາດການກວດຫາຕຳແໜ່ງເພື່ອກອກໃຫ້ອັດຕະໂນມັດ.",
+      "detectLocationButton": "ກວດຫາຕຳແໜ່ງ",
+      "detectLocationLoading": "ກຳລັງກວດຫາ...",
+      "detectLocationError": "ບໍ່ສາມາດກວດຫາຕຳແໜ່ງໄດ້. ທ່ານສາມາດເລືອກປະເທດ ແລະ ແຂວງ/ລັດແທນໄດ້."
     },
     "cookies": {
       "bannerTitle": "ການຕັ້ງຄ່າຄຸກກີ",

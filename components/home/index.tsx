@@ -112,11 +112,11 @@ export default function Home() {
             hour: ageGateState.birth.hour,
             minute: ageGateState.birth.minute,
             timeHint: "unknown" as const,
-            timezone: null,
-            lat: null,
-            lng: null,
-            country: null,
-            state: null,
+            timezone: ageGateState.birth.timezone ?? null,
+            lat: ageGateState.birth.lat ?? null,
+            lng: ageGateState.birth.lng ?? null,
+            country: ageGateState.birth.country ?? null,
+            state: ageGateState.birth.state ?? null,
             usedLocationFallback: false,
         }
         setSavedBirth((current) => {
