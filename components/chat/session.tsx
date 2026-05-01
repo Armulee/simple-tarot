@@ -44,6 +44,7 @@ import {
 } from "@/lib/read-aloud-confirm-storage"
 import { pickRandomCards } from "@/lib/tarot/pick-random-cards"
 import { resolveLocationFromCoords } from "@/lib/location"
+import { useAuth } from "@/hooks/use-auth"
 import type {
     HoroscopeBirthData,
     HoroscopeTransitData,
@@ -232,6 +233,7 @@ export default function ChatSession({
 }: {
     initialSession?: ChatSessionPayload | null
 }) {
+    const { session } = useAuth()
     const tHome = useTranslations("Home")
     const tReadingTypes = useTranslations("Reading.types")
     const tHoroscope = useTranslations("HoroscopeChat")
@@ -989,9 +991,15 @@ export default function ChatSession({
             showCardDraw: boolean
         }) => {
             if (!sessionId) return
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+            }
+            if (session?.access_token) {
+                headers.Authorization = `Bearer ${session.access_token}`
+            }
             await fetch(`/api/chat-sessions/${sessionId}`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 body: JSON.stringify({
                     question: currentQuestion,
                     messages: currentMessages,
@@ -1001,7 +1009,7 @@ export default function ChatSession({
                 }),
             })
         },
-        [sessionId],
+        [session?.access_token, sessionId],
     )
 
     const hasAssistantResponse = messages.some(
