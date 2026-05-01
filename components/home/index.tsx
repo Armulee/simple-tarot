@@ -35,7 +35,7 @@ export default function Home() {
     const tHome = useTranslations("Home")
     const locale = useLocale()
     const router = useRouter()
-    const { user } = useAuth()
+    const { session: authSession } = useAuth()
     const { choice, show } = useStarConsent()
 
     const [question, setQuestion] = useState("")
@@ -115,6 +115,9 @@ export default function Home() {
         const headers: Record<string, string> = {
             "Content-Type": "application/json",
         }
+        if (authSession?.access_token) {
+            headers.Authorization = `Bearer ${authSession.access_token}`
+        }
 
         for (const delay of [0, 300, 1000, 2500, 5000]) {
             if (delay > 0) {
@@ -173,14 +176,19 @@ export default function Home() {
         setLinkingQuestion(trimmed)
         setIsLinking(true)
         try {
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+            }
+            if (authSession?.access_token) {
+                headers.Authorization = `Bearer ${authSession.access_token}`
+            }
             const response = await fetch("/api/chat-sessions/create", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 signal: controller.signal,
                 body: JSON.stringify({
                     id: pendingSessionId,
                     question: trimmed,
-                    user_id: user?.id ?? null,
                     messages: [
                         {
                             id: `user-${Date.now()}`,

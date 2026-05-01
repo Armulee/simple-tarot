@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { nanoid } from "nanoid"
 import { generateText } from "ai"
+import { createClient } from "@supabase/supabase-js"
 import { readAndVerifyDid } from "@/lib/server/did"
 import { supabaseAdmin } from "@/lib/supabase"
 
@@ -19,6 +20,31 @@ function throwIfAborted(signal: AbortSignal) {
         error.name = "AbortError"
         throw error
     }
+}
+
+async function getUserFromAuth(req: NextRequest) {
+    const authHeader = req.headers.get("authorization")
+    if (!authHeader?.startsWith("Bearer ")) return null
+
+    const token = authHeader.slice(7)
+    if (
+        !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+        !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    ) {
+        return null
+    }
+
+    const supabaseClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    )
+
+    const {
+        data: { user },
+        error,
+    } = await supabaseClient.auth.getUser(token)
+    if (error || !user) return null
+    return user
 }
 
 function cleanTopic(raw: string): string {
@@ -80,10 +106,8 @@ export async function POST(req: NextRequest) {
         throwIfAborted(req.signal)
         const requestedId = (body?.id ?? "").toString().slice(0, 32).trim()
         const question = (body?.question ?? "").toString()
-        const ownerUserId: string | null =
-            typeof body?.user_id === "string" && body.user_id
-                ? body.user_id
-                : null
+        const verifiedUser = await getUserFromAuth(req)
+        const ownerUserId = verifiedUser?.id ?? null
         const rawMessages = Array.isArray(body?.messages)
             ? body.messages
             : []

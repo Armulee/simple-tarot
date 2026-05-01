@@ -60,12 +60,35 @@ export async function PATCH(
             )
         }
 
+        const user = await getUserFromAuth(req)
         const did = await readAndVerifyDid()
-        if (!did) return NextResponse.json({ error: "NO_DID" }, { status: 400 })
+        if (!user && !did) {
+            return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 })
+        }
 
         const { id: rawId } = await context.params
         const id = (rawId ?? "").toString().slice(0, 32)
         if (!id) return NextResponse.json({ error: "BAD_ID" }, { status: 400 })
+
+        const { data: session, error: fetchError } = await supabaseAdmin
+            .from("chat_sessions")
+            .select("id, owner_user_id, did")
+            .eq("id", id)
+            .maybeSingle()
+
+        if (fetchError) {
+            return NextResponse.json({ error: fetchError.message }, { status: 400 })
+        }
+
+        if (!session) {
+            return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 })
+        }
+
+        const ownedByUser = !!user && session.owner_user_id === user.id
+        const ownedByDid = !!did && session.did === did
+        if (!ownedByUser && !ownedByDid) {
+            return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 })
+        }
 
         const body = await req.json()
         const update: Record<string, unknown> = {
