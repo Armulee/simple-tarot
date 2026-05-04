@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { nanoid } from "nanoid"
 import { generateText } from "ai"
 import { readAndVerifyDid } from "@/lib/server/did"
+import {
+    sanitizeMessagesForPersistence,
+    sanitizePromptForPersistence,
+} from "@/lib/privacy/prompt-redaction"
 import { supabaseAdmin } from "@/lib/supabase"
 
 const MODEL = "deepseek/deepseek-v3.2"
@@ -44,6 +48,7 @@ Rules:
 - Be descriptive enough that the user can distinguish this session from others.
 - Match the user's language.
 - Be specific and calm (not clickbait).
+- The user message may contain privacy placeholders such as [Person], [Email], [Phone], [Handle], or [Address]. Never repeat them literally. Refer to them naturally (for example, "the person on your mind", "someone close", "their contact details").
 `
 
     const prompt = `User's first message:
@@ -79,17 +84,17 @@ export async function POST(req: NextRequest) {
         const body = await req.json()
         throwIfAborted(req.signal)
         const requestedId = (body?.id ?? "").toString().slice(0, 32).trim()
-        const question = (body?.question ?? "").toString()
+        const question = sanitizePromptForPersistence(
+            (body?.question ?? "").toString(),
+        )
         const ownerUserId: string | null =
             typeof body?.user_id === "string" && body.user_id
                 ? body.user_id
                 : null
-        const rawMessages = Array.isArray(body?.messages)
-            ? body.messages
-            : []
+        const rawMessages = Array.isArray(body?.messages) ? body.messages : []
         const messages =
             rawMessages.length > 0
-                ? rawMessages
+                ? sanitizeMessagesForPersistence(rawMessages)
                 : question
                   ? [
                         {

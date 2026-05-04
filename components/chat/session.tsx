@@ -26,10 +26,12 @@ import {
     buildSessionContextSummary,
 } from "@/lib/astrology/question-context"
 import { chartDataToBirth, chartDataToTransit } from "@/lib/chart-data-to-birth"
+import { loadBirthFromStorage, saveBirthToStorage } from "@/lib/birth-storage"
 import {
-    loadBirthFromStorage,
-    saveBirthToStorage,
-} from "@/lib/birth-storage"
+    applyEphemerisLocationTimeDefaults,
+    hasHoroscopeBirthDate,
+    mergeHoroscopeBirthWithProfile,
+} from "@/lib/horoscope-profile-birth"
 import { calculateAgeFromBirthDate } from "@/lib/age-gate-storage"
 import {
     loadAutoPickFromStorage,
@@ -37,16 +39,16 @@ import {
 } from "@/lib/auto-pick-storage"
 import {
     loadInterpretationModeFromStorage,
+    saveInterpretationModeToStorage,
     type InterpretationMode,
 } from "@/lib/interpretation-mode-storage"
+import { CookiesBanner } from "@/components/cookies-banner"
 import {
     getSkipReadAloudConfirm,
     setSkipReadAloudConfirm,
 } from "@/lib/read-aloud-confirm-storage"
 import { pickRandomCards } from "@/lib/tarot/pick-random-cards"
-import {
-    resolveLocationFromCountryState,
-} from "@/lib/location"
+import { resolveLocationFromCountryState } from "@/lib/location"
 import type {
     HoroscopeBirthData,
     HoroscopeTransitData,
@@ -81,6 +83,20 @@ import type {
 } from "@/components/chat/types"
 
 import { getTarotCardCount } from "@/lib/chat/decision-schema"
+import { useAuth } from "@/hooks/use-auth"
+import { useProfile } from "@/contexts/profile-context"
+import { supabase } from "@/lib/supabase"
+import { sanitizePromptOnClient } from "@/lib/privacy/sanitize-client"
+import {
+    buildPrivacyStorageKey,
+    loadRawPromptFromSession,
+    loadSessionAliases,
+    removeRawPromptFromSession,
+    saveRawPromptToSession,
+    unmaskTextWithAliases,
+    type PromptAliasEntry,
+    type PromptRedactionType,
+} from "@/lib/privacy/prompt-redaction"
 
 export type { ChatDecision } from "@/components/chat/types"
 
@@ -231,6 +247,47 @@ function areStringArraysEqual(
     return true
 }
 
+function areRelevanceEqual(
+    left: ChatMessage["relevance"],
+    right: ChatMessage["relevance"],
+) {
+    if (left === right) return true
+    if (!left || !right) return !left && !right
+    if (left.length !== right.length) return false
+    for (let i = 0; i < left.length; i++) {
+        const a = left[i]
+        const b = right[i]
+        if (!a || !b) return false
+        if (a.label !== b.label || a.pct !== b.pct) return false
+    }
+    return true
+}
+
+function normalizeRelevance(
+    items:
+        | Array<
+              | {
+                    label?: string | null
+                    pct?: number | null
+                }
+              | undefined
+          >
+        | undefined
+        | null,
+): ChatMessage["relevance"] | undefined {
+    if (!items?.length) return undefined
+    const clean = items
+        .map((item) => {
+            const label = (item?.label ?? "").trim()
+            const pct = typeof item?.pct === "number" ? item.pct : NaN
+            if (!label || !Number.isFinite(pct) || pct <= 0) return null
+            return { label, pct: Math.max(0, Math.min(100, pct)) }
+        })
+        .filter((x): x is { label: string; pct: number } => x !== null)
+        .slice(0, 5)
+    return clean.length > 0 ? clean : undefined
+}
+
 export default function ChatSession({
     initialSession,
 }: {
@@ -279,6 +336,8 @@ export default function ChatSession({
     }
 
     const locale = useLocale()
+    const { user } = useAuth()
+    const { profile } = useProfile()
     const [aiLocale, setAiLocale] = useState<"en" | "th" | "lo" | null>(null)
     const { stars, spendStars, initialized: starsInitialized } = useStars()
     const [question, setQuestion] = useState("")
@@ -300,6 +359,10 @@ export default function ChatSession({
     const [lastQuestion, setLastQuestion] = useState(
         initialSession?.question ?? "",
     )
+    const lastUserPrivacyRef = useRef<{
+        storageKey?: string
+        rawText?: string
+    }>({})
     const [selectedCount, setSelectedCount] = useState(0)
     const [cardCountOverride, setCardCountOverride] = useState<number | null>(
         null,
@@ -332,6 +395,16 @@ export default function ChatSession({
     const [readAloudDoNotShowAgain, setReadAloudDoNotShowAgain] =
         useState(false)
     const [sessionId] = useState<string | null>(initialSession?.id ?? null)
+    const [privacyAliases, setPrivacyAliases] = useState<PromptAliasEntry[]>(
+        () => loadSessionAliases(initialSession?.id ?? null),
+    )
+    const unmask = useCallback(
+        (text?: string | null): string => {
+            if (typeof text !== "string" || !text) return text ?? ""
+            return unmaskTextWithAliases(text, privacyAliases)
+        },
+        [privacyAliases],
+    )
     const [horoscopeQuestion, setHoroscopeQuestion] = useState<string | null>(
         null,
     )
@@ -403,6 +476,8 @@ export default function ChatSession({
     const lastAssistantMessageRef = useRef<HTMLDivElement | null>(null)
     const cardDrawTargetRef = useRef<HTMLDivElement | null>(null)
     const insufficientStarsRef = useRef<HTMLDivElement | null>(null)
+    const fixedBarRef = useRef<HTMLDivElement | null>(null)
+    const [fixedBarHeight, setFixedBarHeight] = useState(0)
     const prevMessagesLengthRef = useRef(0)
     const prevConsultingRef = useRef(false)
     const prevIsInterpretingRef = useRef(false)
@@ -576,6 +651,7 @@ export default function ChatSession({
             const aspectInsights = normalizeAspectInsights(
                 object.aspectInsights,
             )
+            const relevance = normalizeRelevance(object.relevance)
             const suggestions = (
                 object.suggestions?.filter(
                     (s): s is string =>
@@ -594,6 +670,7 @@ export default function ChatSession({
                     const update: Partial<ChatMessage> = {
                         text: interpretation,
                         aspectInsights,
+                        relevance,
                         personalizedTransitAspects: fullAspects,
                         personalizedTransitAspectsMerged: mergedAspects,
                         followUpConclusion: conclusion ?? undefined,
@@ -623,6 +700,7 @@ export default function ChatSession({
                                 chartData: m.chartData,
                                 text: interpretation,
                                 aspectInsights,
+                                relevance,
                                 personalizedTransitAspects: fullAspects,
                                 personalizedTransitAspectsMerged:
                                     mergedAspects ?? null,
@@ -687,6 +765,7 @@ export default function ChatSession({
                                     null,
                                 text: cached.text,
                                 aspectInsights: cached.aspectInsights,
+                                relevance: cached.relevance,
                                 followUpConclusion: cached.followUpConclusion,
                                 followUpSuggestions: cached.followUpSuggestions,
                                 isLoading: false,
@@ -727,6 +806,18 @@ export default function ChatSession({
     )
 
     // Stream interpretation object updates to the loading message
+    useEffect(() => {
+        const el = fixedBarRef.current
+        if (!el) return
+        const ro = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                setFixedBarHeight(entry.contentRect.height - 160)
+            }
+        })
+        ro.observe(el)
+        return () => ro.disconnect()
+    }, [])
+
     useEffect(() => {
         const lid = interpretationLoadingIdRef.current
         if (!lid || !interpretationObject) return
@@ -788,6 +879,7 @@ export default function ChatSession({
         const streamedAspectInsights = normalizeAspectInsights(
             horoscopeObject.aspectInsights,
         )
+        const streamedRelevance = normalizeRelevance(horoscopeObject.relevance)
         const streamedConclusion =
             horoscopeObject.conclusion?.trim() ?? undefined
         setMessages((prev) => {
@@ -811,6 +903,7 @@ export default function ChatSession({
                 : m.personalizedTransitAspectsMerged
             const nextConclusion = streamedConclusion ?? m.followUpConclusion
             const nextSuggestions = suggestions ?? m.followUpSuggestions
+            const nextRelevance = streamedRelevance ?? m.relevance
 
             const changed =
                 nextText !== m.text ||
@@ -818,13 +911,15 @@ export default function ChatSession({
                 nextPersonalizedTransitAspectsMerged !==
                     m.personalizedTransitAspectsMerged ||
                 nextConclusion !== m.followUpConclusion ||
-                !areStringArraysEqual(nextSuggestions, m.followUpSuggestions)
+                !areStringArraysEqual(nextSuggestions, m.followUpSuggestions) ||
+                !areRelevanceEqual(nextRelevance, m.relevance)
             if (!changed) return prev
 
             const nextMessage = {
                 ...m,
                 text: nextText,
                 aspectInsights: nextAspectInsights,
+                relevance: nextRelevance,
                 personalizedTransitAspectsMerged:
                     nextPersonalizedTransitAspectsMerged,
                 followUpConclusion: nextConclusion,
@@ -927,6 +1022,7 @@ export default function ChatSession({
         const streamedAspectInsights = normalizeAspectInsights(
             horoscopeObject?.aspectInsights,
         )
+        const streamedRelevance = normalizeRelevance(horoscopeObject?.relevance)
         const streamedInterpretation =
             horoscopeObject?.interpretation ?? undefined
         const streamedConclusion =
@@ -950,6 +1046,7 @@ export default function ChatSession({
                     ...m,
                     text: streamedInterpretation ?? m.text ?? "",
                     aspectInsights: nextAspectInsights,
+                    relevance: streamedRelevance ?? m.relevance,
                     personalizedTransitAspectsMerged:
                         nextPersonalizedTransitAspectsMerged,
                     followUpConclusion:
@@ -1151,16 +1248,6 @@ export default function ChatSession({
         }
     }, [hasEnoughStars, showCardDraw, cardsToSelect])
 
-    useEffect(() => {
-        if (decision?.type !== "draw") return
-        const hasInterpretationMessage = messages.some(
-            (message) => message.variant === "box",
-        )
-        if (!hasInterpretationMessage) {
-            setShowCardDraw(true)
-        }
-    }, [decision, messages])
-
     // Auto-pick flow: when auto pick is ON and cards need drawing with enough stars
     const runInterpretationForCards = useCallback(
         async (cards: { name: string; isReversed: boolean }[]) => {
@@ -1183,6 +1270,7 @@ export default function ChatSession({
             )
 
             const loadingId = `assistant-interpretation-loading-${Date.now()}`
+            const userPrivacy = lastUserPrivacyRef.current
             setMessages((prev) => [
                 ...prev,
                 {
@@ -1195,6 +1283,10 @@ export default function ChatSession({
                     insights: [],
                     isLoading: true,
                     question: lastQuestion,
+                    ...(userPrivacy?.storageKey && {
+                        questionPrivacyStorageKey: userPrivacy.storageKey,
+                        displayQuestion: userPrivacy.rawText,
+                    }),
                     spreadType: decision?.spreadType ?? null,
                 },
             ])
@@ -1288,6 +1380,13 @@ export default function ChatSession({
     }, [showCardDraw])
 
     useEffect(() => {
+        if (user) return
+        if (interpretationMode !== "horoscope") return
+        setInterpretationMode("auto")
+        saveInterpretationModeToStorage("auto")
+    }, [user, interpretationMode])
+
+    useEffect(() => {
         if (
             !autoPickOn ||
             !showCardDraw ||
@@ -1360,6 +1459,20 @@ export default function ChatSession({
         }
     }, [])
 
+    const sanitizeHoroscopeDecisionForAuth = useCallback(
+        (decision: ChatDecision): ChatDecision => {
+            if (user || decision.type !== "horoscope") return decision
+            return {
+                ...decision,
+                type: "chat",
+                spreadType: undefined,
+                cardCount: undefined,
+                spreadReason: undefined,
+            }
+        },
+        [user],
+    )
+
     const applyInterpretationModeOverride = useCallback(
         (decision: ChatDecision): ChatDecision => {
             if (interpretationMode === "auto") return decision
@@ -1370,11 +1483,12 @@ export default function ChatSession({
                 return { ...decision, type: "draw" }
             }
             if (interpretationMode === "horoscope") {
+                if (!user) return decision
                 return { ...decision, type: "horoscope" }
             }
             return decision
         },
-        [interpretationMode],
+        [interpretationMode, user],
     )
 
     const normalizeDrawDecision = useCallback((decision: ChatDecision) => {
@@ -1418,14 +1532,7 @@ export default function ChatSession({
 
     const isHoroscopeReady = useCallback((data: HoroscopeBirthData | null) => {
         if (!data) return false
-        const hasDate = Boolean(data.day && data.month && data.year)
-        const hasLocation = Boolean(
-            data.country &&
-                data.lat != null &&
-                data.lng != null &&
-                data.timezone != null,
-        )
-        return hasDate && hasLocation
+        return hasHoroscopeBirthDate(data)
     }, [])
 
     const hasBirthDate = useCallback((data: HoroscopeBirthData | null) => {
@@ -1487,6 +1594,7 @@ export default function ChatSession({
             questionText: string,
             transit?: HoroscopeTransitData | null,
         ) => {
+            if (!user) return
             const normalizedBirth = ensureBirthTimeDefaults(birth) ?? birth
             setIsInterpreting(true)
             const loadingId = `assistant-horoscope-loading-${Date.now()}`
@@ -1510,6 +1618,7 @@ export default function ChatSession({
                         ? withoutForms.slice(0, -1)
                         : withoutForms
                 const pendingAspect = pendingAspectDetailRef.current
+                const userPrivacy = lastUserPrivacyRef.current
                 return [
                     ...withoutBridgeLoading,
                     {
@@ -1519,6 +1628,10 @@ export default function ChatSession({
                         variant: "horoscope" as const,
                         isLoading: true,
                         question: questionText,
+                        ...(userPrivacy?.storageKey && {
+                            questionPrivacyStorageKey: userPrivacy.storageKey,
+                            displayQuestion: userPrivacy.rawText,
+                        }),
                         horoscopeBirthData: normalizedBirth,
                         ...(pendingAspect && {
                             sourceAspectKey: pendingAspect.aspectKey,
@@ -1572,6 +1685,7 @@ export default function ChatSession({
             horoscopeSystem,
             locale,
             submitHoroscope,
+            user,
         ],
     )
 
@@ -1579,6 +1693,7 @@ export default function ChatSession({
         (messageId: string) => {
             const msg = messages.find((m) => m.id === messageId)
             if (!msg || msg.variant !== "horoscope" || !msg.chartData) return
+            if (!user) return
 
             const birth = chartDataToBirth(
                 msg.chartData as Record<string, unknown>,
@@ -1612,6 +1727,7 @@ export default function ChatSession({
                               ...m,
                               text: "",
                               aspectInsights: undefined,
+                              relevance: undefined,
                               sourceAspectKey: undefined,
                               sourceAspectEvent: undefined,
                               personalizedTransitAspectsMerged: null,
@@ -1659,7 +1775,13 @@ export default function ChatSession({
                     : null,
             })
         },
-        [buildHoroscopeConversationContext, locale, messages, submitHoroscope],
+        [
+            buildHoroscopeConversationContext,
+            locale,
+            messages,
+            submitHoroscope,
+            user,
+        ],
     )
 
     const regenerateTarotAt = useCallback(
@@ -1794,6 +1916,7 @@ export default function ChatSession({
                                       null,
                                   text: cached.text,
                                   aspectInsights: cached.aspectInsights,
+                                  relevance: cached.relevance,
                                   followUpConclusion: cached.followUpConclusion,
                                   followUpSuggestions:
                                       cached.followUpSuggestions,
@@ -1804,6 +1927,8 @@ export default function ChatSession({
                 )
                 return
             }
+
+            if (!user) return
 
             const birth = chartDataToBirth(
                 msg.chartData as Record<string, unknown>,
@@ -1828,6 +1953,7 @@ export default function ChatSession({
                 chartData: chartDataObj,
                 text: msg.text ?? "",
                 aspectInsights: msg.aspectInsights,
+                relevance: msg.relevance,
                 personalizedTransitAspects:
                     msg.personalizedTransitAspects ?? null,
                 personalizedTransitAspectsMerged:
@@ -1850,6 +1976,7 @@ export default function ChatSession({
                               ...m,
                               text: "",
                               aspectInsights: undefined,
+                              relevance: undefined,
                               personalizedTransitAspectsMerged: null,
                               followUpConclusion: undefined,
                               followUpSuggestions: undefined,
@@ -1899,7 +2026,13 @@ export default function ChatSession({
                     : null,
             })
         },
-        [buildHoroscopeConversationContext, locale, messages, submitHoroscope],
+        [
+            buildHoroscopeConversationContext,
+            locale,
+            messages,
+            submitHoroscope,
+            user,
+        ],
     )
 
     const handleHoroscopeInput = useCallback(
@@ -1908,17 +2041,20 @@ export default function ChatSession({
             options: {
                 appendUserMessage?: boolean
                 birthDetailsOnly?: boolean
+                preparedUserMessage?: ChatMessage
             } = {},
         ) => {
             const trimmed = value.trim()
             if (!trimmed) return
+            if (!user) return
             setConsulting(true)
             try {
                 const appendUserMessage = options.appendUserMessage !== false
                 if (appendUserMessage) {
+                    const preparedUserMessage = options.preparedUserMessage
                     setMessages((prev) => [
                         ...prev,
-                        {
+                        preparedUserMessage ?? {
                             id: `user-${Date.now()}`,
                             role: "user",
                             text: trimmed,
@@ -1957,9 +2093,16 @@ export default function ChatSession({
                 const storedBirth = loadBirthFromStorage()
                 const currentBirth = extractedHasBirthDate
                     ? horoscopeBirth
-                    : storedBirth ?? horoscopeBirth
+                    : (storedBirth ?? horoscopeBirth)
                 const nextBirth = mergeHoroscopeBirth(currentBirth, extracted)
-                setHoroscopeBirth(nextBirth)
+                const mergedWithProfile = mergeHoroscopeBirthWithProfile(
+                    nextBirth,
+                    user ? profile : null,
+                )
+                const birthToUse = applyEphemerisLocationTimeDefaults(
+                    mergedWithProfile,
+                )
+                setHoroscopeBirth(birthToUse)
 
                 if (
                     extracted?.systemPreference &&
@@ -1974,12 +2117,11 @@ export default function ChatSession({
                     setHoroscopeSystem(
                         getDefaultAstrologySystem(
                             locale,
-                            nextBirth?.country ?? undefined,
+                            birthToUse.country ?? undefined,
                         ) as "western_tropical" | "vedic_sidereal",
                     )
                 }
 
-                const birthToUse = nextBirth
                 const ready = isHoroscopeReady(birthToUse)
                 const transitMentioned = Boolean(extracted?.transit?.mentioned)
                 const hasTransitFromExtract =
@@ -1995,11 +2137,11 @@ export default function ChatSession({
                               year: extracted!.transit!.year!,
                               hour: null,
                               minute: null,
-                              timezone: nextBirth.timezone,
-                              lat: nextBirth.lat,
-                              lng: nextBirth.lng,
-                              country: nextBirth.country,
-                              state: nextBirth.state,
+                              timezone: birthToUse.timezone,
+                              lat: birthToUse.lat,
+                              lng: birthToUse.lng,
+                              country: birthToUse.country,
+                              state: birthToUse.state,
                           }
                         : horoscopeTransit
                 if (hasTransitFromExtract) {
@@ -2073,18 +2215,21 @@ export default function ChatSession({
             spendStars,
             tHoroscope,
             horoscopeTransit,
+            user,
+            profile,
         ],
     )
 
     const handleUserDateFormSubmit = useCallback(
         async (value: HoroscopeBirthData) => {
-            setHoroscopeBirth(value)
-            // Inline form now auto-saves on submit; mirror persisted state
-            // into the birth-info trigger immediately.
-            setSavedBirth(loadBirthFromStorage() ?? value)
+            if (!user) return
+            const merged = mergeHoroscopeBirthWithProfile(value, profile)
+            const normalized = applyEphemerisLocationTimeDefaults(merged)
+            setHoroscopeBirth(normalized)
+            setSavedBirth(loadBirthFromStorage() ?? normalized)
             const questionText =
                 horoscopeQuestion || lastQuestion || "General horoscope reading"
-            if (!isHoroscopeReady(value)) {
+            if (!isHoroscopeReady(normalized)) {
                 return
             }
             const starOk = spendStars(1)
@@ -2093,7 +2238,11 @@ export default function ChatSession({
                 setInsufficientStarsType("horoscope")
                 return
             }
-            await runHoroscopeReading(value, questionText, horoscopeTransit)
+            await runHoroscopeReading(
+                normalized,
+                questionText,
+                horoscopeTransit,
+            )
         },
         [
             horoscopeQuestion,
@@ -2102,6 +2251,8 @@ export default function ChatSession({
             runHoroscopeReading,
             spendStars,
             horoscopeTransit,
+            user,
+            profile,
         ],
     )
 
@@ -2123,11 +2274,25 @@ export default function ChatSession({
                     text: m.text,
                 }))
             const contextSummary = buildSessionContextSummary(messages)
-            const modeForApi =
+            let modeForApi =
                 interpretationMode !== "auto" ? interpretationMode : undefined
+            if (!user && modeForApi === "horoscope") {
+                modeForApi = undefined
+            }
+
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+            }
+            const {
+                data: { session },
+            } = await supabase.auth.getSession()
+            if (session?.access_token) {
+                headers.Authorization = `Bearer ${session.access_token}`
+            }
+
             const response = await fetch("/api/chat", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 body: JSON.stringify({
                     question: value,
                     history,
@@ -2163,11 +2328,7 @@ export default function ChatSession({
             if (!parsed) throw new Error("Invalid decision payload")
             return parsed
         },
-        [
-            messages,
-            parseDecision,
-            interpretationMode,
-        ],
+        [messages, parseDecision, interpretationMode, user],
     )
 
     const streamAssistantResponse = useCallback(
@@ -2293,7 +2454,10 @@ export default function ChatSession({
 
     const proceedReadAloud = useCallback(
         async (id: string, text: string) => {
-            const trimmed = (text?.trim() ?? "").slice(0, TTS_MAX_LENGTH)
+            const trimmed = (unmask(text)?.trim() ?? "").slice(
+                0,
+                TTS_MAX_LENGTH,
+            )
             if (!trimmed) return
 
             if (readAloudAudioRef.current) {
@@ -2348,7 +2512,7 @@ export default function ChatSession({
                 )
             }
         },
-        [locale, tHome, spendStars],
+        [locale, tHome, spendStars, unmask],
     )
 
     const handleReadAloud = useCallback(
@@ -2438,6 +2602,16 @@ export default function ChatSession({
             if (!trimmed) return
             if (consulting || isInterpreting) return
 
+            const lastUserMsg = [...baseMessages]
+                .reverse()
+                .find((m) => m.role === "user")
+            if (lastUserMsg) {
+                lastUserPrivacyRef.current = {
+                    storageKey: lastUserMsg.privacyStorageKey,
+                    rawText: lastUserMsg.displayText,
+                }
+            }
+
             setEditingMessageId(null)
             setEditingDraft("")
             setQuestion("")
@@ -2460,6 +2634,9 @@ export default function ChatSession({
                 },
             ])
 
+            /** Set after classification so abort mid-stream can still open the draw UI for tarot. */
+            let flowDecision: ChatDecision | null = null
+
             try {
                 const history = baseMessages.slice(0, -1).map((m) => ({
                     role: m.role,
@@ -2475,8 +2652,10 @@ export default function ChatSession({
                     history,
                     savedBirthInfo,
                 )
+                nextDecision = sanitizeHoroscopeDecisionForAuth(nextDecision)
                 nextDecision = applyInterpretationModeOverride(nextDecision)
                 nextDecision = normalizeDrawDecision(nextDecision)
+                flowDecision = nextDecision
                 setDecision(nextDecision)
                 const assistantText = await streamAssistantResponse({
                     question: trimmed,
@@ -2525,6 +2704,9 @@ export default function ChatSession({
                     freezeStoppedPlainMessage(assistantLoadingId)
                     if (consultingLoadingIdRef.current === assistantLoadingId) {
                         consultingLoadingIdRef.current = null
+                    }
+                    if (flowDecision?.type === "draw") {
+                        setShowCardDraw(true)
                     }
                     return
                 }
@@ -2556,6 +2738,7 @@ export default function ChatSession({
             hasBirthDate,
             isInterpreting,
             normalizeDrawDecision,
+            sanitizeHoroscopeDecisionForAuth,
             streamAssistantResponse,
         ],
     )
@@ -2577,7 +2760,7 @@ export default function ChatSession({
         const target = messages[messageIndex]
         if (!target || target.role !== "user") return
         setEditingMessageId(target.id)
-        setEditingDraft(target.text)
+        setEditingDraft(target.displayText ?? target.text)
     }
 
     const handleCancelEdit = () => {
@@ -2585,22 +2768,82 @@ export default function ChatSession({
         setEditingDraft("")
     }
 
-    const handleSendEditAt = (messageIndex: number) => {
+    const handleSendEditAt = async (messageIndex: number) => {
         if (consulting || isInterpreting) return
         const target = messages[messageIndex]
         if (!target || target.role !== "user") return
         const trimmed = (editingDraft ?? "").trim()
         if (!trimmed) return
 
-        const baseMessages = messages
-            .slice(0, messageIndex + 1)
-            .map((m, idx) =>
-                idx === messageIndex ? { ...m, text: trimmed } : m,
+        setEditingMessageId(null)
+        setEditingDraft("")
+
+        setMessages((prev) =>
+            prev.map((m, idx) =>
+                idx === messageIndex
+                    ? {
+                          ...m,
+                          text: trimmed,
+                          displayText: trimmed,
+                          isSanitizing: true,
+                          privacyRedacted: false,
+                          privacyStorageKey: undefined,
+                          privacyRedactionTypes: undefined,
+                      }
+                    : m,
+            ),
+        )
+
+        try {
+            const prepared = await prepareUserSubmission(trimmed, {
+                messageId: target.id,
+            })
+            const editedUserMessage: ChatMessage = {
+                ...target,
+                ...prepared.userMessage,
+                isSanitizing: false,
+                // Non-redacted prepareUserSubmission omits displayText; spreading
+                // target would otherwise keep a stale displayText while text updates.
+                ...(!prepared.redacted
+                    ? {
+                          displayText: trimmed,
+                          // Clear privacy pointers so persisted messages + refresh
+                          // do not rehydrate stale sessionStorage over the new text.
+                          privacyStorageKey: undefined,
+                          privacyRedacted: false,
+                          privacyRedactionTypes: undefined,
+                      }
+                    : {}),
+            }
+            if (!prepared.redacted && target.privacyStorageKey) {
+                removeRawPromptFromSession(target.privacyStorageKey)
+            }
+            setMessages((prev) =>
+                prev.map((m, idx) =>
+                    idx === messageIndex ? editedUserMessage : m,
+                ),
             )
-        void runDecisionFlowFromMessages({
-            baseMessages,
-            questionText: trimmed,
-        })
+            // Build the snapshot synchronously here (instead of inside the
+            // setMessages updater above) because React 18 may not have
+            // executed that updater yet by the time we call
+            // runDecisionFlowFromMessages — and that flow REPLACES the
+            // messages array with [...baseMessages, loadingAssistant], so an
+            // empty baseSnapshot would wipe out the just-edited user bubble.
+            const baseSnapshot: ChatMessage[] = [
+                ...messages.slice(0, messageIndex),
+                editedUserMessage,
+            ]
+            void runDecisionFlowFromMessages({
+                baseMessages: baseSnapshot,
+                questionText: prepared.sanitized,
+            })
+        } catch {
+            setMessages((prev) =>
+                prev.map((m, idx) =>
+                    idx === messageIndex ? { ...m, isSanitizing: false } : m,
+                ),
+            )
+        }
     }
 
     const applySuggestedQuestion = (value: string) => {
@@ -2632,17 +2875,18 @@ export default function ChatSession({
     }
 
     const handleShare = async (id: string, text: string) => {
+        const unmaskedText = unmask(text)
         try {
             if (navigator.share) {
                 await navigator.share({
                     title: "AskingFate",
-                    text,
+                    text: unmaskedText,
                 })
                 setNotice(id, "Shared.")
                 return
             }
             if (navigator.clipboard) {
-                await navigator.clipboard.writeText(text)
+                await navigator.clipboard.writeText(unmaskedText)
                 setNotice(id, "Copied.")
                 return
             }
@@ -2653,9 +2897,10 @@ export default function ChatSession({
     }
 
     const handleReport = (id: string, text: string) => {
+        const unmaskedText = unmask(text)
         const subject = encodeURIComponent("Report AI response")
         const body = encodeURIComponent(
-            `Message:\n${text}\n\nPlease describe the issue:`,
+            `Message:\n${unmaskedText}\n\nPlease describe the issue:`,
         )
         window.location.href = `mailto:admin@askingfate.com?subject=${subject}&body=${body}`
         setNotice(id, "Report draft opened.")
@@ -2667,6 +2912,9 @@ export default function ChatSession({
             options: {
                 appendUserMessage?: boolean
                 forceChatOnly?: boolean
+                preparedUserMessage?: ChatMessage
+                /** Prior conversation turns for /api/chat when user msg was already appended (avoids stale closure). */
+                decisionHistory?: { role: "user" | "assistant"; text: string }[]
             } = {},
         ) => {
             const trimmed = value.trim()
@@ -2684,9 +2932,10 @@ export default function ChatSession({
             consultingLoadingIdRef.current = assistantLoadingId
 
             if (shouldAppendUserMessage) {
+                const preparedUserMessage = options.preparedUserMessage
                 setMessages((prev) => [
                     ...prev,
-                    {
+                    preparedUserMessage ?? {
                         id: `user-${Date.now()}`,
                         role: "user",
                         text: trimmed,
@@ -2710,14 +2959,19 @@ export default function ChatSession({
                 },
             ])
 
+            /** After classification so abort mid-stream can still open the draw UI for tarot. */
+            let flowDecision: ChatDecision | null = null
+
             try {
                 const history =
-                    shouldAppendUserMessage || messages.length === 0
-                        ? undefined
-                        : messages.slice(0, -1).map((m) => ({
-                              role: m.role,
-                              text: m.text,
-                          }))
+                    options.decisionHistory !== undefined
+                        ? options.decisionHistory
+                        : shouldAppendUserMessage || messages.length === 0
+                          ? undefined
+                          : messages.slice(0, -1).map((m) => ({
+                                role: m.role,
+                                text: m.text,
+                            }))
                 const savedBirth = loadBirthFromStorage()
                 const savedBirthInfo = hasBirthDate(savedBirth)
                     ? "saved_profile_in_action_trigger"
@@ -2728,6 +2982,7 @@ export default function ChatSession({
                     history,
                     savedBirthInfo,
                 )
+                nextDecision = sanitizeHoroscopeDecisionForAuth(nextDecision)
                 nextDecision = applyInterpretationModeOverride(nextDecision)
                 if (options.forceChatOnly) {
                     nextDecision = {
@@ -2739,6 +2994,7 @@ export default function ChatSession({
                     }
                 }
                 nextDecision = normalizeDrawDecision(nextDecision)
+                flowDecision = nextDecision
                 setDecision(nextDecision)
                 const assistantText = await streamAssistantResponse({
                     question: trimmed,
@@ -2788,6 +3044,9 @@ export default function ChatSession({
                     if (consultingLoadingIdRef.current === assistantLoadingId) {
                         consultingLoadingIdRef.current = null
                     }
+                    if (flowDecision?.type === "draw") {
+                        setShowCardDraw(true)
+                    }
                     return
                 }
 
@@ -2817,6 +3076,7 @@ export default function ChatSession({
             hasBirthDate,
             messages,
             normalizeDrawDecision,
+            sanitizeHoroscopeDecisionForAuth,
             streamAssistantResponse,
         ],
     )
@@ -2835,6 +3095,104 @@ export default function ChatSession({
             })
         }
     }, [sessionId, decision, messages, startDecisionFlow])
+
+    // Rehydrate raw prompts from sessionStorage so the UI shows the user's
+    // original wording while the persisted/text fields stay redacted.
+    const hasRehydratedPrivacyRef = useRef(false)
+    useEffect(() => {
+        if (hasRehydratedPrivacyRef.current) return
+        if (typeof window === "undefined") return
+        if (!messages.length) return
+        const sessionAliases = loadSessionAliases(sessionId)
+        if (sessionAliases.length) {
+            setPrivacyAliases((prev) =>
+                prev.length === sessionAliases.length ? prev : sessionAliases,
+            )
+        }
+        let mutated = false
+        const next = messages.map((m) => {
+            const userRaw = m.privacyStorageKey
+                ? loadRawPromptFromSession(m.privacyStorageKey)
+                : null
+            const questionRaw = m.questionPrivacyStorageKey
+                ? loadRawPromptFromSession(m.questionPrivacyStorageKey)
+                : null
+            if (!userRaw && !questionRaw) return m
+            const update: ChatMessage = { ...m }
+            if (userRaw && !update.displayText) {
+                update.displayText = userRaw
+                mutated = true
+            }
+            if (questionRaw && !update.displayQuestion) {
+                update.displayQuestion = questionRaw
+                mutated = true
+            }
+            return update
+        })
+        hasRehydratedPrivacyRef.current = true
+        const sourceMessages = mutated ? next : messages
+        if (mutated) setMessages(next)
+        const lastUser = [...sourceMessages]
+            .reverse()
+            .find((m) => m.role === "user" && m.privacyStorageKey)
+        if (lastUser?.privacyStorageKey) {
+            lastUserPrivacyRef.current = {
+                storageKey: lastUser.privacyStorageKey,
+                rawText:
+                    lastUser.displayText ??
+                    loadRawPromptFromSession(lastUser.privacyStorageKey) ??
+                    undefined,
+            }
+        }
+    }, [messages, sessionId])
+
+    /**
+     * Sanitize a user-typed value before it reaches the backend, persists in
+     * the database, or is sent to the AI. The original raw text stays only on
+     * this device, in `sessionStorage`, so the UI can keep displaying it.
+     */
+    const prepareUserSubmission = useCallback(
+        async (rawValue: string, options: { messageId?: string } = {}) => {
+            const result = await sanitizePromptOnClient(rawValue, {
+                sessionId: sessionId ?? "",
+                locale,
+            })
+            if (result.aliases.length) {
+                setPrivacyAliases(result.aliases)
+            }
+            const userMessageId = options.messageId ?? `user-${Date.now()}`
+            let privacyStorageKey: string | undefined
+            if (result.redacted) {
+                privacyStorageKey = buildPrivacyStorageKey(userMessageId)
+                saveRawPromptToSession(privacyStorageKey, rawValue)
+            }
+            const userMessage: ChatMessage = {
+                id: userMessageId,
+                role: "user",
+                text: result.sanitized,
+                isSanitizing: false,
+                ...(privacyStorageKey && {
+                    displayText: rawValue,
+                    privacyStorageKey,
+                    privacyRedacted: true,
+                    privacyRedactionTypes: result.redactionTypes,
+                }),
+            }
+            lastUserPrivacyRef.current = {
+                storageKey: privacyStorageKey,
+                rawText: result.redacted ? rawValue : undefined,
+            }
+            return {
+                rawValue,
+                sanitized: result.sanitized,
+                userMessage,
+                privacyStorageKey,
+                redactionTypes: result.redactionTypes as PromptRedactionType[],
+                redacted: result.redacted,
+            }
+        },
+        [locale, sessionId],
+    )
 
     const handleSubmit = async (value: string) => {
         if (showCardDraw && cardsToSelect > 0 && hasEnoughStars === true) {
@@ -2855,19 +3213,66 @@ export default function ChatSession({
                 return
             }
         }
-        if (isHoroscopeIntakeActive) {
-            await handleHoroscopeInput(value, {
-                birthDetailsOnly: true,
+        const trimmed = value.trim()
+        if (!trimmed) return
+        setQuestion("")
+
+        const userId = `user-${Date.now()}`
+        let decisionHistory: { role: "user" | "assistant"; text: string }[] = []
+
+        setMessages((prev) => {
+            decisionHistory = prev.map((m) => ({
+                role: m.role,
+                text: m.text,
+            }))
+            return [
+                ...prev,
+                {
+                    id: userId,
+                    role: "user",
+                    text: trimmed,
+                    displayText: trimmed,
+                    isSanitizing: true,
+                },
+            ]
+        })
+
+        try {
+            const prepared = await prepareUserSubmission(trimmed, {
+                messageId: userId,
             })
-            setQuestion("")
-            return
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === userId
+                        ? { ...prepared.userMessage, isSanitizing: false }
+                        : m,
+                ),
+            )
+
+            if (isHoroscopeIntakeActive) {
+                await handleHoroscopeInput(prepared.sanitized, {
+                    birthDetailsOnly: true,
+                    appendUserMessage: false,
+                })
+                return
+            }
+            if (horoscopeQuestion || horoscopeBirth) {
+                await handleHoroscopeInput(prepared.sanitized, {
+                    appendUserMessage: false,
+                })
+                return
+            }
+            await startDecisionFlow(prepared.sanitized, {
+                appendUserMessage: false,
+                decisionHistory,
+            })
+        } catch {
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === userId ? { ...m, isSanitizing: false } : m,
+                ),
+            )
         }
-        if (horoscopeQuestion || horoscopeBirth) {
-            await handleHoroscopeInput(value)
-            setQuestion("")
-            return
-        }
-        await startDecisionFlow(value)
     }
 
     const handleCardsSelected = useCallback(
@@ -2964,15 +3369,12 @@ export default function ChatSession({
         target?.scrollIntoView({ behavior: "smooth", block: "start" })
     }
 
-    const handlePickAll = (cardsToSelect: number) => {
-        if (pickFn) {
-            pickFn(cardsToSelect)
-        }
-    }
-
     const handleCardsToSelectChange = useCallback(
         (nextCount: number) => {
-            const boundedCount = Math.max(1, Math.min(10, Math.floor(nextCount)))
+            const boundedCount = Math.max(
+                1,
+                Math.min(10, Math.floor(nextCount)),
+            )
             setCardCountOverride(
                 boundedCount === defaultCardsToSelect ? null : boundedCount,
             )
@@ -3327,7 +3729,6 @@ export default function ChatSession({
                         cardsToSelect={cardsToSelect}
                         cardUi={cardUi}
                         onScrollToDraw={handleScrollToDraw}
-                        onPickAll={() => handlePickAll(cardsToSelect)}
                         intakeMode={isHoroscopeIntakeActive}
                         intakeHelperText={tActionTrigger("birthTimeHelper")}
                         currentLocationLabel={formattedCurrentLocationLabel}
@@ -3346,7 +3747,10 @@ export default function ChatSession({
     )
 
     return (
-        <div className='w-full h-full min-h-[calc(100dvh-65px)] pb-10 flex flex-col overflow-hidden relative'>
+        <div
+            className='w-full h-full min-h-[calc(100dvh-65px)] flex flex-col overflow-hidden relative'
+            style={{ paddingBottom: fixedBarHeight || 40 }}
+        >
             {shouldShowHero && (
                 <div
                     className={`flex-1 flex items-center justify-center px-6 ${
@@ -3408,6 +3812,7 @@ export default function ChatSession({
                 horoscopeBirth={horoscopeBirth}
                 currentLocationFallback={currentLocationFallback}
                 isHoroscopeIntakeActive={isHoroscopeIntakeActive}
+                profileHasBirthDate={Boolean(user?.id && profile?.birth_date)}
                 isCheckingStars={isCheckingStars}
                 checkingStarsText={tHome("checkingStars")}
                 showInsufficientStars={showInsufficientStars}
@@ -3436,6 +3841,8 @@ export default function ChatSession({
                 onReport={handleReport}
                 onShare={handleShare}
                 onReadAloud={handleReadAloud}
+                unmask={unmask}
+                privacyAliases={privacyAliases}
                 readAloudLoadingMessageId={readAloudLoadingMessageId}
                 readAloudPlayingMessageId={readAloudPlayingMessageId}
                 lastAssistantMessageRef={lastAssistantMessageRef}
@@ -3473,8 +3880,12 @@ export default function ChatSession({
                 </div>
             </div>
             {isInputFixed && (
-                <div className='fixed bottom-0 left-0 right-0 z-30'>
+                <div
+                    ref={fixedBarRef}
+                    className='fixed bottom-0 left-0 right-0 z-30'
+                >
                     {inputSection}
+                    <CookiesBanner inline />
                 </div>
             )}
         </div>

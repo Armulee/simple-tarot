@@ -9,6 +9,7 @@ import { AuthProvider } from "@/contexts/auth-context"
 import { Navbar } from "@/components/navbar"
 import "../globals.css"
 import Footer from "@/components/footer/footer"
+import { CookiesBanner } from "@/components/cookies-banner"
 import CosmicStars from "@/components/cosmic-stars"
 import { Toaster } from "sonner"
 import { BetaToaster } from "@/components/beta-toaster"
@@ -150,10 +151,15 @@ export default async function RootLayout({
                             <TarotProvider>
                                 <div className='min-h-screen flex flex-col home-gradient relative'>
                                     <Navbar locale={locale} />
-                                    <main className='pt-16 min-h-[calc(100dvh-64px)] h-full relative'>
-                                        <Suspense fallback={null}>
-                                            {children}
-                                        </Suspense>
+                                    <main className='flex flex-1 flex-col pt-16 min-h-[calc(100dvh-64px)] relative min-h-0'>
+                                        <div className='flex min-h-0 min-w-0 flex-1 flex-col'>
+                                            <Suspense fallback={null}>
+                                                <div className='flex min-h-0 flex-1 flex-col'>
+                                                    {children}
+                                                </div>
+                                            </Suspense>
+                                        </div>
+                                        <CookiesBanner />
                                     </main>
                                     <Footer />
                                 </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useMemo, useRef } from "react"
+import { useEffect, useLayoutEffect, useState, useMemo, useRef } from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
@@ -11,14 +11,20 @@ import HomeQuickCards from "@/components/home/home-quick-cards"
 import { ConsultingBadge } from "@/components/consulting-badge"
 import {
     loadInterpretationModeFromStorage,
+    saveInterpretationModeToStorage,
     type InterpretationMode,
 } from "@/lib/interpretation-mode-storage"
 import { useStarConsent } from "@/components/star-consent"
-import { CookiesBanner } from "@/components/cookies-banner"
 import {
     detectInputLanguage,
     isSupportedLocale,
 } from "@/lib/detect-input-language"
+import { sanitizePromptOnClient } from "@/lib/privacy/sanitize-client"
+import {
+    buildPrivacyStorageKey,
+    saveRawPromptToSession,
+} from "@/lib/privacy/prompt-redaction"
+import { CookiesBanner } from "@/components/cookies-banner"
 import ActionTrigger from "@/components/chat/action-trigger"
 import BirthInfoModal from "@/components/chat/birth-info-modal"
 import {
@@ -42,35 +48,24 @@ export default function Home() {
     const locale = useLocale()
     const router = useRouter()
     const { user } = useAuth()
-    const {
-        cookieConsent,
-        acceptAllCookies,
-        rejectAllCookies,
-        saveCookiePreferences,
-        ageGateState,
-        noticeAcknowledged,
-        hasAgeGateAccess,
-        show,
-    } = useStarConsent()
+    const { cookieConsent, ageGateState } = useStarConsent()
     const [question, setQuestion] = useState("")
     const [isLinking, setIsLinking] = useState(false)
     const [linkingQuestion, setLinkingQuestion] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [showLearnMore, setShowLearnMore] = useState(false)
+    // Must match `load*FromStorage()` when `window` is undefined (SSR) so the
+    // first client render hydrates; read localStorage in useLayoutEffect below.
     const [interpretationMode, setInterpretationMode] =
-        useState<InterpretationMode>(() => loadInterpretationModeFromStorage())
+        useState<InterpretationMode>("auto")
     const inputContainerRef = useRef<HTMLDivElement>(null)
     const fixedBarRef = useRef<HTMLDivElement>(null)
     const [fixedBarHeight, setFixedBarHeight] = useState(0)
     const [showBirthModal, setShowBirthModal] = useState(false)
     const [showUnderAgeBirthWarning, setShowUnderAgeBirthWarning] =
         useState(false)
-    const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(
-        () => loadBirthFromStorage(),
-    )
-    const [autoPickOn, setAutoPickOn] = useState(() =>
-        loadAutoPickFromStorage(),
-    )
+    const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(null)
+    const [autoPickOn, setAutoPickOn] = useState(false)
     const linkingAbortControllerRef = useRef<AbortController | null>(null)
     const linkingRequestIdRef = useRef(0)
     const pendingSessionIdRef = useRef<string | null>(null)
@@ -80,6 +75,12 @@ export default function Home() {
             setShowLearnMore(true)
         }, 3000)
         return () => window.clearTimeout(timer)
+    }, [])
+
+    useLayoutEffect(() => {
+        setInterpretationMode(loadInterpretationModeFromStorage())
+        setSavedBirth(loadBirthFromStorage())
+        setAutoPickOn(loadAutoPickFromStorage())
     }, [])
 
     useEffect(() => {
@@ -132,6 +133,13 @@ export default function Home() {
         saveBirthToStorage(nextBirth)
     }, [ageGateState.birth])
 
+    useEffect(() => {
+        if (user) return
+        if (interpretationMode !== "horoscope") return
+        setInterpretationMode("auto")
+        saveInterpretationModeToStorage("auto")
+    }, [user, interpretationMode])
+
     const handleBirthModalBeforeSubmit = (birth: HoroscopeBirthData) => {
         if (!birth.year || !birth.month || !birth.day) return true
         const age = calculateAgeFromBirthDate({
@@ -170,14 +178,19 @@ export default function Home() {
 
         for (const delay of [0, 300, 1000, 2500, 5000]) {
             if (delay > 0) {
-                await new Promise((resolve) => window.setTimeout(resolve, delay))
+                await new Promise((resolve) =>
+                    window.setTimeout(resolve, delay),
+                )
             }
 
             try {
-                const response = await fetch(`/api/chat-sessions/${sessionId}`, {
-                    method: "DELETE",
-                    headers,
-                })
+                const response = await fetch(
+                    `/api/chat-sessions/${sessionId}`,
+                    {
+                        method: "DELETE",
+                        headers,
+                    },
+                )
                 if (response.ok) {
                     return
                 }
@@ -207,10 +220,6 @@ export default function Home() {
     const createSessionAndRedirect = async (value: string) => {
         const trimmed = value.trim()
         if (!trimmed || isLinking) return
-        if (!noticeAcknowledged || !hasAgeGateAccess) {
-            show("question-input")
-            return
-        }
         linkingRequestIdRef.current += 1
         const requestId = linkingRequestIdRef.current
         const pendingSessionId = createPendingSessionId()
@@ -225,19 +234,44 @@ export default function Home() {
         setLinkingQuestion(trimmed)
         setIsLinking(true)
         try {
+            const sanitizeResult = await sanitizePromptOnClient(trimmed, {
+                sessionId: pendingSessionId,
+                locale,
+                signal: controller.signal,
+            })
+            if (
+                requestId !== linkingRequestIdRef.current ||
+                controller.signal.aborted
+            ) {
+                return
+            }
+            const sanitizedQuestion = sanitizeResult.sanitized || trimmed
+            const userMessageId = `user-${Date.now()}`
+            const privacyStorageKey = sanitizeResult.redacted
+                ? buildPrivacyStorageKey(userMessageId)
+                : undefined
+            if (privacyStorageKey) {
+                saveRawPromptToSession(privacyStorageKey, trimmed)
+            }
             const response = await fetch("/api/chat-sessions/create", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 signal: controller.signal,
                 body: JSON.stringify({
                     id: pendingSessionId,
-                    question: trimmed,
+                    question: sanitizedQuestion,
                     user_id: user?.id ?? null,
                     messages: [
                         {
-                            id: `user-${Date.now()}`,
+                            id: userMessageId,
                             role: "user",
-                            text: trimmed,
+                            text: sanitizedQuestion,
+                            ...(privacyStorageKey && {
+                                privacyStorageKey,
+                                privacyRedacted: true,
+                                privacyRedactionTypes:
+                                    sanitizeResult.redactionTypes,
+                            }),
                         },
                     ],
                 }),
@@ -310,10 +344,6 @@ export default function Home() {
     }
 
     const handleGetStarted = () => {
-        if (!noticeAcknowledged || !hasAgeGateAccess) {
-            show("manual")
-            return
-        }
         createSessionAndRedirect(pickRandomQuestion())
     }
 
@@ -489,16 +519,7 @@ export default function Home() {
                     wrapperClassName='mt-4'
                     inputWrapperClassName='w-full'
                 />
-                <div className='mx-auto w-full max-w-3xl px-4 pb-3 transition-all duration-300'>
-                    <CookiesBanner
-                        visible={cookieBannerVisible}
-                        className='mt-[-8px]'
-                        preferences={cookieConsent.preferences}
-                        onAcceptAll={acceptAllCookies}
-                        onRejectAll={rejectAllCookies}
-                        onSavePreferences={saveCookiePreferences}
-                    />
-                </div>
+                <CookiesBanner inline />
                 <div className='opacity-100'>
                     <Footer />
                 </div>

@@ -65,6 +65,13 @@ export default async function ArticlesPage() {
             iconId: "faq",
             badge: t("badges.faq"),
         },
+        {
+            href: "/articles/privacy-redaction",
+            title: t("items.privacyRedaction.title"),
+            description: t("items.privacyRedaction.description"),
+            iconId: "help",
+            badge: t("badges.privacy"),
+        },
     ] as const
 
     return (

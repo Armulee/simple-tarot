@@ -10,13 +10,13 @@ import AutoHeightTextarea from "./ui/auto-height-textarea"
 import { useTranslations } from "next-intl"
 import InterpretationModeSelector from "@/components/chat/interpretation-mode-selector"
 import type { InterpretationMode } from "@/lib/interpretation-mode-storage"
-import { useStarConsent } from "@/components/star-consent"
 
 const INPUT_BORDER_BY_MODE: Record<InterpretationMode, string> = {
     auto: "border-border/60 focus:border-primary/60 focus:ring-primary/40",
     chat: "border-emerald-400/30 focus:border-emerald-400/60 focus:ring-emerald-400/30",
     tarot: "border-purple-400/30 focus:border-purple-400/60 focus:ring-purple-400/30",
-    horoscope: "border-blue-400/30 focus:border-blue-400/60 focus:ring-blue-400/30",
+    horoscope:
+        "border-blue-400/30 focus:border-blue-400/60 focus:ring-blue-400/30",
 }
 
 const INPUT_GLOW_BY_MODE: Record<InterpretationMode, string> = {
@@ -79,7 +79,6 @@ export default function QuestionInput({
     inputWrapperClassName?: string
 }) {
     const t = useTranslations("QuestionInput")
-    const { noticeAcknowledged, hasAgeGateAccess, show } = useStarConsent()
     // removed unused pathname
     const [internalQuestion, setInternalQuestion] = useState("")
     const [isSmallDevice, setIsSmallDevice] = useState(false)
@@ -106,10 +105,6 @@ export default function QuestionInput({
         const currentValue =
             (question || "").trim() || (defaultValue || "").trim()
         if (currentValue) {
-            if (!noticeAcknowledged || !hasAgeGateAccess) {
-                show("question-input")
-                return
-            }
             if (onSubmit) {
                 void onSubmit(currentValue)
                 return
@@ -215,16 +210,8 @@ export default function QuestionInput({
         }
     }
 
-    const triggerNotice = () => {
-        if (!noticeAcknowledged || !hasAgeGateAccess) {
-            show("question-input")
-        }
-    }
-
     const inputContent = (
-        <div
-            className={`w-full mb-6 ${centered ? "text-center" : "text-left"}`}
-        >
+        <div className={`w-full ${centered ? "text-center" : "text-left"}`}>
             <Label
                 htmlFor={id}
                 className={`block mb-2 text-lg ${centered ? "" : "px-4"}`}
@@ -240,8 +227,6 @@ export default function QuestionInput({
                         placeholder={placeholder || t("placeholder")}
                         className={`relative z-10 w-full pl-4 pr-15 py-2 text-white placeholder:text-white/70 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border ${INPUT_BORDER_BY_MODE[interpretationMode ?? "auto"]} focus:ring-2 rounded-2xl resize-y ${INPUT_GLOW_BY_MODE[interpretationMode ?? "auto"]} resize-none transition-[border-color,box-shadow] duration-500`}
                         onChange={(e) => setQuestion(e.target.value)}
-                        onFocus={triggerNotice}
-                        onClick={triggerNotice}
                         value={question}
                         defaultValue={defaultValue}
                         onKeyDown={handleKeyDown}

@@ -19,10 +19,7 @@ import {
     starSet,
     type StarState,
 } from "@/lib/stars"
-import {
-    hasFullConsentAccess,
-    StarConsentProvider,
-} from "@/components/star-consent"
+import { StarConsentProvider } from "@/components/star-consent"
 import { ReferralProvider } from "@/contexts/referral-context"
 
 interface StarsContextType {
@@ -189,11 +186,6 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             // but we can also proceed if !initialized is checked below
         }
 
-        if (!hasFullConsentAccess()) {
-            setInitialized(false)
-            return
-        }
-
         // Skip API call if already initialized to prevent duplicate calls
         if (!initialized) {
             ;(async () => {
@@ -228,7 +220,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         applyStarState,
     ]) // Only depend on user.id, not the whole user object
 
-    // Initialize stars after consent is accepted
+    // Re-fetch when notice consent is acknowledged (e.g. from settings)
     type NoticeConsentChangedDetail = { acknowledged: boolean }
     useEffect(() => {
         let cancelled = false
@@ -303,7 +295,6 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     // Reconcile periodically and on visibility change / cross-tab events
     useEffect(() => {
         // if (!initialized) return
-        if (!hasFullConsentAccess()) return
         let cancelled = false
         const reconcile = async () => {
             try {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useTranslations, useLocale } from "next-intl"
+import { useTranslations } from "next-intl"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { FreeMode, Mousewheel } from "swiper/modules"
 import { CornerDownRight, MapPin, Sparkles, X } from "lucide-react"
@@ -8,22 +8,6 @@ import "swiper/css"
 import "swiper/css/free-mode"
 import type { HoroscopeBirthData } from "@/types/horoscope"
 import type { CardUiText } from "./types"
-
-function formatBirthDate(
-    birth: HoroscopeBirthData | null,
-    locale: string,
-): string {
-    if (!birth?.day || !birth?.month || !birth?.year) return ""
-    const date = new Date(birth.year, birth.month - 1, birth.day)
-    return date.toLocaleDateString(
-        locale.startsWith("th") ? "th-TH" : "en-US",
-        {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-        },
-    )
-}
 
 type ActionTriggerProps = {
     autoPickOn?: boolean
@@ -35,7 +19,6 @@ type ActionTriggerProps = {
     cardsToSelect?: number
     cardUi?: CardUiText
     onScrollToDraw?: () => void
-    onPickAll?: () => void
     showAutoPick?: boolean
     intakeMode?: boolean
     intakeHelperText?: string
@@ -73,7 +56,6 @@ export default function ActionTrigger({
     cardsToSelect = 0,
     cardUi = DUMMY_CARD_UI,
     onScrollToDraw = () => {},
-    onPickAll = () => {},
     showAutoPick = true,
     intakeMode = false,
     intakeHelperText,
@@ -83,10 +65,10 @@ export default function ActionTrigger({
     onChooseCardInstead = () => {},
 }: ActionTriggerProps) {
     const t = useTranslations("ActionTrigger")
-    const locale = useLocale()
 
-    const birthDateStr = formatBirthDate(savedBirth, locale)
-    const hasBirthDate = Boolean(birthDateStr)
+    const hasBirthDate = Boolean(
+        savedBirth?.day && savedBirth?.month && savedBirth?.year,
+    )
 
     const slides = intakeMode
         ? [
@@ -177,7 +159,7 @@ export default function ActionTrigger({
                       >
                           <CornerDownRight className='size-4' />
                           {hasBirthDate
-                              ? t("birthInfo", { date: birthDateStr })
+                              ? t("editBirthInfo")
                               : t("newBirthInfo")}
                       </button>
                   ),
@@ -199,23 +181,6 @@ export default function ActionTrigger({
                                 </button>
                             ),
                         },
-                        ...(!showInsufficientStars
-                            ? [
-                                  {
-                                      id: "pick-all",
-                                      content: (
-                                          <button
-                                              type='button'
-                                              onClick={onPickAll}
-                                              className={buttonBase}
-                                          >
-                                              <CornerDownRight className='size-4' />
-                                              {cardUi.pickAllCta()}
-                                          </button>
-                                      ),
-                                  },
-                              ]
-                            : []),
                     ]
                   : []),
           ]

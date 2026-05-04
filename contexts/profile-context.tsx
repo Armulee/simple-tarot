@@ -19,6 +19,7 @@ interface ProfileData {
     birth_place: string | null
     job: string | null
     gender: string | null
+    consented_at: string | null
     created_at: string
     updated_at: string
 }

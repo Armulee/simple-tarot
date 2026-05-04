@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useStars } from "@/contexts/stars-context"
-import { useStarConsent } from "@/components/star-consent"
 
 const SPARKLE_COUNT = 6
 const ANIMATION_DURATION_MS = 850
@@ -35,7 +34,6 @@ function generateSparkles(): SparkleStyle[] {
 
 export function StarPill({ size }: { size: "sm" | "md" }) {
     const { stars, initialized, spendTrigger, lastSpendAmount } = useStars()
-    const { noticeAcknowledged, hasAgeGateAccess, show } = useStarConsent()
     const router = useRouter()
     const prevTriggerRef = useRef(spendTrigger)
     const [animating, setAnimating] = useState(false)
@@ -55,12 +53,7 @@ export function StarPill({ size }: { size: "sm" | "md" }) {
     }, [spendTrigger, lastSpendAmount])
 
     const isMd = size === "md"
-    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        if (!noticeAcknowledged || !hasAgeGateAccess) {
-            event.preventDefault()
-            show("star-balance")
-            return
-        }
+    const handleClick = () => {
         router.push("/stars")
     }
 

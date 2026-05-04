@@ -58,12 +58,16 @@
       "monthLabel": "Month",
       "yearLabel": "Year",
       "hourLabel": "Hour",
-      "minuteLabel": "Minute"
+      "minuteLabel": "Minute",
+      "deletingAccount": "Removing account due to age restriction...",
+      "accountDeletedToast": "Your account was removed because you are under 13.",
+      "accountDeletionFailedToast": "We could not finish removing your account. Please contact support."
     },
     "cookies": {
       "bannerTitle": "Cookie preferences",
       "bannerDescription": "We use cookies to improve your experience and analyze traffic.",
       "managePreferences": "Manage Preferences",
+      "closePreferencesMenu": "Close the preferences menu",
       "acceptAll": "Accept All",
       "rejectAll": "Reject All",
       "savePreferences": "Save Preferences",
@@ -144,6 +148,9 @@
     "birthPlace": "Birth Place",
     "birthPlacePlaceholder": "City, Country",
     "birthDate": "Birth Date",
+    "birthDateRequired": "Birth Date *",
+    "birthDateRequiredError": "Birth date is required.",
+    "under13Error": "You must be at least 13 years old.",
     "birthTime": "Birth Time",
     "saveChanges": "Save Changes",
     "saving": "Saving...",
@@ -358,13 +365,38 @@
     "copyPrompt": "Copy prompt",
     "copyPromptSuccess": "Prompt copied to clipboard",
     "copyPromptFailed": "Could not copy prompt",
-    "copyPromptUnavailable": "Copy is not available in this context"
+    "copyPromptUnavailable": "Copy is not available in this context",
+    "privacyRedactedNotice": "Personal details are hidden before processing.",
+    "privacyRedactedPopoverTitle": "About this notice",
+    "privacyRedactedPopoverIntro": "Sensitive details in this message were removed or replaced before it was sent to our servers, saved, or shown to the AI — so private data is not stored in your reading history.",
+    "privacyRedactedPopoverCriteria": {
+      "name": "Names",
+      "email": "Email addresses",
+      "phone": "Phone numbers",
+      "handle": "Social handles",
+      "address": "Street or mailing addresses"
+    },
+    "privacyRedactedReadGuide": "Read the full guide",
+    "privacyHighlightedTooltipTitle": "How will AI see this message",
+    "privacyHighlightedAriaLabel": "Protected {type}: {value}",
+    "privacyHighlightedType": {
+      "person": "Name",
+      "email": "Email",
+      "phone": "Phone number",
+      "handle": "Handle",
+      "address": "Address",
+      "card": "Card",
+      "passport": "Passport",
+      "national_id": "National ID"
+    },
+    "sanitizingPrompt": "Purifying"
   },
   "ActionTrigger": {
     "autoPickLabel": "Auto pick card:",
     "autoPickOn": "on",
     "autoPickOff": "off",
     "newBirthInfo": "New birth info",
+    "editBirthInfo": "Edit birth info",
     "birthInfo": "Birth info: {date}",
     "chooseCardInstead": "Choose card instead",
     "location": "Location: {value}",
@@ -381,7 +413,8 @@
     "auto": "Auto",
     "tarot": "Tarot",
     "horoscope": "Horoscope",
-    "chat": "Chat"
+    "chat": "Chat",
+    "horoscopeLoginRequired": "Sign in to use horoscope"
   },
   "About": {
     "whatIs": "What is",
@@ -1661,6 +1694,10 @@
     "Articles": {
       "title": "Articles & Guides - AskingFate",
       "description": "Documentation-style guides: how to play, share readings, refer friends, create content, help & FAQ."
+    },
+    "PrivacyRedactionArticle": {
+      "title": "Message privacy & PII redaction - AskingFate",
+      "description": "How AskingFate detects personal information in prompts and what the chat notice means."
     }
   },
   "Articles": {
@@ -1674,7 +1711,8 @@
       "earn": "Earn stars",
       "basics": "Basics",
       "support": "Support",
-      "faq": "FAQ"
+      "faq": "FAQ",
+      "privacy": "Privacy"
     },
     "items": {
       "tarot": {
@@ -1704,6 +1742,47 @@
       "faq": {
         "title": "FAQ",
         "description": "Answers to common questions about readings and stars."
+      },
+      "privacyRedaction": {
+        "title": "Message privacy & PII redaction",
+        "description": "What the chat notice means and how we detect personal details in your prompts."
+      }
+    }
+  },
+  "PrivacyRedactionArticle": {
+    "title": "Message privacy & PII redaction",
+    "subtitle": "What the small notice under your message means, what we treat as personal information, and how detection works.",
+    "updated": "May 2026",
+    "onThisPage": "On this page",
+    "sections": {
+      "notice": {
+        "title": "What the notice means",
+        "p1": "If you see “Personal information removed before processing” under your prompt, our system identified details that could identify a person or contact them, and removed or replaced those fragments before the text was processed further.",
+        "p2": "You may still see your original wording on this device when we can restore it from your browser session. Copies that are stored or sent onward use neutral placeholders instead of real names, emails, or numbers."
+      },
+      "criteria": {
+        "title": "What we treat as personal information",
+        "intro": "Detection focuses on common categories of personally identifiable information, including:",
+        "person": "People’s names and identifiable references to individuals",
+        "email": "Email addresses",
+        "phone": "Phone numbers (typically sequences with enough digits to look like a real line)",
+        "handle": "Social or platform handles (for example @username)",
+        "address": "Street or mailing addresses"
+      },
+      "how": {
+        "title": "How detection works",
+        "p1": "When you send a message, we run an automated review that looks for those kinds of patterns and context before the prompt is persisted or passed to the AI.",
+        "p2": "A secondary pass applies rule-based checks (for example obvious email shapes, @handles, and phone-like digit runs) so obvious leaks are still caught if the primary step misses something."
+      },
+      "placeholders": {
+        "title": "Placeholders you might see",
+        "p1": "Sanitized text may contain tokens such as [Person], [Email], [Phone], [Handle], or [Address]. The assistant is instructed to answer helpfully without repeating those tokens or inventing the underlying private facts.",
+        "privacyPolicyLink": "For broader data practices, see our",
+        "privacyPolicy": "Privacy Policy"
+      },
+      "fallback": {
+        "title": "Your privacy beyond this notice",
+        "p1": "This guide explains prompt redaction in chat. For how we handle cookies, accounts, and overall data use, read our Privacy Policy."
       }
     }
   },

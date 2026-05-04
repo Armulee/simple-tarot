@@ -1,8 +1,8 @@
 import { z } from "zod"
 
 /**
- * Schema order matters for streaming: cardInsights and keywords come first
- * so quick insights appear before the main interpretation in the UI.
+ * Schema order matters for streaming: cardInsights first (per-card strip), then
+ * keyMessage (short summary) before keywords and the long interpretation body.
  */
 export const tarotInterpretationSchema = z.object({
     cardInsights: z
@@ -10,15 +10,15 @@ export const tarotInterpretationSchema = z.object({
         .describe(
             "A short 1-sentence meaning for each card in the context of the user's question. Focus on what that specific card contributes to the reading, not the overall answer. Mainly describe the card's meaning as it relates to the question in an impersonal, objective way. Do NOT make it sound like the keyMessage or a summary of the whole reading. Do NOT address the user directly or mention the user as an entity. Do NOT use wording like 'you', 'yourself', 'คุณ', 'ตัวเอง', or similar forms. Do NOT open with hedging feeling phrases like 'may feel', 'might feel', 'อาจจะรู้สึกว่า', or similar soft-openers. Do NOT mention 'this card', 'the card', the card name, or the position label. OUTPUT THIS FIRST. Write in the SAME language as the user's question — never English unless the question is English.",
         ),
+    keyMessage: z
+        .string()
+        .describe(
+            "A short 1-sentence summary of the reading's most important takeaway. Optionally use 2 very short sentences only if needed. This must feel like a concise summary, not a restatement of the full interpretation. OUTPUT IMMEDIATELY AFTER cardInsights so it can stream before keywords and interpretation.",
+        ),
     keywords: z
         .string()
         .describe(
             "Three comma-separated keywords reflecting the overall vibe of the reading.",
-        ),
-    keyMessage: z
-        .string()
-        .describe(
-            "A short 1-sentence summary of the reading's most important takeaway. Optionally use 2 very short sentences only if needed. This must feel like a concise summary, not a restatement of the full interpretation.",
         ),
     interpretation: z
         .string()

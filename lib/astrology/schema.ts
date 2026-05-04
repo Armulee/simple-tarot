@@ -58,6 +58,28 @@ export const horoscopeInterpretationSchema = z.object({
         .describe(
             "Up to 5 concise, specific follow-up questions the user could ask next. Write as user questions.",
         ),
+    relevance: z
+        .array(
+            z.object({
+                label: z
+                    .string()
+                    .describe(
+                        "Life-area label, SAME language as the question. Use one of the canonical domains: Career, Finance, Love, Family, Health, Relationships, Education, Travel, Luck, Spirituality, Reputation, Caution (Thai equivalents allowed when the question is Thai, e.g. 'การงาน', 'การเงิน', 'ความรัก').",
+                    ),
+                pct: z
+                    .number()
+                    .min(0)
+                    .max(100)
+                    .describe(
+                        "Integer percentage 0-100 representing how much this life-area dominates the reading. Pcts across the array MUST sum to 100.",
+                    ),
+            }),
+        )
+        .max(5)
+        .default([])
+        .describe(
+            "Up to 5 dominant life-areas for this reading, used to render a proportional relevance bar. Sorted descending by pct.",
+        ),
 })
 
 export type HoroscopeInterpretation = z.infer<

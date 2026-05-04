@@ -14,6 +14,7 @@ import { FaStar, FaMessage } from "react-icons/fa6"
 import { TbPlayCardStarFilled } from "react-icons/tb"
 import { PiSparkleFill } from "react-icons/pi"
 import { useState, useEffect, useRef } from "react"
+import { useAuth } from "@/hooks/use-auth"
 
 const MODE_ICONS = {
     auto: PiSparkleFill,
@@ -67,6 +68,8 @@ export default function InterpretationModeSelector({
     onChange,
 }: InterpretationModeSelectorProps) {
     const t = useTranslations("InterpretationMode")
+    const { user } = useAuth()
+    const isAuthenticated = Boolean(user)
     const [open, setOpen] = useState(false)
     const [flare, setFlare] = useState(false)
     const isFirstRender = useRef(true)
@@ -128,19 +131,41 @@ export default function InterpretationModeSelector({
                         (mode) => {
                             const Icon = MODE_ICONS[mode]
                             const mt = MODE_THEME[mode]
+                            const horoscopeLocked =
+                                mode === "horoscope" && !isAuthenticated
                             return (
                                 <button
                                     key={mode}
                                     type='button'
-                                    onClick={() => handleSelect(mode)}
-                                    className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                                    disabled={horoscopeLocked}
+                                    title={
+                                        horoscopeLocked
+                                            ? t("horoscopeLoginRequired")
+                                            : undefined
+                                    }
+                                    onClick={() => {
+                                        if (horoscopeLocked) return
+                                        handleSelect(mode)
+                                    }}
+                                    className={`flex w-full flex-col items-start gap-0.5 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                                        horoscopeLocked
+                                            ? "cursor-not-allowed opacity-45"
+                                            : ""
+                                    } ${
                                         value === mode
                                             ? `${mt.activeBg} ${mt.activeText}`
                                             : "text-white/80 hover:bg-white/10 hover:text-white"
                                     }`}
                                 >
-                                    <Icon className='size-4 shrink-0' />
-                                    {t(mode)}
+                                    <span className='flex w-full items-center gap-2'>
+                                        <Icon className='size-4 shrink-0' />
+                                        {t(mode)}
+                                    </span>
+                                    {horoscopeLocked ? (
+                                        <span className='pl-6 text-[11px] leading-tight text-white/45'>
+                                            {t("horoscopeLoginRequired")}
+                                        </span>
+                                    ) : null}
                                 </button>
                             )
                         },

@@ -30,14 +30,13 @@ export const CARD_UI_TEXT: Record<"en" | "th" | "lo", CardUiText> = {
         consumeStar: "Drawing cards will consume 1 star",
         shuffle: "Shuffle",
         pick: "Pick me",
-        cardCount: (cardsToSelect: number) =>
-            `Cards to draw: ${cardsToSelect}`,
+        cardCount: (cardsToSelect: number) => `Cards to draw: ${cardsToSelect}`,
         decreaseCardCount: "Decrease card count",
         increaseCardCount: "Increase card count",
         swipe: "Swipe up on a card to select",
         drawCta: (cardsToSelect: number) =>
             `Scroll to draw card section ${cardsToSelect} cards`,
-        pickAllCta: () => `Pick all for me`,
+        pickAllCta: () => `Pick for me`,
         topUpCta: (cardsToSelect: number) =>
             `Top up to draw ${cardsToSelect} cards`,
         pickAllPlaceholder: "Pick all cards for me",

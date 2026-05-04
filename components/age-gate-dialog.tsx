@@ -289,6 +289,9 @@ export function AgeGateDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <StarsDialog
                 hideCloseButton
+                onEscapeKeyDown={(event) => event.preventDefault()}
+                onPointerDownOutside={(event) => event.preventDefault()}
+                onInteractOutside={(event) => event.preventDefault()}
                 className='relative flex max-h-[92dvh] max-w-[560px] flex-col !overflow-hidden !rounded-[3px] !border-[0.5px] !border-[rgba(200,180,140,0.3)] !bg-[#13121f] !p-0 !shadow-none'
             >
                 <div className='relative z-10 flex min-h-0 h-full w-full flex-1 flex-col'>
