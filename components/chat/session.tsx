@@ -247,6 +247,63 @@ function areStringArraysEqual(
     return true
 }
 
+function normalizeStreamedPerCard(
+    items:
+        | Array<
+              | {
+                    cardName?: string | null
+                    sentence?: string | null
+                }
+              | undefined
+              | null
+          >
+        | undefined
+        | null,
+): ChatMessage["perCard"] | undefined {
+    if (!Array.isArray(items)) return undefined
+    const clean: NonNullable<ChatMessage["perCard"]> = []
+    for (const item of items) {
+        const cardName = item?.cardName?.trim() ?? ""
+        const sentence = item?.sentence?.trim() ?? ""
+        if (!cardName || !sentence) continue
+        clean.push({ cardName, sentence })
+    }
+    return clean.length > 0 ? clean : undefined
+}
+
+function arePerCardEqual(
+    left: ChatMessage["perCard"],
+    right: ChatMessage["perCard"],
+) {
+    if (left === right) return true
+    if (!left || !right) return !left && !right
+    if (left.length !== right.length) return false
+    for (let i = 0; i < left.length; i++) {
+        const a = left[i]
+        const b = right[i]
+        if (!a || !b) return false
+        if (a.cardName !== b.cardName || a.sentence !== b.sentence) return false
+    }
+    return true
+}
+
+/**
+ * The new schema requires exactly 2 follow-up suggestions. Old saved sessions
+ * may have stored 3-4. On initial hydration we drop stale lists so the next
+ * regenerate call repopulates exactly two.
+ */
+function normalizeRestoredMessages(messages: ChatMessage[]): ChatMessage[] {
+    return messages.map((m) => {
+        if (
+            Array.isArray(m.followUpSuggestions) &&
+            m.followUpSuggestions.length !== 2
+        ) {
+            return { ...m, followUpSuggestions: undefined }
+        }
+        return m
+    })
+}
+
 function areRelevanceEqual(
     left: ChatMessage["relevance"],
     right: ChatMessage["relevance"],
@@ -286,6 +343,53 @@ function normalizeRelevance(
         .filter((x): x is { label: string; pct: number } => x !== null)
         .slice(0, 5)
     return clean.length > 0 ? clean : undefined
+}
+
+function normalizeDailyVerdict(
+    verdict:
+        | {
+              mood?: string | null
+              headline?: string | null
+              subtext?: string | null
+              actions?: Array<string | null | undefined> | null
+              watchOut?: string | null
+              focusArea?: string | null
+          }
+        | null
+        | undefined,
+): ChatMessage["dailyVerdict"] | undefined {
+    if (!verdict) return undefined
+    const mood = verdict.mood
+    if (mood !== "good" && mood !== "caution" && mood !== "rest") return undefined
+    const headline = (verdict.headline ?? "").trim()
+    if (!headline) return undefined
+    const subtext = (verdict.subtext ?? "").trim()
+    const actions = (verdict.actions ?? [])
+        .map((a) => (typeof a === "string" ? a.trim() : ""))
+        .filter(Boolean)
+        .slice(0, 3)
+    if (actions.length === 0) return undefined
+    const watchOut = verdict.watchOut?.trim() || undefined
+    const focusArea = verdict.focusArea?.trim() || undefined
+    return { mood, headline, subtext, actions, watchOut, focusArea }
+}
+
+function areDailyVerdictsEqual(
+    a: ChatMessage["dailyVerdict"] | null | undefined,
+    b: ChatMessage["dailyVerdict"] | null | undefined,
+) {
+    if (a === b) return true
+    if (!a || !b) return false
+    if (a.mood !== b.mood) return false
+    if (a.headline !== b.headline) return false
+    if (a.subtext !== b.subtext) return false
+    if ((a.watchOut ?? "") !== (b.watchOut ?? "")) return false
+    if ((a.focusArea ?? "") !== (b.focusArea ?? "")) return false
+    if (a.actions.length !== b.actions.length) return false
+    for (let i = 0; i < a.actions.length; i++) {
+        if (a.actions[i] !== b.actions[i]) return false
+    }
+    return true
 }
 
 export default function ChatSession({
@@ -350,7 +454,9 @@ export default function ChatSession({
     const [showLearnMore, setShowLearnMore] = useState(false)
     const [consulting, setConsulting] = useState(false)
     const [messages, setMessages] = useState<ChatMessage[]>(
-        Array.isArray(initialSession?.messages) ? initialSession.messages : [],
+        Array.isArray(initialSession?.messages)
+            ? normalizeRestoredMessages(initialSession.messages)
+            : [],
     )
     const [decision, setDecision] = useState<ChatDecision | null>(
         initialSession?.decision ?? null,
@@ -515,6 +621,7 @@ export default function ChatSession({
             const insights = object.cardInsights?.filter(
                 (s): s is string => typeof s === "string",
             )
+            const perCard = normalizeStreamedPerCard(object.perCard)
             setMessages((prev) =>
                 prev.map((m) =>
                     m.id === lid
@@ -522,6 +629,10 @@ export default function ChatSession({
                               ...m,
                               keyMessage:
                                   object.keyMessage?.trim() || m.keyMessage,
+                              headline: object.headline?.trim() || m.headline,
+                              subtitle: object.subtitle?.trim() || m.subtitle,
+                              perCard: perCard ?? m.perCard,
+                              nextStep: object.nextStep?.trim() || m.nextStep,
                               text: object.interpretation || m.text,
                               insights: insights ?? m.insights,
                               isLoading: false,
@@ -532,7 +643,7 @@ export default function ChatSession({
                                       typeof s === "string" ? s.trim() : "",
                                   )
                                   .filter(Boolean)
-                                  .slice(0, 4),
+                                  .slice(0, 2),
                               followUpLoading: false,
                           }
                         : m,
@@ -652,6 +763,11 @@ export default function ChatSession({
                 object.aspectInsights,
             )
             const relevance = normalizeRelevance(object.relevance)
+            const dailyVerdict = normalizeDailyVerdict(
+                (object as { dailyVerdict?: unknown }).dailyVerdict as
+                    | Parameters<typeof normalizeDailyVerdict>[0]
+                    | undefined,
+            )
             const suggestions = (
                 object.suggestions?.filter(
                     (s): s is string =>
@@ -671,6 +787,7 @@ export default function ChatSession({
                         text: interpretation,
                         aspectInsights,
                         relevance,
+                        dailyVerdict: dailyVerdict ?? null,
                         personalizedTransitAspects: fullAspects,
                         personalizedTransitAspectsMerged: mergedAspects,
                         followUpConclusion: conclusion ?? undefined,
@@ -701,6 +818,7 @@ export default function ChatSession({
                                 text: interpretation,
                                 aspectInsights,
                                 relevance,
+                                dailyVerdict: dailyVerdict ?? null,
                                 personalizedTransitAspects: fullAspects,
                                 personalizedTransitAspectsMerged:
                                     mergedAspects ?? null,
@@ -766,6 +884,7 @@ export default function ChatSession({
                                 text: cached.text,
                                 aspectInsights: cached.aspectInsights,
                                 relevance: cached.relevance,
+                                dailyVerdict: cached.dailyVerdict ?? null,
                                 followUpConclusion: cached.followUpConclusion,
                                 followUpSuggestions: cached.followUpSuggestions,
                                 isLoading: false,
@@ -829,7 +948,8 @@ export default function ChatSession({
             interpretationObject.suggestions
                 ?.map((s) => (typeof s === "string" ? s.trim() : ""))
                 .filter(Boolean)
-                .slice(0, 4) ?? undefined
+                .slice(0, 2) ?? undefined
+        const perCard = normalizeStreamedPerCard(interpretationObject.perCard)
         setMessages((prev) => {
             const m = prev.find((x) => x.id === lid)
             if (!m) return prev
@@ -837,6 +957,13 @@ export default function ChatSession({
             const nextText = interpretationObject.interpretation ?? m.text ?? ""
             const nextKeyMessage =
                 interpretationObject.keyMessage?.trim() ?? m.keyMessage
+            const nextHeadline =
+                interpretationObject.headline?.trim() ?? m.headline
+            const nextSubtitle =
+                interpretationObject.subtitle?.trim() ?? m.subtitle
+            const nextNextStep =
+                interpretationObject.nextStep?.trim() ?? m.nextStep
+            const nextPerCard = perCard ?? m.perCard
             const nextInsights = insights ?? m.insights
             const nextConclusion =
                 interpretationObject.conclusion?.trim() ?? m.followUpConclusion
@@ -844,6 +971,10 @@ export default function ChatSession({
 
             const changed =
                 nextKeyMessage !== m.keyMessage ||
+                nextHeadline !== m.headline ||
+                nextSubtitle !== m.subtitle ||
+                nextNextStep !== m.nextStep ||
+                !arePerCardEqual(nextPerCard, m.perCard) ||
                 nextText !== m.text ||
                 !areStringArraysEqual(nextInsights, m.insights) ||
                 nextConclusion !== m.followUpConclusion ||
@@ -855,6 +986,10 @@ export default function ChatSession({
                     ? {
                           ...m,
                           keyMessage: nextKeyMessage,
+                          headline: nextHeadline,
+                          subtitle: nextSubtitle,
+                          nextStep: nextNextStep,
+                          perCard: nextPerCard,
                           text: nextText,
                           insights: nextInsights,
                           followUpConclusion: nextConclusion,
@@ -882,6 +1017,11 @@ export default function ChatSession({
         const streamedRelevance = normalizeRelevance(horoscopeObject.relevance)
         const streamedConclusion =
             horoscopeObject.conclusion?.trim() ?? undefined
+        const streamedDailyVerdict = normalizeDailyVerdict(
+            (horoscopeObject as { dailyVerdict?: unknown }).dailyVerdict as
+                | Parameters<typeof normalizeDailyVerdict>[0]
+                | undefined,
+        )
         setMessages((prev) => {
             const m = prev.find((x) => x.id === targetId)
             if (!m) return prev
@@ -904,6 +1044,7 @@ export default function ChatSession({
             const nextConclusion = streamedConclusion ?? m.followUpConclusion
             const nextSuggestions = suggestions ?? m.followUpSuggestions
             const nextRelevance = streamedRelevance ?? m.relevance
+            const nextDailyVerdict = streamedDailyVerdict ?? m.dailyVerdict
 
             const changed =
                 nextText !== m.text ||
@@ -912,7 +1053,8 @@ export default function ChatSession({
                     m.personalizedTransitAspectsMerged ||
                 nextConclusion !== m.followUpConclusion ||
                 !areStringArraysEqual(nextSuggestions, m.followUpSuggestions) ||
-                !areRelevanceEqual(nextRelevance, m.relevance)
+                !areRelevanceEqual(nextRelevance, m.relevance) ||
+                !areDailyVerdictsEqual(nextDailyVerdict, m.dailyVerdict)
             if (!changed) return prev
 
             const nextMessage = {
@@ -920,6 +1062,7 @@ export default function ChatSession({
                 text: nextText,
                 aspectInsights: nextAspectInsights,
                 relevance: nextRelevance,
+                dailyVerdict: nextDailyVerdict,
                 personalizedTransitAspectsMerged:
                     nextPersonalizedTransitAspectsMerged,
                 followUpConclusion: nextConclusion,
@@ -976,7 +1119,8 @@ export default function ChatSession({
             interpretationObject?.suggestions
                 ?.map((s) => (typeof s === "string" ? s.trim() : ""))
                 .filter(Boolean)
-                .slice(0, 4) ?? undefined
+                .slice(0, 2) ?? undefined
+        const perCard = normalizeStreamedPerCard(interpretationObject?.perCard)
 
         setMessages((prev) =>
             prev.map((m) =>
@@ -986,6 +1130,16 @@ export default function ChatSession({
                           keyMessage:
                               interpretationObject?.keyMessage?.trim() ??
                               m.keyMessage,
+                          headline:
+                              interpretationObject?.headline?.trim() ??
+                              m.headline,
+                          subtitle:
+                              interpretationObject?.subtitle?.trim() ??
+                              m.subtitle,
+                          perCard: perCard ?? m.perCard,
+                          nextStep:
+                              interpretationObject?.nextStep?.trim() ??
+                              m.nextStep,
                           text:
                               interpretationObject?.interpretation ??
                               m.text ??
@@ -1027,6 +1181,10 @@ export default function ChatSession({
             horoscopeObject?.interpretation ?? undefined
         const streamedConclusion =
             horoscopeObject?.conclusion?.trim() ?? undefined
+        const streamedDailyVerdict = normalizeDailyVerdict(
+            (horoscopeObject as { dailyVerdict?: unknown } | undefined)
+                ?.dailyVerdict as Parameters<typeof normalizeDailyVerdict>[0] | undefined,
+        )
 
         setMessages((prev) =>
             prev.map((m) => {
@@ -1047,6 +1205,7 @@ export default function ChatSession({
                     text: streamedInterpretation ?? m.text ?? "",
                     aspectInsights: nextAspectInsights,
                     relevance: streamedRelevance ?? m.relevance,
+                    dailyVerdict: streamedDailyVerdict ?? m.dailyVerdict,
                     personalizedTransitAspectsMerged:
                         nextPersonalizedTransitAspectsMerged,
                     followUpConclusion:
@@ -1728,6 +1887,7 @@ export default function ChatSession({
                               text: "",
                               aspectInsights: undefined,
                               relevance: undefined,
+                              dailyVerdict: null,
                               sourceAspectKey: undefined,
                               sourceAspectEvent: undefined,
                               personalizedTransitAspectsMerged: null,
@@ -1799,6 +1959,10 @@ export default function ChatSession({
                         ? {
                               ...m,
                               keyMessage: undefined,
+                              headline: undefined,
+                              subtitle: undefined,
+                              perCard: undefined,
+                              nextStep: undefined,
                               text: "",
                               insights: [],
                               followUpConclusion: undefined,
@@ -1917,6 +2081,7 @@ export default function ChatSession({
                                   text: cached.text,
                                   aspectInsights: cached.aspectInsights,
                                   relevance: cached.relevance,
+                                  dailyVerdict: cached.dailyVerdict ?? null,
                                   followUpConclusion: cached.followUpConclusion,
                                   followUpSuggestions:
                                       cached.followUpSuggestions,
@@ -1954,6 +2119,7 @@ export default function ChatSession({
                 text: msg.text ?? "",
                 aspectInsights: msg.aspectInsights,
                 relevance: msg.relevance,
+                dailyVerdict: msg.dailyVerdict ?? null,
                 personalizedTransitAspects:
                     msg.personalizedTransitAspects ?? null,
                 personalizedTransitAspectsMerged:
@@ -1977,6 +2143,7 @@ export default function ChatSession({
                               text: "",
                               aspectInsights: undefined,
                               relevance: undefined,
+                              dailyVerdict: null,
                               personalizedTransitAspectsMerged: null,
                               followUpConclusion: undefined,
                               followUpSuggestions: undefined,

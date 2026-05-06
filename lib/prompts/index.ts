@@ -130,7 +130,7 @@ ${previousInterpretation}
 
 <follow_up_rules>
 REFERENCE ONLY: <previous_interpretation> and session context exist so you understand topic continuity and what the user is clarifying. They are NOT the answer and NOT evidence for this draw.
-GROUND TRUTH: The authoritative source for this reading is ONLY the current spread in <cards> (and any <card_energies> / <reading_direction> blocks added below). keyMessage, interpretation, conclusion, and cardInsights must follow from THIS draw.
+GROUND TRUTH: The authoritative source for this reading is ONLY the current spread in <cards> (and any <card_energies> / <reading_direction> blocks added below). headline, subtitle, perCard, nextStep, keyMessage, interpretation, conclusion, and cardInsights must follow from THIS draw.
 NO PARROTING: Do NOT copy, quote, or closely paraphrase <previous_interpretation>. Do NOT recycle the prior verdict or advice as if it were new—if the cards align, say so in fresh words tied to the current symbols.
 NO META CALLBACKS: Do NOT say things like "last time", "as before", "continuing from the earlier reading", or "like we said" unless the follow-up question explicitly asks about the prior reading.
 STYLE: Answer the follow-up directly. No card names. No Markdown. Same language as the follow-up question. Output JSON only.
@@ -285,6 +285,7 @@ export function getHoroscopeInterpretationPrompt({
     userMainPoint,
     questionTopic,
     questionLanguage,
+    isSingleDay,
 }: {
     question: string
     systemMode: "western_tropical" | "vedic_sidereal" | "both"
@@ -312,6 +313,7 @@ export function getHoroscopeInterpretationPrompt({
     userMainPoint?: string
     questionTopic?: QuestionTopicResult
     questionLanguage?: string
+    isSingleDay?: boolean
 }) {
     return `<role>
 You are an expert astrologer AI system for 'AskingFate'.
@@ -406,6 +408,36 @@ ${question}
 - relevance.label MUST be one of the canonical domains, written in the SAME language as the output: Career/การงาน, Finance/การเงิน, Love/ความรัก, Family/ครอบครัว, Health/สุขภาพ, Relationships/ความสัมพันธ์, Education/การศึกษา, Travel/การเดินทาง, Luck/โชคลาภ, Spirituality/จิตวิญญาณ, Reputation/ชื่อเสียง, Caution/คำเตือน. Do NOT invent new labels.
 - relevance MUST reflect the actual life-area mix this reading addresses for THIS question. Do NOT pad with unrelated domains; if only 1-2 domains apply, return only those.
 </output_and_language_rules>
+
+${
+    isSingleDay
+        ? `<single_day_verdict_rules>
+This question references EXACTLY ONE calendar day (Question timeframe days = 1, source = ${questionRange.source}).
+You MUST also output a \`dailyVerdict\` object with the following fields, all written in ${questionLanguage || "English"} only:
+
+- mood: exactly one of "good", "caution", "rest".
+  - "good" = supportive flow with mostly positive aspects in the day; the user can take action and start things.
+  - "caution" = high-friction or pressured day with one or more high/medium intensity bad aspects; the user should slow down and be careful.
+  - "rest" = mixed-but-low intensity, scattered, or quiet planetary day; the user should recharge instead of pushing.
+  - Derive the mood from the dominant sentiments + intensities of the personalized transit aspects active on this day.
+
+- headline: a short, punchy verdict line (2-8 words). Plain language only. NO planet names, NO zodiac signs, NO astrology jargon. Example tones: "A clear day to begin", "Pause before reacting", "Soft day, recharge well".
+
+- subtext: 1-2 short sentences describing how the day feels emotionally and energetically. Plain language only. Same forbidden vocabulary as interpretation/conclusion.
+
+- actions: 1-3 SHORT imperative sentences. Concrete things the user can DO that specific day (e.g. "Have the difficult conversation in the morning", "Send the proposal before noon", "Take a walk and rest your eyes"). These are NOT user follow-up questions and MUST NOT end with "?". Each action must be specific and grounded in the day's aspect picture; avoid generic advice like "stay positive".
+
+- watchOut (optional): exactly ONE short sentence cautioning what to avoid that day. Only include when there is a meaningful caution from a bad/high-intensity aspect. Omit otherwise.
+
+- focusArea (optional): a SINGLE canonical life-area label that best summarizes where the day's energy concentrates. MUST come from the same canonical set as relevance.label and MUST be in the SAME language as the output. Pick the single dominant area; omit if the day has no clear focus.
+
+For multi-day, weekly, monthly, or undetermined timeframes (durationDays !== 1, or source = "default_30d" / "ai_inferred"), this rules block is not present and you MUST OMIT \`dailyVerdict\` entirely.
+</single_day_verdict_rules>`
+        : `<single_day_verdict_rules>
+This question is NOT a single-day question (Question timeframe days = ${questionRange.durationDays}, source = ${questionRange.source}).
+You MUST OMIT the \`dailyVerdict\` field entirely. Do not output it as null, empty object, or placeholder.
+</single_day_verdict_rules>`
+}
 
 <privacy_rules>
 ${PRIVACY_REDACTION_PROMPT_RULE}

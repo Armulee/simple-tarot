@@ -1424,6 +1424,10 @@
         "title": "ກຳລັງວິເຄາະໄພ່ຂອງທ່ານ...",
         "subtitle": "ກຳລັງສ້າງຄຳຕີຄວາມສ່ວນບຸກຄົນຂອງທ່ານ..."
       },
+      "perCard": {
+        "singleHeader": "ໄພ່ບອກວ່າ",
+        "multiHeader": "ໄພ່ແຕ່ລະໃບບອກວ່າ"
+      },
       "actionsHeader": "ການຈັດການ",
       "actionsDesc": "ຈັດການ ແລະ ໂຕ້ຕອບກັບການອ່ານຂອງທ່ານ",
       "dialogs": {
@@ -2456,7 +2460,36 @@
     "composerBirthPlaceholder": "ພິມວັນເກີດ ເວລາເກີດ ແລະ ສະຖານທີ່ເກີດໄດ້ເລີຍ ໃຊ້ຮູບແບບວັນທີແບບໃດກໍ່ໄດ້",
     "underAgeWarningTitle": "ບໍ່ສາມາດໃຊ້ວັນເກີດນີ້ໄດ້",
     "underAgeWarningBody": "AskingFate ບໍ່ອະນຸຍາດໃຫ້ຜູ້ໃຊ້ອາຍຸຕ່ຳກວ່າ 13 ປີເຂົ້າໃຊ້ແພລດຟອມ. ວັນເກີດຂອງທ່ານຖືກປ່ຽນກັບໄປເປັນຂໍ້ມູນກ່ອນໜ້ານີ້ແລ້ວ.",
-    "underAgeWarningClose": "ປິດ"
+    "underAgeWarningClose": "ປິດ",
+    "tabs": {
+      "overview": "ພາບລວມ",
+      "aspect": "ແອັສເປັກ",
+      "transit": "ດາວຈອນ"
+    },
+    "verdict": {
+      "moodGood": "ມື້ທີ່ດີ",
+      "moodCaution": "ລະວັງໄວ້",
+      "moodRest": "ມື້ພັກ",
+      "actionsHeading": "ເຮັດໄດ້ເລີຍ",
+      "watchHeading": "ສິ່ງທີ່ຄວນລະວັງ",
+      "focusHeading": "ໂຟກັສມື້ນີ້",
+      "dateRelativeToday": "ມື້ນີ້",
+      "dateRelativeTomorrow": "ມື້ອື່ນ",
+      "dateRelativeYesterday": "ມື້ວານ"
+    },
+    "transit": {
+      "feedTitle": "ດາວຈອນທີ່ກຳລັງເຮັດວຽກ",
+      "showMore": "ເບິ່ງເພີ່ມ",
+      "showLess": "ຫຍໍ້ລົງ",
+      "transitLabel": "ດາວຈອນ",
+      "natalLabel": "ດາວເກີດ",
+      "emptyFallback": "ສະແດງຄຳທຳນາຍແບບເຕັມສຳລັບມື້ນີ້",
+      "aspectConjunction": "ຮ່ວມ",
+      "aspectOpposition": "ກົງຂ້າມ",
+      "aspectSquare": "ສີ່ແຍກ",
+      "aspectTrine": "ສາມຫຼ່ຽມ",
+      "aspectSextile": "ຫົກແຍກ"
+    }
   },
   "Settings": {
     "title": "ການຕັ້ງຄ່າ",

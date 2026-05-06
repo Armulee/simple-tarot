@@ -1425,6 +1425,10 @@
         "title": "กำลังวิเคราะห์ไพ่ของคุณ...",
         "subtitle": "กำลังสร้างคำตีความส่วนบุคคลของคุณ..."
       },
+      "perCard": {
+        "singleHeader": "ไพ่บอกว่า",
+        "multiHeader": "ไพ่แต่ละใบบอกว่า"
+      },
       "actionsHeader": "การจัดการ",
       "actionsDesc": "จัดการและโต้ตอบกับการอ่านของคุณ",
       "dialogs": {
@@ -2457,7 +2461,36 @@
     "composerBirthPlaceholder": "พิมพ์วันเกิด เวลาเกิด และสถานที่เกิดได้เลย ใช้รูปแบบวันที่แบบไหนก็ได้",
     "underAgeWarningTitle": "ไม่สามารถใช้วันเกิดนี้ได้",
     "underAgeWarningBody": "แพลตฟอร์มนี้ไม่อนุญาตให้ผู้ใช้ที่มีอายุต่ำกว่า 13 ปีเข้าใช้งาน วันเกิดของคุณถูกเปลี่ยนกลับเป็นข้อมูลก่อนหน้าแล้ว",
-    "underAgeWarningClose": "ปิด"
+    "underAgeWarningClose": "ปิด",
+    "tabs": {
+      "overview": "ภาพรวม",
+      "aspect": "แอสเปกต์",
+      "transit": "ดาวจร"
+    },
+    "verdict": {
+      "moodGood": "วันที่ดี",
+      "moodCaution": "ระวังไว้",
+      "moodRest": "วันพัก",
+      "actionsHeading": "ทำได้เลย",
+      "watchHeading": "สิ่งที่ควรเลี่ยง",
+      "focusHeading": "โฟกัสวันนี้",
+      "dateRelativeToday": "วันนี้",
+      "dateRelativeTomorrow": "พรุ่งนี้",
+      "dateRelativeYesterday": "เมื่อวาน"
+    },
+    "transit": {
+      "feedTitle": "ดาวจรที่กำลังทำงาน",
+      "showMore": "ดูเพิ่ม",
+      "showLess": "ย่อเก็บ",
+      "transitLabel": "ดาวจร",
+      "natalLabel": "ดาวกำเนิด",
+      "emptyFallback": "แสดงคำทำนายแบบเต็มสำหรับวันนี้",
+      "aspectConjunction": "ร่วม",
+      "aspectOpposition": "เล็ง",
+      "aspectSquare": "จตุโกณ",
+      "aspectTrine": "ตรีโกณ",
+      "aspectSextile": "ฉัฏฐ์โกณ"
+    }
   },
   "Settings": {
     "title": "การตั้งค่า",

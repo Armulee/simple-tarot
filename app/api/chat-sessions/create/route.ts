@@ -26,14 +26,12 @@ function throwIfAborted(signal: AbortSignal) {
 }
 
 function cleanTopic(raw: string): string {
-    return (
-        raw
-            .replace(/^["'“”‘’]+/, "")
-            .replace(/["'“”‘’]+$/, "")
-            .replace(/[.。!?！？:：;；]+$/g, "")
-            .replace(/\s+/g, " ")
-            .trim()
-    )
+    return raw
+        .replace(/^["'“”‘’]+/, "")
+        .replace(/["'“”‘’]+$/, "")
+        .replace(/[.。!?！？:：;；]+$/g, "")
+        .replace(/\s+/g, " ")
+        .trim()
 }
 
 async function generateTopicFromQuestion(
@@ -74,7 +72,7 @@ export async function POST(req: NextRequest) {
         if (!supabaseAdmin) {
             return NextResponse.json(
                 { error: "SUPABASE_NOT_CONFIGURED" },
-                { status: 500 }
+                { status: 500 },
             )
         }
 
@@ -104,12 +102,13 @@ export async function POST(req: NextRequest) {
                         },
                     ]
                   : []
-        const decision = typeof body?.decision === "object" ? body.decision : null
+        const decision =
+            typeof body?.decision === "object" ? body.decision : null
 
         if (!question || messages.length === 0) {
             return NextResponse.json(
                 { error: "MISSING_FIELDS" },
-                { status: 400 }
+                { status: 400 },
             )
         }
 

@@ -255,9 +255,7 @@ export function CookiesBanner({ inline = false }: { inline?: boolean }) {
     )
 
     if (inline) {
-        return (
-            <div className='mx-auto w-full max-w-3xl px-4 pb-2'>{panel}</div>
-        )
+        return <div className='mx-auto w-full max-w-3xl px-4 pb-2'>{panel}</div>
     }
 
     return (

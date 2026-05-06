@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useMemo, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { CardImage } from "@/components/card-image"
 import ShareSection from "@/components/tarot/interpretation/share"
@@ -12,7 +13,7 @@ import {
     type PromptAliasEntry,
 } from "@/lib/privacy/prompt-redaction"
 import { useTranslations } from "next-intl"
-import { Loader2, Share } from "lucide-react"
+import { ChevronRight, Loader2, Share } from "lucide-react"
 
 const INTERPRETATION_FILLER_PREFIXES = [
     /^(?:i\s+(?:feel|sense|believe|think)\s+(?:that\s+)*)/i,
@@ -66,20 +67,10 @@ function normalizeComparisonText(text: string): string {
         .toLowerCase()
 }
 
-function shouldShowKeyMessage(
-    keyMessage: string | undefined,
-    detail: string,
-): boolean {
-    const summary = normalizeComparisonText(keyMessage ?? "")
-    const body = normalizeComparisonText(detail)
-
-    if (!summary || !body) return false
-    if (summary === body) return false
-
-    const openingSentences = splitIntoSentences(detail).slice(0, 2).join(" ")
-    return normalizeComparisonText(openingSentences) !== summary
-}
-
+/**
+ * Legacy fallback only — runs for restored messages that have no `perCard`
+ * field (saved before the schema refactor). New messages use the chip list.
+ */
 function formatInterpretationBody(text: string, question?: string): string[] {
     const normalized = text.replace(/\r\n/g, "\n").trim()
     if (!normalized) {
@@ -148,7 +139,11 @@ export type TarotAssistantInterpretationProps = {
 }
 
 /**
- * Tarot card strip + AI interpretation (box variant): header, key message, body, share, follow-ups.
+ * Tarot card hero + AI interpretation (box variant): headline/subtitle box,
+ * fanned hero card with active-card sync, per-card chip list + soft next step,
+ * exactly two suggestion rows. Internal card markup (number badge, tag label,
+ * name pill, italic quote) is preserved byte-for-byte; only the layout
+ * wrappers around it change.
  */
 export function TarotAssistantInterpretation({
     message,
@@ -171,140 +166,257 @@ export function TarotAssistantInterpretation({
     const unmaskedMessageText = unmask(rawMessageText)
     const unmaskedKeyMessage = unmask(message.keyMessage)
     const unmaskedQuestion = unmask(message.question)
-    // Run paragraph-splitting over the still-masked text so placeholder tokens
-    // survive into <PrivacyHighlightedText/>; re-mask the question so the
-    // de-duplication filter still matches sentences that reference it.
+    const unmaskedHeadline = unmask(message.headline)
+    const unmaskedSubtitle = unmask(message.subtitle)
+    const unmaskedNextStep = unmask(message.nextStep)
+    // Re-mask the question for the legacy paragraph filter so placeholder
+    // tokens still match in the saved text.
     const maskedQuestionForFilter = applyAliasesToText(
         unmaskedQuestion ?? "",
         aliases,
     )
 
-    const formattedTarotInterpretation =
-        message.variant === "box"
-            ? formatInterpretationBody(rawMessageText, maskedQuestionForFilter)
-            : []
+    const cards = message.cards ?? []
+    const cardCount = cards.length
+    const isMultiCard = cardCount > 1
+
+    const [activeCardIndex, setActiveCardIndex] = useState(0)
+    useEffect(() => {
+        // Snap back to first card whenever the underlying spread changes
+        // (e.g. when a new message streams or regenerate runs).
+        setActiveCardIndex(0)
+    }, [cardCount, message.id])
+    const safeActiveIndex =
+        cardCount > 0
+            ? Math.min(Math.max(activeCardIndex, 0), cardCount - 1)
+            : 0
+    const activeCard = cards[safeActiveIndex]
+
+    let spreadKey = "simple"
+    if (cardCount === 1) spreadKey = "simple"
+    else if (cardCount === 3) spreadKey = "general"
+    else if (cardCount === 5) spreadKey = "detailed"
+    else if (cardCount === 7) spreadKey = "expanded"
+    else if (cardCount === 10) spreadKey = "celtic"
+    else spreadKey = "unknown"
+
+    const activeLabel =
+        spreadKey !== "unknown"
+            ? positionMeanings[spreadKey]?.[safeActiveIndex]
+            : `Card ${safeActiveIndex + 1}`
 
     /** Any streamed token from the interpretation object (body or summary). */
     const hasInterpretationStream =
         Boolean(rawMessageText.trim()) ||
-        Boolean(message.keyMessage?.trim())
+        Boolean(message.keyMessage?.trim()) ||
+        Boolean(message.headline?.trim())
 
     /**
-     * Streaming progress signals — the schema emits cardInsights → keyMessage
-     * → keywords → interpretation → conclusion → suggestions, so each later
-     * field arriving means the previous section is done.
+     * Streaming progress signals — the schema emits cardInsights → headline →
+     * subtitle → keyMessage → perCard → keywords → interpretation → nextStep →
+     * conclusion → suggestions, so each later field arriving means the
+     * previous section is done.
      */
     const cardInsightsStreamingDone =
-        !message.isLoading || Boolean(message.keyMessage?.trim())
+        !message.isLoading ||
+        Boolean(message.headline?.trim()) ||
+        Boolean(message.keyMessage?.trim())
     const interpretationBodyStreamingDone =
-        !message.isLoading || Boolean(message.followUpConclusion?.trim())
+        !message.isLoading ||
+        Boolean(message.followUpConclusion?.trim()) ||
+        Boolean(message.nextStep?.trim())
 
-    const showKeyMessage =
+    // Headline takes priority when it exists; legacy messages fall back to
+    // keyMessage rendered headline-style at the same large size.
+    const headlineText = unmaskedHeadline?.trim() || ""
+    const subtitleText = unmaskedSubtitle?.trim() || ""
+    const fallbackKeyMessage = unmaskedKeyMessage?.trim() || ""
+    const showHeadlineBox =
         message.variant === "box" &&
-        (message.isLoading && Boolean(message.keyMessage?.trim())
-            ? true
-            : shouldShowKeyMessage(unmaskedKeyMessage, unmaskedMessageText))
+        (Boolean(headlineText) ||
+            (message.isLoading && Boolean(message.keyMessage?.trim())) ||
+            // Legacy: only render when keyMessage is meaningfully different
+            // from the body, matching the prior `shouldShowKeyMessage` gate.
+            (Boolean(fallbackKeyMessage) &&
+                normalizeComparisonText(fallbackKeyMessage) !==
+                    normalizeComparisonText(unmaskedMessageText)))
+
+    const perCardItems = useMemo(() => {
+        if (!Array.isArray(message.perCard)) return []
+        return message.perCard.filter(
+            (item): item is { cardName: string; sentence: string } =>
+                Boolean(item?.cardName?.trim() && item?.sentence?.trim()),
+        )
+    }, [message.perCard])
+    const hasPerCard = perCardItems.length > 0
+
+    const formattedTarotInterpretationLegacy =
+        message.variant === "box" && !hasPerCard
+            ? formatInterpretationBody(rawMessageText, maskedQuestionForFilter)
+            : []
 
     const tarotShareText =
         message.variant === "box"
             ? [
                   unmaskedQuestion?.trim(),
-                  unmaskedKeyMessage?.trim(),
-                  unmaskedMessageText.trim(),
+                  headlineText || fallbackKeyMessage,
+                  subtitleText,
+                  hasPerCard
+                      ? perCardItems
+                            .map((p) => `${p.cardName}: ${unmask(p.sentence)}`)
+                            .join("\n")
+                      : unmaskedMessageText.trim(),
+                  unmaskedNextStep?.trim(),
               ]
-                  .filter((s): s is string => Boolean(s))
+                  .filter((s): s is string => Boolean(s && s.trim()))
                   .join("\n\n")
             : ""
 
+    const suggestionsToRender = Array.isArray(message.followUpSuggestions)
+        ? message.followUpSuggestions.slice(0, 2)
+        : []
+
     return (
         <>
-            {/* Tarot cards: shown when cards are drawn */}
-            {message.cards && message.cards.length > 0 && (
-                <div className='flex flex-wrap gap-6 w-full md:max-w-[85%]'>
-                    {message.cards.map((card, index) => {
-                        const cardCount = message.cards?.length || 0
-                        let spreadKey = "simple"
-                        if (cardCount === 1) spreadKey = "simple"
-                        else if (cardCount === 3) spreadKey = "general"
-                        else if (cardCount === 5) spreadKey = "detailed"
-                        else if (cardCount === 7) spreadKey = "expanded"
-                        else if (cardCount === 10) spreadKey = "celtic"
-                        else spreadKey = "unknown"
+            {/* B. Hero card area: enlarged centered card with a soft purple
+                halo. Multi-card spreads fan around the active card; tapping a
+                card lifts and scales it. The internal markup (number badge,
+                tag label, name pill, italic quote) lives below in
+                `<ActiveCardCaption />` exactly as before — only the
+                surrounding layout changes. */}
+            {cardCount > 0 && activeCard && (
+                <div className='w-full md:max-w-[85%]'>
+                    <div className='relative mx-auto flex w-full max-w-md flex-col items-center px-2 py-6'>
+                        <div
+                            aria-hidden
+                            className='pointer-events-none absolute left-1/2 top-[120px] -z-10 h-[260px] w-[260px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#a78bfa]/25 blur-3xl'
+                        />
 
-                        const label =
-                            spreadKey !== "unknown"
-                                ? positionMeanings[spreadKey]?.[index]
-                                : `Card ${index + 1}`
-
-                        return (
-                            <div
-                                key={`${message.id}-card-${card.id}`}
-                                className='bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/5 group hover:bg-white/[0.06] hover:border-primary/20 transition-all duration-300 w-full md:max-w-sm'
-                            >
-                                <div className='flex flex-row items-start gap-4 p-4 '>
-                                    <div className='shrink-0 flex flex-col items-center relative'>
-                                        <div className='absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-[10px] font-bold text-white z-10 shadow-lg border border-white/10'>
-                                            {index + 1}
-                                        </div>
-                                        <div className='w-16 h-28 shrink-0 rounded-xl overflow-hidden border border-white/10 shadow-inner group-hover:scale-105 transition-transform duration-500'>
-                                            <CardImage
-                                                card={card}
-                                                size='sm'
-                                                showAura={false}
-                                                showLabel={false}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className='flex-1 min-w-0 flex flex-col h-full py-0.5'>
-                                        <div className='text-left mb-2'>
-                                            <p className='text-[10px] text-white/50 font-bold uppercase tracking-wider mb-0.5 opacity-80'>
-                                                {label}
-                                            </p>
-                                            <Badge
-                                                variant='secondary'
-                                                className='block max-w-full truncate rounded-full border border-amber-200/30 bg-amber-300/12 px-2.5 py-1 text-[10px] font-medium text-amber-100'
-                                            >
-                                                {card.meaning}
-                                            </Badge>
-                                        </div>
-                                        <div className='mt-0.5 w-full rounded-r-xl border-l-2 border-indigo-300/60 bg-indigo-400/[0.04] py-2 pr-3 pl-4 animate-fade-in'>
-                                            <p className='text-[10px] font-serif italic leading-relaxed text-white/76'>
-                                                &ldquo;
-                                                {message.isLoading &&
-                                                !message.insights?.[index] ? (
-                                                    <span className='inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-2 py-1 backdrop-blur-xl shadow-[0_0_12px_-3px_rgba(56,189,248,0.3)] text-[10px] font-medium text-white/90'>
-                                                        <Loader2 className='h-2.5 w-2.5 animate-spin shrink-0' />
-                                                        <LoadingDotsText
-                                                            active={
-                                                                !!(
-                                                                    message.isLoading &&
-                                                                    !message
-                                                                        .insights?.[
-                                                                        index
-                                                                    ]
-                                                                )
-                                                            }
-                                                            getText={(d) =>
-                                                                `${consultingBase}${".".repeat(d)}`
-                                                            }
-                                                        />
-                                                    </span>
-                                                ) : (
-                                                    unmask(
-                                                        message.insights?.[
-                                                            index
-                                                        ],
-                                                    ) || `${consultingBase}...`
-                                                )}
-                                                &rdquo;
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
+                        {isMultiCard ? (
+                            <div className='relative flex h-[300px] w-full items-end justify-center'>
+                                {cards.map((card, index) => {
+                                    const offsetFromActive =
+                                        index - safeActiveIndex
+                                    const isActive = index === safeActiveIndex
+                                    const rotateDeg = offsetFromActive * 8
+                                    const translateXPx = offsetFromActive * 56
+                                    const translateYPx = isActive
+                                        ? -10
+                                        : Math.abs(offsetFromActive) * 8
+                                    const scale = isActive ? 1.06 : 0.92
+                                    const zIndex = isActive
+                                        ? 30
+                                        : 20 - Math.abs(offsetFromActive)
+                                    return (
+                                        <button
+                                            key={`${message.id}-card-${card.id}-${index}`}
+                                            type='button'
+                                            onClick={() =>
+                                                setActiveCardIndex(index)
+                                            }
+                                            aria-label={`Card ${index + 1}: ${card.meaning}`}
+                                            aria-pressed={isActive}
+                                            className='absolute bottom-0 left-1/2 -translate-x-1/2 outline-none transition-transform duration-300 ease-out focus-visible:ring-2 focus-visible:ring-[#a78bfa]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent'
+                                            style={{
+                                                transform: `translate(calc(-50% + ${translateXPx}px), ${translateYPx}px) rotate(${rotateDeg}deg) scale(${scale})`,
+                                                zIndex,
+                                            }}
+                                        >
+                                            <div className='w-36 sm:w-40 rounded-xl overflow-hidden border border-white/10 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.55)]'>
+                                                <CardImage
+                                                    card={card}
+                                                    size='lg'
+                                                    showAura={false}
+                                                    showLabel={false}
+                                                />
+                                            </div>
+                                        </button>
+                                    )
+                                })}
                             </div>
-                        )
-                    })}
+                        ) : (
+                            <div className='w-fit rounded-2xl overflow-hidden border border-white/10 shadow-[0_24px_60px_-18px_rgba(0,0,0,0.6)]'>
+                                <CardImage
+                                    card={activeCard}
+                                    size='lg'
+                                    showAura={false}
+                                    showLabel={false}
+                                />
+                            </div>
+                        )}
+
+                        {/* Internal card markup — unchanged tag label,
+                            name pill, italic quote — for the active card,
+                            stacked vertically and centered. */}
+                        <div className='mt-6 flex w-full flex-col items-center text-center'>
+                            <div className='relative flex flex-col items-center'>
+                                <p className='text-xs tracking-widest text-white/50 uppercase mb-1 opacity-80'>
+                                    {activeLabel}
+                                </p>
+
+                                <span>{activeCard.meaning}</span>
+                            </div>
+                            <div className='mt-3 w-fit max-w-md rounded-xl border-l-2 border-indigo-300/60 bg-indigo-400/[0.04] py-2 pr-3 pl-4 animate-fade-in'>
+                                <p className='text-[11px] font-serif italic leading-relaxed text-indigo-200/76'>
+                                    &ldquo;
+                                    {message.isLoading &&
+                                    !message.insights?.[safeActiveIndex] ? (
+                                        <span className='inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-2 py-1 backdrop-blur-xl shadow-[0_0_12px_-3px_rgba(56,189,248,0.3)] text-[10px] font-medium text-white/90'>
+                                            <Loader2 className='h-2.5 w-2.5 animate-spin shrink-0' />
+                                            <LoadingDotsText
+                                                active={
+                                                    !!(
+                                                        message.isLoading &&
+                                                        !message.insights?.[
+                                                            safeActiveIndex
+                                                        ]
+                                                    )
+                                                }
+                                                getText={(d) =>
+                                                    `${consultingBase}${".".repeat(d)}`
+                                                }
+                                            />
+                                        </span>
+                                    ) : (
+                                        unmask(
+                                            message.insights?.[safeActiveIndex],
+                                        ) || `${consultingBase}...`
+                                    )}
+                                    &rdquo;
+                                </p>
+                            </div>
+
+                            {isMultiCard && (
+                                <div
+                                    className='mt-4 flex items-center gap-1.5'
+                                    role='tablist'
+                                    aria-label='Card position'
+                                >
+                                    {cards.map((card, index) => {
+                                        const isActive =
+                                            index === safeActiveIndex
+                                        return (
+                                            <button
+                                                key={`${message.id}-dot-${card.id}-${index}`}
+                                                type='button'
+                                                role='tab'
+                                                aria-selected={isActive}
+                                                aria-label={`Show card ${index + 1}`}
+                                                onClick={() =>
+                                                    setActiveCardIndex(index)
+                                                }
+                                                className={`h-1.5 rounded-full transition-all ${
+                                                    isActive
+                                                        ? "w-5 bg-[#a78bfa]"
+                                                        : "w-1.5 bg-white/30 hover:bg-white/50"
+                                                }`}
+                                            />
+                                        )
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             )}
 
@@ -368,25 +480,36 @@ export function TarotAssistantInterpretation({
                                 </span>
                             ) : (
                                 <>
-                                    {showKeyMessage && (
-                                        <div className='rounded-2xl border border-indigo-300/20 bg-indigo-400/[0.07] px-4 py-3 shadow-[0_8px_24px_-18px_rgba(129,140,248,0.75)]'>
-                                            <div className='mb-1 flex items-start justify-between gap-3'>
-                                                <div>
-                                                    <p className='min-w-0 flex-1 text-[11px] font-semibold uppercase tracking-wider text-indigo-100/70'>
-                                                        {tReading(
-                                                            "actions.keyMessage",
-                                                        )}
-                                                    </p>
-                                                    <p className='text-sm leading-7 text-white/92'>
+                                    {/* A. Headline + subtitle box. The
+                                        existing share button stays inline on
+                                        the right exactly as before. */}
+                                    {showHeadlineBox && (
+                                        <div className='rounded-2xl border border-indigo-300/20 bg-indigo-400/[0.07] px-4 py-4 shadow-[0_8px_24px_-18px_rgba(129,140,248,0.75)]'>
+                                            <div className='flex items-start justify-between gap-3'>
+                                                <div className='min-w-0 flex-1'>
+                                                    <h2 className='text-2xl sm:text-3xl font-semibold tracking-tight text-white leading-snug'>
                                                         <PrivacyHighlightedText
                                                             text={
-                                                                message.keyMessage ??
-                                                                ""
+                                                                headlineText ||
+                                                                fallbackKeyMessage
                                                             }
                                                             aliases={aliases}
                                                             supportMarkdown
                                                         />
-                                                    </p>
+                                                    </h2>
+                                                    {subtitleText && (
+                                                        <p className='mt-2 text-sm sm:text-[15px] leading-6 text-white/65'>
+                                                            <PrivacyHighlightedText
+                                                                text={
+                                                                    subtitleText
+                                                                }
+                                                                aliases={
+                                                                    aliases
+                                                                }
+                                                                supportMarkdown
+                                                            />
+                                                        </p>
+                                                    )}
                                                 </div>
                                                 <button
                                                     type='button'
@@ -415,21 +538,116 @@ export function TarotAssistantInterpretation({
                                             </div>
                                         </div>
                                     )}
-                                    <div className='space-y-4 text-[15px] leading-8 text-white/84'>
-                                        {formattedTarotInterpretation.map(
-                                            (paragraph, paragraphIndex) => (
-                                                <p
-                                                    key={`${message.id}-paragraph-${paragraphIndex}`}
-                                                >
-                                                    <PrivacyHighlightedText
-                                                        text={paragraph}
-                                                        aliases={aliases}
-                                                        supportMarkdown
+
+                                    {/* C. Per-card chip list + soft next step.
+                                        Tapping a chip syncs activeCardIndex
+                                        with the hero above. Falls back to the
+                                        legacy single paragraph when perCard
+                                        is missing (restored old messages). */}
+                                    {hasPerCard ? (
+                                        <div className='space-y-3'>
+                                            <p className='text-[11px] font-semibold uppercase tracking-wider text-white/55'>
+                                                {tReading(
+                                                    isMultiCard
+                                                        ? "perCard.multiHeader"
+                                                        : "perCard.singleHeader",
+                                                )}
+                                            </p>
+                                            <ul className='space-y-2.5'>
+                                                {perCardItems.map(
+                                                    (item, index) => {
+                                                        const isActive =
+                                                            isMultiCard &&
+                                                            index ===
+                                                                safeActiveIndex
+                                                        const chipBase =
+                                                            "shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors"
+                                                        const chipState =
+                                                            isActive
+                                                                ? "border-[#a78bfa]/60 bg-[#a78bfa]/15 text-white"
+                                                                : "border-white/15 bg-white/[0.06] text-white/80 hover:border-white/30 hover:text-white"
+                                                        return (
+                                                            <li
+                                                                key={`${message.id}-percard-${index}`}
+                                                                className='flex items-start gap-3'
+                                                            >
+                                                                {isMultiCard ? (
+                                                                    <button
+                                                                        type='button'
+                                                                        onClick={() =>
+                                                                            setActiveCardIndex(
+                                                                                index,
+                                                                            )
+                                                                        }
+                                                                        aria-pressed={
+                                                                            isActive
+                                                                        }
+                                                                        className={`${chipBase} ${chipState} cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a78bfa]/50`}
+                                                                    >
+                                                                        {
+                                                                            item.cardName
+                                                                        }
+                                                                    </button>
+                                                                ) : (
+                                                                    <span
+                                                                        className={`${chipBase} ${chipState}`}
+                                                                    >
+                                                                        {
+                                                                            item.cardName
+                                                                        }
+                                                                    </span>
+                                                                )}
+                                                                <p className='text-[15px] leading-7 text-white/85'>
+                                                                    <PrivacyHighlightedText
+                                                                        text={
+                                                                            item.sentence
+                                                                        }
+                                                                        aliases={
+                                                                            aliases
+                                                                        }
+                                                                        supportMarkdown
+                                                                    />
+                                                                </p>
+                                                            </li>
+                                                        )
+                                                    },
+                                                )}
+                                            </ul>
+                                            {unmaskedNextStep && (
+                                                <p className='mt-3 flex gap-2 italic text-white/80'>
+                                                    <span
+                                                        aria-hidden
+                                                        className='mt-2 size-1.5 shrink-0 rounded-full bg-[#a78bfa]'
                                                     />
+                                                    <span className='text-[15px] leading-7'>
+                                                        <PrivacyHighlightedText
+                                                            text={
+                                                                unmaskedNextStep
+                                                            }
+                                                            aliases={aliases}
+                                                            supportMarkdown
+                                                        />
+                                                    </span>
                                                 </p>
-                                            ),
-                                        )}
-                                    </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className='space-y-4 text-[15px] leading-8 text-white/84'>
+                                            {formattedTarotInterpretationLegacy.map(
+                                                (paragraph, paragraphIndex) => (
+                                                    <p
+                                                        key={`${message.id}-paragraph-${paragraphIndex}`}
+                                                    >
+                                                        <PrivacyHighlightedText
+                                                            text={paragraph}
+                                                            aliases={aliases}
+                                                            supportMarkdown
+                                                        />
+                                                    </p>
+                                                ),
+                                            )}
+                                        </div>
+                                    )}
                                 </>
                             )}
                         </div>
@@ -446,52 +664,61 @@ export function TarotAssistantInterpretation({
                             </div>
                         )}
                     </div>
+                    {/* D. Suggestions: exactly 2 rows, full-width pills with
+                        a right-pointing arrow. Falls back to legacy chip wrap
+                        when nextStep is missing (so old messages keep their
+                        previous look). */}
                     {(message.followUpConclusion ||
-                        (Array.isArray(message.followUpSuggestions) &&
-                            message.followUpSuggestions.length > 0)) && (
-                        <div className='w-full md:max-w-[85%] space-y-2 pt-4'>
+                        suggestionsToRender.length > 0) && (
+                        <div className='w-full md:max-w-[85%] space-y-3 pt-4'>
                             {message.followUpLoading && (
                                 <p className='text-xs sm:text-sm text-white/60'>
                                     Thinking of a good next question...
                                 </p>
                             )}
-                            {message.followUpConclusion && (
-                                <p className='text-white'>
-                                    <PrivacyHighlightedText
-                                        text={message.followUpConclusion}
-                                        aliases={aliases}
-                                        supportMarkdown
-                                    />
-                                </p>
-                            )}
-                            {Array.isArray(message.followUpSuggestions) &&
-                                message.followUpSuggestions.length > 0 && (
-                                    <div className='flex flex-wrap gap-2'>
-                                        {message.followUpSuggestions.map(
-                                            (s) => {
-                                                const unmaskedSuggestion =
-                                                    unmask(s)
-                                                return (
-                                                    <button
-                                                        key={s}
-                                                        type='button'
-                                                        onClick={() =>
-                                                            onApplySuggestedQuestion(
-                                                                unmaskedSuggestion,
-                                                            )
-                                                        }
-                                                        className='rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition px-3 py-1.5 text-xs text-left text-white/80 hover:text-white'
-                                                    >
-                                                        <PrivacyHighlightedText
-                                                            text={s}
-                                                            aliases={aliases}
-                                                        />
-                                                    </button>
-                                                )
-                                            },
-                                        )}
-                                    </div>
+                            {/* Legacy: only render the bottom conclusion when
+                                the new schema's nextStep is missing (so we
+                                don't repeat it after the C-block). */}
+                            {!unmaskedNextStep &&
+                                message.followUpConclusion && (
+                                    <p className='text-white'>
+                                        <PrivacyHighlightedText
+                                            text={message.followUpConclusion}
+                                            aliases={aliases}
+                                            supportMarkdown
+                                        />
+                                    </p>
                                 )}
+                            {suggestionsToRender.length > 0 && (
+                                <div className='flex flex-col gap-2'>
+                                    {suggestionsToRender.map((s) => {
+                                        const unmaskedSuggestion = unmask(s)
+                                        return (
+                                            <button
+                                                key={s}
+                                                type='button'
+                                                onClick={() =>
+                                                    onApplySuggestedQuestion(
+                                                        unmaskedSuggestion,
+                                                    )
+                                                }
+                                                className='group flex w-full items-center justify-between gap-3 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition px-4 py-2.5 text-left text-sm text-white/80 hover:text-white'
+                                            >
+                                                <span className='min-w-0 flex-1 truncate'>
+                                                    <PrivacyHighlightedText
+                                                        text={s}
+                                                        aliases={aliases}
+                                                    />
+                                                </span>
+                                                <ChevronRight
+                                                    aria-hidden
+                                                    className='h-4 w-4 shrink-0 text-white/45 transition group-hover:translate-x-0.5 group-hover:text-white/80'
+                                                />
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                            )}
                         </div>
                     )}
                 </>

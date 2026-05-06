@@ -23,6 +23,15 @@ export type RelevanceStat = {
     pct: number
 }
 
+export type DailyVerdict = {
+    mood: "good" | "caution" | "rest"
+    headline: string
+    subtext: string
+    actions: string[]
+    watchOut?: string
+    focusArea?: string
+}
+
 export type SourceAspectEvent = {
     aspectKey: string
     transitPlanet: string
@@ -37,6 +46,11 @@ export type SourceAspectEvent = {
     natalAbsoluteText?: string
 }
 
+export type PerCardSentence = {
+    cardName: string
+    sentence: string
+}
+
 export type ChatMessage = {
     id: string
     role: "user" | "assistant"
@@ -44,6 +58,14 @@ export type ChatMessage = {
     /** Client-only raw text restored from sessionStorage for local display. */
     displayText?: string
     keyMessage?: string
+    /** New tarot result schema: short verdict shown as the largest text. */
+    headline?: string
+    /** New tarot result schema: nuance / condition under the headline. */
+    subtitle?: string
+    /** New tarot result schema: per-card breakdown rendered as the chip list. */
+    perCard?: PerCardSentence[]
+    /** New tarot result schema: soft, non-commanding next step. */
+    nextStep?: string
     variant?: "plain" | "box" | "horoscope" | "tool"
     cards?: TarotCard[]
     insights?: string[]
@@ -52,6 +74,8 @@ export type ChatMessage = {
     spreadType?: ChatDecision["spreadType"] | null
     aspectInsights?: AspectInsightItem[]
     relevance?: RelevanceStat[]
+    /** Single-day verdict, populated only when questionRange.durationDays === 1 */
+    dailyVerdict?: DailyVerdict | null
     followUpConclusion?: string
     followUpSuggestions?: string[]
     followUpLoading?: boolean
@@ -98,10 +122,15 @@ export type ChatMessage = {
             text: string
             aspectInsights?: AspectInsightItem[]
             relevance?: RelevanceStat[]
+            dailyVerdict?: DailyVerdict | null
             personalizedTransitAspects?: PersonalizedTransitAspectsResult | null
             personalizedTransitAspectsMerged?: PersonalizedTransitAspectsResult | null
             followUpConclusion?: string
             followUpSuggestions?: string[]
+            headline?: string
+            subtitle?: string
+            perCard?: PerCardSentence[]
+            nextStep?: string
         }
     >
     /** True when a stream was manually stopped and partial text should be preserved */

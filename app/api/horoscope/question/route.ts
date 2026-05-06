@@ -8,6 +8,7 @@ import {
 import { horoscopeInterpretationSchema } from "@/lib/astrology/schema"
 import { getHoroscopeInterpretationPrompt } from "@/lib/prompts"
 import { resolveQuestionTimeRangeAsync } from "@/lib/astrology/question-time-range"
+import { isSingleDayQuestionRange } from "@/lib/astrology/single-day"
 import { getCodexTransitWindow } from "@/lib/astrology/ephemeris-codex"
 import {
     isBirthChartSuitabilityQuestion,
@@ -257,6 +258,10 @@ export async function POST(req: Request) {
             userMainPoint: conversationContext?.userMainPoint ?? "",
             questionTopic,
             questionLanguage: questionLang,
+            isSingleDay: isSingleDayQuestionRange({
+                durationDays: questionRange.durationDays,
+                source: questionRange.source,
+            }),
         })
 
         console.log(

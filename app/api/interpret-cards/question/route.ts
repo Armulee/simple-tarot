@@ -147,7 +147,7 @@ FOLLOW-UP — PRIOR READING IS BACKGROUND ONLY:
             system: TAROT_SYSTEM_PROMPT,
             prompt: `${prompt}
 
-LANGUAGE: The user's question is in ${lang}. You MUST write ALL output fields (cardInsights, keywords, keyMessage, interpretation, conclusion, suggestions) in ${lang}. The card_energies and reading_direction are English internal data — translate them into ${lang}. NEVER output English when the question is in ${lang}.
+LANGUAGE: The user's question is in ${lang}. You MUST write ALL output fields (cardInsights, headline, subtitle, keyMessage, perCard.sentence, keywords, interpretation, nextStep, conclusion, suggestions) in ${lang}. The only exception is perCard[i].cardName, which MUST echo the input card name verbatim. The card_energies and reading_direction are English internal data — translate them into ${lang}. NEVER output English when the question is in ${lang}.
 ${followUpPriorGuard}
 CRITICAL NARRATOR RULE: If a <reading_direction> is provided, you MUST follow it as your answer skeleton.
 - The reading_direction contains the core leaning, card-by-card reasoning, and advice that a stronger reasoning model already determined from the CURRENT draw (not from any prior user-facing interpretation).
@@ -161,21 +161,27 @@ CRITICAL NARRATOR RULE: If a <reading_direction> is provided, you MUST follow it
 - TONE WORDS — PREFER: likely, tends to, leans toward, the signals point to, the energy here suggests, the pattern shows, there's a real possibility, the direction is, it looks like (Thai: น่าจะ, มีแนวโน้ม, สัญญาณบอกว่า, พลังงานช่วงนี้, ดูเหมือนว่า, มีโอกาส, ทิศทางคือ).
 - TONE WORDS — AVOID: definitely, absolutely, certainly, guaranteed, no doubt, 100%, for sure, will (as fixed future), must, has to (Thai: แน่นอน, รับรอง, ชัวร์, ฟันธง, จะต้อง, ต้องเป็น, แน่ๆ, 100%).
 - cardInsights must be per-card meanings tied to the user's question.
+- Each cardInsights string MUST be ultra-short for the UI card strip: ≤12 Thai words OR ≤10 English words, one clause, no semicolons.
 - Each item in cardInsights should mainly describe what energy or pattern that specific card is contributing in this situation.
-- cardInsights must NOT sound like keyMessage, the final answer, or a summary of the whole reading.
+- cardInsights must NOT sound like headline / keyMessage, the final answer, or a summary of the whole reading.
 - cardInsights must be written in an impersonal, objective style.
 - cardInsights must NOT address the user directly or mention the user as an entity.
 - Do NOT use wording like "you", "yourself", "คุณ", "ตัวเอง", or similar user-referential forms in cardInsights.
 - Do NOT begin cardInsights with hedging phrases like "may feel", "might feel", "อาจจะรู้สึกว่า", or similar soft-openers.
 - If <card_energies> is provided, use it to ground each matching cardInsights item.
-- keyMessage must be a short summary of the leaning, not a copy of the interpretation.
-- interpretation must be only 1-2 sentences total.
-- interpretation must expand on the keyMessage with more detail and must not repeat it verbatim.
-- interpretation must not restate or echo the user's question.
-- suggestions must contain only 3-4 items.
+- headline is the verdict, ≤10 Thai words (or equivalent in ${lang}). Plain text, no card names, no markdown. For HOW/STRATEGY questions, headline must be the strategic direction, never "yes you will succeed".
+- subtitle is the nuance / condition / caveat under the headline. ≤20 Thai words. Must add real information, must not repeat the headline verbatim.
+- perCard.length MUST equal the number of input cards. perCard[i].cardName MUST exactly equal cards[i] (verbatim, same casing). Each perCard[i].sentence describes what THAT specific card adds to the answer — concrete to the question's domain, ≤25 words, no card name inside the sentence, no "this card" phrasing.
+- nextStep is a soft suggestion. It MUST start with a non-commanding verb. ALLOWED openers: ลอง / อาจ / เผื่อ / อาจจะ (Thai), Try / Consider / Maybe / You could (English). FORBIDDEN openers: ต้อง, ควร used as a command, must, should, have to, need to used as a command.
+- BACK-COMPAT FIELDS — these must be deterministic restatements, NOT fresh content:
+  - keyMessage = headline + ' ' + subtitle (joined into one short paragraph).
+  - interpretation = perCard[].sentence joined together with spaces as one short paragraph.
+  - conclusion = nextStep (verbatim).
+- suggestions MUST contain EXACTLY 2 items — never 1, never 3+.
+- The two suggestions MUST be distinctly different angles (different topic, perspective, or scope). They MUST NOT be paraphrases or near-rephrasings of each other.
 - suggestions must feel like natural real-life follow-up questions the user could ask next.
 - suggestions must stay generic and user-relatable rather than depending on the exact wording of the generated reading.
-- suggestions must NOT quote or closely paraphrase the generated interpretation, keyMessage, or conclusion.
+- suggestions must NOT quote or closely paraphrase the generated headline, subtitle, perCard, nextStep, keyMessage, interpretation, or conclusion.
 - TONE: Write like you're texting a close friend who reads patterns and energy — never as a judge declaring an absolute truth. In Thai, use casual language (ลอง, เวิร์ค, ปัง, เน้น, จัดเลย). AVOID formal/translated phrasing (ฉันรู้สึกว่า, การรักษาความยุติธรรม, ประสบความสำเร็จ, สะท้อนกลับมา).`,
         })
 
@@ -183,10 +189,14 @@ CRITICAL NARRATOR RULE: If a <reading_direction> is provided, you MUST follow it
         result.object
             .then((obj) => {
                 const combined = [
+                    obj.headline,
+                    obj.subtitle,
                     obj.keyMessage,
                     obj.interpretation,
+                    obj.nextStep,
                     obj.conclusion,
                     ...(obj.cardInsights ?? []),
+                    ...((obj.perCard ?? []).map((c) => c?.sentence ?? "")),
                     ...(obj.suggestions ?? []),
                 ].join("\n")
                 const outStats = summarizePrivacyPlaceholdersInText(combined)

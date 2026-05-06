@@ -1412,6 +1412,10 @@
         "title": "Analyzing your cards...",
         "subtitle": "Generating your personalized interpretation..."
       },
+      "perCard": {
+        "singleHeader": "The card says",
+        "multiHeader": "Each card says"
+      },
       "actionsHeader": "Actions",
       "actionsDesc": "Manage and interact with your reading",
       "dialogs": {
@@ -2456,7 +2460,36 @@
     "composerBirthPlaceholder": "Type your birth date, birth time, and location here. Any date format is okay.",
     "underAgeWarningTitle": "Birth date not allowed",
     "underAgeWarningBody": "AskingFate is not available to users under thirteen (13) years old. Your previous birth date has been restored.",
-    "underAgeWarningClose": "Close"
+    "underAgeWarningClose": "Close",
+    "tabs": {
+      "overview": "Overview",
+      "aspect": "Aspect",
+      "transit": "Transit"
+    },
+    "verdict": {
+      "moodGood": "Good Day",
+      "moodCaution": "Be Mindful",
+      "moodRest": "Rest Day",
+      "actionsHeading": "Try this",
+      "watchHeading": "Watch out",
+      "focusHeading": "Focus",
+      "dateRelativeToday": "Today",
+      "dateRelativeTomorrow": "Tomorrow",
+      "dateRelativeYesterday": "Yesterday"
+    },
+    "transit": {
+      "feedTitle": "Active transits",
+      "showMore": "Show more",
+      "showLess": "Show less",
+      "transitLabel": "Transit",
+      "natalLabel": "Natal",
+      "emptyFallback": "Showing the full reading for this day.",
+      "aspectConjunction": "conjunct",
+      "aspectOpposition": "opposite",
+      "aspectSquare": "square",
+      "aspectTrine": "trine",
+      "aspectSextile": "sextile"
+    }
   },
   "Settings": {
     "title": "Settings",
