@@ -529,11 +529,25 @@ const ReadingCard = ({
                         </div>
 
                         <CardContent className="relative px-4 pt-12 pb-4">
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
-                                {/* Text first on narrow screens; on sm+ content column first */}
-                                <div className="flex flex-1 flex-col gap-3 min-w-0 order-1 sm:order-1">
-                                    <div className="flex items-start justify-between gap-4 mb-0">
-                                        <div className="flex flex-col gap-1 min-w-0 flex-1">
+                            <div className="flex items-start gap-4">
+                                {/* Card stack (left) — images still deferred via showCardImages */}
+                                <div className="flex-shrink-0 pt-1">
+                                    {detailsLoaded && latestCards.length > 0 ? (
+                                        <CardStack cards={latestCards} showImages={showCardImages} />
+                                    ) : detailFetching ? (
+                                        <div className="flex h-16 w-20 items-center justify-center">
+                                            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                                        </div>
+                                    ) : detailError ? (
+                                        <div className="h-16 w-12 flex items-center justify-center" aria-hidden />
+                                    ) : (
+                                        <div className="h-16 w-12" aria-hidden />
+                                    )}
+                                </div>
+
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-start justify-between gap-4 mb-2">
+                                        <div className="flex flex-col gap-1 min-w-0">
                                             <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300 line-clamp-1">
                                                 {titleText}
                                             </h3>
@@ -553,7 +567,7 @@ const ReadingCard = ({
                                     </div>
 
                                     {detailsLoaded && latestCardsMessage?.text && (
-                                        <p className="text-muted-foreground/80 text-sm line-clamp-2 leading-relaxed order-last">
+                                        <p className="text-muted-foreground/80 text-sm line-clamp-2 leading-relaxed">
                                             {latestCardsMessage.text}
                                         </p>
                                     )}
@@ -566,21 +580,6 @@ const ReadingCard = ({
                                         <p className="text-muted-foreground/40 text-xs">
                                             {t("loading") || "Loading…"}
                                         </p>
-                                    )}
-                                </div>
-
-                                {/* Card stack after text (priority: text / snippet loads first) */}
-                                <div className="flex-shrink-0 pt-1 order-2 sm:order-2 sm:self-start flex justify-end sm:justify-start">
-                                    {detailsLoaded && latestCards.length > 0 ? (
-                                        <CardStack cards={latestCards} showImages={showCardImages} />
-                                    ) : detailFetching ? (
-                                        <div className="flex h-16 w-20 items-center justify-center">
-                                            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                                        </div>
-                                    ) : detailError ? (
-                                        <div className="h-16 w-12 flex items-center justify-center" aria-hidden />
-                                    ) : (
-                                        <div className="h-16 w-12" aria-hidden />
                                     )}
                                 </div>
                             </div>
@@ -673,22 +672,20 @@ const ReadingCard = ({
 function ReadingRowPlaceholder() {
     return (
         <Card className='p-6 bg-card/40 backdrop-blur-sm border-border/30'>
-            <CardContent className="p-0 pt-2">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
-                    <div className="flex-1 space-y-3 order-1">
-                        <div className="flex gap-2">
-                            <Skeleton className="h-5 w-20 rounded-full" />
-                            <Skeleton className="h-5 w-20 rounded-full" />
-                        </div>
-                        <Skeleton className="h-6 w-4/5 max-w-md" />
-                        <Skeleton className="h-4 w-full max-w-lg" />
-                        <Skeleton className="h-4 w-3/4 max-w-sm" />
+            <div className='flex items-start gap-4'>
+                <Skeleton className='w-16 h-16 rounded-xl' />
+                <div className='flex-1 space-y-3'>
+                    <div className='flex items-start justify-between'>
+                        <Skeleton className='h-5 w-3/4' />
+                        <Skeleton className='h-4 w-20' />
                     </div>
-                    <div className="order-2 flex justify-end sm:justify-start shrink-0">
-                        <Skeleton className="w-16 h-16 rounded-xl" />
+                    <Skeleton className='h-4 w-1/2' />
+                    <div className='flex gap-2'>
+                        <Skeleton className='h-6 w-16 rounded-full' />
+                        <Skeleton className='h-6 w-20 rounded-full' />
                     </div>
                 </div>
-            </CardContent>
+            </div>
         </Card>
     )
 }
