@@ -240,8 +240,8 @@ export default function SuggestionPromptCard({
                 <div className='flex items-center justify-center gap-4 mb-4'>
                     <div className='flex items-center gap-2 flex-shrink-0'>
                         <Sparkles className='w-4 h-4 text-secondary' />
-                        <h3 className='text-sm font-medium text-white/70 whitespace-nowrap'>
-                            {t("title")}
+                        <h3 className='text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70 whitespace-nowrap'>
+                            {t("label")}
                         </h3>
                     </div>
                     <Select
@@ -353,6 +353,9 @@ export default function SuggestionPromptCard({
                             <SwiperSlide key={index} className='!w-auto'>
                                 <Badge
                                     variant='outline'
+                                    title={t(
+                                        `categories.${selectedCategory.id}.questions.${index}`
+                                    )}
                                     onClick={() =>
                                         handleSuggestionClick(
                                             t(
@@ -360,7 +363,7 @@ export default function SuggestionPromptCard({
                                             )
                                         )
                                     }
-                                    className={`cursor-pointer px-4 py-2 text-xs font-medium bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 backdrop-blur-sm transition-all duration-300 whitespace-nowrap ${selectedCategory.borderColor} hover:${selectedCategory.color} hover:bg-gradient-to-r hover:from-indigo-500/30 hover:via-purple-500/30 hover:to-cyan-500/30 hover:${selectedCategory.borderColor} shadow-[0_4px_15px_-5px_rgba(56,189,248,0.25)] hover:shadow-[0_8px_25px_-8px_rgba(56,189,248,0.35)]`}
+                                    className={`cursor-pointer px-4 py-2 text-xs font-medium bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 backdrop-blur-sm transition-all duration-300 truncate max-w-[12rem] ${selectedCategory.borderColor} hover:${selectedCategory.color} hover:bg-gradient-to-r hover:from-indigo-500/30 hover:via-purple-500/30 hover:to-cyan-500/30 hover:${selectedCategory.borderColor} shadow-[0_4px_15px_-5px_rgba(56,189,248,0.25)] hover:shadow-[0_8px_25px_-8px_rgba(56,189,248,0.35)]`}
                                 >
                                     {t(
                                         `categories.${selectedCategory.id}.questions.${index}`

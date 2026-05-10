@@ -125,6 +125,8 @@ export type TarotAssistantInterpretationProps = {
     onTarotInterpretationChange?: (messageId: string, text: string) => void
     onShare: (id: string, text: string) => void
     onApplySuggestedQuestion: (value: string) => void
+    /** When true, follow-up pills are shown only in the composer (avoid duplicate UI). */
+    hideFollowUpSuggestions?: boolean
     /**
      * Replaces session-scoped privacy placeholders (e.g. `[Person_0]`) with the
      * original PII the user typed, for every user-facing render and share.
@@ -156,6 +158,7 @@ export function TarotAssistantInterpretation({
     onTarotInterpretationChange,
     onShare,
     onApplySuggestedQuestion,
+    hideFollowUpSuggestions = false,
     unmask,
     privacyAliases,
 }: TarotAssistantInterpretationProps) {
@@ -669,7 +672,8 @@ export function TarotAssistantInterpretation({
                         when nextStep is missing (so old messages keep their
                         previous look). */}
                     {(message.followUpConclusion ||
-                        suggestionsToRender.length > 0) && (
+                        (!hideFollowUpSuggestions &&
+                            suggestionsToRender.length > 0)) && (
                         <div className='w-full md:max-w-[85%] space-y-3 pt-4'>
                             {message.followUpLoading && (
                                 <p className='text-xs sm:text-sm text-white/60'>
@@ -689,7 +693,8 @@ export function TarotAssistantInterpretation({
                                         />
                                     </p>
                                 )}
-                            {suggestionsToRender.length > 0 && (
+                            {!hideFollowUpSuggestions &&
+                                suggestionsToRender.length > 0 && (
                                 <div className='flex flex-col gap-2'>
                                     {suggestionsToRender.map((s) => {
                                         const unmaskedSuggestion = unmask(s)

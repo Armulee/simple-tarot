@@ -298,6 +298,8 @@ type MessageListProps = {
      * message bubbles and to render the masked sentence sent to the AI.
      */
     privacyAliases: PromptAliasEntry[]
+    /** When set, follow-up suggestions for this message render in the composer instead of inline. */
+    composerFollowUpHostId: string | null
     readAloudLoadingMessageId: string | null
     readAloudPlayingMessageId: string | null
     lastAssistantMessageRef: RefObject<HTMLDivElement | null>
@@ -348,6 +350,7 @@ export default function MessageList({
     onShare,
     unmask,
     privacyAliases,
+    composerFollowUpHostId,
     lastAssistantMessageRef,
     insufficientStarsRef,
     messagesEndRef,
@@ -618,6 +621,9 @@ export default function MessageList({
                                     onApplySuggestedQuestion={
                                         onApplySuggestedQuestion
                                     }
+                                    hideFollowUpSuggestions={
+                                        composerFollowUpHostId === message.id
+                                    }
                                     unmask={unmask}
                                     privacyAliases={privacyAliases}
                                 />
@@ -642,6 +648,10 @@ export default function MessageList({
                                                 question: displayQuestion,
                                             }}
                                             privacyAliases={privacyAliases}
+                                            hideFollowUpSuggestions={
+                                                composerFollowUpHostId ===
+                                                message.id
+                                            }
                                             onApplySuggestedQuestion={
                                                 onApplySuggestedQuestion
                                             }

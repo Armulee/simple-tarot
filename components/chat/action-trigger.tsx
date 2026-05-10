@@ -6,20 +6,16 @@ import { FreeMode, Mousewheel } from "swiper/modules"
 import { CornerDownRight, MapPin, Sparkles, X } from "lucide-react"
 import "swiper/css"
 import "swiper/css/free-mode"
-import type { HoroscopeBirthData } from "@/types/horoscope"
 import type { CardUiText } from "./types"
 
 type ActionTriggerProps = {
+    /** Used with `showDrawTrigger` to hide the draw chip while auto-pick is on. */
     autoPickOn?: boolean
-    onToggleAutoPick?: () => void
-    savedBirth: HoroscopeBirthData | null
-    onBirthInfoClick: () => void
     showDrawTrigger?: boolean
     showInsufficientStars?: boolean
     cardsToSelect?: number
     cardUi?: CardUiText
     onScrollToDraw?: () => void
-    showAutoPick?: boolean
     intakeMode?: boolean
     intakeHelperText?: string
     currentLocationLabel?: string
@@ -48,15 +44,11 @@ const DUMMY_CARD_UI: CardUiText = {
 
 export default function ActionTrigger({
     autoPickOn = false,
-    onToggleAutoPick = () => {},
-    savedBirth,
-    onBirthInfoClick,
     showDrawTrigger = false,
     showInsufficientStars = false,
     cardsToSelect = 0,
     cardUi = DUMMY_CARD_UI,
     onScrollToDraw = () => {},
-    showAutoPick = true,
     intakeMode = false,
     intakeHelperText,
     currentLocationLabel,
@@ -65,10 +57,6 @@ export default function ActionTrigger({
     onChooseCardInstead = () => {},
 }: ActionTriggerProps) {
     const t = useTranslations("ActionTrigger")
-
-    const hasBirthDate = Boolean(
-        savedBirth?.day && savedBirth?.month && savedBirth?.year,
-    )
 
     const slides = intakeMode
         ? [
@@ -115,75 +103,29 @@ export default function ActionTrigger({
                   ),
               },
           ]
-        : [
-              ...(showAutoPick
-                  ? [
-                        {
-                            id: "auto-pick",
-                            content: (
-                                <button
-                                    type='button'
-                                    onClick={onToggleAutoPick}
-                                    className={buttonBase}
-                                >
-                                    <span className='text-white/85'>
-                                        {t("autoPickLabel")}
-                                    </span>
-                                    <span
-                                        className={
-                                            autoPickOn
-                                                ? "text-green-500 font-medium"
-                                                : "text-white/85 font-medium"
-                                        }
-                                    >
-                                        {autoPickOn
-                                            ? t("autoPickOn")
-                                            : t("autoPickOff")}
-                                    </span>
-                                </button>
-                            ),
-                        },
-                    ]
-                  : []),
-              {
-                  id: "birth-info",
-                  content: (
-                      <button
-                          type='button'
-                          onClick={onBirthInfoClick}
-                          className={`${buttonBase} ${
-                              hasBirthDate
-                                  ? "border-primary/30 bg-primary/10 text-white"
-                                  : ""
-                          }`}
-                      >
-                          <CornerDownRight className='size-4' />
-                          {hasBirthDate
-                              ? t("editBirthInfo")
-                              : t("newBirthInfo")}
-                      </button>
-                  ),
-              },
-              ...(showDrawTrigger && !autoPickOn
-                  ? [
-                        {
-                            id: "draw",
-                            content: (
-                                <button
-                                    type='button'
-                                    onClick={onScrollToDraw}
-                                    className={buttonBase}
-                                >
-                                    <CornerDownRight className='size-4' />
-                                    {showInsufficientStars
-                                        ? cardUi.topUpCta(cardsToSelect)
-                                        : cardUi.drawCta(cardsToSelect)}
-                                </button>
-                            ),
-                        },
-                    ]
-                  : []),
-          ]
+        : showDrawTrigger && !autoPickOn
+          ? [
+                {
+                    id: "draw",
+                    content: (
+                        <button
+                            type='button'
+                            onClick={onScrollToDraw}
+                            className={buttonBase}
+                        >
+                            <CornerDownRight className='size-4' />
+                            {showInsufficientStars
+                                ? cardUi.topUpCta(cardsToSelect)
+                                : cardUi.drawCta(cardsToSelect)}
+                        </button>
+                    ),
+                },
+            ]
+          : []
+
+    if (!intakeMode && slides.length === 0) {
+        return null
+    }
 
     return (
         <div className='space-y-3'>

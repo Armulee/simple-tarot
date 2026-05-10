@@ -25,18 +25,8 @@ import {
     saveRawPromptToSession,
 } from "@/lib/privacy/prompt-redaction"
 import { CookiesBanner } from "@/components/cookies-banner"
-import ActionTrigger from "@/components/chat/action-trigger"
-import BirthInfoModal from "@/components/chat/birth-info-modal"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog"
+import { CARD_UI_TEXT, normalizeLocale } from "@/components/chat/card-ui"
 import { loadBirthFromStorage, saveBirthToStorage } from "@/lib/birth-storage"
-import { calculateAgeFromBirthDate } from "@/lib/age-gate-storage"
 import {
     loadAutoPickFromStorage,
     saveAutoPickToStorage,
@@ -61,9 +51,6 @@ export default function Home() {
     const inputContainerRef = useRef<HTMLDivElement>(null)
     const fixedBarRef = useRef<HTMLDivElement>(null)
     const [fixedBarHeight, setFixedBarHeight] = useState(0)
-    const [showBirthModal, setShowBirthModal] = useState(false)
-    const [showUnderAgeBirthWarning, setShowUnderAgeBirthWarning] =
-        useState(false)
     const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(null)
     const [autoPickOn, setAutoPickOn] = useState(false)
     const linkingAbortControllerRef = useRef<AbortController | null>(null)
@@ -139,23 +126,6 @@ export default function Home() {
         setInterpretationMode("auto")
         saveInterpretationModeToStorage("auto")
     }, [user, interpretationMode])
-
-    const handleBirthModalBeforeSubmit = (birth: HoroscopeBirthData) => {
-        if (!birth.year || !birth.month || !birth.day) return true
-        const age = calculateAgeFromBirthDate({
-            year: birth.year,
-            month: birth.month,
-            day: birth.day,
-        })
-        if (age >= 13) return true
-        setShowUnderAgeBirthWarning(true)
-        return false
-    }
-
-    const handleBirthModalSubmit = (birth: HoroscopeBirthData) => {
-        saveBirthToStorage(birth)
-        setSavedBirth(birth)
-    }
 
     const handleToggleAutoPick = () => {
         setAutoPickOn((prev) => {
@@ -319,7 +289,6 @@ export default function Home() {
 
     const shouldShowHero = !isLinking
     const shouldShowLearnMore = showLearnMore && !isLinking
-    const tHoroscope = useTranslations("HoroscopeChat")
     const cookieBannerVisible = !cookieConsent.decisionMade
     const showQuickCards = !cookieBannerVisible
 
@@ -449,43 +418,6 @@ export default function Home() {
                     </div>
                 ) : null}
 
-                <BirthInfoModal
-                    open={showBirthModal}
-                    onOpenChange={setShowBirthModal}
-                    initial={savedBirth}
-                    onSubmit={handleBirthModalSubmit}
-                    onBeforeSubmit={handleBirthModalBeforeSubmit}
-                    title={tHoroscope("birthFormTitle")}
-                    submitLabel={tHoroscope("birthFormSubmit")}
-                />
-
-                <Dialog
-                    open={showUnderAgeBirthWarning}
-                    onOpenChange={setShowUnderAgeBirthWarning}
-                >
-                    <DialogContent className='sm:max-w-md border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl'>
-                        <DialogHeader>
-                            <DialogTitle className='text-yellow-200 font-serif text-xl'>
-                                {tHoroscope("underAgeWarningTitle")}
-                            </DialogTitle>
-                            <DialogDescription className='text-white/70'>
-                                {tHoroscope("underAgeWarningBody")}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter>
-                            <button
-                                type='button'
-                                onClick={() =>
-                                    setShowUnderAgeBirthWarning(false)
-                                }
-                                className='rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90'
-                            >
-                                {tHoroscope("underAgeWarningClose")}
-                            </button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-
                 <QuestionInput
                     id='home-question-input'
                     value={question}
@@ -497,14 +429,22 @@ export default function Home() {
                     className='w-full'
                     interpretationMode={interpretationMode}
                     onInterpretationModeChange={setInterpretationMode}
-                    actionTrigger={
-                        <ActionTrigger
-                            autoPickOn={autoPickOn}
-                            onToggleAutoPick={handleToggleAutoPick}
-                            savedBirth={savedBirth}
-                            onBirthInfoClick={() => setShowBirthModal(true)}
-                        />
-                    }
+                    composerSettings={{
+                        showAutoPick: true,
+                        autoPickOn,
+                        onToggleAutoPick: handleToggleAutoPick,
+                        exposeBirthDrawInMenu: false,
+                        savedBirth,
+                        onBirthInfoClick: () => {
+                            router.push(`/${locale}/profile`)
+                        },
+                        showDrawTrigger: false,
+                        showInsufficientStars: false,
+                        cardsToSelect: 0,
+                        cardUi: CARD_UI_TEXT[normalizeLocale(locale)],
+                        onScrollToDraw: () => {},
+                    }}
+                    actionTrigger={null}
                     // disclaimerText={disclaimerText}
                     showDisclaimer={true}
                     error={

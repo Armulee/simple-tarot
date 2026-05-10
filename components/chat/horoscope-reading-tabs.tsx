@@ -53,6 +53,7 @@ export default function HoroscopeReadingTabs({
     footerActions,
     onApplySuggestedQuestion,
     privacyAliases,
+    hideFollowUpSuggestions = false,
 }: {
     message: ChatMessage
     aspectPanel: ReactNode
@@ -64,6 +65,8 @@ export default function HoroscopeReadingTabs({
      * to the user's original PII and render them as emerald lock chips.
      */
     privacyAliases?: PromptAliasEntry[]
+    /** When true, follow-up chips are shown only in the composer. */
+    hideFollowUpSuggestions?: boolean
 }) {
     const [activeTab, setActiveTab] = useState<HoroscopeTab>("overview")
     const tTabs = useTranslations("HoroscopeChat.tabs")
@@ -192,7 +195,7 @@ export default function HoroscopeReadingTabs({
                             </div>
                         )}
 
-                        {suggestions.length > 0 && (
+                        {!hideFollowUpSuggestions && suggestions.length > 0 && (
                             <div className='flex flex-wrap gap-2 border-t border-white/5 pt-4'>
                                 {suggestions.map((suggestion) => (
                                     <button

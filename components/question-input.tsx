@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, type RefObject } from "react"
-import { Send, Square } from "lucide-react"
+import { ChevronRight, Send, Square } from "lucide-react"
 import { Button } from "./ui/button"
 import { Label } from "./ui/label"
 import { useRouter } from "next/navigation"
@@ -9,7 +9,13 @@ import { useTarot } from "@/contexts/tarot-context"
 import AutoHeightTextarea from "./ui/auto-height-textarea"
 import { useTranslations } from "next-intl"
 import InterpretationModeSelector from "@/components/chat/interpretation-mode-selector"
+import {
+    ComposerSettingsMenu,
+    type ComposerSettingsMenuProps,
+} from "@/components/chat/composer-settings-menu"
 import type { InterpretationMode } from "@/lib/interpretation-mode-storage"
+import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
+import { PrivacyHighlightedText } from "@/components/chat/privacy-highlighted-user-text"
 
 const INPUT_BORDER_BY_MODE: Record<InterpretationMode, string> = {
     auto: "border-border/60 focus:border-primary/60 focus:ring-primary/40",
@@ -24,6 +30,13 @@ const INPUT_GLOW_BY_MODE: Record<InterpretationMode, string> = {
     chat: "shadow-[0_10px_30px_-10px_rgba(52,211,153,0.3)]",
     tarot: "shadow-[0_10px_30px_-10px_rgba(168,85,247,0.3)]",
     horoscope: "shadow-[0_10px_30px_-10px_rgba(96,165,250,0.3)]",
+}
+
+export type ComposerFollowUpsProps = {
+    messageId: string
+    items: string[]
+    onSelect: (value: string) => void
+    privacyAliases?: PromptAliasEntry[]
 }
 
 export default function QuestionInput({
@@ -43,7 +56,8 @@ export default function QuestionInput({
     centered = false,
     interpretationMode,
     onInterpretationModeChange,
-    // Input section wrapper (when provided, renders separator + action triggers + disclaimer)
+    composerSettings,
+    composerFollowUps,
     actionTrigger,
     disclaimerText,
     showDisclaimer = true,
@@ -69,6 +83,8 @@ export default function QuestionInput({
     centered?: boolean
     interpretationMode?: InterpretationMode
     onInterpretationModeChange?: (mode: InterpretationMode) => void
+    composerSettings?: ComposerSettingsMenuProps | null
+    composerFollowUps?: ComposerFollowUpsProps | null
     actionTrigger?: React.ReactNode
     disclaimerText?: string
     showDisclaimer?: boolean
@@ -79,7 +95,6 @@ export default function QuestionInput({
     inputWrapperClassName?: string
 }) {
     const t = useTranslations("QuestionInput")
-    // removed unused pathname
     const [internalQuestion, setInternalQuestion] = useState("")
     const [isSmallDevice, setIsSmallDevice] = useState(false)
     const router = useRouter()
@@ -97,9 +112,13 @@ export default function QuestionInput({
         clearReadingStorage,
     } = useTarot()
 
-    // Use controlled value if provided, otherwise use internal state
     const question = value !== undefined ? value : internalQuestion
     const setQuestion = onChange || setInternalQuestion
+
+    const showBottomChrome =
+        actionTrigger != null ||
+        composerFollowUps != null ||
+        composerSettings != null
 
     const handleStartReading = () => {
         const currentValue =
@@ -112,10 +131,8 @@ export default function QuestionInput({
             if (followUp) {
                 handleFollowUpQuestion(currentValue)
             } else {
-                // This is a new reading (not follow-up), clear state
                 clearReadingStorage()
 
-                // Set new question and navigate
                 setContextQuestion(currentValue)
                 setIsFollowUp(false)
                 setFollowUpQuestion(null)
@@ -139,7 +156,6 @@ export default function QuestionInput({
     }
 
     const handleFollowUpQuestion = (fuQuestion: string) => {
-        // Backup current reading data for follow-up context
         try {
             const backupData = {
                 question: lastQuestion,
@@ -156,7 +172,6 @@ export default function QuestionInput({
             console.error("Failed to backup reading data:", e)
         }
 
-        // Set up for follow-up reading without mutating the main question
         setIsFollowUp(true)
         setFollowUpQuestion(fuQuestion)
         setReadingType("simple")
@@ -164,7 +179,6 @@ export default function QuestionInput({
         setInterpretation(null)
         setCurrentStep("card-selection")
 
-        // Persist follow-up state immediately
         try {
             const payload = JSON.stringify({
                 question: lastQuestion,
@@ -181,11 +195,9 @@ export default function QuestionInput({
             // ignore
         }
 
-        // Navigate to tarot page for follow-up reading
         router.push("/tarot")
     }
 
-    // Detect mobile devices (Enter-to-send should NOT apply on iPhone/Android)
     useEffect(() => {
         const checkDevice = () => {
             setIsSmallDevice(
@@ -201,14 +213,39 @@ export default function QuestionInput({
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter") {
             if (!isSmallDevice && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
-                // Plain Enter submits the form
                 e.preventDefault()
                 handleStartReading()
                 return
             }
-            // Shift+Enter, Ctrl+Enter, Cmd+Enter, or Enter on small devices adds a newline (default behavior)
         }
     }
+
+    const aliases = composerFollowUps?.privacyAliases ?? []
+
+    const followUpRow =
+        composerFollowUps && composerFollowUps.items.length > 0 ? (
+            <div className='w-full space-y-2'>
+                {composerFollowUps.items.map((s) => (
+                    <button
+                        key={`${composerFollowUps.messageId}-${s}`}
+                        type='button'
+                        onClick={() => composerFollowUps.onSelect(s)}
+                        className='group flex w-full items-center justify-between gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-left text-sm text-white/80 transition hover:bg-white/10 hover:text-white'
+                    >
+                        <span className='min-w-0 flex-1 truncate'>
+                            <PrivacyHighlightedText
+                                text={s}
+                                aliases={aliases}
+                            />
+                        </span>
+                        <ChevronRight
+                            aria-hidden
+                            className='h-4 w-4 shrink-0 text-white/45 transition group-hover:translate-x-0.5 group-hover:text-white/80'
+                        />
+                    </button>
+                ))}
+            </div>
+        ) : null
 
     const inputContent = (
         <div className={`w-full ${centered ? "text-center" : "text-left"}`}>
@@ -242,7 +279,6 @@ export default function QuestionInput({
                             buttonClassName ?? ""
                         }`}
                     >
-                        {/* Gradient aura behind icon by default; hides on hover */}
                         <span className='pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-400/50 via-purple-400/50 to-cyan-400/50 opacity-80 hover:opacity-0' />
                         {isLoading ? (
                             <Square className='relative z-10 w-5 h-5 drop-shadow-sm fill-current' />
@@ -253,18 +289,21 @@ export default function QuestionInput({
                 </div>
                 {interpretationMode !== undefined &&
                     onInterpretationModeChange && (
-                        <div className='flex justify-start mt-2'>
+                        <div className='mt-2 flex items-center justify-start gap-2'>
                             <InterpretationModeSelector
                                 value={interpretationMode}
                                 onChange={onInterpretationModeChange}
                             />
+                            {composerSettings ? (
+                                <ComposerSettingsMenu {...composerSettings} />
+                            ) : null}
                         </div>
                     )}
             </div>
         </div>
     )
 
-    if (actionTrigger != null) {
+    if (showBottomChrome) {
         return (
             <div
                 className={`border-t border-white/10 bg-[#07060f]/80 backdrop-blur ${wrapperClassName}`}
@@ -278,7 +317,7 @@ export default function QuestionInput({
                     <div
                         className={`flex flex-col transition-[max-width] duration-500 ease-in-out ${inputWrapperClassName}`}
                     >
-                        {actionTrigger}
+                        {followUpRow ?? actionTrigger}
                         {inputContent}
                     </div>
                     {showDisclaimer && disclaimerText && (

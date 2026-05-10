@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { useTranslations, useLocale } from "next-intl"
 import { experimental_useObject as useObject } from "@ai-sdk/react"
 import { useStars } from "@/contexts/stars-context"
@@ -32,7 +33,6 @@ import {
     hasHoroscopeBirthDate,
     mergeHoroscopeBirthWithProfile,
 } from "@/lib/horoscope-profile-birth"
-import { calculateAgeFromBirthDate } from "@/lib/age-gate-storage"
 import {
     loadAutoPickFromStorage,
     saveAutoPickToStorage,
@@ -55,7 +55,6 @@ import type {
 } from "@/types/horoscope"
 import DrawCardSection from "@/components/chat/draw-card-section"
 import ActionTrigger from "@/components/chat/action-trigger"
-import BirthInfoModal from "@/components/chat/birth-info-modal"
 import MessageList from "@/components/chat/message-list"
 import { LocationSelector } from "@/components/ui/location-selector"
 import {
@@ -440,6 +439,7 @@ export default function ChatSession({
     }
 
     const locale = useLocale()
+    const router = useRouter()
     const { user } = useAuth()
     const { profile } = useProfile()
     const [aiLocale, setAiLocale] = useState<"en" | "th" | "lo" | null>(null)
@@ -568,12 +568,9 @@ export default function ChatSession({
     )
     const [interpretationMode, setInterpretationMode] =
         useState<InterpretationMode>(() => loadInterpretationModeFromStorage())
-    const [showBirthModal, setShowBirthModal] = useState(false)
     const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(
         () => loadBirthFromStorage(),
     )
-    const [showUnderAgeBirthWarning, setShowUnderAgeBirthWarning] =
-        useState(false)
     const [editingMessageId, setEditingMessageId] = useState<string | null>(
         null,
     )
@@ -3477,27 +3474,6 @@ export default function ChatSession({
         })
     }, [])
 
-    const handleBirthModalSubmit = useCallback((value: HoroscopeBirthData) => {
-        setSavedBirth(value)
-    }, [])
-
-    const handleBirthModalBeforeSubmit = useCallback(
-        (value: HoroscopeBirthData) => {
-            if (!value.year || !value.month || !value.day) return true
-            const age = calculateAgeFromBirthDate({
-                year: value.year,
-                month: value.month,
-                day: value.day,
-            })
-            if (age >= 13) return true
-
-            setShowUnderAgeBirthWarning(true)
-            setSavedBirth(loadBirthFromStorage())
-            return false
-        },
-        [],
-    )
-
     const clearHoroscopeIntakeMessages = useCallback(() => {
         setMessages((prev) =>
             prev.filter(
@@ -3590,6 +3566,18 @@ export default function ChatSession({
         return latest
     }, [messages])
     const isHoroscopeIntakeActive = Boolean(activeHoroscopeIntakeMessage)
+
+    const composerFollowUpHost = useMemo(() => {
+        if (messages.length === 0) return null
+        const last = messages[messages.length - 1]
+        if (last.role !== "assistant") return null
+        if (last.followUpLoading) return null
+        const sugg = last.followUpSuggestions
+        if (!Array.isArray(sugg) || sugg.length === 0) return null
+        return last
+    }, [messages])
+
+    const composerFollowUpHostId = composerFollowUpHost?.id ?? null
 
     const formattedCurrentLocationLabel = useMemo(() => {
         if (
@@ -3705,42 +3693,6 @@ export default function ChatSession({
 
     const inputSection = (
         <>
-            <BirthInfoModal
-                open={showBirthModal}
-                onOpenChange={setShowBirthModal}
-                initial={savedBirth}
-                currentLocation={currentLocationFallback}
-                onSubmit={handleBirthModalSubmit}
-                onBeforeSubmit={handleBirthModalBeforeSubmit}
-                title={tHoroscope("birthFormTitle")}
-                submitLabel={tHoroscope("birthFormSubmit")}
-            />
-
-            <Dialog
-                open={showUnderAgeBirthWarning}
-                onOpenChange={setShowUnderAgeBirthWarning}
-            >
-                <DialogContent className='sm:max-w-md border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl'>
-                    <DialogHeader>
-                        <DialogTitle className='text-yellow-200 font-serif text-xl'>
-                            {tHoroscope("underAgeWarningTitle")}
-                        </DialogTitle>
-                        <DialogDescription className='text-white/70'>
-                            {tHoroscope("underAgeWarningBody")}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <button
-                            type='button'
-                            onClick={() => setShowUnderAgeBirthWarning(false)}
-                            className='rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90'
-                        >
-                            {tHoroscope("underAgeWarningClose")}
-                        </button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
             <Dialog
                 open={readAloudConfirmOpen}
                 onOpenChange={(o) => {
@@ -3885,24 +3837,56 @@ export default function ChatSession({
                 onInterpretationModeChange={
                     isHoroscopeIntakeActive ? undefined : setInterpretationMode
                 }
+                composerSettings={
+                    isHoroscopeIntakeActive
+                        ? null
+                        : {
+                              showAutoPick: true,
+                              autoPickOn,
+                              onToggleAutoPick: handleToggleAutoPick,
+                              exposeBirthDrawInMenu: Boolean(
+                                  composerFollowUpHost,
+                              ),
+                              savedBirth,
+                              onBirthInfoClick: () => {
+                                  router.push(`/${locale}/profile`)
+                              },
+                              showDrawTrigger,
+                              showInsufficientStars,
+                              cardsToSelect,
+                              cardUi,
+                              onScrollToDraw: handleScrollToDraw,
+                          }
+                }
+                composerFollowUps={
+                    !isHoroscopeIntakeActive && composerFollowUpHost
+                        ? {
+                              messageId: composerFollowUpHost.id,
+                              items: composerFollowUpHost.followUpSuggestions!,
+                              onSelect: (text: string) => {
+                                  applySuggestedQuestion(unmask(text))
+                              },
+                              privacyAliases,
+                          }
+                        : null
+                }
                 actionTrigger={
-                    <ActionTrigger
-                        autoPickOn={autoPickOn}
-                        onToggleAutoPick={handleToggleAutoPick}
-                        savedBirth={savedBirth}
-                        onBirthInfoClick={() => setShowBirthModal(true)}
-                        showDrawTrigger={showDrawTrigger}
-                        showInsufficientStars={showInsufficientStars}
-                        cardsToSelect={cardsToSelect}
-                        cardUi={cardUi}
-                        onScrollToDraw={handleScrollToDraw}
-                        intakeMode={isHoroscopeIntakeActive}
-                        intakeHelperText={tActionTrigger("birthTimeHelper")}
-                        currentLocationLabel={formattedCurrentLocationLabel}
-                        onLocationClick={openLocationDialog}
-                        onCancelIntake={handleCancelHoroscopeIntake}
-                        onChooseCardInstead={handleChooseCardInstead}
-                    />
+                    composerFollowUpHost && !isHoroscopeIntakeActive ? null : (
+                        <ActionTrigger
+                            autoPickOn={autoPickOn}
+                            showDrawTrigger={showDrawTrigger}
+                            showInsufficientStars={showInsufficientStars}
+                            cardsToSelect={cardsToSelect}
+                            cardUi={cardUi}
+                            onScrollToDraw={handleScrollToDraw}
+                            intakeMode={isHoroscopeIntakeActive}
+                            intakeHelperText={tActionTrigger("birthTimeHelper")}
+                            currentLocationLabel={formattedCurrentLocationLabel}
+                            onLocationClick={openLocationDialog}
+                            onCancelIntake={handleCancelHoroscopeIntake}
+                            onChooseCardInstead={handleChooseCardInstead}
+                        />
+                    )
                 }
                 disclaimerText={disclaimerText}
                 showDisclaimer={!hasAssistantResponse}
@@ -4010,6 +3994,7 @@ export default function ChatSession({
                 onReadAloud={handleReadAloud}
                 unmask={unmask}
                 privacyAliases={privacyAliases}
+                composerFollowUpHostId={composerFollowUpHostId}
                 readAloudLoadingMessageId={readAloudLoadingMessageId}
                 readAloudPlayingMessageId={readAloudPlayingMessageId}
                 lastAssistantMessageRef={lastAssistantMessageRef}
