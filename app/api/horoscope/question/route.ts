@@ -283,7 +283,7 @@ CRITICAL: You MUST write your ENTIRE response (interpretation, conclusion, sugge
 
 CRITICAL: When citing time periods, use dates in the SAME language as your output. Thai output = Thai month names (กุมภาพันธ์, มีนาคม, etc.). English output = English month names (February, March, etc.). Example: Thai "22 กุมภาพันธ์ 2026 ถึง 22 กุมภาพันธ์ 2028"; English "February 22, 2026 to February 22, 2028". Do NOT use ISO format (YYYY-MM-DD). Never mix languages (e.g. Thai text with "February").
 
-Output structure: Provide interpretation (main reading), conclusion (short calming wrap-up), and suggestions (3-5 follow-up questions the user could ask next, written as user questions).`,
+Output structure: Provide interpretation (main reading), conclusion (short calming wrap-up), and suggestions (EXACTLY 3–4 very short, casual follow-up prompts the user could ask next — single line each, like quick texts, not long formal questions).`,
             prompt,
             temperature: 0.6,
         })

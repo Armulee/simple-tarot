@@ -402,7 +402,7 @@ ${question}
 - intensity: exactly one of "low", "medium", or "high". Use "high" only for the 1-2 strongest aspects most relevant to the question. Use "medium" for supporting aspects. Use "low" for subtle or background influences.
 - interpretation: 4-8 short sentences answering the question.
 - conclusion: A short, calming wrap-up that concludes the reading without sounding like a tagline.
-- suggestions: 3-5 concise follow-up questions the user could ask next. Write as user questions (e.g., "How should I handle this energy in my work life?").
+- suggestions: EXACTLY 3–4 very short, casual follow-up prompts the user could ask next (single line each; conversational tone, not long formal questions).
 - relevance: an array of up to 5 dominant life-areas that this reading actually covers, used to render a proportional relevance bar above the answer.
 - relevance items must contain { label, pct } only. Integer pcts MUST sum to exactly 100. Sort the array descending by pct.
 - relevance.label MUST be one of the canonical domains, written in the SAME language as the output: Career/การงาน, Finance/การเงิน, Love/ความรัก, Family/ครอบครัว, Health/สุขภาพ, Relationships/ความสัมพันธ์, Education/การศึกษา, Travel/การเดินทาง, Luck/โชคลาภ, Spirituality/จิตวิญญาณ, Reputation/ชื่อเสียง, Caution/คำเตือน. Do NOT invent new labels.

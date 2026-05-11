@@ -112,7 +112,7 @@ Return valid JSON only. CRITICAL streaming order: cardInsights → headline → 
   "interpretation": "Back-compat. Set this to perCard[].sentence joined together as one short paragraph. Do not invent new content.",
   "nextStep": "A soft suggestion. MUST start with a non-commanding verb (ลอง / อาจ / try / consider / maybe). NEVER start with ต้อง / ควร framed as command / must / should.",
   "conclusion": "Back-compat. Set this equal to nextStep. Do not invent new content.",
-  "suggestions": ["Follow-up 1", "Follow-up 2"]
+  "suggestions": ["Short casual prompt 1", "Short casual prompt 2", "Short casual prompt 3"]
 }
 </output_schema>
 
@@ -161,10 +161,10 @@ Return valid JSON only. CRITICAL streaming order: cardInsights → headline → 
 </next_step_rules>
 
 <suggestion_rules>
-- Return EXACTLY 2 suggestions — never 1, never 3+.
-- The two suggestions MUST be distinctly different angles. They must differ in topic, perspective, or scope — not be paraphrases or near-rephrasings of each other.
-- Write each suggestion as a natural real-life follow-up question the user could genuinely ask next.
-- Keep suggestions generic enough to stand on their own — do NOT depend on the exact wording of the generated headline/subtitle/perCard/nextStep, and do NOT quote or closely paraphrase any generated text.
+- Return EXACTLY 3–4 suggestions — never fewer than 3, never more than 4.
+- Each one must be VERY short (aim ≤8 Thai words or ≤6 English words), single line, casual human phrasing — like quick text ideas, not essay prompts.
+- All suggestions MUST be distinctly different angles (topic, perspective, or scope) — not paraphrases of each other.
+- Keep them generic enough to stand on their own — do NOT depend on the exact wording of the generated headline/subtitle/perCard/nextStep, and do NOT quote or closely paraphrase any generated text.
 - Same language as the user's question.
 </suggestion_rules>
 

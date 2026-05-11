@@ -143,7 +143,7 @@ export type TarotAssistantInterpretationProps = {
 /**
  * Tarot card hero + AI interpretation (box variant): headline/subtitle box,
  * fanned hero card with active-card sync, per-card chip list + soft next step,
- * exactly two suggestion rows. Internal card markup (number badge, tag label,
+ * up to four follow-up suggestion chips. Internal card markup (number badge, tag label,
  * name pill, italic quote) is preserved byte-for-byte; only the layout
  * wrappers around it change.
  */
@@ -276,7 +276,7 @@ export function TarotAssistantInterpretation({
             : ""
 
     const suggestionsToRender = Array.isArray(message.followUpSuggestions)
-        ? message.followUpSuggestions.slice(0, 2)
+        ? message.followUpSuggestions.slice(0, 4)
         : []
 
     return (
@@ -667,10 +667,7 @@ export function TarotAssistantInterpretation({
                             </div>
                         )}
                     </div>
-                    {/* D. Suggestions: exactly 2 rows, full-width pills with
-                        a right-pointing arrow. Falls back to legacy chip wrap
-                        when nextStep is missing (so old messages keep their
-                        previous look). */}
+                    {/* D. Suggestions: compact rows (up to 4); composer may host these instead. */}
                     {(message.followUpConclusion ||
                         (!hideFollowUpSuggestions &&
                             suggestionsToRender.length > 0)) && (

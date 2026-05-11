@@ -83,7 +83,7 @@ export default function HoroscopeReadingTabs({
 
     const summary = getOverviewSummary(message)
     const suggestions = Array.isArray(message.followUpSuggestions)
-        ? message.followUpSuggestions
+        ? message.followUpSuggestions.slice(0, 4)
         : []
     const aliases = privacyAliases ?? []
     const relevanceStats = useMemo(

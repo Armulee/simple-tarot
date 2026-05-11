@@ -53,10 +53,10 @@ export const horoscopeInterpretationSchema = z.object({
         ),
     suggestions: z
         .array(z.string())
-        .max(5)
+        .max(4)
         .default([])
         .describe(
-            "Up to 5 concise, specific follow-up questions the user could ask next. Write as user questions.",
+            "3–4 very short, casual follow-up prompts the user might ask next (single line each; conversational, not textbook). Write in the same language as the question.",
         ),
     relevance: z
         .array(
