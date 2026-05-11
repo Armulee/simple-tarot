@@ -27,7 +27,6 @@ import ShareSection from "./share"
 import ActionSection from "./action"
 //
 import BrandLoader from "@/components/brand-loader"
-import HardStarConsent from "@/components/hard-star-consent"
 import NoStarsUpsell from "@/components/stars/no-stars-upsell"
 
 import { supabase } from "@/lib/supabase"
@@ -80,8 +79,6 @@ export default function Interpretation({
     const [error, setError] = useState<string | null>(null)
     const [showNoStarsDialog, setShowNoStarsDialog] = useState(false)
     const [isAuthLoading, setIsAuthLoading] = useState(true)
-    const [showDIDConsent, setShowDIDConsent] = useState(false)
-    const [, setHasDID] = useState<boolean | null>(null)
     const [hasAwardedStars, setHasAwardedStars] = useState(false)
     const [hasAttemptedGeneration, setHasAttemptedGeneration] = useState(false)
     const [hasCheckedDB, setHasCheckedDB] = useState(false)
@@ -265,15 +262,9 @@ export default function Interpretation({
                 const data = await resp.json()
                 const did = data.did
                 if (!did) {
-                    setHasDID(false)
-                    setShowDIDConsent(true)
-                    setIsAuthLoading(false)
-                    return
+                    await fetch("/api/did", { method: "POST" })
                 }
-                setHasDID(true)
             } catch {
-                setHasDID(false)
-                setShowDIDConsent(true)
             } finally {
                 setIsAuthLoading(false)
             }
@@ -305,14 +296,6 @@ export default function Interpretation({
             }
         } catch {}
     }, [ownerUserId, ownerDid, readingId, hasAwardedStars, user?.id])
-
-    const handleDIDConsentAccept = () => {
-        setShowDIDConsent(false)
-        setHasDID(true)
-        try {
-            if (interpretation && !hasAwardedStars) void awardStarsToOwner()
-        } catch {}
-    }
 
     useEffect(() => {
         if (
@@ -628,6 +611,12 @@ export default function Interpretation({
 
             {!isLargeScreen && isInterpretationFieldDone && !error && (
                 <div className='w-full max-w-4xl space-y-6'>
+                    <ShareSection
+                        question={question || ""}
+                        cards={cards || []}
+                        interpretation={interpretation ?? undefined}
+                        readingId={readingId!}
+                    />
                     <ActionSection
                         question={question || ""}
                         cards={cards || []}
@@ -640,12 +629,6 @@ export default function Interpretation({
                             setIsGenerating(loading)
                         }
                         onStreamingObjectChange={setStreamingObjectFromAction}
-                    />
-                    <ShareSection
-                        question={question || ""}
-                        cards={cards || []}
-                        interpretation={interpretation ?? undefined}
-                        readingId={readingId!}
                     />
                     <div className='border-t border-border/50 pt-4 flex justify-center'>
                         <div className='w-full max-w-2xl'>
@@ -661,10 +644,6 @@ export default function Interpretation({
                 </div>
             )}
 
-            <HardStarConsent
-                open={showDIDConsent}
-                onAccept={handleDIDConsentAccept}
-            />
         </>
     )
 }

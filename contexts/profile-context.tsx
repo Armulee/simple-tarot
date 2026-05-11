@@ -5,10 +5,12 @@ import {
     useContext,
     useState,
     useEffect,
+    useRef,
     ReactNode,
 } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/supabase"
+import { fetchGoogleGender } from "@/lib/google/people"
 
 interface ProfileData {
     id: string
@@ -19,6 +21,7 @@ interface ProfileData {
     birth_place: string | null
     job: string | null
     gender: string | null
+    consented_at: string | null
     created_at: string
     updated_at: string
 }
@@ -79,6 +82,48 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         loadProfile()
     }, [user])
+
+    const enrichmentAttemptedRef = useRef(false)
+
+    useEffect(() => {
+        // Pull gender from Google People API on the SIGNED_IN window. The
+        // OAuth `provider_token` only exists in the session right after the
+        // redirect, so this is our single chance per sign-in.
+        const {
+            data: { subscription },
+        } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event !== "SIGNED_IN" || !session) return
+            if (enrichmentAttemptedRef.current) return
+            enrichmentAttemptedRef.current = true
+
+            try {
+                const provider = session.user?.app_metadata?.provider
+                const providerToken = session.provider_token
+                if (provider !== "google" || !providerToken) return
+
+                const gender = await fetchGoogleGender(providerToken)
+                if (!gender) return
+
+                const response = await fetch("/api/profile/oauth-enrich", {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${session.access_token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ gender }),
+                })
+                if (!response.ok) return
+                const result = (await response.json()) as { updated?: boolean }
+                if (result.updated) {
+                    await loadProfile()
+                }
+            } catch (error) {
+                console.error("Google gender enrichment failed:", error)
+            }
+        })
+
+        return () => subscription.unsubscribe()
+    }, [])
 
     return (
         <ProfileContext.Provider

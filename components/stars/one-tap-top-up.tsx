@@ -3,55 +3,21 @@
 import { Checkout } from "../checkout"
 import { Star, Zap } from "lucide-react"
 import type { CurrencyCode } from "@/lib/payments/currency-utils"
-
-type LabelKey =
-    | "starter"
-    | "explorer"
-    | "seeker"
-    | "mystic"
-    | "master"
-    | "grandMaster"
-    | "ultimate"
+import { STAR_PACKS, getPackPriceId } from "@/lib/payments/star-products"
 
 type Pack = {
     id: string
     stars: number
-    labelKey: LabelKey
+    name: string
     color: string
 }
 
-const packs: Pack[] = [
-    {
-        id: process.env.NEXT_PUBLIC_STARTER_PACK_ID ?? "",
-        stars: 30,
-        labelKey: "starter",
-        color: "yellow",
-    },
-    {
-        id: process.env.NEXT_PUBLIC_EXPLORER_PACK_ID ?? "",
-        stars: 65,
-        labelKey: "explorer",
-        color: "yellow",
-    },
-    {
-        id: process.env.NEXT_PUBLIC_SEEKER_PACK_ID ?? "",
-        stars: 100,
-        labelKey: "seeker",
-        color: "yellow",
-    },
-    {
-        id: process.env.NEXT_PUBLIC_MYSTIC_PACK_ID ?? "",
-        stars: 175,
-        labelKey: "mystic",
-        color: "yellow",
-    },
-    {
-        id: process.env.NEXT_PUBLIC_MASTER_PACK_ID ?? "",
-        stars: 250,
-        labelKey: "master",
-        color: "yellow",
-    },
-]
+const packs: Pack[] = STAR_PACKS.filter((sp) => !!sp.id).map((sp) => ({
+    id: sp.id ?? "",
+    stars: sp.stars,
+    name: sp.name,
+    color: "yellow",
+}))
 
 const getColorClasses = (color: string) => {
     const colorMap = {
@@ -113,13 +79,15 @@ export default function OneTapTopUp({ currency }: OneTapTopUpProps) {
             {/* Star Packs Grid */}
             <div className='mb-8'>
                 <div className='grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-6 gap-4'>
-                    {packs.map((p) => {
+                    {packs.map((p, idx) => {
                         const colors = getColorClasses(p.color)
+                        const sp = STAR_PACKS[idx]
+                        const packId = sp ? getPackPriceId(sp, currency) : p.id
                         return (
                             <Checkout
                                 key={p.id}
                                 mode='addon'
-                                packId={p.id}
+                                packId={packId}
                                 currency={currency}
                                 customTrigger={
                                     <button

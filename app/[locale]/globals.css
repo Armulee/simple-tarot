@@ -1958,3 +1958,32 @@
   box-shadow: inset 0 0 0 1px rgba(250, 204, 21, 0.18);
   text-shadow: 0 0 18px rgba(250, 204, 21, 0.25);
 }
+
+/* Always-visible warm-gold scrollbar (cross-browser) */
+.consent-scrollbar {
+  overflow-y: scroll !important;
+}
+
+/* WebKit / Blink (Chrome, Safari, Edge) */
+.consent-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  background: transparent;
+}
+.consent-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.consent-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(200, 180, 140, 0.4);
+  border-radius: 3px;
+}
+.consent-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(200, 180, 140, 0.6);
+}
+
+/* Firefox (does not support ::-webkit-scrollbar) */
+@supports not selector(::-webkit-scrollbar) {
+  .consent-scrollbar {
+    scrollbar-color: rgba(200, 180, 140, 0.4) transparent;
+    scrollbar-width: thin;
+  }
+}

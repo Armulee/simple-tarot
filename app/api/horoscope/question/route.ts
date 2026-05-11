@@ -8,6 +8,7 @@ import {
 import { horoscopeInterpretationSchema } from "@/lib/astrology/schema"
 import { getHoroscopeInterpretationPrompt } from "@/lib/prompts"
 import { resolveQuestionTimeRangeAsync } from "@/lib/astrology/question-time-range"
+import { isSingleDayQuestionRange } from "@/lib/astrology/single-day"
 import { getCodexTransitWindow } from "@/lib/astrology/ephemeris-codex"
 import {
     isBirthChartSuitabilityQuestion,
@@ -30,6 +31,7 @@ const ASPECT_PADDING_DAYS = 90
 const MIN_FILTERED_EVENTS = 3
 
 function detectQuestionLanguage(text: string): string {
+    if (/[\u0E80-\u0EFF]/.test(text)) return "Lao"
     if (/[\u0E00-\u0E7F]/.test(text)) return "Thai"
     if (/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text)) return "Japanese"
     if (/[\uAC00-\uD7AF]/.test(text)) return "Korean"
@@ -175,7 +177,8 @@ export async function POST(req: Request) {
         const conversationContextText = conversationContext?.contextText ?? ""
 
         const questionLang = detectQuestionLanguage(body.question)
-        const chartLocale = questionLang === "Thai" ? "th" : "en"
+        const chartLocale =
+            questionLang === "Thai" || questionLang === "Lao" ? "th" : "en"
 
         const chartDataResult = await buildChartData(
             {
@@ -255,6 +258,10 @@ export async function POST(req: Request) {
             userMainPoint: conversationContext?.userMainPoint ?? "",
             questionTopic,
             questionLanguage: questionLang,
+            isSingleDay: isSingleDayQuestionRange({
+                durationDays: questionRange.durationDays,
+                source: questionRange.source,
+            }),
         })
 
         console.log(
@@ -276,7 +283,7 @@ CRITICAL: You MUST write your ENTIRE response (interpretation, conclusion, sugge
 
 CRITICAL: When citing time periods, use dates in the SAME language as your output. Thai output = Thai month names (กุมภาพันธ์, มีนาคม, etc.). English output = English month names (February, March, etc.). Example: Thai "22 กุมภาพันธ์ 2026 ถึง 22 กุมภาพันธ์ 2028"; English "February 22, 2026 to February 22, 2028". Do NOT use ISO format (YYYY-MM-DD). Never mix languages (e.g. Thai text with "February").
 
-Output structure: Provide interpretation (main reading), conclusion (short calming wrap-up), and suggestions (3-5 follow-up questions the user could ask next, written as user questions).`,
+Output structure: Provide interpretation (main reading), conclusion (short calming wrap-up), and suggestions (EXACTLY 3–4 very short, casual follow-up prompts the user could ask next — single line each, like quick texts, not long formal questions).`,
             prompt,
             temperature: 0.6,
         })

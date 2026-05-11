@@ -9,25 +9,34 @@ import {
     useMemo,
     useState,
 } from "react"
-import { Badge } from "@/components/ui/badge"
-import { CardImage } from "@/components/card-image"
 import ActionSection from "@/components/tarot/interpretation/action"
 import ShareSection from "@/components/tarot/interpretation/share"
 import { sanitizeDetailedHtml } from "@/lib/tarot/sanitize-html"
 import InsufficientStarsBlock from "@/components/stars/insufficient-stars-block"
 import { ConsultingBadge } from "@/components/consulting-badge"
 import { hasCompleteBirthData, loadBirthFromStorage } from "@/lib/birth-storage"
+import { hasHoroscopeBirthDate } from "@/lib/horoscope-profile-birth"
 import InlineUserDateForm from "@/components/astrology/inline-user-date-form"
 import { BirthChartCard } from "@/components/astrology/birth-chart-card"
 import RealtimePlanetaryPanel from "@/components/astrology/realtime-planetary-panel"
 import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
+import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
+import { TarotAssistantInterpretation } from "@/components/chat/tarot-interpretation"
+import {
+    PrivacyHighlightedText,
+    PrivacyHighlightedUserText,
+} from "@/components/chat/privacy-highlighted-user-text"
+import { PrivacyRedactedNoticeHover } from "@/components/chat/privacy-redacted-notice-hover"
+import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import type { HoroscopeBirthData } from "@/types/horoscope"
 import type { ChatMessage, SourceAspectEvent } from "./types"
 import { LoadingDotsText } from "./loading-dots-text"
 import { useTranslations } from "next-intl"
+import { toast } from "sonner"
 import {
     ChevronDown,
     ChevronRight,
+    Copy,
     Flag,
     Layers,
     Loader2,
@@ -46,68 +55,11 @@ import {
 } from "lucide-react"
 
 function formatHoroscopeLoadingText(
-    birth: HoroscopeBirthData | null | undefined,
+    _birth: HoroscopeBirthData | null | undefined,
     dots: number,
     consultingBase: string,
 ): string {
-    if (!birth?.day || !birth?.month || !birth?.year) {
-        return `${consultingBase}${".".repeat(dots)}`
-    }
-    const date = new Date(birth.year, birth.month - 1, birth.day)
-    const dateStr = date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-    })
-    let suffix = ""
-    if (birth.hour != null && birth.minute != null) {
-        const h = birth.hour
-        const ampm = h >= 12 ? "PM" : "AM"
-        const displayHour = h % 12 || 12
-        suffix = `, ${displayHour}:${String(birth.minute).padStart(2, "0")} ${ampm}`
-    } else if (birth.timeHint === "day") {
-        suffix = " (daytime)"
-    } else if (birth.timeHint === "night") {
-        suffix = " (nighttime)"
-    }
-    return `${dateStr}${suffix}${".".repeat(dots)}`
-}
-
-function renderInlineBoldMarkdown(text: string): ReactNode[] {
-    if (!text.includes("**")) return [text]
-
-    const nodes: ReactNode[] = []
-    let cursor = 0
-    let key = 0
-
-    while (cursor < text.length) {
-        const open = text.indexOf("**", cursor)
-        if (open === -1) {
-            nodes.push(text.slice(cursor))
-            break
-        }
-
-        const close = text.indexOf("**", open + 2)
-        if (close === -1) {
-            nodes.push(text.slice(cursor))
-            break
-        }
-
-        if (open > cursor) {
-            nodes.push(text.slice(cursor, open))
-        }
-
-        const boldText = text.slice(open + 2, close)
-        if (boldText.trim().length === 0) {
-            nodes.push("**" + boldText + "**")
-        } else {
-            nodes.push(<strong key={`bold-${key++}`}>{boldText}</strong>)
-        }
-
-        cursor = close + 2
-    }
-
-    return nodes
+    return `${consultingBase}${".".repeat(dots)}`
 }
 
 function ChartDataCollapsible({
@@ -138,6 +90,14 @@ function ChartDataCollapsible({
             )}
         </div>
     )
+}
+
+function getDisplayText(message: ChatMessage) {
+    return message.displayText ?? message.text
+}
+
+function getDisplayQuestion(message: ChatMessage) {
+    return message.displayQuestion ?? message.question
 }
 
 const PLANET_IMAGE_KEYS = new Set([
@@ -294,6 +254,9 @@ type MessageListProps = {
         lng?: number
         timezone?: number
     } | null
+    isHoroscopeIntakeActive?: boolean
+    /** Logged-in user has birth_date on profile — hide inline birth form per product rules. */
+    profileHasBirthDate?: boolean
     isCheckingStars: boolean
     checkingStarsText: string
     showInsufficientStars: boolean
@@ -326,6 +289,19 @@ type MessageListProps = {
     onReport: (id: string, text: string) => void
     onShare: (id: string, text: string) => void
     onReadAloud: (id: string, text: string) => void
+    /**
+     * Replaces session-scoped privacy placeholders (e.g. `[Person_0]`) with the
+     * original PII the user typed. Applied at every user-facing render and at
+     * call sites that leave the device (clipboard, share, TTS, report mailto).
+     */
+    unmask: (text?: string | null) => string
+    /**
+     * Session-scoped alias map used to highlight redacted PII inline in user
+     * message bubbles and to render the masked sentence sent to the AI.
+     */
+    privacyAliases: PromptAliasEntry[]
+    /** When set, follow-up suggestions for this message render in the composer instead of inline. */
+    composerFollowUpHostId: string | null
     readAloudLoadingMessageId: string | null
     readAloudPlayingMessageId: string | null
     lastAssistantMessageRef: RefObject<HTMLDivElement | null>
@@ -348,6 +324,8 @@ export default function MessageList({
     messageNotices,
     horoscopeBirth,
     currentLocationFallback,
+    isHoroscopeIntakeActive = false,
+    profileHasBirthDate = false,
     isCheckingStars,
     checkingStarsText,
     showInsufficientStars,
@@ -372,6 +350,9 @@ export default function MessageList({
     onToggleReaction,
     onReport,
     onShare,
+    unmask,
+    privacyAliases,
+    composerFollowUpHostId,
     lastAssistantMessageRef,
     insufficientStarsRef,
     messagesEndRef,
@@ -409,9 +390,28 @@ export default function MessageList({
                         birth: false,
                         transit: false,
                     }
+                    const displayText = getDisplayText(message)
+                    const displayQuestion = getDisplayQuestion(message)
+
                     // --- User message: user's question with edit/regenerate actions ---
                     if (message.role === "user") {
                         const isEditing = editingMessageId === message.id
+
+                        if (message.isSanitizing && !isEditing) {
+                            return (
+                                <div
+                                    key={message.id}
+                                    id={`msg-${message.id}`}
+                                    className='flex flex-col items-end gap-2'
+                                >
+                                    <div className='flex max-w-[80%] justify-end'>
+                                        <ConsultingBadge
+                                            label={t("sanitizingPrompt")}
+                                        />
+                                    </div>
+                                </div>
+                            )
+                        }
 
                         return (
                             <div
@@ -474,11 +474,67 @@ export default function MessageList({
                                                 </button>
                                             </div>
                                         </div>
+                                    ) : message.privacyRedacted &&
+                                      typeof displayText === "string" &&
+                                      displayText.length > 0 &&
+                                      typeof message.text === "string" &&
+                                      message.text !== displayText &&
+                                      privacyAliases.length > 0 ? (
+                                        <PrivacyHighlightedUserText
+                                            displayText={displayText}
+                                            sanitizedText={message.text}
+                                            aliases={privacyAliases}
+                                        />
                                     ) : (
-                                        message.text
+                                        displayText
                                     )}
                                 </div>
+                                {message.privacyRedacted ? (
+                                    <PrivacyRedactedNoticeHover />
+                                ) : null}
                                 <div className='flex items-center gap-2 text-[11px] text-white/60'>
+                                    <button
+                                        type='button'
+                                        className='flex items-center justify-center h-6 w-6 rounded-full hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40'
+                                        onClick={async () => {
+                                            const text =
+                                                displayText?.trim() ?? ""
+                                            if (!text) return
+                                            try {
+                                                if (
+                                                    navigator.clipboard &&
+                                                    window.isSecureContext
+                                                ) {
+                                                    await navigator.clipboard.writeText(
+                                                        text,
+                                                    )
+                                                    toast.success(
+                                                        t("copyPromptSuccess"),
+                                                    )
+                                                } else {
+                                                    toast.error(
+                                                        t(
+                                                            "copyPromptUnavailable",
+                                                        ),
+                                                    )
+                                                }
+                                            } catch {
+                                                toast.error(
+                                                    t("copyPromptFailed"),
+                                                )
+                                            }
+                                        }}
+                                        disabled={
+                                            consulting ||
+                                            isInterpreting ||
+                                            isEditing ||
+                                            !displayText?.trim()
+                                        }
+                                        aria-label={t("copyPrompt")}
+                                        title={t("copyPrompt")}
+                                    >
+                                        <Copy className='w-3 h-3' />
+                                    </button>
                                     <button
                                         type='button'
                                         className='flex items-center justify-center h-6 w-6 rounded-full hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40'
@@ -531,7 +587,9 @@ export default function MessageList({
                         if (
                             message.toolType === "user-date-form" &&
                             !message.toolFromCancel &&
-                            hasCompleteBirthData(loadBirthFromStorage())
+                            (hasCompleteBirthData(loadBirthFromStorage()) ||
+                                profileHasBirthDate ||
+                                hasHoroscopeBirthDate(horoscopeBirth))
                         ) {
                             return null
                         }
@@ -554,8 +612,10 @@ export default function MessageList({
                             className='flex flex-col items-start gap-4'
                         >
                             {/* Detailed key-takeaways: AI-generated, decorated HTML
-                                shown above the per-card "card says" section so the
-                                user sees the highlighted message first. */}
+                                shown above the cards / "card says" insight quotes so
+                                the user sees the highlighted message first. Lives
+                                outside <TarotAssistantInterpretation> so the new
+                                hero-card UI is unchanged structurally. */}
                             {message.variant === "box" &&
                                 (() => {
                                     const safeHtml = sanitizeDetailedHtml(
@@ -583,325 +643,35 @@ export default function MessageList({
                                         </div>
                                     )
                                 })()}
-                            {/* Tarot cards: shown for box variant when cards are drawn */}
-                            {message.cards && message.cards.length > 0 && (
-                                <div className='flex flex-wrap gap-6 w-full md:max-w-[85%]'>
-                                    {message.cards.map((card, index) => {
-                                        const cardCount =
-                                            message.cards?.length || 0
-                                        let spreadKey = "simple"
-                                        if (cardCount === 1)
-                                            spreadKey = "simple"
-                                        else if (cardCount === 3)
-                                            spreadKey = "general"
-                                        else if (cardCount === 5)
-                                            spreadKey = "detailed"
-                                        else if (cardCount === 7)
-                                            spreadKey = "expanded"
-                                        else if (cardCount === 10)
-                                            spreadKey = "celtic"
-                                        else spreadKey = "unknown"
-
-                                        const label =
-                                            spreadKey !== "unknown"
-                                                ? positionMeanings[spreadKey]?.[
-                                                      index
-                                                  ]
-                                                : `Card ${index + 1}`
-
-                                        return (
-                                            <div
-                                                key={`${message.id}-card-${card.id}`}
-                                                className='bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/5 group hover:bg-white/[0.06] hover:border-primary/20 transition-all duration-300 w-full md:max-w-sm'
-                                            >
-                                                <div className='flex flex-row items-start gap-4 p-4 '>
-                                                    <div className='shrink-0 flex flex-col items-center relative'>
-                                                        <div className='absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-[10px] font-bold text-white z-10 shadow-lg border border-white/10'>
-                                                            {index + 1}
-                                                        </div>
-                                                        <div className='w-16 h-28 shrink-0 rounded-xl overflow-hidden border border-white/10 shadow-inner group-hover:scale-105 transition-transform duration-500'>
-                                                            <CardImage
-                                                                card={card}
-                                                                size='sm'
-                                                                showAura={false}
-                                                                showLabel={
-                                                                    false
-                                                                }
-                                                            />
-                                                        </div>
-                                                    </div>
-
-                                                    <div className='flex-1 min-w-0 flex flex-col h-full py-0.5'>
-                                                        <div className='text-left mb-2'>
-                                                            <p className='text-[10px] text-white/50 font-bold uppercase tracking-wider mb-0.5 opacity-80'>
-                                                                {label}
-                                                            </p>
-                                                            <Badge
-                                                                variant='secondary'
-                                                                className='bg-white/20 text-white/90 border-primary/30 truncate block max-w-full text-[10px]'
-                                                            >
-                                                                {card.meaning}
-                                                            </Badge>
-                                                        </div>
-                                                        <div className='w-fit px-3 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 backdrop-blur-md relative group/insight animate-fade-in shadow-lg'>
-                                                            <div className='absolute -top-1 -left-1 w-2 h-2 border-t border-l border-primary/40 rounded-tl-sm' />
-                                                            <div className='absolute -bottom-1 -right-1 w-2 h-2 border-b border-r border-primary/40 rounded-br-sm' />
-                                                            <p className='text-[10px] font-serif italic text-indigo-100 leading-relaxed'>
-                                                                &ldquo;
-                                                                {message.isLoading &&
-                                                                !message
-                                                                    .insights?.[
-                                                                    index
-                                                                ] ? (
-                                                                    <span className='inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-2 py-1 backdrop-blur-xl shadow-[0_0_12px_-3px_rgba(56,189,248,0.3)] text-[10px] font-medium text-white/90'>
-                                                                        <Loader2 className='h-2.5 w-2.5 animate-spin shrink-0' />
-                                                                        <LoadingDotsText
-                                                                            active={
-                                                                                !!(
-                                                                                    message.isLoading &&
-                                                                                    !message
-                                                                                        .insights?.[
-                                                                                        index
-                                                                                    ]
-                                                                                )
-                                                                            }
-                                                                            getText={(
-                                                                                d,
-                                                                            ) =>
-                                                                                `${consultingBase}${".".repeat(d)}`
-                                                                            }
-                                                                        />
-                                                                    </span>
-                                                                ) : (
-                                                                    message
-                                                                        .insights?.[
-                                                                        index
-                                                                    ] ||
-                                                                    `${consultingBase}...`
-                                                                )}
-                                                                &rdquo;
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
+                            {((message.cards && message.cards.length > 0) ||
+                                message.variant === "box") && (
+                                <TarotAssistantInterpretation
+                                    message={{
+                                        ...message,
+                                        question: displayQuestion,
+                                    }}
+                                    messages={messages}
+                                    messageIndex={messageIndex}
+                                    consultingBase={consultingBase}
+                                    positionMeanings={positionMeanings}
+                                    messageNotices={messageNotices}
+                                    onRegenerateTarot={onRegenerateTarot}
+                                    onTarotInterpretationChange={
+                                        onTarotInterpretationChange
+                                    }
+                                    onShare={onShare}
+                                    onApplySuggestedQuestion={
+                                        onApplySuggestedQuestion
+                                    }
+                                    hideFollowUpSuggestions={
+                                        composerFollowUpHostId === message.id
+                                    }
+                                    unmask={unmask}
+                                    privacyAliases={privacyAliases}
+                                />
                             )}
-                            {/* Box variant: tarot interpretation with cards, insights, actions, share */}
-                            {message.variant === "box" ? (
-                                <>
-                                    <div className='w-full md:max-w-[85%] rounded-2xl border border-white/10 bg-white/5 p-8 shadow-lg space-y-6'>
-                                        <div className='flex items-center space-x-3'>
-                                            <div className='w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center'>
-                                                <Sparkles className='w-5 h-5 text-primary' />
-                                            </div>
-                                            <div>
-                                                <h2 className='font-serif font-semibold text-xl text-white'>
-                                                    Interpretation
-                                                </h2>
-                                                <p className='text-sm text-white/40'>
-                                                    AI-powered tarot reading
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className='text-white/90 leading-relaxed whitespace-pre-wrap'>
-                                            {/* {!message.isLoading &&
-                                                !!message.text?.trim() && (
-                                                    <button
-                                                        type='button'
-                                                        className='inline-flex items-center justify-center h-5 w-5 rounded-full hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40 align-middle mr-2'
-                                                        onClick={() =>
-                                                            onReadAloud(
-                                                                message.id,
-                                                                message.text,
-                                                            )
-                                                        }
-                                                        disabled={
-                                                            readAloudLoadingMessageId ===
-                                                            message.id
-                                                        }
-                                                        aria-label={
-                                                            readAloudPlayingMessageId ===
-                                                            message.id
-                                                                ? t(
-                                                                      "readAloud.stop",
-                                                                  )
-                                                                : t(
-                                                                      "readAloud.play",
-                                                                  )
-                                                        }
-                                                        title={
-                                                            readAloudPlayingMessageId ===
-                                                            message.id
-                                                                ? t(
-                                                                      "readAloud.stop",
-                                                                  )
-                                                                : t(
-                                                                      "readAloud.play",
-                                                                  )
-                                                        }
-                                                    >
-                                                        {readAloudLoadingMessageId ===
-                                                        message.id ? (
-                                                            <Loader2 className='w-3 h-3 animate-spin' />
-                                                        ) : readAloudPlayingMessageId ===
-                                                          message.id ? (
-                                                            <Square className='w-3 h-3 fill-current' />
-                                                        ) : (
-                                                            <Volume2 className='w-3 h-3' />
-                                                        )}
-                                                    </button>
-                                                )} */}
-                                            {message.isLoading &&
-                                            !message.text?.trim() ? (
-                                                <span className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90'>
-                                                    <Loader2 className='h-4 w-4 animate-spin shrink-0' />
-                                                    <LoadingDotsText
-                                                        active={
-                                                            !!(
-                                                                message.isLoading &&
-                                                                !message.text?.trim()
-                                                            )
-                                                        }
-                                                        getText={(d) =>
-                                                            `${consultingBase}${".".repeat(d)}`
-                                                        }
-                                                    />
-                                                </span>
-                                            ) : (
-                                                renderInlineBoldMarkdown(
-                                                    message.text || "",
-                                                )
-                                            )}
-                                        </div>
-                                        {!message.isLoading && (
-                                            <div className='pt-4 border-t border-white/5 space-y-4'>
-                                                <div className='space-y-2'>
-                                                    <p className='text-[11px] uppercase tracking-[0.2em] text-white/50'>
-                                                        Actions
-                                                    </p>
-                                                    <ActionSection
-                                                        variant='embedded'
-                                                        question={
-                                                            message.question
-                                                        }
-                                                        cards={message.cards?.map(
-                                                            (card) =>
-                                                                card.meaning,
-                                                        )}
-                                                        interpretation={
-                                                            message.text
-                                                        }
-                                                        messageId={message.id}
-                                                        readingId={message.id}
-                                                        onRegenerateTarot={
-                                                            onRegenerateTarot
-                                                        }
-                                                        insights={
-                                                            message.insights
-                                                        }
-                                                        conclusion={
-                                                            message.followUpConclusion
-                                                        }
-                                                        spreadType={
-                                                            message.spreadType ??
-                                                            undefined
-                                                        }
-                                                        cardsFull={
-                                                            message.cards
-                                                        }
-                                                        assistantText={
-                                                            messages
-                                                                .slice(
-                                                                    0,
-                                                                    messageIndex,
-                                                                )
-                                                                .reverse()
-                                                                .find(
-                                                                    (m) =>
-                                                                        m.role ===
-                                                                            "assistant" &&
-                                                                        m.variant ===
-                                                                            "plain",
-                                                                )?.text
-                                                        }
-                                                        onInterpretationChange={
-                                                            onTarotInterpretationChange
-                                                                ? (
-                                                                      text: string,
-                                                                  ) =>
-                                                                      onTarotInterpretationChange(
-                                                                          message.id,
-                                                                          text,
-                                                                      )
-                                                                : undefined
-                                                        }
-                                                    />
-                                                </div>
-                                                <ShareSection
-                                                    variant='embedded'
-                                                    question={message.question}
-                                                    cards={message.cards?.map(
-                                                        (card) => card.meaning,
-                                                    )}
-                                                    interpretation={
-                                                        message.text
-                                                    }
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
-                                    {(message.followUpConclusion ||
-                                        (Array.isArray(
-                                            message.followUpSuggestions,
-                                        ) &&
-                                            message.followUpSuggestions.length >
-                                                0)) && (
-                                        <div className='w-full md:max-w-[85%] space-y-2 pt-4'>
-                                            {message.followUpLoading && (
-                                                <p className='text-xs sm:text-sm text-white/60'>
-                                                    Thinking of a good next
-                                                    question...
-                                                </p>
-                                            )}
-                                            {message.followUpConclusion && (
-                                                <p className='text-white'>
-                                                    {renderInlineBoldMarkdown(
-                                                        message.followUpConclusion,
-                                                    )}
-                                                </p>
-                                            )}
-                                            {Array.isArray(
-                                                message.followUpSuggestions,
-                                            ) &&
-                                                message.followUpSuggestions
-                                                    .length > 0 && (
-                                                    <div className='flex flex-wrap gap-2'>
-                                                        {message.followUpSuggestions.map(
-                                                            (s) => (
-                                                                <button
-                                                                    key={s}
-                                                                    type='button'
-                                                                    onClick={() =>
-                                                                        onApplySuggestedQuestion(
-                                                                            s,
-                                                                        )
-                                                                    }
-                                                                    className='rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition px-3 py-1.5 text-xs text-left text-white/80 hover:text-white'
-                                                                >
-                                                                    {s}
-                                                                </button>
-                                                            ),
-                                                        )}
-                                                    </div>
-                                                )}
-                                        </div>
-                                    )}
-                                </>
-                            ) : /* Horoscope variant: birth chart, astrology interpretation, actions, share */
-                            message.variant === "horoscope" ? (
+                            {message.variant ===
+                            "box" ? null : message.variant === "horoscope" ? (
                                 <>
                                     {message.sourceAspectEvent && (
                                         <div className='w-full md:max-w-[85%] animate-fade-in'>
@@ -913,312 +683,253 @@ export default function MessageList({
                                             />
                                         </div>
                                     )}
-                                    <div className='w-full md:max-w-[85%] space-y-6'>
-                                        <RealtimePlanetaryPanel
-                                            chartData={message.chartData}
-                                            personalizedTransitAspects={
-                                                message.personalizedTransitAspects
+                                    <div className='w-full md:max-w-[85%]'>
+                                        <HoroscopeReadingTabs
+                                            message={{
+                                                ...message,
+                                                question: displayQuestion,
+                                            }}
+                                            privacyAliases={privacyAliases}
+                                            hideFollowUpSuggestions={
+                                                composerFollowUpHostId ===
+                                                message.id
                                             }
-                                            personalizedTransitAspectsMerged={
-                                                message.personalizedTransitAspectsMerged
+                                            onApplySuggestedQuestion={
+                                                onApplySuggestedQuestion
                                             }
-                                            aspectInsights={
-                                                message.aspectInsights
+                                            aspectPanel={
+                                                <RealtimePlanetaryPanel
+                                                    chartData={
+                                                        message.chartData
+                                                    }
+                                                    personalizedTransitAspects={
+                                                        message.personalizedTransitAspects
+                                                    }
+                                                    personalizedTransitAspectsMerged={
+                                                        message.personalizedTransitAspectsMerged
+                                                    }
+                                                    aspectInsights={
+                                                        message.aspectInsights
+                                                    }
+                                                    onAskAspectDetail={
+                                                        onAskAspectDetail
+                                                    }
+                                                    askedAspectKeys={
+                                                        askedAspectKeys
+                                                    }
+                                                    showBirthDetails={
+                                                        detailToggle.birth
+                                                    }
+                                                    showTransitDetails={
+                                                        detailToggle.transit
+                                                    }
+                                                    onToggleBirthDetails={() =>
+                                                        setPanelDetailToggles(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                [message.id]: {
+                                                                    birth: !(
+                                                                        prev[
+                                                                            message
+                                                                                .id
+                                                                        ]
+                                                                            ?.birth ??
+                                                                        false
+                                                                    ),
+                                                                    transit:
+                                                                        prev[
+                                                                            message
+                                                                                .id
+                                                                        ]
+                                                                            ?.transit ??
+                                                                        false,
+                                                                },
+                                                            }),
+                                                        )
+                                                    }
+                                                    onToggleTransitDetails={() =>
+                                                        setPanelDetailToggles(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                [message.id]: {
+                                                                    birth:
+                                                                        prev[
+                                                                            message
+                                                                                .id
+                                                                        ]
+                                                                            ?.birth ??
+                                                                        false,
+                                                                    transit: !(
+                                                                        prev[
+                                                                            message
+                                                                                .id
+                                                                        ]
+                                                                            ?.transit ??
+                                                                        false
+                                                                    ),
+                                                                },
+                                                            }),
+                                                        )
+                                                    }
+                                                    birthDetailsContent={
+                                                        message.chartData &&
+                                                        !message.isLoading ? (
+                                                            <BirthChartCard
+                                                                chartData={
+                                                                    message.chartData as Parameters<
+                                                                        typeof BirthChartCard
+                                                                    >[0]["chartData"]
+                                                                }
+                                                                question={
+                                                                    displayQuestion
+                                                                }
+                                                                planetMeanings={
+                                                                    message.planetMeanings ??
+                                                                    undefined
+                                                                }
+                                                                houseMeanings={
+                                                                    message.houseMeanings ??
+                                                                    undefined
+                                                                }
+                                                                onRefetchWithSystem={(
+                                                                    system,
+                                                                ) =>
+                                                                    onRefetchHoroscopeWithSystem(
+                                                                        message.id,
+                                                                        system,
+                                                                    )
+                                                                }
+                                                                showBirthDetails
+                                                                renderFromPanel
+                                                            />
+                                                        ) : undefined
+                                                    }
+                                                    transitDetailsContent={
+                                                        message.chartData &&
+                                                        !message.isLoading ? (
+                                                            <BirthChartCard
+                                                                chartData={
+                                                                    message.chartData as Parameters<
+                                                                        typeof BirthChartCard
+                                                                    >[0]["chartData"]
+                                                                }
+                                                                question={
+                                                                    displayQuestion
+                                                                }
+                                                                planetMeanings={
+                                                                    message.planetMeanings ??
+                                                                    undefined
+                                                                }
+                                                                houseMeanings={
+                                                                    message.houseMeanings ??
+                                                                    undefined
+                                                                }
+                                                                onRefetchWithSystem={(
+                                                                    system,
+                                                                ) =>
+                                                                    onRefetchHoroscopeWithSystem(
+                                                                        message.id,
+                                                                        system,
+                                                                    )
+                                                                }
+                                                                showTransitDetails
+                                                                renderFromPanel
+                                                            />
+                                                        ) : undefined
+                                                    }
+                                                />
                                             }
-                                            onAskAspectDetail={
-                                                onAskAspectDetail
-                                            }
-                                            askedAspectKeys={askedAspectKeys}
-                                            showBirthDetails={
-                                                detailToggle.birth
-                                            }
-                                            showTransitDetails={
-                                                detailToggle.transit
-                                            }
-                                            onToggleBirthDetails={() =>
-                                                setPanelDetailToggles(
-                                                    (prev) => ({
-                                                        ...prev,
-                                                        [message.id]: {
-                                                            birth: !(
-                                                                prev[message.id]
-                                                                    ?.birth ??
-                                                                false
-                                                            ),
-                                                            transit:
-                                                                prev[message.id]
-                                                                    ?.transit ??
-                                                                false,
-                                                        },
-                                                    }),
-                                                )
-                                            }
-                                            onToggleTransitDetails={() =>
-                                                setPanelDetailToggles(
-                                                    (prev) => ({
-                                                        ...prev,
-                                                        [message.id]: {
-                                                            birth:
-                                                                prev[message.id]
-                                                                    ?.birth ??
-                                                                false,
-                                                            transit: !(
-                                                                prev[message.id]
-                                                                    ?.transit ??
-                                                                false
-                                                            ),
-                                                        },
-                                                    }),
-                                                )
-                                            }
-                                            birthDetailsContent={
-                                                message.chartData &&
-                                                !message.isLoading ? (
-                                                    <BirthChartCard
-                                                        chartData={
-                                                            message.chartData as Parameters<
-                                                                typeof BirthChartCard
-                                                            >[0]["chartData"]
+                                            loadingNode={
+                                                message.isLoading ? (
+                                                    <button
+                                                        type='button'
+                                                        onClick={
+                                                            onCancelHoroscopeLoading
                                                         }
-                                                        question={
-                                                            message.question
-                                                        }
-                                                        planetMeanings={
-                                                            message.planetMeanings ??
-                                                            undefined
-                                                        }
-                                                        houseMeanings={
-                                                            message.houseMeanings ??
-                                                            undefined
-                                                        }
-                                                        onRefetchWithSystem={(
-                                                            system,
-                                                        ) =>
-                                                            onRefetchHoroscopeWithSystem(
-                                                                message.id,
-                                                                system,
-                                                            )
-                                                        }
-                                                        showBirthDetails
-                                                        renderFromPanel
-                                                    />
+                                                        title='Click to cancel and edit birth details'
+                                                        className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 text-sm font-medium text-white/90 shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] backdrop-blur-xl transition-colors hover:text-white'
+                                                    >
+                                                        <Square className='h-3.5 w-3.5 shrink-0 fill-current' />
+                                                        <Loader2 className='h-4 w-4 shrink-0 animate-spin' />
+                                                        <LoadingDotsText
+                                                            active={
+                                                                !!message.isLoading
+                                                            }
+                                                            getText={(d) =>
+                                                                formatHoroscopeLoadingText(
+                                                                    message.horoscopeBirthData,
+                                                                    d,
+                                                                    consultingBase,
+                                                                )
+                                                            }
+                                                        />
+                                                    </button>
                                                 ) : undefined
                                             }
-                                            transitDetailsContent={
-                                                message.chartData &&
+                                            footerActions={
                                                 !message.isLoading ? (
-                                                    <BirthChartCard
-                                                        chartData={
-                                                            message.chartData as Parameters<
-                                                                typeof BirthChartCard
-                                                            >[0]["chartData"]
-                                                        }
-                                                        question={
-                                                            message.question
-                                                        }
-                                                        planetMeanings={
-                                                            message.planetMeanings ??
-                                                            undefined
-                                                        }
-                                                        houseMeanings={
-                                                            message.houseMeanings ??
-                                                            undefined
-                                                        }
-                                                        onRefetchWithSystem={(
-                                                            system,
-                                                        ) =>
-                                                            onRefetchHoroscopeWithSystem(
-                                                                message.id,
-                                                                system,
-                                                            )
-                                                        }
-                                                        showTransitDetails
-                                                        renderFromPanel
-                                                    />
+                                                    <div className='space-y-4'>
+                                                        {message.followUpConclusion && (
+                                                            <p className='text-sm leading-7 text-white/78'>
+                                                                <PrivacyHighlightedText
+                                                                    text={
+                                                                        message.followUpConclusion
+                                                                    }
+                                                                    aliases={
+                                                                        privacyAliases
+                                                                    }
+                                                                    supportMarkdown
+                                                                />
+                                                            </p>
+                                                        )}
+                                                        <ShareSection
+                                                            variant='embedded'
+                                                            question={
+                                                                displayQuestion
+                                                            }
+                                                            interpretation={unmask(
+                                                                message.text,
+                                                            )}
+                                                        />
+                                                        <div className='space-y-2'>
+                                                            <p className='text-[11px] uppercase tracking-[0.2em] text-white/50'>
+                                                                Actions
+                                                            </p>
+                                                            <ActionSection
+                                                                variant='embedded'
+                                                                mode='horoscope'
+                                                                question={
+                                                                    displayQuestion
+                                                                }
+                                                                interpretation={unmask(
+                                                                    message.text,
+                                                                )}
+                                                                messageId={
+                                                                    message.id
+                                                                }
+                                                                onRegenerateHoroscope={
+                                                                    onRegenerateHoroscope
+                                                                }
+                                                            />
+                                                        </div>
+                                                        {message.chartData && (
+                                                            <ChartDataCollapsible
+                                                                chartData={
+                                                                    message.chartData
+                                                                }
+                                                            />
+                                                        )}
+                                                    </div>
                                                 ) : undefined
                                             }
                                         />
-                                        <div className='rounded-2xl border border-white/10 bg-white/5 p-8 shadow-lg space-y-6'>
-                                            <div className='flex items-center space-x-3'>
-                                                <div className='w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center'>
-                                                    <Sparkles className='w-5 h-5 text-primary' />
-                                                </div>
-                                                <div>
-                                                    <h2 className='font-serif font-semibold text-xl text-white'>
-                                                        Interpretation
-                                                    </h2>
-                                                    <p className='text-sm text-white/40'>
-                                                        AI-powered astrology
-                                                        reading
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className='text-white/90 leading-relaxed whitespace-pre-wrap'>
-                                                {/* {!message.isLoading &&
-                                                    !!message.text?.trim() && (
-                                                        <button
-                                                            type='button'
-                                                            className='inline-flex items-center justify-center h-5 w-5 rounded-full hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40 align-middle mr-2'
-                                                            onClick={() =>
-                                                                onReadAloud(
-                                                                    message.id,
-                                                                    message.text,
-                                                                )
-                                                            }
-                                                            disabled={
-                                                                readAloudLoadingMessageId ===
-                                                                message.id
-                                                            }
-                                                            aria-label={
-                                                                readAloudPlayingMessageId ===
-                                                                message.id
-                                                                    ? t(
-                                                                          "readAloud.stop",
-                                                                      )
-                                                                    : t(
-                                                                          "readAloud.play",
-                                                                      )
-                                                            }
-                                                            title={
-                                                                readAloudPlayingMessageId ===
-                                                                message.id
-                                                                    ? t(
-                                                                          "readAloud.stop",
-                                                                      )
-                                                                    : t(
-                                                                          "readAloud.play",
-                                                                      )
-                                                            }
-                                                        >
-                                                            {readAloudLoadingMessageId ===
-                                                            message.id ? (
-                                                                <Loader2 className='w-3 h-3 animate-spin' />
-                                                            ) : readAloudPlayingMessageId ===
-                                                              message.id ? (
-                                                                <Square className='w-3 h-3 fill-current' />
-                                                            ) : (
-                                                                <Volume2 className='w-3 h-3' />
-                                                            )}
-                                                        </button>
-                                                    )} */}
-                                                {renderInlineBoldMarkdown(
-                                                    message.text || "",
-                                                )}
-                                                {message.isLoading && (
-                                                    <div className='mt-3'>
-                                                        <button
-                                                            type='button'
-                                                            onClick={
-                                                                onCancelHoroscopeLoading
-                                                            }
-                                                            title='Click to cancel and edit birth details'
-                                                            className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90 hover:text-white transition-colors cursor-pointer'
-                                                        >
-                                                            <Square className='h-3.5 w-3.5 shrink-0 fill-current' />
-                                                            <Loader2 className='h-4 w-4 animate-spin shrink-0' />
-                                                            <LoadingDotsText
-                                                                active={
-                                                                    !!message.isLoading
-                                                                }
-                                                                getText={(d) =>
-                                                                    formatHoroscopeLoadingText(
-                                                                        message.horoscopeBirthData,
-                                                                        d,
-                                                                        consultingBase,
-                                                                    )
-                                                                }
-                                                            />
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {!message.isLoading && (
-                                                <div className='pt-4 border-t border-white/5 space-y-4'>
-                                                    <div className='space-y-2'>
-                                                        <p className='text-[11px] uppercase tracking-[0.2em] text-white/50'>
-                                                            Actions
-                                                        </p>
-                                                        <ActionSection
-                                                            variant='embedded'
-                                                            mode='horoscope'
-                                                            question={
-                                                                message.question
-                                                            }
-                                                            interpretation={
-                                                                message.text
-                                                            }
-                                                            messageId={
-                                                                message.id
-                                                            }
-                                                            onRegenerateHoroscope={
-                                                                onRegenerateHoroscope
-                                                            }
-                                                        />
-                                                    </div>
-                                                    <ShareSection
-                                                        variant='embedded'
-                                                        question={
-                                                            message.question
-                                                        }
-                                                        interpretation={
-                                                            message.text
-                                                        }
-                                                    />
-                                                    {message.chartData && (
-                                                        <ChartDataCollapsible
-                                                            chartData={
-                                                                message.chartData
-                                                            }
-                                                        />
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
                                     </div>
-                                    {!message.isLoading &&
-                                        (message.followUpConclusion ||
-                                            (Array.isArray(
-                                                message.followUpSuggestions,
-                                            ) &&
-                                                message.followUpSuggestions
-                                                    .length > 0)) && (
-                                            <div className='w-full md:max-w-[85%] space-y-2 pt-4'>
-                                                {message.followUpConclusion && (
-                                                    <p className='text-white'>
-                                                        {renderInlineBoldMarkdown(
-                                                            message.followUpConclusion,
-                                                        )}
-                                                    </p>
-                                                )}
-                                                {Array.isArray(
-                                                    message.followUpSuggestions,
-                                                ) &&
-                                                    message.followUpSuggestions
-                                                        .length > 0 && (
-                                                        <div className='flex flex-wrap gap-2'>
-                                                            {message.followUpSuggestions.map(
-                                                                (s) => (
-                                                                    <button
-                                                                        key={s}
-                                                                        type='button'
-                                                                        onClick={() =>
-                                                                            onApplySuggestedQuestion(
-                                                                                s,
-                                                                            )
-                                                                        }
-                                                                        className='rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition px-3 py-1.5 text-xs text-left text-white/80 hover:text-white'
-                                                                    >
-                                                                        {s}
-                                                                    </button>
-                                                                ),
-                                                            )}
-                                                        </div>
-                                                    )}
-                                            </div>
-                                        )}
                                 </>
                             ) : /* Tool variant: inline birth/transit date form */
-                            message.variant === "tool" ? (
+                            message.variant === "tool" &&
+                              message.toolType ===
+                                  "user-date-form" ? null : message.variant ===
+                              "tool" ? (
                                 <InlineUserDateForm
                                     initial={
                                         message.toolBirthPrefill ||
@@ -1228,6 +939,7 @@ export default function MessageList({
                                     onSubmit={onUserDateFormSubmit}
                                     title={birthFormTitle}
                                     submitLabel={birthFormSubmit}
+                                    variant='inlineSticky'
                                 />
                             ) : (
                                 /* Plain variant: simple assistant text (chat decision, bridge message) */
@@ -1299,9 +1011,11 @@ export default function MessageList({
                                                 />
                                             </span>
                                         ) : (
-                                            renderInlineBoldMarkdown(
-                                                message.text || "",
-                                            )
+                                            <PrivacyHighlightedText
+                                                text={message.text || ""}
+                                                aliases={privacyAliases}
+                                                supportMarkdown
+                                            />
                                         )}
                                     </div>
                                 </>
@@ -1368,7 +1082,9 @@ export default function MessageList({
                                                         onClick={() =>
                                                             onReport(
                                                                 message.id,
-                                                                message.text,
+                                                                unmask(
+                                                                    message.text,
+                                                                ),
                                                             )
                                                         }
                                                         aria-label='Report'
@@ -1382,7 +1098,9 @@ export default function MessageList({
                                                         onClick={() =>
                                                             onShare(
                                                                 message.id,
-                                                                message.text,
+                                                                unmask(
+                                                                    message.text,
+                                                                ),
                                                             )
                                                         }
                                                         aria-label='Share'
@@ -1402,7 +1120,7 @@ export default function MessageList({
                         </div>
                     )
                 })}
-                {consulting &&
+                {(consulting || isHoroscopeIntakeActive) &&
                     messages.length > 0 &&
                     !messages.some(
                         (m) => m.variant === "horoscope" && m.isLoading,
@@ -1411,7 +1129,13 @@ export default function MessageList({
                         (m) => m.variant === "plain" && m.isLoading,
                     ) && (
                         <div className='flex flex-col items-start gap-4'>
-                            <ConsultingBadge />
+                            <ConsultingBadge
+                                label={
+                                    isHoroscopeIntakeActive
+                                        ? t("enterBirthDate")
+                                        : consultingBase
+                                }
+                            />
                         </div>
                     )}
 
@@ -1436,7 +1160,9 @@ export default function MessageList({
                         className='flex flex-col items-start gap-4 animate-fade-in'
                     >
                         <div className='w-full md:max-w-[85%] text-white/90 space-y-4'>
-                            <InsufficientStarsBlock type={insufficientStarsType} />
+                            <InsufficientStarsBlock
+                                type={insufficientStarsType}
+                            />
                         </div>
                     </div>
                 )}

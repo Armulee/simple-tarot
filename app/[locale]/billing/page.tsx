@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/hooks/use-auth"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -36,10 +36,14 @@ import { useRouter } from "next/navigation"
 import BrandLoader from "@/components/brand-loader"
 import { useStars } from "@/contexts/stars-context"
 import {
-    getPlanPriceUsd,
+    getPlanPrice,
     getPlanStars,
     parseSubscriptionPlanKey,
 } from "@/lib/payments/subscription-plans"
+import {
+    convertUsdToCurrency,
+    formatCurrency,
+} from "@/lib/payments/currency-utils"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -95,6 +99,7 @@ export default function BillingPage() {
     const { initialized: starsInitialized } = useStars()
     const router = useRouter()
     const t = useTranslations("Billing")
+    const locale = useLocale()
     const [txs, setTxs] = useState<Tx[]>([])
     const [subscription, setSubscription] = useState<Subscription | null>(null)
     const [loading, setLoading] = useState(false)
@@ -393,11 +398,13 @@ export default function BillingPage() {
             full: format(date, "MMM dd, yyyy"),
         }
     }
-    const formatUsd = (amount: number) =>
-        new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-        }).format(amount)
+    const displayCurrency = locale === "th" ? "THB" : "USD"
+    const formatDisplayAmount = (amount: number) =>
+        formatCurrency(amount, displayCurrency, locale).replace(/^US(?=\$)/, "")
+    const formatUsdAsDisplay = (amountUsd: number) =>
+        formatDisplayAmount(
+            convertUsdToCurrency(amountUsd, displayCurrency)
+        )
 
     const refundWindowMs = 7 * 24 * 60 * 60 * 1000
     const isRefundable = (tx: Tx) => {
@@ -471,16 +478,17 @@ export default function BillingPage() {
     const planStars = planInfo
         ? getPlanStars(planInfo.tier, planInfo.cycle)
         : null
-    const planPriceUsd = planInfo
-        ? getPlanPriceUsd(planInfo.tier, planInfo.cycle)
+    const planPriceAmount = planInfo
+        ? getPlanPrice(planInfo.tier, planInfo.cycle, displayCurrency)
         : null
     const addonStars = subscription?.addon_stars ?? 0
     const totalPlanStars =
         typeof planStars === "number" ? planStars + addonStars : null
     const addonAmountUsd = subscription?.addon_amount_usd ?? 0
-    const totalPriceUsd =
-        typeof planPriceUsd === "number"
-            ? planPriceUsd + addonAmountUsd
+    const totalPriceAmount =
+        typeof planPriceAmount === "number"
+            ? planPriceAmount +
+              convertUsdToCurrency(addonAmountUsd, displayCurrency)
             : null
     const isMaxPlan = planInfo?.tier === "pro"
     const primaryActionLabel = isMaxPlan ? t("buyAddons") : t("upgradePlan")
@@ -662,7 +670,7 @@ export default function BillingPage() {
                                                             <div className='text-xs text-gray-400'>
                                                                 +{item.totalStars}{" "}
                                                                 {t("stars")} ·{" "}
-                                                                {formatUsd(
+                                                                {formatUsdAsDisplay(
                                                                     item.totalPriceUsd
                                                                 )}{" "}
                                                                 /
@@ -701,13 +709,13 @@ export default function BillingPage() {
                                                 {t("noAddons")}
                                             </div>
                                         )}
-                                        {planPriceUsd != null && (
+                                        {planPriceAmount != null && (
                                             <div className='pt-2 text-xs text-gray-400'>
                                                 {t("estimatedTotal")}:{" "}
                                                 <span className='text-white'>
-                                                    {formatUsd(
-                                                        totalPriceUsd ??
-                                                            planPriceUsd
+                                                    {formatDisplayAmount(
+                                                        totalPriceAmount ??
+                                                            planPriceAmount
                                                     )}
                                                 </span>{" "}
                                                 /{" "}
