@@ -3,8 +3,8 @@ import { z } from "zod"
 /**
  * Schema order matters for streaming so the chat-session UI can reveal
  * sections progressively:
- *   cardInsights → headline → subtitle → keyMessage → perCard → keywords →
- *   interpretation → nextStep → conclusion → suggestions
+ *   cardInsights → headline → subtitle → keyMessage → detailedHtml → perCard →
+ *   keywords → interpretation → nextStep → conclusion → suggestions
  *
  * The "new" fields (headline/subtitle/perCard/nextStep + 3–4 short suggestions)
  * power the refreshed chat-session result UI. The "legacy" fields
@@ -32,6 +32,11 @@ export const tarotInterpretationSchema = z.object({
         .string()
         .describe(
             "Back-compat field for the legacy /tarot page and the DB share view. Set this to `headline + ' ' + subtitle` joined into one short paragraph. Do not invent new content here.",
+        ),
+    detailedHtml: z
+        .string()
+        .describe(
+            "Rich HTML for the detailed reading panel (shown above the per-card chip list). Amplify how the spread answers the user's specific question: about 1–3 short paragraphs worth of substance (split into <p> blocks). Same language as the question. NEVER mention card names or positions. Optional <ul><li> lists only when they genuinely clarify the user's situation (0–1 list). Use ONLY these tags, with NO attributes: <p>, <ul>, <ol>, <li>, <strong>, <em>, <b>, <i>, <mark>, <br>. Use <mark> sparingly to spotlight pivotal phrases (golden emphasis in the UI). Use <strong> for key beats; <em> for nuance. No markdown, no class/style, no <span>. STREAM THIS AFTER keyMessage AND BEFORE perCard.",
         ),
     perCard: z
         .array(

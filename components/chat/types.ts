@@ -62,6 +62,8 @@ export type ChatMessage = {
     headline?: string
     /** New tarot result schema: nuance / condition under the headline. */
     subtitle?: string
+    /** New tarot result schema: rich HTML narrative shown above the per-card list. */
+    detailedHtml?: string
     /** New tarot result schema: per-card breakdown rendered as the chip list. */
     perCard?: PerCardSentence[]
     /** New tarot result schema: soft, non-commanding next step. */

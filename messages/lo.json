@@ -1431,6 +1431,9 @@
         "singleHeader": "ໄພ່ບອກວ່າ",
         "multiHeader": "ໄພ່ແຕ່ລະໃບບອກວ່າ"
       },
+      "detailed": {
+        "header": "ເບິ່ງໃກ້ເພີ່ມ"
+      },
       "actionsHeader": "ການຈັດການ",
       "actionsDesc": "ຈັດການ ແລະ ໂຕ້ຕອບກັບການອ່ານຂອງທ່ານ",
       "dialogs": {

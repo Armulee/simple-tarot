@@ -134,7 +134,7 @@ ${prompt}`
         const followUpPriorGuard = hasPriorReadingForFollowUp
             ? `
 FOLLOW-UP — PRIOR READING IS BACKGROUND ONLY:
-- Any prior interpretation in the prompt exists only for thread/topic continuity. Do NOT copy, quote, closely paraphrase, or recycle its sentences in keyMessage, interpretation, conclusion, or cardInsights.
+- Any prior interpretation in the prompt exists only for thread/topic continuity. Do NOT copy, quote, closely paraphrase, or recycle its sentences in keyMessage, detailedHtml, interpretation, conclusion, or cardInsights.
 - The user-facing answer must read as a fresh reading grounded in the CURRENT cards (via reading_direction and card_energies). If the new spread disagrees with the old vibe, follow the new spread.
 - Do not mention "last reading", "earlier", or "before" unless the user's question explicitly asks about the prior reading.
 `
@@ -147,7 +147,7 @@ FOLLOW-UP — PRIOR READING IS BACKGROUND ONLY:
             system: TAROT_SYSTEM_PROMPT,
             prompt: `${prompt}
 
-LANGUAGE: The user's question is in ${lang}. You MUST write ALL output fields (cardInsights, headline, subtitle, keyMessage, perCard.sentence, keywords, interpretation, nextStep, conclusion, suggestions) in ${lang}. The only exception is perCard[i].cardName, which MUST echo the input card name verbatim. The card_energies and reading_direction are English internal data — translate them into ${lang}. NEVER output English when the question is in ${lang}.
+LANGUAGE: The user's question is in ${lang}. You MUST write ALL output fields (cardInsights, headline, subtitle, keyMessage, detailedHtml, perCard.sentence, keywords, interpretation, nextStep, conclusion, suggestions) in ${lang}. The only exception is perCard[i].cardName, which MUST echo the input card name verbatim. The card_energies and reading_direction are English internal data — translate them into ${lang}. NEVER output English when the question is in ${lang}.
 ${followUpPriorGuard}
 CRITICAL NARRATOR RULE: If a <reading_direction> is provided, you MUST follow it as your answer skeleton.
 - The reading_direction contains the core leaning, card-by-card reasoning, and advice that a stronger reasoning model already determined from the CURRENT draw (not from any prior user-facing interpretation).
@@ -173,15 +173,16 @@ CRITICAL NARRATOR RULE: If a <reading_direction> is provided, you MUST follow it
 - subtitle is the nuance / condition / caveat under the headline. ≤20 Thai words. Must add real information, must not repeat the headline verbatim.
 - perCard.length MUST equal the number of input cards. perCard[i].cardName MUST exactly equal cards[i] (verbatim, same casing). Each perCard[i].sentence describes what THAT specific card adds to the answer — concrete to the question's domain, ≤25 words, no card name inside the sentence, no "this card" phrasing.
 - nextStep is a soft suggestion. It MUST start with a non-commanding verb. ALLOWED openers: ลอง / อาจ / เผื่อ / อาจจะ (Thai), Try / Consider / Maybe / You could (English). FORBIDDEN openers: ต้อง, ควร used as a command, must, should, have to, need to used as a command.
-- BACK-COMPAT FIELDS — these must be deterministic restatements, NOT fresh content:
+- BACK-COMPAT FIELDS — keyMessage, interpretation, and conclusion must be deterministic restatements, NOT fresh content:
   - keyMessage = headline + ' ' + subtitle (joined into one short paragraph).
   - interpretation = perCard[].sentence joined together with spaces as one short paragraph.
   - conclusion = nextStep (verbatim).
+- detailedHtml is separate: write rich HTML per <detailed_html_rules> in the system rules. It must complement perCard (not paste the chip sentences) and must be fresh on every draw (including follow-ups — never recycle a prior reading's wording).
 - suggestions MUST contain EXACTLY 3–4 items — never fewer than 3, never more than 4.
 - Each suggestion must be VERY short (aim ≤8 Thai words or ≤6 English words), one line, like something a friend would text — not a long formal question.
 - All suggestions MUST be clearly different angles (different topic, perspective, or scope). They MUST NOT be paraphrases or near-rephrasings of each other.
 - suggestions must stay generic and user-relatable rather than depending on the exact wording of the generated reading.
-- suggestions must NOT quote or closely paraphrase the generated headline, subtitle, perCard, nextStep, keyMessage, interpretation, or conclusion.
+- suggestions must NOT quote or closely paraphrase the generated headline, subtitle, detailedHtml, perCard, nextStep, keyMessage, interpretation, or conclusion.
 - TONE: Write like you're texting a close friend who reads patterns and energy — never as a judge declaring an absolute truth. In Thai, use casual language (ลอง, เวิร์ค, ปัง, เน้น, จัดเลย). AVOID formal/translated phrasing (ฉันรู้สึกว่า, การรักษาความยุติธรรม, ประสบความสำเร็จ, สะท้อนกลับมา).`,
         })
 
@@ -192,6 +193,7 @@ CRITICAL NARRATOR RULE: If a <reading_direction> is provided, you MUST follow it
                     obj.headline,
                     obj.subtitle,
                     obj.keyMessage,
+                    obj.detailedHtml,
                     obj.interpretation,
                     obj.nextStep,
                     obj.conclusion,
