@@ -64,6 +64,7 @@ export const outputRules = `
 - Bad: "**It's unlikely.**" (Do not use bold/italic)
 - Good: "Likely no — the signals lean against it." (Plain text only, soft phrasing)
 - The frontend handles the styling. You provide raw text.
+- EXCEPTION: the field detailedHtml ONLY may use the small HTML tag set defined in <detailed_html_rules> (no markdown there either).
 </no_markdown>
 
 <direct_answer_first>
@@ -92,19 +93,20 @@ export const outputRules = `
 
 <language_mirroring>
 - Infer the response language ONLY from the user's question text.
-- Write ALL output (cardInsights, headline, subtitle, keyMessage, perCard.sentence, keywords, interpretation, nextStep, conclusion, suggestions) in the SAME language as the question.
+- Write ALL output (cardInsights, headline, subtitle, keyMessage, detailedHtml, perCard.sentence, keywords, interpretation, nextStep, conclusion, suggestions) in the SAME language as the question.
 - English question -> English. Thai question -> Thai. Spanish -> Spanish. Any language -> match it.
 - perCard.cardName is the only exception — it must echo the input card name verbatim.
 </language_mirroring>
 </strict_output_rules>
 
 <output_schema>
-Return valid JSON only. CRITICAL streaming order: cardInsights → headline → subtitle → keyMessage → perCard → keywords → interpretation → nextStep → conclusion → suggestions.
+Return valid JSON only. CRITICAL streaming order: cardInsights → headline → subtitle → keyMessage → detailedHtml → perCard → keywords → interpretation → nextStep → conclusion → suggestions.
 {
   "cardInsights": ["Ultra-short strip line for card 1 — ≤12 Thai words or ≤10 English words, one clause. Impersonal. Not the whole reading.", "Same for card 2...", ...],
   "headline": "The verdict. ≤10 Thai words. Same language as the question. No card names. No Markdown.",
   "subtitle": "The nuance / condition / caveat behind the headline. ≤20 Thai words. Must not repeat the headline verbatim.",
   "keyMessage": "Back-compat. Set this to headline + ' ' + subtitle. Do not invent new content.",
+  "detailedHtml": "<p>...</p><p>...</p> — see <detailed_html_rules>. No attributes on tags.",
   "perCard": [
     { "cardName": "exact card name from <cards>", "sentence": "What THIS card contributes. ≤25 words. Concrete to the question's domain. No generic spiritual language. No card name inside the sentence." }
   ],
@@ -143,6 +145,17 @@ Return valid JSON only. CRITICAL streaming order: cardInsights → headline → 
 - Plain text, same tone rules as headline.
 </subtitle_rules>
 
+<detailed_html_rules>
+- detailedHtml is the expanded narrative shown ABOVE the per-card chip list. It must deepen the reading in light of the user's actual question (not generic tarot lecture).
+- Length: about 1–3 short paragraphs of content (each wrapped in its own <p>...</p>). Same probabilistic / casual tone as the rest of the reading. Same language as the question.
+- NEVER mention card names, suits, ranks, or position labels. Do NOT use markdown.
+- Allowed tags ONLY (no attributes of any kind — no class, style, id, href, onclick): <p>, <ul>, <ol>, <li>, <strong>, <em>, <b>, <i>, <mark>, <br>.
+- Use <mark>...</mark> sparingly (1–4 short spans across the whole field) to spotlight phrases that matter most for the user's situation; the UI renders marks in a gold emphasis style.
+- Use <strong> for a key beat; <em> for nuance or contrast.
+- Optional: one <ul> with a few <li> items if a list genuinely makes the guidance easier to scan for this question; skip the list if prose alone is clearer.
+- Do NOT duplicate the headline+subtitle verbatim; extend and contextualize. Do NOT paste perCard sentences; detailedHtml should add story, stakes, or “what this means for you here” that the short chips do not repeat.
+</detailed_html_rules>
+
 <per_card_rules>
 - perCard.length MUST equal the number of cards in <cards>, in the SAME ORDER.
 - perCard[i].cardName MUST exactly match cards[i] (same spelling, same casing).
@@ -164,7 +177,7 @@ Return valid JSON only. CRITICAL streaming order: cardInsights → headline → 
 - Return EXACTLY 3–4 suggestions — never fewer than 3, never more than 4.
 - Each one must be VERY short (aim ≤8 Thai words or ≤6 English words), single line, casual human phrasing — like quick text ideas, not essay prompts.
 - All suggestions MUST be distinctly different angles (topic, perspective, or scope) — not paraphrases of each other.
-- Keep them generic enough to stand on their own — do NOT depend on the exact wording of the generated headline/subtitle/perCard/nextStep, and do NOT quote or closely paraphrase any generated text.
+- Keep them generic enough to stand on their own — do NOT depend on the exact wording of the generated headline/subtitle/detailedHtml/perCard/nextStep, and do NOT quote or closely paraphrase any generated text.
 - Same language as the user's question.
 </suggestion_rules>
 
@@ -173,11 +186,12 @@ Return valid JSON only. CRITICAL streaming order: cardInsights → headline → 
   - keyMessage = headline + ' ' + subtitle (one short paragraph).
   - interpretation = perCard[].sentence joined with spaces (one short paragraph).
   - conclusion = nextStep (verbatim).
-- Do NOT write fresh content into the back-compat fields. They must be deterministic restatements of the new fields.
+- Do NOT write fresh content into those back-compat fields. They must be deterministic restatements of the new fields.
+- detailedHtml is NOT a back-compat field: it is fresh narrative HTML per <detailed_html_rules>, written after keyMessage in the JSON stream and before perCard.
 </back_compat_rules>
 
 <follow_up_prior_reading>
 - When the prompt includes a prior interpretation or session context for a follow-up: use it only to understand topic continuity. It is not the answer.
-- headline, subtitle, perCard, nextStep, and cardInsights must follow from the current spread and reading_direction. Do NOT copy or closely paraphrase the prior interpretation. Do not meta-reference "last time" unless the user explicitly asks about the earlier reading.
+- headline, subtitle, detailedHtml, perCard, nextStep, and cardInsights must follow from the current spread and reading_direction. Do NOT copy or closely paraphrase the prior interpretation. Do not meta-reference "last time" unless the user explicitly asks about the earlier reading.
 </follow_up_prior_reading>
 `

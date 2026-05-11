@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Badge } from "@/components/ui/badge"
 import { CardImage } from "@/components/card-image"
 import ShareSection from "@/components/tarot/interpretation/share"
+import { TarotDetailedHtmlBlock } from "@/components/chat/tarot-detailed-html-block"
 import { InterpretationHeaderBar } from "@/components/chat/interpretation-header-bar"
 import type { ChatMessage } from "@/components/chat/types"
 import { LoadingDotsText } from "@/components/chat/loading-dots-text"
@@ -12,6 +12,7 @@ import {
     applyAliasesToText,
     type PromptAliasEntry,
 } from "@/lib/privacy/prompt-redaction"
+import { stripTarotDetailedHtmlTags } from "@/lib/tarot/sanitize-detailed-html"
 import { useTranslations } from "next-intl"
 import { ChevronRight, Loader2, Share } from "lucide-react"
 
@@ -172,6 +173,7 @@ export function TarotAssistantInterpretation({
     const unmaskedHeadline = unmask(message.headline)
     const unmaskedSubtitle = unmask(message.subtitle)
     const unmaskedNextStep = unmask(message.nextStep)
+    const unmaskedDetailedHtml = unmask(message.detailedHtml ?? "")
     // Re-mask the question for the legacy paragraph filter so placeholder
     // tokens still match in the saved text.
     const maskedQuestionForFilter = applyAliasesToText(
@@ -212,13 +214,14 @@ export function TarotAssistantInterpretation({
     const hasInterpretationStream =
         Boolean(rawMessageText.trim()) ||
         Boolean(message.keyMessage?.trim()) ||
-        Boolean(message.headline?.trim())
+        Boolean(message.headline?.trim()) ||
+        Boolean(message.detailedHtml?.trim())
 
     /**
      * Streaming progress signals — the schema emits cardInsights → headline →
-     * subtitle → keyMessage → perCard → keywords → interpretation → nextStep →
-     * conclusion → suggestions, so each later field arriving means the
-     * previous section is done.
+     * subtitle → keyMessage → detailedHtml → perCard → keywords →
+     * interpretation → nextStep → conclusion → suggestions, so each later field
+     * arriving means the previous section is done.
      */
     const cardInsightsStreamingDone =
         !message.isLoading ||
@@ -253,6 +256,16 @@ export function TarotAssistantInterpretation({
     }, [message.perCard])
     const hasPerCard = perCardItems.length > 0
 
+    const detailedPlainForShare = stripTarotDetailedHtmlTags(
+        unmaskedDetailedHtml,
+    )
+    const showDetailedPlaceholder =
+        !!message.isLoading &&
+        showHeadlineBox &&
+        !unmaskedDetailedHtml.trim()
+    const showDetailedBlock =
+        Boolean(unmaskedDetailedHtml.trim()) || showDetailedPlaceholder
+
     const formattedTarotInterpretationLegacy =
         message.variant === "box" && !hasPerCard
             ? formatInterpretationBody(rawMessageText, maskedQuestionForFilter)
@@ -264,6 +277,7 @@ export function TarotAssistantInterpretation({
                   unmaskedQuestion?.trim(),
                   headlineText || fallbackKeyMessage,
                   subtitleText,
+                  detailedPlainForShare,
                   hasPerCard
                       ? perCardItems
                             .map((p) => `${p.cardName}: ${unmask(p.sentence)}`)
@@ -539,6 +553,23 @@ export function TarotAssistantInterpretation({
                                                     <Share className='relative z-10 h-4.5 w-4.5 shrink-0 drop-shadow-sm' />
                                                 </button>
                                             </div>
+                                        </div>
+                                    )}
+
+                                    {/* B. Detailed narrative (sanitized HTML,
+                                        gold palette) — above the per-card chip
+                                        list. */}
+                                    {showDetailedBlock && (
+                                        <div className='space-y-2'>
+                                            <p className='text-[11px] font-semibold uppercase tracking-wider text-amber-200/75'>
+                                                {tReading("detailed.header")}
+                                            </p>
+                                            <TarotDetailedHtmlBlock
+                                                html={unmaskedDetailedHtml}
+                                                showLoadingPlaceholder={
+                                                    showDetailedPlaceholder
+                                                }
+                                            />
                                         </div>
                                     )}
 

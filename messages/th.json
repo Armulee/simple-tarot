@@ -1432,6 +1432,9 @@
         "singleHeader": "ไพ่บอกว่า",
         "multiHeader": "ไพ่แต่ละใบบอกว่า"
       },
+      "detailed": {
+        "header": "มองลึกอีกนิด"
+      },
       "actionsHeader": "การจัดการ",
       "actionsDesc": "จัดการและโต้ตอบกับการอ่านของคุณ",
       "dialogs": {

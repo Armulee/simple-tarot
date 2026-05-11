@@ -1419,6 +1419,9 @@
         "singleHeader": "The card says",
         "multiHeader": "Each card says"
       },
+      "detailed": {
+        "header": "Closer look"
+      },
       "actionsHeader": "Actions",
       "actionsDesc": "Manage and interact with your reading",
       "dialogs": {

@@ -639,6 +639,8 @@ export default function ChatSession({
                                   object.keyMessage?.trim() || m.keyMessage,
                               headline: object.headline?.trim() || m.headline,
                               subtitle: object.subtitle?.trim() || m.subtitle,
+                              detailedHtml:
+                                  object.detailedHtml?.trim() || m.detailedHtml,
                               perCard: perCard ?? m.perCard,
                               nextStep: object.nextStep?.trim() || m.nextStep,
                               text: object.interpretation || m.text,
@@ -971,6 +973,8 @@ export default function ChatSession({
                 interpretationObject.subtitle?.trim() ?? m.subtitle
             const nextNextStep =
                 interpretationObject.nextStep?.trim() ?? m.nextStep
+            const nextDetailedHtml =
+                interpretationObject.detailedHtml?.trim() ?? m.detailedHtml
             const nextPerCard = perCard ?? m.perCard
             const nextInsights = insights ?? m.insights
             const nextConclusion =
@@ -982,6 +986,7 @@ export default function ChatSession({
                 nextHeadline !== m.headline ||
                 nextSubtitle !== m.subtitle ||
                 nextNextStep !== m.nextStep ||
+                nextDetailedHtml !== m.detailedHtml ||
                 !arePerCardEqual(nextPerCard, m.perCard) ||
                 nextText !== m.text ||
                 !areStringArraysEqual(nextInsights, m.insights) ||
@@ -997,6 +1002,7 @@ export default function ChatSession({
                           headline: nextHeadline,
                           subtitle: nextSubtitle,
                           nextStep: nextNextStep,
+                          detailedHtml: nextDetailedHtml,
                           perCard: nextPerCard,
                           text: nextText,
                           insights: nextInsights,
@@ -1144,6 +1150,9 @@ export default function ChatSession({
                           subtitle:
                               interpretationObject?.subtitle?.trim() ??
                               m.subtitle,
+                          detailedHtml:
+                              interpretationObject?.detailedHtml?.trim() ??
+                              m.detailedHtml,
                           perCard: perCard ?? m.perCard,
                           nextStep:
                               interpretationObject?.nextStep?.trim() ??
@@ -1969,6 +1978,7 @@ export default function ChatSession({
                               keyMessage: undefined,
                               headline: undefined,
                               subtitle: undefined,
+                              detailedHtml: undefined,
                               perCard: undefined,
                               nextStep: undefined,
                               text: "",
