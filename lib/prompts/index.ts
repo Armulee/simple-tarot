@@ -125,7 +125,11 @@ ${previousInterpretation}
 
 <cards>${cards}</cards>
 
-<instruction>Answer the follow-up directly. No card names. No Markdown. Respond in the SAME language as the follow-up question. Output JSON only.</instruction>`
+<instruction>Answer the follow-up directly. No card names. No Markdown in the "interpretation" or "conclusion" fields. Respond in the SAME language as the follow-up question.
+
+For the "detailedHtml" field: produce a SHORT (1-3 paragraphs) decorated HTML fragment that magnifies the key takeaways of this follow-up. ALLOWED TAGS ONLY: <h2>, <h3>, <p>, <strong>, <em>, <ul>, <ol>, <li>, <br>, and <span class="highlight-gold">. Use at most ONE <h2> for a tight headline, <span class="highlight-gold">…</span> to highlight 1-3 key phrases, and an <ul>/<ol> list only when a short list (2-4 items) genuinely helps the user scan the message. No other tags, attributes, classes, scripts, links, images, code fences, or Markdown. Output the HTML fragment directly and write it in the SAME language as the follow-up question.
+
+Output JSON only.</instruction>`
     }
 
     return `
@@ -190,10 +194,21 @@ ${typeInstructions}
    - WHAT/WHO/WHEN → Directly answer what/who/when.
 2. Weave the meanings of the cards into a cohesive story/advice. Translate card symbolism into the SPECIFIC domain of the question (e.g. content strategy, business tactics, relationship dynamics) — not generic life advice.
 3. DO NOT mention the card names (e.g., "The Hermit", "King of Pentacles") in the text.
-4. DO NOT use Markdown (**, __, etc).
+4. DO NOT use Markdown (**, __, etc) in the "interpretation" or "conclusion" fields.
 5. CRITICAL: Respond in the SAME language as the user's question. Infer from the question text only. If the question is in English, write in English. If in Thai, write in Thai. Support any language—always match the question.
 6. When writing Thai, write like a real Thai person texting a friend. Avoid formal/translated phrasing like "ฉันรู้สึกว่า", "การรักษาความยุติธรรม", "ผลลัพธ์จะสะท้อนกลับมา". Use casual, natural Thai instead.
 7. Use session context to support continuity, but keep the latest question as the top priority.
+8. The "detailedHtml" field is a SHORT, decorated rich-text block (1-3 paragraphs total) that magnifies the key messages of the reading. Treat it like the "headline" of the reading — short, scannable, emotionally resonant. Follow these rules strictly:
+   - ALLOWED TAGS ONLY: <h2>, <h3>, <p>, <strong>, <em>, <ul>, <ol>, <li>, <br>, and <span class="highlight-gold">. No other tags, attributes, classes, inline styles, scripts, links, or images.
+   - Use ONE <h2> at most, for a tight headline (a yes/no verdict, the core strategy in 3-7 words, or a one-line answer). Skip <h2> entirely if a headline would feel forced.
+   - Use <h3> only if you genuinely need a subheader between paragraphs. Most readings will not need it.
+   - Use <span class="highlight-gold">…</span> to highlight 1-3 key phrases the user should not miss (a date, a decision, a warning, a name of an action). Highlight WORDS or short phrases — never whole paragraphs.
+   - Use <strong> for secondary emphasis and <em> for soft emphasis.
+   - Use <ul>/<ol> ONLY when a small list (2-4 items) genuinely makes the message easier to scan (e.g., concrete next steps, a short checklist). Never force a list — if prose flows better, use prose.
+   - Total length must stay between 1 and 3 paragraphs of human-readable content. Be punchy and specific, not verbose.
+   - Do NOT mention card names. Do NOT use Markdown syntax. Do NOT wrap the output in <html>, <body>, code fences, or any container element. Output the HTML fragment directly.
+   - Write the HTML content in the SAME language as the user's question.
+   - The detailedHtml should COMPLEMENT (not duplicate) the longer "interpretation" field — think of it as the highlighted "key takeaways" version while interpretation is the full story.
 
 Output JSON only.
 </instructions>

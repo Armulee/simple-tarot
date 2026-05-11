@@ -409,6 +409,10 @@ export default function ChatSession({
             const insights = object.cardInsights?.filter(
                 (s): s is string => typeof s === "string",
             )
+            const detailedHtml =
+                typeof object.detailedHtml === "string"
+                    ? object.detailedHtml
+                    : undefined
             setMessages((prev) =>
                 prev.map((m) =>
                     m.id === lid
@@ -416,6 +420,7 @@ export default function ChatSession({
                               ...m,
                               text: object.interpretation || m.text,
                               insights: insights ?? m.insights,
+                              detailedHtml: detailedHtml ?? m.detailedHtml,
                               isLoading: false,
                               streamStopped: false,
                               followUpConclusion: object.conclusion?.trim(),
@@ -706,12 +711,17 @@ export default function ChatSession({
                 ?.map((s) => (typeof s === "string" ? s.trim() : ""))
                 .filter(Boolean)
                 .slice(0, 5) ?? undefined
+        const detailedHtml =
+            typeof interpretationObject.detailedHtml === "string"
+                ? interpretationObject.detailedHtml
+                : undefined
         setMessages((prev) => {
             const m = prev.find((x) => x.id === lid)
             if (!m) return prev
 
             const nextText = interpretationObject.interpretation ?? m.text ?? ""
             const nextInsights = insights ?? m.insights
+            const nextDetailedHtml = detailedHtml ?? m.detailedHtml
             const nextConclusion =
                 interpretationObject.conclusion?.trim() ?? m.followUpConclusion
             const nextSuggestions = suggestions ?? m.followUpSuggestions
@@ -719,6 +729,7 @@ export default function ChatSession({
             const changed =
                 nextText !== m.text ||
                 !areStringArraysEqual(nextInsights, m.insights) ||
+                nextDetailedHtml !== m.detailedHtml ||
                 nextConclusion !== m.followUpConclusion ||
                 !areStringArraysEqual(nextSuggestions, m.followUpSuggestions)
             if (!changed) return prev
@@ -729,6 +740,7 @@ export default function ChatSession({
                           ...m,
                           text: nextText,
                           insights: nextInsights,
+                          detailedHtml: nextDetailedHtml,
                           followUpConclusion: nextConclusion,
                           followUpSuggestions: nextSuggestions,
                       }
@@ -845,6 +857,10 @@ export default function ChatSession({
                 ?.map((s) => (typeof s === "string" ? s.trim() : ""))
                 .filter(Boolean)
                 .slice(0, 5) ?? undefined
+        const detailedHtml =
+            typeof interpretationObject?.detailedHtml === "string"
+                ? interpretationObject.detailedHtml
+                : undefined
 
         setMessages((prev) =>
             prev.map((m) =>
@@ -856,6 +872,7 @@ export default function ChatSession({
                               m.text ??
                               "",
                           insights: insights ?? m.insights,
+                          detailedHtml: detailedHtml ?? m.detailedHtml,
                           followUpConclusion:
                               interpretationObject?.conclusion?.trim() ??
                               m.followUpConclusion,
@@ -1599,6 +1616,7 @@ export default function ChatSession({
                               ...m,
                               text: "",
                               insights: [],
+                              detailedHtml: undefined,
                               followUpConclusion: undefined,
                               followUpSuggestions: undefined,
                               followUpLoading: false,

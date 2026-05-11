@@ -132,7 +132,7 @@ ${prompt}`
             system: TAROT_SYSTEM_PROMPT,
             prompt: `${prompt}
 
-LANGUAGE: The user's question is in ${lang}. You MUST write ALL output fields (cardInsights, keywords, interpretation, conclusion, suggestions) in ${lang}. The card_energies and reading_direction are English internal data — translate them into ${lang}. NEVER output English when the question is in ${lang}.
+LANGUAGE: The user's question is in ${lang}. You MUST write ALL output fields (detailedHtml, cardInsights, keywords, interpretation, conclusion, suggestions) in ${lang}. The card_energies and reading_direction are English internal data — translate them into ${lang}. NEVER output English when the question is in ${lang}. For the detailedHtml field, write the human-visible text content in ${lang} while keeping HTML tag names (h2, p, span, etc.) and the literal class name "highlight-gold" in English.
 
 CRITICAL NARRATOR RULE: If a <reading_direction> is provided, you MUST follow it as your answer skeleton.
 - The reading_direction contains the core answer, card-by-card reasoning, and advice that a stronger reasoning model already determined.

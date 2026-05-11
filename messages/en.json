@@ -1286,6 +1286,9 @@
       "title": "Your Reading",
       "sectionTitle": "Interpretation",
       "sectionSubtitle": "AI-powered analysis of your cards",
+      "detailed": {
+        "label": "Detailed"
+      },
       "error": "Failed to generate interpretation. Please try again.",
       "loading": {
         "title": "Analyzing your cards...",
