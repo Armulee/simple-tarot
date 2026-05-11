@@ -288,7 +288,7 @@ export function TarotAssistantInterpretation({
                 `<ActiveCardCaption />` exactly as before — only the
                 surrounding layout changes. */}
             {cardCount > 0 && activeCard && (
-                <div className='w-full md:max-w-[85%]'>
+                <div className='mx-auto w-full md:max-w-[85%]'>
                     <div className='relative mx-auto flex w-full max-w-md flex-col items-center px-2 py-6'>
                         <div
                             aria-hidden
@@ -426,7 +426,7 @@ export function TarotAssistantInterpretation({
             {/* Box variant: tarot interpretation with cards, insights, actions, share */}
             {message.variant === "box" ? (
                 <>
-                    <div className='w-full md:max-w-[85%] space-y-6'>
+                    <div className='mx-auto w-full md:max-w-[85%] space-y-6'>
                         <InterpretationHeaderBar
                             isLoading={!!message.isLoading}
                             showActions={cardInsightsStreamingDone}
@@ -674,7 +674,7 @@ export function TarotAssistantInterpretation({
                     {(message.followUpConclusion ||
                         (!hideFollowUpSuggestions &&
                             suggestionsToRender.length > 0)) && (
-                        <div className='w-full md:max-w-[85%] space-y-3 pt-4'>
+                        <div className='mx-auto w-full md:max-w-[85%] space-y-3 pt-4'>
                             {message.followUpLoading && (
                                 <p className='text-xs sm:text-sm text-white/60'>
                                     Thinking of a good next question...
