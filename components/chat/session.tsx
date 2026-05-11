@@ -287,19 +287,30 @@ function arePerCardEqual(
 }
 
 /**
- * The new schema requires exactly 2 follow-up suggestions. Old saved sessions
- * may have stored 3-4. On initial hydration we drop stale lists so the next
- * regenerate call repopulates exactly two.
+ * Follow-up chips: keep 2–4 trimmed strings; drop singletons or empty lists;
+ * trim lists longer than 4. Supports legacy tarot (2) and current 3–4 prompts.
  */
 function normalizeRestoredMessages(messages: ChatMessage[]): ChatMessage[] {
     return messages.map((m) => {
-        if (
-            Array.isArray(m.followUpSuggestions) &&
-            m.followUpSuggestions.length !== 2
-        ) {
+        if (!Array.isArray(m.followUpSuggestions)) return m
+        const cleaned = m.followUpSuggestions
+            .map((s) => (typeof s === "string" ? s.trim() : ""))
+            .filter(Boolean)
+        if (cleaned.length === 0) {
             return { ...m, followUpSuggestions: undefined }
         }
-        return m
+        if (cleaned.length === 1) {
+            return { ...m, followUpSuggestions: undefined }
+        }
+        const capped =
+            cleaned.length > 4 ? cleaned.slice(0, 4) : cleaned
+        if (
+            capped.length === m.followUpSuggestions.length &&
+            capped.every((s, i) => s === m.followUpSuggestions![i])
+        ) {
+            return m
+        }
+        return { ...m, followUpSuggestions: capped }
     })
 }
 
@@ -640,7 +651,7 @@ export default function ChatSession({
                                       typeof s === "string" ? s.trim() : "",
                                   )
                                   .filter(Boolean)
-                                  .slice(0, 2),
+                                  .slice(0, 4),
                               followUpLoading: false,
                           }
                         : m,
@@ -770,7 +781,7 @@ export default function ChatSession({
                     (s): s is string =>
                         typeof s === "string" && s.trim().length > 0,
                 ) ?? []
-            ).slice(0, 5)
+            ).slice(0, 4)
             const refetchSystem = horoscopeRefetchSystemRef.current
             setMessages((prev) =>
                 prev.map((m) => {
@@ -945,7 +956,7 @@ export default function ChatSession({
             interpretationObject.suggestions
                 ?.map((s) => (typeof s === "string" ? s.trim() : ""))
                 .filter(Boolean)
-                .slice(0, 2) ?? undefined
+                .slice(0, 4) ?? undefined
         const perCard = normalizeStreamedPerCard(interpretationObject.perCard)
         setMessages((prev) => {
             const m = prev.find((x) => x.id === lid)
@@ -1005,7 +1016,7 @@ export default function ChatSession({
             horoscopeObject.suggestions
                 ?.map((s) => (typeof s === "string" ? s.trim() : ""))
                 .filter(Boolean)
-                .slice(0, 5) ?? undefined
+                .slice(0, 4) ?? undefined
         const streamedInterpretation =
             horoscopeObject.interpretation ?? undefined
         const streamedAspectInsights = normalizeAspectInsights(
@@ -1116,7 +1127,7 @@ export default function ChatSession({
             interpretationObject?.suggestions
                 ?.map((s) => (typeof s === "string" ? s.trim() : ""))
                 .filter(Boolean)
-                .slice(0, 2) ?? undefined
+                .slice(0, 4) ?? undefined
         const perCard = normalizeStreamedPerCard(interpretationObject?.perCard)
 
         setMessages((prev) =>
@@ -1169,7 +1180,7 @@ export default function ChatSession({
             horoscopeObject?.suggestions
                 ?.map((s) => (typeof s === "string" ? s.trim() : ""))
                 .filter(Boolean)
-                .slice(0, 5) ?? undefined
+                .slice(0, 4) ?? undefined
         const streamedAspectInsights = normalizeAspectInsights(
             horoscopeObject?.aspectInsights,
         )
@@ -3862,7 +3873,10 @@ export default function ChatSession({
                     !isHoroscopeIntakeActive && composerFollowUpHost
                         ? {
                               messageId: composerFollowUpHost.id,
-                              items: composerFollowUpHost.followUpSuggestions!,
+                              items: composerFollowUpHost.followUpSuggestions!.slice(
+                                  0,
+                                  4,
+                              ),
                               onSelect: (text: string) => {
                                   applySuggestedQuestion(unmask(text))
                               },

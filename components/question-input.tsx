@@ -1,7 +1,11 @@
 "use client"
 
 import { useEffect, useState, type RefObject } from "react"
-import { ChevronRight, Send, Square } from "lucide-react"
+import { Send, Square } from "lucide-react"
+import { Swiper, SwiperSlide } from "swiper/react"
+import { FreeMode, Mousewheel } from "swiper/modules"
+import "swiper/css"
+import "swiper/css/free-mode"
 import { Button } from "./ui/button"
 import { Label } from "./ui/label"
 import { useRouter } from "next/navigation"
@@ -24,6 +28,9 @@ const INPUT_BORDER_BY_MODE: Record<InterpretationMode, string> = {
     horoscope:
         "border-blue-400/30 focus:border-blue-400/60 focus:ring-blue-400/30",
 }
+
+const followUpChipClass =
+    "swiper-no-swiping inline-flex max-w-[min(92vw,20rem)] shrink-0 items-center whitespace-nowrap rounded-full border border-white/12 bg-white/5 px-3 py-1.5 text-left text-xs leading-tight text-white/80 transition-colors hover:border-white/28 hover:bg-white/10 hover:text-white cursor-pointer"
 
 const INPUT_GLOW_BY_MODE: Record<InterpretationMode, string> = {
     auto: "shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)]",
@@ -222,29 +229,50 @@ export default function QuestionInput({
 
     const aliases = composerFollowUps?.privacyAliases ?? []
 
+    const followUpItems =
+        composerFollowUps && composerFollowUps.items.length > 0
+            ? composerFollowUps.items.slice(0, 4)
+            : []
+
     const followUpRow =
-        composerFollowUps && composerFollowUps.items.length > 0 ? (
-            <div className='w-full space-y-2'>
-                {composerFollowUps.items.map((s) => (
-                    <button
-                        key={`${composerFollowUps.messageId}-${s}`}
-                        type='button'
-                        onClick={() => composerFollowUps.onSelect(s)}
-                        className='group flex w-full items-center justify-between gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-left text-sm text-white/80 transition hover:bg-white/10 hover:text-white'
+        composerFollowUps && followUpItems.length > 0 ? (
+            <Swiper
+                modules={[FreeMode, Mousewheel]}
+                noSwiping
+                freeMode={{
+                    enabled: true,
+                    momentum: true,
+                    sticky: false,
+                }}
+                mousewheel={{
+                    forceToAxis: true,
+                    releaseOnEdges: true,
+                    sensitivity: 1,
+                }}
+                slidesPerView='auto'
+                spaceBetween={8}
+                className='composer-follow-up-swiper w-full !overflow-visible'
+            >
+                {followUpItems.map((s, idx) => (
+                    <SwiperSlide
+                        key={`${composerFollowUps.messageId}-fu-${idx}`}
+                        className='!w-auto !flex-shrink-0 min-w-0'
                     >
-                        <span className='min-w-0 flex-1 truncate'>
-                            <PrivacyHighlightedText
-                                text={s}
-                                aliases={aliases}
-                            />
-                        </span>
-                        <ChevronRight
-                            aria-hidden
-                            className='h-4 w-4 shrink-0 text-white/45 transition group-hover:translate-x-0.5 group-hover:text-white/80'
-                        />
-                    </button>
+                        <button
+                            type='button'
+                            onClick={() => composerFollowUps.onSelect(s)}
+                            className={followUpChipClass}
+                        >
+                            <span className='block max-w-[min(92vw,20rem)] truncate'>
+                                <PrivacyHighlightedText
+                                    text={s}
+                                    aliases={aliases}
+                                />
+                            </span>
+                        </button>
+                    </SwiperSlide>
                 ))}
-            </div>
+            </Swiper>
         ) : null
 
     const inputContent = (

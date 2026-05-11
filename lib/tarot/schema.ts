@@ -6,7 +6,7 @@ import { z } from "zod"
  *   cardInsights → headline → subtitle → keyMessage → perCard → keywords →
  *   interpretation → nextStep → conclusion → suggestions
  *
- * The "new" fields (headline/subtitle/perCard/nextStep + 2-only suggestions)
+ * The "new" fields (headline/subtitle/perCard/nextStep + 3–4 short suggestions)
  * power the refreshed chat-session result UI. The "legacy" fields
  * (cardInsights/keyMessage/keywords/interpretation/conclusion) are still
  * populated by the model so the legacy `/tarot` page and the DB-backed
@@ -73,9 +73,10 @@ export const tarotInterpretationSchema = z.object({
         ),
     suggestions: z
         .array(z.string())
-        .length(2)
+        .min(3)
+        .max(4)
         .describe(
-            "EXACTLY 2 follow-up questions the user could naturally ask next. The two MUST be distinctly different angles — different topic, perspective, or scope — never paraphrases of each other. Write as natural user questions. Do NOT depend on the exact wording of the generated headline/subtitle/perCard/nextStep. Same language as the user's question.",
+            "EXACTLY 3–4 very short follow-up prompts the user might tap next. Sound like a real person texting (casual, plain language) — not formal essay questions. Each item MUST be a single line, ≤8 Thai words or ≤6 English words when possible. All four MUST differ in angle (topic, scope, or perspective) — no near-duplicates. Do NOT quote or lean on the exact wording of headline/subtitle/perCard/nextStep. Same language as the user's question.",
         ),
 })
 

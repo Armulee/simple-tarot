@@ -177,9 +177,9 @@ CRITICAL NARRATOR RULE: If a <reading_direction> is provided, you MUST follow it
   - keyMessage = headline + ' ' + subtitle (joined into one short paragraph).
   - interpretation = perCard[].sentence joined together with spaces as one short paragraph.
   - conclusion = nextStep (verbatim).
-- suggestions MUST contain EXACTLY 2 items — never 1, never 3+.
-- The two suggestions MUST be distinctly different angles (different topic, perspective, or scope). They MUST NOT be paraphrases or near-rephrasings of each other.
-- suggestions must feel like natural real-life follow-up questions the user could ask next.
+- suggestions MUST contain EXACTLY 3–4 items — never fewer than 3, never more than 4.
+- Each suggestion must be VERY short (aim ≤8 Thai words or ≤6 English words), one line, like something a friend would text — not a long formal question.
+- All suggestions MUST be clearly different angles (different topic, perspective, or scope). They MUST NOT be paraphrases or near-rephrasings of each other.
 - suggestions must stay generic and user-relatable rather than depending on the exact wording of the generated reading.
 - suggestions must NOT quote or closely paraphrase the generated headline, subtitle, perCard, nextStep, keyMessage, interpretation, or conclusion.
 - TONE: Write like you're texting a close friend who reads patterns and energy — never as a judge declaring an absolute truth. In Thai, use casual language (ลอง, เวิร์ค, ปัง, เน้น, จัดเลย). AVOID formal/translated phrasing (ฉันรู้สึกว่า, การรักษาความยุติธรรม, ประสบความสำเร็จ, สะท้อนกลับมา).`,
