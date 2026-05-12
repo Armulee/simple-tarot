@@ -217,8 +217,9 @@ export function TarotAssistantInterpretation({
 
     /**
      * Streaming progress signals — the schema emits cardInsights → headline →
-     * subtitle → keyMessage → perCard → keywords → interpretation → nextStep →
-     * conclusion → suggestions, so each later field arriving means the
+     * subtitle → keyMessage → detailedHtml → perCard → nextStep → keywords →
+     * interpretation → conclusion → suggestions (declaration order in
+     * `lib/tarot/schema.ts`), so each later field arriving means the
      * previous section is done.
      */
     const cardInsightsStreamingDone =
