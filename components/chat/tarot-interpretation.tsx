@@ -440,17 +440,13 @@ export function TarotAssistantInterpretation({
 
     return (
         <>
-            {/* For non-box variants (e.g. a chat draw without a full
-                interpretation box), the hero card area renders standalone. */}
-            {message.variant !== "box" && heroCardSection}
+            {/* Hero card / "card say" section sits at the top of the
+                assistant message for every variant (box or otherwise). */}
+            {heroCardSection}
 
             {/* Box variant: tarot interpretation with cards, insights, actions, share */}
             {message.variant === "box" ? (
                 <>
-                    {/* Top of box: header bar + key message (headline +
-                        subtitle) + decorated "Detailed" key-takeaways block.
-                        The hero card / "card say" section is rendered AFTER
-                        this and BEFORE the perCard list. */}
                     <div className='w-full md:max-w-[85%] space-y-6'>
                         <InterpretationHeaderBar
                             isLoading={!!message.isLoading}
@@ -571,10 +567,9 @@ export function TarotAssistantInterpretation({
                                         AI-authored HTML paragraphs (no
                                         headings — the headline box above
                                         already plays that role). The block
-                                        sits BELOW the key message and ABOVE
-                                        the hero card / "card say" section.
-                                        Rendered with a small uppercase label
-                                        so its purpose is obvious. */}
+                                        sits directly BELOW the key message
+                                        and ABOVE the perCard breakdown,
+                                        with its own small uppercase label. */}
                                     {safeDetailedHtml && (
                                         <div className='rounded-2xl border border-yellow-400/15 bg-gradient-to-br from-yellow-500/[0.04] via-white/[0.03] to-yellow-500/[0.04] p-5 shadow-lg animate-fade-in relative overflow-hidden'>
                                             <div
@@ -595,26 +590,7 @@ export function TarotAssistantInterpretation({
                                             />
                                         </div>
                                     )}
-                                </>
-                            )}
-                        </div>
-                    </div>
 
-                    {/* B. Hero card / "card say" section sits between the key
-                        message (with its detailed block) above and the
-                        perCard breakdown below. */}
-                    {heroCardSection}
-
-                    {/* Bottom of box: perCard chip list + nextStep + share
-                        section. Only renders once any interpretation tokens
-                        have streamed (otherwise the top of the box already
-                        shows the consulting state). */}
-                    <div className='w-full md:max-w-[85%] space-y-6'>
-                        <div className='space-y-5 text-white/90 leading-relaxed'>
-                            {!(
-                                message.isLoading && !hasInterpretationStream
-                            ) && (
-                                <>
                                     {/* C. Per-card chip list + soft next step.
                                         Tapping a chip syncs activeCardIndex
                                         with the hero above. Falls back to the
