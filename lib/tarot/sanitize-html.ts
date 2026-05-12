@@ -4,11 +4,11 @@ import DOMPurify from "isomorphic-dompurify"
  * Tags the AI is allowed to use inside the `detailedHtml` field.
  *
  * Keep this list intentionally tiny — these are the only tags rendered in the
- * "Detailed" key-takeaways block at the top of a tarot reading.
+ * "Detailed" key-takeaways block, which sits BELOW the headline/subtitle
+ * key-message box and ABOVE the cards. Headings are deliberately excluded so
+ * the block stays paragraph-shaped and never duplicates the headline.
  */
 const ALLOWED_TAGS = [
-    "h2",
-    "h3",
     "p",
     "strong",
     "em",

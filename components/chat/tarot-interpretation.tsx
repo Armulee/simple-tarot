@@ -12,8 +12,9 @@ import {
     applyAliasesToText,
     type PromptAliasEntry,
 } from "@/lib/privacy/prompt-redaction"
+import { sanitizeDetailedHtml } from "@/lib/tarot/sanitize-html"
 import { useTranslations } from "next-intl"
-import { ChevronRight, Loader2, Share } from "lucide-react"
+import { ChevronRight, Loader2, Share, Sparkles } from "lucide-react"
 
 const INTERPRETATION_FILLER_PREFIXES = [
     /^(?:i\s+(?:feel|sense|believe|think)\s+(?:that\s+)*)/i,
@@ -253,6 +254,21 @@ export function TarotAssistantInterpretation({
     }, [message.perCard])
     const hasPerCard = perCardItems.length > 0
 
+    // "Detailed" key-takeaways block — paragraphs only, sanitized to a tiny
+    // tag whitelist. Rendered between the headline/subtitle box and the hero
+    // card area so it sits above the "card say" insight quotes.
+    const safeDetailedHtml = useMemo(
+        () => sanitizeDetailedHtml(message.detailedHtml),
+        [message.detailedHtml],
+    )
+    const detailedLabel = (() => {
+        try {
+            return tReading("detailed.label")
+        } catch {
+            return "Detailed"
+        }
+    })()
+
     const formattedTarotInterpretationLegacy =
         message.variant === "box" && !hasPerCard
             ? formatInterpretationBody(rawMessageText, maskedQuestionForFilter)
@@ -279,16 +295,15 @@ export function TarotAssistantInterpretation({
         ? message.followUpSuggestions.slice(0, 4)
         : []
 
-    return (
-        <>
-            {/* B. Hero card area: enlarged centered card with a soft purple
-                halo. Multi-card spreads fan around the active card; tapping a
-                card lifts and scales it. The internal markup (number badge,
-                tag label, name pill, italic quote) lives below in
-                `<ActiveCardCaption />` exactly as before — only the
-                surrounding layout changes. */}
-            {cardCount > 0 && activeCard && (
-                <div className='w-full md:max-w-[85%]'>
+    // B. Hero card area: enlarged centered card with a soft purple halo.
+    // Multi-card spreads fan around the active card; tapping a card lifts
+    // and scales it. The internal markup (number badge, tag label, name
+    // pill, italic "card say" quote) is unchanged byte-for-byte — only its
+    // position in the box-variant layout changes (it now sits between the
+    // key-message + detailed block above it and the perCard list below it).
+    const heroCardSection =
+        cardCount > 0 && activeCard ? (
+            <div className='w-full md:max-w-[85%]'>
                     <div className='relative mx-auto flex w-full max-w-md flex-col items-center px-2 py-6'>
                         <div
                             aria-hidden
@@ -421,11 +436,21 @@ export function TarotAssistantInterpretation({
                         </div>
                     </div>
                 </div>
-            )}
+        ) : null
+
+    return (
+        <>
+            {/* For non-box variants (e.g. a chat draw without a full
+                interpretation box), the hero card area renders standalone. */}
+            {message.variant !== "box" && heroCardSection}
 
             {/* Box variant: tarot interpretation with cards, insights, actions, share */}
             {message.variant === "box" ? (
                 <>
+                    {/* Top of box: header bar + key message (headline +
+                        subtitle) + decorated "Detailed" key-takeaways block.
+                        The hero card / "card say" section is rendered AFTER
+                        this and BEFORE the perCard list. */}
                     <div className='w-full md:max-w-[85%] space-y-6'>
                         <InterpretationHeaderBar
                             isLoading={!!message.isLoading}
@@ -542,6 +567,54 @@ export function TarotAssistantInterpretation({
                                         </div>
                                     )}
 
+                                    {/* "Detailed" key-takeaways: sanitized,
+                                        AI-authored HTML paragraphs (no
+                                        headings — the headline box above
+                                        already plays that role). The block
+                                        sits BELOW the key message and ABOVE
+                                        the hero card / "card say" section.
+                                        Rendered with a small uppercase label
+                                        so its purpose is obvious. */}
+                                    {safeDetailedHtml && (
+                                        <div className='rounded-2xl border border-yellow-400/15 bg-gradient-to-br from-yellow-500/[0.04] via-white/[0.03] to-yellow-500/[0.04] p-5 shadow-lg animate-fade-in relative overflow-hidden'>
+                                            <div
+                                                aria-hidden
+                                                className='pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-yellow-400/10 blur-3xl'
+                                            />
+                                            <div className='flex items-center gap-2 mb-2 relative z-10'>
+                                                <Sparkles className='w-3.5 h-3.5 text-yellow-300' />
+                                                <p className='text-[11px] uppercase tracking-[0.2em] text-yellow-200/90'>
+                                                    {detailedLabel}
+                                                </p>
+                                            </div>
+                                            <div
+                                                className='tarot-detailed-html text-white/90 leading-relaxed relative z-10'
+                                                dangerouslySetInnerHTML={{
+                                                    __html: safeDetailedHtml,
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* B. Hero card / "card say" section sits between the key
+                        message (with its detailed block) above and the
+                        perCard breakdown below. */}
+                    {heroCardSection}
+
+                    {/* Bottom of box: perCard chip list + nextStep + share
+                        section. Only renders once any interpretation tokens
+                        have streamed (otherwise the top of the box already
+                        shows the consulting state). */}
+                    <div className='w-full md:max-w-[85%] space-y-6'>
+                        <div className='space-y-5 text-white/90 leading-relaxed'>
+                            {!(
+                                message.isLoading && !hasInterpretationStream
+                            ) && (
+                                <>
                                     {/* C. Per-card chip list + soft next step.
                                         Tapping a chip syncs activeCardIndex
                                         with the hero above. Falls back to the

@@ -11,7 +11,6 @@ import {
 } from "react"
 import ActionSection from "@/components/tarot/interpretation/action"
 import ShareSection from "@/components/tarot/interpretation/share"
-import { sanitizeDetailedHtml } from "@/lib/tarot/sanitize-html"
 import InsufficientStarsBlock from "@/components/stars/insufficient-stars-block"
 import { ConsultingBadge } from "@/components/consulting-badge"
 import { hasCompleteBirthData, loadBirthFromStorage } from "@/lib/birth-storage"
@@ -45,7 +44,6 @@ import {
     RotateCw,
     Send,
     Share2,
-    Sparkles,
     Square,
     ThumbsDown,
     ThumbsUp,
@@ -359,15 +357,7 @@ export default function MessageList({
 }: MessageListProps) {
     const t = useTranslations("Home")
     const tPanel = useTranslations("PlanetaryPanel")
-    const tInterpretation = useTranslations("ReadingPage.interpretation")
     const consultingBase = t("consulting")
-    const detailedLabel = (() => {
-        try {
-            return tInterpretation("detailed.label")
-        } catch {
-            return "Detailed"
-        }
-    })()
     const [panelDetailToggles, setPanelDetailToggles] = useState<
         Record<string, { birth: boolean; transit: boolean }>
     >({})
@@ -611,38 +601,6 @@ export default function MessageList({
                             }
                             className='flex flex-col items-start gap-4'
                         >
-                            {/* Detailed key-takeaways: AI-generated, decorated HTML
-                                shown above the cards / "card says" insight quotes so
-                                the user sees the highlighted message first. Lives
-                                outside <TarotAssistantInterpretation> so the new
-                                hero-card UI is unchanged structurally. */}
-                            {message.variant === "box" &&
-                                (() => {
-                                    const safeHtml = sanitizeDetailedHtml(
-                                        message.detailedHtml,
-                                    )
-                                    if (!safeHtml) return null
-                                    return (
-                                        <div className='w-full md:max-w-[85%] rounded-2xl border border-yellow-400/15 bg-gradient-to-br from-yellow-500/[0.04] via-white/[0.03] to-yellow-500/[0.04] p-6 shadow-lg animate-fade-in relative overflow-hidden'>
-                                            <div
-                                                className='pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-yellow-400/10 blur-3xl'
-                                                aria-hidden
-                                            />
-                                            <div className='flex items-center gap-2 mb-3 relative z-10'>
-                                                <Sparkles className='w-4 h-4 text-yellow-300' />
-                                                <p className='text-[11px] uppercase tracking-[0.2em] text-yellow-200/90'>
-                                                    {detailedLabel}
-                                                </p>
-                                            </div>
-                                            <div
-                                                className='tarot-detailed-html text-white/90 leading-relaxed relative z-10'
-                                                dangerouslySetInnerHTML={{
-                                                    __html: safeHtml,
-                                                }}
-                                            />
-                                        </div>
-                                    )
-                                })()}
                             {((message.cards && message.cards.length > 0) ||
                                 message.variant === "box") && (
                                 <TarotAssistantInterpretation

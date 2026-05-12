@@ -1860,8 +1860,11 @@
 /* ─────────────────────────────────────────────────────────────────────
    Tarot "Detailed" HTML block
    AI-generated decoration for tarot key takeaways. Renders sanitized
-   HTML with a constrained palette: large headings, body paragraphs,
-   optional lists, and gold-highlighted spans for the must-read bits.
+   HTML with a constrained palette: body paragraphs, optional lists,
+   and gold-highlighted spans for the must-read bits. Headings are not
+   allowed here — the "Detailed" label above the block and the
+   structured headline/subtitle box above the cards already play that
+   role.
    ───────────────────────────────────────────────────────────────────── */
 .tarot-detailed-html {
   font-size: 0.95rem;
@@ -1874,29 +1877,6 @@
 
 .tarot-detailed-html > *:last-child {
   margin-bottom: 0;
-}
-
-.tarot-detailed-html h2 {
-  font-family: var(--font-serif, ui-serif, Georgia, serif);
-  font-weight: 600;
-  font-size: 1.35rem;
-  line-height: 1.25;
-  margin: 0 0 0.6rem;
-  background: linear-gradient(135deg, #fde68a 0%, #facc15 45%, #f59e0b 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  letter-spacing: -0.01em;
-}
-
-.tarot-detailed-html h3 {
-  font-family: var(--font-serif, ui-serif, Georgia, serif);
-  font-weight: 500;
-  font-size: 1.05rem;
-  line-height: 1.35;
-  margin: 0.9rem 0 0.4rem;
-  color: rgba(253, 230, 138, 0.95);
-  letter-spacing: 0;
 }
 
 .tarot-detailed-html p {
