@@ -44,6 +44,10 @@ import {
     X,
 } from "lucide-react"
 
+/** Matches `QuestionInput` textarea fill so follow-up chips feel like the question field. */
+const followUpSuggestionChipClass =
+    "rounded-full border border-white/10 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl transition-colors px-3 py-1.5 text-xs text-left text-white/80 hover:text-white hover:border-white/25 hover:from-indigo-500/25 hover:via-purple-500/25 hover:to-cyan-500/25"
+
 function formatHoroscopeLoadingText(
     birth: HoroscopeBirthData | null | undefined,
     dots: number,
@@ -850,7 +854,9 @@ export default function MessageList({
                                                                             s,
                                                                         )
                                                                     }
-                                                                    className='rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition px-3 py-1.5 text-xs text-left text-white/80 hover:text-white'
+                                                                    className={
+                                                                        followUpSuggestionChipClass
+                                                                    }
                                                                 >
                                                                     {s}
                                                                 </button>
@@ -1167,7 +1173,9 @@ export default function MessageList({
                                                                                 s,
                                                                             )
                                                                         }
-                                                                        className='rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition px-3 py-1.5 text-xs text-left text-white/80 hover:text-white'
+                                                                        className={
+                                                                            followUpSuggestionChipClass
+                                                                        }
                                                                     >
                                                                         {s}
                                                                     </button>
