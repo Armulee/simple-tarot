@@ -140,8 +140,15 @@ FOLLOW-UP — PRIOR READING IS BACKGROUND ONLY:
 `
             : ""
 
-        const result = await streamObject({
+        const result = streamObject({
             model: MODEL,
+            // 'json' mode injects the schema into the prompt and uses the
+            // provider's native JSON streaming, so partial fields flow to the
+            // client token-by-token. The default 'auto' frequently resolves to
+            // tool-call mode for DeepSeek, which buffers the entire JSON
+            // payload until the tool call completes — that is what made the
+            // tarot reading "pop in" all at once instead of streaming.
+            mode: "json",
             temperature: 0.6,
             schema: tarotInterpretationSchema,
             system: TAROT_SYSTEM_PROMPT,
