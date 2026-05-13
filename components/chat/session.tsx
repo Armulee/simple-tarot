@@ -511,6 +511,8 @@ export default function ChatSession({
     } | null>(null)
     const [readAloudDoNotShowAgain, setReadAloudDoNotShowAgain] =
         useState(false)
+    const [dismissedComposerStripForMessageId, setDismissedComposerStripForMessageId] =
+        useState<string | null>(null)
     const [sessionId] = useState<string | null>(initialSession?.id ?? null)
     const [privacyAliases, setPrivacyAliases] = useState<PromptAliasEntry[]>(
         () => loadSessionAliases(initialSession?.id ?? null),
@@ -3606,6 +3608,28 @@ export default function ChatSession({
         return last
     }, [messages])
 
+    useEffect(() => {
+        if (messages.length === 0) {
+            setDismissedComposerStripForMessageId(null)
+        }
+    }, [messages.length])
+
+    const stripDismissedForCurrentHost = Boolean(
+        composerFollowUpHost &&
+            dismissedComposerStripForMessageId === composerFollowUpHost.id,
+    )
+
+    const composerFollowUpsVisible =
+        !isHoroscopeIntakeActive &&
+        Boolean(composerFollowUpHost) &&
+        !stripDismissedForCurrentHost
+
+    const hideComposerActionTriggerRow =
+        (Boolean(composerFollowUpHost) &&
+            !isHoroscopeIntakeActive &&
+            !stripDismissedForCurrentHost) ||
+        stripDismissedForCurrentHost
+
     const formattedCurrentLocationLabel = useMemo(() => {
         if (
             !currentLocationFallback?.country &&
@@ -3872,7 +3896,8 @@ export default function ChatSession({
                               autoPickOn,
                               onToggleAutoPick: handleToggleAutoPick,
                               exposeBirthDrawInMenu: Boolean(
-                                  composerFollowUpHost,
+                                  composerFollowUpHost &&
+                                      stripDismissedForCurrentHost,
                               ),
                               savedBirth,
                               onBirthInfoClick: () => {
@@ -3886,7 +3911,7 @@ export default function ChatSession({
                           }
                 }
                 composerFollowUps={
-                    !isHoroscopeIntakeActive && composerFollowUpHost
+                    composerFollowUpsVisible && composerFollowUpHost
                         ? {
                               messageId: composerFollowUpHost.id,
                               items: composerFollowUpHost.followUpSuggestions!.slice(
@@ -3896,12 +3921,19 @@ export default function ChatSession({
                               onSelect: (text: string) => {
                                   applySuggestedQuestion(unmask(text))
                               },
+                              onDismissStrip: () => {
+                                  if (composerFollowUpHost) {
+                                      setDismissedComposerStripForMessageId(
+                                          composerFollowUpHost.id,
+                                      )
+                                  }
+                              },
                               privacyAliases,
                           }
                         : null
                 }
                 actionTrigger={
-                    composerFollowUpHost && !isHoroscopeIntakeActive ? null : (
+                    hideComposerActionTriggerRow ? null : (
                         <ActionTrigger
                             autoPickOn={autoPickOn}
                             showDrawTrigger={showDrawTrigger}

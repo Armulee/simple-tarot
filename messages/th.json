@@ -693,7 +693,9 @@
   },
   "QuestionInput": {
     "label": "คำถามของคุณ",
-    "placeholder": "พิมพ์คำถามของคุณ..."
+    "placeholder": "พิมพ์คำถามของคุณ...",
+    "followUpSuggestionLabel": "คำถามต่อยอดที่แนะนำ",
+    "dismissFollowUpStrip": "ปิดคำแนะและทางลัดด้านล่าง"
   },
   "Prompts": {
     "title": "แรงบันดาลใจสำหรับคำถาม",

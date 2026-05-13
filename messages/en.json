@@ -680,7 +680,9 @@
   },
   "QuestionInput": {
     "label": "Your question",
-    "placeholder": "Type your question..."
+    "placeholder": "Type your question...",
+    "followUpSuggestionLabel": "Suggested follow-ups",
+    "dismissFollowUpStrip": "Dismiss suggestions and composer shortcuts"
   },
   "Prompts": {
     "title": "An inspiring prompts",

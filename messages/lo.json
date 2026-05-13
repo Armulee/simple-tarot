@@ -692,7 +692,9 @@
   },
   "QuestionInput": {
     "label": "ຄຳຖາມຂອງທ່ານ",
-    "placeholder": "ພິມຄຳຖາມຂອງທ່ານ..."
+    "placeholder": "ພິມຄຳຖາມຂອງທ່ານ...",
+    "followUpSuggestionLabel": "ຄຳແນະນຳຕໍ່ຄຳຖາມ",
+    "dismissFollowUpStrip": "ປິດຄຳແນະນຳແລະທາງລັດໃນຊ່ອງຂຽນ"
   },
   "Prompts": {
     "title": "ແຮງບັນດານໃຈສຳລັບຄຳຖາມ",
