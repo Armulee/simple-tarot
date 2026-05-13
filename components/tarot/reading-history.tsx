@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState, useCallback, useRef } from "react"
+import { useEffect, useMemo, useState, useCallback, useRef, useLayoutEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
@@ -36,20 +36,80 @@ type ChatDecision = {
     type: "chat" | "draw"
     spreadType: string
     cardCount: number
-    assistantText: string
+    assistantText?: string
 }
 
-type ReadingRow = {
+type ReadingMeta = {
     id: string
     question: string
     topic: string | null
-    messages: ChatMessage[]
-    decision: ChatDecision | null
     created_at: string
     updated_at: string
 }
 
+type ReadingRow = ReadingMeta & {
+    messages: ChatMessage[]
+    decision: ChatDecision | null
+}
+
 type CardData = { name: string; isReversed: boolean }
+
+type DetailStatus = "pending" | "loading" | "loaded" | "error"
+
+const HISTORY_CACHE_VERSION = 1 as const
+const MAX_CACHED_DETAILS = 80
+const DETAIL_FETCH_CONCURRENCY = 4
+
+type HistoryCachePayload = {
+    v: typeof HISTORY_CACHE_VERSION
+    userId: string
+    list: ReadingMeta[]
+    details: Record<string, ReadingRow>
+    savedAt: number
+}
+
+function cacheKeyForUser(userId: string) {
+    return `reading-history-cache:v${HISTORY_CACHE_VERSION}:${userId}`
+}
+
+function readHistoryCache(userId: string): HistoryCachePayload | null {
+    if (typeof window === "undefined") return null
+    try {
+        const raw = sessionStorage.getItem(cacheKeyForUser(userId))
+        if (!raw) return null
+        const parsed = JSON.parse(raw) as HistoryCachePayload
+        if (parsed.v !== HISTORY_CACHE_VERSION || parsed.userId !== userId || !Array.isArray(parsed.list)) {
+            return null
+        }
+        return parsed
+    } catch {
+        return null
+    }
+}
+
+function writeHistoryCache(payload: HistoryCachePayload) {
+    if (typeof window === "undefined") return
+    try {
+        const nextDetails: Record<string, ReadingRow> = {}
+        let n = 0
+        for (const row of payload.list) {
+            const d = payload.details[row.id]
+            if (d && n < MAX_CACHED_DETAILS) {
+                nextDetails[row.id] = d
+                n++
+            }
+        }
+        sessionStorage.setItem(
+            cacheKeyForUser(payload.userId),
+            JSON.stringify({
+                ...payload,
+                details: nextDetails,
+            })
+        )
+    } catch {
+        // ignore quota / private mode
+    }
+}
 
 // Helper function to clean card name for image path
 const cleanCardName = (cardName: string) => {
@@ -85,8 +145,13 @@ const getTodayString = () => {
 }
 
 
-// CardStack component for visual spreading of cards
-const CardStack = ({ cards }: { cards: CardData[] }) => {
+const CardStack = ({
+    cards,
+    showImages,
+}: {
+    cards: CardData[]
+    showImages: boolean
+}) => {
     if (!cards || cards.length === 0) return null
 
     const cleanName = (card: CardData) => {
@@ -97,6 +162,28 @@ const CardStack = ({ cards }: { cards: CardData[] }) => {
     const isReversed = (card: CardData) => {
         const name = card.name || ''
         return name.toLowerCase().includes("reversed") || card.isReversed
+    }
+
+    if (!showImages) {
+        if (cards.length === 1) {
+            return <Skeleton className="w-12 h-[4.5rem] rounded-lg shrink-0" />
+        }
+        return (
+            <div className="relative flex items-center h-16 w-20">
+                {cards.slice(0, 3).map((_, index) => (
+                    <Skeleton
+                        key={index}
+                        className="absolute top-0 rounded-md h-14 w-9"
+                        style={{
+                            left: `${index * 12}px`,
+                            zIndex: index,
+                            transform: `rotate(${(index - (Math.min(cards.length, 3) - 1) / 2) * 10}deg)`,
+                            transformOrigin: 'bottom center'
+                        }}
+                    />
+                ))}
+            </div>
+        )
     }
 
     if (cards.length === 1) {
@@ -158,12 +245,20 @@ const CardStack = ({ cards }: { cards: CardData[] }) => {
 // ReadingCard component with swipe-to-delete functionality
 const ReadingCard = ({
     reading,
+    detailsLoaded,
+    detailFetching,
+    detailPending,
+    detailError,
     t,
     locale,
     onDelete,
     session,
 }: {
     reading: ReadingRow
+    detailsLoaded: boolean
+    detailFetching: boolean
+    detailPending: boolean
+    detailError: boolean
     t: (key: string) => string
     locale: string
     onDelete: (id: string) => void
@@ -173,17 +268,39 @@ const ReadingCard = ({
     const [swipeX, setSwipeX] = useState(0)
     const [isDragging, setIsDragging] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
+    const [showCardImages, setShowCardImages] = useState(false)
     const startXRef = useRef(0)
     const currentXRef = useRef(0)
     const cardRef = useRef<HTMLDivElement>(null)
     
     // Extract latest cards from messages
-    const latestCardsMessage = [...reading.messages].reverse().find(m => m.cards && m.cards.length > 0)
+    const latestCardsMessage = detailsLoaded
+        ? [...reading.messages].reverse().find(m => m.cards && m.cards.length > 0)
+        : undefined
     const latestCards = latestCardsMessage?.cards || []
 
     // Get last user question
-    const lastUserMessage = [...reading.messages].reverse().find(m => m.role === "user")
+    const lastUserMessage = detailsLoaded
+        ? [...reading.messages].reverse().find(m => m.role === "user")
+        : undefined
     const lastQuestion = lastUserMessage?.text || reading.question
+
+    useLayoutEffect(() => {
+        if (!detailsLoaded) {
+            setShowCardImages(false)
+            return
+        }
+        let cancelled = false
+        const id = requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                if (!cancelled) setShowCardImages(true)
+            })
+        })
+        return () => {
+            cancelled = true
+            cancelAnimationFrame(id)
+        }
+    }, [detailsLoaded, reading.id])
 
     const DELETE_THRESHOLD = -80 // How far to swipe to reveal delete button
     const MAX_SWIPE = -100 // Maximum swipe distance
@@ -304,7 +421,7 @@ const ReadingCard = ({
         try {
             if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
                 await navigator.share({
-                    title: "Asking Fate",
+                    title: "AskingFate",
                     text,
                     url,
                 })
@@ -328,6 +445,12 @@ const ReadingCard = ({
         e.preventDefault()
         handleDelete(e as unknown as React.MouseEvent)
     }
+
+    const titleText = reading.topic || reading.question || t("noQuestion")
+    const showLastQuestion =
+        detailsLoaded &&
+        lastQuestion &&
+        lastQuestion !== (reading.topic || reading.question)
 
     return (
         <div 
@@ -407,19 +530,35 @@ const ReadingCard = ({
 
                         <CardContent className="relative px-4 pt-12 pb-4">
                             <div className="flex items-start gap-4">
-                                {/* Card Stack */}
+                                {/* Card stack (left) — images still deferred via showCardImages */}
                                 <div className="flex-shrink-0 pt-1">
-                                    <CardStack cards={latestCards} />
+                                    {detailsLoaded && latestCards.length > 0 ? (
+                                        <CardStack cards={latestCards} showImages={showCardImages} />
+                                    ) : detailFetching ? (
+                                        <div className="flex h-16 w-20 items-center justify-center">
+                                            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                                        </div>
+                                    ) : detailError ? (
+                                        <div className="h-16 w-12 flex items-center justify-center" aria-hidden />
+                                    ) : (
+                                        <div className="h-16 w-12" aria-hidden />
+                                    )}
                                 </div>
 
-                                {/* Content */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-start justify-between gap-4 mb-2">
                                         <div className="flex flex-col gap-1 min-w-0">
                                             <h3 className="font-serif font-semibold text-lg leading-tight group-hover/card:text-primary transition-colors duration-300 line-clamp-1">
-                                                {reading.topic || reading.question || t("noQuestion")}
+                                                {titleText}
                                             </h3>
-                                            {lastQuestion && lastQuestion !== (reading.topic || reading.question) && (
+                                            {detailFetching && (
+                                                <div className="space-y-2 mt-1">
+                                                    <Skeleton className="h-3 w-2/3 max-w-xs" />
+                                                    <Skeleton className="h-3 w-full max-w-md" />
+                                                    <Skeleton className="h-3 w-5/6 max-w-sm" />
+                                                </div>
+                                            )}
+                                            {showLastQuestion && (
                                                 <p className="text-muted-foreground/60 text-xs line-clamp-1 italic">
                                                     Last: {lastQuestion}
                                                 </p>
@@ -427,9 +566,19 @@ const ReadingCard = ({
                                         </div>
                                     </div>
 
-                                    {latestCardsMessage?.text && (
+                                    {detailsLoaded && latestCardsMessage?.text && (
                                         <p className="text-muted-foreground/80 text-sm line-clamp-2 leading-relaxed">
                                             {latestCardsMessage.text}
+                                        </p>
+                                    )}
+                                    {detailError && (
+                                        <p className="text-muted-foreground/60 text-xs">
+                                            {t("errorDesc")}
+                                        </p>
+                                    )}
+                                    {detailPending && !detailFetching && !detailError && (
+                                        <p className="text-muted-foreground/40 text-xs">
+                                            {t("loading") || "Loading…"}
                                         </p>
                                     )}
                                 </div>
@@ -520,15 +669,39 @@ const ReadingCard = ({
     )
 }
 
+function ReadingRowPlaceholder() {
+    return (
+        <Card className='p-6 bg-card/40 backdrop-blur-sm border-border/30'>
+            <div className='flex items-start gap-4'>
+                <Skeleton className='w-16 h-16 rounded-xl' />
+                <div className='flex-1 space-y-3'>
+                    <div className='flex items-start justify-between'>
+                        <Skeleton className='h-5 w-3/4' />
+                        <Skeleton className='h-4 w-20' />
+                    </div>
+                    <Skeleton className='h-4 w-1/2' />
+                    <div className='flex gap-2'>
+                        <Skeleton className='h-6 w-16 rounded-full' />
+                        <Skeleton className='h-6 w-20 rounded-full' />
+                    </div>
+                </div>
+            </div>
+        </Card>
+    )
+}
+
 export default function ReadingHistory() {
     const { user, session } = useAuth()
     const t = useTranslations('ReadingHistory')
     const locale = useLocale()
-    const [loading, setLoading] = useState(true)
-    const [readings, setReadings] = useState<ReadingRow[]>([])
+    const [listLoading, setListLoading] = useState(true)
+    const [hydratedFromCache, setHydratedFromCache] = useState(false)
+    const [listRows, setListRows] = useState<ReadingMeta[]>([])
+    const [detailsById, setDetailsById] = useState<Record<string, ReadingRow>>({})
+    const [detailStatus, setDetailStatus] = useState<Record<string, DetailStatus>>({})
     const [error, setError] = useState<string | null>(null)
     const [searchQuery, setSearchQuery] = useState("")
-    const [filteredReadings, setFilteredReadings] = useState<ReadingRow[]>([])
+    const [filteredReadings, setFilteredReadings] = useState<ReadingMeta[]>([])
     const [displayedCount, setDisplayedCount] = useState(10)
     const [hasMore, setHasMore] = useState(true)
     const [loadingMore, setLoadingMore] = useState(false)
@@ -536,54 +709,204 @@ export default function ReadingHistory() {
     const [dateTo, setDateTo] = useState("")
     const [filterType, setFilterType] = useState<"all" | "today" | "week" | "month" | "custom">("all")
     const observerRef = useRef<HTMLDivElement>(null)
-
-    // Handle delete reading
-    const handleDeleteReading = useCallback((id: string) => {
-        setReadings(prev => prev.filter(r => r.id !== id))
-    }, [])
+    const detailsByIdRef = useRef(detailsById)
+    const listRowsRef = useRef(listRows)
+    const detailStatusRef = useRef(detailStatus)
 
     useEffect(() => {
-        let isMounted = true
-        const load = async () => {
+        detailsByIdRef.current = detailsById
+    }, [detailsById])
+    useEffect(() => {
+        listRowsRef.current = listRows
+    }, [listRows])
+    useEffect(() => {
+        detailStatusRef.current = detailStatus
+    }, [detailStatus])
+
+    const persistCache = useCallback(
+        (list: ReadingMeta[], details: Record<string, ReadingRow>) => {
             if (!user) return
-            console.log('test')
-            setLoading(true)
-            setError(null)
-            const { data, error } = await supabase
-                .from("chat_sessions")
-                .select("id, question, topic, messages, decision, created_at, updated_at")
-                .eq("owner_user_id", user.id)
-                .order("created_at", { ascending: false })
-            console.log(data)
-            if (!isMounted) return
-            if (error) {
-                setError(error.message)
-                setReadings([])
-            } else {
-                setReadings((data as ReadingRow[]) || [])
-            }
-            setLoading(false)
+            writeHistoryCache({
+                v: HISTORY_CACHE_VERSION,
+                userId: user.id,
+                list,
+                details,
+                savedAt: Date.now(),
+            })
+        },
+        [user]
+    )
+
+    // Hydrate from session cache on client
+    useEffect(() => {
+        if (!user) {
+            setHydratedFromCache(false)
+            return
         }
-        load()
-        return () => {
-            isMounted = false
+        const cached = readHistoryCache(user.id)
+        if (cached && cached.list.length > 0) {
+            setListRows(cached.list)
+            setDetailsById(cached.details)
+            const nextStatus: Record<string, DetailStatus> = {}
+            for (const row of cached.list) {
+                nextStatus[row.id] = cached.details[row.id] ? "loaded" : "pending"
+            }
+            setDetailStatus(nextStatus)
+            setHydratedFromCache(true)
+            setListLoading(false)
+        } else {
+            setHydratedFromCache(false)
         }
     }, [user])
 
+    // Load metadata list (lightweight)
+    useEffect(() => {
+        let isMounted = true
+        const loadMeta = async () => {
+            if (!user) return
+            if (!hydratedFromCache) {
+                setListLoading(true)
+            }
+            setError(null)
+            const { data, error: err } = await supabase
+                .from("chat_sessions")
+                .select("id, question, topic, created_at, updated_at")
+                .eq("owner_user_id", user.id)
+                .order("created_at", { ascending: false })
+
+            if (!isMounted) return
+            if (err) {
+                setError(err.message)
+                setListRows([])
+                setListLoading(false)
+                return
+            }
+
+            const meta = (data as ReadingMeta[]) || []
+            const prunedDetails: Record<string, ReadingRow> = { ...detailsByIdRef.current }
+            for (const key of Object.keys(prunedDetails)) {
+                if (!meta.some((r) => r.id === key)) delete prunedDetails[key]
+            }
+            setListRows(meta)
+            setDetailStatus((prev) => {
+                const next = { ...prev }
+                for (const row of meta) {
+                    if (next[row.id] === undefined) {
+                        next[row.id] = prunedDetails[row.id] ? "loaded" : "pending"
+                    }
+                }
+                const ids = new Set(meta.map((r) => r.id))
+                for (const key of Object.keys(next)) {
+                    if (!ids.has(key)) delete next[key]
+                }
+                return next
+            })
+            setDetailsById(prunedDetails)
+            setListLoading(false)
+            persistCache(meta, prunedDetails)
+        }
+        loadMeta()
+        return () => {
+            isMounted = false
+        }
+    }, [user, hydratedFromCache, persistCache])
+
+    const mergeDetailIntoCache = useCallback(
+        (row: ReadingRow) => {
+            setDetailsById((prev) => {
+                const next = { ...prev, [row.id]: row }
+                persistCache(listRowsRef.current, next)
+                return next
+            })
+            setDetailStatus((prev) => ({ ...prev, [row.id]: "loaded" }))
+        },
+        [persistCache]
+    )
+
+    const fetchDetail = useCallback(
+        async (id: string) => {
+            if (!user) return
+            if (detailsByIdRef.current[id]) {
+                setDetailStatus((prev) => ({ ...prev, [id]: "loaded" }))
+                return
+            }
+            const cur = detailStatusRef.current[id]
+            if (cur === "loading" || cur === "loaded") return
+
+            setDetailStatus((prev) => ({ ...prev, [id]: "loading" }))
+
+            const { data, error: err } = await supabase
+                .from("chat_sessions")
+                .select("id, question, topic, messages, decision, created_at, updated_at")
+                .eq("id", id)
+                .maybeSingle()
+
+            if (err || !data) {
+                setDetailStatus((prev) => ({ ...prev, [id]: "error" }))
+                return
+            }
+
+            mergeDetailIntoCache(data as ReadingRow)
+        },
+        [user, mergeDetailIntoCache]
+    )
+
+    // Handle delete reading
+    const handleDeleteReading = useCallback(
+        (id: string) => {
+            setListRows((prev) => {
+                const next = prev.filter((r) => r.id !== id)
+                setDetailsById((d) => {
+                    const copy = { ...d }
+                    delete copy[id]
+                    persistCache(next, copy)
+                    return copy
+                })
+                setDetailStatus((s) => {
+                    const copy = { ...s }
+                    delete copy[id]
+                    return copy
+                })
+                return next
+            })
+        },
+        [persistCache]
+    )
+
+    const readingForRow = useCallback(
+        (meta: ReadingMeta): ReadingRow => {
+            const full = detailsById[meta.id]
+            if (full) return full
+            return {
+                ...meta,
+                messages: [],
+                decision: null,
+            }
+        },
+        [detailsById]
+    )
+
     // Filter readings based on search query and date filters
     useEffect(() => {
-        let filtered = readings
+        let filtered = listRows
 
-        // Apply search filter
         if (searchQuery.trim()) {
-            filtered = filtered.filter(reading => 
-                reading.question?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                reading.topic?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                reading.messages.some(m => m.text.toLowerCase().includes(searchQuery.toLowerCase()))
-            )
+            const q = searchQuery.toLowerCase()
+            filtered = filtered.filter((reading) => {
+                if (
+                    reading.question?.toLowerCase().includes(q) ||
+                    reading.topic?.toLowerCase().includes(q)
+                ) {
+                    return true
+                }
+                const detail = detailsById[reading.id]
+                if (detail?.messages?.some((m) => m.text.toLowerCase().includes(q))) {
+                    return true
+                }
+                return false
+            })
         }
 
-        // Apply date filters
         if (filterType !== "all") {
             const now = new Date()
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
@@ -595,14 +918,16 @@ export default function ReadingHistory() {
                 switch (filterType) {
                     case "today":
                         return readingDateOnly.getTime() === today.getTime()
-                    case "week":
+                    case "week": {
                         const weekAgo = new Date(today)
                         weekAgo.setDate(weekAgo.getDate() - 7)
                         return readingDateOnly >= weekAgo
-                    case "month":
+                    }
+                    case "month": {
                         const monthAgo = new Date(today)
                         monthAgo.setMonth(monthAgo.getMonth() - 1)
                         return readingDateOnly >= monthAgo
+                    }
                     case "custom":
                         if (dateFrom) {
                             const fromDate = new Date(dateFrom)
@@ -610,7 +935,7 @@ export default function ReadingHistory() {
                         }
                         if (dateTo) {
                             const toDate = new Date(dateTo)
-                            toDate.setHours(23, 59, 59, 999) // End of day
+                            toDate.setHours(23, 59, 59, 999)
                             if (readingDateOnly > toDate) return false
                         }
                         return true
@@ -621,7 +946,7 @@ export default function ReadingHistory() {
         }
 
         setFilteredReadings(filtered)
-    }, [readings, searchQuery, filterType, dateFrom, dateTo])
+    }, [listRows, searchQuery, filterType, dateFrom, dateTo, detailsById])
 
     // Reset pagination when filtered readings change
     useEffect(() => {
@@ -656,10 +981,24 @@ export default function ReadingHistory() {
         return () => observer.disconnect()
     }, [loadMore, hasMore, loadingMore])
 
-    // Keep hasMore in sync
     useEffect(() => {
         setHasMore(displayedCount < filteredReadings.length)
     }, [displayedCount, filteredReadings.length])
+
+    const displayedSlice = useMemo(
+        () => filteredReadings.slice(0, displayedCount),
+        [filteredReadings, displayedCount]
+    )
+
+    // Queue detail fetches for visible slice with concurrency limit
+    useEffect(() => {
+        const pending = displayedSlice.filter((r) => detailStatus[r.id] === "pending")
+        const loadingCount = Object.values(detailStatus).filter((s) => s === "loading").length
+        const slots = Math.max(0, DETAIL_FETCH_CONCURRENCY - loadingCount)
+        pending.slice(0, slots).forEach((r) => {
+            fetchDetail(r.id)
+        })
+    }, [displayedSlice, detailStatus, fetchDetail])
 
     const content = useMemo(() => {
         if (!user) {
@@ -675,26 +1014,11 @@ export default function ReadingHistory() {
                 </div>
             )
         }
-        if (loading) {
+        if (listLoading && listRows.length === 0) {
             return (
                 <div className='space-y-4'>
                     {Array.from({ length: 5 }).map((_, i) => (
-                        <Card key={i} className='p-6 bg-card/40 backdrop-blur-sm border-border/30'>
-                            <div className='flex items-start gap-4'>
-                                <Skeleton className='w-16 h-16 rounded-xl' />
-                                <div className='flex-1 space-y-3'>
-                                    <div className='flex items-start justify-between'>
-                                        <Skeleton className='h-5 w-3/4' />
-                                        <Skeleton className='h-4 w-20' />
-                                    </div>
-                                    <Skeleton className='h-4 w-1/2' />
-                                    <div className='flex gap-2'>
-                                        <Skeleton className='h-6 w-16 rounded-full' />
-                                        <Skeleton className='h-6 w-20 rounded-full' />
-                                    </div>
-                                </div>
-                            </div>
-                        </Card>
+                        <ReadingRowPlaceholder key={i} />
                     ))}
                 </div>
             )
@@ -747,23 +1071,47 @@ export default function ReadingHistory() {
             )
         }
 
-        const entries = filteredReadings.slice(0, displayedCount)
-
         return (
             <div className='space-y-6'>
-                {entries.map((reading) => (
-                    <ReadingCard
-                        key={reading.id}
-                        reading={reading}
-                        t={t}
-                        locale={locale}
-                        onDelete={handleDeleteReading}
-                        session={session}
-                    />
-                ))}
+                {displayedSlice.map((meta) => {
+                    const reading = readingForRow(meta)
+                    const status = detailStatus[meta.id] ?? "pending"
+                    const detailsLoaded = status === "loaded"
+                    const detailFetching = status === "loading"
+                    const detailPending = status === "pending"
+                    const detailError = status === "error"
+                    return (
+                        <ReadingCard
+                            key={meta.id}
+                            reading={reading}
+                            detailsLoaded={detailsLoaded}
+                            detailFetching={detailFetching}
+                            detailPending={detailPending}
+                            detailError={detailError}
+                            t={t}
+                            locale={locale}
+                            onDelete={handleDeleteReading}
+                            session={session}
+                        />
+                    )
+                })}
             </div>
         )
-    }, [user, loading, filteredReadings, displayedCount, error, searchQuery, t, locale, handleDeleteReading, session])
+    }, [
+        user,
+        listLoading,
+        listRows.length,
+        filteredReadings,
+        displayedSlice,
+        error,
+        searchQuery,
+        t,
+        locale,
+        handleDeleteReading,
+        session,
+        readingForRow,
+        detailStatus,
+    ])
 
     return (
         <div className='max-w-4xl mx-auto w-full px-4 py-8'>
@@ -778,7 +1126,7 @@ export default function ReadingHistory() {
             </div>
 
             {/* Search and Filter Bar */}
-            {user && !loading && readings.length > 0 && (
+            {user && !listLoading && listRows.length > 0 && (
                 <div className="mb-8 space-y-4">
                     {/* Search Bar */}
                     <div className="relative max-w-md mx-auto">
@@ -860,7 +1208,7 @@ export default function ReadingHistory() {
             {content}
             
             {/* Infinite scroll trigger and loading indicator */}
-            {hasMore && (
+            {hasMore && filteredReadings.length > 0 && (
                 <div ref={observerRef} className="flex justify-center py-8">
                     {loadingMore ? (
                         <div className="flex items-center gap-2 text-muted-foreground">

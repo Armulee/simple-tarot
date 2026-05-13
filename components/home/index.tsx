@@ -1,10 +1,9 @@
 "use client"
 
-import { useEffect, useState, useMemo, useRef } from "react"
+import { useEffect, useLayoutEffect, useState, useMemo, useRef } from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
-import { useStarConsent } from "@/components/star-consent"
 import { LoopingTypewriterText } from "@/components/home/looping-typewriter-text"
 import QuestionInput from "@/components/question-input"
 import Footer from "@/components/footer/footer"
@@ -12,19 +11,22 @@ import HomeQuickCards from "@/components/home/home-quick-cards"
 import { ConsultingBadge } from "@/components/consulting-badge"
 import {
     loadInterpretationModeFromStorage,
+    saveInterpretationModeToStorage,
     type InterpretationMode,
 } from "@/lib/interpretation-mode-storage"
+import { useStarConsent } from "@/components/star-consent"
 import {
     detectInputLanguage,
     isSupportedLocale,
 } from "@/lib/detect-input-language"
-import ActionTrigger from "@/components/chat/action-trigger"
-import BirthInfoModal from "@/components/chat/birth-info-modal"
+import { sanitizePromptOnClient } from "@/lib/privacy/sanitize-client"
 import {
-    clearBirthFromStorage,
-    loadBirthFromStorage,
-    saveBirthToStorage,
-} from "@/lib/birth-storage"
+    buildPrivacyStorageKey,
+    saveRawPromptToSession,
+} from "@/lib/privacy/prompt-redaction"
+import { CookiesBanner } from "@/components/cookies-banner"
+import { CARD_UI_TEXT, normalizeLocale } from "@/components/chat/card-ui"
+import { loadBirthFromStorage, saveBirthToStorage } from "@/lib/birth-storage"
 import {
     loadAutoPickFromStorage,
     saveAutoPickToStorage,
@@ -36,25 +38,21 @@ export default function Home() {
     const locale = useLocale()
     const router = useRouter()
     const { user } = useAuth()
-    const { choice, show } = useStarConsent()
-
+    const { cookieConsent, ageGateState } = useStarConsent()
     const [question, setQuestion] = useState("")
     const [isLinking, setIsLinking] = useState(false)
     const [linkingQuestion, setLinkingQuestion] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [showLearnMore, setShowLearnMore] = useState(false)
+    // Must match `load*FromStorage()` when `window` is undefined (SSR) so the
+    // first client render hydrates; read localStorage in useLayoutEffect below.
     const [interpretationMode, setInterpretationMode] =
-        useState<InterpretationMode>(() => loadInterpretationModeFromStorage())
+        useState<InterpretationMode>("auto")
     const inputContainerRef = useRef<HTMLDivElement>(null)
     const fixedBarRef = useRef<HTMLDivElement>(null)
     const [fixedBarHeight, setFixedBarHeight] = useState(0)
-    const [showBirthModal, setShowBirthModal] = useState(false)
-    const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(
-        () => loadBirthFromStorage(),
-    )
-    const [autoPickOn, setAutoPickOn] = useState(() =>
-        loadAutoPickFromStorage(),
-    )
+    const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(null)
+    const [autoPickOn, setAutoPickOn] = useState(false)
     const linkingAbortControllerRef = useRef<AbortController | null>(null)
     const linkingRequestIdRef = useRef(0)
     const pendingSessionIdRef = useRef<string | null>(null)
@@ -64,6 +62,12 @@ export default function Home() {
             setShowLearnMore(true)
         }, 3000)
         return () => window.clearTimeout(timer)
+    }, [])
+
+    useLayoutEffect(() => {
+        setInterpretationMode(loadInterpretationModeFromStorage())
+        setSavedBirth(loadBirthFromStorage())
+        setAutoPickOn(loadAutoPickFromStorage())
     }, [])
 
     useEffect(() => {
@@ -87,15 +91,41 @@ export default function Home() {
         }
     }, [])
 
-    const handleBirthModalSubmit = (birth: HoroscopeBirthData) => {
-        saveBirthToStorage(birth)
-        setSavedBirth(birth)
-    }
+    useEffect(() => {
+        if (!ageGateState.birth) return
+        const nextBirth = {
+            year: ageGateState.birth.year,
+            month: ageGateState.birth.month,
+            day: ageGateState.birth.day,
+            hour: ageGateState.birth.hour,
+            minute: ageGateState.birth.minute,
+            timeHint: "unknown" as const,
+            timezone: ageGateState.birth.timezone ?? null,
+            lat: ageGateState.birth.lat ?? null,
+            lng: ageGateState.birth.lng ?? null,
+            country: ageGateState.birth.country ?? null,
+            state: ageGateState.birth.state ?? null,
+            usedLocationFallback: false,
+        }
+        setSavedBirth((current) => {
+            const sameBirth =
+                current?.year === nextBirth.year &&
+                current?.month === nextBirth.month &&
+                current?.day === nextBirth.day &&
+                current?.hour === nextBirth.hour &&
+                current?.minute === nextBirth.minute
+            if (sameBirth) return current
+            return nextBirth
+        })
+        saveBirthToStorage(nextBirth)
+    }, [ageGateState.birth])
 
-    const handleBirthModalRemove = () => {
-        clearBirthFromStorage()
-        setSavedBirth(null)
-    }
+    useEffect(() => {
+        if (user) return
+        if (interpretationMode !== "horoscope") return
+        setInterpretationMode("auto")
+        saveInterpretationModeToStorage("auto")
+    }, [user, interpretationMode])
 
     const handleToggleAutoPick = () => {
         setAutoPickOn((prev) => {
@@ -118,14 +148,19 @@ export default function Home() {
 
         for (const delay of [0, 300, 1000, 2500, 5000]) {
             if (delay > 0) {
-                await new Promise((resolve) => window.setTimeout(resolve, delay))
+                await new Promise((resolve) =>
+                    window.setTimeout(resolve, delay),
+                )
             }
 
             try {
-                const response = await fetch(`/api/chat-sessions/${sessionId}`, {
-                    method: "DELETE",
-                    headers,
-                })
+                const response = await fetch(
+                    `/api/chat-sessions/${sessionId}`,
+                    {
+                        method: "DELETE",
+                        headers,
+                    },
+                )
                 if (response.ok) {
                     return
                 }
@@ -155,10 +190,6 @@ export default function Home() {
     const createSessionAndRedirect = async (value: string) => {
         const trimmed = value.trim()
         if (!trimmed || isLinking) return
-        if (choice === null || choice === "declined") {
-            show()
-            return
-        }
         linkingRequestIdRef.current += 1
         const requestId = linkingRequestIdRef.current
         const pendingSessionId = createPendingSessionId()
@@ -173,19 +204,44 @@ export default function Home() {
         setLinkingQuestion(trimmed)
         setIsLinking(true)
         try {
+            const sanitizeResult = await sanitizePromptOnClient(trimmed, {
+                sessionId: pendingSessionId,
+                locale,
+                signal: controller.signal,
+            })
+            if (
+                requestId !== linkingRequestIdRef.current ||
+                controller.signal.aborted
+            ) {
+                return
+            }
+            const sanitizedQuestion = sanitizeResult.sanitized || trimmed
+            const userMessageId = `user-${Date.now()}`
+            const privacyStorageKey = sanitizeResult.redacted
+                ? buildPrivacyStorageKey(userMessageId)
+                : undefined
+            if (privacyStorageKey) {
+                saveRawPromptToSession(privacyStorageKey, trimmed)
+            }
             const response = await fetch("/api/chat-sessions/create", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 signal: controller.signal,
                 body: JSON.stringify({
                     id: pendingSessionId,
-                    question: trimmed,
+                    question: sanitizedQuestion,
                     user_id: user?.id ?? null,
                     messages: [
                         {
-                            id: `user-${Date.now()}`,
+                            id: userMessageId,
                             role: "user",
-                            text: trimmed,
+                            text: sanitizedQuestion,
+                            ...(privacyStorageKey && {
+                                privacyStorageKey,
+                                privacyRedacted: true,
+                                privacyRedactionTypes:
+                                    sanitizeResult.redactionTypes,
+                            }),
                         },
                     ],
                 }),
@@ -233,7 +289,8 @@ export default function Home() {
 
     const shouldShowHero = !isLinking
     const shouldShowLearnMore = showLearnMore && !isLinking
-    const tHoroscope = useTranslations("HoroscopeChat")
+    const cookieBannerVisible = !cookieConsent.decisionMade
+    const showQuickCards = !cookieBannerVisible
 
     const randomQuestionPool = useMemo(() => {
         const prompts = tHome.raw("prompts")
@@ -253,6 +310,10 @@ export default function Home() {
         return randomQuestionPool[
             Math.floor(Math.random() * randomQuestionPool.length)
         ]
+    }
+
+    const handleGetStarted = () => {
+        createSessionAndRedirect(pickRandomQuestion())
     }
 
     const { heroPhrases, splitAtPerPhrase } = useMemo(() => {
@@ -299,11 +360,7 @@ export default function Home() {
                         <div className='w-[300px] mx-auto flex flex-col gap-2 justify-center items-center'>
                             <button
                                 type='button'
-                                onClick={() =>
-                                    createSessionAndRedirect(
-                                        pickRandomQuestion(),
-                                    )
-                                }
+                                onClick={handleGetStarted}
                                 disabled={isLinking}
                                 className='w-full rounded-full bg-gradient-to-r from-primary via-accent to-primary px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/25 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed'
                             >
@@ -350,22 +407,16 @@ export default function Home() {
                 ref={fixedBarRef}
                 className='fixed bottom-0 left-0 right-0 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 transition-all duration-500'
             >
-                <div className='transition-all duration-300 opacity-100'>
-                    <HomeQuickCards
-                        onCardClick={createSessionAndRedirect}
-                        disabled={isLinking}
-                    />
-                </div>
-
-                <BirthInfoModal
-                    open={showBirthModal}
-                    onOpenChange={setShowBirthModal}
-                    initial={savedBirth}
-                    onSubmit={handleBirthModalSubmit}
-                    onRemove={handleBirthModalRemove}
-                    title={tHoroscope("birthFormTitle")}
-                    submitLabel={tHoroscope("birthFormSubmit")}
-                />
+                {showQuickCards ? (
+                    <div className='mx-auto w-full max-w-3xl px-4'>
+                        <div className='transition-all duration-300 opacity-100'>
+                            <HomeQuickCards
+                                onCardClick={createSessionAndRedirect}
+                                disabled={isLinking}
+                            />
+                        </div>
+                    </div>
+                ) : null}
 
                 <QuestionInput
                     id='home-question-input'
@@ -378,14 +429,22 @@ export default function Home() {
                     className='w-full'
                     interpretationMode={interpretationMode}
                     onInterpretationModeChange={setInterpretationMode}
-                    actionTrigger={
-                        <ActionTrigger
-                            autoPickOn={autoPickOn}
-                            onToggleAutoPick={handleToggleAutoPick}
-                            savedBirth={savedBirth}
-                            onBirthInfoClick={() => setShowBirthModal(true)}
-                        />
-                    }
+                    composerSettings={{
+                        showAutoPick: true,
+                        autoPickOn,
+                        onToggleAutoPick: handleToggleAutoPick,
+                        exposeBirthDrawInMenu: false,
+                        savedBirth,
+                        onBirthInfoClick: () => {
+                            router.push(`/${locale}/profile`)
+                        },
+                        showDrawTrigger: false,
+                        showInsufficientStars: false,
+                        cardsToSelect: 0,
+                        cardUi: CARD_UI_TEXT[normalizeLocale(locale)],
+                        onScrollToDraw: () => {},
+                    }}
+                    actionTrigger={null}
                     // disclaimerText={disclaimerText}
                     showDisclaimer={true}
                     error={
@@ -400,6 +459,7 @@ export default function Home() {
                     wrapperClassName='mt-4'
                     inputWrapperClassName='w-full'
                 />
+                <CookiesBanner inline />
                 <div className='opacity-100'>
                     <Footer />
                 </div>

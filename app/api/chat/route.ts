@@ -1,6 +1,11 @@
 import { streamObject } from "ai"
 
 import { chatDecisionSchema } from "@/lib/chat/decision-schema"
+import {
+    PRIVACY_REDACTION_PROMPT_RULE,
+    summarizePrivacyPlaceholdersInText,
+} from "@/lib/privacy/prompt-redaction"
+import { supabaseAdmin } from "@/lib/supabase"
 
 const MODEL = "deepseek/deepseek-v3.2"
 
@@ -32,6 +37,28 @@ horoscope
 - today / tomorrow / this month / this year
 - astrology timing
 
+If type is "draw", you MUST also choose ONE tarot spread:
+
+simple
+- 1 card
+- best for quick yes/no, a single focus, or a very narrow question
+
+general
+- 3 cards
+- best for a normal situation reading with a little context, tension, and direction
+
+detailed
+- 5 cards
+- best for multi-layered questions that need obstacles, hidden factors, advice, and outcome
+
+expanded
+- 7 cards
+- best for relationship dynamics, multiple forces, strengths/weaknesses, or a broader situation map
+
+celtic
+- 10 cards
+- only choose this if the user clearly wants a deep, comprehensive, or "tell me everything" style reading
+
 Important rule:
 
 If the user is talking about their own situation or asking how something will go,
@@ -51,56 +78,37 @@ Return JSON only:
 
 {
 "type":"chat"|"draw"|"horoscope",
-"assistantText":"response to the user",
-"isFollowUp":true|false
+"isFollowUp":true|false,
+"spreadType":"simple"|"general"|"detailed"|"expanded"|"celtic",
+"spreadReason":"short reason"
 }
 
-assistantText rules:
-
-Personality: warm, encouraging, like a caring friend who genuinely wants to help.
-Tone: positive and supportive, acknowledge the user's feelings or situation before inviting the action.
-
-If draw:
-- Empathize or reflect on what the user asked about (1-2 sentences).
-- Build anticipation for the tarot reading (1-2 sentences).
-- Invite them to draw their cards (1 sentence).
-- If this is a follow-up, reference what was revealed before and express excitement about diving deeper.
-
-If horoscope:
-- Acknowledge the user's curiosity about timing (1-2 sentences).
-- Build anticipation for the astrological reading (1-2 sentences).
-- Invite them to start the horoscope reading (1 sentence).
-
-If chat:
-- Answer naturally and warmly. 2-4 sentences.
-
-Write 4-6 sentences for draw and horoscope.
+If type is NOT "draw", omit spreadType and spreadReason.
 
 CRITICAL LANGUAGE RULE:
-You MUST reply in the SAME language the user wrote in.
-If the user writes in English, reply in English. If Thai, reply in Thai. Never mix.
-Write like a native speaker of that language. Avoid formal, robotic, or translated-sounding phrasing.
-Write the way a real person would text a friend.
+Use the user's language to help classification accuracy.
 
-Examples (English draw):
-- User: "will I get the job?" → "That's such an exciting crossroads to be at! It's clear this opportunity means a lot to you. The tarot cards can give us some real insight into the energy around this. Let's draw some cards and see what they reveal!"
-- User: "Tomorrow what will I be?" → "Ooh curious about what tomorrow has in store? I love that you're thinking ahead! The cards are great at picking up on the energy that's heading your way. Let's draw and see what they have to say!"
+${PRIVACY_REDACTION_PROMPT_RULE}
 
-Examples (English follow-up draw):
-- Session context says tarot reading with 2 of Cups about partnership. User: "is it a girl?" → type "draw", isFollowUp true. "Ooh you want to know more about who this partnership energy is pointing to! The cards can definitely give us more detail on that. Let's draw again and see what comes up!"
-
-Examples (English horoscope):
-- User: "what does this month look like for me?" → "Great question! The stars can tell us a lot about the energy and opportunities coming your way this month. Let's take a look at your horoscope and see what's in store!"
-
-Examples (Thai draw):
-- User: "พรุ่งนี้กูจะเป็นยังไงบ้าง" → "อยากรู้เรื่องพรุ่งนี้เลยใช่มั้ย? เป็นเรื่องดีนะที่อยากเตรียมตัวรับมือกับสิ่งที่จะเกิดขึ้น ไพ่ทาโรต์ช่วยให้เห็นภาพรวมของพลังงานในวันพรุ่งนี้ได้ดีมากเลย มาจั่วไพ่กันเลยดีกว่า แล้วไพ่จะบอกเราเอง!"
-- User: "เขารักเราจริงมั้ย" → "เรื่องความรักมันเป็นเรื่องที่ทำให้คิดมากได้จริงๆ นะ เข้าใจเลยว่าอยากรู้ว่าอีกฝ่ายรู้สึกยังไง ไพ่ทาโรต์ช่วยให้เราเห็นมุมที่ซ่อนอยู่ได้นะ มาลองจั่วไพ่ดูกันเลย!"
-
-Examples (Thai horoscope):
-- User: "เดือนนี้จะเป็นยังไง" → "อยากรู้ภาพรวมของเดือนนี้เลยใช่มั้ย? ดวงดาวช่วยบอกจังหวะพลังงานและโอกาสที่กำลังจะเข้ามาได้ดีมากเลย มาดูดวงกันเลยนะ!"
 `
 
+async function getUserFromBearer(req: Request) {
+    if (!supabaseAdmin) return null
+    const authHeader =
+        req.headers.get("authorization") ?? req.headers.get("Authorization")
+    if (!authHeader?.startsWith("Bearer ")) return null
+    const token = authHeader.slice(7).trim()
+    if (!token) return null
+    const {
+        data: { user },
+        error,
+    } = await supabaseAdmin.auth.getUser(token)
+    if (error || !user) return null
+    return user
+}
+
 function detectQuestionLanguage(text: string): string {
+    if (/[\u0E80-\u0EFF]/.test(text)) return "Lao"
     if (/[\u0E00-\u0E7F]/.test(text)) return "Thai"
     if (/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text)) return "Japanese"
     if (/[\uAC00-\uD7AF]/.test(text)) return "Korean"
@@ -119,11 +127,15 @@ function getChatDecisionPrompt({
     history,
     interpretationMode,
     contextSummary,
+    savedBirthInfo,
+    isAuthenticated,
 }: {
     question: string
     history?: Array<{ role: "user" | "assistant"; text: string }>
     interpretationMode?: string | null
     contextSummary?: string | null
+    savedBirthInfo?: string | null
+    isAuthenticated: boolean
 }) {
     const historyText =
         history && history.length
@@ -144,10 +156,17 @@ function getChatDecisionPrompt({
             : null
 
     const modeInstruction = forcedType
-        ? `\nThe user has locked the mode to "${forcedType}". You MUST set type to "${forcedType}" and write assistantText matching that type.\n`
+        ? `\nThe user has locked the mode to "${forcedType}". You MUST set type to "${forcedType}". If the forced type is "draw", you must still choose the best spreadType and spreadReason.\n`
         : ""
 
     const detectedLang = detectQuestionLanguage(question)
+    const savedBirthBlock = savedBirthInfo
+        ? `Saved birth profile: available (${savedBirthInfo}).`
+        : "Saved birth profile: not available. If you choose horoscope, do not ask for birth date in the chat response; the app will collect or reuse birth data through the birth profile flow."
+
+    const anonymousHoroscopeRule = !isAuthenticated
+        ? `\nIMPORTANT: The user is NOT signed in. Horoscope readings require an account. Never set type to "horoscope". For timing or astrology questions, choose "draw" or "chat". Even if session context mentions a prior horoscope reading, do not use "horoscope" while unsigned.\n`
+        : ""
 
     return `
 ${contextBlock}Recent conversation:
@@ -156,7 +175,8 @@ ${historyText}
 User message:
 ${question}
 ${modeInstruction}
-DETECTED LANGUAGE: The user's message is in ${detectedLang}. You MUST write assistantText entirely in ${detectedLang}. Ignore the language of conversation history — only the current user message language matters.
+${savedBirthBlock}${anonymousHoroscopeRule}
+DETECTED LANGUAGE: The user's message is in ${detectedLang}. Ignore the language of conversation history — only the current user message language matters.
 
 Classify the intent and return JSON.
 `
@@ -202,8 +222,22 @@ export async function POST(req: Request) {
                 status: 400,
             })
         }
-        const { question, history, interpretationMode, contextSummary } =
-            body ?? {}
+        const {
+            question,
+            history,
+            interpretationMode: rawInterpretationMode,
+            contextSummary,
+            savedBirthInfo,
+        } = body ?? {}
+
+        const user = await getUserFromBearer(req)
+        const isAuthenticated = Boolean(user)
+
+        let interpretationMode = rawInterpretationMode ?? null
+        if (!isAuthenticated && interpretationMode === "horoscope") {
+            interpretationMode = null
+        }
+
         const normalizedHistory = normalizeHistory(history)
 
         if (!question) {
@@ -219,17 +253,26 @@ export async function POST(req: Request) {
                 history: normalizedHistory,
                 interpretationMode,
                 contextSummary,
+                savedBirthInfo,
+                isAuthenticated,
             }),
         })
 
-        result.object.then((obj) => {
-            console.log(
-                "[chat/decision] type:",
-                obj.type,
-                "isFollowUp:",
-                obj.isFollowUp ?? false,
-            )
-        })
+        result.object
+            .then((obj) => {
+                const incoming = summarizePrivacyPlaceholdersInText(question)
+                console.log("[chat/decision] route → decision + incoming question token summary", {
+                    type: obj.type,
+                    isFollowUp: obj.isFollowUp ?? false,
+                    spreadType: obj.spreadType,
+                    spreadReason: obj.spreadReason,
+                    /** If the client sent `[Person_0]`-style tokens, they show up here (not the real names). */
+                    incomingQuestionPlaceholderStats: incoming,
+                })
+            })
+            .catch((e) => {
+                console.error("[chat/decision] final object error:", e)
+            })
 
         return result.toTextStreamResponse()
     } catch (error) {

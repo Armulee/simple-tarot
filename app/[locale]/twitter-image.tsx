@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og"
 
-export const alt = "Asking Fate - AI Tarot Reading"
+export const alt = "AskingFate - AI Tarot Reading"
 export const size = {
     width: 1200,
     height: 600,
@@ -63,7 +63,7 @@ export default async function Image() {
                             process.env.NEXT_PUBLIC_SITE_URL ||
                             "https://askingfate.com"
                         }/assets/logo.png`}
-                        alt='Asking Fate logo'
+                        alt='AskingFate logo'
                         width={120}
                         height={120}
                         style={{
@@ -89,7 +89,7 @@ export default async function Image() {
                             lineHeight: 1.1,
                         }}
                     >
-                        Asking Fate
+                        AskingFate
                     </h1>
 
                     {/* Subtitle */}

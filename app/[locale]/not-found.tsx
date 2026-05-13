@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 export const metadata: Metadata = {
-    title: "Page Not Found - 404 | Asking Fate",
+    title: "Page Not Found - 404 | AskingFate",
     description:
         "The page you&apos;re looking for doesn&apos;t exist. Return to our AI tarot reading homepage to continue your spiritual journey.",
     robots: "noindex, nofollow",

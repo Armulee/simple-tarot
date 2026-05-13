@@ -12,19 +12,23 @@ import "swiper/css/free-mode"
 
 import { Checkout } from "@/components/checkout"
 import { useAuth } from "@/hooks/use-auth"
-import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
 import {
     STAR_PACKS,
     getPackPrice,
+    getPackPriceId,
 } from "@/lib/payments/star-products"
 import {
-    convertUsdToCurrency,
     formatCurrency,
+    type CurrencyCode,
 } from "@/lib/payments/currency-utils"
 import { Button } from "@/components/ui/button"
 import { useStars } from "@/contexts/stars-context"
 import { Card } from "@/components/ui/card"
-import { SUBSCRIPTION_PLANS } from "@/lib/payments/subscription-plans"
+import {
+    SUBSCRIPTION_PLANS,
+    resolvePlanBillingPrice,
+    resolvePlanPriceId,
+} from "@/lib/payments/subscription-plans"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 type InsufficientStarsType = "tarot" | "horoscope"
@@ -38,14 +42,17 @@ export default function InsufficientStarsBlock({
     const { subscription } = useStars()
     const pathname = usePathname()
     const locale = useLocale()
-    const currency = usePreferredCurrency("USD")
+    const currency = locale === "th" ? "THB" : "USD"
     const t = useTranslations("InsufficientStars")
     const descLoggedInKey =
         type === "horoscope" ? "descriptionHoroscopeLoggedIn" : "descriptionLoggedIn"
     const descAnonymousKey =
         type === "horoscope" ? "descriptionHoroscopeAnonymous" : "descriptionAnonymous"
-    const formatDisplayCurrency = (amount: number) =>
-        formatCurrency(amount, currency, locale).replace(/^US(?=\$)/, "")
+    const formatDisplayCurrency = (
+        amount: number,
+        displayCurrency: CurrencyCode = currency,
+    ) =>
+        formatCurrency(amount, displayCurrency, locale).replace(/^US(?=\$)/, "")
 
     const packs = useMemo(() => {
         return STAR_PACKS.filter((p) => !!p.id)
@@ -113,19 +120,12 @@ export default function InsufficientStarsBlock({
                                             className="w-full px-2"
                                         >
                                             {packs.map((p) => {
-                                                const price =
-                                                    p.id != null
-                                                        ? getPackPrice(
-                                                              p.id,
-                                                              currency
-                                                          )
-                                                        : null
+                                                const packPriceId =
+                                                    getPackPriceId(p, currency)
                                                 const priceLabel =
-                                                    price != null
-                                                        ? formatDisplayCurrency(
-                                                              price
-                                                          )
-                                                        : null
+                                                    formatDisplayCurrency(
+                                                        getPackPrice(p, currency),
+                                                    )
 
                                                 return (
                                                     <SwiperSlide
@@ -134,14 +134,14 @@ export default function InsufficientStarsBlock({
                                                     >
                                                         <Checkout
                                                             mode="addon"
-                                                            packId={p.id ?? ""}
+                                                            packId={packPriceId}
                                                             currency={currency}
                                                             customTrigger={
                                                                 <button
                                                                     type="button"
                                                                     className="w-full rounded-xl border border-yellow-500/30 bg-gradient-to-br from-yellow-500/10 to-amber-600/10 hover:from-yellow-500/20 hover:to-amber-600/20 transition-all duration-300 px-4 py-4 text-left hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-500/20"
                                                                     disabled={
-                                                                        !p.id
+                                                                        !packPriceId
                                                                     }
                                                                 >
                                                                     <div className="flex items-center justify-between gap-2">
@@ -156,13 +156,11 @@ export default function InsufficientStarsBlock({
                                                                                 }
                                                                             </span>
                                                                         </div>
-                                                                        {priceLabel && (
-                                                                            <span className="text-sm text-yellow-200/90 font-semibold">
-                                                                                {
-                                                                                    priceLabel
-                                                                                }
-                                                                            </span>
-                                                                        )}
+                                                                        <span className="text-sm text-yellow-200/90 font-semibold">
+                                                                            {
+                                                                                priceLabel
+                                                                            }
+                                                                        </span>
                                                                     </div>
                                                                     <div className="mt-1.5 text-xs text-white/60">
                                                                         {p.name}
@@ -225,24 +223,25 @@ export default function InsufficientStarsBlock({
                                                     const billing =
                                                         plan.billing?.monthly
                                                     const priceId =
-                                                        plan.priceIds?.monthly ??
-                                                        ""
+                                                        resolvePlanPriceId(
+                                                            plan,
+                                                            "monthly",
+                                                            currency,
+                                                        )
                                                     const isProPlan =
                                                         plan.id === "pro"
                                                     const stars =
                                                         billing?.stars ?? 0
                                                     const monthlyAmount =
-                                                        typeof billing?.priceUsd ===
-                                                        "number"
-                                                            ? convertUsdToCurrency(
-                                                                  billing.priceUsd,
-                                                                  currency
-                                                              )
-                                                            : null
+                                                        resolvePlanBillingPrice(
+                                                            plan,
+                                                            "monthly",
+                                                            currency,
+                                                        )
                                                     const priceLabel =
                                                         monthlyAmount != null
                                                             ? formatDisplayCurrency(
-                                                                  monthlyAmount
+                                                                  monthlyAmount,
                                                               )
                                                             : t("unavailable")
                                                     const isOwned =
@@ -355,51 +354,49 @@ export default function InsufficientStarsBlock({
                                                     const billing =
                                                         plan.billing?.annual
                                                     const priceId =
-                                                        plan.priceIds?.annual ??
-                                                        ""
+                                                        resolvePlanPriceId(
+                                                            plan,
+                                                            "annual",
+                                                            currency,
+                                                        )
                                                     const isProPlan =
                                                         plan.id === "pro"
                                                     const stars =
                                                         billing?.stars ?? 0
-                                                    const monthlyPriceUsd =
-                                                        plan.billing?.monthly
-                                                            ?.priceUsd
-                                                    const annualMonthlyUsd =
-                                                        typeof billing?.priceUsd ===
-                                                        "number"
-                                                            ? billing.priceUsd /
-                                                              12
+                                                    const monthlyAmount =
+                                                        resolvePlanBillingPrice(
+                                                            plan,
+                                                            "monthly",
+                                                            currency,
+                                                        )
+                                                    const annualTotal =
+                                                        resolvePlanBillingPrice(
+                                                            plan,
+                                                            "annual",
+                                                            currency,
+                                                        )
+                                                    const annualMonthlyAmount =
+                                                        annualTotal != null
+                                                            ? annualTotal / 12
                                                             : null
                                                     const discountPercent =
-                                                        monthlyPriceUsd &&
-                                                        annualMonthlyUsd
+                                                        monthlyAmount != null &&
+                                                        annualMonthlyAmount !=
+                                                            null
                                                             ? Math.round(
                                                                   (1 -
-                                                                      annualMonthlyUsd /
-                                                                          monthlyPriceUsd) *
-                                                                      100
-                                                              )
-                                                            : null
-                                                    const annualMonthlyAmount =
-                                                        annualMonthlyUsd != null
-                                                            ? convertUsdToCurrency(
-                                                                  annualMonthlyUsd,
-                                                                  currency
+                                                                      annualMonthlyAmount /
+                                                                          monthlyAmount) *
+                                                                      100,
                                                               )
                                                             : null
                                                     const regularMonthlyAmount =
-                                                        typeof monthlyPriceUsd ===
-                                                        "number"
-                                                            ? convertUsdToCurrency(
-                                                                  monthlyPriceUsd,
-                                                                  currency
-                                                              )
-                                                            : null
+                                                        monthlyAmount
                                                     const priceLabel =
                                                         annualMonthlyAmount !=
                                                         null
                                                             ? formatDisplayCurrency(
-                                                                  annualMonthlyAmount
+                                                                  annualMonthlyAmount,
                                                               )
                                                             : t("unavailable")
                                                     const isOwned =
@@ -452,7 +449,7 @@ export default function InsufficientStarsBlock({
                                                                     null && (
                                                                     <span className="text-[11px] text-white/45 line-through">
                                                                         {formatDisplayCurrency(
-                                                                            regularMonthlyAmount
+                                                                            regularMonthlyAmount,
                                                                         )}
                                                                         {t("perMonth")}
                                                                     </span>

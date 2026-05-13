@@ -137,10 +137,20 @@ export default function TarotReadingLayout({
                 </div>
             </div>
 
-            {/* Row 2: Actions (left) + Share (right) */}
+            {/* Row 2: Share (left) + Actions (right) */}
             {(interpretation || isInterpretationFieldDone) && (
                 <div className="grid grid-cols-2 gap-8">
-                    {/* Left Column: Actions */}
+                    {/* Left Column: Share */}
+                    <div className="space-y-8">
+                        <ShareSection
+                            question={question || ""}
+                            cards={cards || []}
+                            interpretation={interpretation ?? undefined}
+                            readingId={readingId}
+                        />
+                    </div>
+
+                    {/* Right Column: Actions */}
                     <div className="space-y-8">
                         <ActionSection
                             question={question || ""}
@@ -153,16 +163,6 @@ export default function TarotReadingLayout({
                             onStreamingObjectChange={(obj) => {
                                 setStreamingObject(obj)
                             }}
-                        />
-                    </div>
-
-                    {/* Right Column: Share */}
-                    <div className="space-y-8">
-                        <ShareSection
-                            question={question || ""}
-                            cards={cards || []}
-                            interpretation={interpretation ?? undefined}
-                            readingId={readingId}
                         />
                     </div>
                 </div>

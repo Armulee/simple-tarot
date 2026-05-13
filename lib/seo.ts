@@ -1,9 +1,9 @@
 import { Metadata } from "next"
 import { getStructuredDataForPage } from "@/lib/structured-data"
 
-// SEO Configuration for Asking Fate AI Tarot Reading Website
+// SEO configuration for the AskingFate website
 export const seoConfig = {
-    siteName: "Asking Fate",
+    siteName: "AskingFate",
     siteUrl: "https://askingfate.com",
     description:
         "Get free AI-powered tarot card readings and spiritual guidance. Ask questions about your destiny and receive personalized insights from our advanced AI tarot system.",
@@ -26,12 +26,12 @@ export const seoConfig = {
         "mystical advice",
         "spiritual journey",
     ],
-    author: "Asking Fate",
+    author: "AskingFate",
     twitter: "@askingfate",
     openGraph: {
         type: "website",
         locale: "en_US",
-        siteName: "Asking Fate",
+        siteName: "AskingFate",
     },
     robots: {
         index: true,
@@ -80,9 +80,10 @@ export function generatePageMetadata({
     url?: string
     type?: "website" | "article"
 }): Metadata {
-    const fullTitle = title.includes("Asking Fate")
+    const fullTitle =
+        title.includes("AskingFate") || title.includes("Asking Fate")
         ? title
-        : `${title} | Asking Fate`
+        : `${title} | AskingFate`
     const fullUrl = url ? `${seoConfig.siteUrl}${url}` : seoConfig.siteUrl
     const fullImage = image.startsWith("http")
         ? image
@@ -153,14 +154,19 @@ export function generatePageMetadata({
 // Pre-defined metadata for common pages
 export const pageMetadata = {
     home: generatePageMetadata({
-        title: "AI Fortune Reading - AskingFate",
+        title: "AI Fortune Teller - askingfate.com",
         description:
             "Get free AI-powered tarot card readings and spiritual guidance. Ask any question about your destiny and receive personalized insights from our advanced AI tarot system.",
         keywords: [
+            "AI fortune teller",
+            "free AI fortune teller",
+            "online fortune telling",
             "AI tarot reading",
-            "free tarot cards",
+            "free tarot reading",
             "spiritual guidance",
             "destiny questions",
+            "AskingFate",
+            "Asking Fate",
         ],
         url: "/",
     }),
@@ -181,7 +187,7 @@ export const pageMetadata = {
     about: generatePageMetadata({
         title: "About - AI Tarot Reading Technology",
         description:
-            "Discover how Asking Fate blends centuries-old tarot traditions with cutting-edge AI technology to provide personalized cosmic guidance and spiritual insights.",
+            "Discover how AskingFate blends centuries-old tarot traditions with cutting-edge AI technology to provide personalized cosmic guidance and spiritual insights.",
         keywords: [
             "AI tarot technology",
             "tarot reading history",
@@ -207,7 +213,7 @@ export const pageMetadata = {
     privacy: generatePageMetadata({
         title: "Privacy Policy - Your Data Protection & Privacy Rights",
         description:
-            "Learn how Asking Fate protects your privacy and personal information when using our AI tarot reading service. Read our comprehensive privacy policy.",
+            "Learn how AskingFate protects your privacy and personal information when using our AI tarot reading service. Read our comprehensive privacy policy.",
         keywords: [
             "privacy policy",
             "data protection",
@@ -220,7 +226,7 @@ export const pageMetadata = {
     terms: generatePageMetadata({
         title: "Terms of Service - AI Tarot Reading Terms & Conditions",
         description:
-            "Read the terms of service for Asking Fate's AI-powered tarot reading platform. Understand your rights and responsibilities when using our spiritual guidance service.",
+            "Read the terms of service for AskingFate's AI-powered tarot reading platform. Understand your rights and responsibilities when using our spiritual guidance service.",
         keywords: [
             "terms of service",
             "terms and conditions",

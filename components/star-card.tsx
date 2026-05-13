@@ -4,12 +4,12 @@ import { generateCardSparklePositions } from "@/lib/sparkle-positions"
 import { useMemo } from "react"
 
 const StarCard = ({ children }: { children: React.ReactNode }) => {
-    // Generate random sparkle positions on each render
+    // Seeded positions (default in generateCardSparklePositions) match SSR and client.
     const sparklePositions = useMemo(() => generateCardSparklePositions(10), [])
 
     return (
         <Card className='group relative overflow-hidden border border-yellow-400/30 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl shadow-[0_20px_60px_-20px_rgba(234,179,8,0.4)] hover:shadow-[0_25px_80px_-25px_rgba(234,179,8,0.5)] transition-all duration-500 px-8 py-8'>
-            {/* Beautiful ping orbs with random positions */}
+            {/* Ping orbs (seeded positions — SSR/hydration safe) */}
             {sparklePositions.map((position, index) => (
                 <Sparkle
                     key={index}
