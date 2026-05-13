@@ -435,7 +435,7 @@ export default function Home() {
                         onScrollToDraw: () => {},
                     }}
                     actionTrigger={
-                        showQuickCards ? (
+                        showQuickCards && !isLinking ? (
                             <div className='w-full space-y-2 text-left'>
                                 <p className='text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70'>
                                     {tHome("quickFeaturesLabel")}
