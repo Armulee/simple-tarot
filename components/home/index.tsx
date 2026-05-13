@@ -299,14 +299,15 @@ export default function Home() {
                   (p): p is string => typeof p === "string",
               )
             : []
-        const cardQ = tHome("quickCardQuestions.cardReading")
-        const horoQ = tHome("quickCardQuestions.todayHoroscope")
-        return [...arr, cardQ, horoQ].filter(Boolean)
+        const tarotQ = tHome("quickCardQuestions.tarotCard")
+        const birthQ = tHome("quickCardQuestions.birthChart")
+        const horoQ = tHome("quickCardQuestions.horoscope")
+        return [...arr, tarotQ, birthQ, horoQ].filter(Boolean)
     }, [tHome])
 
     const pickRandomQuestion = () => {
         if (randomQuestionPool.length === 0)
-            return tHome("quickCardQuestions.cardReading")
+            return tHome("quickCardQuestions.tarotCard")
         return randomQuestionPool[
             Math.floor(Math.random() * randomQuestionPool.length)
         ]
@@ -435,8 +436,8 @@ export default function Home() {
                     }}
                     actionTrigger={
                         showQuickCards ? (
-                            <div className='w-full space-y-2'>
-                                <p className='text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70'>
+                            <div className='w-full space-y-2 text-left'>
+                                <p className='text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70'>
                                     {tHome("quickFeaturesLabel")}
                                 </p>
                                 <HomeQuickCards

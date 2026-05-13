@@ -339,12 +339,14 @@
     "learnMore": "Learn More",
     "quickFeaturesLabel": "Try our features",
     "quickCards": {
-      "cardReading": "Do the card reading",
-      "todayHoroscope": "Today horoscope"
+      "tarotCard": "Tarot Card",
+      "birthChart": "Birth Chart",
+      "horoscope": "Horoscope"
     },
     "quickCardQuestions": {
-      "cardReading": "What is the message I need to hear today?",
-      "todayHoroscope": "What is my horoscope for today?"
+      "tarotCard": "Draw me a tarot card",
+      "birthChart": "Tell me my birth chart",
+      "horoscope": "What is my horoscope for today"
     },
     "selectedCards": "You have selected {selectedCount}/{cardsToSelect} cards",
     "consulting": "Consulting",

@@ -29,7 +29,8 @@ const INPUT_BORDER_BY_MODE: Record<InterpretationMode, string> = {
         "border-blue-400/30 focus:border-blue-400/60 focus:ring-blue-400/30",
 }
 
-const followUpChipClass =
+/** Shared with homepage quick cards so composer chips match exactly. */
+export const followUpChipClass =
     "swiper-no-swiping inline-flex max-w-[min(92vw,20rem)] shrink-0 items-center whitespace-nowrap rounded-full border border-white/12 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl px-3 py-1.5 text-left text-xs leading-tight text-white/80 transition-colors hover:border-white/28 hover:from-indigo-500/25 hover:via-purple-500/25 hover:to-cyan-500/25 hover:text-white cursor-pointer"
 
 const INPUT_GLOW_BY_MODE: Record<InterpretationMode, string> = {

@@ -352,12 +352,14 @@
     "learnMore": "เรียนรู้เพิ่มเติม",
     "quickFeaturesLabel": "ลองฟีเจอร์ของเรา",
     "quickCards": {
-      "cardReading": "ทำนายไพ่",
-      "todayHoroscope": "ดวงวันนี้"
+      "tarotCard": "ไพ่ทาโรต์",
+      "birthChart": "แผนภูมิเกิด",
+      "horoscope": "โฮโรสโคป"
     },
     "quickCardQuestions": {
-      "cardReading": "วันนี้ฉันควรได้รับข้อความอะไร?",
-      "todayHoroscope": "ดวงของฉันวันนี้เป็นอย่างไร?"
+      "tarotCard": "ขอจั่วไพ่ทาโรต์ให้ฉัน",
+      "birthChart": "บอกแผนภูมิเกิดของฉันให้ฟัง",
+      "horoscope": "ดวงของฉันวันนี้เป็นอย่างไร"
     },
     "selectedCards": "คุณเลือกไพ่แล้ว {selectedCount}/{cardsToSelect} ใบ",
     "consulting": "กำลังปรึกษา",
