@@ -31,6 +31,10 @@ import {
     loadAutoPickFromStorage,
     saveAutoPickToStorage,
 } from "@/lib/auto-pick-storage"
+import {
+    loadComposerSuggestionsEnabledFromStorage,
+    saveComposerSuggestionsEnabledToStorage,
+} from "@/lib/composer-suggestions-storage"
 import type { HoroscopeBirthData } from "@/types/horoscope"
 
 export default function Home() {
@@ -51,8 +55,12 @@ export default function Home() {
     const inputContainerRef = useRef<HTMLDivElement>(null)
     const fixedBarRef = useRef<HTMLDivElement>(null)
     const [fixedBarHeight, setFixedBarHeight] = useState(0)
-    const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(null)
+    const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(
+        null,
+    )
     const [autoPickOn, setAutoPickOn] = useState(false)
+    const [composerSuggestionsEnabled, setComposerSuggestionsEnabled] =
+        useState(true)
     const linkingAbortControllerRef = useRef<AbortController | null>(null)
     const linkingRequestIdRef = useRef(0)
     const pendingSessionIdRef = useRef<string | null>(null)
@@ -68,6 +76,9 @@ export default function Home() {
         setInterpretationMode(loadInterpretationModeFromStorage())
         setSavedBirth(loadBirthFromStorage())
         setAutoPickOn(loadAutoPickFromStorage())
+        setComposerSuggestionsEnabled(
+            loadComposerSuggestionsEnabledFromStorage(),
+        )
     }, [])
 
     useEffect(() => {
@@ -133,6 +144,11 @@ export default function Home() {
             saveAutoPickToStorage(next)
             return next
         })
+    }
+
+    const handleComposerSuggestionsEnabledChange = (enabled: boolean) => {
+        setComposerSuggestionsEnabled(enabled)
+        saveComposerSuggestionsEnabledToStorage(enabled)
     }
 
     const createPendingSessionId = () =>
@@ -423,6 +439,10 @@ export default function Home() {
                         showAutoPick: true,
                         autoPickOn,
                         onToggleAutoPick: handleToggleAutoPick,
+                        showComposerSuggestionsToggle: true,
+                        composerSuggestionsEnabled,
+                        onComposerSuggestionsEnabledChange:
+                            handleComposerSuggestionsEnabledChange,
                         exposeBirthDrawInMenu: false,
                         savedBirth,
                         onBirthInfoClick: () => {

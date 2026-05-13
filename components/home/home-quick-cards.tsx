@@ -65,7 +65,7 @@ export default function HomeQuickCards({
                     }}
                     slidesPerView='auto'
                     spaceBetween={8}
-                    className='composer-follow-up-swiper w-full !overflow-visible'
+                    className='w-full !overflow-visible'
                 >
                     {cards.map((card) => {
                         const Icon = card.icon

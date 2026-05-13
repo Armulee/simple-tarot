@@ -365,6 +365,8 @@
     "consulting": "กำลังปรึกษา",
     "enterBirthDate": "กรุณากรอกวันเกิดของคุณ",
     "streamStopped": "หยุดคำตอบไว้แล้ว",
+    "scrollToBottom": "เลื่อนลงล่างสุด",
+    "scrollToBottomAria": "เลื่อนไปด้านล่างสุดของการสนทนา",
     "checkingStars": "กำลังตรวจสอบยอดดวงดาวของคุณ...",
     "disclaimer": "ไม่ควรเชื่อถือหรือพึ่งพาคำทำนายอย่างหลับหูหลับตา AskingFate ใช้ AI ซึ่งอาจผิดพลาดได้ สำหรับการตัดสินใจสำคัญ โปรดปรึกษาผู้เชี่ยวชาญที่มีคุณสมบัติ",
     "readAloud": {
@@ -409,9 +411,12 @@
     "sanitizingPrompt": "กำลังชำระล้าง"
   },
   "ActionTrigger": {
-    "autoPickLabel": "เลือกไพ่ให้อัตโนมัติ:",
+    "autoPickLabel": "เลือกไพ่ให้อัตโนมัติ",
     "autoPickOn": "เปิด",
     "autoPickOff": "ปิด",
+    "composerSuggestionsLabel": "คำถามต่อยอด",
+    "composerSuggestionsOn": "เปิด",
+    "composerSuggestionsOff": "ปิด",
     "newBirthInfo": "ข้อมูลวันเกิด",
     "editBirthInfo": "แก้ไขข้อมูลวันเกิด",
     "birthInfo": "ข้อมูลวันเกิด: {date}",
@@ -432,7 +437,10 @@
     "horoscope": "ดวงชะตา",
     "chat": "แชท",
     "horoscopeLoginRequired": "ลงชื่อเข้าใช้เพื่อใช้ดวงชะตา",
-    "composerSettingsAriaLabel": "การตั้งค่าการอ่าน"
+    "composerSettingsAriaLabel": "การตั้งค่าการอ่าน",
+    "composerSettingsPanelTitle": "การตั้งค่า",
+    "composerSettingsSectionPreferences": "การตั้งค่าทั่วไป",
+    "composerSettingsSectionActions": "การดำเนินการ"
   },
   "About": {
     "whatIs": "คืออะไร",

@@ -352,6 +352,8 @@
     "consulting": "Consulting",
     "enterBirthDate": "Please enter your birth date",
     "streamStopped": "Response stopped",
+    "scrollToBottom": "Scroll to bottom",
+    "scrollToBottomAria": "Scroll to the bottom of the conversation",
     "checkingStars": "Checking your star balance...",
     "disclaimer": "Do not trust or rely on this interpretation blindly. AskingFate uses AI and may make mistakes. For important decisions, please consult a qualified professional.",
     "readAloud": {
@@ -396,9 +398,12 @@
     "sanitizingPrompt": "Purifying"
   },
   "ActionTrigger": {
-    "autoPickLabel": "Auto pick card:",
+    "autoPickLabel": "Auto pick card",
     "autoPickOn": "on",
     "autoPickOff": "off",
+    "composerSuggestionsLabel": "Suggested replies",
+    "composerSuggestionsOn": "on",
+    "composerSuggestionsOff": "off",
     "newBirthInfo": "New birth info",
     "editBirthInfo": "Edit birth info",
     "birthInfo": "Birth info: {date}",
@@ -419,7 +424,10 @@
     "horoscope": "Horoscope",
     "chat": "Chat",
     "horoscopeLoginRequired": "Sign in to use horoscope",
-    "composerSettingsAriaLabel": "Reading settings"
+    "composerSettingsAriaLabel": "Reading settings",
+    "composerSettingsPanelTitle": "Settings",
+    "composerSettingsSectionPreferences": "Preferences",
+    "composerSettingsSectionActions": "Actions"
   },
   "About": {
     "whatIs": "What is",
