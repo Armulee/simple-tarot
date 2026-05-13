@@ -69,6 +69,12 @@ export type ChatMessage = {
     variant?: "plain" | "box" | "horoscope" | "tool"
     cards?: TarotCard[]
     insights?: string[]
+    /**
+     * AI-generated, decoration-rich HTML fragment that magnifies the key
+     * takeaways of a tarot reading. Rendered at the very top of the assistant
+     * message (above the "card says" section) and sanitized before display.
+     */
+    detailedHtml?: string
     cardMeanings?: string[]
     isLoading?: boolean
     spreadType?: ChatDecision["spreadType"] | null

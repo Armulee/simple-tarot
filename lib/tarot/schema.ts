@@ -1,27 +1,33 @@
 import { z } from "zod"
 
 /**
- * Schema order matters for streaming so the chat-session UI can reveal
- * sections progressively:
- *   cardInsights → headline → subtitle → keyMessage → perCard → keywords →
- *   interpretation → nextStep → conclusion → suggestions
+ * Schema field order matters: `streamObject` emits keys in declaration order,
+ * and the chat-session UI reveals each section as its key first arrives. The
+ * declaration order below mirrors the on-screen layout exactly:
  *
- * The "new" fields (headline/subtitle/perCard/nextStep + 3–4 short suggestions)
- * power the refreshed chat-session result UI. The "legacy" fields
- * (cardInsights/keyMessage/keywords/interpretation/conclusion) are still
- * populated by the model so the legacy `/tarot` page and the DB-backed
- * `shared_tarot` view keep rendering unchanged.
+ *   1. cardInsights  → hero card / "card say" italic quotes
+ *   2. headline      ⎫
+ *   3. subtitle      ⎬  Key-message box
+ *   4. keyMessage    ⎭  (back-compat — restate of headline + subtitle)
+ *   5. detailedHtml  → "Detailed" AI-decorated paragraph block
+ *   6. perCard       → Per-card chip list
+ *   7. nextStep      → Soft next-step line under the per-card list
+ *   8. keywords      ⎫
+ *   9. interpretation⎬  Back-compat for the legacy /tarot page and the
+ *  10. conclusion    ⎭  DB-backed `shared_tarot` view (deterministic
+ *                       restatements of the new fields — see descriptions)
+ *  11. suggestions   → Follow-up prompt chips
  */
 export const tarotInterpretationSchema = z.object({
     cardInsights: z
         .array(z.string())
         .describe(
-            "Ultra-short ONE line for the on-screen card strip under each card image (must fit a small italic quote). HARD CAP: ≤12 Thai words OR ≤10 English words (match question language). One clause only — no semicolons, no comma chains joining multiple ideas. If Thai/Lao, prefer ~8–12 words. Focus on what that specific card contributes to the reading, not the overall answer. Impersonal, objective. Do NOT sound like keyMessage. Do NOT address the user (no you/คุณ). Do NOT open with hedging like 'may feel' / 'อาจจะรู้สึกว่า'. Do NOT mention card names, position labels, or 'this card'. OUTPUT THIS FIRST. Same language as the user's question.",
+            "Ultra-short ONE line for the on-screen card strip under each card image (must fit a small italic quote). HARD CAP: ≤12 Thai words OR ≤10 English words (match question language). One clause only — no semicolons, no comma chains joining multiple ideas. If Thai/Lao, prefer ~8–12 words. Focus on what that specific card contributes to the reading, not the overall answer. Impersonal, objective. Do NOT sound like keyMessage. Do NOT address the user (no you/คุณ). Do NOT open with hedging like 'may feel' / 'อาจจะรู้สึกว่า'. Do NOT mention card names, position labels, or 'this card'. STREAM THIS FIRST so the hero card quotes fill in as soon as possible. Same language as the user's question.",
         ),
     headline: z
         .string()
         .describe(
-            "The verdict — the largest text on the page. ≤10 Thai words (or the equivalent terse length in the question's language). Plain text only, no card names, no markdown, no quotes. Same language as the user's question. STREAM THIS EARLY so the user sees the verdict first.",
+            "The verdict — the largest text on the page. ≤10 Thai words (or the equivalent terse length in the question's language). Plain text only, no card names, no markdown, no quotes. Same language as the user's question. STREAM THIS EARLY — right after cardInsights — so the user sees the verdict before the longer fields.",
         ),
     subtitle: z
         .string()
@@ -32,6 +38,11 @@ export const tarotInterpretationSchema = z.object({
         .string()
         .describe(
             "Back-compat field for the legacy /tarot page and the DB share view. Set this to `headline + ' ' + subtitle` joined into one short paragraph. Do not invent new content here.",
+        ),
+    detailedHtml: z
+        .string()
+        .describe(
+            "A short, decorated HTML block (1-3 paragraphs) that magnifies the key messages of the reading in the context of the user's question. This block renders directly BELOW the `headline`/`subtitle` (the 'key message') and ABOVE the perCard breakdown, so it MUST NOT contain its own headline — the headline field already plays that role. ALLOWED TAGS ONLY: <p>, <strong>, <em>, <ul>, <ol>, <li>, <br>, and <span class=\"highlight-gold\">. FORBIDDEN TAGS: <h1>, <h2>, <h3>, <h4>, <h5>, <h6>, and anything not in the allowed list. Use <strong>/<em> for emphasis. Use <span class=\"highlight-gold\">…</span> to highlight 1-3 key phrases in a golden palette so the user can spot the important bit at a glance. Use <ul>/<ol> ONLY when a short list (2-4 items) genuinely makes the message easier to scan — never force a list. Keep it between 1 and 3 paragraphs of human-readable content. Do NOT include any attributes, inline styles, classes, scripts, links, or images. Do NOT wrap the response in <html>, <body>, ``` fences, or Markdown. Write in the SAME language as the user's question.",
         ),
     perCard: z
         .array(
@@ -51,6 +62,11 @@ export const tarotInterpretationSchema = z.object({
         .describe(
             "Per-card breakdown. Length MUST equal the number of cards in <cards>. Each item is the contribution of one card.",
         ),
+    nextStep: z
+        .string()
+        .describe(
+            "A soft, non-commanding suggestion. MUST start with a non-commanding verb such as 'ลอง' (Thai) or 'try' / 'consider' / 'maybe' (English). FORBIDDEN openers: 'ต้อง', 'ควร' framed as a command, 'must', 'should'. One short sentence. Same language as the user's question. No card names. No markdown.",
+        ),
     keywords: z
         .string()
         .describe(
@@ -60,11 +76,6 @@ export const tarotInterpretationSchema = z.object({
         .string()
         .describe(
             "Back-compat field for the legacy /tarot page and the DB share view. Set this to `perCard[].sentence` joined together as one short paragraph (1-2 sentences worth). Pure text, no card names, no markdown. Do not invent new content here.",
-        ),
-    nextStep: z
-        .string()
-        .describe(
-            "A soft, non-commanding suggestion. MUST start with a non-commanding verb such as 'ลอง' (Thai) or 'try' / 'consider' / 'maybe' (English). FORBIDDEN openers: 'ต้อง', 'ควร' framed as a command, 'must', 'should'. One short sentence. Same language as the user's question. No card names. No markdown.",
         ),
     conclusion: z
         .string()

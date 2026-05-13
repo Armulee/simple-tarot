@@ -140,14 +140,21 @@ FOLLOW-UP — PRIOR READING IS BACKGROUND ONLY:
 `
             : ""
 
-        const result = await streamObject({
+        const result = streamObject({
             model: MODEL,
+            // 'json' mode injects the schema into the prompt and uses the
+            // provider's native JSON streaming, so partial fields flow to the
+            // client token-by-token. The default 'auto' frequently resolves to
+            // tool-call mode for DeepSeek, which buffers the entire JSON
+            // payload until the tool call completes — that is what made the
+            // tarot reading "pop in" all at once instead of streaming.
+            mode: "json",
             temperature: 0.6,
             schema: tarotInterpretationSchema,
             system: TAROT_SYSTEM_PROMPT,
             prompt: `${prompt}
 
-LANGUAGE: The user's question is in ${lang}. You MUST write ALL output fields (cardInsights, headline, subtitle, keyMessage, perCard.sentence, keywords, interpretation, nextStep, conclusion, suggestions) in ${lang}. The only exception is perCard[i].cardName, which MUST echo the input card name verbatim. The card_energies and reading_direction are English internal data — translate them into ${lang}. NEVER output English when the question is in ${lang}.
+LANGUAGE: The user's question is in ${lang}. You MUST write ALL output fields (cardInsights, headline, subtitle, keyMessage, detailedHtml, perCard.sentence, nextStep, keywords, interpretation, conclusion, suggestions) in ${lang}. EMIT THE KEYS IN THIS EXACT DECLARATION ORDER so the streaming UI fills in matching sections in the same order they appear on screen (hero card quotes → headline → subtitle → keyMessage → detailedHtml → perCard → nextStep → keywords → interpretation → conclusion → suggestions). The only exception is perCard[i].cardName, which MUST echo the input card name verbatim. The card_energies and reading_direction are English internal data — translate them into ${lang}. NEVER output English when the question is in ${lang}. For the detailedHtml field, write the human-visible text content in ${lang} while keeping HTML tag names (p, span, etc.) and the literal class name "highlight-gold" in English.
 ${followUpPriorGuard}
 CRITICAL NARRATOR RULE: If a <reading_direction> is provided, you MUST follow it as your answer skeleton.
 - The reading_direction contains the core leaning, card-by-card reasoning, and advice that a stronger reasoning model already determined from the CURRENT draw (not from any prior user-facing interpretation).

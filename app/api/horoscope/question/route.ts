@@ -268,8 +268,13 @@ export async function POST(req: Request) {
             `[horoscope/question] prompt size: ${(prompt.length / 1024).toFixed(1)}KB (~${Math.ceil(prompt.length / 4)} tokens)`,
         )
 
-        const result = await streamObject({
+        const result = streamObject({
             model: MODEL,
+            // Force JSON streaming mode so partial fields stream to the client
+            // token-by-token. The default 'auto' often resolves to tool-call
+            // mode on DeepSeek, which buffers the whole JSON payload until the
+            // tool call completes (the response then "pops in" all at once).
+            mode: "json",
             schema: horoscopeInterpretationSchema,
             system: `You are an expert astrologer who writes for a general audience with ZERO astrology knowledge.
 You respond as a female. Astra is a female oracle. Use feminine voice and perspective in all responses.

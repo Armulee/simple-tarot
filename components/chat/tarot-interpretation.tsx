@@ -12,8 +12,9 @@ import {
     applyAliasesToText,
     type PromptAliasEntry,
 } from "@/lib/privacy/prompt-redaction"
+import { sanitizeDetailedHtml } from "@/lib/tarot/sanitize-html"
 import { useTranslations } from "next-intl"
-import { ChevronRight, Loader2, Share } from "lucide-react"
+import { Loader2, Share, Sparkles } from "lucide-react"
 
 const INTERPRETATION_FILLER_PREFIXES = [
     /^(?:i\s+(?:feel|sense|believe|think)\s+(?:that\s+)*)/i,
@@ -124,9 +125,6 @@ export type TarotAssistantInterpretationProps = {
     onRegenerateTarot?: (messageId: string) => void
     onTarotInterpretationChange?: (messageId: string, text: string) => void
     onShare: (id: string, text: string) => void
-    onApplySuggestedQuestion: (value: string) => void
-    /** When true, follow-up pills are shown only in the composer (avoid duplicate UI). */
-    hideFollowUpSuggestions?: boolean
     /**
      * Replaces session-scoped privacy placeholders (e.g. `[Person_0]`) with the
      * original PII the user typed, for every user-facing render and share.
@@ -157,8 +155,6 @@ export function TarotAssistantInterpretation({
     onRegenerateTarot,
     onTarotInterpretationChange,
     onShare,
-    onApplySuggestedQuestion,
-    hideFollowUpSuggestions = false,
     unmask,
     privacyAliases,
 }: TarotAssistantInterpretationProps) {
@@ -216,8 +212,9 @@ export function TarotAssistantInterpretation({
 
     /**
      * Streaming progress signals — the schema emits cardInsights → headline →
-     * subtitle → keyMessage → perCard → keywords → interpretation → nextStep →
-     * conclusion → suggestions, so each later field arriving means the
+     * subtitle → keyMessage → detailedHtml → perCard → nextStep → keywords →
+     * interpretation → conclusion → suggestions (declaration order in
+     * `lib/tarot/schema.ts`), so each later field arriving means the
      * previous section is done.
      */
     const cardInsightsStreamingDone =
@@ -253,6 +250,21 @@ export function TarotAssistantInterpretation({
     }, [message.perCard])
     const hasPerCard = perCardItems.length > 0
 
+    // "Detailed" key-takeaways block — paragraphs only, sanitized to a tiny
+    // tag whitelist. Rendered between the headline/subtitle box and the hero
+    // card area so it sits above the "card say" insight quotes.
+    const safeDetailedHtml = useMemo(
+        () => sanitizeDetailedHtml(message.detailedHtml),
+        [message.detailedHtml],
+    )
+    const detailedLabel = (() => {
+        try {
+            return tReading("detailed.label")
+        } catch {
+            return "Detailed"
+        }
+    })()
+
     const formattedTarotInterpretationLegacy =
         message.variant === "box" && !hasPerCard
             ? formatInterpretationBody(rawMessageText, maskedQuestionForFilter)
@@ -275,20 +287,15 @@ export function TarotAssistantInterpretation({
                   .join("\n\n")
             : ""
 
-    const suggestionsToRender = Array.isArray(message.followUpSuggestions)
-        ? message.followUpSuggestions.slice(0, 4)
-        : []
-
-    return (
-        <>
-            {/* B. Hero card area: enlarged centered card with a soft purple
-                halo. Multi-card spreads fan around the active card; tapping a
-                card lifts and scales it. The internal markup (number badge,
-                tag label, name pill, italic quote) lives below in
-                `<ActiveCardCaption />` exactly as before — only the
-                surrounding layout changes. */}
-            {cardCount > 0 && activeCard && (
-                <div className='w-full md:max-w-[85%]'>
+    // B. Hero card area: enlarged centered card with a soft purple halo.
+    // Multi-card spreads fan around the active card; tapping a card lifts
+    // and scales it. The internal markup (number badge, tag label, name
+    // pill, italic "card say" quote) is unchanged byte-for-byte — only its
+    // position in the box-variant layout changes (it now sits between the
+    // key-message + detailed block above it and the perCard list below it).
+    const heroCardSection =
+        cardCount > 0 && activeCard ? (
+            <div className='w-full md:max-w-[85%]'>
                     <div className='relative mx-auto flex w-full max-w-md flex-col items-center px-2 py-6'>
                         <div
                             aria-hidden
@@ -421,7 +428,13 @@ export function TarotAssistantInterpretation({
                         </div>
                     </div>
                 </div>
-            )}
+        ) : null
+
+    return (
+        <>
+            {/* Hero card / "card say" section sits at the top of the
+                assistant message for every variant (box or otherwise). */}
+            {heroCardSection}
 
             {/* Box variant: tarot interpretation with cards, insights, actions, share */}
             {message.variant === "box" ? (
@@ -539,6 +552,34 @@ export function TarotAssistantInterpretation({
                                                     <Share className='relative z-10 h-4.5 w-4.5 shrink-0 drop-shadow-sm' />
                                                 </button>
                                             </div>
+                                        </div>
+                                    )}
+
+                                    {/* "Detailed" key-takeaways: sanitized,
+                                        AI-authored HTML paragraphs (no
+                                        headings — the headline box above
+                                        already plays that role). The block
+                                        sits directly BELOW the key message
+                                        and ABOVE the perCard breakdown,
+                                        with its own small uppercase label. */}
+                                    {safeDetailedHtml && (
+                                        <div className='rounded-2xl border border-yellow-400/15 bg-gradient-to-br from-yellow-500/[0.04] via-white/[0.03] to-yellow-500/[0.04] p-5 shadow-lg animate-fade-in relative overflow-hidden'>
+                                            <div
+                                                aria-hidden
+                                                className='pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-yellow-400/10 blur-3xl'
+                                            />
+                                            <div className='flex items-center gap-2 mb-2 relative z-10'>
+                                                <Sparkles className='w-3.5 h-3.5 text-yellow-300' />
+                                                <p className='text-[11px] uppercase tracking-[0.2em] text-yellow-200/90'>
+                                                    {detailedLabel}
+                                                </p>
+                                            </div>
+                                            <div
+                                                className='tarot-detailed-html text-white/90 leading-relaxed relative z-10'
+                                                dangerouslySetInnerHTML={{
+                                                    __html: safeDetailedHtml,
+                                                }}
+                                            />
                                         </div>
                                     )}
 
@@ -667,19 +708,23 @@ export function TarotAssistantInterpretation({
                             </div>
                         )}
                     </div>
-                    {/* D. Suggestions: compact rows (up to 4); composer may host these instead. */}
-                    {(message.followUpConclusion ||
-                        (!hideFollowUpSuggestions &&
-                            suggestionsToRender.length > 0)) && (
+                    {/* Follow-up suggestions are now hosted EXCLUSIVELY in the
+                        action-trigger composer (see <QuestionInput
+                        composerFollowUps>). They never appear after the
+                        conclusion section in the chat scrollback, regardless
+                        of whether the user has sent a new question yet — the
+                        composer hides them automatically once a new user
+                        message arrives. The only thing kept here is the
+                        legacy bottom-conclusion fallback for old messages
+                        that pre-date the perCard/nextStep schema. */}
+                    {message.followUpLoading ||
+                    (!unmaskedNextStep && message.followUpConclusion) ? (
                         <div className='w-full md:max-w-[85%] space-y-3 pt-4'>
                             {message.followUpLoading && (
                                 <p className='text-xs sm:text-sm text-white/60'>
                                     Thinking of a good next question...
                                 </p>
                             )}
-                            {/* Legacy: only render the bottom conclusion when
-                                the new schema's nextStep is missing (so we
-                                don't repeat it after the C-block). */}
                             {!unmaskedNextStep &&
                                 message.followUpConclusion && (
                                     <p className='text-white'>
@@ -690,39 +735,8 @@ export function TarotAssistantInterpretation({
                                         />
                                     </p>
                                 )}
-                            {!hideFollowUpSuggestions &&
-                                suggestionsToRender.length > 0 && (
-                                <div className='flex flex-col gap-2'>
-                                    {suggestionsToRender.map((s) => {
-                                        const unmaskedSuggestion = unmask(s)
-                                        return (
-                                            <button
-                                                key={s}
-                                                type='button'
-                                                onClick={() =>
-                                                    onApplySuggestedQuestion(
-                                                        unmaskedSuggestion,
-                                                    )
-                                                }
-                                                className='group flex w-full items-center justify-between gap-3 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition px-4 py-2.5 text-left text-sm text-white/80 hover:text-white'
-                                            >
-                                                <span className='min-w-0 flex-1 truncate'>
-                                                    <PrivacyHighlightedText
-                                                        text={s}
-                                                        aliases={aliases}
-                                                    />
-                                                </span>
-                                                <ChevronRight
-                                                    aria-hidden
-                                                    className='h-4 w-4 shrink-0 text-white/45 transition group-hover:translate-x-0.5 group-hover:text-white/80'
-                                                />
-                                            </button>
-                                        )
-                                    })}
-                                </div>
-                            )}
                         </div>
-                    )}
+                    ) : null}
                 </>
             ) : null}
         </>
