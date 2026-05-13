@@ -407,17 +407,6 @@ export default function Home() {
                 ref={fixedBarRef}
                 className='fixed bottom-0 left-0 right-0 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 transition-all duration-500'
             >
-                {showQuickCards ? (
-                    <div className='mx-auto w-full max-w-3xl px-4'>
-                        <div className='transition-all duration-300 opacity-100'>
-                            <HomeQuickCards
-                                onCardClick={createSessionAndRedirect}
-                                disabled={isLinking}
-                            />
-                        </div>
-                    </div>
-                ) : null}
-
                 <QuestionInput
                     id='home-question-input'
                     value={question}
@@ -444,7 +433,20 @@ export default function Home() {
                         cardUi: CARD_UI_TEXT[normalizeLocale(locale)],
                         onScrollToDraw: () => {},
                     }}
-                    actionTrigger={null}
+                    actionTrigger={
+                        showQuickCards ? (
+                            <div className='w-full space-y-2'>
+                                <p className='text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70'>
+                                    {tHome("quickFeaturesLabel")}
+                                </p>
+                                <HomeQuickCards
+                                    embedded
+                                    onCardClick={createSessionAndRedirect}
+                                    disabled={isLinking}
+                                />
+                            </div>
+                        ) : null
+                    }
                     // disclaimerText={disclaimerText}
                     showDisclaimer={true}
                     error={

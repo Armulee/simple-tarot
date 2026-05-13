@@ -10,11 +10,14 @@ import "swiper/css/free-mode"
 interface HomeQuickCardsProps {
     onCardClick: (question: string) => void
     disabled?: boolean
+    /** Use inside `QuestionInput` action strip (no outer max-width / horizontal padding). */
+    embedded?: boolean
 }
 
 export default function HomeQuickCards({
     onCardClick,
     disabled = false,
+    embedded = false,
 }: HomeQuickCardsProps) {
     const t = useTranslations("Home")
 
@@ -33,8 +36,12 @@ export default function HomeQuickCards({
         },
     ] as const
 
+    const outerClass = embedded
+        ? "w-full"
+        : "flex justify-start mx-auto w-full max-w-3xl px-4"
+
     return (
-        <div className='flex justify-start mx-auto w-full max-w-3xl px-4'>
+        <div className={outerClass}>
             <div className='text-center w-full'>
                 <Swiper
                     modules={[FreeMode, Mousewheel]}
