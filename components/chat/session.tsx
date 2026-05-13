@@ -3606,8 +3606,6 @@ export default function ChatSession({
         return last
     }, [messages])
 
-    const composerFollowUpHostId = composerFollowUpHost?.id ?? null
-
     const formattedCurrentLocationLabel = useMemo(() => {
         if (
             !currentLocationFallback?.country &&
@@ -4012,7 +4010,6 @@ export default function ChatSession({
                 onStartEditAt={handleStartEditAt}
                 onCancelEdit={handleCancelEdit}
                 onSendEditAt={handleSendEditAt}
-                onApplySuggestedQuestion={applySuggestedQuestion}
                 onAskAspectDetail={handleAskAspectDetail}
                 onUserDateFormSubmit={handleUserDateFormSubmit}
                 onCancelHoroscopeLoading={handleCancelHoroscopeLoading}
@@ -4026,7 +4023,6 @@ export default function ChatSession({
                 onReadAloud={handleReadAloud}
                 unmask={unmask}
                 privacyAliases={privacyAliases}
-                composerFollowUpHostId={composerFollowUpHostId}
                 readAloudLoadingMessageId={readAloudLoadingMessageId}
                 readAloudPlayingMessageId={readAloudPlayingMessageId}
                 lastAssistantMessageRef={lastAssistantMessageRef}

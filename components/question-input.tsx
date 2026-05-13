@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, type RefObject } from "react"
-import { Send, Square } from "lucide-react"
+import { CornerDownRight, Send, Square } from "lucide-react"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { FreeMode, Mousewheel } from "swiper/modules"
 import "swiper/css"
@@ -263,6 +263,10 @@ export default function QuestionInput({
                             onClick={() => composerFollowUps.onSelect(s)}
                             className={followUpChipClass}
                         >
+                            <CornerDownRight
+                                aria-hidden
+                                className='mr-1.5 size-3.5 shrink-0 text-white/55'
+                            />
                             <span className='block max-w-[min(92vw,20rem)] truncate'>
                                 <PrivacyHighlightedText
                                     text={s}

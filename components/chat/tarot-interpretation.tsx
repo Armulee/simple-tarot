@@ -14,7 +14,7 @@ import {
 } from "@/lib/privacy/prompt-redaction"
 import { sanitizeDetailedHtml } from "@/lib/tarot/sanitize-html"
 import { useTranslations } from "next-intl"
-import { ChevronRight, Loader2, Share, Sparkles } from "lucide-react"
+import { Loader2, Share, Sparkles } from "lucide-react"
 
 const INTERPRETATION_FILLER_PREFIXES = [
     /^(?:i\s+(?:feel|sense|believe|think)\s+(?:that\s+)*)/i,
@@ -125,9 +125,6 @@ export type TarotAssistantInterpretationProps = {
     onRegenerateTarot?: (messageId: string) => void
     onTarotInterpretationChange?: (messageId: string, text: string) => void
     onShare: (id: string, text: string) => void
-    onApplySuggestedQuestion: (value: string) => void
-    /** When true, follow-up pills are shown only in the composer (avoid duplicate UI). */
-    hideFollowUpSuggestions?: boolean
     /**
      * Replaces session-scoped privacy placeholders (e.g. `[Person_0]`) with the
      * original PII the user typed, for every user-facing render and share.
@@ -158,8 +155,6 @@ export function TarotAssistantInterpretation({
     onRegenerateTarot,
     onTarotInterpretationChange,
     onShare,
-    onApplySuggestedQuestion,
-    hideFollowUpSuggestions = false,
     unmask,
     privacyAliases,
 }: TarotAssistantInterpretationProps) {
@@ -291,10 +286,6 @@ export function TarotAssistantInterpretation({
                   .filter((s): s is string => Boolean(s && s.trim()))
                   .join("\n\n")
             : ""
-
-    const suggestionsToRender = Array.isArray(message.followUpSuggestions)
-        ? message.followUpSuggestions.slice(0, 4)
-        : []
 
     // B. Hero card area: enlarged centered card with a soft purple halo.
     // Multi-card spreads fan around the active card; tapping a card lifts
@@ -717,19 +708,23 @@ export function TarotAssistantInterpretation({
                             </div>
                         )}
                     </div>
-                    {/* D. Suggestions: compact rows (up to 4); composer may host these instead. */}
-                    {(message.followUpConclusion ||
-                        (!hideFollowUpSuggestions &&
-                            suggestionsToRender.length > 0)) && (
+                    {/* Follow-up suggestions are now hosted EXCLUSIVELY in the
+                        action-trigger composer (see <QuestionInput
+                        composerFollowUps>). They never appear after the
+                        conclusion section in the chat scrollback, regardless
+                        of whether the user has sent a new question yet — the
+                        composer hides them automatically once a new user
+                        message arrives. The only thing kept here is the
+                        legacy bottom-conclusion fallback for old messages
+                        that pre-date the perCard/nextStep schema. */}
+                    {message.followUpLoading ||
+                    (!unmaskedNextStep && message.followUpConclusion) ? (
                         <div className='w-full md:max-w-[85%] space-y-3 pt-4'>
                             {message.followUpLoading && (
                                 <p className='text-xs sm:text-sm text-white/60'>
                                     Thinking of a good next question...
                                 </p>
                             )}
-                            {/* Legacy: only render the bottom conclusion when
-                                the new schema's nextStep is missing (so we
-                                don't repeat it after the C-block). */}
                             {!unmaskedNextStep &&
                                 message.followUpConclusion && (
                                     <p className='text-white'>
@@ -740,39 +735,8 @@ export function TarotAssistantInterpretation({
                                         />
                                     </p>
                                 )}
-                            {!hideFollowUpSuggestions &&
-                                suggestionsToRender.length > 0 && (
-                                <div className='flex flex-col gap-2'>
-                                    {suggestionsToRender.map((s) => {
-                                        const unmaskedSuggestion = unmask(s)
-                                        return (
-                                            <button
-                                                key={s}
-                                                type='button'
-                                                onClick={() =>
-                                                    onApplySuggestedQuestion(
-                                                        unmaskedSuggestion,
-                                                    )
-                                                }
-                                                className='group flex w-full items-center justify-between gap-3 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition px-4 py-2.5 text-left text-sm text-white/80 hover:text-white'
-                                            >
-                                                <span className='min-w-0 flex-1 truncate'>
-                                                    <PrivacyHighlightedText
-                                                        text={s}
-                                                        aliases={aliases}
-                                                    />
-                                                </span>
-                                                <ChevronRight
-                                                    aria-hidden
-                                                    className='h-4 w-4 shrink-0 text-white/45 transition group-hover:translate-x-0.5 group-hover:text-white/80'
-                                                />
-                                            </button>
-                                        )
-                                    })}
-                                </div>
-                            )}
                         </div>
-                    )}
+                    ) : null}
                 </>
             ) : null}
         </>

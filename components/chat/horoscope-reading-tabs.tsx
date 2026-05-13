@@ -5,10 +5,7 @@ import { useTranslations } from "next-intl"
 import type { ChatMessage } from "@/components/chat/types"
 import { resolveRelevanceColor } from "@/lib/horoscope/relevance-colors"
 import { PrivacyHighlightedText } from "@/components/chat/privacy-highlighted-user-text"
-import {
-    unmaskTextWithAliases,
-    type PromptAliasEntry,
-} from "@/lib/privacy/prompt-redaction"
+import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import {
     isSingleDayQuestionRange,
     readQuestionRangeFromChartData,
@@ -51,22 +48,17 @@ export default function HoroscopeReadingTabs({
     aspectPanel,
     loadingNode,
     footerActions,
-    onApplySuggestedQuestion,
     privacyAliases,
-    hideFollowUpSuggestions = false,
 }: {
     message: ChatMessage
     aspectPanel: ReactNode
     loadingNode?: ReactNode
     footerActions?: ReactNode
-    onApplySuggestedQuestion: (question: string) => void
     /**
      * Session-scoped alias map used to resolve `[Person_0]`-style placeholders
      * to the user's original PII and render them as emerald lock chips.
      */
     privacyAliases?: PromptAliasEntry[]
-    /** When true, follow-up chips are shown only in the composer. */
-    hideFollowUpSuggestions?: boolean
 }) {
     const [activeTab, setActiveTab] = useState<HoroscopeTab>("overview")
     const tTabs = useTranslations("HoroscopeChat.tabs")
@@ -82,9 +74,6 @@ export default function HoroscopeReadingTabs({
     )
 
     const summary = getOverviewSummary(message)
-    const suggestions = Array.isArray(message.followUpSuggestions)
-        ? message.followUpSuggestions.slice(0, 4)
-        : []
     const aliases = privacyAliases ?? []
     const relevanceStats = useMemo(
         () =>
@@ -195,30 +184,11 @@ export default function HoroscopeReadingTabs({
                             </div>
                         )}
 
-                        {!hideFollowUpSuggestions && suggestions.length > 0 && (
-                            <div className='flex flex-wrap gap-2 border-t border-white/5 pt-4'>
-                                {suggestions.map((suggestion) => (
-                                    <button
-                                        key={suggestion}
-                                        type='button'
-                                        onClick={() =>
-                                            onApplySuggestedQuestion(
-                                                unmaskTextWithAliases(
-                                                    suggestion,
-                                                    aliases,
-                                                ),
-                                            )
-                                        }
-                                        className='rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-left text-xs text-white/80 transition hover:bg-white/10 hover:text-white'
-                                    >
-                                        <PrivacyHighlightedText
-                                            text={suggestion}
-                                            aliases={aliases}
-                                        />
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                        {/* Follow-up suggestions are now hosted EXCLUSIVELY
+                            in the action-trigger composer (see <QuestionInput
+                            composerFollowUps>); never rendered after the
+                            overview tab here. The composer hides them
+                            automatically once the user sends a new question. */}
                     </div>
                 )}
 
