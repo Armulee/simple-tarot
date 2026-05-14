@@ -8,6 +8,7 @@ import type {
 import type { PromptRedactionType } from "@/lib/privacy/prompt-redaction"
 import type { ConversationContextPayload } from "@/lib/astrology/question-context"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
+import type { QuestionDomain } from "@/lib/chat/situation-schema"
 
 export type AspectInsightItem = {
     aspectKey: string
@@ -102,6 +103,8 @@ export type ChatMessage = {
     houseMeanings?: Record<string, string> | null
     /** Birth data for loading horoscope (used for display and cancel) */
     horoscopeBirthData?: HoroscopeBirthData | null
+    /** From /api/situation: whether the question touches legal / medical / financial advice. */
+    questionDomain?: QuestionDomain
     /** Sanitized question persisted for assistant messages. */
     question?: string
     /** Client-only raw question restored from sessionStorage for local display. */

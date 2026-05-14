@@ -13,8 +13,9 @@ import {
     applyAliasesToText,
     type PromptAliasEntry,
 } from "@/lib/privacy/prompt-redaction"
+import { isSensitiveQuestionDomain } from "@/lib/chat/situation-schema"
 import { useTranslations } from "next-intl"
-import { Loader2, Share, Sparkles } from "lucide-react"
+import { AlertTriangle, Loader2, Share, Sparkles } from "lucide-react"
 
 const INTERPRETATION_FILLER_PREFIXES = [
     /^(?:i\s+(?:feel|sense|believe|think)\s+(?:that\s+)*)/i,
@@ -482,6 +483,21 @@ export function TarotAssistantInterpretation({
                                     : undefined
                             }
                         />
+                        {isSensitiveQuestionDomain(message.questionDomain) && (
+                            <div className='flex w-full animate-fade-in'>
+                                <Badge
+                                    variant='outline'
+                                    title={tReading("professionalAdviceHint")}
+                                    className='border-amber-500/45 bg-amber-500/12 text-amber-50 shadow-[0_0_20px_-8px_rgba(245,158,11,0.45)]'
+                                >
+                                    <AlertTriangle
+                                        className='text-amber-400'
+                                        aria-hidden
+                                    />
+                                    {tReading("professionalAdviceBadge")}
+                                </Badge>
+                            </div>
+                        )}
                         {!message.isLoading && messageNotices[message.id] && (
                             <p className='-mt-3 text-right text-[11px] text-white/45'>
                                 {messageNotices[message.id]}

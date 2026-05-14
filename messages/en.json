@@ -1426,6 +1426,8 @@
       "detailed": {
         "label": "Detailed"
       },
+      "professionalAdviceBadge": "Need professional advice",
+      "professionalAdviceHint": "This reading is for reflection only and is not legal, medical, or financial advice. Consult a qualified professional for decisions in this area.",
       "error": "Failed to generate interpretation. Please try again.",
       "loading": {
         "title": "Analyzing your cards...",

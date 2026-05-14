@@ -11,6 +11,7 @@ import {
     buildConversationContextPromptBlock,
     normalizeConversationContext,
 } from "@/lib/astrology/question-context"
+import { isSensitiveQuestionDomain } from "@/lib/chat/situation-schema"
 
 const MODEL = "deepseek/deepseek-v3.2"
 
@@ -39,6 +40,7 @@ export async function POST(req: Request) {
                 intent: string
                 emotion: string
                 focus: string
+                questionDomain?: string
                 cardReadingDirection?: string
             }
             cardEnergies?: string[][]
@@ -82,12 +84,19 @@ ${prompt}`
         }
 
         if (situation && cardEnergies && cardEnergies.length > 0) {
+            const domainLine =
+                situation.questionDomain &&
+                isSensitiveQuestionDomain(situation.questionDomain)
+                    ? `Question domain (sensitive): ${situation.questionDomain} — offer reflective symbolism only; do not present as legal, medical, or financial advice.\n`
+                    : situation.questionDomain
+                      ? `Question domain: ${situation.questionDomain}\n`
+                      : ""
             const situationBlock = `<user_situation>
 Topic: ${situation.topic}
 Intent: ${situation.intent}
 Emotion: ${situation.emotion}
 Focus: ${situation.focus}
-</user_situation>`
+${domainLine}</user_situation>`
 
             const directionBlock = situation.cardReadingDirection
                 ? `\n<reading_direction>\n${situation.cardReadingDirection}\n</reading_direction>`

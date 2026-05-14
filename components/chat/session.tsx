@@ -84,6 +84,7 @@ import type {
     HoroscopeExtractResponse,
     SourceAspectEvent,
 } from "@/components/chat/types"
+import { parseQuestionDomain } from "@/lib/chat/situation-schema"
 
 import { getTarotCardCount } from "@/lib/chat/decision-schema"
 import { useAuth } from "@/hooks/use-auth"
@@ -1509,6 +1510,7 @@ export default function ChatSession({
                 intent: string
                 emotion: string
                 focus: string
+                questionDomain?: string
                 cardMeanings: string[][]
                 cardReadingDirection?: string
             } | null = null
@@ -1532,6 +1534,19 @@ export default function ChatSession({
                 console.error("[situation] extraction failed:", err)
             }
 
+            const parsedQuestionDomain = parseQuestionDomain(
+                situationData?.questionDomain,
+            )
+            if (situationData && parsedQuestionDomain !== undefined) {
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === loadingId
+                            ? { ...m, questionDomain: parsedQuestionDomain }
+                            : m,
+                    ),
+                )
+            }
+
             interpretationLoadingIdRef.current = loadingId
             submitInterpretation({
                 question: lastQuestion,
@@ -1548,6 +1563,7 @@ export default function ChatSession({
                           intent: situationData.intent,
                           emotion: situationData.emotion,
                           focus: situationData.focus,
+                          questionDomain: parsedQuestionDomain,
                           cardReadingDirection:
                               situationData.cardReadingDirection,
                       }
@@ -2004,6 +2020,7 @@ export default function ChatSession({
                               followUpConclusion: undefined,
                               followUpSuggestions: undefined,
                               followUpLoading: false,
+                              questionDomain: undefined,
                               isLoading: true,
                               streamStopped: false,
                           }
@@ -2036,6 +2053,7 @@ export default function ChatSession({
                 intent: string
                 emotion: string
                 focus: string
+                questionDomain?: string
                 cardMeanings: string[][]
                 cardReadingDirection?: string
             } | null = null
@@ -2059,6 +2077,19 @@ export default function ChatSession({
                 console.error("[situation] extraction failed:", err)
             }
 
+            const parsedQuestionDomain = parseQuestionDomain(
+                situationData?.questionDomain,
+            )
+            if (situationData && parsedQuestionDomain !== undefined) {
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === messageId
+                            ? { ...m, questionDomain: parsedQuestionDomain }
+                            : m,
+                    ),
+                )
+            }
+
             interpretationLoadingIdRef.current = messageId
             submitInterpretation({
                 question: questionText,
@@ -2075,6 +2106,7 @@ export default function ChatSession({
                           intent: situationData.intent,
                           emotion: situationData.emotion,
                           focus: situationData.focus,
+                          questionDomain: parsedQuestionDomain,
                           cardReadingDirection:
                               situationData.cardReadingDirection,
                       }

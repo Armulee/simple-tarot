@@ -10,7 +10,13 @@ const MODEL = "deepseek/deepseek-v3.2"
 const USER_SITUATION_PROMPT = `
 You are a tarot reasoning engine. Your job is to:
 1. Extract the user's situation (topic, intent, emotion, focus)
-2. Determine WHAT the tarot answer should be (cardReadingDirection)
+2. Set questionDomain: classify the USER'S QUESTION into exactly one of general | legal | medical | financial (English enum values only).
+   - legal: law, contracts, lawsuits, rights, immigration rules, criminal/regulatory matters.
+   - medical: physical or mental health care, symptoms, diagnosis, treatment, medication, therapy in a clinical sense.
+   - financial: investing, trading, specific tax positions, debt relief strategies, retirement or estate planning that implies licensed financial/tax advice.
+   - general: all other topics (love, career vibes, spirituality, tarot itself, creative work, everyday decisions without the above).
+   When in doubt between a sensitive label and general, prefer general unless the user clearly seeks actionable professional-domain guidance.
+3. Determine WHAT the tarot answer should be (cardReadingDirection)
 
 topic examples: career, relationship, money, project, decision
 intent examples: reconciliation, success, change, uncertainty
