@@ -1,0 +1,19 @@
+The selected presenter announces the public launch of AskingFate, an AI-assisted tarot and reflective guidance experience on the web. Tone: bold cinematic launch energy—confident and exciting—while staying honest: this is for reflection and entertainment-style exploration, not medical, legal, or guaranteed predictions. Target duration 55-65 seconds. Single topic: product launch.
+
+Do not describe the presenter's clothing, face, hair, or physical appearance—the avatar is already fixed.
+
+ENGLISH NARRATION (theme to convey; you may paraphrase for strong pacing and hooks):
+- Open with a punchy hook: the moment is here—AskingFate is live (or "now available").
+- What it is: a modern way to explore tarot-inspired readings with a guided AI conversation—calm, visual, and built for returning to your questions over time.
+- What you can do: pull a spread, chat with context, revisit history, share moments worth keeping.
+- Close with one clear CTA: go to askingfate.com to try it—say the URL clearly once.
+
+This script is a concept and theme to convey — not a verbatim transcript. You have full creative freedom to expand, elaborate, add quick visual beats, and fill the duration naturally. Do not pad with silence or pauses.
+
+CRITICAL ON-SCREEN TEXT (spell exactly):
+- AskingFate
+- askingfate.com
+
+FRAMING NOTE: The selected avatar image is in portrait orientation but this video is landscape (16:9). Frame the presenter from the chest up, centered in the landscape canvas. Use AI Image tool to generative fill to extend the scene horizontally with a complementary background environment that matches an epic cinematic product launch (rich depth, subtle motion, no clutter). Do NOT add black bars or pillarboxing. The avatar should feel natural in the 16:9 frame.
+
+Visual guidance: motion graphics for logo and URL; abstract symbolic imagery (cards, constellations, soft light)—avoid fake statistics or "guaranteed results" claims.

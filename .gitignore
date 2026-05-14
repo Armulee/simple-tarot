@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# HeyGen CLI outputs (large / regenerable)
+astra-heygen-intro.mp4
+askingfate-launch-heygen.mp4
+.heygen-astra-video-agent.log
+.heygen-launch-video-agent.log
+heygen-video-log.jsonl

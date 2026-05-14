@@ -19,10 +19,7 @@ import {
     starSet,
     type StarState,
 } from "@/lib/stars"
-import {
-    hasCookieConsent,
-    StarConsentProvider,
-} from "@/components/star-consent"
+import { StarConsentProvider } from "@/components/star-consent"
 import { ReferralProvider } from "@/contexts/referral-context"
 
 interface StarsContextType {
@@ -58,7 +55,7 @@ interface StarsContextType {
 }
 
 const StarsContext = createContext<StarsContextType | undefined>(undefined)
-const DEFAULT_STARS = 5
+const DEFAULT_STARS = 3
 const REFILL_INTERVAL_MS_AUTH = 2 * 60 * 60 * 1000 // 2 hours for logged-in users
 
 export function StarsProvider({ children }: { children: ReactNode }) {
@@ -88,7 +85,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     const { subscription, refresh: refreshSubscription } =
         useActiveSubscription()
 
-    const refillCap = user ? 12 : 5
+    const refillCap = user ? 6 : 3
 
     const stars = useMemo(() => {
         if (dailyStars === null && planStars === null && addonStars === null) {
@@ -189,11 +186,6 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             // but we can also proceed if !initialized is checked below
         }
 
-        if (!hasCookieConsent()) {
-            setInitialized(false)
-            return
-        }
-
         // Skip API call if already initialized to prevent duplicate calls
         if (!initialized) {
             ;(async () => {
@@ -228,16 +220,16 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         applyStarState,
     ]) // Only depend on user.id, not the whole user object
 
-    // Initialize stars after consent is accepted
-    type CookieConsentChangedDetail = { choice: "accepted" | "declined" }
+    // Re-fetch when notice consent is acknowledged (e.g. from settings)
+    type NoticeConsentChangedDetail = { acknowledged: boolean }
     useEffect(() => {
         let cancelled = false
         const onConsent = (e: Event) => {
-            const detail = (e as CustomEvent<CookieConsentChangedDetail>)
+            const detail = (e as CustomEvent<NoticeConsentChangedDetail>)
                 ?.detail
-            if (detail?.choice === "accepted") {
-                // Immediately show 5 locally, then reconcile from server
-                setDailyStars(5)
+            if (detail?.acknowledged) {
+                // Immediately show 3 locally, then reconcile from server
+                setDailyStars(3)
                 setPlanStars(0)
                 setAddonStars(0)
                 setEngagementStarsCurrent(0)
@@ -265,7 +257,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         }
         if (typeof window !== "undefined") {
             window.addEventListener(
-                "cookie-consent-changed",
+                "notice-consent-changed",
                 onConsent as EventListener,
             )
         }
@@ -273,7 +265,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             cancelled = true
             if (typeof window !== "undefined") {
                 window.removeEventListener(
-                    "cookie-consent-changed",
+                    "notice-consent-changed",
                     onConsent as EventListener,
                 )
             }
@@ -303,7 +295,6 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     // Reconcile periodically and on visibility change / cross-tab events
     useEffect(() => {
         // if (!initialized) return
-        if (!hasCookieConsent()) return
         let cancelled = false
         const reconcile = async () => {
             try {

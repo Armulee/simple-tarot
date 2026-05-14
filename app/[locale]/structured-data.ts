@@ -2,8 +2,8 @@
 export const websiteStructuredData = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Asking Fate",
-    alternateName: "Asking Fate AI Tarot",
+    name: "AskingFate",
+    alternateName: ["Asking Fate", "Asking Fate AI Tarot"],
     url: "https://askingfate.com",
     description:
         "Get free AI-powered tarot card readings and spiritual guidance. Ask questions about your destiny and receive personalized insights from our advanced AI tarot system.",
@@ -18,7 +18,8 @@ export const websiteStructuredData = {
     },
     publisher: {
         "@type": "Organization",
-        name: "Asking Fate",
+        name: "AskingFate",
+        legalName: "ASKINGFATE LLC",
         url: "https://askingfate.com",
         logo: {
             "@type": "ImageObject",
@@ -30,7 +31,9 @@ export const websiteStructuredData = {
 export const organizationStructuredData = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "Asking Fate",
+    name: "AskingFate",
+    legalName: "ASKINGFATE LLC",
+    alternateName: ["Asking Fate", "Asking Fate AI Tarot"],
     url: "https://askingfate.com",
     logo: "https://askingfate.com/assets/logo.png",
     description:
@@ -95,7 +98,7 @@ export const serviceStructuredData = {
         "Free AI-powered tarot card readings with personalized spiritual guidance and insights about your destiny.",
     provider: {
         "@type": "Organization",
-        name: "Asking Fate",
+        name: "AskingFate",
         url: "https://askingfate.com",
     },
     areaServed: {

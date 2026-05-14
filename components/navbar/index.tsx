@@ -199,8 +199,6 @@ export function Navbar({ locale }: { locale: string }) {
                                 )}
                             </div>
                         )}
-
-                        
                     </div>
 
                     {/* Right side: Navigation links, Language dropdown, and Auth */}
@@ -299,11 +297,11 @@ export function Navbar({ locale }: { locale: string }) {
 
                         {/* Desktop: User Profile / Sign In button */}
                         {!loading && user ? (
-                            <UserProfile variant={'mobile'} />
+                            <UserProfile variant={"mobile"} />
                         ) : (
                             <Link
                                 href={`/signin?callbackUrl=${encodeURIComponent(
-                                    pathname
+                                    pathname,
                                 )}`}
                             >
                                 <Button

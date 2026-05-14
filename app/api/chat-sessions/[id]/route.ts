@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
+import {
+    sanitizeMessagesForPersistence,
+    sanitizePromptForPersistence,
+} from "@/lib/privacy/prompt-redaction"
 import { supabase, supabaseAdmin } from "@/lib/supabase"
 import { readAndVerifyDid } from "@/lib/server/did"
 import { createClient } from "@supabase/supabase-js"
@@ -73,13 +77,13 @@ export async function PATCH(
         }
 
         if (typeof body?.question === "string") {
-            update.question = body.question
+            update.question = sanitizePromptForPersistence(body.question)
         }
         if (typeof body?.topic === "string") {
             update.topic = body.topic
         }
         if (Array.isArray(body?.messages)) {
-            update.messages = body.messages
+            update.messages = sanitizeMessagesForPersistence(body.messages)
         }
         if (body?.decision && typeof body.decision === "object") {
             update.decision = body.decision

@@ -113,6 +113,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 provider: "google",
                 options: {
                     redirectTo: `${window.location.origin}/auth/callback${callbackUrl ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`,
+                    // Requires `user.gender.read` to be enabled in the Google
+                    // Cloud Console OAuth consent screen for this app.
+                    scopes:
+                        "openid email profile https://www.googleapis.com/auth/user.gender.read",
                 },
             })
             return { error }

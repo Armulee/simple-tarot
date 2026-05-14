@@ -2,8 +2,8 @@ import { MetadataRoute } from "next"
 
 export default function manifest(): MetadataRoute.Manifest {
     return {
-        name: "Asking Fate - AI Tarot Reading",
-        short_name: "Asking Fate",
+        name: "AskingFate - AI Tarot Reading",
+        short_name: "AskingFate",
         description:
             "Get free AI-powered tarot card readings and spiritual guidance. Ask questions about your destiny and receive personalized insights.",
         start_url: "/",

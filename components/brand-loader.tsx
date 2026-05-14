@@ -14,7 +14,7 @@ export default function BrandLoader({
         <div
             className={cn(
                 "w-full min-h-[calc(100dvh-65px)] text-center select-none relative",
-                className
+                className,
             )}
             aria-live='polite'
             aria-busy='true'

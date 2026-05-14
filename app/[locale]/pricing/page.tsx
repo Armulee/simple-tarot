@@ -15,16 +15,13 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion"
-import type { CurrencyCode } from "@/lib/payments/currency-utils"
-
 type PricingPageProps = {
     params: Promise<{ locale: string }>
 }
 
 export default async function PricingPage({ params }: PricingPageProps) {
-    const { locale } = await params
+    await params
     const t = await getTranslations("Pricing")
-    const defaultCurrency: CurrencyCode = locale === "th" ? "THB" : "USD"
 
     const howItWorks = [
         {
@@ -96,8 +93,8 @@ export default async function PricingPage({ params }: PricingPageProps) {
                 <div className='text-xs text-white/70'>{t("priceNote")}</div>
             </div>
 
-            {/* Currency Selector, Subscription, and Packs */}
-            <PricingContent locale={locale} defaultCurrency={defaultCurrency} />
+            {/* Subscription and packs */}
+            <PricingContent />
 
             {/* How it works */}
             <div className='space-y-6'>

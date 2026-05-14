@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,6 +20,25 @@ import { toast } from "sonner"
 import { useProfile } from "@/contexts/profile-context"
 import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
+import { calculateAgeFromBirthDate } from "@/lib/age-gate-storage"
+
+const MIN_AGE_YEARS = 13
+
+function parseIsoBirthDate(value: string) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value)
+    if (!match) return null
+    const year = Number.parseInt(match[1], 10)
+    const month = Number.parseInt(match[2], 10)
+    const day = Number.parseInt(match[3], 10)
+    if (
+        !Number.isFinite(year) ||
+        !Number.isFinite(month) ||
+        !Number.isFinite(day)
+    ) {
+        return null
+    }
+    return { year, month, day }
+}
 
 export default function ProfilePage() {
     const { user, loading: authLoading } = useAuth()
@@ -69,7 +88,35 @@ export default function ProfilePage() {
         }))
     }
 
+    const maxBirthDateForThirteen = useMemo(() => {
+        const today = new Date()
+        const cutoff = new Date(
+            today.getFullYear() - MIN_AGE_YEARS,
+            today.getMonth(),
+            today.getDate(),
+        )
+        const yyyy = cutoff.getFullYear()
+        const mm = String(cutoff.getMonth() + 1).padStart(2, "0")
+        const dd = String(cutoff.getDate()).padStart(2, "0")
+        return `${yyyy}-${mm}-${dd}`
+    }, [])
+
     const handleSave = async () => {
+        if (!profileData.birthDate) {
+            toast.error(t("birthDateRequiredError"))
+            return
+        }
+        const parsed = parseIsoBirthDate(profileData.birthDate)
+        if (!parsed) {
+            toast.error(t("birthDateRequiredError"))
+            return
+        }
+        const age = calculateAgeFromBirthDate(parsed)
+        if (age < MIN_AGE_YEARS) {
+            toast.error(t("under13Error"))
+            return
+        }
+
         setIsLoading(true)
         try {
             const {
@@ -103,7 +150,11 @@ export default function ProfilePage() {
                 toast.success(t("profileUpdated"))
             } else {
                 const errorData = await response.json()
-                toast.error(errorData.error || t("updateFailed"))
+                if (errorData?.error === "under_13") {
+                    toast.error(t("under13Error"))
+                } else {
+                    toast.error(errorData.error || t("updateFailed"))
+                }
             }
         } catch (error) {
             console.error("Profile update error:", error)
@@ -170,28 +221,98 @@ export default function ProfilePage() {
                                 </h2>
                             </div>
 
+                            <div className='space-y-2'>
+                                <Label
+                                    htmlFor='name'
+                                    className='text-white font-semibold flex items-center gap-2'
+                                >
+                                    <Star className='w-4 h-4' />
+                                    {t("fullNameRequired")}
+                                </Label>
+                                <Input
+                                    id='name'
+                                    value={profileData.name}
+                                    onChange={(e) =>
+                                        handleInputChange(
+                                            "name",
+                                            e.target.value
+                                        )
+                                    }
+                                    className='bg-background/40 border-border/40 text-white placeholder-gray-400 focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
+                                    placeholder={t("fullNamePlaceholder")}
+                                />
+                            </div>
+
                             <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                                 <div className='space-y-2'>
                                     <Label
-                                        htmlFor='name'
+                                        htmlFor='birthDate'
                                         className='text-white font-semibold flex items-center gap-2'
                                     >
-                                        <Star className='w-4 h-4' />
-                                        {t("fullNameRequired")}
+                                        <Calendar className='w-4 h-4' />
+                                        {t("birthDateRequired")}
                                     </Label>
                                     <Input
-                                        id='name'
-                                        value={profileData.name}
+                                        id='birthDate'
+                                        type='date'
+                                        required
+                                        max={maxBirthDateForThirteen}
+                                        value={profileData.birthDate}
                                         onChange={(e) =>
                                             handleInputChange(
-                                                "name",
+                                                "birthDate",
                                                 e.target.value
                                             )
                                         }
-                                        className='bg-background/40 border-border/40 text-white placeholder-gray-400 focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
-                                        placeholder={t("fullNamePlaceholder")}
+                                        className='bg-background/40 border-border/40 text-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
                                     />
                                 </div>
+                                <div className='space-y-2'>
+                                    <Label
+                                        htmlFor='birthTime'
+                                        className='text-white font-semibold flex items-center gap-2'
+                                    >
+                                        <Calendar className='w-4 h-4' />
+                                        {t("birthTime")}
+                                    </Label>
+                                    <Input
+                                        id='birthTime'
+                                        type='time'
+                                        value={profileData.birthTime}
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                "birthTime",
+                                                e.target.value
+                                            )
+                                        }
+                                        className='bg-background/40 border-border/40 text-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
+                                    />
+                                </div>
+                            </div>
+
+                            <div className='space-y-2'>
+                                <Label
+                                    htmlFor='birthPlace'
+                                    className='text-white font-semibold flex items-center gap-2'
+                                >
+                                    <Calendar className='w-4 h-4' />
+                                    {t("birthPlace")}
+                                </Label>
+                                <Input
+                                    id='birthPlace'
+                                    value={profileData.birthPlace}
+                                    onChange={(e) =>
+                                        handleInputChange(
+                                            "birthPlace",
+                                            e.target.value
+                                        )
+                                    }
+                                    className='bg-background/40 border-border/40 text-white placeholder-gray-400 focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
+                                    placeholder={t("birthPlacePlaceholder")}
+                                />
+                            </div>
+
+                            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                                 <div className='space-y-2'>
                                     <Label
                                         htmlFor='gender'
@@ -226,28 +347,6 @@ export default function ProfilePage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                            </div>
-
-                            <div className='space-y-2'>
-                                <Label
-                                    htmlFor='bio'
-                                    className='text-accent font-semibold flex items-center gap-2'
-                                >
-                                    <Sun className='w-4 h-4' />
-                                    {t("bio")}
-                                </Label>
-                                <Textarea
-                                    id='bio'
-                                    value={profileData.bio}
-                                    onChange={(e) =>
-                                        handleInputChange("bio", e.target.value)
-                                    }
-                                    className='bg-background/40 border-border/40 text-white placeholder-gray-400 focus:border-accent/50 focus:ring-accent/20 transition-all duration-300 min-h-[100px] resize-none'
-                                    placeholder={t("bioPlaceholder")}
-                                />
-                            </div>
-
-                            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                                 <div className='space-y-2'>
                                     <Label
                                         htmlFor='job'
@@ -269,72 +368,25 @@ export default function ProfilePage() {
                                         placeholder={t("occupationPlaceholder")}
                                     />
                                 </div>
-                                <div className='space-y-2'>
-                                    <Label
-                                        htmlFor='birthPlace'
-                                        className='text-white font-semibold flex items-center gap-2'
-                                    >
-                                        <Calendar className='w-4 h-4' />
-                                        {t("birthPlace")}
-                                    </Label>
-                                    <Input
-                                        id='birthPlace'
-                                        value={profileData.birthPlace}
-                                        onChange={(e) =>
-                                            handleInputChange(
-                                                "birthPlace",
-                                                e.target.value
-                                            )
-                                        }
-                                        className='bg-background/40 border-border/40 text-white placeholder-gray-400 focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
-                                        placeholder={t("birthPlacePlaceholder")}
-                                    />
-                                </div>
                             </div>
 
-                            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                                <div className='space-y-2'>
-                                    <Label
-                                        htmlFor='birthDate'
-                                        className='text-white font-semibold flex items-center gap-2'
-                                    >
-                                        <Calendar className='w-4 h-4' />
-                                        {t("birthDate")}
-                                    </Label>
-                                    <Input
-                                        id='birthDate'
-                                        type='date'
-                                        value={profileData.birthDate}
-                                        onChange={(e) =>
-                                            handleInputChange(
-                                                "birthDate",
-                                                e.target.value
-                                            )
-                                        }
-                                        className='bg-background/40 border-border/40 text-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
-                                    />
-                                </div>
-                                <div className='space-y-2'>
-                                    <Label
-                                        htmlFor='birthTime'
-                                        className='text-white font-semibold flex items-center gap-2'
-                                    >
-                                        <Calendar className='w-4 h-4' />
-                                        {t("birthTime")}
-                                    </Label>
-                                    <Input
-                                        id='birthTime'
-                                        type='time'
-                                        value={profileData.birthTime}
-                                        onChange={(e) =>
-                                            handleInputChange(
-                                                "birthTime",
-                                                e.target.value
-                                            )
-                                        }
-                                        className='bg-background/40 border-border/40 text-foreground focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
-                                    />
-                                </div>
+                            <div className='space-y-2'>
+                                <Label
+                                    htmlFor='bio'
+                                    className='text-accent font-semibold flex items-center gap-2'
+                                >
+                                    <Sun className='w-4 h-4' />
+                                    {t("bio")}
+                                </Label>
+                                <Textarea
+                                    id='bio'
+                                    value={profileData.bio}
+                                    onChange={(e) =>
+                                        handleInputChange("bio", e.target.value)
+                                    }
+                                    className='bg-background/40 border-border/40 text-white placeholder-gray-400 focus:border-accent/50 focus:ring-accent/20 transition-all duration-300 min-h-[100px] resize-none'
+                                    placeholder={t("bioPlaceholder")}
+                                />
                             </div>
 
                             <div className='flex justify-center sm:justify-end pt-4'>

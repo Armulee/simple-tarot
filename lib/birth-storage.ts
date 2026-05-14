@@ -53,15 +53,11 @@ export function loadBirthFromStorage(): HoroscopeBirthData | null {
 export function hasCompleteBirthData(data: HoroscopeBirthData | null): boolean {
     if (!data) return false
     const hasDate = Boolean(data.day && data.month && data.year)
-    const hasTime =
-        (data.hour != null && data.minute != null) ||
-        data.timeHint === "day" ||
-        data.timeHint === "night"
     const hasLocation = Boolean(
         data.country &&
             data.lat != null &&
             data.lng != null &&
             data.timezone != null,
     )
-    return hasDate && hasTime && hasLocation
+    return hasDate && hasLocation
 }

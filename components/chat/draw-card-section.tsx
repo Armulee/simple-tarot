@@ -1,7 +1,16 @@
 "use client"
 
 import { useState } from "react"
-import { RotateCw, Sparkles, Star, MoreVertical, Hand } from "lucide-react"
+import {
+    CornerDownRight,
+    RotateCw,
+    Star,
+    MoreVertical,
+    Hand,
+    Minus,
+    Plus,
+    Sparkles,
+} from "lucide-react"
 import type { RefObject } from "react"
 import { useTranslations } from "next-intl"
 import { LinearCardSpread } from "@/components/tarot/card-selection/linear-card-spread"
@@ -22,9 +31,11 @@ type DrawCardSectionProps = {
     pickFn: ((times?: number) => void) | null
     onCardsSelected: (cards: { name: string; isReversed: boolean }[]) => void
     onSelectedCountChange: (count: number) => void
+    onCardsToSelectChange: (count: number) => void
     onProvideShuffle: (fn: () => void) => void
     onProvideRandomPick: (fn: (times?: number) => void) => void
     onProvideSelectByIndices: (fn: (indices: number[]) => void) => void
+    selectionResetSignal: number
     containerRef?: RefObject<HTMLDivElement | null>
 }
 
@@ -37,9 +48,11 @@ export default function DrawCardSection({
     pickFn,
     onCardsSelected,
     onSelectedCountChange,
+    onCardsToSelectChange,
     onProvideShuffle,
     onProvideRandomPick,
     onProvideSelectByIndices,
+    selectionResetSignal,
     containerRef,
 }: DrawCardSectionProps) {
     const t = useTranslations("ReadingPage.chooseCards")
@@ -76,12 +89,12 @@ export default function DrawCardSection({
                     </button>
                     <button
                         type='button'
-                        onClick={() => pickFn?.()}
+                        onClick={() => pickFn?.(cardsToSelect)}
                         className='flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors disabled:opacity-40'
                         disabled={!pickFn}
                     >
                         <Sparkles className='w-3.5 h-3.5' />
-                        {cardUi.pick}
+                        {cardUi.pickAllCta()}
                     </button>
 
                     <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
@@ -109,6 +122,42 @@ export default function DrawCardSection({
                                 <Hand className='w-4 h-4 text-purple-300' />
                                 {t("manualSelect")}
                             </button>
+                            <div className='mt-1 border-t border-white/10 px-3 py-2'>
+                                <p className='text-xs text-white/60'>
+                                    {cardUi.cardCount(cardsToSelect)}
+                                </p>
+                                <div className='mt-2 flex items-center justify-between gap-2'>
+                                    <button
+                                        type='button'
+                                        className='flex h-8 w-8 items-center justify-center rounded-full border border-white/10 text-white/80 transition-colors hover:border-white/30 hover:text-white disabled:opacity-40'
+                                        onClick={() =>
+                                            onCardsToSelectChange(
+                                                Math.max(1, cardsToSelect - 1),
+                                            )
+                                        }
+                                        disabled={cardsToSelect <= 1}
+                                        aria-label={cardUi.decreaseCardCount}
+                                    >
+                                        <Minus className='w-4 h-4' />
+                                    </button>
+                                    <span className='min-w-10 text-center text-sm font-medium text-white'>
+                                        {cardsToSelect}
+                                    </span>
+                                    <button
+                                        type='button'
+                                        className='flex h-8 w-8 items-center justify-center rounded-full border border-white/10 text-white/80 transition-colors hover:border-white/30 hover:text-white disabled:opacity-40'
+                                        onClick={() =>
+                                            onCardsToSelectChange(
+                                                Math.min(10, cardsToSelect + 1),
+                                            )
+                                        }
+                                        disabled={cardsToSelect >= 10}
+                                        aria-label={cardUi.increaseCardCount}
+                                    >
+                                        <Plus className='w-4 h-4' />
+                                    </button>
+                                </div>
+                            </div>
                         </PopoverContent>
                     </Popover>
                 </div>
@@ -120,10 +169,12 @@ export default function DrawCardSection({
                 onProvideShuffle={(fn) => onProvideShuffle(fn)}
                 onProvideRandomPick={(fn) => onProvideRandomPick(fn)}
                 onProvideSelectByIndices={(fn) => onProvideSelectByIndices(fn)}
+                resetSignal={selectionResetSignal}
                 swipeLabel={cardUi.swipe}
             />
 
             <ManualCardSelectionDialog
+                key={`${selectionResetSignal}-${cardsToSelect}`}
                 open={manualDialogOpen}
                 onOpenChange={setManualDialogOpen}
                 cardsToSelect={cardsToSelect}
