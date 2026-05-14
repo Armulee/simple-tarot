@@ -100,6 +100,7 @@ import {
     type PromptAliasEntry,
     type PromptRedactionType,
 } from "@/lib/privacy/prompt-redaction"
+import { getCleanQuestionText } from "@/lib/prompts/question-utils"
 
 export type { ChatDecision } from "@/components/chat/types"
 
@@ -528,9 +529,26 @@ export default function ChatSession({
         },
         [privacyAliases],
     )
+
     const [horoscopeQuestion, setHoroscopeQuestion] = useState<string | null>(
         null,
     )
+
+    // Align the browser tab with `app/[locale]/[id]/page.tsx` `generateMetadata`,
+    // but resolve `[Person_0]`-style tokens using client session aliases (same as
+    // interpretation). Server metadata stays sanitized for crawlers.
+    useEffect(() => {
+        if (typeof document === "undefined") return
+        const raw =
+            question.trim() ||
+            lastQuestion.trim() ||
+            horoscopeQuestion?.trim() ||
+            ""
+        const source = raw || "Chat Session"
+        const cleaned = getCleanQuestionText(unmask(source))
+        document.title = `"${cleaned}" - AskingFate`
+    }, [question, lastQuestion, horoscopeQuestion, unmask])
+
     const [horoscopeBirth, setHoroscopeBirth] =
         useState<HoroscopeBirthData | null>(null)
     const [horoscopeTransit, setHoroscopeTransit] =
