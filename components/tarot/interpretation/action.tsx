@@ -197,9 +197,7 @@ export default function ActionSection({
     const [showFeedback, setShowFeedback] = useState(false)
     const [rating, setRating] = useState<number>(0)
     const [versionsOpen, setVersionsOpen] = useState(false)
-    const [viewportWidth, setViewportWidth] = useState<number>(() =>
-        typeof window === "undefined" ? 0 : window.innerWidth,
-    )
+    const [viewportWidth, setViewportWidth] = useState(0)
     const navGuardRef = useRef<HTMLDivElement>(null)
     const [versions, setVersions] = useState<
         Array<{

@@ -2,13 +2,14 @@
 
 import { useState } from "react"
 import {
+    CornerDownRight,
     RotateCw,
-    Sparkles,
     Star,
     MoreVertical,
     Hand,
     Minus,
     Plus,
+    Sparkles,
 } from "lucide-react"
 import type { RefObject } from "react"
 import { useTranslations } from "next-intl"
@@ -88,12 +89,12 @@ export default function DrawCardSection({
                     </button>
                     <button
                         type='button'
-                        onClick={() => pickFn?.()}
+                        onClick={() => pickFn?.(cardsToSelect)}
                         className='flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors disabled:opacity-40'
                         disabled={!pickFn}
                     >
                         <Sparkles className='w-3.5 h-3.5' />
-                        {cardUi.pick}
+                        {cardUi.pickAllCta()}
                     </button>
 
                     <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>

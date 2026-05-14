@@ -2,53 +2,115 @@
 
 import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
+import { usePathname, Link } from "@/i18n/navigation"
+import { routing } from "@/i18n/routing"
 import { ShieldCheck } from "lucide-react"
-import { Link } from "@/i18n/navigation"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 import type { CookiePreferences } from "@/lib/consent-storage"
+import { useStarConsent } from "@/components/star-consent"
 
-type CookiesBannerProps = {
-    visible: boolean
-    preferences: CookiePreferences
-    className?: string
-    variant?: "default" | "floating-pill"
-    onAcceptAll: () => void
-    onRejectAll: () => void
-    onSavePreferences: (preferences: CookiePreferences) => void
+/**
+ * Pages where the cookie banner is rendered **inline** by the page itself
+ * (Home + chat session). These pages place `<CookiesBanner inline />` near the
+ * question composer; the layout-level `<CookiesBanner />` instance returns null
+ * to avoid duplication.
+ *
+ * Kept here only for the layout-level instance to know when to step aside.
+ */
+const localeSet = new Set<string>(routing.locales)
+const STATIC_FIRST_SEGMENT = new Set([
+    "about",
+    "account",
+    "admin",
+    "articles",
+    "astrology",
+    "auth",
+    "billing",
+    "birth-chart",
+    "contact",
+    "content",
+    "demo",
+    "manifest.webmanifest",
+    "opengraph-image",
+    "pricing",
+    "privacy-policy",
+    "profile",
+    "reading",
+    "referral",
+    "settings",
+    "share",
+    "signin",
+    "signup",
+    "stars",
+    "structured-data",
+    "success",
+    "terms-of-service",
+    "twitter-image",
+])
+
+function isHomeOrChatSession(pathname: string): boolean {
+    const clean = pathname.split("?")[0].split("#")[0]
+    const seg = clean.split("/").filter(Boolean)
+    if (seg.length === 0) return true
+    if (seg.length === 1 && localeSet.has(seg[0])) return true
+    if (seg.length !== 1) return false
+    const [first] = seg
+    if (localeSet.has(first)) return false
+    if (STATIC_FIRST_SEGMENT.has(first)) return false
+    return true
 }
 
-export function CookiesBanner({
-    visible,
-    preferences,
-    className,
-    variant = "default",
-    onAcceptAll,
-    onRejectAll,
-    onSavePreferences,
-}: CookiesBannerProps) {
+/**
+ * Site-wide cookie preferences banner. Self-contained: reads consent state and
+ * persistence via StarConsentProvider — render without props.
+ *
+ * Placement strategy:
+ * - On home + chat session pages, the page itself renders `<CookiesBanner inline />`
+ *   directly inside the question composer container so the banner sits in the
+ *   document flow (no portal, no overlay over the input).
+ * - On every other page, the layout-level `<CookiesBanner />` renders fixed at the
+ *   viewport bottom. That instance returns null on home/chat to avoid duplication.
+ *
+ * Both modes only render after `mounted = true` (post-hydration). This keeps the
+ * SSR HTML and the first client commit identical (both empty), preventing
+ * hydration mismatches caused by `localStorage`-backed consent state.
+ */
+export function CookiesBanner({ inline = false }: { inline?: boolean }) {
     const t = useTranslations("StarConsent.cookies")
+    const pathname = usePathname()
+    const {
+        cookieConsent,
+        acceptAllCookies,
+        rejectAllCookies,
+        saveCookiePreferences,
+    } = useStarConsent()
+
+    const visible = !cookieConsent.decisionMade
+    const preferences = cookieConsent.preferences
+
     const [manageOpen, setManageOpen] = useState(false)
     const [draftPreferences, setDraftPreferences] =
         useState<CookiePreferences>(preferences)
+    const [mounted, setMounted] = useState(false)
 
     useEffect(() => {
         setDraftPreferences(preferences)
     }, [preferences])
 
-    if (!visible) return null
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
-    return (
-        <div className={cn("w-full", className)}>
-            <section
-                className={cn(
-                    "relative mx-auto w-full overflow-hidden border border-[rgba(200,180,140,0.22)] bg-[rgba(10,10,26,0.92)] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)] backdrop-blur-xl text-left",
-                    variant === "floating-pill"
-                        ? "max-w-[360px] rounded-[28px]"
-                        : "max-w-4xl rounded-2xl",
-                )}
-            >
+    if (!mounted) return null
+    if (!visible) return null
+    // Layout-level instance steps aside when the page renders its own inline copy.
+    if (!inline && isHomeOrChatSession(pathname)) return null
+
+    const panel = (
+        <div className='w-full'>
+            <section className='relative mx-auto w-full max-w-4xl overflow-hidden rounded-2xl border border-[rgba(200,180,140,0.22)] bg-[rgba(10,10,26,0.92)] text-left shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)] backdrop-blur-xl'>
                 <div className='pointer-events-none absolute inset-0 opacity-30'>
                     <div className='cosmic-stars-layer-3' />
                 </div>
@@ -61,7 +123,7 @@ export function CookiesBanner({
                                     {t("bannerTitle")}
                                 </span>
                             </div>
-                            <p className='text-sm leading-6 text-[rgba(232,224,208,0.78)]'>
+                            <p className='text-xs leading-6 text-[rgba(232,224,208,0.78)]'>
                                 {t("bannerDescription")}
                             </p>
                         </div>
@@ -81,27 +143,33 @@ export function CookiesBanner({
                                     }
                                     className='inline-flex text-xs text-[rgba(200,180,140,0.82)] underline decoration-dotted underline-offset-4 transition-colors hover:text-white'
                                 >
-                                    {t("managePreferences")}
+                                    {t(
+                                        manageOpen
+                                            ? "closePreferencesMenu"
+                                            : "managePreferences",
+                                    )}
                                 </button>
                             </div>
 
-                            <div className='grid grid-cols-2 gap-2'>
-                                <Button
-                                    type='button'
-                                    variant='ghost'
-                                    onClick={onRejectAll}
-                                    className='w-full justify-center border border-[rgba(200,180,140,0.18)] bg-transparent text-[rgba(232,224,208,0.88)] hover:bg-[rgba(200,180,140,0.08)] hover:text-white'
-                                >
-                                    {t("rejectAll")}
-                                </Button>
-                                <Button
-                                    type='button'
-                                    onClick={onAcceptAll}
-                                    className='w-full justify-center border border-[rgba(200,180,140,0.38)] bg-[rgba(200,180,140,0.12)] text-[rgba(245,239,227,0.96)] hover:bg-[rgba(200,180,140,0.18)]'
-                                >
-                                    {t("acceptAll")}
-                                </Button>
-                            </div>
+                            {!manageOpen ? (
+                                <div className='grid grid-cols-2 gap-2'>
+                                    <Button
+                                        type='button'
+                                        variant='ghost'
+                                        onClick={rejectAllCookies}
+                                        className='w-full justify-center border border-[rgba(200,180,140,0.18)] bg-transparent text-[rgba(232,224,208,0.88)] hover:bg-[rgba(200,180,140,0.08)] hover:text-white'
+                                    >
+                                        {t("rejectAll")}
+                                    </Button>
+                                    <Button
+                                        type='button'
+                                        onClick={acceptAllCookies}
+                                        className='w-full justify-center border border-[rgba(200,180,140,0.38)] bg-[rgba(200,180,140,0.12)] text-[rgba(245,239,227,0.96)] hover:bg-[rgba(200,180,140,0.18)]'
+                                    >
+                                        {t("acceptAll")}
+                                    </Button>
+                                </div>
+                            ) : null}
                         </div>
                     </div>
 
@@ -135,9 +203,7 @@ export function CookiesBanner({
                                     <PreferenceRow
                                         title={t("analyticsTitle")}
                                         description={t("analyticsDescription")}
-                                        checked={
-                                            draftPreferences.analytics
-                                        }
+                                        checked={draftPreferences.analytics}
                                         onCheckedChange={(checked) =>
                                             setDraftPreferences((current) => ({
                                                 ...current,
@@ -148,9 +214,7 @@ export function CookiesBanner({
                                     <PreferenceRow
                                         title={t("marketingTitle")}
                                         description={t("marketingDescription")}
-                                        checked={
-                                            draftPreferences.marketing
-                                        }
+                                        checked={draftPreferences.marketing}
                                         onCheckedChange={(checked) =>
                                             setDraftPreferences((current) => ({
                                                 ...current,
@@ -164,7 +228,7 @@ export function CookiesBanner({
                                     <Button
                                         type='button'
                                         variant='ghost'
-                                        onClick={onRejectAll}
+                                        onClick={rejectAllCookies}
                                         className='border border-[rgba(200,180,140,0.18)] bg-transparent text-[rgba(232,224,208,0.88)] hover:bg-[rgba(200,180,140,0.08)] hover:text-white'
                                     >
                                         {t("rejectAll")}
@@ -172,7 +236,9 @@ export function CookiesBanner({
                                     <Button
                                         type='button'
                                         onClick={() => {
-                                            onSavePreferences(draftPreferences)
+                                            saveCookiePreferences(
+                                                draftPreferences,
+                                            )
                                             setManageOpen(false)
                                         }}
                                         className='border border-[rgba(200,180,140,0.38)] bg-[rgba(200,180,140,0.12)] text-[rgba(245,239,227,0.96)] hover:bg-[rgba(200,180,140,0.18)]'
@@ -185,6 +251,18 @@ export function CookiesBanner({
                     </div>
                 </div>
             </section>
+        </div>
+    )
+
+    if (inline) {
+        return <div className='mx-auto w-full max-w-3xl px-4 pb-2'>{panel}</div>
+    }
+
+    return (
+        <div className='fixed bottom-0 left-0 right-0 z-50 w-full shrink-0 border-t border-white/5 bg-[#0a0a1a]/40 backdrop-blur-sm'>
+            <div className='mx-auto w-full max-w-3xl px-4 pb-3 pt-2'>
+                {panel}
+            </div>
         </div>
     )
 }

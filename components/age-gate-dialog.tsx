@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import {
     Dialog,
@@ -10,13 +10,25 @@ import {
 } from "@/components/ui/dialog"
 import { CustomDatePicker } from "@/components/ui/custom-date-picker"
 import { CustomTimePicker } from "@/components/ui/custom-time-picker"
+import { LocationSelector } from "@/components/ui/location-selector"
 import {
     CelestialIcon,
     CornerAccents,
     StarsDialog,
 } from "@/components/star-consent"
-import { Clock3, MoonStar, ShieldAlert } from "lucide-react"
+import {
+    ChevronDown,
+    Clock3,
+    LocateFixed,
+    MapPin,
+    MoonStar,
+    ShieldAlert,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
+import {
+    resolveLocationFromCoords,
+    resolveLocationFromCountryState,
+} from "@/lib/location"
 import type { AgeGateBirthData, AgeGateState } from "@/lib/age-gate-storage"
 
 type AgeGateDialogProps = {
@@ -33,6 +45,11 @@ type DraftState = {
     year: string
     hour: string
     minute: string
+    country: string
+    state: string
+    lat: number | null
+    lng: number | null
+    timezone: number | null
 }
 
 function formatBirthDate(birth: AgeGateBirthData | null) {
@@ -57,6 +74,11 @@ function buildInitialDraft(initialBirth?: AgeGateBirthData | null): DraftState {
             initialBirth && Number.isFinite(initialBirth.minute)
                 ? String(initialBirth.minute)
                 : "0",
+        country: initialBirth?.country ?? "",
+        state: initialBirth?.state ?? "",
+        lat: initialBirth?.lat ?? null,
+        lng: initialBirth?.lng ?? null,
+        timezone: initialBirth?.timezone ?? null,
     }
 }
 
@@ -72,6 +94,9 @@ export function AgeGateDialog({
         buildInitialDraft(initialBirth),
     )
     const [attemptedSubmit, setAttemptedSubmit] = useState(false)
+    const [detectingLocation, setDetectingLocation] = useState(false)
+    const [locationError, setLocationError] = useState(false)
+    const requestedLocationRef = useRef(false)
 
     useEffect(() => {
         setDraft(buildInitialDraft(initialBirth))
@@ -117,6 +142,35 @@ export function AgeGateDialog({
             return { valid: false as const, birth: null }
         }
 
+        let location = {
+            country: draft.country.trim() || null,
+            state: draft.state.trim() || null,
+            lat: draft.lat,
+            lng: draft.lng,
+            timezone: draft.timezone,
+        }
+
+        if (
+            location.country &&
+            (location.lat == null ||
+                location.lng == null ||
+                location.timezone == null)
+        ) {
+            const resolved = resolveLocationFromCountryState(
+                location.country,
+                location.state || undefined,
+            )
+            if (resolved) {
+                location = {
+                    country: resolved.countryName,
+                    state: resolved.stateName,
+                    lat: resolved.latitude,
+                    lng: resolved.longitude,
+                    timezone: resolved.timezone,
+                }
+            }
+        }
+
         return {
             valid: true as const,
             birth: {
@@ -125,9 +179,51 @@ export function AgeGateDialog({
                 day,
                 hour,
                 minute,
+                country: location.country,
+                state: location.state,
+                lat: location.lat,
+                lng: location.lng,
+                timezone: location.timezone,
             } satisfies AgeGateBirthData,
         }
     }, [draft])
+
+    const detectLocation = useCallback((options?: { silent?: boolean }) => {
+        setLocationError(false)
+        if (!navigator?.geolocation) {
+            if (!options?.silent) setLocationError(true)
+            return
+        }
+        setDetectingLocation(true)
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const lat = position.coords.latitude
+                const lng = position.coords.longitude
+                const resolved = await resolveLocationFromCoords(lat, lng)
+                setDraft((current) => ({
+                    ...current,
+                    country: resolved?.countryName ?? current.country,
+                    state: resolved?.stateName ?? current.state,
+                    lat,
+                    lng,
+                    timezone: resolved?.timezone ?? current.timezone,
+                }))
+                setDetectingLocation(false)
+            },
+            () => {
+                if (!options?.silent) setLocationError(true)
+                setDetectingLocation(false)
+            },
+            { enableHighAccuracy: true, timeout: 6000 },
+        )
+    }, [])
+
+    useEffect(() => {
+        if (!open || blockedState?.category === "blocked") return
+        if (requestedLocationRef.current) return
+        requestedLocationRef.current = true
+        detectLocation({ silent: true })
+    }, [blockedState?.category, detectLocation, open])
 
     if (blockedState?.category === "blocked") {
         return (
@@ -193,6 +289,9 @@ export function AgeGateDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <StarsDialog
                 hideCloseButton
+                onEscapeKeyDown={(event) => event.preventDefault()}
+                onPointerDownOutside={(event) => event.preventDefault()}
+                onInteractOutside={(event) => event.preventDefault()}
                 className='relative flex max-h-[92dvh] max-w-[560px] flex-col !overflow-hidden !rounded-[3px] !border-[0.5px] !border-[rgba(200,180,140,0.3)] !bg-[#13121f] !p-0 !shadow-none'
             >
                 <div className='relative z-10 flex min-h-0 h-full w-full flex-1 flex-col'>
@@ -269,7 +368,14 @@ export function AgeGateDialog({
                             />
                         </div>
 
-                        <div className='mt-6 rounded-[3px] border-[0.5px] border-[rgba(200,180,140,0.14)] bg-[rgba(255,255,255,0.015)] p-4'>
+                        <div className='sticky top-0 z-10 -mx-2 mt-4 flex justify-center bg-gradient-to-b from-[#13121f] via-[#13121f]/90 to-transparent px-2 pb-5 pt-1'>
+                            <div className='inline-flex animate-bounce items-center gap-2 rounded-full border border-[rgba(200,180,140,0.25)] bg-[rgba(19,18,31,0.88)] px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-[rgba(232,224,208,0.66)] shadow-[0_0_28px_-10px_rgba(200,180,140,0.75)]'>
+                                <span>{t("scrollHint")}</span>
+                                <ChevronDown className='h-3.5 w-3.5 text-[rgba(200,180,140,0.75)]' />
+                            </div>
+                        </div>
+
+                        <div className='mt-1 rounded-[3px] border-[0.5px] border-[rgba(200,180,140,0.14)] bg-[rgba(255,255,255,0.015)] p-4'>
                             <div className='mb-3 flex items-center gap-2 text-[rgba(200,180,140,0.72)]'>
                                 <span className='h-px flex-1 bg-[rgba(200,180,140,0.12)]' />
                                 <Clock3 className='h-3.5 w-3.5' />
@@ -313,6 +419,61 @@ export function AgeGateDialog({
                             <div className='mt-3 flex items-start gap-2 text-[11px] leading-snug text-[rgba(232,224,208,0.48)]'>
                                 <MoonStar className='mt-0.5 h-3.5 w-3.5 shrink-0 text-[rgba(200,180,140,0.6)]' />
                                 <span>{t("optionalTimeHint")}</span>
+                            </div>
+                        </div>
+
+                        <div className='mt-6 rounded-[3px] border-[0.5px] border-[rgba(200,180,140,0.14)] bg-[rgba(255,255,255,0.015)] p-4'>
+                            <div className='mb-3 flex items-center gap-2 text-[rgba(200,180,140,0.72)]'>
+                                <span className='h-px flex-1 bg-[rgba(200,180,140,0.12)]' />
+                                <MapPin className='h-3.5 w-3.5' />
+                                <span className='text-[10px] uppercase tracking-[0.28em]'>
+                                    {t("optionalLocationLabel")}
+                                </span>
+                                <span className='h-px flex-1 bg-[rgba(200,180,140,0.12)]' />
+                            </div>
+                            <LocationSelector
+                                selectedCountry={draft.country}
+                                selectedState={draft.state}
+                                onCountryChange={(country) =>
+                                    setDraft((current) => ({
+                                        ...current,
+                                        country,
+                                        state: "",
+                                        lat: null,
+                                        lng: null,
+                                        timezone: null,
+                                    }))
+                                }
+                                onStateChange={(state) =>
+                                    setDraft((current) => ({
+                                        ...current,
+                                        state,
+                                        lat: null,
+                                        lng: null,
+                                        timezone: null,
+                                    }))
+                                }
+                            />
+                            <div className='mt-3 flex flex-col gap-2'>
+                                <button
+                                    type='button'
+                                    onClick={() => detectLocation()}
+                                    disabled={detectingLocation}
+                                    className='inline-flex items-center justify-center gap-2 rounded-[2px] border-[0.5px] border-[rgba(200,180,140,0.25)] bg-[rgba(200,180,140,0.04)] px-3 py-2 text-[11px] uppercase tracking-[0.16em] text-[rgba(232,224,208,0.78)] transition hover:border-[rgba(200,180,140,0.45)] hover:bg-[rgba(200,180,140,0.08)] disabled:cursor-wait disabled:opacity-60'
+                                >
+                                    <LocateFixed className='h-3.5 w-3.5' />
+                                    {detectingLocation
+                                        ? t("detectLocationLoading")
+                                        : t("detectLocationButton")}
+                                </button>
+                                <p className='text-[11px] leading-snug text-[rgba(232,224,208,0.48)]'>
+                                    {t("optionalLocationHint")}
+                                </p>
+                                {locationError ? (
+                                    <p className='text-[11px] leading-snug text-red-200/85'>
+                                        {t("detectLocationError")}
+                                    </p>
+                                ) : null}
                             </div>
                         </div>
 

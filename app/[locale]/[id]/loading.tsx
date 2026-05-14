@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function Loading() {
     return (
-        <div className='w-full h-full min-h-[calc(100dvh-65px)] flex flex-col overflow-hidden relative'>
+        <div className='relative flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden'>
             <div className='mx-auto w-full max-w-3xl px-4 py-6 space-y-4'>
                 {/* User message skeleton */}
                 <div className='flex justify-end'>

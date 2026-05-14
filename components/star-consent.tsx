@@ -29,9 +29,9 @@ import { routing } from "@/i18n/routing"
 import { cn } from "@/lib/utils"
 import { Sparkle } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
+import { toast } from "sonner"
 import {
     COOKIE_PREFERENCES_EVENT,
-    NOTICE_CONSENT_EVENT,
     DEFAULT_COOKIE_CONSENT_STATE,
     type CookieConsentState,
     type CookiePreferences,
@@ -39,30 +39,34 @@ import {
     hasNoticeAcknowledgement,
     readCookieConsentState,
     readLegacyCombinedConsent,
-    readNoticeAcknowledgement,
     writeCookieConsentState,
-    writeNoticeAcknowledgement,
 } from "@/lib/consent-storage"
 import { AgeGateDialog } from "@/components/age-gate-dialog"
 import {
     AGE_GATE_EVENT,
-    buildAgeGateState,
     DEFAULT_AGE_GATE_STATE,
+    buildAgeGateState,
+    calculateAgeFromBirthDate,
     type AgeGateBirthData,
     type AgeGateState,
     type UserAgeCategory,
     hasAgeGateAccess as readHasAgeGateAccess,
-    readAgeGateState,
     writeAgeGateState,
 } from "@/lib/age-gate-storage"
+import {
+    BlockedBirthdate,
+    clearBlockedBirthdate,
+    isStillUnderThirteen,
+    readBlockedBirthdate,
+    writeBlockedBirthdate,
+} from "@/lib/blocked-birthdate-storage"
+import { useAuth } from "@/hooks/use-auth"
+import { useProfile } from "@/contexts/profile-context"
+import { supabase } from "@/lib/supabase"
 
-type NoticeTrigger = "question-input" | "star-balance" | "manual"
-
-const REOPEN_NOTICE_AFTER_LOCALE_CHANGE_KEY =
-    "askingfate-reopen-notice-after-locale-change"
+type OnboardingPhase = "idle" | "age" | "consent" | "saving" | "blocked"
 
 type StarConsentContextType = {
-    noticeAcknowledged: boolean
     open: boolean
     cookieConsent: CookieConsentState
     ageGateState: AgeGateState
@@ -71,9 +75,6 @@ type StarConsentContextType = {
     isMinorUser: boolean
     cookieBannerVisible: boolean
     analyticsEnabled: boolean
-    activeTrigger: NoticeTrigger | null
-    show: (trigger?: NoticeTrigger) => void
-    accept: () => Promise<void>
     acceptAllCookies: () => void
     rejectAllCookies: () => void
     saveCookiePreferences: (preferences: CookiePreferences) => void
@@ -150,19 +151,119 @@ function buildCookieState(preferences: CookiePreferences): CookieConsentState {
     }
 }
 
+function profileToAgeGateBirth(profile: {
+    birth_date: string | null
+    birth_time: string | null
+    birth_place: string | null
+} | null): AgeGateBirthData | null {
+    if (!profile?.birth_date) return null
+    const dateMatch = /^(\d{4})-(\d{2})-(\d{2})/.exec(profile.birth_date)
+    if (!dateMatch) return null
+    const year = Number.parseInt(dateMatch[1], 10)
+    const month = Number.parseInt(dateMatch[2], 10)
+    const day = Number.parseInt(dateMatch[3], 10)
+    if (
+        !Number.isFinite(year) ||
+        !Number.isFinite(month) ||
+        !Number.isFinite(day)
+    ) {
+        return null
+    }
+    let hour = 0
+    let minute = 0
+    if (profile.birth_time) {
+        const timeMatch = /^(\d{2}):(\d{2})/.exec(profile.birth_time)
+        if (timeMatch) {
+            hour = Number.parseInt(timeMatch[1], 10)
+            minute = Number.parseInt(timeMatch[2], 10)
+        }
+    }
+    return {
+        year,
+        month,
+        day,
+        hour: Number.isFinite(hour) ? hour : 0,
+        minute: Number.isFinite(minute) ? minute : 0,
+        country: null,
+        state: null,
+        lat: null,
+        lng: null,
+        timezone: null,
+    }
+}
+
+function blockedRecordToAgeGateState(
+    record: BlockedBirthdate | null,
+): AgeGateState | null {
+    if (!record) return null
+    const birth: AgeGateBirthData = {
+        year: record.year,
+        month: record.month,
+        day: record.day,
+        hour: 0,
+        minute: 0,
+        country: null,
+        state: null,
+        lat: null,
+        lng: null,
+        timezone: null,
+    }
+    return {
+        category: "blocked",
+        age: calculateAgeFromBirthDate(birth),
+        birth,
+        checkedAt: record.storedAt,
+    }
+}
+
+function birthDataToBirthDateIso(birth: AgeGateBirthData): string {
+    const mm = String(birth.month).padStart(2, "0")
+    const dd = String(birth.day).padStart(2, "0")
+    return `${birth.year}-${mm}-${dd}`
+}
+
+function birthDataToBirthTimeIso(birth: AgeGateBirthData): string | null {
+    if (!Number.isFinite(birth.hour) && !Number.isFinite(birth.minute)) {
+        return null
+    }
+    if ((birth.hour ?? 0) === 0 && (birth.minute ?? 0) === 0) {
+        return null
+    }
+    const hh = String(birth.hour).padStart(2, "0")
+    const mn = String(birth.minute).padStart(2, "0")
+    return `${hh}:${mn}:00`
+}
+
+function birthDataToBirthPlace(birth: AgeGateBirthData): string | null {
+    const parts = [birth.country, birth.state]
+        .map((v) => (v && v.trim()) || null)
+        .filter(Boolean) as string[]
+    return parts.length ? parts.join(", ") : null
+}
+
 export function StarConsentProvider({
     children,
 }: {
     children: React.ReactNode
 }) {
     const tModal = useTranslations("StarConsent.modal")
+    const tAgeGate = useTranslations("StarConsent.ageGate")
+    const tProfile = useTranslations("Profile")
     const tLanguages = useTranslations("Languages")
     const locale = useLocale()
     const pathname = usePathname()
     const router = useRouter()
-    const [open, setOpen] = useState(false)
-    const [ageGateOpen, setAgeGateOpen] = useState(false)
-    const [noticeAcknowledged, setNoticeAcknowledged] = useState(false)
+
+    const { user } = useAuth()
+    const { profile, refreshProfile } = useProfile()
+
+    const [phase, setPhase] = useState<OnboardingPhase>("idle")
+    const [pendingBirth, setPendingBirth] = useState<AgeGateBirthData | null>(
+        null,
+    )
+    const [blockedRecord, setBlockedRecord] = useState<BlockedBirthdate | null>(
+        null,
+    )
     const [cookieConsent, setCookieConsent] = useState<CookieConsentState>(
         DEFAULT_COOKIE_CONSENT_STATE,
     )
@@ -172,12 +273,15 @@ export function StarConsentProvider({
     const [understood, setUnderstood] = useState(false)
     const [scrolledToEnd, setScrolledToEnd] = useState(false)
     const [scrollHintVisible, setScrollHintVisible] = useState(false)
-    const [activeTrigger, setActiveTrigger] = useState<NoticeTrigger | null>(
-        null,
-    )
     const [isSwitchingLocale, setIsSwitchingLocale] = useState(false)
     const scrollHintTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
     const scrollRef = useRef<HTMLDivElement>(null)
+    const handledUnderThirteenForRef = useRef<string | null>(null)
+    const onboardingStartedForRef = useRef<string | null>(null)
+
+    const consentOpen = phase === "consent" || phase === "saving"
+    const ageOpen = phase === "age"
+    const blockedOpen = phase === "blocked"
 
     const checkScrollEnd = useCallback(() => {
         const el = scrollRef.current
@@ -191,57 +295,148 @@ export function StarConsentProvider({
         if (atEnd) setScrollHintVisible(false)
     }, [])
 
+    // Cookies banner state (independent of auth).
     useEffect(() => {
         if (typeof window === "undefined") return
-
-        let nextNoticeAcknowledged = readNoticeAcknowledgement()
         let nextCookieConsent = readCookieConsentState()
-        const nextAgeGateState = readAgeGateState()
         const legacyConsent = readLegacyCombinedConsent()
-        const shouldReopenNoticeAfterLocaleChange =
-            window.sessionStorage.getItem(
-                REOPEN_NOTICE_AFTER_LOCALE_CHANGE_KEY,
-            ) === "true"
-
-        if (shouldReopenNoticeAfterLocaleChange) {
-            window.sessionStorage.removeItem(
-                REOPEN_NOTICE_AFTER_LOCALE_CHANGE_KEY,
-            )
+        if (legacyConsent === "accepted" && !nextCookieConsent.decisionMade) {
+            nextCookieConsent = buildCookieState({
+                essential: true,
+                analytics: true,
+                marketing: false,
+            })
+            writeCookieConsentState(nextCookieConsent)
         }
-
-        if (legacyConsent === "accepted") {
-            if (!nextNoticeAcknowledged) {
-                writeNoticeAcknowledgement(true)
-                nextNoticeAcknowledged = true
-            }
-            if (!nextCookieConsent.decisionMade) {
-                nextCookieConsent = buildCookieState({
-                    essential: true,
-                    analytics: true,
-                    marketing: false,
-                })
-                writeCookieConsentState(nextCookieConsent)
-            }
-        }
-
-        setNoticeAcknowledged(nextNoticeAcknowledged)
         setCookieConsent(nextCookieConsent)
-        setAgeGateState(nextAgeGateState)
-        if (shouldReopenNoticeAfterLocaleChange && !nextNoticeAcknowledged) {
-            setOpen(true)
-            return
-        }
-        if (
-            nextNoticeAcknowledged &&
-            nextAgeGateState.category !== "adult" &&
-            nextAgeGateState.category !== "minor"
-        ) {
-            setAgeGateOpen(true)
-        }
     }, [])
 
+    // Mirror profile.birth_date into the legacy ageGateState exposed via the
+    // context so prefill consumers (e.g. home page) keep working unchanged.
     useEffect(() => {
-        if (open) {
+        const birth = profileToAgeGateBirth(profile)
+        if (birth) {
+            const next = buildAgeGateState(birth)
+            setAgeGateState(next)
+            try {
+                writeAgeGateState(next)
+            } catch {
+                // best-effort
+            }
+            if (typeof window !== "undefined") {
+                window.dispatchEvent(
+                    new CustomEvent(AGE_GATE_EVENT, { detail: next }),
+                )
+            }
+        } else {
+            setAgeGateState(DEFAULT_AGE_GATE_STATE)
+        }
+    }, [profile])
+
+    const handleUnderThirteen = useCallback(
+        async (birth: { year: number; month: number; day: number }) => {
+            const userId = user?.id ?? "anon"
+            if (handledUnderThirteenForRef.current === userId) return
+            handledUnderThirteenForRef.current = userId
+
+            writeBlockedBirthdate(birth)
+            const record = readBlockedBirthdate()
+            if (record) setBlockedRecord(record)
+
+            try {
+                const {
+                    data: { session },
+                } = await supabase.auth.getSession()
+                if (session) {
+                    const res = await fetch("/api/account/delete", {
+                        method: "POST",
+                        headers: {
+                            Authorization: `Bearer ${session.access_token}`,
+                        },
+                    })
+                    if (!res.ok) {
+                        toast.error(
+                            tAgeGate("accountDeletionFailedToast"),
+                        )
+                    }
+                }
+            } catch (err) {
+                console.error("Account deletion failed:", err)
+                toast.error(tAgeGate("accountDeletionFailedToast"))
+            }
+
+            try {
+                await supabase.auth.signOut()
+            } catch {
+                // ignore
+            }
+
+            toast.error(tAgeGate("accountDeletedToast"))
+            setPhase("blocked")
+        },
+        [tAgeGate, user?.id],
+    )
+
+    // Drive the onboarding phase from auth + profile + localStorage ban.
+    useEffect(() => {
+        const record = readBlockedBirthdate()
+
+        if (record && isStillUnderThirteen(record)) {
+            setBlockedRecord(record)
+            if (user) {
+                void handleUnderThirteen(record)
+            } else {
+                setPhase("blocked")
+            }
+            return
+        }
+
+        if (record) {
+            clearBlockedBirthdate()
+            setBlockedRecord(null)
+        }
+
+        if (!user) {
+            handledUnderThirteenForRef.current = null
+            onboardingStartedForRef.current = null
+            setPhase((prev) => (prev === "blocked" ? "idle" : prev))
+            return
+        }
+
+        if (!profile) return
+
+        if (profile.consented_at) {
+            onboardingStartedForRef.current = null
+            setPhase("idle")
+            return
+        }
+
+        if (onboardingStartedForRef.current === user.id) return
+
+        if (profile.birth_date) {
+            const legacyBirth = profileToAgeGateBirth(profile)
+            if (legacyBirth) {
+                const age = calculateAgeFromBirthDate(legacyBirth)
+                if (age < 13) {
+                    onboardingStartedForRef.current = user.id
+                    void handleUnderThirteen(legacyBirth)
+                    return
+                }
+                onboardingStartedForRef.current = user.id
+                setPendingBirth(null)
+                setPhase("consent")
+                return
+            }
+        }
+
+        onboardingStartedForRef.current = user.id
+        setPendingBirth(null)
+        setPhase("age")
+    }, [user, profile, handleUnderThirteen])
+
+    // Refresh-controls when consent dialog opens.
+    useEffect(() => {
+        if (consentOpen) {
             setUnderstood(false)
             setScrolledToEnd(false)
             setScrollHintVisible(false)
@@ -249,24 +444,24 @@ export function StarConsentProvider({
         return () => {
             if (scrollHintTimer.current) clearTimeout(scrollHintTimer.current)
         }
-    }, [open])
+    }, [consentOpen])
 
     useEffect(() => {
-        if (!open) return
+        if (!consentOpen) return
         const id = requestAnimationFrame(() => {
             requestAnimationFrame(() => checkScrollEnd())
         })
         return () => cancelAnimationFrame(id)
-    }, [open, checkScrollEnd])
+    }, [consentOpen, checkScrollEnd])
 
     useEffect(() => {
-        if (!open) return
+        if (!consentOpen) return
         const el = scrollRef.current
         if (!el || typeof ResizeObserver === "undefined") return
         const ro = new ResizeObserver(() => checkScrollEnd())
         ro.observe(el)
         return () => ro.disconnect()
-    }, [open, checkScrollEnd])
+    }, [consentOpen, checkScrollEnd])
 
     useEffect(() => {
         if (typeof window === "undefined") return
@@ -274,14 +469,16 @@ export function StarConsentProvider({
             window.dispatchEvent(
                 new CustomEvent("toaster-position-change", {
                     detail: {
-                        position: open ? "top-center" : "bottom-center",
+                        position: consentOpen
+                            ? "top-center"
+                            : "bottom-center",
                     },
                 }),
             )
         }, 100)
 
         return () => window.clearTimeout(timer)
-    }, [open])
+    }, [consentOpen])
 
     const flashScrollHint = useCallback(() => {
         if (scrolledToEnd) return
@@ -308,99 +505,80 @@ export function StarConsentProvider({
         [],
     )
 
-    const persistAgeGateState = useCallback((nextState: AgeGateState) => {
-        setAgeGateState(nextState)
-        writeAgeGateState(nextState)
-        if (typeof window !== "undefined") {
-            window.dispatchEvent(
-                new CustomEvent(AGE_GATE_EVENT, {
-                    detail: nextState,
-                }),
-            )
-        }
-    }, [])
-
-    const persistNoticeAcknowledgement = useCallback(() => {
-        writeNoticeAcknowledgement(true)
-        setNoticeAcknowledged(true)
-        if (typeof window !== "undefined") {
-            window.dispatchEvent(
-                new CustomEvent(NOTICE_CONSENT_EVENT, {
-                    detail: { acknowledged: true },
-                }),
-            )
-        }
-    }, [])
-
-    const triggerStarsRefresh = useCallback(() => {
-        if (typeof window === "undefined") return
-        window.dispatchEvent(new CustomEvent("stars-balance-updated"))
-    }, [])
-
-    const show = useCallback(
-        (trigger: NoticeTrigger = "manual") => {
-            if (ageGateState.category === "blocked") {
-                setAgeGateOpen(true)
-                return
-            }
-            if (!noticeAcknowledged) {
-                setActiveTrigger(trigger)
-                setOpen(true)
-                return
-            }
-            if (!readHasAgeGateAccess()) {
-                setAgeGateOpen(true)
-            }
-        },
-        [ageGateState.category, noticeAcknowledged],
-    )
-
-    const accept = useCallback(async () => {
-        setNoticeAcknowledged(true)
-        setOpen(false)
-        setActiveTrigger(null)
-        setUnderstood(false)
-        try {
-            await fetch("/api/device/init", { method: "POST" })
-        } catch {
-            // Best-effort only.
-        }
-        if (!readHasAgeGateAccess()) {
-            setAgeGateOpen(true)
-        }
-    }, [])
-
-    const handleAgeGateOpenChange = useCallback(
-        (nextOpen: boolean) => {
-            if (ageGateState.category === "blocked") {
-                setAgeGateOpen(true)
-                return
-            }
-            if (!nextOpen && !readHasAgeGateAccess()) {
-                setNoticeAcknowledged(false)
-                setActiveTrigger(null)
-            }
-            setAgeGateOpen(nextOpen)
-        },
-        [ageGateState.category],
-    )
-
     const handleAgeGateSubmit = useCallback(
         (birth: AgeGateBirthData) => {
             const nextState = buildAgeGateState(birth)
-            persistAgeGateState(nextState)
-            persistNoticeAcknowledgement()
-            if (
-                nextState.category === "minor" ||
-                nextState.category === "adult"
-            ) {
-                triggerStarsRefresh()
+            if (nextState.category === "blocked") {
+                void handleUnderThirteen(birth)
+                return
             }
-            setActiveTrigger(null)
-            setAgeGateOpen(nextState.category === "blocked")
+            setPendingBirth(birth)
+            setAgeGateState(nextState)
+            setPhase("consent")
         },
-        [persistAgeGateState, persistNoticeAcknowledgement, triggerStarsRefresh],
+        [handleUnderThirteen],
     )
+
+    const accept = useCallback(async () => {
+        setPhase("saving")
+        try {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession()
+            if (!session) {
+                setPhase("idle")
+                return
+            }
+
+            const body: Record<string, unknown> = { consentedAt: true }
+
+            // Preserve existing profile fields so the upsert doesn't null them out.
+            if (profile?.name) body.name = profile.name
+            if (profile?.bio) body.bio = profile.bio
+            if (profile?.job) body.job = profile.job
+            if (profile?.gender) body.gender = profile.gender
+
+            if (pendingBirth) {
+                body.birthDate = birthDataToBirthDateIso(pendingBirth)
+                const time = birthDataToBirthTimeIso(pendingBirth)
+                if (time) body.birthTime = time
+                const place = birthDataToBirthPlace(pendingBirth)
+                if (place) body.birthPlace = place
+            } else {
+                if (profile?.birth_date) body.birthDate = profile.birth_date
+                if (profile?.birth_time) body.birthTime = profile.birth_time
+                if (profile?.birth_place) body.birthPlace = profile.birth_place
+            }
+
+            const res = await fetch("/api/profile", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify(body),
+            })
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}))
+                if (data?.error === "under_13" && pendingBirth) {
+                    await handleUnderThirteen(pendingBirth)
+                    return
+                }
+                toast.error(tProfile("updateFailed"))
+                setPhase("consent")
+                return
+            }
+
+            await refreshProfile()
+            setPendingBirth(null)
+            setPhase("idle")
+        } catch (err) {
+            console.error("Onboarding save error:", err)
+            toast.error(tProfile("updateFailed"))
+            setPhase("consent")
+        }
+    }, [pendingBirth, profile, refreshProfile, handleUnderThirteen, tProfile])
 
     const acceptAllCookies = useCallback(() => {
         persistCookieConsent(
@@ -431,8 +609,7 @@ export function StarConsentProvider({
 
     const value = useMemo<StarConsentContextType>(
         () => ({
-            noticeAcknowledged,
-            open,
+            open: consentOpen,
             cookieConsent,
             ageGateState,
             hasAgeGateAccess:
@@ -444,21 +621,14 @@ export function StarConsentProvider({
             analyticsEnabled:
                 cookieConsent.decisionMade &&
                 cookieConsent.preferences.analytics,
-            activeTrigger,
-            show,
-            accept,
             acceptAllCookies,
             rejectAllCookies,
             saveCookiePreferences,
         }),
         [
-            noticeAcknowledged,
-            open,
+            consentOpen,
             cookieConsent,
             ageGateState,
-            activeTrigger,
-            show,
-            accept,
             acceptAllCookies,
             rejectAllCookies,
             saveCookiePreferences,
@@ -473,37 +643,34 @@ export function StarConsentProvider({
         ),
     }
 
-    const handleDialogOpenChange = (next: boolean) => {
-        setOpen(next)
-        if (!next) {
-            setActiveTrigger(null)
-        }
-    }
-
     const handleLocaleChange = (nextLocale: string) => {
         if (nextLocale === locale) return
-        if (!routing.locales.includes(nextLocale as (typeof routing.locales)[number]))
+        if (
+            !routing.locales.includes(
+                nextLocale as (typeof routing.locales)[number],
+            )
+        )
             return
 
         setIsSwitchingLocale(true)
-        if (typeof window !== "undefined") {
-            window.sessionStorage.setItem(
-                REOPEN_NOTICE_AFTER_LOCALE_CHANGE_KEY,
-                "true",
-            )
-        }
         router.replace(pathname, {
             locale: nextLocale as (typeof routing.locales)[number],
         })
     }
 
+    const blockedAgeState = blockedRecordToAgeGateState(blockedRecord)
+    const isSaving = phase === "saving"
+
     return (
         <StarConsentContext.Provider value={value}>
             {children}
 
-            <Dialog open={open} onOpenChange={handleDialogOpenChange}>
+            <Dialog open={consentOpen}>
                 <StarsDialog
                     hideCloseButton
+                    onEscapeKeyDown={(event) => event.preventDefault()}
+                    onPointerDownOutside={(event) => event.preventDefault()}
+                    onInteractOutside={(event) => event.preventDefault()}
                     className='relative flex !h-[90dvh] !max-w-[540px] flex-col !overflow-hidden !rounded-[3px] !border-[0.5px] !border-[rgba(200,180,140,0.3)] !bg-[#13121f] !p-0 !shadow-none'
                 >
                     <div className='relative z-10 flex min-h-0 h-full w-full flex-1 flex-col'>
@@ -678,8 +845,8 @@ export function StarConsentProvider({
                                     <Checkbox
                                         checked={understood}
                                         disabled={!scrolledToEnd && !understood}
-                                        onCheckedChange={(value) =>
-                                            setUnderstood(value === true)
+                                        onCheckedChange={(checkedValue) =>
+                                            setUnderstood(checkedValue === true)
                                         }
                                         className='mt-0.5 h-[15px] w-[15px] shrink-0 rounded-[2px] border-[0.5px] border-[rgba(200,180,140,0.38)] data-[state=checked]:border-[rgba(200,180,140,0.68)] data-[state=checked]:bg-[rgba(200,180,140,0.2)] data-[state=checked]:text-[rgba(200,180,140,0.9)]'
                                         aria-label={tModal("checkboxMain")}
@@ -697,11 +864,13 @@ export function StarConsentProvider({
 
                             <button
                                 type='button'
-                                disabled={!understood}
+                                disabled={!understood || isSaving}
                                 onClick={() => void accept()}
                                 className='w-full rounded-[2px] border-[0.5px] bg-transparent py-3.5 text-[11px] font-normal uppercase tracking-[0.18em] transition-all duration-300 disabled:cursor-not-allowed disabled:border-[rgba(200,180,140,0.2)] disabled:text-[rgba(232,224,208,0.32)] enabled:cursor-pointer enabled:border-[rgba(200,180,140,0.55)] enabled:text-[rgba(232,224,208,0.88)] enabled:hover:border-[rgba(200,180,140,0.8)] enabled:hover:bg-[rgba(200,180,140,0.07)] enabled:active:scale-[0.99]'
                             >
-                                {tModal("enterButton")}
+                                {isSaving
+                                    ? tProfile("saving")
+                                    : tModal("enterButton")}
                             </button>
                         </footer>
                     </div>
@@ -709,12 +878,9 @@ export function StarConsentProvider({
             </Dialog>
 
             <AgeGateDialog
-                open={ageGateOpen || ageGateState.category === "blocked"}
-                blockedState={
-                    ageGateState.category === "blocked" ? ageGateState : null
-                }
-                initialBirth={ageGateState.birth}
-                onOpenChange={handleAgeGateOpenChange}
+                open={ageOpen || blockedOpen}
+                blockedState={blockedOpen ? blockedAgeState : null}
+                initialBirth={pendingBirth}
                 onSubmit={handleAgeGateSubmit}
             />
         </StarConsentContext.Provider>
@@ -736,7 +902,6 @@ export function StarsDialog({
             )}
             {...contentProps}
         >
-            {/* Keep sparkles in the header/footer bands, away from readable body copy. */}
             <div className='pointer-events-none absolute inset-x-0 top-0 h-28 overflow-hidden'>
                 <Sparkle
                     className='absolute top-12 left-16 h-3 w-3 rounded-full fill-yellow-400 opacity-45 animate-ping'
@@ -774,13 +939,11 @@ export function StarsDialog({
                 />
             </div>
 
-            {/* Deep-space stars background */}
             <div className='pointer-events-none absolute inset-0 opacity-40'>
                 <div className='cosmic-stars-layer-3' />
                 <div className='cosmic-stars-layer-4' />
                 <div className='cosmic-stars-layer-5' />
             </div>
-            {/* Golden aura behind dialog */}
             <div className='pointer-events-none absolute -top-24 -left-24 h-64 w-64 rounded-full bg-gradient-to-br from-yellow-300/25 via-yellow-500/15 to-transparent blur-3xl animate-pulse' />
             <div
                 className='pointer-events-none absolute -bottom-28 -right-28 h-80 w-80 rounded-full bg-gradient-to-tl from-yellow-400/20 via-yellow-600/10 to-transparent blur-[100px] animate-pulse'

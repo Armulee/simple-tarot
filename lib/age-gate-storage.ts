@@ -8,6 +8,11 @@ export type AgeGateBirthData = {
     day: number
     hour: number
     minute: number
+    country?: string | null
+    state?: string | null
+    lat?: number | null
+    lng?: number | null
+    timezone?: number | null
 }
 
 export type AgeGateState = {
@@ -85,6 +90,26 @@ export function readAgeGateState(): AgeGateState {
                       day: parsed.birth.day,
                       hour: parsed.birth.hour,
                       minute: parsed.birth.minute,
+                      country:
+                          typeof parsed.birth.country === "string"
+                              ? parsed.birth.country
+                              : null,
+                      state:
+                          typeof parsed.birth.state === "string"
+                              ? parsed.birth.state
+                              : null,
+                      lat:
+                          typeof parsed.birth.lat === "number"
+                              ? parsed.birth.lat
+                              : null,
+                      lng:
+                          typeof parsed.birth.lng === "number"
+                              ? parsed.birth.lng
+                              : null,
+                      timezone:
+                          typeof parsed.birth.timezone === "number"
+                              ? parsed.birth.timezone
+                              : null,
                   }
                 : null
 
