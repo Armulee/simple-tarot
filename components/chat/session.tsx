@@ -38,6 +38,10 @@ import {
     saveAutoPickToStorage,
 } from "@/lib/auto-pick-storage"
 import {
+    loadComposerSuggestionsEnabledFromStorage,
+    saveComposerSuggestionsEnabledToStorage,
+} from "@/lib/composer-suggestions-storage"
+import {
     loadInterpretationModeFromStorage,
     saveInterpretationModeToStorage,
     type InterpretationMode,
@@ -66,7 +70,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Star } from "lucide-react"
+import { ArrowDown, Star } from "lucide-react"
 import {
     CARD_UI_TEXT,
     isPickForMeIntent,
@@ -511,6 +515,8 @@ export default function ChatSession({
     } | null>(null)
     const [readAloudDoNotShowAgain, setReadAloudDoNotShowAgain] =
         useState(false)
+    const [composerSuggestionsEnabled, setComposerSuggestionsEnabled] =
+        useState(() => loadComposerSuggestionsEnabledFromStorage())
     const [sessionId] = useState<string | null>(initialSession?.id ?? null)
     const [privacyAliases, setPrivacyAliases] = useState<PromptAliasEntry[]>(
         () => loadSessionAliases(initialSession?.id ?? null),
@@ -592,6 +598,10 @@ export default function ChatSession({
     const insufficientStarsRef = useRef<HTMLDivElement | null>(null)
     const fixedBarRef = useRef<HTMLDivElement | null>(null)
     const [fixedBarHeight, setFixedBarHeight] = useState(0)
+    const [composerScrollDown, setComposerScrollDown] = useState<{
+        visible: boolean
+        scrollToBottom?: () => void
+    }>({ visible: false })
     const prevMessagesLengthRef = useRef(0)
     const prevConsultingRef = useRef(false)
     const prevIsInterpretingRef = useRef(false)
@@ -3503,6 +3513,14 @@ export default function ChatSession({
         })
     }, [])
 
+    const handleComposerSuggestionsEnabledChange = useCallback(
+        (enabled: boolean) => {
+            setComposerSuggestionsEnabled(enabled)
+            saveComposerSuggestionsEnabledToStorage(enabled)
+        },
+        [],
+    )
+
     const clearHoroscopeIntakeMessages = useCallback(() => {
         setMessages((prev) =>
             prev.filter(
@@ -3532,7 +3550,10 @@ export default function ChatSession({
         hasEnoughStars === true &&
         !autoPickOn
     const showDrawTrigger =
-        showCardDraw && cardsToSelect > 0 && hasEnoughStars !== null
+        showCardDraw &&
+        cardsToSelect > 0 &&
+        hasEnoughStars !== null &&
+        !canShowCardDrawSection
 
     const handleScrollToDraw = () => {
         const target = showInsufficientStars
@@ -3605,6 +3626,16 @@ export default function ChatSession({
         if (!Array.isArray(sugg) || sugg.length === 0) return null
         return last
     }, [messages])
+
+    const composerFollowUpsVisible =
+        !isHoroscopeIntakeActive &&
+        Boolean(composerFollowUpHost) &&
+        composerSuggestionsEnabled
+
+    const hideComposerActionTriggerRow =
+        Boolean(composerFollowUpHost) &&
+        !isHoroscopeIntakeActive &&
+        composerSuggestionsEnabled
 
     const formattedCurrentLocationLabel = useMemo(() => {
         if (
@@ -3872,8 +3903,13 @@ export default function ChatSession({
                               autoPickOn,
                               onToggleAutoPick: handleToggleAutoPick,
                               exposeBirthDrawInMenu: Boolean(
-                                  composerFollowUpHost,
+                                  composerFollowUpHost &&
+                                      !composerSuggestionsEnabled,
                               ),
+                              showComposerSuggestionsToggle: true,
+                              composerSuggestionsEnabled,
+                              onComposerSuggestionsEnabledChange:
+                                  handleComposerSuggestionsEnabledChange,
                               savedBirth,
                               onBirthInfoClick: () => {
                                   router.push(`/${locale}/profile`)
@@ -3886,7 +3922,7 @@ export default function ChatSession({
                           }
                 }
                 composerFollowUps={
-                    !isHoroscopeIntakeActive && composerFollowUpHost
+                    composerFollowUpsVisible && composerFollowUpHost
                         ? {
                               messageId: composerFollowUpHost.id,
                               items: composerFollowUpHost.followUpSuggestions!.slice(
@@ -3896,12 +3932,15 @@ export default function ChatSession({
                               onSelect: (text: string) => {
                                   applySuggestedQuestion(unmask(text))
                               },
+                              onDismissStrip: () => {
+                                  handleComposerSuggestionsEnabledChange(false)
+                              },
                               privacyAliases,
                           }
                         : null
                 }
                 actionTrigger={
-                    composerFollowUpHost && !isHoroscopeIntakeActive ? null : (
+                    hideComposerActionTriggerRow ? null : (
                         <ActionTrigger
                             autoPickOn={autoPickOn}
                             showDrawTrigger={showDrawTrigger}
@@ -4028,6 +4067,8 @@ export default function ChatSession({
                 lastAssistantMessageRef={lastAssistantMessageRef}
                 insufficientStarsRef={insufficientStarsRef}
                 messagesEndRef={messagesEndRef}
+                composerRef={fixedBarRef}
+                onComposerScrollDownChange={setComposerScrollDown}
             />
 
             <div className='sticky bottom-0 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 transition-all duration-500'>
@@ -4060,12 +4101,29 @@ export default function ChatSession({
                 </div>
             </div>
             {isInputFixed && (
-                <div
-                    ref={fixedBarRef}
-                    className='fixed bottom-0 left-0 right-0 z-30'
-                >
-                    {inputSection}
-                    <CookiesBanner inline />
+                <div className='fixed bottom-0 left-0 right-0 z-30'>
+                    <div ref={fixedBarRef} className='relative'>
+                        {composerScrollDown.visible &&
+                        composerScrollDown.scrollToBottom ? (
+                            <button
+                                type='button'
+                                onClick={() =>
+                                    composerScrollDown.scrollToBottom?.()
+                                }
+                                className='absolute left-1/2 z-40 flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full border border-white/20 bg-[#0a0f26]/95 text-white shadow-[0_8px_28px_-8px_rgba(0,0,0,0.75)] backdrop-blur-md transition-colors hover:border-white/35 hover:bg-[#121a32] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 bottom-full mb-2'
+                                aria-label={tHome("scrollToBottomAria")}
+                                title={tHome("scrollToBottom")}
+                            >
+                                <ArrowDown
+                                    className='size-5 shrink-0'
+                                    strokeWidth={2.25}
+                                    aria-hidden
+                                />
+                            </button>
+                        ) : null}
+                        {inputSection}
+                        <CookiesBanner inline />
+                    </div>
                 </div>
             )}
         </div>

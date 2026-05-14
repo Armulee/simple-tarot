@@ -337,18 +337,23 @@
     "tourInstruction": "Type your question you want to ask your fate in here:",
     "tourExamples": "e.g. \"What is the message I need to hear today?\" or \"How can I find clarity in my career?\"",
     "learnMore": "Learn More",
+    "quickFeaturesLabel": "Try our features",
     "quickCards": {
-      "cardReading": "Do the card reading",
-      "todayHoroscope": "Today horoscope"
+      "tarotCard": "Tarot Card",
+      "birthChart": "Birth Chart",
+      "horoscope": "Horoscope"
     },
     "quickCardQuestions": {
-      "cardReading": "What is the message I need to hear today?",
-      "todayHoroscope": "What is my horoscope for today?"
+      "tarotCard": "Draw me a tarot card",
+      "birthChart": "Tell me my birth chart",
+      "horoscope": "What is my horoscope for today"
     },
     "selectedCards": "You have selected {selectedCount}/{cardsToSelect} cards",
     "consulting": "Consulting",
     "enterBirthDate": "Please enter your birth date",
     "streamStopped": "Response stopped",
+    "scrollToBottom": "Scroll to bottom",
+    "scrollToBottomAria": "Scroll to the bottom of the conversation",
     "checkingStars": "Checking your star balance...",
     "disclaimer": "Do not trust or rely on this interpretation blindly. AskingFate uses AI and may make mistakes. For important decisions, please consult a qualified professional.",
     "readAloud": {
@@ -393,9 +398,12 @@
     "sanitizingPrompt": "Purifying"
   },
   "ActionTrigger": {
-    "autoPickLabel": "Auto pick card:",
+    "autoPickLabel": "Auto pick card",
     "autoPickOn": "on",
     "autoPickOff": "off",
+    "composerSuggestionsLabel": "Suggested replies",
+    "composerSuggestionsOn": "on",
+    "composerSuggestionsOff": "off",
     "newBirthInfo": "New birth info",
     "editBirthInfo": "Edit birth info",
     "birthInfo": "Birth info: {date}",
@@ -416,7 +424,10 @@
     "horoscope": "Horoscope",
     "chat": "Chat",
     "horoscopeLoginRequired": "Sign in to use horoscope",
-    "composerSettingsAriaLabel": "Reading settings"
+    "composerSettingsAriaLabel": "Reading settings",
+    "composerSettingsPanelTitle": "Settings",
+    "composerSettingsSectionPreferences": "Preferences",
+    "composerSettingsSectionActions": "Actions"
   },
   "About": {
     "whatIs": "What is",
@@ -680,7 +691,9 @@
   },
   "QuestionInput": {
     "label": "Your question",
-    "placeholder": "Type your question..."
+    "placeholder": "Type your question...",
+    "followUpSuggestionLabel": "Suggested follow-ups",
+    "dismissFollowUpStrip": "Dismiss suggestions and composer shortcuts"
   },
   "Prompts": {
     "title": "An inspiring prompts",

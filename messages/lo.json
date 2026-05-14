@@ -349,18 +349,23 @@
     "tourInstruction": "ພິມຄຳຖາມທີ່ທ່ານຢາກຖາມໂຊກຊະຕາຂອງທ່ານທີ່ນີ້:",
     "tourExamples": "ເຊັ່ນ \"ຂໍ້ຄວາມທີ່ຂ້ອຍຕ້ອງໄດ້ຍິນມື້ນີ້ຄືຫຍັງ?\" ຫຼື \"ຂ້ອຍຈະຫາຄວາມຊັດເຈນໃນອາຊີບໄດ້ແນວໃດ?\"",
     "learnMore": "ຮຽນຮູ້ເພີ່ມເຕີມ",
+    "quickFeaturesLabel": "ລອງຟີເຈີຂອງພວກເຮົາ",
     "quickCards": {
-      "cardReading": "ທຳນາຍໄພ່",
-      "todayHoroscope": "ດວງມື້ນີ້"
+      "tarotCard": "ໄພ່ທາໂຣດ",
+      "birthChart": "ແຜນຠູມເກີດ",
+      "horoscope": "ໂຮໂຣສໂຄບ"
     },
     "quickCardQuestions": {
-      "cardReading": "ມື້ນີ້ຂ້ອຍຄວນໄດ້ຮັບຂໍ້ຄວາມຫຍັງ?",
-      "todayHoroscope": "ດວງຂອງຂ້ອຍມື້ນີ້ເປັນແນວໃດ?"
+      "tarotCard": "ຈັບໄພ່ທາໂຣດໃຫ້ຂ້ອຍ",
+      "birthChart": "ບອກແຜນຠູມເກີດຂອງຂ້ອຍໃຫ້ຟັງ",
+      "horoscope": "ດວງຂອງຂ້ອຍມື້ນີ້ເປັນແນວໃດ"
     },
     "selectedCards": "ທ່ານເລືອກໄພ່ແລ້ວ {selectedCount}/{cardsToSelect} ໃບ",
     "consulting": "ກຳລັງປຶກສາ",
     "enterBirthDate": "ກະລຸນາກອກວັນເກີດຂອງທ່ານ",
     "streamStopped": "ຢຸດຄຳຕອບໄວ້ແລ້ວ",
+    "scrollToBottom": "ເລື່ອນລົງລຸ່ມສຸດ",
+    "scrollToBottomAria": "ເລື່ອນໄປລຸ່ມສຸດຂອງການສົນທະນາ",
     "checkingStars": "ກຳລັງກວດສອບຍອດດວງດາວຂອງທ່ານ...",
     "disclaimer": "ບໍ່ຄວນເຊື່ອຖື ຫຼື ພຶ່ງພາຄຳທຳນາຍຢ່າງຫຼັບຫູຫຼັບຕາ AskingFate ໃຊ້ AI ເຊິ່ງອາດຜິດພາດໄດ້ ສຳລັບການຕັດສິນໃຈສຳຄັນ ກະລຸນາປຶກສາຜູ້ຊ່ຽວຊານທີ່ມີຄຸນສົມບັດ",
     "readAloud": {
@@ -405,9 +410,12 @@
     "sanitizingPrompt": "ກຳລັງຊຳລະລ້າງ"
   },
   "ActionTrigger": {
-    "autoPickLabel": "ເລືອກໄພ່ໃຫ້ອັດຕະໂນມັດ:",
+    "autoPickLabel": "ເລືອກໄພ່ໃຫ້ອັດຕະໂນມັດ",
     "autoPickOn": "ເປີດ",
     "autoPickOff": "ປິດ",
+    "composerSuggestionsLabel": "ຄຳຖາມຕໍ່ຍອດ",
+    "composerSuggestionsOn": "ເປີດ",
+    "composerSuggestionsOff": "ປິດ",
     "newBirthInfo": "ຂໍ້ມູນວັນເກີດ",
     "editBirthInfo": "ແກ້ໄຂຂໍ້ມູນວັນເກີດ",
     "birthInfo": "ຂໍ້ມູນວັນເກີດ: {date}",
@@ -428,7 +436,10 @@
     "horoscope": "ດວງຊະຕາ",
     "chat": "ແຊັດ",
     "horoscopeLoginRequired": "ເຂົ້າສູ່ລະບົບເພື່ອໃຊ້ດວງຊະຕາ",
-    "composerSettingsAriaLabel": "ການຕັ້ງຄ່າການອ່ານ"
+    "composerSettingsAriaLabel": "ການຕັ້ງຄ່າການອ່ານ",
+    "composerSettingsPanelTitle": "ການຕັ້ງຄ່າ",
+    "composerSettingsSectionPreferences": "ຄ່າທີ່ນິຍົມ",
+    "composerSettingsSectionActions": "ການດຳເນີນການ"
   },
   "About": {
     "whatIs": "ແມ່ນຫຍັງ",
@@ -692,7 +703,9 @@
   },
   "QuestionInput": {
     "label": "ຄຳຖາມຂອງທ່ານ",
-    "placeholder": "ພິມຄຳຖາມຂອງທ່ານ..."
+    "placeholder": "ພິມຄຳຖາມຂອງທ່ານ...",
+    "followUpSuggestionLabel": "ຄຳແນະນຳຕໍ່ຄຳຖາມ",
+    "dismissFollowUpStrip": "ປິດຄຳແນະນຳແລະທາງລັດໃນຊ່ອງຂຽນ"
   },
   "Prompts": {
     "title": "ແຮງບັນດານໃຈສຳລັບຄຳຖາມ",

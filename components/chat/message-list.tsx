@@ -6,7 +6,11 @@ import {
     type ReactNode,
     type RefObject,
     type SetStateAction,
+    useCallback,
+    useEffect,
+    useLayoutEffect,
     useMemo,
+    useRef,
     useState,
 } from "react"
 import ActionSection from "@/components/tarot/interpretation/action"
@@ -302,6 +306,13 @@ type MessageListProps = {
     lastAssistantMessageRef: RefObject<HTMLDivElement | null>
     insufficientStarsRef: RefObject<HTMLDivElement | null>
     messagesEndRef: RefObject<HTMLDivElement | null>
+    /** Ref to the fixed composer bar; used to subtract its height from the visible viewport when deciding whether the interpretation tail is still in view. */
+    composerRef?: RefObject<HTMLElement | null>
+    /** When set, notifies parent so a scroll-to-bottom control can live above the composer. */
+    onComposerScrollDownChange?: (state: {
+        visible: boolean
+        scrollToBottom?: () => void
+    }) => void
 }
 
 export default function MessageList({
@@ -349,6 +360,8 @@ export default function MessageList({
     lastAssistantMessageRef,
     insufficientStarsRef,
     messagesEndRef,
+    composerRef,
+    onComposerScrollDownChange,
 }: MessageListProps) {
     const t = useTranslations("Home")
     const tPanel = useTranslations("PlanetaryPanel")
@@ -365,10 +378,98 @@ export default function MessageList({
         return map
     }, [messages])
 
+    const lastAssistantIndex = useMemo(() => {
+        for (let i = messages.length - 1; i >= 0; i -= 1) {
+            if (messages[i].role === "assistant") return i
+        }
+        return -1
+    }, [messages])
+
+    const scrollRootRef = useRef<HTMLDivElement | null>(null)
+    const interpretationSentinelRef = useRef<HTMLDivElement | null>(null)
+    const [showScrollToBottomFab, setShowScrollToBottomFab] = useState(false)
+
+    const recomputeScrollToBottomFab = useCallback(() => {
+        if (typeof window === "undefined") return
+        if (!hasInterpretation) {
+            setShowScrollToBottomFab(false)
+            return
+        }
+        const sentinel = interpretationSentinelRef.current
+        if (!sentinel) {
+            setShowScrollToBottomFab(false)
+            return
+        }
+        const doc = document.documentElement
+        const fromThreadBottom =
+            doc.scrollHeight - window.scrollY - window.innerHeight
+        const notAtThreadBottom = fromThreadBottom > 72
+        const composerInset = composerRef?.current?.offsetHeight ?? 0
+        const viewportBottom = window.innerHeight - composerInset
+        const sr = sentinel.getBoundingClientRect()
+        const bandPx = 112
+        const bandTop = viewportBottom - bandPx
+        const interpretationTailInLowerBand =
+            sr.bottom > bandTop && sr.top < viewportBottom
+        setShowScrollToBottomFab(
+            notAtThreadBottom && !interpretationTailInLowerBand,
+        )
+    }, [hasInterpretation, composerRef])
+
+    useEffect(() => {
+        if (typeof window === "undefined") return
+        const onScroll = () => recomputeScrollToBottomFab()
+        const ro = new ResizeObserver(() => recomputeScrollToBottomFab())
+        ro.observe(document.documentElement)
+        const composerEl = composerRef?.current
+        if (composerEl) ro.observe(composerEl)
+        window.addEventListener("scroll", onScroll, { passive: true })
+        window.addEventListener("resize", onScroll, { passive: true })
+        recomputeScrollToBottomFab()
+        return () => {
+            window.removeEventListener("scroll", onScroll)
+            window.removeEventListener("resize", onScroll)
+            ro.disconnect()
+        }
+    }, [recomputeScrollToBottomFab, composerRef, messages, lastAssistantIndex])
+
+    useLayoutEffect(() => {
+        recomputeScrollToBottomFab()
+    }, [recomputeScrollToBottomFab, messages, lastAssistantIndex])
+
+    useEffect(() => {
+        if (!onComposerScrollDownChange) return
+        if (!hasMessages) {
+            onComposerScrollDownChange({ visible: false })
+            return
+        }
+        const scrollToBottom = () => {
+            if (typeof window === "undefined") return
+            window.scrollTo({
+                top: document.documentElement.scrollHeight,
+                behavior: "smooth",
+            })
+        }
+        onComposerScrollDownChange({
+            visible: showScrollToBottomFab,
+            scrollToBottom,
+        })
+    }, [
+        hasMessages,
+        showScrollToBottomFab,
+        messages,
+        lastAssistantIndex,
+        onComposerScrollDownChange,
+    ])
+
     if (!hasMessages) return null
 
     return (
-        <div className='flex-1 overflow-y-auto px-4 pt-6'>
+        <div className='flex-1 min-h-0 relative flex flex-col'>
+            <div
+                ref={scrollRootRef}
+                className='min-h-0 flex-1 overflow-y-auto px-4 pt-6'
+            >
             <div className='mx-auto max-w-3xl space-y-6 text-left'>
                 {messages.map((message, messageIndex) => {
                     const detailToggle = panelDetailToggles[message.id] ?? {
@@ -962,6 +1063,15 @@ export default function MessageList({
                             )}
                             {message.role === "assistant" &&
                                 message.variant !== "tool" &&
+                                messageIndex === lastAssistantIndex && (
+                                    <div
+                                        ref={interpretationSentinelRef}
+                                        className='h-0 w-full shrink-0 overflow-hidden pointer-events-none'
+                                        aria-hidden
+                                    />
+                                )}
+                            {message.role === "assistant" &&
+                                message.variant !== "tool" &&
                                 message.streamStopped && (
                                     <div className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90'>
                                         <Square className='h-3.5 w-3.5 shrink-0 fill-current' />
@@ -1115,6 +1225,7 @@ export default function MessageList({
                     </p>
                 )}
                 <div ref={messagesEndRef} />
+            </div>
             </div>
         </div>
     )

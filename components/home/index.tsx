@@ -31,6 +31,10 @@ import {
     loadAutoPickFromStorage,
     saveAutoPickToStorage,
 } from "@/lib/auto-pick-storage"
+import {
+    loadComposerSuggestionsEnabledFromStorage,
+    saveComposerSuggestionsEnabledToStorage,
+} from "@/lib/composer-suggestions-storage"
 import type { HoroscopeBirthData } from "@/types/horoscope"
 
 export default function Home() {
@@ -51,8 +55,12 @@ export default function Home() {
     const inputContainerRef = useRef<HTMLDivElement>(null)
     const fixedBarRef = useRef<HTMLDivElement>(null)
     const [fixedBarHeight, setFixedBarHeight] = useState(0)
-    const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(null)
+    const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(
+        null,
+    )
     const [autoPickOn, setAutoPickOn] = useState(false)
+    const [composerSuggestionsEnabled, setComposerSuggestionsEnabled] =
+        useState(true)
     const linkingAbortControllerRef = useRef<AbortController | null>(null)
     const linkingRequestIdRef = useRef(0)
     const pendingSessionIdRef = useRef<string | null>(null)
@@ -68,6 +76,9 @@ export default function Home() {
         setInterpretationMode(loadInterpretationModeFromStorage())
         setSavedBirth(loadBirthFromStorage())
         setAutoPickOn(loadAutoPickFromStorage())
+        setComposerSuggestionsEnabled(
+            loadComposerSuggestionsEnabledFromStorage(),
+        )
     }, [])
 
     useEffect(() => {
@@ -133,6 +144,11 @@ export default function Home() {
             saveAutoPickToStorage(next)
             return next
         })
+    }
+
+    const handleComposerSuggestionsEnabledChange = (enabled: boolean) => {
+        setComposerSuggestionsEnabled(enabled)
+        saveComposerSuggestionsEnabledToStorage(enabled)
     }
 
     const createPendingSessionId = () =>
@@ -299,14 +315,15 @@ export default function Home() {
                   (p): p is string => typeof p === "string",
               )
             : []
-        const cardQ = tHome("quickCardQuestions.cardReading")
-        const horoQ = tHome("quickCardQuestions.todayHoroscope")
-        return [...arr, cardQ, horoQ].filter(Boolean)
+        const tarotQ = tHome("quickCardQuestions.tarotCard")
+        const birthQ = tHome("quickCardQuestions.birthChart")
+        const horoQ = tHome("quickCardQuestions.horoscope")
+        return [...arr, tarotQ, birthQ, horoQ].filter(Boolean)
     }, [tHome])
 
     const pickRandomQuestion = () => {
         if (randomQuestionPool.length === 0)
-            return tHome("quickCardQuestions.cardReading")
+            return tHome("quickCardQuestions.tarotCard")
         return randomQuestionPool[
             Math.floor(Math.random() * randomQuestionPool.length)
         ]
@@ -407,17 +424,6 @@ export default function Home() {
                 ref={fixedBarRef}
                 className='fixed bottom-0 left-0 right-0 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 transition-all duration-500'
             >
-                {showQuickCards ? (
-                    <div className='mx-auto w-full max-w-3xl px-4'>
-                        <div className='transition-all duration-300 opacity-100'>
-                            <HomeQuickCards
-                                onCardClick={createSessionAndRedirect}
-                                disabled={isLinking}
-                            />
-                        </div>
-                    </div>
-                ) : null}
-
                 <QuestionInput
                     id='home-question-input'
                     value={question}
@@ -433,6 +439,10 @@ export default function Home() {
                         showAutoPick: true,
                         autoPickOn,
                         onToggleAutoPick: handleToggleAutoPick,
+                        showComposerSuggestionsToggle: true,
+                        composerSuggestionsEnabled,
+                        onComposerSuggestionsEnabledChange:
+                            handleComposerSuggestionsEnabledChange,
                         exposeBirthDrawInMenu: false,
                         savedBirth,
                         onBirthInfoClick: () => {
@@ -444,7 +454,20 @@ export default function Home() {
                         cardUi: CARD_UI_TEXT[normalizeLocale(locale)],
                         onScrollToDraw: () => {},
                     }}
-                    actionTrigger={null}
+                    actionTrigger={
+                        showQuickCards && !isLinking ? (
+                            <div className='w-full space-y-2 text-left'>
+                                <p className='text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70'>
+                                    {tHome("quickFeaturesLabel")}
+                                </p>
+                                <HomeQuickCards
+                                    embedded
+                                    onCardClick={createSessionAndRedirect}
+                                    disabled={isLinking}
+                                />
+                            </div>
+                        ) : null
+                    }
                     // disclaimerText={disclaimerText}
                     showDisclaimer={true}
                     error={
