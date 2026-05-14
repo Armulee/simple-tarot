@@ -92,20 +92,27 @@ export const outputRules = `
 
 <language_mirroring>
 - Infer the response language ONLY from the user's question text.
-- Write ALL output (cardInsights, keywords, keyMessage, interpretation, conclusion, suggestions) in the SAME language as the question.
+- Write ALL output (cardInsights, headline, subtitle, keyMessage, perCard.sentence, keywords, interpretation, nextStep, conclusion, suggestions) in the SAME language as the question.
 - English question -> English. Thai question -> Thai. Spanish -> Spanish. Any language -> match it.
+- perCard.cardName is the only exception — it must echo the input card name verbatim.
 </language_mirroring>
 </strict_output_rules>
 
 <output_schema>
-Return valid JSON only. CRITICAL: Output cardInsights FIRST (they appear above the main reading in the UI).
+Return valid JSON only. CRITICAL streaming order: cardInsights → headline → subtitle → keyMessage → perCard → keywords → interpretation → nextStep → conclusion → suggestions.
 {
-  "cardInsights": ["A one-sentence meaning for card 1 as it relates to the user's question. Impersonal wording only. Not a summary of the whole reading.", "A one-sentence meaning for card 2 as it relates to the user's question. Impersonal wording only. Not a summary of the whole reading.", ...],
+  "cardInsights": ["Ultra-short strip line for card 1 — ≤12 Thai words or ≤10 English words, one clause. Impersonal. Not the whole reading.", "Same for card 2...", ...],
+  "headline": "The verdict. ≤10 Thai words. Same language as the question. No card names. No Markdown.",
+  "subtitle": "The nuance / condition / caveat behind the headline. ≤20 Thai words. Must not repeat the headline verbatim.",
+  "keyMessage": "Back-compat. Set this to headline + ' ' + subtitle. Do not invent new content.",
+  "perCard": [
+    { "cardName": "exact card name from <cards>", "sentence": "What THIS card contributes. ≤25 words. Concrete to the question's domain. No generic spiritual language. No card name inside the sentence." }
+  ],
   "keywords": "keyword1, keyword2, keyword3",
-  "keyMessage": "A short summary of the most important takeaway. 1 short sentence, optionally 2 very short sentences.",
-  "interpretation": "A concise 1-2 sentence detail paragraph. Pure text. No card names. No Markdown. Expands on the keyMessage without repeating it verbatim and does not restate the user's question.",
-  "conclusion": "A short, calming wrap-up.",
-  "suggestions": ["Follow-up 1", "Follow-up 2", "Follow-up 3", "Follow-up 4"]
+  "interpretation": "Back-compat. Set this to perCard[].sentence joined together as one short paragraph. Do not invent new content.",
+  "nextStep": "A soft suggestion. MUST start with a non-commanding verb (ลอง / อาจ / try / consider / maybe). NEVER start with ต้อง / ควร framed as command / must / should.",
+  "conclusion": "Back-compat. Set this equal to nextStep. Do not invent new content.",
+  "suggestions": ["Short casual prompt 1", "Short casual prompt 2", "Short casual prompt 3"]
 }
 </output_schema>
 
@@ -113,7 +120,7 @@ Return valid JSON only. CRITICAL: Output cardInsights FIRST (they appear above t
 - Each item in cardInsights must describe the meaning of one specific card as it relates to the user's question.
 - cardInsights are per-card meanings, not the main takeaway and not a mini version of keyMessage.
 - Think "what energy or role is this card adding?" not "what is the final answer?"
-- Keep each cardInsights item to one short sentence.
+- LENGTH (strict): These render in a tiny italic quote under the card art. Each item MUST be an ultra-short single line: ≤12 Thai words OR ≤10 English words (match question language). One clause — no semicolons; avoid comma splices. Prefer ~8 words when possible.
 - Write cardInsights in an impersonal, objective style.
 - Do NOT address the user directly or mention the user as an entity.
 - Do NOT use wording like "you", "yourself", "คุณ", "ตัวเอง", or similar user-referential forms.
@@ -121,17 +128,56 @@ Return valid JSON only. CRITICAL: Output cardInsights FIRST (they appear above t
 - Do not mention card names, position labels, or say "this card".
 </cardinsight_rules>
 
+<headline_rules>
+- headline is the VERDICT — the single most important takeaway, phrased as a leaning ("น่าจะ...", "likely...", "the signals point to...") not as an absolute fact.
+- Length: ≤10 Thai words, or the equivalent terse length in the question's language (e.g. ~8 English words).
+- No card names. No Markdown. No surrounding quotes. No emoji.
+- Same language as the user's question.
+- For HOW/STRATEGY questions, the headline must be the strategic direction — never "yes, you will succeed".
+</headline_rules>
+
+<subtitle_rules>
+- subtitle holds the nuance, condition, or caveat that sits under the headline.
+- Length: ≤20 Thai words / equivalent in the question's language.
+- Must NOT repeat the headline verbatim. Must add real information (a "but/and" beat).
+- Plain text, same tone rules as headline.
+</subtitle_rules>
+
+<per_card_rules>
+- perCard.length MUST equal the number of cards in <cards>, in the SAME ORDER.
+- perCard[i].cardName MUST exactly match cards[i] (same spelling, same casing).
+- perCard[i].sentence describes what THAT specific card contributes to the answer — concrete to the question's domain (career, content, relationship, etc.), not generic life advice, not a restatement of the headline.
+- Length: ≤25 words per sentence, same language as the question.
+- Do NOT include the card name inside the sentence text. Do NOT use "this card" / "the card" phrasing.
+- Do NOT make every sentence sound the same — each card must add a distinct beat.
+</per_card_rules>
+
+<next_step_rules>
+- nextStep is one short, soft suggestion the user could try.
+- It MUST start with a non-commanding verb. ALLOWED Thai openers: "ลอง", "อาจ", "เผื่อ", "อาจจะ". ALLOWED English openers: "Try", "Consider", "Maybe", "You could".
+- FORBIDDEN openers: "ต้อง", "ควร" used as a command, "must", "should", "have to", "need to" used as a command.
+- One short sentence, same language as the question.
+- No Markdown, no card names.
+</next_step_rules>
+
 <suggestion_rules>
-- Return only 3-4 suggestions.
-- Suggestions must feel like natural real-life questions the user could genuinely ask next.
-- Keep suggestions generic enough to stand on their own.
-- Do NOT make suggestions depend on the exact wording of the generated interpretation, keyMessage, or conclusion.
-- Do NOT quote or closely paraphrase the AI-generated reading.
-- Write each suggestion as a user question.
+- Return EXACTLY 3–4 suggestions — never fewer than 3, never more than 4.
+- Each one must be VERY short (aim ≤8 Thai words or ≤6 English words), single line, casual human phrasing — like quick text ideas, not essay prompts.
+- All suggestions MUST be distinctly different angles (topic, perspective, or scope) — not paraphrases of each other.
+- Keep them generic enough to stand on their own — do NOT depend on the exact wording of the generated headline/subtitle/perCard/nextStep, and do NOT quote or closely paraphrase any generated text.
+- Same language as the user's question.
 </suggestion_rules>
+
+<back_compat_rules>
+- keyMessage, interpretation, and conclusion are back-compat fields for legacy consumers. Derive them from the new fields:
+  - keyMessage = headline + ' ' + subtitle (one short paragraph).
+  - interpretation = perCard[].sentence joined with spaces (one short paragraph).
+  - conclusion = nextStep (verbatim).
+- Do NOT write fresh content into the back-compat fields. They must be deterministic restatements of the new fields.
+</back_compat_rules>
 
 <follow_up_prior_reading>
 - When the prompt includes a prior interpretation or session context for a follow-up: use it only to understand topic continuity. It is not the answer.
-- keyMessage, interpretation, conclusion, and cardInsights must follow from the current spread and reading_direction. Do NOT copy or closely paraphrase the prior interpretation. Do not meta-reference "last time" unless the user explicitly asks about the earlier reading.
+- headline, subtitle, perCard, nextStep, and cardInsights must follow from the current spread and reading_direction. Do NOT copy or closely paraphrase the prior interpretation. Do not meta-reference "last time" unless the user explicitly asks about the earlier reading.
 </follow_up_prior_reading>
 `

@@ -2,17 +2,8 @@
 
 import { type ReactNode, useState } from "react"
 import Image from "next/image"
-import {
-    ChevronDown,
-    ChevronUp,
-    Layers,
-    Minus,
-    MoveHorizontal,
-    Sparkles,
-    Square,
-    Star,
-    Triangle,
-} from "lucide-react"
+import { ChevronDown, ChevronUp, Sparkles, Star } from "lucide-react"
+import { AspectIcon } from "@/components/astrology/aspect-icon"
 import { Eye } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
@@ -337,22 +328,6 @@ function getPersonalizedAspectEvents(
             return a.orb - b.orb
         })
         .slice(0, Math.max(6, exactEvents.length + rangeEvents.length))
-}
-
-function AspectIcon({ aspectType }: { aspectType: string }) {
-    if (aspectType === "conjunction") {
-        return <Layers className='h-4 w-4 text-cyan-200' />
-    }
-    if (aspectType === "opposition") {
-        return <MoveHorizontal className='h-4 w-4 text-cyan-200' />
-    }
-    if (aspectType === "square") {
-        return <Square className='h-4 w-4 text-cyan-200' />
-    }
-    if (aspectType === "trine") {
-        return <Triangle className='h-4 w-4 text-cyan-200' />
-    }
-    return <Minus className='h-4 w-4 text-cyan-200' />
 }
 
 type ToggleItem = {

@@ -319,11 +319,12 @@
     },
     "description": "Your personalized AI fortune teller",
     "prompts": [
-      "What is blocking my next step forward?",
-      "How can I align with my true purpose?",
-      "What is the message for me from the stars?",
-      "What will happen in my career path?",
-      "What should I focus on in love this month?"
+      "Will my ex come back?",
+      "Does he still think about me?",
+      "Should I quit my job?",
+      "When am I going to meet someone real?",
+      "Why do I keep falling for the wrong people?",
+      "Is this year going to get better for me?"
     ],
     "astrologyFeature": {
       "title1": "Starlit Transit",
@@ -336,18 +337,23 @@
     "tourInstruction": "Type your question you want to ask your fate in here:",
     "tourExamples": "e.g. \"What is the message I need to hear today?\" or \"How can I find clarity in my career?\"",
     "learnMore": "Learn More",
+    "quickFeaturesLabel": "Try our features",
     "quickCards": {
-      "cardReading": "Do the card reading",
-      "todayHoroscope": "Today horoscope"
+      "tarotCard": "Tarot Card",
+      "birthChart": "Birth Chart",
+      "horoscope": "Horoscope"
     },
     "quickCardQuestions": {
-      "cardReading": "What is the message I need to hear today?",
-      "todayHoroscope": "What is my horoscope for today?"
+      "tarotCard": "Draw me a tarot card",
+      "birthChart": "Tell me my birth chart",
+      "horoscope": "What is my horoscope for today"
     },
     "selectedCards": "You have selected {selectedCount}/{cardsToSelect} cards",
     "consulting": "Consulting",
     "enterBirthDate": "Please enter your birth date",
     "streamStopped": "Response stopped",
+    "scrollToBottom": "Scroll to bottom",
+    "scrollToBottomAria": "Scroll to the bottom of the conversation",
     "checkingStars": "Checking your star balance...",
     "disclaimer": "Do not trust or rely on this interpretation blindly. AskingFate uses AI and may make mistakes. For important decisions, please consult a qualified professional.",
     "readAloud": {
@@ -392,9 +398,12 @@
     "sanitizingPrompt": "Purifying"
   },
   "ActionTrigger": {
-    "autoPickLabel": "Auto pick card:",
+    "autoPickLabel": "Auto pick card",
     "autoPickOn": "on",
     "autoPickOff": "off",
+    "composerSuggestionsLabel": "Suggested replies",
+    "composerSuggestionsOn": "on",
+    "composerSuggestionsOff": "off",
     "newBirthInfo": "New birth info",
     "editBirthInfo": "Edit birth info",
     "birthInfo": "Birth info: {date}",
@@ -414,7 +423,11 @@
     "tarot": "Tarot",
     "horoscope": "Horoscope",
     "chat": "Chat",
-    "horoscopeLoginRequired": "Sign in to use horoscope"
+    "horoscopeLoginRequired": "Sign in to use horoscope",
+    "composerSettingsAriaLabel": "Reading settings",
+    "composerSettingsPanelTitle": "Settings",
+    "composerSettingsSectionPreferences": "Preferences",
+    "composerSettingsSectionActions": "Actions"
   },
   "About": {
     "whatIs": "What is",
@@ -678,10 +691,13 @@
   },
   "QuestionInput": {
     "label": "Your question",
-    "placeholder": "Type your question..."
+    "placeholder": "Type your question...",
+    "followUpSuggestionLabel": "Suggested follow-ups",
+    "dismissFollowUpStrip": "Dismiss suggestions and composer shortcuts"
   },
   "Prompts": {
     "title": "An inspiring prompts",
+    "label": "Suggestion Prompt",
     "show": "Show",
     "hide": "Hide",
     "selectCategory": "Select a category",
@@ -689,92 +705,92 @@
       "daily-life": {
         "name": "Daily Life",
         "questions": [
-          "How can I find more balance in my life?",
-          "What do I need to let go of?",
-          "How can I make better decisions?",
-          "What is the universe trying to tell me?",
-          "What should I focus on today?",
-          "How can I improve my daily routine?",
-          "What habits should I change?",
-          "How can I be more mindful?"
+          "How to find balance?",
+          "What to let go of?",
+          "Make better decisions?",
+          "Universe’s message for me?",
+          "Focus for today?",
+          "Improve my routine?",
+          "Habits to change?",
+          "Be more mindful?"
         ]
       },
       "work-career": {
         "name": "Work & Career",
         "questions": [
-          "What should I focus on in my career right now?",
-          "Should I take this new opportunity?",
-          "How can I advance in my current role?",
-          "What skills should I develop?",
-          "Is it time for a career change?",
-          "How can I improve my work relationships?",
-          "What is blocking my professional growth?",
-          "Should I start my own business?"
+          "Career focus now?",
+          "Take this opportunity?",
+          "Advance in my role?",
+          "Skills to develop?",
+          "Time to change careers?",
+          "Better work relationships?",
+          "What blocks my growth?",
+          "Start my own business?"
         ]
       },
       "financial": {
         "name": "Financial",
         "questions": [
-          "How can I improve my financial situation?",
-          "Should I make this investment?",
-          "What is my financial future looking like?",
-          "How can I save more money?",
-          "Is this the right time to buy a house?",
-          "What financial goals should I set?",
-          "How can I reduce my expenses?",
-          "Should I change my investment strategy?"
+          "Improve my finances?",
+          "Make this investment?",
+          "My financial future?",
+          "Save more money?",
+          "Right time to buy?",
+          "Financial goals to set?",
+          "Reduce my expenses?",
+          "Change investment strategy?"
         ]
       },
       "love-romance": {
         "name": "Love & Romance",
         "questions": [
-          "What should I know about my love life?",
-          "Is this person right for me?",
-          "How can I attract the right partner?",
-          "Should I confess my feelings?",
-          "What is blocking my romantic life?",
-          "How can I improve my current relationship?",
-          "Is it time to move on?",
-          "What does my future hold in love?"
+          "About my love life?",
+          "Is this person right?",
+          "Attract the right partner?",
+          "Confess my feelings?",
+          "What blocks my love life?",
+          "Improve this relationship?",
+          "Time to move on?",
+          "My future in love?"
         ]
       },
       "family": {
         "name": "Family",
         "questions": [
-          "How can I improve my family relationships?",
-          "What does my family need from me?",
-          "How can I resolve family conflicts?",
-          "Should I have this difficult conversation?",
-          "What is my role in the family?",
-          "How can I support my family better?",
-          "What family patterns should I break?",
-          "How can I create better family harmony?"
+          "Better family ties?",
+          "What family needs?",
+          "Resolve family conflict?",
+          "Have this hard talk?",
+          "My role in family?",
+          "Support family better?",
+          "Family patterns to break?",
+          "Create family harmony?"
         ]
       },
       "friendship-relationships": {
         "name": "Friendship & Relationships",
         "questions": [
-          "How can I improve my relationships?",
-          "Should I end this friendship?",
-          "How can I make new friends?",
-          "What is causing relationship problems?",
-          "How can I be a better friend?",
-          "Should I trust this person?",
-          "How can I resolve this conflict?",
-          "What boundaries should I set?"
+          "Improve my relationships?",
+          "End this friendship?",
+          "Make new friends?",
+          "Cause of conflict?",
+          "Be a better friend?",
+          "Trust this person?",
+          "Resolve this conflict?",
+          "Boundaries to set?"
         ]
       },
       "personal-growth": {
         "name": "Personal Growth",
         "questions": [
-          "What is blocking my personal growth?",
-          "How can I overcome my current challenges?",
-          "What is my soul's purpose?",
-          "How can I develop my intuition?",
-          "What limiting beliefs should I release?",
-          "How can I build more confidence?",
-          "What spiritual path should I follow?",
-          "How can I find inner peace?"
+          "What blocks my growth?",
+          "Overcome my challenges?",
+          "My soul’s purpose?",
+          "Develop my intuition?",
+          "Beliefs to release?",
+          "Build more confidence?",
+          "My spiritual path?",
+          "Find inner peace?"
         ]
       }
     }
@@ -1407,10 +1423,17 @@
       "title": "Your Reading",
       "sectionTitle": "Interpretation",
       "sectionSubtitle": "AI-powered analysis of your cards",
+      "detailed": {
+        "label": "Detailed"
+      },
       "error": "Failed to generate interpretation. Please try again.",
       "loading": {
         "title": "Analyzing your cards...",
         "subtitle": "Generating your personalized interpretation..."
+      },
+      "perCard": {
+        "singleHeader": "The card says",
+        "multiHeader": "Each card says"
       },
       "actionsHeader": "Actions",
       "actionsDesc": "Manage and interact with your reading",
@@ -2456,7 +2479,36 @@
     "composerBirthPlaceholder": "Type your birth date, birth time, and location here. Any date format is okay.",
     "underAgeWarningTitle": "Birth date not allowed",
     "underAgeWarningBody": "AskingFate is not available to users under thirteen (13) years old. Your previous birth date has been restored.",
-    "underAgeWarningClose": "Close"
+    "underAgeWarningClose": "Close",
+    "tabs": {
+      "overview": "Overview",
+      "aspect": "Aspect",
+      "transit": "Transit"
+    },
+    "verdict": {
+      "moodGood": "Good Day",
+      "moodCaution": "Be Mindful",
+      "moodRest": "Rest Day",
+      "actionsHeading": "Try this",
+      "watchHeading": "Watch out",
+      "focusHeading": "Focus",
+      "dateRelativeToday": "Today",
+      "dateRelativeTomorrow": "Tomorrow",
+      "dateRelativeYesterday": "Yesterday"
+    },
+    "transit": {
+      "feedTitle": "Active transits",
+      "showMore": "Show more",
+      "showLess": "Show less",
+      "transitLabel": "Transit",
+      "natalLabel": "Natal",
+      "emptyFallback": "Showing the full reading for this day.",
+      "aspectConjunction": "conjunct",
+      "aspectOpposition": "opposite",
+      "aspectSquare": "square",
+      "aspectTrine": "trine",
+      "aspectSextile": "sextile"
+    }
   },
   "Settings": {
     "title": "Settings",
