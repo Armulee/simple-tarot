@@ -1,42 +1,21 @@
 "use client"
 
-import { useTranslations, useLocale } from "next-intl"
+import { useTranslations } from "next-intl"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { FreeMode, Mousewheel } from "swiper/modules"
 import { CornerDownRight, MapPin, Sparkles, X } from "lucide-react"
 import "swiper/css"
 import "swiper/css/free-mode"
-import type { HoroscopeBirthData } from "@/types/horoscope"
 import type { CardUiText } from "./types"
 
-function formatBirthDate(
-    birth: HoroscopeBirthData | null,
-    locale: string,
-): string {
-    if (!birth?.day || !birth?.month || !birth?.year) return ""
-    const date = new Date(birth.year, birth.month - 1, birth.day)
-    return date.toLocaleDateString(
-        locale.startsWith("th") ? "th-TH" : "en-US",
-        {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-        },
-    )
-}
-
 type ActionTriggerProps = {
+    /** Used with `showDrawTrigger` to hide the draw chip while auto-pick is on. */
     autoPickOn?: boolean
-    onToggleAutoPick?: () => void
-    savedBirth: HoroscopeBirthData | null
-    onBirthInfoClick: () => void
     showDrawTrigger?: boolean
     showInsufficientStars?: boolean
     cardsToSelect?: number
     cardUi?: CardUiText
     onScrollToDraw?: () => void
-    onPickAll?: () => void
-    showAutoPick?: boolean
     intakeMode?: boolean
     intakeHelperText?: string
     currentLocationLabel?: string
@@ -53,6 +32,9 @@ const DUMMY_CARD_UI: CardUiText = {
     consumeStar: "",
     shuffle: "",
     pick: "",
+    cardCount: () => "",
+    decreaseCardCount: "",
+    increaseCardCount: "",
     swipe: "",
     drawCta: () => "",
     topUpCta: () => "",
@@ -62,16 +44,11 @@ const DUMMY_CARD_UI: CardUiText = {
 
 export default function ActionTrigger({
     autoPickOn = false,
-    onToggleAutoPick = () => {},
-    savedBirth,
-    onBirthInfoClick,
     showDrawTrigger = false,
     showInsufficientStars = false,
     cardsToSelect = 0,
     cardUi = DUMMY_CARD_UI,
     onScrollToDraw = () => {},
-    onPickAll = () => {},
-    showAutoPick = true,
     intakeMode = false,
     intakeHelperText,
     currentLocationLabel,
@@ -80,10 +57,6 @@ export default function ActionTrigger({
     onChooseCardInstead = () => {},
 }: ActionTriggerProps) {
     const t = useTranslations("ActionTrigger")
-    const locale = useLocale()
-
-    const birthDateStr = formatBirthDate(savedBirth, locale)
-    const hasBirthDate = Boolean(birthDateStr)
 
     const slides = intakeMode
         ? [
@@ -130,92 +103,29 @@ export default function ActionTrigger({
                   ),
               },
           ]
-        : [
-              ...(showAutoPick
-                  ? [
-                        {
-                            id: "auto-pick",
-                            content: (
-                                <button
-                                    type='button'
-                                    onClick={onToggleAutoPick}
-                                    className={buttonBase}
-                                >
-                                    <span className='text-white/85'>
-                                        {t("autoPickLabel")}
-                                    </span>
-                                    <span
-                                        className={
-                                            autoPickOn
-                                                ? "text-green-500 font-medium"
-                                                : "text-white/85 font-medium"
-                                        }
-                                    >
-                                        {autoPickOn
-                                            ? t("autoPickOn")
-                                            : t("autoPickOff")}
-                                    </span>
-                                </button>
-                            ),
-                        },
-                    ]
-                  : []),
-              {
-                  id: "birth-info",
-                  content: (
-                      <button
-                          type='button'
-                          onClick={onBirthInfoClick}
-                          className={`${buttonBase} ${
-                              hasBirthDate
-                                  ? "border-primary/30 bg-primary/10 text-white"
-                                  : ""
-                          }`}
-                      >
-                          <CornerDownRight className='size-4' />
-                          {hasBirthDate
-                              ? t("birthInfo", { date: birthDateStr })
-                              : t("newBirthInfo")}
-                      </button>
-                  ),
-              },
-              ...(showDrawTrigger && !autoPickOn
-                  ? [
-                        {
-                            id: "draw",
-                            content: (
-                                <button
-                                    type='button'
-                                    onClick={onScrollToDraw}
-                                    className={buttonBase}
-                                >
-                                    <CornerDownRight className='size-4' />
-                                    {showInsufficientStars
-                                        ? cardUi.topUpCta(cardsToSelect)
-                                        : cardUi.drawCta(cardsToSelect)}
-                                </button>
-                            ),
-                        },
-                        ...(!showInsufficientStars
-                            ? [
-                                  {
-                                      id: "pick-all",
-                                      content: (
-                                          <button
-                                              type='button'
-                                              onClick={onPickAll}
-                                              className={buttonBase}
-                                          >
-                                              <CornerDownRight className='size-4' />
-                                              {cardUi.pickAllCta()}
-                                          </button>
-                                      ),
-                                  },
-                              ]
-                            : []),
-                    ]
-                  : []),
-          ]
+        : showDrawTrigger && !autoPickOn
+          ? [
+                {
+                    id: "draw",
+                    content: (
+                        <button
+                            type='button'
+                            onClick={onScrollToDraw}
+                            className={buttonBase}
+                        >
+                            <CornerDownRight className='size-4' />
+                            {showInsufficientStars
+                                ? cardUi.topUpCta(cardsToSelect)
+                                : cardUi.drawCta(cardsToSelect)}
+                        </button>
+                    ),
+                },
+            ]
+          : []
+
+    if (!intakeMode && slides.length === 0) {
+        return null
+    }
 
     return (
         <div className='space-y-3'>

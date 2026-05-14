@@ -10,9 +10,14 @@ create table if not exists public.profiles (
   birth_place text,
   job text,
   gender text,
+  consented_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Idempotent column add for existing deployments
+alter table public.profiles
+  add column if not exists consented_at timestamptz;
 
 alter table public.profiles enable row level security;
 drop policy if exists "Users can view own profile" on public.profiles;

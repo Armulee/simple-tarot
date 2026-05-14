@@ -114,6 +114,7 @@ export function LinearCardSpread({
     onProvideShuffle,
     onProvideRandomPick,
     onProvideSelectByIndices,
+    resetSignal,
     swipeLabel,
 }: {
     cardsToSelect: number
@@ -129,6 +130,7 @@ export function LinearCardSpread({
         isPicking?: boolean,
     ) => void
     onProvideSelectByIndices?: (fn: (indices: number[]) => void) => void
+    resetSignal?: number
     swipeLabel?: string
 }) {
     const t = useTranslations("ReadingPage.chooseCards")
@@ -174,6 +176,20 @@ export function LinearCardSpread({
             pendingPartialRef.current = null
         }
     }, [selected, onPartialSelect])
+
+    useEffect(() => {
+        pendingPartialRef.current = null
+        setSelected([])
+        setSelectedNames(new Set())
+        setShowSwipeOverlay(false)
+        activeElRef.current = null
+        activeNameRef.current = null
+        startYRef.current = null
+        startXRef.current = null
+        startTimeRef.current = null
+        auraOnRef.current = false
+        verticalDragActiveRef.current = false
+    }, [resetSignal])
 
     const finalizeIfDone = (next: BasicCard[], delay = 0) => {
         if (next.length === cardsToSelect) {

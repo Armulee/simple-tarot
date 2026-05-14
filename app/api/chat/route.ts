@@ -1,6 +1,11 @@
 import { streamObject } from "ai"
 
 import { chatDecisionSchema } from "@/lib/chat/decision-schema"
+import {
+    PRIVACY_REDACTION_PROMPT_RULE,
+    summarizePrivacyPlaceholdersInText,
+} from "@/lib/privacy/prompt-redaction"
+import { supabaseAdmin } from "@/lib/supabase"
 
 const MODEL = "deepseek/deepseek-v3.2"
 
@@ -83,8 +88,24 @@ If type is NOT "draw", omit spreadType and spreadReason.
 CRITICAL LANGUAGE RULE:
 Use the user's language to help classification accuracy.
 
+${PRIVACY_REDACTION_PROMPT_RULE}
 
 `
+
+async function getUserFromBearer(req: Request) {
+    if (!supabaseAdmin) return null
+    const authHeader =
+        req.headers.get("authorization") ?? req.headers.get("Authorization")
+    if (!authHeader?.startsWith("Bearer ")) return null
+    const token = authHeader.slice(7).trim()
+    if (!token) return null
+    const {
+        data: { user },
+        error,
+    } = await supabaseAdmin.auth.getUser(token)
+    if (error || !user) return null
+    return user
+}
 
 function detectQuestionLanguage(text: string): string {
     if (/[\u0E80-\u0EFF]/.test(text)) return "Lao"
@@ -107,12 +128,14 @@ function getChatDecisionPrompt({
     interpretationMode,
     contextSummary,
     savedBirthInfo,
+    isAuthenticated,
 }: {
     question: string
     history?: Array<{ role: "user" | "assistant"; text: string }>
     interpretationMode?: string | null
     contextSummary?: string | null
     savedBirthInfo?: string | null
+    isAuthenticated: boolean
 }) {
     const historyText =
         history && history.length
@@ -139,7 +162,11 @@ function getChatDecisionPrompt({
     const detectedLang = detectQuestionLanguage(question)
     const savedBirthBlock = savedBirthInfo
         ? `Saved birth profile: available (${savedBirthInfo}).`
-        : "Saved birth profile: not available. If you choose horoscope, ask the user to send their birth date and mention that birth time improves accuracy."
+        : "Saved birth profile: not available. If you choose horoscope, do not ask for birth date in the chat response; the app will collect or reuse birth data through the birth profile flow."
+
+    const anonymousHoroscopeRule = !isAuthenticated
+        ? `\nIMPORTANT: The user is NOT signed in. Horoscope readings require an account. Never set type to "horoscope". For timing or astrology questions, choose "draw" or "chat". Even if session context mentions a prior horoscope reading, do not use "horoscope" while unsigned.\n`
+        : ""
 
     return `
 ${contextBlock}Recent conversation:
@@ -148,7 +175,7 @@ ${historyText}
 User message:
 ${question}
 ${modeInstruction}
-${savedBirthBlock}
+${savedBirthBlock}${anonymousHoroscopeRule}
 DETECTED LANGUAGE: The user's message is in ${detectedLang}. Ignore the language of conversation history — only the current user message language matters.
 
 Classify the intent and return JSON.
@@ -198,10 +225,19 @@ export async function POST(req: Request) {
         const {
             question,
             history,
-            interpretationMode,
+            interpretationMode: rawInterpretationMode,
             contextSummary,
             savedBirthInfo,
         } = body ?? {}
+
+        const user = await getUserFromBearer(req)
+        const isAuthenticated = Boolean(user)
+
+        let interpretationMode = rawInterpretationMode ?? null
+        if (!isAuthenticated && interpretationMode === "horoscope") {
+            interpretationMode = null
+        }
+
         const normalizedHistory = normalizeHistory(history)
 
         if (!question) {
@@ -218,17 +254,25 @@ export async function POST(req: Request) {
                 interpretationMode,
                 contextSummary,
                 savedBirthInfo,
+                isAuthenticated,
             }),
         })
 
-        result.object.then((obj) => {
-            console.log(
-                "[chat/decision] type:",
-                obj.type,
-                "isFollowUp:",
-                obj.isFollowUp ?? false,
-            )
-        })
+        result.object
+            .then((obj) => {
+                const incoming = summarizePrivacyPlaceholdersInText(question)
+                console.log("[chat/decision] route → decision + incoming question token summary", {
+                    type: obj.type,
+                    isFollowUp: obj.isFollowUp ?? false,
+                    spreadType: obj.spreadType,
+                    spreadReason: obj.spreadReason,
+                    /** If the client sent `[Person_0]`-style tokens, they show up here (not the real names). */
+                    incomingQuestionPlaceholderStats: incoming,
+                })
+            })
+            .catch((e) => {
+                console.error("[chat/decision] final object error:", e)
+            })
 
         return result.toTextStreamResponse()
     } catch (error) {

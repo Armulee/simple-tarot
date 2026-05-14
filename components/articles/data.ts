@@ -38,4 +38,19 @@ export const ARTICLES: ArticleItem[] = [
         description: "Find answers to common questions about our services.",
         tags: ["faq", "questions", "answers", "help"],
     },
+    {
+        href: "/articles/privacy-redaction",
+        title: "Message privacy & PII redaction",
+        description:
+            "What the chat notice means and how we detect personal details in your prompts.",
+        tags: [
+            "privacy",
+            "pii",
+            "personal information",
+            "redaction",
+            "chat",
+            "security",
+            "sanitize",
+        ],
+    },
 ]

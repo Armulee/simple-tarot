@@ -5,6 +5,7 @@ import type {
     HoroscopeBirthData,
     HoroscopeTransitData,
 } from "@/types/horoscope"
+import type { PromptRedactionType } from "@/lib/privacy/prompt-redaction"
 import type { ConversationContextPayload } from "@/lib/astrology/question-context"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
 
@@ -15,6 +16,20 @@ export type AspectInsightItem = {
     insight?: string
     impact?: string
     intensity?: "low" | "medium" | "high"
+}
+
+export type RelevanceStat = {
+    label: string
+    pct: number
+}
+
+export type DailyVerdict = {
+    mood: "good" | "caution" | "rest"
+    headline: string
+    subtext: string
+    actions: string[]
+    watchOut?: string
+    focusArea?: string
 }
 
 export type SourceAspectEvent = {
@@ -31,19 +46,42 @@ export type SourceAspectEvent = {
     natalAbsoluteText?: string
 }
 
+export type PerCardSentence = {
+    cardName: string
+    sentence: string
+}
+
 export type ChatMessage = {
     id: string
     role: "user" | "assistant"
     text: string
+    /** Client-only raw text restored from sessionStorage for local display. */
+    displayText?: string
     keyMessage?: string
+    /** New tarot result schema: short verdict shown as the largest text. */
+    headline?: string
+    /** New tarot result schema: nuance / condition under the headline. */
+    subtitle?: string
+    /** New tarot result schema: per-card breakdown rendered as the chip list. */
+    perCard?: PerCardSentence[]
+    /** New tarot result schema: soft, non-commanding next step. */
+    nextStep?: string
     variant?: "plain" | "box" | "horoscope" | "tool"
     cards?: TarotCard[]
     insights?: string[]
+    /**
+     * AI-generated, decoration-rich HTML fragment that magnifies the key
+     * takeaways of a tarot reading. Rendered at the very top of the assistant
+     * message (above the "card says" section) and sanitized before display.
+     */
+    detailedHtml?: string
     cardMeanings?: string[]
     isLoading?: boolean
-    question?: string
     spreadType?: ChatDecision["spreadType"] | null
     aspectInsights?: AspectInsightItem[]
+    relevance?: RelevanceStat[]
+    /** Single-day verdict, populated only when questionRange.durationDays === 1 */
+    dailyVerdict?: DailyVerdict | null
     followUpConclusion?: string
     followUpSuggestions?: string[]
     followUpLoading?: boolean
@@ -64,6 +102,20 @@ export type ChatMessage = {
     houseMeanings?: Record<string, string> | null
     /** Birth data for loading horoscope (used for display and cancel) */
     horoscopeBirthData?: HoroscopeBirthData | null
+    /** Sanitized question persisted for assistant messages. */
+    question?: string
+    /** Client-only raw question restored from sessionStorage for local display. */
+    displayQuestion?: string
+    /** Pointer to the local-only raw prompt in sessionStorage. */
+    privacyStorageKey?: string
+    /** Pointer used to restore the raw source question for assistant UI. */
+    questionPrivacyStorageKey?: string
+    /** True while client-side PII sanitisation is in flight for this message. */
+    isSanitizing?: boolean
+    /** Indicates that identifiers were redacted before send/persist. */
+    privacyRedacted?: boolean
+    /** Placeholder categories that were applied to the prompt. */
+    privacyRedactionTypes?: PromptRedactionType[]
     /** Aspect key that triggered this message via "Ask more" */
     sourceAspectKey?: string
     /** Event data for rendering a compact card at the top of the response */
@@ -75,10 +127,16 @@ export type ChatMessage = {
             chartData: Record<string, unknown>
             text: string
             aspectInsights?: AspectInsightItem[]
+            relevance?: RelevanceStat[]
+            dailyVerdict?: DailyVerdict | null
             personalizedTransitAspects?: PersonalizedTransitAspectsResult | null
             personalizedTransitAspectsMerged?: PersonalizedTransitAspectsResult | null
             followUpConclusion?: string
             followUpSuggestions?: string[]
+            headline?: string
+            subtitle?: string
+            perCard?: PerCardSentence[]
+            nextStep?: string
         }
     >
     /** True when a stream was manually stopped and partial text should be preserved */
@@ -137,6 +195,10 @@ export type HoroscopeExtractResponse = {
 export type ChatSessionPayload = {
     id: string
     question: string
+    displayQuestion?: string
+    questionPrivacyStorageKey?: string
+    privacyRedacted?: boolean
+    privacyRedactionTypes?: PromptRedactionType[]
     messages: ChatMessage[]
     decision: ChatDecision | null
     owner_user_id?: string | null
@@ -151,6 +213,9 @@ export type CardUiText = {
     consumeStar: string
     shuffle: string
     pick: string
+    cardCount: (cardsToSelect: number) => string
+    decreaseCardCount: string
+    increaseCardCount: string
     swipe: string
     drawCta: (cardsToSelect: number) => string
     topUpCta: (cardsToSelect: number) => string

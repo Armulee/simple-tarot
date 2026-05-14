@@ -1,5 +1,9 @@
 import { streamText } from "ai"
 import { z } from "zod"
+import {
+    PRIVACY_REDACTION_PROMPT_RULE,
+    summarizePrivacyPlaceholdersInText,
+} from "@/lib/privacy/prompt-redaction"
 
 const MODEL = "deepseek/deepseek-v3.2"
 
@@ -32,6 +36,8 @@ You MUST reply in the SAME language the user wrote in.
 If the user writes in English, reply in English. If Thai, reply in Thai. Never mix.
 Write like a native speaker of that language. Avoid formal, robotic, or translated-sounding phrasing.
 
+${PRIVACY_REDACTION_PROMPT_RULE}
+
 Mode rules:
 
 If mode is chat:
@@ -49,8 +55,8 @@ If mode is draw:
 If mode is horoscope:
 - Return EXACTLY ONE sentence.
 - It MUST NOT exceed 60 characters.
-- If birth data is not available, ask for their birth date and mention that birth time helps.
-- If birth data is already available, invite them to begin the horoscope reading naturally.
+- Invite them to begin the horoscope reading naturally.
+- Do not ask for birth date or birth time.
 `
 
 function detectQuestionLanguage(text: string): string {
@@ -112,6 +118,27 @@ export async function POST(req: Request) {
             model: MODEL,
             system: CHAT_RESPONSE_SYSTEM_PROMPT,
             prompt: getChatResponsePrompt(body),
+            onFinish: ({ text }) => {
+                const out = summarizePrivacyPlaceholdersInText(text)
+                const incoming = summarizePrivacyPlaceholdersInText(
+                    body.question,
+                )
+                console.log(
+                    "[chat/respond] route → short reply finished; privacy token check",
+                    {
+                        type: body.type,
+                        isFollowUp: body.isFollowUp ?? false,
+                        promptPlaceholderStats: incoming,
+                        modelOutputPlaceholderStats: out,
+                    },
+                )
+                if (process.env.NODE_ENV === "development") {
+                    console.log(
+                        "[chat/respond] full reply text (dev only):",
+                        text,
+                    )
+                }
+            },
         })
 
         return result.toTextStreamResponse()

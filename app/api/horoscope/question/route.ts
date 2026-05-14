@@ -8,6 +8,7 @@ import {
 import { horoscopeInterpretationSchema } from "@/lib/astrology/schema"
 import { getHoroscopeInterpretationPrompt } from "@/lib/prompts"
 import { resolveQuestionTimeRangeAsync } from "@/lib/astrology/question-time-range"
+import { isSingleDayQuestionRange } from "@/lib/astrology/single-day"
 import { getCodexTransitWindow } from "@/lib/astrology/ephemeris-codex"
 import {
     isBirthChartSuitabilityQuestion,
@@ -257,14 +258,23 @@ export async function POST(req: Request) {
             userMainPoint: conversationContext?.userMainPoint ?? "",
             questionTopic,
             questionLanguage: questionLang,
+            isSingleDay: isSingleDayQuestionRange({
+                durationDays: questionRange.durationDays,
+                source: questionRange.source,
+            }),
         })
 
         console.log(
             `[horoscope/question] prompt size: ${(prompt.length / 1024).toFixed(1)}KB (~${Math.ceil(prompt.length / 4)} tokens)`,
         )
 
-        const result = await streamObject({
+        const result = streamObject({
             model: MODEL,
+            // Force JSON streaming mode so partial fields stream to the client
+            // token-by-token. The default 'auto' often resolves to tool-call
+            // mode on DeepSeek, which buffers the whole JSON payload until the
+            // tool call completes (the response then "pops in" all at once).
+            mode: "json",
             schema: horoscopeInterpretationSchema,
             system: `You are an expert astrologer who writes for a general audience with ZERO astrology knowledge.
 You respond as a female. Astra is a female oracle. Use feminine voice and perspective in all responses.
@@ -278,7 +288,7 @@ CRITICAL: You MUST write your ENTIRE response (interpretation, conclusion, sugge
 
 CRITICAL: When citing time periods, use dates in the SAME language as your output. Thai output = Thai month names (กุมภาพันธ์, มีนาคม, etc.). English output = English month names (February, March, etc.). Example: Thai "22 กุมภาพันธ์ 2026 ถึง 22 กุมภาพันธ์ 2028"; English "February 22, 2026 to February 22, 2028". Do NOT use ISO format (YYYY-MM-DD). Never mix languages (e.g. Thai text with "February").
 
-Output structure: Provide interpretation (main reading), conclusion (short calming wrap-up), and suggestions (3-5 follow-up questions the user could ask next, written as user questions).`,
+Output structure: Provide interpretation (main reading), conclusion (short calming wrap-up), and suggestions (EXACTLY 3–4 very short, casual follow-up prompts the user could ask next — single line each, like quick texts, not long formal questions).`,
             prompt,
             temperature: 0.6,
         })
