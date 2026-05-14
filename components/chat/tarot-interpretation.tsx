@@ -7,12 +7,12 @@ import ShareSection from "@/components/tarot/interpretation/share"
 import { InterpretationHeaderBar } from "@/components/chat/interpretation-header-bar"
 import type { ChatMessage } from "@/components/chat/types"
 import { LoadingDotsText } from "@/components/chat/loading-dots-text"
+import { PrivacyDetailedHtml } from "@/components/chat/privacy-detailed-html"
 import { PrivacyHighlightedText } from "@/components/chat/privacy-highlighted-user-text"
 import {
     applyAliasesToText,
     type PromptAliasEntry,
 } from "@/lib/privacy/prompt-redaction"
-import { sanitizeDetailedHtml } from "@/lib/tarot/sanitize-html"
 import { useTranslations } from "next-intl"
 import { Loader2, Share, Sparkles } from "lucide-react"
 
@@ -115,6 +115,9 @@ function formatInterpretationBody(text: string, question?: string): string[] {
     return cleanedParagraphs.slice(0, 1)
 }
 
+/** Stable fallback so `privacyAliases ?? …` does not allocate a new `[]` each render. */
+const EMPTY_PRIVACY_ALIASES: PromptAliasEntry[] = []
+
 export type TarotAssistantInterpretationProps = {
     message: ChatMessage
     messages: ChatMessage[]
@@ -160,7 +163,7 @@ export function TarotAssistantInterpretation({
 }: TarotAssistantInterpretationProps) {
     const tReading = useTranslations("ReadingPage.interpretation")
 
-    const aliases = privacyAliases ?? []
+    const aliases = privacyAliases ?? EMPTY_PRIVACY_ALIASES
     const rawMessageText = message.text || ""
     const unmaskedMessageText = unmask(rawMessageText)
     const unmaskedKeyMessage = unmask(message.keyMessage)
@@ -250,12 +253,8 @@ export function TarotAssistantInterpretation({
     }, [message.perCard])
     const hasPerCard = perCardItems.length > 0
 
-    // "Detailed" key-takeaways block — paragraphs only, sanitized to a tiny
-    // tag whitelist. Rendered between the headline/subtitle box and the hero
-    // card area so it sits above the "card say" insight quotes.
-    const safeDetailedHtml = useMemo(
-        () => sanitizeDetailedHtml(message.detailedHtml),
-        [message.detailedHtml],
+    const hasDetailedHtmlBlock = Boolean(
+        message.detailedHtml && message.detailedHtml.trim(),
     )
     const detailedLabel = (() => {
         try {
@@ -388,9 +387,19 @@ export function TarotAssistantInterpretation({
                                             />
                                         </span>
                                     ) : (
-                                        unmask(
-                                            message.insights?.[safeActiveIndex],
-                                        ) || `${consultingBase}...`
+                                        <PrivacyHighlightedText
+                                            text={
+                                                message.insights?.[
+                                                    safeActiveIndex
+                                                ]?.trim()
+                                                    ? message.insights[
+                                                          safeActiveIndex
+                                                      ]!
+                                                    : `${consultingBase}...`
+                                            }
+                                            aliases={aliases}
+                                            supportMarkdown={false}
+                                        />
                                     )}
                                     &rdquo;
                                 </p>
@@ -562,7 +571,7 @@ export function TarotAssistantInterpretation({
                                         sits directly BELOW the key message
                                         and ABOVE the perCard breakdown,
                                         with its own small uppercase label. */}
-                                    {safeDetailedHtml && (
+                                    {hasDetailedHtmlBlock && (
                                         <div className='rounded-2xl border border-yellow-400/15 bg-gradient-to-br from-yellow-500/[0.04] via-white/[0.03] to-yellow-500/[0.04] p-5 shadow-lg animate-fade-in relative overflow-hidden'>
                                             <div
                                                 aria-hidden
@@ -574,11 +583,10 @@ export function TarotAssistantInterpretation({
                                                     {detailedLabel}
                                                 </p>
                                             </div>
-                                            <div
+                                            <PrivacyDetailedHtml
+                                                html={message.detailedHtml}
+                                                aliases={aliases}
                                                 className='tarot-detailed-html text-white/90 leading-relaxed relative z-10'
-                                                dangerouslySetInnerHTML={{
-                                                    __html: safeDetailedHtml,
-                                                }}
                                             />
                                         </div>
                                     )}
