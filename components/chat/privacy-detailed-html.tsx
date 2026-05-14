@@ -10,7 +10,63 @@ import { PrivacyHighlightedText } from "@/components/chat/privacy-highlighted-us
 import { sanitizeDetailedHtml } from "@/lib/tarot/sanitize-html"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 
-const VOID_TAGS = new Set(["br"])
+/** Mirrors allowed tags in `lib/tarot/sanitize-html.ts` (excluding `br`). */
+type DetailedHtmlBlockTag =
+    | "p"
+    | "strong"
+    | "em"
+    | "b"
+    | "i"
+    | "ul"
+    | "ol"
+    | "li"
+    | "span"
+
+const BLOCK_TAGS: readonly DetailedHtmlBlockTag[] = [
+    "p",
+    "strong",
+    "em",
+    "b",
+    "i",
+    "ul",
+    "ol",
+    "li",
+    "span",
+]
+
+function isDetailedHtmlBlockTag(s: string): s is DetailedHtmlBlockTag {
+    return (BLOCK_TAGS as readonly string[]).includes(s)
+}
+
+function createDetailedHtmlBlockElement(
+    tag: DetailedHtmlBlockTag,
+    props: {
+        key: string
+        className?: string
+        children?: ReactNode | ReactNode[]
+    },
+): ReactNode {
+    switch (tag) {
+        case "p":
+            return createElement("p", props)
+        case "strong":
+            return createElement("strong", props)
+        case "em":
+            return createElement("em", props)
+        case "b":
+            return createElement("b", props)
+        case "i":
+            return createElement("i", props)
+        case "ul":
+            return createElement("ul", props)
+        case "ol":
+            return createElement("ol", props)
+        case "li":
+            return createElement("li", props)
+        case "span":
+            return createElement("span", props)
+    }
+}
 
 function childNodesToReact(
     parent: ParentNode,
@@ -36,8 +92,12 @@ function childNodesToReact(
         if (node.nodeType !== Node.ELEMENT_NODE) return
         const el = node as HTMLElement
         const tag = el.tagName.toLowerCase()
-        if (VOID_TAGS.has(tag)) {
-            out.push(createElement(tag, { key }))
+        if (tag === "br") {
+            out.push(createElement("br", { key }))
+            return
+        }
+        if (!isDetailedHtmlBlockTag(tag)) {
+            out.push(...childNodesToReact(el, aliases, key))
             return
         }
         const inner = childNodesToReact(el, aliases, key)
@@ -52,9 +112,7 @@ function childNodesToReact(
         if (inner.length > 0) {
             props.children = inner
         }
-        out.push(
-            createElement(tag as keyof JSX.IntrinsicElements, props),
-        )
+        out.push(createDetailedHtmlBlockElement(tag, props))
     })
     return out
 }
