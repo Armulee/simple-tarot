@@ -3,11 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import { resolveLocationFromCountryState } from "@/lib/location"
-import {
-    clearBirthFromStorage,
-    loadBirthFromStorage,
-    saveBirthToStorage,
-} from "@/lib/birth-storage"
+import { loadBirthFromStorage, saveBirthToStorage } from "@/lib/birth-storage"
 import type { HoroscopeBirthData } from "@/types/horoscope"
 import {
     Calendar,
@@ -16,9 +12,8 @@ import {
     MapPin,
     Sparkles,
     ChevronDown,
-    X,
+    Send,
 } from "lucide-react"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
     Popover,
     PopoverContent,
@@ -122,12 +117,12 @@ type Props = {
         timezone?: number
     } | null
     onSubmit: (value: HoroscopeBirthData) => void
+    onBeforeSubmit?: (value: HoroscopeBirthData) => boolean
     title: string
     submitLabel: string
-    /** When true, always save to storage on submit and hide the remember checkbox */
+    /** When true, always save to storage on submit */
     alwaysSave?: boolean
-    /** Called when user clears all entered/saved birth data */
-    onRemove?: () => void
+    variant?: "default" | "inlineSticky"
 }
 
 function toDateInputValue(data: HoroscopeBirthData | null) {
@@ -267,19 +262,38 @@ function parseTimeDisplay(value: string): string {
     return ""
 }
 
+function getInitialTimeMode(data: HoroscopeBirthData | null): "exact" | "day" | "night" {
+    if (data?.hour != null && data?.minute != null) return "exact"
+    if (data?.timeHint === "day") return "day"
+    if (data?.timeHint === "night") return "night"
+    return "exact"
+}
+
+function hasLocationDetails(data: HoroscopeBirthData | null | undefined): boolean {
+    return Boolean(
+        data?.country ||
+            data?.state ||
+            data?.lat != null ||
+            data?.lng != null ||
+            data?.timezone != null,
+    )
+}
+
 export default function InlineUserDateForm({
     initial,
     currentLocation,
     onSubmit,
+    onBeforeSubmit,
     title,
     submitLabel,
     alwaysSave = false,
-    onRemove,
+    variant = "default",
 }: Props) {
     const t = useTranslations("BirthForm")
+    const isInlineSticky = variant === "inlineSticky"
     const [date, setDate] = useState(toDateInputValue(initial))
     const [timeMode, setTimeMode] = useState<"exact" | "day" | "night">(
-        initial?.hour != null && initial?.minute != null ? "exact" : "exact",
+        getInitialTimeMode(initial),
     )
     const [time, setTime] = useState(
         initial?.hour != null && initial?.minute != null
@@ -298,7 +312,9 @@ export default function InlineUserDateForm({
         initial?.timezone != null ? String(initial.timezone) : "",
     )
     const [showAdvanced, setShowAdvanced] = useState(false)
-    const [rememberBirth, setRememberBirth] = useState(false)
+    const [showLocationSettings, setShowLocationSettings] = useState(
+        hasLocationDetails(initial),
+    )
     const [calendarOpen, setCalendarOpen] = useState(false)
     const [dateInputValue, setDateInputValue] = useState("")
     /** True when date was entered as B.E. (year 2400–2600); false when from calendar or C.E. input */
@@ -306,27 +322,35 @@ export default function InlineUserDateForm({
     const dateMeasureRef = useRef<HTMLSpanElement>(null)
     const [timePickerOpen, setTimePickerOpen] = useState(false)
     const [timeInputValue, setTimeInputValue] = useState("")
+    const [isSubmitted, setIsSubmitted] = useState(false)
+
+    const applyBirthToForm = (birth: HoroscopeBirthData | null) => {
+        setDate(toDateInputValue(birth))
+        setDateInputValue("")
+        setDisplayAsBE(false)
+        setTimeMode(getInitialTimeMode(birth))
+        setTime(
+            birth?.hour != null && birth?.minute != null
+                ? `${String(birth.hour).padStart(2, "0")}:${String(birth.minute).padStart(2, "0")}`
+                : "",
+        )
+        setTimeInputValue("")
+        setCountry(birth?.country || "")
+        setState(birth?.state || "")
+        setLat(birth?.lat != null ? String(birth.lat) : "")
+        setLng(birth?.lng != null ? String(birth.lng) : "")
+        setTimezone(birth?.timezone != null ? String(birth.timezone) : "")
+        setShowLocationSettings(hasLocationDetails(birth))
+    }
 
     useEffect(() => {
+        setIsSubmitted(false)
         const saved = loadBirthFromStorage()
         if (saved && !initial?.day && !initial?.month && !initial?.year) {
-            setDate(toDateInputValue(saved))
-            setDateInputValue("")
-            setDisplayAsBE(false)
-            setTimeMode(
-                saved.hour != null && saved.minute != null ? "exact" : "exact",
-            )
-            setTime(
-                saved.hour != null && saved.minute != null
-                    ? `${String(saved.hour).padStart(2, "0")}:${String(saved.minute).padStart(2, "0")}`
-                    : "",
-            )
-            setCountry(saved.country || "")
-            setState(saved.state || "")
-            setLat(saved.lat != null ? String(saved.lat) : "")
-            setLng(saved.lng != null ? String(saved.lng) : "")
-            setTimezone(saved.timezone != null ? String(saved.timezone) : "")
+            applyBirthToForm(saved)
+            return
         }
+        applyBirthToForm(initial)
     }, [initial])
 
     const dateInputDisplay = date
@@ -340,9 +364,11 @@ export default function InlineUserDateForm({
         if (timeMode === "exact" && !time) return false
         return true
     }, [date, time, timeMode])
+    const shouldPersistBirth = alwaysSave || isInlineSticky
 
     const applyCurrentLocation = () => {
         if (!currentLocation) return
+        setShowLocationSettings(true)
         setCountry(currentLocation.country || "")
         setState(currentLocation.state || "")
         if (typeof currentLocation.lat === "number") {
@@ -354,30 +380,6 @@ export default function InlineUserDateForm({
         if (typeof currentLocation.timezone === "number") {
             setTimezone(String(currentLocation.timezone))
         }
-    }
-
-    const resetForm = () => {
-        setDate("")
-        setDateInputValue("")
-        setDisplayAsBE(false)
-        setTimeMode("exact")
-        setTime("")
-        setTimeInputValue("")
-        setCountry("")
-        setState("")
-        setLat("")
-        setLng("")
-        setTimezone("")
-        setShowAdvanced(false)
-        setRememberBirth(false)
-        setCalendarOpen(false)
-        setTimePickerOpen(false)
-    }
-
-    const handleRemove = () => {
-        clearBirthFromStorage()
-        resetForm()
-        onRemove?.()
     }
 
     const submit = () => {
@@ -455,35 +457,57 @@ export default function InlineUserDateForm({
             state: resolvedState,
             usedLocationFallback,
         }
-        if (alwaysSave || rememberBirth) {
+        if (onBeforeSubmit && !onBeforeSubmit(payload)) {
+            applyBirthToForm(loadBirthFromStorage() ?? initial)
+            return
+        }
+        if (shouldPersistBirth) {
             saveBirthToStorage(payload)
-        } else if (loadBirthFromStorage()) {
-            clearBirthFromStorage()
         }
         onSubmit(payload)
+        if (isInlineSticky) {
+            setIsSubmitted(true)
+        }
     }
 
     return (
-        <div className='w-full md:max-w-[85%] overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-b from-white/[0.08] to-white/[0.02] shadow-xl shadow-black/20 backdrop-blur-sm'>
+        <div
+            className={`w-full overflow-hidden rounded-2xl border shadow-xl backdrop-blur-sm transition-all duration-500 ${
+                isInlineSticky
+                    ? `border-primary/25 bg-[#090713]/95 shadow-[0_18px_48px_-24px_rgba(99,102,241,0.65)] ${
+                          isSubmitted
+                              ? "pointer-events-none max-h-0 translate-y-6 opacity-0"
+                              : "animate-fade-up opacity-100"
+                      }`
+                    : "md:max-w-[85%] border-white/15 bg-gradient-to-b from-white/[0.08] to-white/[0.02] shadow-black/20"
+            }`}
+        >
             {/* Header */}
-            <div className='px-5 py-4 border-b border-white/10 space-y-2'>
+            <div
+                className={`border-b border-white/10 space-y-2 ${
+                    isInlineSticky ? "px-4 py-3" : "px-5 py-4"
+                }`}
+            >
                 <div className='flex items-start justify-between gap-3'>
                     <div className='flex items-center gap-2 min-w-0'>
-                        <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-primary'>
+                        <div
+                            className={`flex shrink-0 items-center justify-center rounded-xl bg-primary/20 text-primary ${
+                                isInlineSticky ? "h-8 w-8" : "h-9 w-9"
+                            }`}
+                        >
                             <Sparkles className='h-4 w-4' />
                         </div>
-                        <span className='font-semibold text-white'>{title}</span>
+                        <div className='min-w-0'>
+                            <span className='font-semibold text-white'>
+                                {title}
+                            </span>
+                            {isInlineSticky ? (
+                                <p className='mt-1 text-xs text-white/60'>
+                                    {t("inlineAccuracyHint")}
+                                </p>
+                            ) : null}
+                        </div>
                     </div>
-                    {onRemove && (
-                        <button
-                            type='button'
-                            onClick={handleRemove}
-                            className='inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white'
-                        >
-                            <X className='h-4 w-4' />
-                            <span>{t("removeBirth")}</span>
-                        </button>
-                    )}
                 </div>
                 {(() => {
                     const hasDateFromPrefill =
@@ -511,380 +535,491 @@ export default function InlineUserDateForm({
                 })()}
             </div>
 
-            <div className='space-y-5 p-5'>
-                {/* Date & Time */}
-                <div className='space-y-3'>
-                    <div className='flex items-center gap-2 text-sm text-white/70'>
-                        <Calendar className='h-4 w-4' />
-                        <span>{t("birthDate")}</span>
-                    </div>
-                    <div className='flex gap-2'>
-                        <div className='flex min-w-0 flex-1 items-center gap-1 rounded-xl border border-white/15 bg-white/5 px-4 py-3 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20'>
-                            <div
-                                className='relative flex min-w-0 shrink'
-                                style={{ width: 75 }}
-                            >
-                                <span
-                                    ref={dateMeasureRef}
-                                    className='invisible absolute left-0 top-0 whitespace-nowrap text-base text-white'
-                                    aria-hidden
+            <div className={`space-y-5 ${isInlineSticky ? "p-4" : "p-5"}`}>
+                <div
+                    className={`${
+                        isInlineSticky
+                            ? "flex min-w-0 flex-nowrap items-start gap-2 overflow-hidden"
+                            : "space-y-5"
+                    }`}
+                >
+                    <div
+                        className={`space-y-3 ${
+                            isInlineSticky ? "min-w-0 flex-[1.1]" : ""
+                        }`}
+                    >
+                        <div
+                            className={`flex items-center gap-2 text-white/70 ${
+                                isInlineSticky ? "text-xs" : "text-sm"
+                            }`}
+                        >
+                            <Calendar className='h-4 w-4' />
+                            <span>{t("birthDate")}</span>
+                        </div>
+                        <div className='flex gap-2'>
+                            <div className='flex min-w-0 flex-1 items-center gap-1 rounded-xl border border-white/15 bg-white/5 px-4 py-3 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20'>
+                                <div
+                                    className='relative flex min-w-0 shrink'
+                                    style={{ width: 75 }}
                                 >
-                                    {dateInputDisplay || t("datePlaceholder")}
-                                </span>
-                                <input
-                                    type='text'
-                                    inputMode='numeric'
-                                    placeholder={t("datePlaceholder")}
-                                    value={dateInputDisplay}
-                                    onChange={(e) => {
-                                        const v = e.target.value
-                                        const digits = v.replace(/\D/g, "")
-                                        if (digits.length === 0) {
-                                            setDate("")
-                                            setDateInputValue("")
-                                            setDisplayAsBE(false)
-                                            return
-                                        }
-                                        const formatted =
-                                            formatDateInputWithSlashes(digits)
-                                        setDateInputValue(formatted)
-                                        if (digits.length === 8) {
-                                            const yearRaw = parseInt(
-                                                formatted.slice(6, 10),
-                                                10,
-                                            )
-                                            const isBE =
-                                                yearRaw >= 2400 &&
-                                                yearRaw <= 2600
-                                            const parsed = parseDisplayFormat(
-                                                formatted,
-                                                isBE ? "BE" : "CE",
-                                            )
-                                            if (parsed) {
-                                                setDate(parsed)
+                                    <span
+                                        ref={dateMeasureRef}
+                                        className='invisible absolute left-0 top-0 whitespace-nowrap text-base text-white'
+                                        aria-hidden
+                                    >
+                                        {dateInputDisplay ||
+                                            t("datePlaceholder")}
+                                    </span>
+                                    <input
+                                        type='text'
+                                        inputMode='numeric'
+                                        placeholder={t("datePlaceholder")}
+                                        value={dateInputDisplay}
+                                        onChange={(e) => {
+                                            const v = e.target.value
+                                            const digits = v.replace(/\D/g, "")
+                                            if (digits.length === 0) {
+                                                setDate("")
                                                 setDateInputValue("")
-                                                setDisplayAsBE(isBE)
+                                                setDisplayAsBE(false)
+                                                return
+                                            }
+                                            const formatted =
+                                                formatDateInputWithSlashes(
+                                                    digits,
+                                                )
+                                            setDateInputValue(formatted)
+                                            if (digits.length === 8) {
+                                                const yearRaw = parseInt(
+                                                    formatted.slice(6, 10),
+                                                    10,
+                                                )
+                                                const isBE =
+                                                    yearRaw >= 2400 &&
+                                                    yearRaw <= 2600
+                                                const parsed =
+                                                    parseDisplayFormat(
+                                                        formatted,
+                                                        isBE ? "BE" : "CE",
+                                                    )
+                                                if (parsed) {
+                                                    setDate(parsed)
+                                                    setDateInputValue("")
+                                                    setDisplayAsBE(isBE)
+                                                } else {
+                                                    setDate("")
+                                                }
                                             } else {
                                                 setDate("")
                                             }
-                                        } else {
-                                            setDate("")
-                                        }
-                                    }}
-                                    onBlur={() => {
-                                        if (dateInputValue) {
-                                            const digits = dateInputValue.replace(
-                                                /\D/g,
-                                                "",
-                                            )
-                                            const isBE =
-                                                digits.length === 8 &&
-                                                (() => {
-                                                    const y = parseInt(
-                                                        digits.slice(4, 8),
-                                                        10,
+                                        }}
+                                        onBlur={() => {
+                                            if (dateInputValue) {
+                                                const digits =
+                                                    dateInputValue.replace(
+                                                        /\D/g,
+                                                        "",
                                                     )
-                                                    return y >= 2400 && y <= 2600
-                                                })()
-                                            const parsed = parseDisplayFormat(
-                                                dateInputValue,
-                                                isBE ? "BE" : "CE",
-                                            )
-                                            if (parsed) {
-                                                setDate(parsed)
-                                                setDateInputValue("")
-                                                setDisplayAsBE(isBE)
-                                            } else {
-                                                setDateInputValue("")
+                                                const isBE =
+                                                    digits.length === 8 &&
+                                                    (() => {
+                                                        const y = parseInt(
+                                                            digits.slice(4, 8),
+                                                            10,
+                                                        )
+                                                        return (
+                                                            y >= 2400 &&
+                                                            y <= 2600
+                                                        )
+                                                    })()
+                                                const parsed =
+                                                    parseDisplayFormat(
+                                                        dateInputValue,
+                                                        isBE ? "BE" : "CE",
+                                                    )
+                                                if (parsed) {
+                                                    setDate(parsed)
+                                                    setDateInputValue("")
+                                                    setDisplayAsBE(isBE)
+                                                } else {
+                                                    setDateInputValue("")
+                                                }
                                             }
-                                        }
-                                    }}
-                                    className='min-w-0 w-full border-0 bg-transparent p-0 text-base text-white placeholder:text-gray-400 focus:outline-none'
-                                />
+                                        }}
+                                        className='min-w-0 w-full border-0 bg-transparent p-0 text-base text-white placeholder:text-gray-400 focus:outline-none'
+                                    />
+                                </div>
+                                {(() => {
+                                    const digits = dateInputDisplay.replace(
+                                        /\D/g,
+                                        "",
+                                    )
+                                    if (digits.length !== 8) return null
+                                    const y = parseInt(digits.slice(4, 8), 10)
+                                    const isBE = y >= 2400 && y <= 2600
+                                    return (
+                                        <span className='shrink-0 text-white'>
+                                            {" "}
+                                            {isBE
+                                                ? t("yearEraBE")
+                                                : t("yearEraCE")}
+                                        </span>
+                                    )
+                                })()}
                             </div>
-                            {(() => {
-                                const digits = dateInputDisplay.replace(
-                                    /\D/g,
-                                    "",
-                                )
-                                if (digits.length !== 8) return null
-                                const y = parseInt(digits.slice(4, 8), 10)
-                                const isBE = y >= 2400 && y <= 2600
-                                return (
-                                    <span className='shrink-0 text-white'>
-                                        {" "}
-                                        {isBE ? t("yearEraBE") : t("yearEraCE")}
-                                    </span>
-                                )
-                            })()}
-                        </div>
-                        <Popover
-                            open={calendarOpen}
-                            onOpenChange={setCalendarOpen}
-                        >
-                            <PopoverTrigger asChild>
-                                <button
-                                    type='button'
-                                    className='flex shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 py-3 transition-colors hover:bg-white/[0.08] hover:border-white/20 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20'
-                                    aria-label='Open calendar'
-                                >
-                                    <CalendarDays className='h-5 w-5 text-white/80' />
-                                </button>
-                            </PopoverTrigger>
-                            <PopoverContent
-                                align='end'
-                                sideOffset={8}
-                                className='w-auto p-0 border-white/10 bg-[#0A0F26]/95 backdrop-blur-xl rounded-xl shadow-2xl overflow-hidden'
-                            >
-                                <CalendarComponent
-                                    mode='single'
-                                    selected={
-                                        date
-                                            ? new Date(date + "T12:00:00")
-                                            : undefined
-                                    }
-                                    onSelect={(d) => {
-                                        if (d) {
-                                            const y = d.getFullYear()
-                                            const m = String(
-                                                d.getMonth() + 1,
-                                            ).padStart(2, "0")
-                                            const day = String(
-                                                d.getDate(),
-                                            ).padStart(2, "0")
-                                            setDate(`${y}-${m}-${day}`)
-                                            setDateInputValue("")
-                                            setDisplayAsBE(false)
-                                            setCalendarOpen(false)
-                                        }
-                                    }}
-                                    captionLayout='dropdown'
-                                    fromYear={1900}
-                                    toYear={new Date().getFullYear()}
-                                    disabled={(d) =>
-                                        d > new Date() ||
-                                        d < new Date("1900-01-01")
-                                    }
-                                    className='rounded-xl border-0 bg-transparent'
-                                />
-                            </PopoverContent>
-                        </Popover>
-                    </div>
-                    {(() => {
-                        const displayValue = date
-                            ? toDisplayFormat(date, displayAsBE ? "BE" : "CE", {
-                                  includeSuffix: false,
-                              })
-                            : dateInputValue
-                        const err = getDateValidationError(displayValue)
-                        if (!err) return null
-                        return (
-                            <div className='flex flex-col gap-0.5 text-sm text-red-400'>
-                                {err.day && <span>{t("dateErrorDay")}</span>}
-                                {err.month && (
-                                    <span>{t("dateErrorMonth")}</span>
-                                )}
-                            </div>
-                        )
-                    })()}
-                </div>
-
-                <div className='space-y-3'>
-                    <div className='flex items-center gap-2 text-sm text-white/70'>
-                        <Clock className='h-4 w-4' />
-                        <span>{t("birthTime")}</span>
-                    </div>
-                    <div className='flex flex-wrap gap-2'>
-                        {(["exact", "day", "night"] as const).map((mode) => (
-                            <button
-                                key={mode}
-                                type='button'
-                                onClick={() => setTimeMode(mode)}
-                                className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-                                    timeMode === mode
-                                        ? "bg-primary/30 text-white ring-1 ring-primary/50"
-                                        : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
-                                }`}
-                            >
-                                {mode === "exact"
-                                    ? t("exactTime")
-                                    : mode === "day"
-                                      ? t("daytime")
-                                      : t("nighttime")}
-                            </button>
-                        ))}
-                    </div>
-                    {timeMode === "exact" && (
-                        <div className='flex gap-2'>
-                            <input
-                                type='text'
-                                inputMode='numeric'
-                                placeholder={t("timePlaceholder")}
-                                value={time ? time : timeInputValue}
-                                onChange={(e) => {
-                                    const v = e.target.value
-                                    const digits = v.replace(/\D/g, "")
-                                    if (digits.length === 0) {
-                                        setTime("")
-                                        setTimeInputValue("")
-                                        return
-                                    }
-                                    const formatted =
-                                        formatTimeInputWithColons(digits)
-                                    setTimeInputValue(formatted)
-                                    if (digits.length === 4) {
-                                        const parsed =
-                                            parseTimeDisplay(formatted)
-                                        if (parsed) {
-                                            setTime(parsed)
-                                            setTimeInputValue("")
-                                        } else {
-                                            setTime("")
-                                        }
-                                    } else {
-                                        setTime("")
-                                    }
-                                }}
-                                onBlur={() => {
-                                    if (timeInputValue) {
-                                        const parsed =
-                                            parseTimeDisplay(timeInputValue)
-                                        if (parsed) {
-                                            setTime(parsed)
-                                            setTimeInputValue("")
-                                        } else {
-                                            setTimeInputValue("")
-                                        }
-                                    }
-                                }}
-                                className='flex-1 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-white placeholder:text-gray-400 transition-colors focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20'
-                            />
                             <Popover
-                                open={timePickerOpen}
-                                onOpenChange={setTimePickerOpen}
+                                open={calendarOpen}
+                                onOpenChange={setCalendarOpen}
                             >
                                 <PopoverTrigger asChild>
                                     <button
                                         type='button'
                                         className='flex shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 py-3 transition-colors hover:bg-white/[0.08] hover:border-white/20 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20'
-                                        aria-label='Open time picker'
+                                        aria-label='Open calendar'
                                     >
-                                        <Clock className='h-5 w-5 text-white/80' />
+                                        <CalendarDays className='h-5 w-5 text-white/80' />
                                     </button>
                                 </PopoverTrigger>
                                 <PopoverContent
                                     align='end'
                                     sideOffset={8}
-                                    className='w-80 p-4 border-white/10 bg-[#0A0F26]/95 backdrop-blur-xl rounded-xl shadow-2xl overflow-hidden'
+                                    className='w-auto overflow-hidden rounded-xl border-white/10 bg-[#0A0F26]/95 p-0 shadow-2xl backdrop-blur-xl'
                                 >
-                                    <TimePickerPopover
-                                        value={time}
-                                        onChange={(val) => {
-                                            setTime(val)
-                                            setTimeInputValue("")
+                                    <CalendarComponent
+                                        mode='single'
+                                        selected={
+                                            date
+                                                ? new Date(date + "T12:00:00")
+                                                : undefined
+                                        }
+                                        onSelect={(d) => {
+                                            if (d) {
+                                                const y = d.getFullYear()
+                                                const m = String(
+                                                    d.getMonth() + 1,
+                                                ).padStart(2, "0")
+                                                const day = String(
+                                                    d.getDate(),
+                                                ).padStart(2, "0")
+                                                setDate(`${y}-${m}-${day}`)
+                                                setDateInputValue("")
+                                                setDisplayAsBE(false)
+                                                setCalendarOpen(false)
+                                            }
                                         }}
-                                        onDone={() => setTimePickerOpen(false)}
-                                        t={t}
+                                        captionLayout='dropdown'
+                                        fromYear={1900}
+                                        toYear={new Date().getFullYear()}
+                                        disabled={(d) =>
+                                            d > new Date() ||
+                                            d < new Date("1900-01-01")
+                                        }
+                                        className='rounded-xl border-0 bg-transparent'
                                     />
                                 </PopoverContent>
                             </Popover>
                         </div>
-                    )}
+                        {(() => {
+                            const displayValue = date
+                                ? toDisplayFormat(
+                                      date,
+                                      displayAsBE ? "BE" : "CE",
+                                      {
+                                          includeSuffix: false,
+                                      },
+                                  )
+                                : dateInputValue
+                            const err = getDateValidationError(displayValue)
+                            if (!err) return null
+                            return (
+                                <div className='flex flex-col gap-0.5 text-sm text-red-400'>
+                                    {err.day && (
+                                        <span>{t("dateErrorDay")}</span>
+                                    )}
+                                    {err.month && (
+                                        <span>{t("dateErrorMonth")}</span>
+                                    )}
+                                </div>
+                            )
+                        })()}
+                    </div>
+
+                    <div
+                        className={`space-y-3 ${
+                            isInlineSticky ? "min-w-0 flex-1" : ""
+                        }`}
+                    >
+                        <div
+                            className={`flex items-center gap-2 text-white/70 ${
+                                isInlineSticky ? "text-xs" : "text-sm"
+                            }`}
+                        >
+                            <Clock className='h-4 w-4' />
+                            <span>{t("birthTime")}</span>
+                        </div>
+                        {timeMode === "exact" && (
+                            <div className='flex gap-2'>
+                                <input
+                                    type='text'
+                                    inputMode='numeric'
+                                    placeholder={t("timePlaceholder")}
+                                    value={time ? time : timeInputValue}
+                                    onChange={(e) => {
+                                        const v = e.target.value
+                                        const digits = v.replace(/\D/g, "")
+                                        if (digits.length === 0) {
+                                            setTime("")
+                                            setTimeInputValue("")
+                                            return
+                                        }
+                                        const formatted =
+                                            formatTimeInputWithColons(digits)
+                                        setTimeInputValue(formatted)
+                                        if (digits.length === 4) {
+                                            const parsed =
+                                                parseTimeDisplay(formatted)
+                                            if (parsed) {
+                                                setTime(parsed)
+                                                setTimeInputValue("")
+                                            } else {
+                                                setTime("")
+                                            }
+                                        } else {
+                                            setTime("")
+                                        }
+                                    }}
+                                    onBlur={() => {
+                                        if (timeInputValue) {
+                                            const parsed =
+                                                parseTimeDisplay(
+                                                    timeInputValue,
+                                                )
+                                            if (parsed) {
+                                                setTime(parsed)
+                                                setTimeInputValue("")
+                                            } else {
+                                                setTimeInputValue("")
+                                            }
+                                        }
+                                    }}
+                                    className='flex-1 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-white placeholder:text-gray-400 transition-colors focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20'
+                                />
+                                <Popover
+                                    open={timePickerOpen}
+                                    onOpenChange={setTimePickerOpen}
+                                >
+                                    <PopoverTrigger asChild>
+                                        <button
+                                            type='button'
+                                            className='flex shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 py-3 transition-colors hover:bg-white/[0.08] hover:border-white/20 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20'
+                                            aria-label='Open time picker'
+                                        >
+                                            <Clock className='h-5 w-5 text-white/80' />
+                                        </button>
+                                    </PopoverTrigger>
+                                    <PopoverContent
+                                        align='end'
+                                        sideOffset={8}
+                                        className='w-80 overflow-hidden rounded-xl border-white/10 bg-[#0A0F26]/95 p-4 shadow-2xl backdrop-blur-xl'
+                                    >
+                                        <TimePickerPopover
+                                            value={time}
+                                            onChange={(val) => {
+                                                setTime(val)
+                                                setTimeInputValue("")
+                                            }}
+                                            onDone={() =>
+                                                setTimePickerOpen(false)
+                                            }
+                                            t={t}
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+                        )}
+                        <div
+                            className={`gap-2 ${
+                                isInlineSticky ? "flex flex-nowrap overflow-x-auto" : "flex flex-wrap"
+                            }`}
+                        >
+                            {(["exact", "day", "night"] as const).map(
+                                (mode) => (
+                                    <button
+                                        key={mode}
+                                        type='button'
+                                        onClick={() => setTimeMode(mode)}
+                                        className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                                            timeMode === mode
+                                                ? "bg-primary/30 text-white ring-1 ring-primary/50"
+                                                : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
+                                        } ${isInlineSticky ? "shrink-0 whitespace-nowrap" : ""}`}
+                                    >
+                                        {mode === "exact"
+                                            ? t("exactTime")
+                                            : mode === "day"
+                                              ? t("daytime")
+                                              : t("nighttime")}
+                                    </button>
+                                ),
+                            )}
+                        </div>
+                        {isInlineSticky ? (
+                            <p className='text-xs leading-relaxed text-white/55'>
+                                {t("timeAccuracyHint")}
+                            </p>
+                        ) : null}
+                    </div>
                 </div>
 
-                {/* Location */}
-                <div className='space-y-3'>
-                    <div className='flex items-center gap-2 text-sm text-white/70'>
-                        <MapPin className='h-4 w-4' />
-                        <span>{t("birthPlace")}</span>
+                {!isInlineSticky ? (
+                    <div className='space-y-3'>
+                        <div className='flex items-center gap-2 text-sm text-white/70'>
+                            <MapPin className='h-4 w-4' />
+                            <span>{t("birthPlace")}</span>
+                        </div>
+                        <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                            <input
+                                placeholder={t("country")}
+                                value={country}
+                                onChange={(e) => setCountry(e.target.value)}
+                                className='rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-white placeholder:text-white/40 transition-colors focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20'
+                            />
+                            <input
+                                placeholder={t("stateProvince")}
+                                value={state}
+                                onChange={(e) => setState(e.target.value)}
+                                className='rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-white placeholder:text-white/40 transition-colors focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20'
+                            />
+                        </div>
+                        <button
+                            type='button'
+                            onClick={applyCurrentLocation}
+                            disabled={!currentLocation}
+                            className='inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/80 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50'
+                        >
+                            <MapPin className='h-3.5 w-3.5' />
+                            {t("useCurrentLocation")}
+                        </button>
                     </div>
-                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-                        <input
-                            placeholder={t("country")}
-                            value={country}
-                            onChange={(e) => setCountry(e.target.value)}
-                            className='rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-white placeholder:text-white/40 transition-colors focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20'
-                        />
-                        <input
-                            placeholder={t("stateProvince")}
-                            value={state}
-                            onChange={(e) => setState(e.target.value)}
-                            className='rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-white placeholder:text-white/40 transition-colors focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20'
-                        />
-                    </div>
-                    <button
-                        type='button'
-                        onClick={applyCurrentLocation}
-                        className='inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/80 transition-colors hover:bg-white/10 hover:text-white'
-                    >
-                        <MapPin className='h-3.5 w-3.5' />
-                        {t("useCurrentLocation")}
-                    </button>
-                </div>
+                ) : null}
 
-                {/* Advanced (collapsible) */}
-                <div className='rounded-xl border border-white/10 bg-white/[0.02]'>
-                    <button
-                        type='button'
-                        onClick={() => setShowAdvanced((v) => !v)}
-                        className='flex w-full items-center justify-between px-4 py-3 text-left text-sm text-white/60 hover:text-white/80'
-                    >
-                        <span>{t("advanced")}</span>
-                        <ChevronDown
-                            className={`h-4 w-4 transition-transform ${showAdvanced ? "rotate-180" : ""}`}
-                        />
-                    </button>
-                    {showAdvanced && (
-                        <div className='space-y-4 border-t border-white/10 p-4'>
-                            <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
+                {(showLocationSettings || !isInlineSticky) && (
+                    <div className='space-y-3'>
+                        {isInlineSticky ? (
+                            <div className='grid gap-3 md:grid-cols-2'>
                                 <input
-                                    placeholder={t("latitude")}
-                                    value={lat}
-                                    onChange={(e) => setLat(e.target.value)}
-                                    className='rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40'
+                                    placeholder={t("country")}
+                                    value={country}
+                                    onChange={(e) => setCountry(e.target.value)}
+                                    className='rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-white placeholder:text-white/40 transition-colors focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20'
                                 />
                                 <input
-                                    placeholder={t("longitude")}
-                                    value={lng}
-                                    onChange={(e) => setLng(e.target.value)}
-                                    className='rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40'
-                                />
-                                <input
-                                    placeholder={t("timezone")}
-                                    value={timezone}
-                                    onChange={(e) =>
-                                        setTimezone(e.target.value)
-                                    }
-                                    className='rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40'
+                                    placeholder={t("stateProvince")}
+                                    value={state}
+                                    onChange={(e) => setState(e.target.value)}
+                                    className='rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-white placeholder:text-white/40 transition-colors focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20'
                                 />
                             </div>
-                        </div>
-                    )}
-                </div>
+                        ) : null}
+                    </div>
+                )}
 
-                {/* Actions */}
-                <div className='flex items-center justify-between gap-3 pt-2'>
-                    <div className='flex flex-wrap items-center gap-3'>
-                        {!alwaysSave && (
-                            <label className='flex items-center gap-2 cursor-pointer text-sm text-white/80 hover:text-white'>
-                                <Checkbox
-                                    id='remember-birth'
-                                    checked={rememberBirth}
-                                    onCheckedChange={(c) =>
-                                        setRememberBirth(c === true)
-                                    }
-                                    className='border-white/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary'
-                                />
-                                <span>{t("rememberBirth")}</span>
-                            </label>
+                {(!isInlineSticky || showLocationSettings || showAdvanced) && (
+                    <div className='rounded-xl border border-white/10 bg-white/[0.02]'>
+                        <button
+                            type='button'
+                            onClick={() => setShowAdvanced((v) => !v)}
+                            className='flex w-full items-center justify-between px-4 py-3 text-left text-sm text-white/60 hover:text-white/80'
+                        >
+                            <span>{t("advanced")}</span>
+                            <ChevronDown
+                                className={`h-4 w-4 transition-transform ${showAdvanced ? "rotate-180" : ""}`}
+                            />
+                        </button>
+                        {showAdvanced && (
+                            <div className='space-y-4 border-t border-white/10 p-4'>
+                                {isInlineSticky && !showLocationSettings ? (
+                                    <div className='grid gap-3 sm:grid-cols-2'>
+                                        <input
+                                            placeholder={t("country")}
+                                            value={country}
+                                            onChange={(e) =>
+                                                setCountry(e.target.value)
+                                            }
+                                            className='rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40'
+                                        />
+                                        <input
+                                            placeholder={t("stateProvince")}
+                                            value={state}
+                                            onChange={(e) =>
+                                                setState(e.target.value)
+                                            }
+                                            className='rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40'
+                                        />
+                                    </div>
+                                ) : null}
+                                <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
+                                    <input
+                                        placeholder={t("latitude")}
+                                        value={lat}
+                                        onChange={(e) => setLat(e.target.value)}
+                                        className='rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40'
+                                    />
+                                    <input
+                                        placeholder={t("longitude")}
+                                        value={lng}
+                                        onChange={(e) => setLng(e.target.value)}
+                                        className='rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40'
+                                    />
+                                    <input
+                                        placeholder={t("timezone")}
+                                        value={timezone}
+                                        onChange={(e) =>
+                                            setTimezone(e.target.value)
+                                        }
+                                        className='rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40'
+                                    />
+                                </div>
+                            </div>
                         )}
                     </div>
+                )}
+
+                <div
+                    className={`flex items-center gap-3 pt-2 ${
+                        isInlineSticky ? "justify-between" : "justify-end"
+                    }`}
+                >
+                    {isInlineSticky ? (
+                        <div className='flex flex-wrap items-center gap-2'>
+                            <button
+                                type='button'
+                                onClick={() =>
+                                    setShowLocationSettings((value) => !value)
+                                }
+                                className='inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/80 transition-colors hover:bg-white/10 hover:text-white'
+                            >
+                                <MapPin className='h-3.5 w-3.5' />
+                                {t("locationSettings")}
+                            </button>
+                            <button
+                                type='button'
+                                onClick={applyCurrentLocation}
+                                disabled={!currentLocation}
+                                className='inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/80 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50'
+                            >
+                                <MapPin className='h-3.5 w-3.5' />
+                                {t("useCurrentLocation")}
+                            </button>
+                        </div>
+                    ) : null}
                     <button
                         type='button'
                         onClick={submit}
                         disabled={!canSubmit}
-                        className='rounded-xl bg-primary/90 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary disabled:opacity-40 disabled:shadow-none'
+                        className='inline-flex items-center gap-2 rounded-xl bg-primary/90 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary disabled:opacity-40 disabled:shadow-none'
                     >
+                        {isInlineSticky ? <Send className='h-4 w-4' /> : null}
                         {submitLabel}
                     </button>
                 </div>

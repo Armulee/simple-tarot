@@ -2,7 +2,6 @@ import type React from "react"
 import type { Metadata } from "next"
 import { NextIntlClientProvider } from "next-intl"
 import { Playfair_Display, Source_Sans_3 } from "next/font/google"
-import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import { TarotProvider } from "@/contexts/tarot-context"
 import { StarsProvider } from "@/contexts/stars-context"
@@ -10,6 +9,7 @@ import { AuthProvider } from "@/contexts/auth-context"
 import { Navbar } from "@/components/navbar"
 import "../globals.css"
 import Footer from "@/components/footer/footer"
+import { CookiesBanner } from "@/components/cookies-banner"
 import CosmicStars from "@/components/cosmic-stars"
 import { Toaster } from "sonner"
 import { BetaToaster } from "@/components/beta-toaster"
@@ -18,6 +18,7 @@ import { routing } from "@/i18n/routing"
 import { notFound } from "next/navigation"
 import { getMessages, getTranslations } from "next-intl/server"
 import { getMetadataBase } from "@/lib/seo"
+import { ConsentAwareAnalytics } from "@/components/consent-aware-analytics"
 // StarConsentProvider and ReferralProvider are composed inside StarsProvider
 
 /* Updated fonts to match mystical design brief */
@@ -50,12 +51,13 @@ export async function generateMetadata({
         metadataBase: getMetadataBase(),
         title: t("title"),
         description: t("description"),
+        keywords: t("keywords"),
         generator: "v0.app",
         openGraph: {
             type: "website",
             locale,
             url: baseUrl,
-            siteName: "Asking Fate",
+            siteName: "AskingFate",
             title: t("title"),
             description: t("description"),
             images: [
@@ -111,7 +113,7 @@ export async function generateMetadata({
             "apple-mobile-web-app-capable": "yes",
             "mobile-web-app-capable": "yes",
             "apple-mobile-web-app-status-bar-style": "black-translucent",
-            "apple-mobile-web-app-title": "Asking Fate",
+            "apple-mobile-web-app-title": "AskingFate",
         },
     }
 }
@@ -149,10 +151,15 @@ export default async function RootLayout({
                             <TarotProvider>
                                 <div className='min-h-screen flex flex-col home-gradient relative'>
                                     <Navbar locale={locale} />
-                                    <main className='pt-16 min-h-[calc(100dvh-64px)] h-full relative'>
-                                        <Suspense fallback={null}>
-                                            {children}
-                                        </Suspense>
+                                    <main className='flex flex-1 flex-col pt-16 min-h-[calc(100dvh-64px)] relative min-h-0'>
+                                        <div className='flex min-h-0 min-w-0 flex-1 flex-col'>
+                                            <Suspense fallback={null}>
+                                                <div className='flex min-h-0 flex-1 flex-col'>
+                                                    {children}
+                                                </div>
+                                            </Suspense>
+                                        </div>
+                                        <CookiesBanner />
                                     </main>
                                     <Footer />
                                 </div>
@@ -167,7 +174,7 @@ export default async function RootLayout({
                         closeButton
                     />
                 </NextIntlClientProvider>
-                <Analytics />
+                <ConsentAwareAnalytics />
             </body>
         </html>
     )

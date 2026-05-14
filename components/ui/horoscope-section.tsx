@@ -22,7 +22,6 @@ import {
     Send,
     X,
 } from "lucide-react"
-import { useStarConsent } from "../star-consent"
 import { Button } from "@/components/ui/button"
 
 const Section = ({
@@ -108,15 +107,6 @@ const Section = ({
     buttonDisabled?: boolean
     buttonLoading?: boolean
 }) => {
-    const { choice, show } = useStarConsent()
-    const guardOpen = (open: boolean) => {
-        if (open && (choice === null || choice === "declined")) {
-            show()
-            return false
-        }
-        return true
-    }
-
     // Date input state
     const [dateStep, setDateStep] = useState<"year" | "month" | "day">("year")
     const [dateInput, setDateInput] = useState("")
@@ -429,7 +419,6 @@ const Section = ({
                             <Dialog
                                 open={dateDialogOpen}
                                 onOpenChange={(open) => {
-                                    if (!guardOpen(open)) return
                                     setDateDialogOpen(open)
                                     setCalendarOpen(open)
                                 }}
@@ -437,13 +426,6 @@ const Section = ({
                                 <button
                                     type='button'
                                     onClick={() => {
-                                        if (
-                                            choice === null ||
-                                            choice === "declined"
-                                        ) {
-                                            show()
-                                            return
-                                        }
                                         setDateDialogOpen(true)
                                         setCalendarOpen(true)
                                     }}
@@ -740,7 +722,6 @@ const Section = ({
                             <Dialog
                                 open={timeDialogOpen}
                                 onOpenChange={(open) => {
-                                    if (!guardOpen(open)) return
                                     setTimeDialogOpen(open)
                                     setTimeOpen(open)
                                 }}
@@ -748,13 +729,6 @@ const Section = ({
                                 <button
                                     type='button'
                                     onClick={() => {
-                                        if (
-                                            choice === null ||
-                                            choice === "declined"
-                                        ) {
-                                            show()
-                                            return
-                                        }
                                         setTimeDialogOpen(true)
                                         setTimeOpen(true)
                                     }}
@@ -1148,7 +1122,6 @@ const Section = ({
                             <Popover
                                 open={locationOpen}
                                 onOpenChange={(open) => {
-                                    if (!guardOpen(open)) return
                                     if (!open) {
                                         setLocationStep("country")
                                         setSearchCountry("")
@@ -1160,13 +1133,6 @@ const Section = ({
                                 <PopoverTrigger asChild>
                                     <button
                                         onClick={() => {
-                                            if (
-                                                choice === null ||
-                                                choice === "declined"
-                                            ) {
-                                                show()
-                                                return
-                                            }
                                             setLocationOpen(true)
                                         }}
                                         className='flex-1 px-4 py-1 rounded-md bg-white/[0.1] border border-white/[0.08] hover:bg-white/[0.12] hover:border-white/[0.12] transition-all duration-300 text-left flex items-center justify-between group'

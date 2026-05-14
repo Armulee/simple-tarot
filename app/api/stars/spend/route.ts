@@ -6,8 +6,10 @@ import { getActiveSubscriptionInfo } from "@/lib/server/subscription"
 export async function POST(req: Request) {
     const { amount, user_id: userId } = await req.json()
     const did = await readAndVerifyDid()
-    if (!Number.isFinite(amount) || amount <= 0)
+    if (!Number.isFinite(amount) || amount <= 0) {
+        console.error("[stars/spend] BAD_AMOUNT", { amount, user_id: userId })
         return NextResponse.json({ error: "BAD_AMOUNT" }, { status: 400 })
+    }
 
     // If logged in, strictly use user_id and do not require DID
     if (userId) {
@@ -19,6 +21,14 @@ export async function POST(req: Request) {
                     p_user_id: userId,
                 })
             if (currentErr) {
+                console.error("[stars/spend] star_get_or_create failed (admin)", {
+                    user_id: userId,
+                    amount,
+                    message: currentErr.message,
+                    code: currentErr.code,
+                    details: currentErr.details,
+                    hint: currentErr.hint,
+                })
                 return NextResponse.json(
                     { error: currentErr.message },
                     { status: 400 },
@@ -110,6 +120,15 @@ export async function POST(req: Request) {
             }
 
             if (remaining > 0) {
+                console.error("[stars/spend] insufficient balance (admin path)", {
+                    user_id: userId,
+                    amount,
+                    remaining_unfilled: remaining,
+                    daily_stars: dailyStars,
+                    plan_stars: planStars,
+                    addon_stars: addonStars,
+                    total_before: starsBefore,
+                })
                 return NextResponse.json({
                     data: [
                         {
@@ -129,7 +148,7 @@ export async function POST(req: Request) {
                 })
             }
 
-            if (dailyStars >= 12 && nextDaily < 12) {
+            if (dailyStars >= 6 && nextDaily < 6) {
                 dailyLastRefillAt = new Date().toISOString()
             }
 
@@ -141,7 +160,7 @@ export async function POST(req: Request) {
                 amount_after: starsAfter,
             })
 
-            const { data: updated } = await supabaseAdmin
+            const { data: updated, error: updateErr } = await supabaseAdmin
                 .from("stars")
                 .update({
                     daily_stars: nextDaily,
@@ -168,6 +187,21 @@ export async function POST(req: Request) {
                     "daily_stars,plan_stars,addon_stars,engagement_stars_current,engagement_stars_total,current_stars,daily_last_refill_at",
                 )
                 .maybeSingle()
+
+            if (updateErr) {
+                console.error("[stars/spend] stars table update failed (admin)", {
+                    user_id: userId,
+                    amount,
+                    message: updateErr.message,
+                    code: updateErr.code,
+                    details: updateErr.details,
+                    hint: updateErr.hint,
+                })
+                return NextResponse.json(
+                    { error: updateErr.message },
+                    { status: 500 },
+                )
+            }
 
             return NextResponse.json({
                 data: [
@@ -202,20 +236,77 @@ export async function POST(req: Request) {
         // This was causing double deduction
 
         if (error) {
+            console.error("[stars/spend] authenticated RPC error (star_spend)", {
+                message: error.message,
+                code: error.code,
+                details: error.details,
+                hint: error.hint,
+                user_id: userId,
+                amount,
+            })
             return NextResponse.json({ error: error.message }, { status: 400 })
+        }
+        const authRow = data?.[0] as { ok?: boolean; daily_stars?: number } | undefined
+        if (authRow && authRow.ok === false) {
+            console.error("[stars/spend] authenticated spend rejected (ok:false)", {
+                user_id: userId,
+                amount,
+                daily_stars: authRow.daily_stars,
+                rpc_row: authRow,
+            })
         }
         return NextResponse.json({ data })
     }
 
     // Anonymous: require DID
-    if (!did) return NextResponse.json({ error: "NO_DID" }, { status: 400 })
+    if (!did) {
+        console.warn("[stars/spend] NO_DID — device cookie missing or invalid")
+        return NextResponse.json({ error: "NO_DID" }, { status: 400 })
+    }
+    // Repair corrupt refill timestamps (e.g. epoch-zero "0") before spend.
+    if (supabaseAdmin) {
+        const { error: repairErr } = await supabaseAdmin
+            .from("stars")
+            .update({
+                daily_last_refill_at: new Date().toISOString(),
+                last_refill_at: new Date().toISOString(),
+            })
+            .eq("anon_device_id", did)
+            .lt("daily_last_refill_at", "1970-01-02T00:00:00Z")
+
+        if (repairErr) {
+            console.error("[stars/spend] timestamp repair failed", {
+                message: repairErr.message,
+                code: repairErr.code,
+                did_prefix: `${did.slice(0, 8)}…`,
+            })
+        }
+    }
     const { data, error } = await supabase.rpc("star_spend", {
         p_anon_device_id: did,
         p_amount: amount,
         p_user_id: null,
     })
     if (error) {
+        console.error("[stars/spend] anonymous RPC error (star_spend)", {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint,
+            amount,
+            did_prefix: did ? `${did.slice(0, 8)}…` : null,
+        })
         return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+    const spendRow = data?.[0] as { ok?: boolean; daily_stars?: number } | undefined
+    if (spendRow && spendRow.ok === false) {
+        console.error("[stars/spend] anonymous spend rejected (ok:false)", {
+            amount,
+            daily_stars: spendRow.daily_stars,
+            did_prefix: `${did.slice(0, 8)}…`,
+            rpc_row: spendRow,
+            hint: "Often daily_stars out of sync with legacy anon_stars — run database-star-anon-stars-spend-sync.sql",
+        })
     }
     return NextResponse.json({ data })
 }

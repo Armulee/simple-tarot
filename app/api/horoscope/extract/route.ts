@@ -6,12 +6,21 @@ import { resolveLocationFromCountryState } from "@/lib/location"
 
 const MODEL = "deepseek/deepseek-v3.2"
 
+function normalizeCalendarYear(year: number | null | undefined): number | null {
+    if (!Number.isFinite(year as number)) return null
+    const numericYear = Number(year)
+    if (numericYear >= 2400 && numericYear <= 2800) {
+        return numericYear - 543
+    }
+    return numericYear
+}
+
 const extractSchema = z.object({
     birthDate: z
         .object({
             day: z.number().int().min(1).max(31).nullable(),
             month: z.number().int().min(1).max(12).nullable(),
-            year: z.number().int().min(1900).max(2100).nullable(),
+            year: z.number().int().min(1857).max(2800).nullable(),
         })
         .nullable(),
     birthTime: z
@@ -36,7 +45,7 @@ const extractSchema = z.object({
             mentioned: z.boolean().default(false),
             day: z.number().int().min(1).max(31).nullable(),
             month: z.number().int().min(1).max(12).nullable(),
-            year: z.number().int().min(1900).max(2100).nullable(),
+            year: z.number().int().min(1857).max(2800).nullable(),
         })
         .nullable(),
 })
@@ -83,7 +92,9 @@ export async function POST(req: Request) {
 
 Rules:
 - Do not invent values.
-- If exact time isn't present, set hour/minute to null and use timeHint.
+- Support varied birth date formats, including dd/mm/yyyy, mm-dd-yyyy, yyyy-mm-dd, textual month formats, and dates written with A.D./AD/CE or B.E./BE year notation.
+- Convert Buddhist Era (B.E.) years to Gregorian years before returning them when possible.
+- If exact time isn't present, default hour=0 and minute=0.
 - If text says daytime/morning/afternoon -> day.
 - If text says nighttime/evening/midnight -> night.
 - If no clue -> unknown.
@@ -115,20 +126,30 @@ ${payload.message}`,
             extracted = fallbackExtracted
         }
 
+        const normalizedBirthYear = normalizeCalendarYear(
+            extracted.birthDate?.year ?? null,
+        )
+        const normalizedTransitYear = normalizeCalendarYear(
+            extracted.transitDate?.year ?? null,
+        )
+        const normalizedBirthTime = {
+            hour: extracted.birthTime?.hour ?? 0,
+            minute: extracted.birthTime?.minute ?? 0,
+            timeHint: extracted.birthTime?.timeHint ?? "unknown",
+            isExact: Boolean(
+                extracted.birthTime?.isExact &&
+                    extracted.birthTime?.hour != null &&
+                    extracted.birthTime?.minute != null,
+            ),
+        }
+
         const hasDate = Boolean(
             extracted.birthDate?.day &&
                 extracted.birthDate?.month &&
-                extracted.birthDate?.year,
+                normalizedBirthYear,
         )
 
-        const hasExactTime = Boolean(
-            extracted.birthTime?.isExact &&
-                extracted.birthTime?.hour != null &&
-                extracted.birthTime?.minute != null,
-        )
-        const hasTimeHint =
-            extracted.birthTime?.timeHint === "day" ||
-            extracted.birthTime?.timeHint === "night"
+        const hasTime = true
 
         let country =
             extracted.location?.country?.trim() ||
@@ -179,23 +200,31 @@ ${payload.message}`,
 
         const transit = selectTransitDateFromSources({
             message: payload.message,
-            extractedTransit: extracted.transitDate,
+            extractedTransit: extracted.transitDate
+                ? {
+                      ...extracted.transitDate,
+                      year: normalizedTransitYear,
+                  }
+                : null,
         })
         const missingFields: string[] = []
         if (!hasDate) missingFields.push("birthDate")
-        if (!(hasExactTime || hasTimeHint))
-            missingFields.push("birthTimeOrDayNight")
         if (!(country && lat != null && lng != null && timezone != null)) {
             missingFields.push("birthLocation")
         }
 
         return Response.json({
-            birthDate: extracted.birthDate,
+            birthDate: extracted.birthDate
+                ? {
+                      ...extracted.birthDate,
+                      year: normalizedBirthYear,
+                  }
+                : null,
             birthTime: {
-                hour: extracted.birthTime?.hour ?? null,
-                minute: extracted.birthTime?.minute ?? null,
-                timeHint: extracted.birthTime?.timeHint ?? "unknown",
-                isExact: hasExactTime,
+                hour: normalizedBirthTime.hour,
+                minute: normalizedBirthTime.minute,
+                timeHint: normalizedBirthTime.timeHint,
+                isExact: normalizedBirthTime.isExact,
             },
             location: {
                 country: country || null,
@@ -208,11 +237,10 @@ ${payload.message}`,
             systemPreference,
             readiness: {
                 hasDate,
-                hasTime: hasExactTime || hasTimeHint,
+                hasTime,
                 hasLocation: Boolean(country && lat != null && lng != null),
                 readyForCalculation:
                     hasDate &&
-                    (hasExactTime || hasTimeHint) &&
                     Boolean(
                         country &&
                             lat != null &&

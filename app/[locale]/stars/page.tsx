@@ -36,7 +36,7 @@ export default async function StarsPage() {
         },
     ]
     return (
-        <div className='relative min-h-screen overflow-hidden'>
+        <div className='relative min-h-screen overflow-hidden container mx-auto'>
             {/* Animated background elements */}
             <div className='fixed inset-0 overflow-hidden pointer-events-none'>
                 <div className='absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-yellow-400/20 to-amber-500/20 rounded-full blur-3xl animate-pulse' />
@@ -61,7 +61,7 @@ export default async function StarsPage() {
 
                         {/* Subscribe Section */}
                         <span className='font-serif text-sm text-gray-400 text-center w-full block mb-2 text-lg font-bold text-zinc-300'>
-                            DON&apos;T WANT TO WAIT FOR REFILLED? <br/>
+                            DON&apos;T WANT TO WAIT FOR REFILLED? <br />
                             SUBSCRIBE NOW!
                         </span>
                         <SubscribeSection />

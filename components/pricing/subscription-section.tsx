@@ -11,16 +11,14 @@ import { useStars } from "@/contexts/stars-context"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 import { PlanChangeDialog } from "@/components/subscription/plan-change-dialog"
-import {
-    convertUsdToCurrency,
-    formatCurrency,
-    type CurrencyCode,
-} from "@/lib/payments/currency-utils"
+import { formatCurrency, type CurrencyCode } from "@/lib/payments/currency-utils"
 import {
     SUBSCRIPTION_PLANS,
-    getPlanPriceUsd,
+    getPlanPrice,
     getPlanStars,
     parseSubscriptionPlanKey,
+    resolvePlanBillingPrice,
+    resolvePlanPriceId,
     type BillingCycle,
     type SubscriptionPlanTier,
 } from "@/lib/payments/subscription-plans"
@@ -56,11 +54,11 @@ export default function SubscriptionSection({
         null
     )
 
-    const formatFromUsd = (amount: number) =>
-        formatCurrency(convertUsdToCurrency(amount, currency), currency, locale)
+    const formatAmount = (amount: number) =>
+        formatCurrency(amount, currency, locale)
 
     const currentPlanPrice = activePlan
-        ? getPlanPriceUsd(activePlan.tier, activePlan.cycle)
+        ? getPlanPrice(activePlan.tier, activePlan.cycle, currency)
         : null
 
     const getPlanAction = (
@@ -72,7 +70,7 @@ export default function SubscriptionSection({
             return "current"
         }
         if (currentPlanPrice == null) return "upgrade"
-        const targetPrice = getPlanPriceUsd(tier, cycle)
+        const targetPrice = getPlanPrice(tier, cycle, currency)
         return targetPrice >= currentPlanPrice ? "upgrade" : "downgrade"
     }
 
@@ -181,15 +179,15 @@ export default function SubscriptionSection({
           }`
         : "-"
     const currentPlanPriceLabel = activePlan
-        ? formatFromUsd(getPlanPriceUsd(activePlan.tier, activePlan.cycle))
+        ? formatAmount(getPlanPrice(activePlan.tier, activePlan.cycle, currency))
         : "-"
     const targetPlanPriceLabel = pendingChange
-        ? formatFromUsd(pendingChange.targetPriceUsd)
+        ? formatAmount(pendingChange.targetPriceUsd)
         : "-"
     const differenceUsd = pendingChange
         ? Math.max(0, pendingChange.targetPriceUsd - (currentPlanPrice ?? 0))
         : 0
-    const differenceLabel = formatFromUsd(differenceUsd)
+    const differenceLabel = formatAmount(differenceUsd)
     const refillDateLabel = formatRefillDate(subscription?.currentPeriodEnd)
     const currentStarsValue = typeof stars === "number" ? stars : 0
     const projectedStarsValue = pendingChange
@@ -226,29 +224,38 @@ export default function SubscriptionSection({
             <div className='grid md:grid-cols-3 gap-6'>
                 {SUBSCRIPTION_PLANS.map((plan) => {
                     const billing = plan.billing?.[billingCycle]
-                    const priceId = plan.priceIds?.[billingCycle] ?? ""
+                    const priceId = resolvePlanPriceId(plan, billingCycle, currency)
                     const action = getPlanAction(
                         plan.id as SubscriptionPlanTier,
                         billingCycle
                     )
-                    const targetPriceUsd = getPlanPriceUsd(
+                    const targetPriceUsd = getPlanPrice(
                         plan.id as SubscriptionPlanTier,
-                        billingCycle
+                        billingCycle,
+                        currency
                     )
                     const isDowngrade = action === "downgrade"
                     const isOwned = action === "current"
-                    const monthlyPrice = plan.billing?.monthly?.priceUsd
-                    const annualMonthlyPrice = plan.billing?.annual?.priceUsd
-                        ? plan.billing.annual.priceUsd / 12
-                        : undefined
+                    const monthlyPrice = resolvePlanBillingPrice(
+                        plan,
+                        "monthly",
+                        currency
+                    )
+                    const annualNative = resolvePlanBillingPrice(
+                        plan,
+                        "annual",
+                        currency
+                    )
+                    const annualMonthlyPrice =
+                        annualNative != null ? annualNative / 12 : undefined
                     const displayPrice =
                         billingCycle === "annual"
                             ? annualMonthlyPrice
-                            : billing?.priceUsd
+                            : monthlyPrice
                     const discountPercent =
                         billingCycle === "annual" &&
-                        monthlyPrice &&
-                        annualMonthlyPrice
+                        monthlyPrice != null &&
+                        annualMonthlyPrice != null
                             ? Math.round(
                                   (1 - annualMonthlyPrice / monthlyPrice) * 100
                               )
@@ -302,7 +309,7 @@ export default function SubscriptionSection({
                                 <div className='flex items-baseline gap-2'>
                                     <span className='text-3xl font-bold text-white'>
                                         {displayPrice != null
-                                            ? formatFromUsd(displayPrice)
+                                            ? formatAmount(displayPrice)
                                             : "--"}
                                     </span>
                                     <span className='text-sm text-muted-foreground'>
@@ -313,7 +320,7 @@ export default function SubscriptionSection({
                                     monthlyPrice != null && (
                                         <div className='flex items-center gap-2 text-xs'>
                                             <span className='text-white/40 line-through'>
-                                                {formatFromUsd(monthlyPrice)}
+                                                {formatAmount(monthlyPrice)}
                                                 /{t("perMonth")}
                                             </span>
                                             {discountPercent !== null &&

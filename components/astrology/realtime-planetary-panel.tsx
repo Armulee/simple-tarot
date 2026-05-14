@@ -2,21 +2,9 @@
 
 import { type ReactNode, useState } from "react"
 import Image from "next/image"
-import {
-    ChevronDown,
-    ChevronUp,
-    Flame,
-    Layers,
-    Minus,
-    MoveHorizontal,
-    Sparkles,
-    Square,
-    Star,
-    Triangle,
-    TrendingDown,
-    TrendingUp,
-} from "lucide-react"
-import { Calendar, Eye } from "lucide-react"
+import { ChevronDown, ChevronUp, Sparkles, Star } from "lucide-react"
+import { AspectIcon } from "@/components/astrology/aspect-icon"
+import { Eye } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
 import type {
@@ -342,22 +330,6 @@ function getPersonalizedAspectEvents(
         .slice(0, Math.max(6, exactEvents.length + rangeEvents.length))
 }
 
-function AspectIcon({ aspectType }: { aspectType: string }) {
-    if (aspectType === "conjunction") {
-        return <Layers className='h-4 w-4 text-cyan-200' />
-    }
-    if (aspectType === "opposition") {
-        return <MoveHorizontal className='h-4 w-4 text-cyan-200' />
-    }
-    if (aspectType === "square") {
-        return <Square className='h-4 w-4 text-cyan-200' />
-    }
-    if (aspectType === "trine") {
-        return <Triangle className='h-4 w-4 text-cyan-200' />
-    }
-    return <Minus className='h-4 w-4 text-cyan-200' />
-}
-
 type ToggleItem = {
     key: string
     isOpen: boolean
@@ -391,11 +363,15 @@ function ToggleButtonGroup({
 
     return (
         <div className='space-y-2'>
-            <div className='flex flex-wrap items-center gap-2'>
-                {before.map((item) => (
-                    <div key={item.key}>{item.button}</div>
-                ))}
-            </div>
+            {before.some((item) => item.button) && (
+                <div className='flex flex-wrap items-center gap-2'>
+                    {before.map((item) =>
+                        item.button ? (
+                            <div key={item.key}>{item.button}</div>
+                        ) : null,
+                    )}
+                </div>
+            )}
             {openItem.content}
             {after.length > 0 && (
                 <ToggleButtonGroup
@@ -443,8 +419,11 @@ export default function RealtimePlanetaryPanel({
     const [hiddenImages, setHiddenImages] = useState<Record<string, boolean>>(
         {},
     )
-    const [showRelatedAspects, setShowRelatedAspects] = useState(false)
-    const [showAllAspects, setShowAllAspects] = useState(false)
+    const [visibleRelatedCount, setVisibleRelatedCount] = useState(3)
+    const [visibleRemainingCount, setVisibleRemainingCount] = useState(3)
+    const [expandedTechnical, setExpandedTechnical] = useState<
+        Record<string, boolean>
+    >({})
     const [localShowBirthDetails, setLocalShowBirthDetails] = useState(false)
     const [localShowTransitDetails, setLocalShowTransitDetails] =
         useState(false)
@@ -604,105 +583,115 @@ export default function RealtimePlanetaryPanel({
         const natalAbsoluteText = formatAbsoluteLongitudeBreakdown(
             resolvedNatalAbsoluteLongitude,
         )
-        const sentimentIcon =
-            event.sentiment === "good" ? (
-                <TrendingUp className='h-3.5 w-3.5 text-emerald-300' />
-            ) : event.sentiment === "bad" ? (
-                <TrendingDown className='h-3.5 w-3.5 text-rose-300' />
-            ) : (
-                <Minus className='h-3.5 w-3.5 text-slate-300' />
-            )
         const defaultKeyword = t("defaultKeyword")
         const hasRealKeyword =
             !!event.keyword?.trim() && event.keyword.trim() !== defaultKeyword
         const displayKeyword = event.keyword?.trim() || defaultKeyword
+        const intensity = event.intensity ?? "low"
+        const intensityColor =
+            intensity === "high"
+                ? "#E8604C"
+                : intensity === "medium"
+                  ? "#E8A84C"
+                  : "#4CC9A4"
+        const isTechnicalExpanded = Boolean(expandedTechnical[event.aspectKey])
+        const dateStart = event.dateText?.replace(/^.*?\s/, "") || "-"
+        const datePeak = event.peakText?.replace(/^.*?\s/, "") || dateStart
+        const dateEnd = event.endText?.replace(/^.*?\s/, "") || datePeak
+        const transitLabel =
+            t(`planets.${event.transitPlanet}`) ?? event.transitPlanet
+        const natalLabel = t(`planets.${event.natalPlanet}`) ?? event.natalPlanet
+
         return (
-            <div className='rounded-2xl border border-white/10 bg-white/5 p-3 space-y-2 min-w-[260px]'>
-                <div className='flex flex-wrap justify-between items-center gap-1.5'>
-                    {(event.impact || event.intensity) && (
-                        <>
-                            {event.impact && (
-                                <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-violet-500/10 border border-violet-500/20 text-violet-200'>
-                                    {t("impactLabel")}
-                                    <span className='text-violet-100'>
-                                        {event.impact}
-                                    </span>
-                                </span>
-                            )}
-                            {event.intensity && (
-                                <span
-                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border ${
-                                        event.intensity === "high"
-                                            ? "bg-rose-500/10 border-rose-500/20 text-rose-200"
-                                            : event.intensity === "medium"
-                                              ? "bg-amber-500/10 border-amber-500/20 text-amber-200"
-                                              : "bg-emerald-500/10 border-emerald-500/20 text-emerald-200"
-                                    }`}
-                                >
-                                    {t("intensityLabel")}
-                                    <span>
-                                        {t(`intensity.${event.intensity}`)}
-                                    </span>
-                                </span>
-                            )}
-                        </>
-                    )}
+            <div className='min-w-[260px] space-y-4 rounded-[16px] border border-white/10 bg-white/[0.04] p-4'>
+                <div className='flex flex-wrap items-center gap-2'>
+                    <span className='inline-flex items-center gap-1.5 rounded-full border border-violet-300/15 bg-violet-300/[0.08] px-2.5 py-1 text-[10px] font-medium text-violet-100'>
+                        {t("impactLabel")}
+                        <span>{event.impact || displayKeyword}</span>
+                    </span>
+                    <span
+                        className='inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium'
+                        style={{
+                            borderColor: `${intensityColor}55`,
+                            backgroundColor: `${intensityColor}1A`,
+                            color: intensityColor,
+                        }}
+                    >
+                        {t("intensityLabel")}
+                        <span>{t(`intensity.${intensity}`)}</span>
+                    </span>
                 </div>
 
-                <div className='flex items-center justify-between gap-3'>
-                    <div className='inline-flex items-center gap-2'>
-                        <PlanetAvatar planet={event.transitPlanet} />
-                        <div className='flex flex-col'>
-                            <span className='text-sm font-medium text-white'>
-                                {(t(`planets.${event.transitPlanet}`) ??
-                                    event.transitPlanet) + t("transitSuffix")}
-                            </span>
-                            <span className='text-[10px] text-white/65'>
-                                {transitPosition}
-                            </span>
-                            <span className='text-[10px] text-white/45'>
-                                {transitAbsoluteText}
-                            </span>
+                <div className='grid grid-cols-[1fr_auto_1fr] items-center gap-3'>
+                    <div className='min-w-0 text-center'>
+                        <div className='mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.06]'>
+                            <PlanetAvatar planet={event.transitPlanet} />
                         </div>
+                        <p className='truncate text-sm font-medium text-white'>
+                            {transitLabel}
+                        </p>
+                        <p className='text-[10px] text-white/45'>
+                            {t("transitSuffix")}
+                        </p>
                     </div>
-                    <div className='flex flex-col items-center'>
+                    <div className='flex flex-col items-center gap-1 rounded-full border border-cyan-300/20 bg-cyan-300/[0.08] px-3 py-2 text-cyan-100'>
                         <AspectIcon aspectType={event.aspectType} />
-                        <span className='text-[10px] text-white/70'>
+                        <span className='text-[10px] font-medium'>
                             {t(`aspects.${event.aspectType}`) ??
                                 event.aspectType}
                         </span>
                     </div>
-                    <div className='inline-flex items-center gap-2'>
-                        <PlanetAvatar planet={event.natalPlanet} />
-                        <div className='flex flex-col'>
-                            <span className='text-sm font-medium text-white'>
-                                {(t(`planets.${event.natalPlanet}`) ??
-                                    event.natalPlanet) + t("natalSuffix")}
-                            </span>
-                            <span className='text-[10px] text-white/65'>
-                                {natalPosition}
-                            </span>
-                            <span className='text-[10px] text-white/45'>
-                                {natalAbsoluteText}
-                            </span>
+                    <div className='min-w-0 text-center'>
+                        <div className='mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.06]'>
+                            <PlanetAvatar planet={event.natalPlanet} />
                         </div>
+                        <p className='truncate text-sm font-medium text-white'>
+                            {natalLabel}
+                        </p>
+                        <p className='text-[10px] text-white/45'>
+                            {t("natalSuffix")}
+                        </p>
                     </div>
                 </div>
 
-                <div className='flex justify-between gap-2'>
-                    <div className='flex items-end gap-1.5'>
-                        {hasRealKeyword && (
-                            <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-indigo-500/10 border border-indigo-500/20 text-indigo-200'>
-                                {sentimentIcon}
-                                <span className='font-serif italic text-indigo-100'>
-                                    {displayKeyword}
-                                </span>
-                            </span>
-                        )}
-                        <span className='px-2 py-0.5 rounded-md text-[10px] text-cyan-100/90 border border-cyan-400/20 bg-cyan-500/10'>
-                            {`orb ${event.orb.toFixed(1)}°`}
-                        </span>
+                <div className='border-l-2 border-cyan-300/55 bg-cyan-300/[0.05] px-3 py-2'>
+                    <p className='text-sm leading-6 text-white/82'>
+                        {event.insight ||
+                            (hasRealKeyword
+                                ? displayKeyword
+                                : t("defaultInsight"))}
+                    </p>
+                </div>
+
+                <div className='space-y-2'>
+                    <div className='relative h-2 rounded-full bg-white/10'>
+                        <div className='absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-gradient-to-r from-white/20 via-amber-200/45 to-white/20' />
+                        <div className='absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-300 shadow-[0_0_20px_4px_rgba(232,168,76,0.55)]' />
                     </div>
+                    <div className='grid grid-cols-3 gap-2 text-[10px] text-white/45'>
+                        <span>{dateStart}</span>
+                        <span className='text-center text-amber-200/85'>
+                            {datePeak}
+                        </span>
+                        <span className='text-right'>{dateEnd}</span>
+                    </div>
+                </div>
+
+                <div className='flex items-center justify-between gap-2'>
+                    <button
+                        type='button'
+                        onClick={() =>
+                            setExpandedTechnical((prev) => ({
+                                ...prev,
+                                [event.aspectKey]: !prev[event.aspectKey],
+                            }))
+                        }
+                        className='text-[10px] text-white/45 underline decoration-white/15 underline-offset-4 hover:text-white/70'
+                    >
+                        {isTechnicalExpanded
+                            ? t("hideTechnical")
+                            : t("showTechnical")}
+                    </button>
 
                     {askedAspectKeys?.[event.aspectKey] ? (
                         <button
@@ -716,23 +705,19 @@ export default function RealtimePlanetaryPanel({
                                     block: "start",
                                 })
                             }}
-                            className='inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-md shadow-lg hover:bg-emerald-500/20 hover:border-emerald-500/30 transition-colors cursor-pointer'
+                            className='inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-[10px] font-medium text-emerald-100 transition-colors hover:bg-emerald-500/20'
                         >
                             <Eye className='h-3.5 w-3.5 text-emerald-300' />
-                            <span className='text-[10px] font-medium text-emerald-100'>
-                                {t("readDescription")}
-                            </span>
+                            {t("readDescription")}
                         </button>
                     ) : (
                         <button
                             type='button'
                             onClick={() => {
                                 const question = t("askAspectQuestion", {
-                                    transit: t(
-                                        `planets.${event.transitPlanet}`,
-                                    ),
+                                    transit: transitLabel,
                                     aspect: t(`aspects.${event.aspectType}`),
-                                    natal: t(`planets.${event.natalPlanet}`),
+                                    natal: natalLabel,
                                 })
                                 onAskAspectDetail?.(question, event.aspectKey, {
                                     aspectKey: event.aspectKey,
@@ -744,51 +729,29 @@ export default function RealtimePlanetaryPanel({
                                     orb: event.orb,
                                     transitPositionText: transitPosition,
                                     natalPositionText: natalPosition,
-                                    transitAbsoluteText: transitAbsoluteText,
-                                    natalAbsoluteText: natalAbsoluteText,
+                                    transitAbsoluteText,
+                                    natalAbsoluteText,
                                 })
                                 scrollTo({
                                     top: document.body.scrollHeight,
                                     behavior: "smooth",
                                 })
                             }}
-                            className='inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 backdrop-blur-md shadow-lg hover:bg-indigo-500/20 hover:border-indigo-500/30 transition-colors cursor-pointer'
+                            className='inline-flex items-center gap-1.5 rounded-lg border border-indigo-500/20 bg-indigo-500/10 px-3 py-2 text-[10px] font-medium text-indigo-100 transition-colors hover:bg-indigo-500/20'
                         >
                             <Sparkles className='h-3.5 w-3.5 text-indigo-300' />
-                            <span className='text-[10px] font-medium text-indigo-100'>
-                                {t("askMore")}
-                            </span>
-                            <Star className='h-3 w-3 text-amber-300 fill-amber-300' />
-                            <span className='text-[10px] font-medium text-amber-200'>
-                                1
-                            </span>
+                            {t("askMore")}
+                            <Star className='h-3 w-3 fill-amber-300 text-amber-300' />
+                            <span className='text-amber-200'>1</span>
                         </button>
                     )}
                 </div>
 
-                {event.insight && (
-                    <p className='text-[10px] text-white/75 leading-relaxed'>
-                        {event.insight}
-                    </p>
-                )}
-
-                {event.dateText && (
-                    <div className='flex justify-between items-center text-[10px] w-full text-amber-100/90 rounded px-2 py-1'>
-                        <span className='inline-flex items-center gap-1'>
-                            <Calendar className='h-3 w-3 shrink-0' />
-                            {event.dateText}
-                        </span>
-                        {event.peakText && (
-                            <span className='inline-flex items-center gap-1 text-amber-200/90 px-2'>
-                                <Flame className='h-3 w-3 text-orange-300' />
-                                {event.peakText}
-                            </span>
-                        )}
-                        {event.endText && (
-                            <span className='text-amber-200/80 text-right'>
-                                {event.endText}
-                            </span>
-                        )}
+                {isTechnicalExpanded && (
+                    <div className='grid gap-1 rounded-xl border border-white/10 bg-black/15 p-3 text-[10px] text-white/35'>
+                        <span>{`Transit: ${transitPosition} (${transitAbsoluteText})`}</span>
+                        <span>{`Natal: ${natalPosition} (${natalAbsoluteText})`}</span>
+                        <span>{`Orb: ${event.orb.toFixed(1)}°`}</span>
                     </div>
                 )}
             </div>
@@ -810,35 +773,34 @@ export default function RealtimePlanetaryPanel({
                     relatedEvents.length > 0
                         ? {
                               key: "related",
-                              isOpen: showRelatedAspects,
-                              button: (
-                                  <button
-                                      type='button'
-                                      onClick={() =>
-                                          setShowRelatedAspects(
-                                              (prev) => !prev,
-                                          )
-                                      }
-                                      className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
-                                  >
-                                      {showRelatedAspects ? (
-                                          <ChevronUp className='h-3.5 w-3.5' />
-                                      ) : (
-                                          <ChevronDown className='h-3.5 w-3.5' />
-                                      )}
-                                      {t("showRelatedAspects", {
-                                          count: relatedEvents.length,
-                                      })}
-                                  </button>
-                              ),
+                              isOpen: true,
+                              button:
+                                  visibleRelatedCount < relatedEvents.length ? (
+                                      <button
+                                          type='button'
+                                          onClick={() =>
+                                              setVisibleRelatedCount((count) =>
+                                                  Math.min(
+                                                      count + 3,
+                                                      relatedEvents.length,
+                                                  ),
+                                              )
+                                          }
+                                          className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
+                                      >
+                                          + {t("showMore")}
+                                      </button>
+                                  ) : null,
                               content: (
                                   <div className='grid gap-3 grid-cols-1 sm:grid-cols-2'>
-                                      {relatedEvents.map((event) => (
-                                          <EventCard
-                                              key={event.aspectKey}
-                                              event={event}
-                                          />
-                                      ))}
+                                      {relatedEvents
+                                          .slice(0, visibleRelatedCount)
+                                          .map((event) => (
+                                              <EventCard
+                                                  key={event.aspectKey}
+                                                  event={event}
+                                              />
+                                          ))}
                                   </div>
                               ),
                           }
@@ -846,33 +808,35 @@ export default function RealtimePlanetaryPanel({
                     allRemainingEvents.length > 0
                         ? {
                               key: "all",
-                              isOpen: showAllAspects,
-                              button: (
-                                  <button
-                                      type='button'
-                                      onClick={() =>
-                                          setShowAllAspects((prev) => !prev)
-                                      }
-                                      className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
-                                  >
-                                      {showAllAspects ? (
-                                          <ChevronUp className='h-3.5 w-3.5' />
-                                      ) : (
-                                          <ChevronDown className='h-3.5 w-3.5' />
-                                      )}
-                                      {t("showAllAspects", {
-                                          count: allRemainingEvents.length,
-                                      })}
-                                  </button>
-                              ),
+                              isOpen: true,
+                              button:
+                                  visibleRemainingCount <
+                                  allRemainingEvents.length ? (
+                                      <button
+                                          type='button'
+                                          onClick={() =>
+                                              setVisibleRemainingCount((count) =>
+                                                  Math.min(
+                                                      count + 3,
+                                                      allRemainingEvents.length,
+                                                  ),
+                                              )
+                                          }
+                                          className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
+                                      >
+                                          + {t("showMore")}
+                                      </button>
+                                  ) : null,
                               content: (
                                   <div className='grid gap-3 grid-cols-1 sm:grid-cols-2'>
-                                      {allRemainingEvents.map((event) => (
-                                          <EventCard
-                                              key={event.aspectKey}
-                                              event={event}
-                                          />
-                                      ))}
+                                      {allRemainingEvents
+                                          .slice(0, visibleRemainingCount)
+                                          .map((event) => (
+                                              <EventCard
+                                                  key={event.aspectKey}
+                                                  event={event}
+                                              />
+                                          ))}
                                   </div>
                               ),
                           }

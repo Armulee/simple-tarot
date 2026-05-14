@@ -1,6 +1,30 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase"
 
+const MIN_AGE_YEARS = 13
+
+function calculateAge(isoDate: string, today = new Date()): number | null {
+    const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(isoDate)
+    if (!match) return null
+    const year = Number.parseInt(match[1], 10)
+    const month = Number.parseInt(match[2], 10)
+    const day = Number.parseInt(match[3], 10)
+    if (
+        !Number.isFinite(year) ||
+        !Number.isFinite(month) ||
+        !Number.isFinite(day)
+    ) {
+        return null
+    }
+    let age = today.getFullYear() - year
+    const monthDelta = today.getMonth() + 1 - month
+    const dayDelta = today.getDate() - day
+    if (monthDelta < 0 || (monthDelta === 0 && dayDelta < 0)) {
+        age -= 1
+    }
+    return age
+}
+
 export async function GET(request: NextRequest) {
     try {
         const authHeader = request.headers.get("authorization")
@@ -59,10 +83,47 @@ export async function PUT(request: NextRequest) {
         }
 
         const body = await request.json()
-        const { name, bio, birthDate, birthTime, birthPlace, job, gender } =
-            body
+        const {
+            name,
+            bio,
+            birthDate,
+            birthTime,
+            birthPlace,
+            job,
+            gender,
+            consentedAt,
+        } = body
 
-        // Prepare profile data
+        // Server-side enforcement: a non-null birth date must be >= 13 years old.
+        if (birthDate) {
+            const age = calculateAge(String(birthDate))
+            if (age === null) {
+                return NextResponse.json(
+                    { error: "invalid_birth_date" },
+                    { status: 400 },
+                )
+            }
+            if (age < MIN_AGE_YEARS) {
+                return NextResponse.json(
+                    { error: "under_13" },
+                    { status: 400 },
+                )
+            }
+        }
+
+        // Look up existing consent timestamp so we don't overwrite it on every save.
+        const { data: existing } = await supabaseAdmin!
+            .from("profiles")
+            .select("consented_at")
+            .eq("id", user.id)
+            .single()
+
+        const nowIso = new Date().toISOString()
+        const nextConsentedAt =
+            consentedAt === true
+                ? existing?.consented_at ?? nowIso
+                : existing?.consented_at ?? null
+
         const profileData = {
             id: user.id,
             name: name || null,
@@ -72,10 +133,10 @@ export async function PUT(request: NextRequest) {
             birth_place: birthPlace || null,
             job: job || null,
             gender: gender || null,
-            updated_at: new Date().toISOString(),
+            consented_at: nextConsentedAt,
+            updated_at: nowIso,
         }
 
-        // Upsert profile data
         const { data: profile, error } = await supabaseAdmin!
             .from("profiles")
             .upsert(profileData, { onConflict: "id" })
