@@ -1688,14 +1688,32 @@ export default function ChatSession({
     const applyInterpretationModeOverride = useCallback(
         (decision: ChatDecision): ChatDecision => {
             if (interpretationMode === "auto") return decision
-            // Support-mode answers (pricing, contact, tarot card info, etc.)
-            // are about the product itself, not a reading. They should bypass
-            // tarot/horoscope mode locks so the user still gets the right
-            // inline tool block.
-            if (decision.type === "support") return decision
+            // The "chat" interpretation mode is the merged chat+support mode:
+            // the AI may pick either `chat` (plain knowledge answer) or
+            // `support` (inline tool block for product topics like pricing,
+            // contact, a specific tarot card, etc.). Anything else gets
+            // downgraded to `chat` so reading flows are disabled here.
             if (interpretationMode === "chat") {
-                return { ...decision, type: "chat" }
+                if (
+                    decision.type === "chat" ||
+                    decision.type === "support"
+                ) {
+                    return decision
+                }
+                return {
+                    ...decision,
+                    type: "chat",
+                    spreadType: undefined,
+                    cardCount: undefined,
+                    spreadReason: undefined,
+                    supportTopic: undefined,
+                    supportCardSlug: undefined,
+                }
             }
+            // Support-mode answers about the product itself bypass tarot /
+            // horoscope mode locks so users keep getting the right inline
+            // tool block.
+            if (decision.type === "support") return decision
             if (interpretationMode === "tarot") {
                 return { ...decision, type: "draw" }
             }

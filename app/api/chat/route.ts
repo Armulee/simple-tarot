@@ -149,10 +149,17 @@ function detectQuestionLanguage(text: string): string {
     return "English"
 }
 
-const MODE_TO_TYPE: Record<string, string> = {
+/**
+ * Maps the user-facing interpretation mode (set in the composer menu) to the
+ * decision `type` (or list of allowed types). The "chat" mode is special: it
+ * is the merged chat+support mode, so we let the classifier pick either
+ * `chat` (plain text knowledge reply) or `support` (inline tool block for
+ * product topics) instead of pinning a single type.
+ */
+const MODE_TO_TYPE: Record<string, string | string[]> = {
     tarot: "draw",
     horoscope: "horoscope",
-    chat: "chat",
+    chat: ["chat", "support"],
     support: "support",
 }
 
@@ -189,9 +196,13 @@ function getChatDecisionPrompt({
             ? MODE_TO_TYPE[interpretationMode]
             : null
 
-    const modeInstruction = forcedType
-        ? `\nThe user has locked the mode to "${forcedType}". You MUST set type to "${forcedType}". If the forced type is "draw", you must still choose the best spreadType and spreadReason.\n`
-        : ""
+    let modeInstruction = ""
+    if (Array.isArray(forcedType)) {
+        const list = forcedType.map((t) => `"${t}"`).join(" or ")
+        modeInstruction = `\nThe user has locked the mode to "${interpretationMode}". You MUST set type to ${list}. If the message is about the AskingFate website or product (pricing, contact, a specific tarot card, an article, account/settings, sign-in, etc.), choose "support" and set supportTopic (and supportCardSlug when relevant). Otherwise choose "chat" and answer as plain knowledge. Never choose "draw" or "horoscope" while this mode is active.\n`
+    } else if (forcedType) {
+        modeInstruction = `\nThe user has locked the mode to "${forcedType}". You MUST set type to "${forcedType}". If the forced type is "draw", you must still choose the best spreadType and spreadReason. If the forced type is "support", you MUST set supportTopic (and supportCardSlug when the user is asking about a specific tarot card).\n`
+    }
 
     const detectedLang = detectQuestionLanguage(question)
     const savedBirthBlock = savedBirthInfo
