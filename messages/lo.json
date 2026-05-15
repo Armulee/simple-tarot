@@ -407,7 +407,14 @@
       "passport": "ໜັງສືຜ່ານແດນ",
       "national_id": "ເລກບັດປະຈຳຕົວ"
     },
-    "sanitizingPrompt": "ກຳລັງຊຳລະລ້າງ"
+    "sanitizingPrompt": "ກຳລັງຊຳລະລ້າງ",
+    "horoscopeAuthGate": {
+      "intro": "ຄຳຖາມນີ້ຄວນຕອບໂດຍດວງຊາຕາຂອງເຈົ້າ. ເຈົ້າຕ້ອງ",
+      "signInLabel": "ເຂົ້າສູ່ລະບົບ",
+      "introSuffix": "ກ່ອນຈຶ່ງສືບຕໍ່ໄດ້.",
+      "fallback": "ເຈົ້າສາມາດໃຊ້ໄພ່ທາໂຣແທນກໍ່ໄດ້ ແຕ່ຄວາມແມ່ນຍຳຈະຫຼຸດລົງ.",
+      "cardAriaLabel": "ໄພ່ທາໂຣຕົວຢ່າງ: {name}"
+    }
   },
   "ActionTrigger": {
     "autoPickLabel": "ເລືອກໄພ່ໃຫ້ອັດຕະໂນມັດ",

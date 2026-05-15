@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useTranslations, useLocale } from "next-intl"
 import { experimental_useObject as useObject } from "@ai-sdk/react"
 import { useStars } from "@/contexts/stars-context"
@@ -81,6 +81,7 @@ import type {
     ChatMessage,
     AspectInsightItem,
     ChatSessionPayload,
+    HoroscopeAuthGate,
     HoroscopeExtractResponse,
     SourceAspectEvent,
 } from "@/components/chat/types"
@@ -458,6 +459,7 @@ export default function ChatSession({
 
     const locale = useLocale()
     const router = useRouter()
+    const pathname = usePathname()
     const { user } = useAuth()
     const { profile } = useProfile()
     const [aiLocale, setAiLocale] = useState<"en" | "th" | "lo" | null>(null)
@@ -1671,18 +1673,43 @@ export default function ChatSession({
         }
     }, [])
 
-    const sanitizeHoroscopeDecisionForAuth = useCallback(
-        (decision: ChatDecision): ChatDecision => {
-            if (user || decision.type !== "horoscope") return decision
+    /**
+     * Build the data the inline "horoscope requires sign in" block needs:
+     * a sign-in href that returns to the current page after auth, and a
+     * randomly picked teaser tarot card to invite the user to fall back to
+     * a tarot draw.
+     */
+    const buildHoroscopeAuthGate = useCallback(
+        (question: string): HoroscopeAuthGate => {
+            const [picked] = pickRandomCards(1)
+            const cardName = picked?.name ?? "The Star"
+            const cardSlug = cardName.toLowerCase().replace(/\s+/g, "-")
+            const callback = pathname && pathname.length > 0 ? pathname : "/"
             return {
-                ...decision,
-                type: "chat",
-                spreadType: undefined,
-                cardCount: undefined,
-                spreadReason: undefined,
+                signInHref: `/signin?callbackUrl=${encodeURIComponent(callback)}`,
+                question,
+                cardName,
+                cardSlug,
+                cardIsReversed: Boolean(picked?.isReversed),
             }
         },
-        [user],
+        [pathname],
+    )
+
+    /**
+     * Detects the case where the classifier picked `horoscope` for a visitor
+     * who is not signed in. Horoscope readings require an account, so we
+     * downgrade the type to `chat` (no AI text streamed) and attach a gate
+     * marker the UI uses to render an inline sign-in CTA + tarot fallback.
+     * Returns `null` when no gate is required.
+     */
+    const detectHoroscopeAuthGate = useCallback(
+        (decision: ChatDecision): HoroscopeAuthGate | null => {
+            if (user) return null
+            if (decision.type !== "horoscope") return null
+            return buildHoroscopeAuthGate("")
+        },
+        [user, buildHoroscopeAuthGate],
     )
 
     const applyInterpretationModeOverride = useCallback(
@@ -2915,11 +2942,41 @@ export default function ChatSession({
                     history,
                     savedBirthInfo,
                 )
-                nextDecision = sanitizeHoroscopeDecisionForAuth(nextDecision)
+                const horoscopeAuthGate = detectHoroscopeAuthGate(nextDecision)
+                if (horoscopeAuthGate) {
+                    horoscopeAuthGate.question = trimmed
+                    nextDecision = {
+                        ...nextDecision,
+                        type: "chat",
+                        spreadType: undefined,
+                        cardCount: undefined,
+                        spreadReason: undefined,
+                    }
+                }
                 nextDecision = applyInterpretationModeOverride(nextDecision)
                 nextDecision = normalizeDrawDecision(nextDecision)
                 flowDecision = nextDecision
                 setDecision(nextDecision)
+
+                if (horoscopeAuthGate) {
+                    setConsulting(false)
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === assistantLoadingId
+                                ? {
+                                      ...m,
+                                      text: "",
+                                      isLoading: false,
+                                      streamStopped: false,
+                                      horoscopeAuthGate,
+                                  }
+                                : m,
+                        ),
+                    )
+                    consultingLoadingIdRef.current = null
+                    return
+                }
+
                 const supportBlock = buildSupportBlockFromDecision(
                     nextDecision,
                     trimmed,
@@ -3002,6 +3059,7 @@ export default function ChatSession({
         [
             applyInterpretationModeOverride,
             consulting,
+            detectHoroscopeAuthGate,
             fetchDecision,
             freezeStoppedPlainMessage,
             getDefaultSystemByLocale,
@@ -3009,7 +3067,6 @@ export default function ChatSession({
             hasBirthDate,
             isInterpreting,
             normalizeDrawDecision,
-            sanitizeHoroscopeDecisionForAuth,
             streamAssistantResponse,
         ],
     )
@@ -3253,7 +3310,19 @@ export default function ChatSession({
                     history,
                     savedBirthInfo,
                 )
-                nextDecision = sanitizeHoroscopeDecisionForAuth(nextDecision)
+                const horoscopeAuthGate = options.forceChatOnly
+                    ? null
+                    : detectHoroscopeAuthGate(nextDecision)
+                if (horoscopeAuthGate) {
+                    horoscopeAuthGate.question = trimmed
+                    nextDecision = {
+                        ...nextDecision,
+                        type: "chat",
+                        spreadType: undefined,
+                        cardCount: undefined,
+                        spreadReason: undefined,
+                    }
+                }
                 nextDecision = applyInterpretationModeOverride(nextDecision)
                 if (options.forceChatOnly) {
                     nextDecision = {
@@ -3267,6 +3336,26 @@ export default function ChatSession({
                 nextDecision = normalizeDrawDecision(nextDecision)
                 flowDecision = nextDecision
                 setDecision(nextDecision)
+
+                if (horoscopeAuthGate) {
+                    setConsulting(false)
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === assistantLoadingId
+                                ? {
+                                      ...m,
+                                      text: "",
+                                      isLoading: false,
+                                      streamStopped: false,
+                                      horoscopeAuthGate,
+                                  }
+                                : m,
+                        ),
+                    )
+                    consultingLoadingIdRef.current = null
+                    return
+                }
+
                 const supportBlock = buildSupportBlockFromDecision(
                     nextDecision,
                     trimmed,
@@ -3348,6 +3437,7 @@ export default function ChatSession({
         },
         [
             applyInterpretationModeOverride,
+            detectHoroscopeAuthGate,
             fetchDecision,
             freezeStoppedPlainMessage,
             getDefaultSystemByLocale,
@@ -3355,7 +3445,6 @@ export default function ChatSession({
             hasBirthDate,
             messages,
             normalizeDrawDecision,
-            sanitizeHoroscopeDecisionForAuth,
             streamAssistantResponse,
         ],
     )

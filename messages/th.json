@@ -408,7 +408,14 @@
       "passport": "หนังสือเดินทาง",
       "national_id": "เลขบัตรประชาชน"
     },
-    "sanitizingPrompt": "กำลังชำระล้าง"
+    "sanitizingPrompt": "กำลังชำระล้าง",
+    "horoscopeAuthGate": {
+      "intro": "คำถามนี้น่าจะตอบได้ดีที่สุดด้วยดวงชะตา คุณต้อง",
+      "signInLabel": "เข้าสู่ระบบ",
+      "introSuffix": "ก่อนจึงจะดำเนินการต่อได้",
+      "fallback": "คุณสามารถใช้ไพ่ทาโรต์แทนได้เช่นกัน แต่ความแม่นยำจะลดลง",
+      "cardAriaLabel": "ไพ่ทาโรต์ตัวอย่าง: {name}"
+    }
   },
   "ActionTrigger": {
     "autoPickLabel": "เลือกไพ่ให้อัตโนมัติ",

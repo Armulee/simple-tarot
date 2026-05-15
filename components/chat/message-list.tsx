@@ -25,6 +25,7 @@ import RealtimePlanetaryPanel from "@/components/astrology/realtime-planetary-pa
 import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
 import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
 import { TarotAssistantInterpretation } from "@/components/chat/tarot-interpretation"
+import { HoroscopeAuthGateBlock } from "@/components/chat/horoscope-auth-gate-block"
 import { SupportBlock } from "@/components/chat/support/support-block"
 import {
     PrivacyHighlightedText,
@@ -996,6 +997,11 @@ export default function MessageList({
                                         submitLabel={birthFormSubmit}
                                         variant='inlineSticky'
                                     />
+                                ) : message.horoscopeAuthGate ? (
+                                    /* Anonymous horoscope: show sign-in CTA + tarot fallback teaser */
+                                    <HoroscopeAuthGateBlock
+                                        data={message.horoscopeAuthGate}
+                                    />
                                 ) : (
                                     /* Plain variant: simple assistant text (chat decision, bridge message) */
                                     <>
@@ -1108,7 +1114,8 @@ export default function MessageList({
                                         <div className='flex items-center gap-2 text-[11px] text-white/60'>
                                             {!isChatLoading &&
                                                 message.variant === "plain" &&
-                                                !hasInterpretation && (
+                                                !hasInterpretation &&
+                                                !message.horoscopeAuthGate && (
                                                     <>
                                                         <button
                                                             type='button'

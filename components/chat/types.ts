@@ -152,6 +152,25 @@ export type ChatMessage = {
     supportTopic?: SupportTopic
     /** Concrete data the support tool block needs to render. */
     supportBlock?: SupportBlockPayload | null
+    /**
+     * Set when the AI classified the question as horoscope but the visitor is
+     * not signed in. The chat renders an inline sign-in CTA and a sample
+     * tarot card instead of streaming a normal assistant reply.
+     */
+    horoscopeAuthGate?: HoroscopeAuthGate | null
+}
+
+export type HoroscopeAuthGate = {
+    /** Localized sign-in link, e.g. `/signin?callbackUrl=/`. */
+    signInHref: string
+    /** Question the user asked, replayed if they choose the tarot fallback. */
+    question: string
+    /** Display name for the teaser tarot card (e.g. "The Star"). */
+    cardName: string
+    /** Kebab-case slug used to resolve the rider-waite image path. */
+    cardSlug: string
+    /** Whether the teaser card should render reversed. */
+    cardIsReversed: boolean
 }
 
 export type ChatDecision = {

@@ -395,7 +395,14 @@
       "passport": "Passport",
       "national_id": "National ID"
     },
-    "sanitizingPrompt": "Purifying"
+    "sanitizingPrompt": "Purifying",
+    "horoscopeAuthGate": {
+      "intro": "This question would be better answered through your horoscope. You'll need to ",
+      "signInLabel": "sign in",
+      "introSuffix": " to continue.",
+      "fallback": "You can use a tarot card as well, but the accuracy will drop.",
+      "cardAriaLabel": "Tarot card teaser: {name}"
+    }
   },
   "ActionTrigger": {
     "autoPickLabel": "Auto pick card",

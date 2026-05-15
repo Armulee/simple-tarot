@@ -210,7 +210,7 @@ function getChatDecisionPrompt({
         : "Saved birth profile: not available. If you choose horoscope, do not ask for birth date in the chat response; the app will collect or reuse birth data through the birth profile flow."
 
     const anonymousHoroscopeRule = !isAuthenticated
-        ? `\nIMPORTANT: The user is NOT signed in. Horoscope readings require an account. Never set type to "horoscope". For timing or astrology questions, choose "draw" or "chat". Even if session context mentions a prior horoscope reading, do not use "horoscope" while unsigned.\n`
+        ? `\nNote: The user is NOT signed in. Horoscope readings ultimately require an account, but you should STILL classify timing/astrology questions as "horoscope" so the app can show a sign-in prompt. Do not pretend the topic is "chat" just to avoid the auth requirement — the client handles the sign-in gate separately.\n`
         : ""
 
     return `
