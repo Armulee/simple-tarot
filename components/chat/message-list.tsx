@@ -25,6 +25,7 @@ import RealtimePlanetaryPanel from "@/components/astrology/realtime-planetary-pa
 import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
 import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
 import { TarotAssistantInterpretation } from "@/components/chat/tarot-interpretation"
+import { SupportBlock } from "@/components/chat/support/support-block"
 import {
     PrivacyHighlightedText,
     PrivacyHighlightedUserText,
@@ -1072,6 +1073,16 @@ export default function MessageList({
                                                 />
                                             )}
                                         </div>
+                                        {!message.isLoading &&
+                                            message.supportBlock && (
+                                                <div className='w-full md:max-w-[85%] animate-fade-in'>
+                                                    <SupportBlock
+                                                        payload={
+                                                            message.supportBlock
+                                                        }
+                                                    />
+                                                </div>
+                                            )}
                                     </>
                                 )}
                                 {message.role === "assistant" &&

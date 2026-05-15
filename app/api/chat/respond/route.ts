@@ -9,8 +9,9 @@ const MODEL = "deepseek/deepseek-v3.2"
 
 const requestSchema = z.object({
     question: z.string().trim().min(1),
-    type: z.enum(["chat", "draw", "horoscope"]),
+    type: z.enum(["chat", "draw", "horoscope", "support"]),
     isFollowUp: z.boolean().optional(),
+    supportTopic: z.string().nullable().optional(),
     history: z
         .array(
             z.object({
@@ -57,6 +58,18 @@ If mode is horoscope:
 - It MUST NOT exceed 60 characters.
 - Invite them to begin the horoscope reading naturally.
 - Do not ask for birth date or birth time.
+
+If mode is support:
+- The user is asking about the AskingFate website / product, NOT for a reading.
+- An inline tool block (pricing, contact form, tarot card hero, article preview, etc.) will be rendered for them automatically below your reply.
+- Return 1-2 short sentences (max 220 characters total) that ACKNOWLEDGE the topic and invite them to explore the block below.
+- Do NOT repeat all the details that will be in the block (e.g. plan prices, full FAQ answers). Stay brief and oracle-like.
+- Do NOT include URLs, markdown links, or asterisks. Plain text only.
+- Examples:
+  - pricing: "Our plans live below. Tap one to continue to checkout."
+  - contact: "Send your message in the form below — we read every line."
+  - tarot-card (seven of cups): "The Seven of Cups speaks of choices and illusion. Its full meaning waits below."
+  - faq: "I gathered the common answers for you below."
 `
 
 function detectQuestionLanguage(text: string): string {
@@ -72,6 +85,7 @@ function getChatResponsePrompt({
     question,
     type,
     isFollowUp,
+    supportTopic,
     history,
     contextSummary,
     savedBirthInfo,
@@ -103,7 +117,7 @@ ${question}
 
 Response mode: ${type}
 Is follow-up: ${isFollowUp ? "yes" : "no"}
-${savedBirthBlock}
+${type === "support" && supportTopic ? `Support topic: ${supportTopic}\n` : ""}${savedBirthBlock}
 DETECTED LANGUAGE: The user's message is in ${detectedLang}. Ignore the language of conversation history.
 
 Write the user-facing response now.
