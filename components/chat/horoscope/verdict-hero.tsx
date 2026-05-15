@@ -3,7 +3,7 @@
 import { useMemo } from "react"
 import { AlertTriangle, Moon, Sparkles, Target } from "lucide-react"
 import { useFormatter, useTranslations } from "next-intl"
-import { PrivacyHighlightedText } from "@/components/chat/privacy-highlighted-user-text"
+import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 
 export type DailyVerdict = {
@@ -75,7 +75,13 @@ const MOOD_STYLES: Record<DailyVerdict["mood"], MoodStyle> = {
     },
 }
 
-function MoodIcon({ mood, className }: { mood: DailyVerdict["mood"]; className?: string }) {
+function MoodIcon({
+    mood,
+    className,
+}: {
+    mood: DailyVerdict["mood"]
+    className?: string
+}) {
     if (mood === "good") return <Sparkles className={className} />
     if (mood === "caution") return <AlertTriangle className={className} />
     return <Moon className={className} />
@@ -191,7 +197,9 @@ export default function VerdictHero({
               : t("moodRest")
 
     const starSeed = `${dateIso ?? "no-date"}::${verdict.mood}`
-    const actions = (verdict.actions ?? []).filter((a) => a && a.trim().length > 0)
+    const actions = (verdict.actions ?? []).filter(
+        (a) => a && a.trim().length > 0,
+    )
 
     return (
         <section

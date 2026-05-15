@@ -1,13 +1,11 @@
 "use client"
 
+import { createElement, useLayoutEffect, useState, type ReactNode } from "react"
+import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
 import {
-    createElement,
-    useLayoutEffect,
-    useState,
-    type ReactNode,
-} from "react"
-import { PrivacyHighlightedText } from "@/components/chat/privacy-highlighted-user-text"
-import { sanitizeDetailedHtml } from "@/lib/tarot/sanitize-html"
+    sanitizeDetailedHtml,
+    type DetailedHtmlStripCardSource,
+} from "@/lib/tarot/sanitize-html"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 
 /** Mirrors allowed tags in `lib/tarot/sanitize-html.ts` (excluding `br`). */
@@ -121,6 +119,14 @@ type PrivacyDetailedHtmlProps = {
     html: string | null | undefined
     aliases: PromptAliasEntry[]
     className?: string
+    /**
+     * Spread cards for this reading — their display names are stripped from
+     * the HTML so the "Detailed" block never echoes tarot titles the model
+     * should have avoided.
+     */
+    stripCardLabelsFrom?: ReadonlyArray<DetailedHtmlStripCardSource> | null
+    /** Additional strings to strip (e.g. `perCard[].cardName`). */
+    extraStripLabels?: readonly string[] | null
 }
 
 /**
@@ -136,8 +142,15 @@ export function PrivacyDetailedHtml({
     html,
     aliases,
     className,
+    stripCardLabelsFrom,
+    extraStripLabels,
 }: PrivacyDetailedHtmlProps) {
-    const safe = sanitizeDetailedHtml(html)
+    const safe = sanitizeDetailedHtml(html, {
+        stripCardLabelsFrom: stripCardLabelsFrom ?? undefined,
+        extraStripLabels: extraStripLabels?.length
+            ? extraStripLabels
+            : undefined,
+    })
     const [nodes, setNodes] = useState<ReactNode[] | null>(null)
 
     useLayoutEffect(() => {

@@ -56,3 +56,26 @@ It’s not just a reading — it’s an **experience of self-reflection, predict
 ```bash
 git clone https://github.com/yourusername/askingfate.git
 cd askingfate
+```
+
+### 2. Privacy alias vault (encrypted PII)
+
+Signed-in users get cross-device unmasking of redacted PII (e.g. `[Person_0]` resolves back to the original name) because the alias map is persisted in `public.privacy_aliases` as AES-256-GCM ciphertext, encrypted with a per-user key derived from a single server-side master secret.
+
+1. Generate a 32-byte base64 master key and set it in `.env`:
+
+   ```bash
+   openssl rand -base64 32
+   ```
+
+   ```env
+   PRIVACY_ENCRYPTION_MASTER_KEY=<paste-output-here>
+   ```
+
+2. Apply the schema (idempotent):
+
+   ```bash
+   psql "$DATABASE_URL" -f database-privacy-aliases.sql
+   ```
+
+If `PRIVACY_ENCRYPTION_MASTER_KEY` is missing, `/api/privacy-aliases` returns 500 and the client silently keeps its existing sessionStorage-only behavior — no crash, no plaintext fallback. Rotating the master key invalidates every existing ciphertext, so reserve the `key_version` column on `privacy_aliases` for any future rotation work.

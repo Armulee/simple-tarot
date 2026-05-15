@@ -1,3 +1,4 @@
+import { supabase } from "@/lib/supabase"
 import {
     applyAliasesToText,
     assignAliases,
@@ -20,9 +21,45 @@ export type ClientSanitizeResult = {
 
 const REQUEST_TIMEOUT_MS = 5000
 
+/**
+ * Fire-and-forget POST of newly minted aliases to the encrypted server vault.
+ * Only runs for signed-in users; never blocks the sanitisation flow.
+ */
+async function persistAliasesToServer(
+    sessionId: string,
+    userId: string,
+    items: PromptRedaction[],
+): Promise<void> {
+    if (!sessionId || !userId || items.length === 0) return
+    if (typeof window === "undefined") return
+    try {
+        const { data } = await supabase.auth.getSession()
+        const token = data.session?.access_token
+        if (!token) return
+        await fetch("/api/privacy-aliases", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                sessionId,
+                items: items.map((i) => ({
+                    type: i.type,
+                    placeholder: i.placeholder,
+                    original: i.original,
+                })),
+            }),
+        })
+    } catch {
+        /* network failures should not block sanitisation */
+    }
+}
+
 function fallbackSanitize(
     text: string,
     sessionId: string,
+    userId: string | null | undefined,
 ): ClientSanitizeResult {
     const regexItems = collectRegexRedactionItems(text)
     if (regexItems.length && sessionId) {
@@ -33,6 +70,9 @@ function fallbackSanitize(
             original: a.original,
             placeholder: a.placeholder,
         }))
+        if (userId) {
+            void persistAliasesToServer(sessionId, userId, redactions)
+        }
         return {
             sanitized,
             redacted: true,
@@ -56,6 +96,12 @@ type SanitizeOptions = {
     sessionId: string
     locale?: string
     signal?: AbortSignal
+    /**
+     * When set, newly assigned aliases for this call are pushed to the
+     * encrypted server vault (`/api/privacy-aliases`) so the same user can
+     * unmask them on any device. Omit for anonymous users.
+     */
+    userId?: string | null
 }
 
 /**
@@ -80,7 +126,7 @@ export async function sanitizePromptOnClient(
     }
 
     if (typeof window === "undefined") {
-        return fallbackSanitize(text, options.sessionId)
+        return fallbackSanitize(text, options.sessionId, options.userId)
     }
 
     const controller = new AbortController()
@@ -99,7 +145,7 @@ export async function sanitizePromptOnClient(
             signal: controller.signal,
         })
         if (!response.ok) {
-            return fallbackSanitize(text, options.sessionId)
+            return fallbackSanitize(text, options.sessionId, options.userId)
         }
         const data = (await response.json()) as {
             redactions?: Array<{ type?: unknown; original?: unknown }>
@@ -166,6 +212,14 @@ export async function sanitizePromptOnClient(
             new Set(redactions.map((r) => r.type)),
         )
 
+        if (options.userId && redactions.length > 0) {
+            void persistAliasesToServer(
+                options.sessionId,
+                options.userId,
+                redactions,
+            )
+        }
+
         return {
             sanitized,
             redacted,
@@ -174,7 +228,7 @@ export async function sanitizePromptOnClient(
             aliases: fullAliases,
         }
     } catch {
-        return fallbackSanitize(text, options.sessionId)
+        return fallbackSanitize(text, options.sessionId, options.userId)
     } finally {
         window.clearTimeout(timeout)
         options.signal?.removeEventListener("abort", onAbort)

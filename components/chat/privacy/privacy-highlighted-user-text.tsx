@@ -141,6 +141,22 @@ function PrivacyRedactionChip({
         setOpen(true)
     }, [clearCloseTimer])
 
+    const aria = t("privacyHighlightedAriaLabel", {
+        type: tType(segment.alias.type),
+        value: segment.value,
+    })
+
+    const onKeyDown = useCallback(
+        (e: React.KeyboardEvent<HTMLSpanElement>) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                e.stopPropagation()
+                show()
+            }
+        },
+        [show],
+    )
+
     return (
         <Popover
             modal={false}
@@ -151,14 +167,13 @@ function PrivacyRedactionChip({
             }}
         >
             <PopoverAnchor asChild>
-                <button
-                    type='button'
-                    aria-label={t("privacyHighlightedAriaLabel", {
-                        type: tType(segment.alias.type),
-                        value: segment.value,
-                    })}
+                <span
+                    role='button'
+                    tabIndex={0}
+                    aria-label={aria}
                     onMouseEnter={show}
                     onMouseLeave={scheduleClose}
+                    onKeyDown={onKeyDown}
                     onClick={(e) => {
                         e.stopPropagation()
                         show()
@@ -170,7 +185,7 @@ function PrivacyRedactionChip({
                         aria-hidden
                     />
                     <span className='leading-none'>{segment.value}</span>
-                </button>
+                </span>
             </PopoverAnchor>
             <PopoverContent
                 side='top'

@@ -19,7 +19,7 @@ import {
 } from "@/components/chat/composer-settings-menu"
 import type { InterpretationMode } from "@/lib/interpretation-mode-storage"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
-import { PrivacyHighlightedText } from "@/components/chat/privacy-highlighted-user-text"
+import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
 
 const INPUT_BORDER_BY_MODE: Record<InterpretationMode, string> = {
     auto: "border-border/60 focus:border-primary/60 focus:ring-primary/40",

@@ -2,7 +2,11 @@ import { NextResponse } from "next/server"
 import { generateText, tool } from "ai"
 import { z } from "zod"
 import { AGENT_SYSTEM_PROMPT } from "@/lib/agent/system-prompt"
-import type { AgentAction, AgentRequestPayload, AgentResponse } from "@/types/agent"
+import type {
+    AgentAction,
+    AgentRequestPayload,
+    AgentResponse,
+} from "@/types/agent"
 
 const MODEL = "deepseek/deepseek-v3.2"
 
@@ -31,7 +35,7 @@ export async function POST(req: Request) {
         if (!body || !Array.isArray(body.messages) || !body.context) {
             return NextResponse.json(
                 { error: "INVALID_REQUEST" },
-                { status: 400 }
+                { status: 400 },
             )
         }
 
@@ -85,7 +89,9 @@ export async function POST(req: Request) {
             },
         })
 
-        const toolResult = result.toolResults?.[0]?.output as AgentAction | undefined
+        const toolResult = result.toolResults?.[0]?.output as
+            | AgentAction
+            | undefined
         const message = (result.text ?? "").trim() || "How can I help you next?"
         const response: AgentResponse = {
             message,

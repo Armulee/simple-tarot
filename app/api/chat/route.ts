@@ -7,7 +7,7 @@ import {
 } from "@/lib/privacy/prompt-redaction"
 import { supabaseAdmin } from "@/lib/supabase"
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-flash"
 
 const CHAT_DECISION_SYSTEM_PROMPT = `
 You are Astra, an oracle for AskingFate.

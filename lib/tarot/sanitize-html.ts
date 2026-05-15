@@ -1,5 +1,76 @@
 import DOMPurify from "isomorphic-dompurify"
 
+/** Labels shorter than this are not stripped (avoids nuking common words). */
+const MIN_STRIP_LABEL_LENGTH = 5
+
+function escapeRegExp(s: string): string {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
+export type DetailedHtmlStripCardSource = {
+    name?: string
+    meaning?: string
+    isReversed?: boolean
+}
+
+/**
+ * Collect display strings that might appear inside AI-authored `detailedHtml`
+ * for the current spread so we can remove them even when the model ignores
+ * the "no card names" prompt.
+ */
+export function collectDetailedHtmlStripLabels(
+    cards: ReadonlyArray<DetailedHtmlStripCardSource> | null | undefined,
+    extraLabels?: readonly string[] | null,
+): string[] {
+    const labels = new Set<string>()
+    for (const raw of extraLabels ?? []) {
+        const s = raw.trim()
+        if (s.length >= MIN_STRIP_LABEL_LENGTH) labels.add(s)
+    }
+    for (const c of cards ?? []) {
+        for (const raw of [c.meaning, c.name]) {
+            const s = raw?.trim() ?? ""
+            if (s.length >= MIN_STRIP_LABEL_LENGTH) labels.add(s)
+        }
+        if (c.isReversed) {
+            const m = c.meaning?.trim()
+            const n = c.name?.trim()
+            if (m && m.length >= MIN_STRIP_LABEL_LENGTH) {
+                labels.add(`${m} Reversed`)
+                labels.add(`${m} (Reversed)`)
+            }
+            if (n && n.length >= MIN_STRIP_LABEL_LENGTH && n !== m) {
+                labels.add(`${n} Reversed`)
+                labels.add(`${n} (Reversed)`)
+            }
+        }
+    }
+    return [...labels].sort((a, b) => b.length - a.length)
+}
+
+/**
+ * Remove known tarot card titles from an HTML fragment (longest-first so
+ * "King of Pentacles" wins before "King").
+ */
+export function stripTarotCardLabelsFromHtml(
+    html: string,
+    labels: readonly string[],
+): string {
+    if (!html || !labels.length) return html
+    let out = html
+    for (const label of labels) {
+        if (label.length < MIN_STRIP_LABEL_LENGTH) continue
+        const re = new RegExp(escapeRegExp(label), "gi")
+        out = out.replace(re, "")
+    }
+    return out
+        .replace(/[ \t\u00a0]{2,}/g, " ")
+        .replace(/\s+(<\/)/g, "$1")
+        .replace(/(>)\s+/g, "$1 ")
+        .replace(/<p>\s*<\/p>/gi, "")
+        .trim()
+}
+
 /**
  * Tags the AI is allowed to use inside the `detailedHtml` field.
  *
@@ -60,11 +131,33 @@ function ensureHooks() {
  *
  * If the input is empty/whitespace, returns an empty string so callers can
  * treat it as "no detailed block" without an extra guard.
+ *
+ * When `options.stripCardLabelsFrom` is set, known spread card titles (and
+ * optional `extraStripLabels`, e.g. `perCard[].cardName`) are removed from the
+ * HTML before sanitisation so the "Detailed" block never names the cards.
  */
-export function sanitizeDetailedHtml(input: string | null | undefined): string {
+export function sanitizeDetailedHtml(
+    input: string | null | undefined,
+    options?: {
+        stripCardLabelsFrom?: ReadonlyArray<DetailedHtmlStripCardSource> | null
+        extraStripLabels?: readonly string[] | null
+    },
+): string {
     if (!input) return ""
-    const trimmed = String(input).trim()
+    let trimmed = String(input).trim()
     if (!trimmed) return ""
+
+    if (options?.stripCardLabelsFrom?.length || options?.extraStripLabels?.length) {
+        const labels = collectDetailedHtmlStripLabels(
+            options.stripCardLabelsFrom ?? undefined,
+            options.extraStripLabels,
+        )
+        if (labels.length) {
+            trimmed = stripTarotCardLabelsFromHtml(trimmed, labels)
+        }
+    }
+    if (!trimmed) return ""
+
     ensureHooks()
     const clean = DOMPurify.sanitize(trimmed, {
         ALLOWED_TAGS,

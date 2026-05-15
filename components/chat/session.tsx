@@ -97,6 +97,7 @@ import {
     loadSessionAliases,
     removeRawPromptFromSession,
     saveRawPromptToSession,
+    saveSessionAliases,
     unmaskTextWithAliases,
     type PromptAliasEntry,
     type PromptRedactionType,
@@ -3381,6 +3382,82 @@ export default function ChatSession({
         }
     }, [messages, sessionId])
 
+    // For signed-in users: fetch the encrypted alias vault from the server so
+    // unmasking works on any device, even after sessionStorage is cleared.
+    const hasHydratedServerAliasesRef = useRef(false)
+    useEffect(() => {
+        if (hasHydratedServerAliasesRef.current) return
+        if (typeof window === "undefined") return
+        if (!sessionId) return
+        if (!user?.id) return
+
+        let cancelled = false
+        const run = async () => {
+            try {
+                const { data } = await supabase.auth.getSession()
+                const token = data.session?.access_token
+                if (!token) return
+                const resp = await fetch(
+                    `/api/privacy-aliases?sessionId=${encodeURIComponent(sessionId)}`,
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                    },
+                )
+                if (!resp.ok) return
+                const payload = (await resp.json()) as {
+                    items?: Array<{
+                        type?: unknown
+                        placeholder?: unknown
+                        original?: unknown
+                    }>
+                }
+                if (cancelled) return
+                const serverEntries: PromptAliasEntry[] = []
+                for (const raw of payload.items ?? []) {
+                    if (
+                        !raw ||
+                        typeof raw.type !== "string" ||
+                        typeof raw.placeholder !== "string" ||
+                        typeof raw.original !== "string"
+                    ) {
+                        continue
+                    }
+                    serverEntries.push({
+                        type: raw.type as PromptAliasEntry["type"],
+                        placeholder: raw.placeholder,
+                        original: raw.original,
+                    })
+                }
+                if (!serverEntries.length) return
+                setPrivacyAliases((prev) => {
+                    const merged = [...prev]
+                    let changed = false
+                    for (const entry of serverEntries) {
+                        const exists = merged.some(
+                            (e) =>
+                                e.placeholder === entry.placeholder &&
+                                e.type === entry.type,
+                        )
+                        if (!exists) {
+                            merged.push(entry)
+                            changed = true
+                        }
+                    }
+                    if (!changed) return prev
+                    saveSessionAliases(sessionId, merged)
+                    return merged
+                })
+            } catch {
+                /* network or auth issues are non-fatal */
+            }
+        }
+        void run()
+        hasHydratedServerAliasesRef.current = true
+        return () => {
+            cancelled = true
+        }
+    }, [sessionId, user?.id])
+
     /**
      * Sanitize a user-typed value before it reaches the backend, persists in
      * the database, or is sent to the AI. The original raw text stays only on
@@ -3391,6 +3468,7 @@ export default function ChatSession({
             const result = await sanitizePromptOnClient(rawValue, {
                 sessionId: sessionId ?? "",
                 locale,
+                userId: user?.id ?? null,
             })
             if (result.aliases.length) {
                 setPrivacyAliases(result.aliases)
@@ -3426,7 +3504,7 @@ export default function ChatSession({
                 redacted: result.redacted,
             }
         },
-        [locale, sessionId],
+        [locale, sessionId, user?.id],
     )
 
     const handleSubmit = async (value: string) => {

@@ -4,7 +4,7 @@ import { type ReactNode, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 import type { ChatMessage } from "@/components/chat/types"
 import { resolveRelevanceColor } from "@/lib/horoscope/relevance-colors"
-import { PrivacyHighlightedText } from "@/components/chat/privacy-highlighted-user-text"
+import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import {
     isSingleDayQuestionRange,

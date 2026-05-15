@@ -3,11 +3,8 @@
 import { useMemo, useState } from "react"
 import { useFormatter, useLocale, useTranslations } from "next-intl"
 import { AspectIcon } from "@/components/astrology/aspect-icon"
-import { PrivacyHighlightedText } from "@/components/chat/privacy-highlighted-user-text"
-import type {
-    AspectInsightItem,
-    ChatMessage,
-} from "@/components/chat/types"
+import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
+import type { AspectInsightItem, ChatMessage } from "@/components/chat/types"
 import type {
     PersonalizedTransitAspectExact,
     PersonalizedTransitAspectWindow,
@@ -84,16 +81,18 @@ function buildEvents(
             medium: 1,
             low: 2,
         }
-        const ai = a.intensity ? intensityRank[a.intensity] ?? 3 : 3
-        const bi = b.intensity ? intensityRank[b.intensity] ?? 3 : 3
+        const ai = a.intensity ? (intensityRank[a.intensity] ?? 3) : 3
+        const bi = b.intensity ? (intensityRank[b.intensity] ?? 3) : 3
         if (ai !== bi) return ai - bi
         return a.primaryDateIso.localeCompare(b.primaryDateIso)
     })
 }
 
 function sentimentColor(sentiment: FeedEvent["sentiment"]) {
-    if (sentiment === "good") return "bg-emerald-300 shadow-[0_0_8px_rgba(110,231,183,0.7)]"
-    if (sentiment === "bad") return "bg-rose-300 shadow-[0_0_8px_rgba(252,165,165,0.7)]"
+    if (sentiment === "good")
+        return "bg-emerald-300 shadow-[0_0_8px_rgba(110,231,183,0.7)]"
+    if (sentiment === "bad")
+        return "bg-rose-300 shadow-[0_0_8px_rgba(252,165,165,0.7)]"
     return "bg-slate-300 shadow-[0_0_8px_rgba(148,163,184,0.6)]"
 }
 
@@ -164,9 +163,7 @@ export default function TransitFeed({
     if (events.length === 0) {
         const text = message.text?.trim()
         if (!text) {
-            return (
-                <p className='text-sm text-white/55'>{t("emptyFallback")}</p>
-            )
+            return <p className='text-sm text-white/55'>{t("emptyFallback")}</p>
         }
         return (
             <div className='rounded-[16px] border border-white/10 bg-white/[0.04] p-5'>

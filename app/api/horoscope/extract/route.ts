@@ -4,7 +4,7 @@ import { getDefaultAstrologySystem } from "@/lib/astrology/intake"
 import { selectTransitDateFromSources } from "@/lib/astrology/transit-date-extract"
 import { resolveLocationFromCountryState } from "@/lib/location"
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-flash"
 
 function normalizeCalendarYear(year: number | null | undefined): number | null {
     if (!Number.isFinite(year as number)) return null

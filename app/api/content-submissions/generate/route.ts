@@ -11,7 +11,7 @@ import {
     type LanguageCode,
 } from "@/lib/content-generator"
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
 
 const OUTPUT_DIRECTIVES: Record<ContentTypeKey, string> = {
     shortText:

@@ -7,15 +7,15 @@ import ShareSection from "@/components/tarot/interpretation/share"
 import { InterpretationHeaderBar } from "@/components/chat/interpretation-header-bar"
 import type { ChatMessage } from "@/components/chat/types"
 import { LoadingDotsText } from "@/components/chat/loading-dots-text"
-import { PrivacyDetailedHtml } from "@/components/chat/privacy-detailed-html"
-import { PrivacyHighlightedText } from "@/components/chat/privacy-highlighted-user-text"
+import { PrivacyDetailedHtml } from "@/components/chat/privacy/privacy-detailed-html"
+import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
 import {
     applyAliasesToText,
     type PromptAliasEntry,
 } from "@/lib/privacy/prompt-redaction"
 import { isSensitiveQuestionDomain } from "@/lib/chat/situation-schema"
 import { useTranslations } from "next-intl"
-import { AlertTriangle, Loader2, Share, Sparkles } from "lucide-react"
+import { AlertTriangle, Loader2, Share } from "lucide-react"
 
 const INTERPRETATION_FILLER_PREFIXES = [
     /^(?:i\s+(?:feel|sense|believe|think)\s+(?:that\s+)*)/i,
@@ -144,7 +144,7 @@ export type TarotAssistantInterpretationProps = {
 
 /**
  * Tarot card hero + AI interpretation (box variant): headline/subtitle box,
- * fanned hero card with active-card sync, per-card chip list + soft next step,
+ * fanned hero card with active-card sync, per-card chip list,
  * up to four follow-up suggestion chips. Internal card markup (number badge, tag label,
  * name pill, italic quote) is preserved byte-for-byte; only the layout
  * wrappers around it change.
@@ -171,7 +171,6 @@ export function TarotAssistantInterpretation({
     const unmaskedQuestion = unmask(message.question)
     const unmaskedHeadline = unmask(message.headline)
     const unmaskedSubtitle = unmask(message.subtitle)
-    const unmaskedNextStep = unmask(message.nextStep)
     // Re-mask the question for the legacy paragraph filter so placeholder
     // tokens still match in the saved text.
     const maskedQuestionForFilter = applyAliasesToText(
@@ -257,13 +256,6 @@ export function TarotAssistantInterpretation({
     const hasDetailedHtmlBlock = Boolean(
         message.detailedHtml && message.detailedHtml.trim(),
     )
-    const detailedLabel = (() => {
-        try {
-            return tReading("detailed.label")
-        } catch {
-            return "Detailed"
-        }
-    })()
 
     const formattedTarotInterpretationLegacy =
         message.variant === "box" && !hasPerCard
@@ -281,7 +273,6 @@ export function TarotAssistantInterpretation({
                             .map((p) => `${p.cardName}: ${unmask(p.sentence)}`)
                             .join("\n")
                       : unmaskedMessageText.trim(),
-                  unmaskedNextStep?.trim(),
               ]
                   .filter((s): s is string => Boolean(s && s.trim()))
                   .join("\n\n")
@@ -296,148 +287,146 @@ export function TarotAssistantInterpretation({
     const heroCardSection =
         cardCount > 0 && activeCard ? (
             <div className='w-full md:max-w-[85%]'>
-                    <div className='relative mx-auto flex w-full max-w-md flex-col items-center px-2 py-6'>
-                        <div
-                            aria-hidden
-                            className='pointer-events-none absolute left-1/2 top-[120px] -z-10 h-[260px] w-[260px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#a78bfa]/25 blur-3xl'
-                        />
+                <div className='relative mx-auto flex w-full max-w-md flex-col items-center px-2 py-6'>
+                    <div
+                        aria-hidden
+                        className='pointer-events-none absolute left-1/2 top-[120px] -z-10 h-[260px] w-[260px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#a78bfa]/25 blur-3xl'
+                    />
 
-                        {isMultiCard ? (
-                            <div className='relative flex h-[300px] w-full items-end justify-center'>
+                    {isMultiCard ? (
+                        <div className='relative flex h-[300px] w-full items-end justify-center'>
+                            {cards.map((card, index) => {
+                                const offsetFromActive = index - safeActiveIndex
+                                const isActive = index === safeActiveIndex
+                                const rotateDeg = offsetFromActive * 8
+                                const translateXPx = offsetFromActive * 56
+                                const translateYPx = isActive
+                                    ? -10
+                                    : Math.abs(offsetFromActive) * 8
+                                const scale = isActive ? 1.06 : 0.92
+                                const zIndex = isActive
+                                    ? 30
+                                    : 20 - Math.abs(offsetFromActive)
+                                return (
+                                    <button
+                                        key={`${message.id}-card-${card.id}-${index}`}
+                                        type='button'
+                                        onClick={() =>
+                                            setActiveCardIndex(index)
+                                        }
+                                        aria-label={`Card ${index + 1}: ${card.meaning}`}
+                                        aria-pressed={isActive}
+                                        className='absolute bottom-0 left-1/2 -translate-x-1/2 outline-none transition-transform duration-300 ease-out focus-visible:ring-2 focus-visible:ring-[#a78bfa]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent'
+                                        style={{
+                                            transform: `translate(calc(-50% + ${translateXPx}px), ${translateYPx}px) rotate(${rotateDeg}deg) scale(${scale})`,
+                                            zIndex,
+                                        }}
+                                    >
+                                        <div className='w-36 sm:w-40 rounded-xl overflow-hidden border border-white/10 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.55)]'>
+                                            <CardImage
+                                                card={card}
+                                                size='lg'
+                                                showAura={false}
+                                                showLabel={false}
+                                            />
+                                        </div>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    ) : (
+                        <div className='w-fit rounded-2xl overflow-hidden border border-white/10 shadow-[0_24px_60px_-18px_rgba(0,0,0,0.6)]'>
+                            <CardImage
+                                card={activeCard}
+                                size='lg'
+                                showAura={false}
+                                showLabel={false}
+                            />
+                        </div>
+                    )}
+
+                    {/* Internal card markup — unchanged tag label,
+                            name pill, italic quote — for the active card,
+                            stacked vertically and centered. */}
+                    <div className='mt-6 flex w-full flex-col items-center text-center'>
+                        <div className='relative flex flex-col items-center'>
+                            <p className='text-xs tracking-widest text-white/50 uppercase mb-1 opacity-80'>
+                                {activeLabel}
+                            </p>
+
+                            <span>{activeCard.meaning}</span>
+                        </div>
+                        <div className='mt-3 w-fit max-w-md rounded-xl border-l-2 border-indigo-300/60 bg-indigo-400/[0.04] py-2 pr-3 pl-4 animate-fade-in'>
+                            <p className='text-[11px] font-serif italic leading-relaxed text-indigo-200/76'>
+                                &ldquo;
+                                {message.isLoading &&
+                                !message.insights?.[safeActiveIndex] ? (
+                                    <span className='inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-2 py-1 backdrop-blur-xl shadow-[0_0_12px_-3px_rgba(56,189,248,0.3)] text-[10px] font-medium text-white/90'>
+                                        <Loader2 className='h-2.5 w-2.5 animate-spin shrink-0' />
+                                        <LoadingDotsText
+                                            active={
+                                                !!(
+                                                    message.isLoading &&
+                                                    !message.insights?.[
+                                                        safeActiveIndex
+                                                    ]
+                                                )
+                                            }
+                                            getText={(d) =>
+                                                `${consultingBase}${".".repeat(d)}`
+                                            }
+                                        />
+                                    </span>
+                                ) : (
+                                    <PrivacyHighlightedText
+                                        text={
+                                            message.insights?.[
+                                                safeActiveIndex
+                                            ]?.trim()
+                                                ? message.insights[
+                                                      safeActiveIndex
+                                                  ]!
+                                                : `${consultingBase}...`
+                                        }
+                                        aliases={aliases}
+                                        supportMarkdown={false}
+                                    />
+                                )}
+                                &rdquo;
+                            </p>
+                        </div>
+
+                        {isMultiCard && (
+                            <div
+                                className='mt-4 flex items-center gap-1.5'
+                                role='tablist'
+                                aria-label='Card position'
+                            >
                                 {cards.map((card, index) => {
-                                    const offsetFromActive =
-                                        index - safeActiveIndex
                                     const isActive = index === safeActiveIndex
-                                    const rotateDeg = offsetFromActive * 8
-                                    const translateXPx = offsetFromActive * 56
-                                    const translateYPx = isActive
-                                        ? -10
-                                        : Math.abs(offsetFromActive) * 8
-                                    const scale = isActive ? 1.06 : 0.92
-                                    const zIndex = isActive
-                                        ? 30
-                                        : 20 - Math.abs(offsetFromActive)
                                     return (
                                         <button
-                                            key={`${message.id}-card-${card.id}-${index}`}
+                                            key={`${message.id}-dot-${card.id}-${index}`}
                                             type='button'
+                                            role='tab'
+                                            aria-selected={isActive}
+                                            aria-label={`Show card ${index + 1}`}
                                             onClick={() =>
                                                 setActiveCardIndex(index)
                                             }
-                                            aria-label={`Card ${index + 1}: ${card.meaning}`}
-                                            aria-pressed={isActive}
-                                            className='absolute bottom-0 left-1/2 -translate-x-1/2 outline-none transition-transform duration-300 ease-out focus-visible:ring-2 focus-visible:ring-[#a78bfa]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent'
-                                            style={{
-                                                transform: `translate(calc(-50% + ${translateXPx}px), ${translateYPx}px) rotate(${rotateDeg}deg) scale(${scale})`,
-                                                zIndex,
-                                            }}
-                                        >
-                                            <div className='w-36 sm:w-40 rounded-xl overflow-hidden border border-white/10 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.55)]'>
-                                                <CardImage
-                                                    card={card}
-                                                    size='lg'
-                                                    showAura={false}
-                                                    showLabel={false}
-                                                />
-                                            </div>
-                                        </button>
+                                            className={`h-1.5 rounded-full transition-all ${
+                                                isActive
+                                                    ? "w-5 bg-[#a78bfa]"
+                                                    : "w-1.5 bg-white/30 hover:bg-white/50"
+                                            }`}
+                                        />
                                     )
                                 })}
                             </div>
-                        ) : (
-                            <div className='w-fit rounded-2xl overflow-hidden border border-white/10 shadow-[0_24px_60px_-18px_rgba(0,0,0,0.6)]'>
-                                <CardImage
-                                    card={activeCard}
-                                    size='lg'
-                                    showAura={false}
-                                    showLabel={false}
-                                />
-                            </div>
                         )}
-
-                        {/* Internal card markup — unchanged tag label,
-                            name pill, italic quote — for the active card,
-                            stacked vertically and centered. */}
-                        <div className='mt-6 flex w-full flex-col items-center text-center'>
-                            <div className='relative flex flex-col items-center'>
-                                <p className='text-xs tracking-widest text-white/50 uppercase mb-1 opacity-80'>
-                                    {activeLabel}
-                                </p>
-
-                                <span>{activeCard.meaning}</span>
-                            </div>
-                            <div className='mt-3 w-fit max-w-md rounded-xl border-l-2 border-indigo-300/60 bg-indigo-400/[0.04] py-2 pr-3 pl-4 animate-fade-in'>
-                                <p className='text-[11px] font-serif italic leading-relaxed text-indigo-200/76'>
-                                    &ldquo;
-                                    {message.isLoading &&
-                                    !message.insights?.[safeActiveIndex] ? (
-                                        <span className='inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-2 py-1 backdrop-blur-xl shadow-[0_0_12px_-3px_rgba(56,189,248,0.3)] text-[10px] font-medium text-white/90'>
-                                            <Loader2 className='h-2.5 w-2.5 animate-spin shrink-0' />
-                                            <LoadingDotsText
-                                                active={
-                                                    !!(
-                                                        message.isLoading &&
-                                                        !message.insights?.[
-                                                            safeActiveIndex
-                                                        ]
-                                                    )
-                                                }
-                                                getText={(d) =>
-                                                    `${consultingBase}${".".repeat(d)}`
-                                                }
-                                            />
-                                        </span>
-                                    ) : (
-                                        <PrivacyHighlightedText
-                                            text={
-                                                message.insights?.[
-                                                    safeActiveIndex
-                                                ]?.trim()
-                                                    ? message.insights[
-                                                          safeActiveIndex
-                                                      ]!
-                                                    : `${consultingBase}...`
-                                            }
-                                            aliases={aliases}
-                                            supportMarkdown={false}
-                                        />
-                                    )}
-                                    &rdquo;
-                                </p>
-                            </div>
-
-                            {isMultiCard && (
-                                <div
-                                    className='mt-4 flex items-center gap-1.5'
-                                    role='tablist'
-                                    aria-label='Card position'
-                                >
-                                    {cards.map((card, index) => {
-                                        const isActive =
-                                            index === safeActiveIndex
-                                        return (
-                                            <button
-                                                key={`${message.id}-dot-${card.id}-${index}`}
-                                                type='button'
-                                                role='tab'
-                                                aria-selected={isActive}
-                                                aria-label={`Show card ${index + 1}`}
-                                                onClick={() =>
-                                                    setActiveCardIndex(index)
-                                                }
-                                                className={`h-1.5 rounded-full transition-all ${
-                                                    isActive
-                                                        ? "w-5 bg-[#a78bfa]"
-                                                        : "w-1.5 bg-white/30 hover:bg-white/50"
-                                                }`}
-                                            />
-                                        )
-                                    })}
-                                </div>
-                            )}
-                        </div>
                     </div>
                 </div>
+            </div>
         ) : null
 
     return (
@@ -585,29 +574,28 @@ export function TarotAssistantInterpretation({
                                         headings — the headline box above
                                         already plays that role). The block
                                         sits directly BELOW the key message
-                                        and ABOVE the perCard breakdown,
-                                        with its own small uppercase label. */}
+                                        and ABOVE the perCard breakdown. */}
                                     {hasDetailedHtmlBlock && (
-                                        <div className='rounded-2xl border border-yellow-400/15 bg-gradient-to-br from-yellow-500/[0.04] via-white/[0.03] to-yellow-500/[0.04] p-5 shadow-lg animate-fade-in relative overflow-hidden'>
+                                        <div className='rounded-2xl shadow-lg animate-fade-in relative overflow-hidden'>
                                             <div
                                                 aria-hidden
                                                 className='pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-yellow-400/10 blur-3xl'
                                             />
-                                            <div className='flex items-center gap-2 mb-2 relative z-10'>
-                                                <Sparkles className='w-3.5 h-3.5 text-yellow-300' />
-                                                <p className='text-[11px] uppercase tracking-[0.2em] text-yellow-200/90'>
-                                                    {detailedLabel}
-                                                </p>
-                                            </div>
                                             <PrivacyDetailedHtml
                                                 html={message.detailedHtml}
                                                 aliases={aliases}
+                                                stripCardLabelsFrom={
+                                                    message.cards ?? undefined
+                                                }
+                                                extraStripLabels={perCardItems.map(
+                                                    (p) => p.cardName,
+                                                )}
                                                 className='tarot-detailed-html text-white/90 leading-relaxed relative z-10'
                                             />
                                         </div>
                                     )}
 
-                                    {/* C. Per-card chip list + soft next step.
+                                    {/* C. Per-card chip list.
                                         Tapping a chip syncs activeCardIndex
                                         with the hero above. Falls back to the
                                         legacy single paragraph when perCard
@@ -637,7 +625,6 @@ export function TarotAssistantInterpretation({
                                                         return (
                                                             <li
                                                                 key={`${message.id}-percard-${index}`}
-                                                                className='flex items-start gap-3'
                                                             >
                                                                 {isMultiCard ? (
                                                                     <button
@@ -665,7 +652,7 @@ export function TarotAssistantInterpretation({
                                                                         }
                                                                     </span>
                                                                 )}
-                                                                <p className='text-[15px] leading-7 text-white/85'>
+                                                                <p className='text-[15px] leading-7 text-white/85 mt-3'>
                                                                     <PrivacyHighlightedText
                                                                         text={
                                                                             item.sentence
@@ -681,23 +668,6 @@ export function TarotAssistantInterpretation({
                                                     },
                                                 )}
                                             </ul>
-                                            {unmaskedNextStep && (
-                                                <p className='mt-3 flex gap-2 italic text-white/80'>
-                                                    <span
-                                                        aria-hidden
-                                                        className='mt-2 size-1.5 shrink-0 rounded-full bg-[#a78bfa]'
-                                                    />
-                                                    <span className='text-[15px] leading-7'>
-                                                        <PrivacyHighlightedText
-                                                            text={
-                                                                unmaskedNextStep
-                                                            }
-                                                            aliases={aliases}
-                                                            supportMarkdown
-                                                        />
-                                                    </span>
-                                                </p>
-                                            )}
                                         </div>
                                     ) : (
                                         <div className='space-y-4 text-[15px] leading-8 text-white/84'>
@@ -742,14 +712,15 @@ export function TarotAssistantInterpretation({
                         legacy bottom-conclusion fallback for old messages
                         that pre-date the perCard/nextStep schema. */}
                     {message.followUpLoading ||
-                    (!unmaskedNextStep && message.followUpConclusion) ? (
+                    (!message.nextStep?.trim() &&
+                        message.followUpConclusion) ? (
                         <div className='w-full md:max-w-[85%] space-y-3 pt-4'>
                             {message.followUpLoading && (
                                 <p className='text-xs sm:text-sm text-white/60'>
                                     Thinking of a good next question...
                                 </p>
                             )}
-                            {!unmaskedNextStep &&
+                            {!message.nextStep?.trim() &&
                                 message.followUpConclusion && (
                                     <p className='text-white'>
                                         <PrivacyHighlightedText

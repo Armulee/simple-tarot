@@ -219,6 +219,7 @@ ${typeInstructions}
    - Total length must stay between 1 and 3 paragraphs of human-readable content. Be punchy and specific, not verbose.
    - Apply the same TONE rules as item 8: phrase the message as a leaning/tendency/signal, never as an absolute verdict.
    - Do NOT mention card names. Do NOT use Markdown syntax. Do NOT wrap the output in <html>, <body>, code fences, or any container element. Output the HTML fragment directly.
+   - Never use a tarot card's proper title or catalog name (any language). Paraphrase the energy only — the same rule as the main interpretation text.
    - Write the HTML content in the SAME language as the user's question.
    - The detailedHtml should COMPLEMENT (not duplicate) the headline/subtitle and the longer "interpretation" field — think of it as the highlighted "key takeaways" paragraph while headline is the verdict and interpretation is the full story.
 
