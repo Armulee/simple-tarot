@@ -134,7 +134,7 @@ GROUND TRUTH: The authoritative source for this reading is ONLY the current spre
 NO PARROTING: Do NOT copy, quote, or closely paraphrase <previous_interpretation>. Do NOT recycle the prior verdict or advice as if it were new—if the cards align, say so in fresh words tied to the current symbols.
 NO META CALLBACKS: Do NOT say things like "last time", "as before", "continuing from the earlier reading", or "like we said" unless the follow-up question explicitly asks about the prior reading.
 STYLE: Answer the follow-up directly. No card names. No Markdown in the "interpretation" or "conclusion" fields. Same language as the follow-up question.
-DETAILED HTML: For the "detailedHtml" field, produce a SHORT (1-3 paragraphs) decorated HTML fragment that magnifies the key takeaways of this follow-up. ALLOWED TAGS ONLY: <p>, <strong>, <em>, <ul>, <ol>, <li>, <br>, and <span class="highlight-gold">. FORBIDDEN: any heading tag (<h1>–<h6>) — the headline field already plays that role and the UI prints a small "Detailed" label above this block. Use <span class="highlight-gold">…</span> to highlight 1-3 key phrases, and an <ul>/<ol> list only when a short list (2-4 items) genuinely helps the user scan the message. No other tags, attributes, classes, scripts, links, images, code fences, or Markdown. Output the HTML fragment directly and write it in the SAME language as the follow-up question.
+DETAILED HTML: For the "detailedHtml" field, produce a SHORT, SCANNABLE key-takeaways block for this follow-up with EXACTLY this structure: (1) one short opening <p> of 1-2 sentences (NOT a restatement of headline/subtitle), then (2) one <ul> containing 3-5 <li> bullets. Each <li> MUST start with a 2-4-word lead phrase wrapped in <strong>…</strong> followed by ": " and a concrete takeaway sentence of ≤22 words. Each bullet covers a different angle (e.g. inner state, external dynamic, opportunity, watch-out, suggested move) — no repeats. Do NOT emit a closing paragraph and do NOT emit more than one list. ALLOWED TAGS ONLY: <p>, <strong>, <em>, <ul>, <li>, <br>, and <span class="highlight-gold">. FORBIDDEN: any heading tag (<h1>–<h6>), <ol>, <b>, <i>. Use <span class="highlight-gold">…</span> on 1-3 must-not-miss short phrases. No other tags, attributes, classes, scripts, links, images, code fences, or Markdown. Output the HTML fragment directly and write it in the SAME language as the follow-up question.
 Output JSON only.
 </follow_up_rules>`
     }
@@ -210,18 +210,20 @@ ${typeInstructions}
 6. When writing Thai, write like a real Thai person texting a friend. Avoid formal/translated phrasing like "ฉันรู้สึกว่า", "การรักษาความยุติธรรม", "ผลลัพธ์จะสะท้อนกลับมา". Use casual, natural Thai instead.
 7. Use session context to support continuity, but keep the latest question as the top priority.
 8. TONE: Treat this as a reading of patterns, tendencies, and energy — never a fixed prophecy. Stay clear about which way the cards lean, but always frame it as a leaning, signal, or tendency. PREFER: likely, tends to, leans toward, the signals point to, the energy here suggests, the pattern shows, there's a real possibility (Thai: น่าจะ, มีแนวโน้ม, สัญญาณบอกว่า, พลังงานช่วงนี้, ดูเหมือนว่า, มีโอกาส). AVOID: definitely, absolutely, certainly, guaranteed, no doubt, 100%, will-as-fixed-future, must (Thai: แน่นอน, รับรอง, ชัวร์, ฟันธง, ต้องเป็น). Never speak like a judge declaring an absolute truth.
-9. The "detailedHtml" field is a SHORT, decorated rich-text block (1-3 paragraphs total) that magnifies the message of the reading. It renders BELOW the "headline"/"subtitle" key-message box and ABOVE the cards, so it MUST NOT carry its own heading — the headline field already plays that role. Follow these rules strictly:
-   - ALLOWED TAGS ONLY: <p>, <strong>, <em>, <ul>, <ol>, <li>, <br>, and <span class="highlight-gold">. No other tags, attributes, classes, inline styles, scripts, links, or images.
-   - FORBIDDEN TAGS: <h1>, <h2>, <h3>, <h4>, <h5>, <h6>. Never emit a heading element — restate the message in paragraph form instead. The UI puts a small "Detailed" label above this block automatically.
-   - Use <span class="highlight-gold">…</span> to highlight 1-3 key phrases the user should not miss (a date, a decision, a warning, the name of an action). Highlight WORDS or short phrases — never whole paragraphs.
-   - Use <strong> for secondary emphasis and <em> for soft emphasis.
-   - Use <ul>/<ol> ONLY when a small list (2-4 items) genuinely makes the message easier to scan (e.g., concrete next steps, a short checklist). Never force a list — if prose flows better, use prose.
-   - Total length must stay between 1 and 3 paragraphs of human-readable content. Be punchy and specific, not verbose.
-   - Apply the same TONE rules as item 8: phrase the message as a leaning/tendency/signal, never as an absolute verdict.
-   - Do NOT mention card names. Do NOT use Markdown syntax. Do NOT wrap the output in <html>, <body>, code fences, or any container element. Output the HTML fragment directly.
-   - Never use a tarot card's proper title or catalog name (any language). Paraphrase the energy only — the same rule as the main interpretation text.
-   - Write the HTML content in the SAME language as the user's question.
-   - The detailedHtml should COMPLEMENT (not duplicate) the headline/subtitle and the longer "interpretation" field — think of it as the highlighted "key takeaways" paragraph while headline is the verdict and interpretation is the full story.
+9. The "detailedHtml" field is a SHORT, SCANNABLE key-takeaways block. It renders BELOW the "headline"/"subtitle" key-message box and ABOVE the per-card breakdown, so it MUST NOT carry its own heading — the headline field already plays that role. The UI prints a small "Detailed" label above this block automatically. Follow these rules strictly:
+   - REQUIRED STRUCTURE — DO NOT DEVIATE:
+     (a) Open with exactly ONE short <p> of 1-2 sentences that sets the vibe or grounds the reading. Do NOT restate the headline/subtitle.
+     (b) Follow with exactly ONE <ul> containing 3 to 5 <li> bullets.
+     (c) Each <li> MUST start with a 2-4-word lead phrase wrapped in <strong>…</strong>, then a literal ": " (colon + space — Thai: " : ", Lao: " : "), then a concrete takeaway sentence of ≤22 words (Thai/Lao may go up to ~25 words). Example shape: "<li><strong>Inner pull</strong>: short concrete takeaway.</li>".
+     (d) Do NOT emit a closing paragraph after the list. Do NOT emit more than one list. Do NOT emit only paragraphs — the bullets are mandatory.
+   - BULLET CONTENT: each bullet covers a DIFFERENT angle so the user can scan all 3-5 in one glance. Pick angles that fit the question, e.g. inner state, external dynamic, opportunity, watch-out, suggested move, timing — never repeat the same angle twice. Translate the card energy into the SPECIFIC domain of the question (career, money, relationship, study, etc.). No generic spiritual filler.
+   - ALLOWED TAGS ONLY: <p>, <strong>, <em>, <ul>, <li>, <br>, and <span class="highlight-gold">. No <ol>, no <b>, no <i>, no headings, no other tags, attributes, inline styles, classes (other than "highlight-gold"), scripts, links, or images.
+   - HIGHLIGHTS: wrap 1-3 must-not-miss phrases across the whole block in <span class="highlight-gold">…</span> (a date, a decision, an action, a warning). Highlight only WORDS or short phrases — never wrap a whole bullet or paragraph. Use <em> sparingly for soft emphasis.
+   - TONE: apply the same tendency/leaning/signal voice as item 8 — never an absolute verdict.
+   - Do NOT mention card names or use a tarot card's proper title/catalog name in any language. Paraphrase the energy only.
+   - Do NOT use Markdown syntax. Do NOT wrap the output in <html>, <body>, code fences, or any container element. Output the HTML fragment directly.
+   - Write the HTML content in the SAME language as the user's question; keep only the tag names and the literal class name "highlight-gold" in English.
+   - The detailedHtml should COMPLEMENT (not duplicate) the headline/subtitle and the longer "interpretation" field — think of it as the scannable "key takeaways" list while headline is the verdict and interpretation is the full story.
 
 Output JSON only.
 </instructions>
