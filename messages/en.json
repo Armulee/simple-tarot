@@ -1427,6 +1427,13 @@
         "label": "Detailed"
       },
       "professionalAdviceBadge": "Need professional advice",
+      "professionalAdviceBadgeAria": "Sensitive topic: learn what this badge means",
+      "professionalAdviceHoverTitle": "What this badge means",
+      "professionalAdviceHoverIntro": "Your question was classified as touching an area where licensed professionals—not tarot—give binding guidance. The cards here offer symbolic reflection only.",
+      "professionalAdviceHoverHowTitle": "How we flag sensitive domains",
+      "professionalAdviceHoverLegal": "Legal: contracts, disputes, rights, court strategy, immigration rules, and similar matters.",
+      "professionalAdviceHoverMedical": "Medical: symptoms, diagnosis, treatment, medication, or clinical or crisis mental health.",
+      "professionalAdviceHoverFinancial": "Financial: investing, trading, tax filing, debt restructuring, or regulated retirement planning.",
       "professionalAdviceHint": "This reading is for reflection only and is not legal, medical, or financial advice. Consult a qualified professional for decisions in this area.",
       "error": "Failed to generate interpretation. Please try again.",
       "loading": {

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Badge } from "@/components/ui/badge"
+import { SensitiveDomainAdviceBadge } from "@/components/chat/sensitive-domain-advice-badge"
 import { CardImage } from "@/components/card-image"
 import ShareSection from "@/components/tarot/interpretation/share"
 import { InterpretationHeaderBar } from "@/components/chat/interpretation-header-bar"
@@ -13,9 +13,10 @@ import {
     applyAliasesToText,
     type PromptAliasEntry,
 } from "@/lib/privacy/prompt-redaction"
+import { cn } from "@/lib/utils"
 import { isSensitiveQuestionDomain } from "@/lib/chat/situation-schema"
 import { useTranslations } from "next-intl"
-import { AlertTriangle, Loader2, Share } from "lucide-react"
+import { Loader2, Share } from "lucide-react"
 
 const INTERPRETATION_FILLER_PREFIXES = [
     /^(?:i\s+(?:feel|sense|believe|think)\s+(?:that\s+)*)/i,
@@ -243,6 +244,10 @@ export function TarotAssistantInterpretation({
             (Boolean(fallbackKeyMessage) &&
                 normalizeComparisonText(fallbackKeyMessage) !==
                     normalizeComparisonText(unmaskedMessageText)))
+
+    const showSensitiveDomainWarning = isSensitiveQuestionDomain(
+        message.questionDomain,
+    )
 
     const perCardItems = useMemo(() => {
         if (!Array.isArray(message.perCard)) return []
@@ -472,21 +477,6 @@ export function TarotAssistantInterpretation({
                                     : undefined
                             }
                         />
-                        {isSensitiveQuestionDomain(message.questionDomain) && (
-                            <div className='flex w-full animate-fade-in'>
-                                <Badge
-                                    variant='outline'
-                                    title={tReading("professionalAdviceHint")}
-                                    className='border-amber-500/45 bg-amber-500/12 text-amber-50 shadow-[0_0_20px_-8px_rgba(245,158,11,0.45)]'
-                                >
-                                    <AlertTriangle
-                                        className='text-amber-400'
-                                        aria-hidden
-                                    />
-                                    {tReading("professionalAdviceBadge")}
-                                </Badge>
-                            </div>
-                        )}
                         {!message.isLoading && messageNotices[message.id] && (
                             <p className='-mt-3 text-right text-[11px] text-white/45'>
                                 {messageNotices[message.id]}
@@ -514,7 +504,17 @@ export function TarotAssistantInterpretation({
                                         existing share button stays inline on
                                         the right exactly as before. */}
                                     {showHeadlineBox && (
-                                        <div className='rounded-2xl border border-indigo-300/20 bg-indigo-400/[0.07] px-4 py-4 shadow-[0_8px_24px_-18px_rgba(129,140,248,0.75)]'>
+                                        <div
+                                            className={cn(
+                                                "rounded-2xl border px-4 py-4 animate-fade-in",
+                                                showSensitiveDomainWarning
+                                                    ? "border-orange-400/35 bg-gradient-to-br from-amber-950/55 via-[#2a0f08]/75 to-rose-950/45 shadow-[0_12px_40px_-18px_rgba(251,113,133,0.35),0_8px_28px_-14px_rgba(245,158,11,0.28)] ring-1 ring-orange-500/15"
+                                                    : "border-indigo-300/20 bg-indigo-400/[0.07] shadow-[0_8px_24px_-18px_rgba(129,140,248,0.75)]",
+                                            )}
+                                        >
+                                            {showSensitiveDomainWarning && (
+                                                <SensitiveDomainAdviceBadge className='mb-3' />
+                                            )}
                                             <div className='flex items-start justify-between gap-3'>
                                                 <div className='min-w-0 flex-1'>
                                                     <h2 className='text-2xl sm:text-3xl font-semibold tracking-tight text-white leading-snug'>
