@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import ShareSection from "./share"
 import ActionSection from "./action"
+import InterpretationProse from "./prose"
 //
 import BrandLoader from "@/components/brand-loader"
 import HardStarConsent from "@/components/hard-star-consent"
@@ -550,7 +551,11 @@ export default function Interpretation({
                                                             )}
                                                     </div>
                                                 )}
-                                                {content}
+                                                {content && (
+                                                    <InterpretationProse
+                                                        text={content}
+                                                    />
+                                                )}
 
                                                 {/* Disclaimer at the bottom */}
                                                 <div className='mt-8 pt-6 border-t border-white/5'>
@@ -606,7 +611,13 @@ export default function Interpretation({
                                                             )}
                                                     </div>
                                                 )}
-                                                {displayObject.interpretation}
+                                                {displayObject.interpretation && (
+                                                    <InterpretationProse
+                                                        text={
+                                                            displayObject.interpretation
+                                                        }
+                                                    />
+                                                )}
 
                                                 {/* Disclaimer at the bottom (while generating) */}
                                                 <div className='mt-8 pt-6 border-t border-white/5 opacity-50'>

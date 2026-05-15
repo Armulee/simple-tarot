@@ -3,6 +3,7 @@
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Sparkles } from "lucide-react"
+import InterpretationProse from "@/components/tarot/interpretation/prose"
 
 type CardFull = {
     id: number
@@ -179,9 +180,42 @@ export default function SharedTarotView({ data }: { data: SharedTarotData }) {
                             </p>
                         </div>
                     </div>
-                    <div className='text-white/90 leading-relaxed whitespace-pre-wrap'>
-                        {data.interpretation}
-                    </div>
+                    {(() => {
+                        const parts = (data.interpretation ?? "").split("\n\n")
+                        const keywords = parts[0] ?? ""
+                        const body = parts.slice(1).join("\n\n").trim()
+                        const looksLikeKeywords =
+                            keywords.length > 0 &&
+                            keywords.length < 120 &&
+                            keywords.includes(",") &&
+                            body.length > 0
+                        const keywordList = looksLikeKeywords
+                            ? keywords.split(",").map((k) => k.trim()).filter(Boolean)
+                            : []
+                        const proseText = looksLikeKeywords
+                            ? body
+                            : data.interpretation
+                        return (
+                            <>
+                                {keywordList.length > 0 && (
+                                    <div className='flex flex-wrap gap-2'>
+                                        {keywordList.map((k, i) => (
+                                            <span
+                                                key={i}
+                                                className='px-3 py-1 text-xs font-medium rounded-full bg-white/10 text-white border border-white/20'
+                                            >
+                                                {k.charAt(0).toUpperCase() + k.slice(1)}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                                <InterpretationProse
+                                    text={proseText}
+                                    variant='muted'
+                                />
+                            </>
+                        )
+                    })()}
                 </div>
 
                 {/* Conclusion */}
