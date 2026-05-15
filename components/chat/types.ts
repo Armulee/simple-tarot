@@ -9,6 +9,10 @@ import type { PromptRedactionType } from "@/lib/privacy/prompt-redaction"
 import type { ConversationContextPayload } from "@/lib/astrology/question-context"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
 import type { QuestionDomain } from "@/lib/chat/situation-schema"
+import type {
+    SupportBlockKind,
+    SupportTopic,
+} from "@/lib/chat/support-topics"
 
 export type AspectInsightItem = {
     aspectKey: string
@@ -144,17 +148,84 @@ export type ChatMessage = {
     >
     /** True when a stream was manually stopped and partial text should be preserved */
     streamStopped?: boolean
+    /** Topic resolved for support-mode replies, used by SupportBlock rendering. */
+    supportTopic?: SupportTopic
+    /** Concrete data the support tool block needs to render. */
+    supportBlock?: SupportBlockPayload | null
 }
 
 export type ChatDecision = {
-    type: "chat" | "draw" | "horoscope"
+    type: "chat" | "draw" | "horoscope" | "support"
     spreadType?: string
     cardCount?: number
     spreadReason?: string
     assistantText?: string
     /** True if the user's message is directly related to the last message (follow-up) */
     isFollowUp?: boolean
+    /** When type === "support": which tool block to render. */
+    supportTopic?: SupportTopic
+    /** When supportTopic === "tarot-card": canonical card slug. */
+    supportCardSlug?: string
 }
+
+/**
+ * Concrete payload consumed by the SupportBlock renderer in the chat. The
+ * decision route returns a `supportTopic`; the chat session resolves it into
+ * one of these payload shapes before persisting on the assistant message.
+ */
+export type SupportBlockPayload =
+    | {
+          kind: "plan"
+          topic: SupportTopic
+          href: string
+          title: string
+          description: string
+      }
+    | {
+          kind: "star-packs"
+          topic: SupportTopic
+          href: string
+          title: string
+          description: string
+      }
+    | {
+          kind: "contact"
+          topic: SupportTopic
+          href: string
+          title: string
+          description: string
+      }
+    | {
+          kind: "tarot-card"
+          topic: SupportTopic
+          href: string
+          title: string
+          description: string
+          cardSlug: string
+          cardName: string
+          arcana: "major" | "minor"
+          suit: "wands" | "cups" | "swords" | "pentacles" | null
+          uprightKeywords: string[]
+          reversedKeywords: string[]
+      }
+    | {
+          kind: "article"
+          topic: SupportTopic
+          href: string
+          title: string
+          description: string
+          iconId?: string
+      }
+    | {
+          kind: "page"
+          topic: SupportTopic
+          href: string
+          title: string
+          description: string
+          iconId?: string
+      }
+
+export type SupportBlockPayloadKind = SupportBlockKind
 
 export type HoroscopeExtractResponse = {
     birthDate?: {

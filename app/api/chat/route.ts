@@ -17,13 +17,14 @@ Classify the user's message into ONE type:
 chat
 draw
 horoscope
+support
 
 Definitions:
 
 chat
 - general greetings (hi, hello)
-- technical definitions of astrology/tarot
-- "Who are you?" or "What can you do?"
+- technical definitions of astrology/tarot ("what is a trine?", "what is the 7th house?")
+- "Who are you?" or "What can you do?" (only if not asking for a feature; otherwise use support)
 - (DO NOT use chat for advice, strategy, or problem-solving; use 'draw' for those)
 
 draw
@@ -36,6 +37,35 @@ horoscope
 - timing questions
 - today / tomorrow / this month / this year
 - astrology timing
+
+support
+- ANY question about the AskingFate WEBSITE / PRODUCT itself
+- pricing, plans, subscriptions, refunds, billing → supportTopic: "pricing"
+- buying / refilling / running out of stars, star packs → supportTopic: "star-packs"
+- "I want to contact support", "is there a human?", reporting a bug, complaints → supportTopic: "contact"
+- general help / troubleshooting → supportTopic: "help"
+- frequently asked questions → supportTopic: "faq"
+- "how do I use this?", "how does it work?", tutorial, getting started → supportTopic: "how-to-play"
+- account, delete account, change email, sign-out → supportTopic: "account"
+- settings, preferences, language → supportTopic: "settings"
+- privacy / PII redaction notice in chat → supportTopic: "privacy-redaction"
+- privacy policy / data → supportTopic: "privacy-policy"
+- terms of service → supportTopic: "terms-of-service"
+- referrals, inviting friends → supportTopic: "refer-a-friend"
+- sharing a reading link → supportTopic: "share-reading"
+- creating content about AskingFate for stars → supportTopic: "create-content"
+- about the company / our team → supportTopic: "about"
+- sign-in / log in → supportTopic: "sign-in"
+- sign-up / register → supportTopic: "sign-up"
+- a specific tarot card "what does the seven of cups mean?", "the fool meaning" → supportTopic: "tarot-card" and set supportCardSlug to the canonical kebab-case slug (e.g. "seven-of-cups", "the-fool", "queen-of-pentacles")
+- "show me all tarot cards", "the deck" → supportTopic: "tarot-cards-index"
+- our birth chart feature → supportTopic: "birth-chart"
+- our horoscope feature (asking ABOUT the feature, not requesting a horoscope) → supportTopic: "horoscope"
+- browsing articles or guides → supportTopic: "articles"
+
+When the message is BOTH a feature question AND a fortune-telling question, prefer "support" only if it is clearly about the product. Otherwise stick with draw/horoscope. For a real fortune question that incidentally mentions stars / pricing, still use draw.
+
+If type is "support", you MUST set supportTopic. Set supportCardSlug only for tarot-card.
 
 If type is "draw", you MUST also choose ONE tarot spread:
 
@@ -77,13 +107,16 @@ Use it to detect follow-up questions:
 Return JSON only:
 
 {
-"type":"chat"|"draw"|"horoscope",
+"type":"chat"|"draw"|"horoscope"|"support",
 "isFollowUp":true|false,
 "spreadType":"simple"|"general"|"detailed"|"expanded"|"celtic",
-"spreadReason":"short reason"
+"spreadReason":"short reason",
+"supportTopic":"pricing"|"contact"|"...",
+"supportCardSlug":"seven-of-cups"
 }
 
 If type is NOT "draw", omit spreadType and spreadReason.
+If type is NOT "support", omit supportTopic and supportCardSlug.
 
 CRITICAL LANGUAGE RULE:
 Use the user's language to help classification accuracy.
@@ -120,6 +153,7 @@ const MODE_TO_TYPE: Record<string, string> = {
     tarot: "draw",
     horoscope: "horoscope",
     chat: "chat",
+    support: "support",
 }
 
 function getChatDecisionPrompt({

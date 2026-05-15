@@ -87,6 +87,7 @@ import type {
 import { parseQuestionDomain } from "@/lib/chat/situation-schema"
 
 import { getTarotCardCount } from "@/lib/chat/decision-schema"
+import { buildSupportBlockFromDecision } from "@/lib/chat/support-block"
 import { useAuth } from "@/hooks/use-auth"
 import { useProfile } from "@/contexts/profile-context"
 import { supabase } from "@/lib/supabase"
@@ -1687,6 +1688,11 @@ export default function ChatSession({
     const applyInterpretationModeOverride = useCallback(
         (decision: ChatDecision): ChatDecision => {
             if (interpretationMode === "auto") return decision
+            // Support-mode answers (pricing, contact, tarot card info, etc.)
+            // are about the product itself, not a reading. They should bypass
+            // tarot/horoscope mode locks so the user still gets the right
+            // inline tool block.
+            if (decision.type === "support") return decision
             if (interpretationMode === "chat") {
                 return { ...decision, type: "chat" }
             }
@@ -2572,6 +2578,7 @@ export default function ChatSession({
             question,
             type,
             isFollowUp,
+            supportTopic,
             historyOverride,
             savedBirthInfo,
             onChunk,
@@ -2579,6 +2586,7 @@ export default function ChatSession({
             question: string
             type: ChatDecision["type"]
             isFollowUp?: boolean
+            supportTopic?: string | null
             historyOverride?: { role: string; text: string }[]
             savedBirthInfo?: string | null
             onChunk?: (text: string) => void
@@ -2602,6 +2610,7 @@ export default function ChatSession({
                     question,
                     type,
                     isFollowUp,
+                    supportTopic: supportTopic ?? undefined,
                     history,
                     savedBirthInfo: savedBirthInfo ?? undefined,
                     contextSummary: contextSummary || undefined,
@@ -2893,10 +2902,15 @@ export default function ChatSession({
                 nextDecision = normalizeDrawDecision(nextDecision)
                 flowDecision = nextDecision
                 setDecision(nextDecision)
+                const supportBlock = buildSupportBlockFromDecision(
+                    nextDecision,
+                    trimmed,
+                )
                 const assistantText = await streamAssistantResponse({
                     question: trimmed,
                     type: nextDecision.type,
                     isFollowUp: nextDecision.isFollowUp,
+                    supportTopic: supportBlock?.topic ?? null,
                     historyOverride: history,
                     savedBirthInfo,
                     onChunk: (partial) => {
@@ -2919,6 +2933,9 @@ export default function ChatSession({
                                   text: assistantText || m.text,
                                   isLoading: false,
                                   streamStopped: false,
+                                  supportTopic:
+                                      supportBlock?.topic ?? undefined,
+                                  supportBlock: supportBlock ?? undefined,
                               }
                             : m,
                     ),
@@ -3232,10 +3249,15 @@ export default function ChatSession({
                 nextDecision = normalizeDrawDecision(nextDecision)
                 flowDecision = nextDecision
                 setDecision(nextDecision)
+                const supportBlock = buildSupportBlockFromDecision(
+                    nextDecision,
+                    trimmed,
+                )
                 const assistantText = await streamAssistantResponse({
                     question: trimmed,
                     type: nextDecision.type,
                     isFollowUp: nextDecision.isFollowUp,
+                    supportTopic: supportBlock?.topic ?? null,
                     historyOverride: history,
                     savedBirthInfo,
                     onChunk: (partial) => {
@@ -3258,6 +3280,9 @@ export default function ChatSession({
                                   text: assistantText || m.text,
                                   isLoading: false,
                                   streamStopped: false,
+                                  supportTopic:
+                                      supportBlock?.topic ?? undefined,
+                                  supportBlock: supportBlock ?? undefined,
                               }
                             : m,
                     ),

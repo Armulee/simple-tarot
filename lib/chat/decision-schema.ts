@@ -10,11 +10,38 @@ export const tarotSpreadSchema = z.enum([
 
 export type TarotSpreadType = z.infer<typeof tarotSpreadSchema>
 
+export const supportTopicSchema = z.enum([
+    "pricing",
+    "star-packs",
+    "contact",
+    "help",
+    "faq",
+    "how-to-play",
+    "privacy-redaction",
+    "privacy-policy",
+    "terms-of-service",
+    "refer-a-friend",
+    "share-reading",
+    "create-content",
+    "tarot-card",
+    "tarot-cards-index",
+    "birth-chart",
+    "horoscope",
+    "account",
+    "settings",
+    "about",
+    "articles",
+    "sign-in",
+    "sign-up",
+])
+
+export type SupportTopicSchema = z.infer<typeof supportTopicSchema>
+
 export const chatDecisionSchema = z.object({
     type: z
-        .enum(["chat", "draw", "horoscope"])
+        .enum(["chat", "draw", "horoscope", "support"])
         .describe(
-            "Classification: chat (knowledge), draw (tarot), horoscope (astrology/timing)",
+            "Classification: chat (knowledge), draw (tarot), horoscope (astrology/timing), support (website/product info -> inline tool block)",
         ),
     isFollowUp: z
         .boolean()
@@ -32,6 +59,17 @@ export const chatDecisionSchema = z.object({
         .optional()
         .describe(
             "Only for draw. One short sentence explaining why the chosen spread fits the user's question.",
+        ),
+    supportTopic: supportTopicSchema
+        .optional()
+        .describe(
+            "Only for support. Which product topic the inline tool block should render. Required when type === 'support'.",
+        ),
+    supportCardSlug: z
+        .string()
+        .optional()
+        .describe(
+            "Only for support + tarot-card. Canonical kebab-case card slug, e.g. 'seven-of-cups', 'the-fool'. If unsure, omit it; the client will try to detect from the user message.",
         ),
 })
 
