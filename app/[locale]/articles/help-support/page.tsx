@@ -7,10 +7,12 @@ import {
 } from "@/components/articles/article-layout"
 import { ARTICLES } from "@/components/articles/data"
 
+const linkClass = "text-primary hover:underline"
+
 export async function generateMetadata(): Promise<Metadata> {
     const t = await getTranslations("Articles")
     const title = t("items.helpSupport.title")
-    const desc = t("subtitle")
+    const desc = t("items.helpSupport.description")
     return { title: `${title} | AskingFate`, description: desc }
 }
 
@@ -20,71 +22,64 @@ export default async function HelpSupportArticlePage() {
     const sections: ArticleSection[] = [
         {
             id: "help",
-            title: "Get help fast",
+            title: t("items.helpSupport.helpTitle"),
             content: (
                 <div className='space-y-2'>
-                    <p>
-                        Most issues can be resolved quickly if you start with
-                        the right place. Use these routes to save time and get
-                        the best answer.
-                    </p>
+                    <p>{t("items.helpSupport.helpIntro")}</p>
                     <ul className='list-disc pl-5 space-y-1 text-muted-foreground'>
                         <li>
-                            Check{" "}
-                            <Link
-                                href='/articles/faq'
-                                className='text-primary hover:underline'
-                            >
-                                FAQ
-                            </Link>{" "}
-                            for quick answers.
+                            {t.rich("items.helpSupport.helpBulletFaq", {
+                                faq: (chunks) => (
+                                    <Link
+                                        href='/articles/faq'
+                                        className={linkClass}
+                                    >
+                                        {chunks}
+                                    </Link>
+                                ),
+                            })}
                         </li>
                         <li>
-                            Use the{" "}
-                            <Link
-                                href='/contact'
-                                className='text-primary hover:underline'
-                            >
-                                contact form
-                            </Link>{" "}
-                            for account or billing issues.
+                            {t.rich("items.helpSupport.helpBulletContact", {
+                                contact: (chunks) => (
+                                    <Link href='/contact' className={linkClass}>
+                                        {chunks}
+                                    </Link>
+                                ),
+                            })}
                         </li>
-                        <li>
-                            Email support: support@askingfate.com (24–48h
-                            response on business days).
-                        </li>
+                        <li>{t("items.helpSupport.helpBulletEmail")}</li>
                     </ul>
                 </div>
             ),
         },
         {
             id: "troubleshooting",
-            title: "Troubleshooting",
+            title: t("items.helpSupport.troubleshootingTitle"),
             content: (
                 <div className='space-y-2'>
-                    <p>
-                        If something isn’t working as expected, try these basics
-                        first. They resolve most glitches without waiting for a
-                        reply.
-                    </p>
+                    <p>{t("items.helpSupport.troubleshootingIntro")}</p>
                     <ul className='list-disc pl-5 space-y-1 text-muted-foreground'>
                         <li>
-                            Didn’t receive stars? Refresh the{" "}
-                            <Link
-                                href='/stars'
-                                className='text-primary hover:underline'
-                            >
-                                Stars
-                            </Link>{" "}
-                            page and check history.
+                            {t.rich(
+                                "items.helpSupport.troubleshootingBulletStars",
+                                {
+                                    stars: (chunks) => (
+                                        <Link
+                                            href='/stars'
+                                            className={linkClass}
+                                        >
+                                            {chunks}
+                                        </Link>
+                                    ),
+                                }
+                            )}
                         </li>
                         <li>
-                            Ad not loading? Try again or switch network; allow
-                            ads for our domain.
+                            {t("items.helpSupport.troubleshootingBulletAds")}
                         </li>
                         <li>
-                            App feels slow? Clear cache and reload; try another
-                            browser/network.
+                            {t("items.helpSupport.troubleshootingBulletSlow")}
                         </li>
                     </ul>
                 </div>
@@ -92,26 +87,27 @@ export default async function HelpSupportArticlePage() {
         },
         {
             id: "privacy",
-            title: "Privacy & safety",
+            title: t("items.helpSupport.privacyTitle"),
             content: (
                 <div className='space-y-2'>
-                    <p>
-                        Your privacy matters. We protect your data and keep
-                        readings personal. When in doubt, review our policies or
-                        contact support.
-                    </p>
+                    <p>{t("items.helpSupport.privacyIntro")}</p>
                     <ul className='list-disc pl-5 space-y-1 text-muted-foreground'>
                         <li>
-                            We keep readings private. See our{" "}
-                            <Link
-                                href='/privacy-policy'
-                                className='text-primary hover:underline'
-                            >
-                                Privacy Policy
-                            </Link>
-                            .
+                            {t.rich(
+                                "items.helpSupport.privacyBulletPolicy",
+                                {
+                                    policy: (chunks) => (
+                                        <Link
+                                            href='/privacy-policy'
+                                            className={linkClass}
+                                        >
+                                            {chunks}
+                                        </Link>
+                                    ),
+                                }
+                            )}
                         </li>
-                        <li>We never sell personal data.</li>
+                        <li>{t("items.helpSupport.privacyBulletSell")}</li>
                     </ul>
                 </div>
             ),
@@ -123,7 +119,7 @@ export default async function HelpSupportArticlePage() {
             title={t("items.helpSupport.title")}
             subtitle={t("items.helpSupport.description")}
             backLabel={t("title")}
-            onThisPageLabel='On this page'
+            onThisPageLabel={t("items.helpSupport.onThisPage")}
             sections={sections}
             related={[ARTICLES[5], ARTICLES[1], ARTICLES[3]]}
         />

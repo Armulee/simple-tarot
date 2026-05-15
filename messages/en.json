@@ -1606,7 +1606,22 @@
       },
       "helpSupport": {
         "title": "Help & Support",
-        "description": "Get help, contact support, and troubleshooting tips."
+        "description": "Get help, contact support, and troubleshooting tips.",
+        "onThisPage": "On this page",
+        "helpTitle": "Get help fast",
+        "helpIntro": "Most issues can be resolved quickly if you start with the right place. Use these routes to save time and get the best answer.",
+        "helpBulletFaq": "Check the <faq>FAQ</faq> for quick answers.",
+        "helpBulletContact": "Use the <contact>contact form</contact> for account or billing issues.",
+        "helpBulletEmail": "Email support: support@askingfate.com (24–48h response on business days).",
+        "troubleshootingTitle": "Troubleshooting",
+        "troubleshootingIntro": "If something isn’t working as expected, try these basics first. They resolve most glitches without waiting for a reply.",
+        "troubleshootingBulletStars": "Didn’t receive stars? Refresh the <stars>Stars</stars> page and check history.",
+        "troubleshootingBulletAds": "Ad not loading? Try again or switch network; allow ads for our domain.",
+        "troubleshootingBulletSlow": "App feels slow? Clear cache and reload; try another browser/network.",
+        "privacyTitle": "Privacy & safety",
+        "privacyIntro": "Your privacy matters. We protect your data and keep readings personal. When in doubt, review our policies or contact support.",
+        "privacyBulletPolicy": "We keep readings private. See our <policy>Privacy Policy</policy>.",
+        "privacyBulletSell": "We never sell personal data."
       },
       "faq": {
         "title": "FAQ",
