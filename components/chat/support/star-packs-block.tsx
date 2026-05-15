@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl"
 import { ArrowRight, Star } from "lucide-react"
 import { Link } from "@/i18n/navigation"
 import type { SupportBlockPayload } from "@/components/chat/types"
+import { useSupportBlockTopicCopy } from "./use-support-block-topic-copy"
 
 export function StarPacksBlock({
     payload,
@@ -12,6 +13,7 @@ export function StarPacksBlock({
 }) {
     const t = useTranslations("Pricing")
     const tStars = useTranslations("Stars")
+    const { title, description } = useSupportBlockTopicCopy(payload)
     return (
         <div className='w-full md:max-w-[85%] overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-4 space-y-3'>
             <div className='flex items-center gap-3'>
@@ -20,10 +22,10 @@ export function StarPacksBlock({
                 </span>
                 <div className='min-w-0'>
                     <h4 className='text-sm font-semibold text-white truncate'>
-                        {payload.title}
+                        {title}
                     </h4>
                     <p className='mt-1 text-xs text-white/65 line-clamp-2'>
-                        {payload.description}
+                        {description}
                     </p>
                 </div>
             </div>

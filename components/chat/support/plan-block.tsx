@@ -12,6 +12,7 @@ import {
     formatCurrency,
     type CurrencyCode,
 } from "@/lib/payments/currency-utils"
+import { useSupportBlockTopicCopy } from "./use-support-block-topic-copy"
 
 type Props = {
     payload: Extract<SupportBlockPayload, { kind: "plan" }>
@@ -19,6 +20,7 @@ type Props = {
 
 export function PlanBlock({ payload }: Props) {
     const t = useTranslations("Pricing")
+    const { title, description } = useSupportBlockTopicCopy(payload)
     const locale = useLocale()
     const currency: CurrencyCode = locale === "th" ? "THB" : "USD"
 
@@ -27,10 +29,10 @@ export function PlanBlock({ payload }: Props) {
             <div className='flex items-center justify-between gap-3'>
                 <div className='min-w-0'>
                     <h4 className='text-sm font-semibold text-white'>
-                        {payload.title}
+                        {title}
                     </h4>
                     <p className='mt-1 text-xs text-white/65 line-clamp-2'>
-                        {payload.description}
+                        {description}
                     </p>
                 </div>
                 <span className='shrink-0 inline-flex items-center justify-center h-9 w-9 rounded-xl bg-indigo-500/15 border border-indigo-500/25'>

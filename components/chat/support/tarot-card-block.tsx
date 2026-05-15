@@ -12,6 +12,16 @@ type Props = {
 
 export function TarotCardBlock({ payload }: Props) {
     const t = useTranslations("TarotArticle")
+    const tSupport = useTranslations("SupportBlock")
+
+    const arcanaBadge =
+        payload.arcana === "major"
+            ? tSupport("majorArcana")
+            : payload.suit
+              ? tSupport("minorArcana", {
+                    suit: tSupport(`suits.${payload.suit}`),
+                })
+              : tSupport("minorArcanaShort")
 
     return (
         <div className='w-full md:max-w-[85%] overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-fuchsia-500/10 p-4'>
@@ -31,9 +41,7 @@ export function TarotCardBlock({ payload }: Props) {
                             {payload.cardName}
                         </h4>
                         <span className='shrink-0 inline-flex rounded-full bg-white/10 border border-white/15 px-2 py-[1px] text-[10px] uppercase tracking-widest text-white/75'>
-                            {payload.arcana === "major"
-                                ? "Major Arcana"
-                                : `Minor · ${payload.suit ?? ""}`}
+                            {arcanaBadge}
                         </span>
                     </div>
                     <p className='text-xs text-white/70 leading-relaxed line-clamp-3'>
@@ -83,7 +91,7 @@ export function TarotCardBlock({ payload }: Props) {
                 href={payload.href}
                 className='group mt-4 inline-flex items-center justify-center gap-1.5 w-full rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90'
             >
-                Read full meaning
+                {tSupport("readFullMeaning")}
                 <ArrowRight className='h-4 w-4 transition-transform group-hover:translate-x-0.5' />
             </Link>
         </div>

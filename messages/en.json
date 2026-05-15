@@ -2471,7 +2471,7 @@
     "timezone": "Timezone (e.g. 7)",
     "rememberBirth": "Remember my birth date",
     "removeBirth": "Remove"
-  }, 
+  },
   "HoroscopeChat": {
     "usingSavedBirthDate": "Using your saved birth date for this interpretation...",
     "loading": "Consulting your birth chart...",
@@ -2667,5 +2667,113 @@
     "askMore": "Ask more",
     "readDescription": "Read description",
     "askAspectQuestion": "How does transit {transit} {aspect} natal {natal} affect me?"
+  },
+  "SupportBlock": {
+    "openPage": "Open page",
+    "readArticle": "Read article",
+    "readFullMeaning": "Read full meaning",
+    "majorArcana": "Major Arcana",
+    "minorArcana": "Minor · {suit}",
+    "minorArcanaShort": "Minor Arcana",
+    "suits": {
+      "wands": "Wands",
+      "cups": "Cups",
+      "swords": "Swords",
+      "pentacles": "Pentacles"
+    },
+    "topics": {
+      "pricing": {
+        "title": "Pricing plans",
+        "description": "Pick a Basic or Pro subscription, see monthly vs annual stars, and continue to checkout."
+      },
+      "star-packs": {
+        "title": "Stars & add-on packs",
+        "description": "See your star balance, refill rules, and one-time add-on packs for Pro subscribers."
+      },
+      "contact": {
+        "title": "Contact support",
+        "description": "Send us a message. We typically reply within 1 business day at admin@askingfate.com."
+      },
+      "help": {
+        "title": "Help & support",
+        "description": "Common troubleshooting for accounts, readings, billing, and stars."
+      },
+      "faq": {
+        "title": "Frequently asked questions",
+        "description": "Quick answers about readings, stars, accuracy, and billing."
+      },
+      "how-to-play": {
+        "title": "How to play",
+        "description": "Ask a question, pick cards, and reflect on the meaning — step by step."
+      },
+      "privacy-redaction": {
+        "title": "Privacy & PII redaction",
+        "description": "How AskingFate detects and removes personal details from your prompts."
+      },
+      "privacy-policy": {
+        "title": "Privacy policy",
+        "description": "How we collect, use, and protect your data."
+      },
+      "terms-of-service": {
+        "title": "Terms of service",
+        "description": "Our terms, acceptable use, and payment policy."
+      },
+      "refer-a-friend": {
+        "title": "Refer a friend",
+        "description": "Invite friends to AskingFate. You both earn stars when they join."
+      },
+      "share-reading": {
+        "title": "Share a reading",
+        "description": "Share your reading link and earn up to 3 stars per day from visits."
+      },
+      "create-content": {
+        "title": "Create content & earn stars",
+        "description": "Write, post, or film about AskingFate and earn stars when your content is approved."
+      },
+      "tarot-card": {
+        "title": "Tarot card",
+        "description": "Upright and reversed meanings with practical guidance.",
+        "indexListing": {
+          "title": "Tarot card meanings",
+          "description": "Browse all 78 cards — Major Arcana and the four Minor Arcana suits."
+        }
+      },
+      "tarot-cards-index": {
+        "title": "All tarot cards",
+        "description": "Browse all 78 cards — Major Arcana and the four Minor Arcana suits."
+      },
+      "birth-chart": {
+        "title": "Birth chart",
+        "description": "See your personalized Swiss Ephemeris birth chart, planets, and houses."
+      },
+      "horoscope": {
+        "title": "Personalized horoscope",
+        "description": "Daily, monthly, and yearly horoscope readings based on your birth and today's sky."
+      },
+      "account": {
+        "title": "Account",
+        "description": "Manage your profile, subscription, and saved birth info."
+      },
+      "settings": {
+        "title": "Settings",
+        "description": "Adjust appearance, locale, notifications, and reading preferences."
+      },
+      "about": {
+        "title": "About AskingFate",
+        "description": "Our mission, how we built the product, and what makes our readings different."
+      },
+      "articles": {
+        "title": "Articles & guides",
+        "description": "Documentation-style guides covering everything in AskingFate."
+      },
+      "sign-in": {
+        "title": "Sign in",
+        "description": "Sign in to save your readings, stars, and birth profile."
+      },
+      "sign-up": {
+        "title": "Create an account",
+        "description": "Make a free account to keep your readings, stars, and birth profile."
+      }
+    }
   }
 }

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/form"
 import { useAuth } from "@/hooks/use-auth"
 import type { SupportBlockPayload } from "@/components/chat/types"
+import { useSupportBlockTopicCopy } from "./use-support-block-topic-copy"
 
 const schema = z.object({
     name: z
@@ -46,6 +47,7 @@ export function ContactBlock({
     payload: Extract<SupportBlockPayload, { kind: "contact" }>
 }) {
     const t = useTranslations("Contact")
+    const { title, description } = useSupportBlockTopicCopy(payload)
     const { user } = useAuth()
     const [submitted, setSubmitted] = useState(false)
 
@@ -94,10 +96,10 @@ export function ContactBlock({
             <div className='flex items-start justify-between gap-3'>
                 <div className='min-w-0'>
                     <h4 className='text-sm font-semibold text-white'>
-                        {payload.title}
+                        {title}
                     </h4>
                     <p className='mt-1 text-xs text-white/65'>
-                        {payload.description}
+                        {description}
                     </p>
                 </div>
                 <a
