@@ -1,16 +1,21 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { Link } from "@/i18n/navigation"
 import { ArrowRight } from "lucide-react"
 import type { SupportBlockPayload } from "@/components/chat/types"
 import { SupportIcon } from "./icon-map"
+import { useSupportBlockTopicCopy } from "./use-support-block-topic-copy"
 
 type Props = {
     payload: Extract<SupportBlockPayload, { kind: "page" | "article" }>
     ctaLabel?: string
 }
 
-export function PageBlock({ payload, ctaLabel = "Open page" }: Props) {
+export function PageBlock({ payload, ctaLabel }: Props) {
+    const t = useTranslations("SupportBlock")
+    const { title, description } = useSupportBlockTopicCopy(payload)
+    const cta = ctaLabel ?? t("openPage")
     return (
         <Link
             href={payload.href}
@@ -22,13 +27,13 @@ export function PageBlock({ payload, ctaLabel = "Open page" }: Props) {
                 </div>
                 <div className='flex-1 min-w-0'>
                     <h4 className='text-sm font-semibold text-white truncate'>
-                        {payload.title}
+                        {title}
                     </h4>
                     <p className='mt-1 text-xs text-white/70 leading-relaxed line-clamp-3'>
-                        {payload.description}
+                        {description}
                     </p>
                     <div className='mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-primary group-hover:text-primary/80'>
-                        {ctaLabel}
+                        {cta}
                         <ArrowRight className='h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5' />
                     </div>
                 </div>
