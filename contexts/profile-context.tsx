@@ -26,11 +26,30 @@ interface ProfileData {
     updated_at: string
 }
 
+export interface PersonalBirthChart {
+    id: string
+    day: number
+    month: number
+    year: number
+    hour: number
+    minute: number
+    timezone: number
+    lat: number
+    lng: number
+    country: string | null
+    state_province: string | null
+    houses: Record<string, unknown> | null
+    planets: Record<string, unknown> | null
+    created_at: string
+}
+
 interface ProfileContextType {
     profile: ProfileData | null
     loading: boolean
     refreshProfile: () => Promise<void>
     updateProfile: (updates: Partial<ProfileData>) => void
+    birthChart: PersonalBirthChart | null
+    refreshBirthChart: () => Promise<void>
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined)
@@ -39,6 +58,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     const { user } = useAuth()
     const [profile, setProfile] = useState<ProfileData | null>(null)
     const [loading, setLoading] = useState(false)
+    const [birthChart, setBirthChart] = useState<PersonalBirthChart | null>(
+        null,
+    )
 
     const loadProfile = async () => {
         if (!user) {
@@ -71,8 +93,41 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    const loadBirthChart = async () => {
+        if (!user) {
+            setBirthChart(null)
+            return
+        }
+        try {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession()
+            if (!session) return
+
+            const response = await fetch("/api/birth-chart/me", {
+                headers: {
+                    Authorization: `Bearer ${session.access_token}`,
+                    "Content-Type": "application/json",
+                },
+            })
+
+            if (response.ok) {
+                const { chart } = (await response.json()) as {
+                    chart: PersonalBirthChart | null
+                }
+                setBirthChart(chart ?? null)
+            }
+        } catch (error) {
+            console.error("Failed to load birth chart:", error)
+        }
+    }
+
     const refreshProfile = async () => {
         await loadProfile()
+    }
+
+    const refreshBirthChart = async () => {
+        await loadBirthChart()
     }
 
     const updateProfile = (updates: Partial<ProfileData>) => {
@@ -81,6 +136,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         loadProfile()
+        loadBirthChart()
     }, [user])
 
     const enrichmentAttemptedRef = useRef(false)
@@ -132,6 +188,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                 loading,
                 refreshProfile,
                 updateProfile,
+                birthChart,
+                refreshBirthChart,
             }}
         >
             {children}

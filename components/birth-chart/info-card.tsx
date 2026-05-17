@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
@@ -14,6 +14,7 @@ import { Country, State } from "country-state-city"
 import { resolveLocationFromCountryState } from "@/lib/location"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { supabase } from "@/lib/supabase"
 
 interface BirthChartInfoCardProps {
     birthChart: {
@@ -29,9 +30,15 @@ interface BirthChartInfoCardProps {
         country?: string | null
         state_province?: string | null
     }
+    mode?: "shared" | "personal"
+    onChartUpdated?: () => void | Promise<void>
 }
 
-export default function BirthChartInfoCard({ birthChart }: BirthChartInfoCardProps) {
+export default function BirthChartInfoCard({
+    birthChart,
+    mode = "shared",
+    onChartUpdated,
+}: BirthChartInfoCardProps) {
     const router = useRouter()
     const [isEditing, setIsEditing] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
@@ -83,7 +90,7 @@ export default function BirthChartInfoCard({ birthChart }: BirthChartInfoCardPro
             const day = date.getDate().toString()
             const month = (date.getMonth() + 1).toString()
             const year = date.getFullYear().toString()
-            
+
             // Resolve new location data
             let lat = birthChart.lat.toString()
             let lng = birthChart.lng.toString()
@@ -96,6 +103,56 @@ export default function BirthChartInfoCard({ birthChart }: BirthChartInfoCardPro
                     lng = resolved.longitude.toFixed(6)
                     timezone = resolved.timezone.toString()
                 }
+            }
+
+            if (mode === "personal") {
+                // Personal page: also persist to profile and recompute via the
+                // authed /me endpoint so the row is linked to owner_user_id.
+                const { data: sessionData } =
+                    await supabase.auth.getSession()
+                const accessToken = sessionData.session?.access_token
+                if (!accessToken) throw new Error("NO_SESSION")
+
+                const isoDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+                const birthTime =
+                    time.hour && time.minute
+                        ? `${time.hour}:${time.minute}:00`
+                        : null
+                const birthPlace = stateProv
+                    ? `${stateProv}, ${country}`
+                    : country
+
+                await fetch("/api/profile", {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                    body: JSON.stringify({
+                        birthDate: isoDate,
+                        birthTime,
+                        birthPlace,
+                    }),
+                }).catch(() => {})
+
+                const meRes = await fetch("/api/birth-chart/me", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                    body: JSON.stringify({
+                        birthDate: isoDate,
+                        birthTime,
+                        birthPlace,
+                    }),
+                })
+                if (!meRes.ok) throw new Error("Failed to save chart")
+
+                if (onChartUpdated) await onChartUpdated()
+                setIsEditing(false)
+                setIsSaving(false)
+                return
             }
 
             // Calculate new horoscope
@@ -114,7 +171,7 @@ export default function BirthChartInfoCard({ birthChart }: BirthChartInfoCardPro
             if (!calcRes.ok) throw new Error("Failed to calculate chart")
             const chartData = await calcRes.json()
 
-            // Create new chart entry
+            // Create new chart entry (shared link mode)
             const createRes = await fetch("/api/birth-chart/create", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -134,12 +191,12 @@ export default function BirthChartInfoCard({ birthChart }: BirthChartInfoCardPro
             })
 
             if (!createRes.ok) throw new Error("Failed to save chart")
-            
+
             const { id } = await createRes.json()
-            
+
             // Redirect to new chart
             router.push(`/birth-chart/${id}`)
-            
+
         } catch (error) {
             toast.error("Failed to update chart")
             console.error(error)
@@ -174,7 +231,7 @@ export default function BirthChartInfoCard({ birthChart }: BirthChartInfoCardPro
 
     if (isEditing) {
         return (
-            <div className="mt-6 bg-black/20 backdrop-blur-md rounded-xl p-4 border border-white/10 animate-in fade-in zoom-in-95 duration-200">
+            <div className="mt-2 rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.01] backdrop-blur-xl p-5 shadow-[0_16px_40px_-16px_rgba(0,0,0,0.6)] animate-in fade-in zoom-in-95 duration-200 text-left">
                 <div className="grid gap-4">
                     {/* Date Picker */}
                     <div className="flex flex-col gap-1">
@@ -394,32 +451,51 @@ export default function BirthChartInfoCard({ birthChart }: BirthChartInfoCardPro
     }
 
     return (
-        <div className="mt-6 bg-black/20 backdrop-blur-md rounded-xl px-4 py-3 border border-white/10 flex items-center justify-between gap-4">
-            <div className="flex flex-row items-center justify-between gap-2 w-full text-[10px] sm:text-xs text-white/90 font-medium">
-                <div className="flex items-center gap-1.5 shrink-0">
-                    <Calendar className="w-3 h-3 text-accent/80" />
-                    <span className="whitespace-nowrap">{date ? formatDateDisplay(date) : "N/A"}</span>
-                </div>
-                <div className="w-px h-3 bg-white/20 shrink-0" />
-                <div className="flex items-center gap-1.5 shrink-0">
-                    <Clock className="w-3 h-3 text-accent/80" />
-                    <span className="whitespace-nowrap">{formatTimeDisplay(time.hour, time.minute)}</span>
-                </div>
-                <div className="w-px h-3 bg-white/20 shrink-0" />
-                <div className="flex items-center gap-1.5 min-w-0 truncate">
-                    <MapPin className="w-3 h-3 text-accent/80 shrink-0" />
-                    <span className="truncate">{locationDisplay || "Unknown"}</span>
-                </div>
+        <div className="mt-2 inline-flex w-full max-w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl px-3 sm:px-4 py-2.5 shadow-[0_12px_32px_-16px_rgba(0,0,0,0.7)]">
+            <div className="flex min-w-0 flex-1 flex-wrap items-center justify-start gap-x-3 gap-y-1.5 text-[11px] sm:text-xs font-medium text-white/85">
+                <InfoChip
+                    icon={<Calendar className="h-3 w-3" />}
+                    text={date ? formatDateDisplay(date) : "N/A"}
+                />
+                <span className="h-3 w-px bg-white/15" />
+                <InfoChip
+                    icon={<Clock className="h-3 w-3" />}
+                    text={formatTimeDisplay(time.hour, time.minute)}
+                />
+                <span className="h-3 w-px bg-white/15" />
+                <InfoChip
+                    icon={<MapPin className="h-3 w-3" />}
+                    text={locationDisplay || "Unknown"}
+                    truncate
+                />
             </div>
-            
+
             <Button
                 size="icon"
                 variant="ghost"
-                className="h-6 w-6 shrink-0 text-white/50 hover:text-white hover:bg-white/10 rounded-full"
+                className="h-7 w-7 shrink-0 rounded-full border border-white/10 bg-white/[0.04] text-white/70 hover:border-amber-300/40 hover:bg-amber-300/10 hover:text-amber-200 transition-colors"
                 onClick={() => setIsEditing(true)}
+                aria-label="Edit birth details"
             >
-                <Pencil className="w-3 h-3" />
+                <Pencil className="h-3 w-3" />
             </Button>
         </div>
+    )
+}
+
+function InfoChip({
+    icon,
+    text,
+    truncate,
+}: {
+    icon: ReactNode
+    text: string
+    truncate?: boolean
+}) {
+    return (
+        <span className={cn("inline-flex items-center gap-1.5", truncate ? "min-w-0" : "shrink-0")}>
+            <span className="text-amber-200/80">{icon}</span>
+            <span className={cn("whitespace-nowrap", truncate && "truncate")}>{text}</span>
+        </span>
     )
 }

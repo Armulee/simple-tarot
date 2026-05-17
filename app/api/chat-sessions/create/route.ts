@@ -7,6 +7,7 @@ import {
     sanitizePromptForPersistence,
 } from "@/lib/privacy/prompt-redaction"
 import { supabaseAdmin } from "@/lib/supabase"
+import { normalizeOriginContext } from "@/lib/chat/origin-context"
 
 const MODEL = "deepseek/deepseek-v3.2"
 
@@ -104,6 +105,7 @@ export async function POST(req: NextRequest) {
                   : []
         const decision =
             typeof body?.decision === "object" ? body.decision : null
+        const originContext = normalizeOriginContext(body?.originContext)
 
         if (!question || messages.length === 0) {
             return NextResponse.json(
@@ -145,6 +147,7 @@ export async function POST(req: NextRequest) {
             topic,
             messages,
             decision,
+            origin_context: originContext,
             show_insufficient_stars: body?.showInsufficientStars ?? false,
             show_card_draw: body?.showCardDraw ?? false,
             created_at: new Date().toISOString(),

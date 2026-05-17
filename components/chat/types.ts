@@ -7,6 +7,7 @@ import type {
 } from "@/types/horoscope"
 import type { PromptRedactionType } from "@/lib/privacy/prompt-redaction"
 import type { ConversationContextPayload } from "@/lib/astrology/question-context"
+import type { OriginContext } from "@/lib/chat/origin-context"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
 import type { QuestionDomain } from "@/lib/chat/situation-schema"
 import type {
@@ -297,6 +298,7 @@ export type ChatSessionPayload = {
     privacyRedactionTypes?: PromptRedactionType[]
     messages: ChatMessage[]
     decision: ChatDecision | null
+    originContext?: OriginContext | null
     owner_user_id?: string | null
     showInsufficientStars?: boolean
     showCardDraw?: boolean

@@ -17,6 +17,11 @@ CREATE TABLE IF NOT EXISTS chat_sessions (
 ALTER TABLE chat_sessions
     ADD COLUMN IF NOT EXISTS topic TEXT;
 
+ALTER TABLE chat_sessions
+    ADD COLUMN IF NOT EXISTS origin_context JSONB NULL;
+COMMENT ON COLUMN chat_sessions.origin_context IS
+    'Optional page context (birth chart / calendar day) captured when the session was started from a contextual page. Used to enrich AI contextSummary on every reply.';
+
 -- Add indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_chat_sessions_did ON chat_sessions(did);
 CREATE INDEX IF NOT EXISTS idx_chat_sessions_owner_user_id ON chat_sessions(owner_user_id);

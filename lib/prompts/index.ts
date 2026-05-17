@@ -11,6 +11,7 @@ import type {
     PersonalizedTransitAspectWindow,
 } from "@/lib/astrology/transit-aspects"
 import type { QuestionTopicResult } from "@/lib/astrology/question-intent"
+import type { CalendarQueryResult } from "@/lib/calendar-helper"
 
 export const TAROT_SYSTEM_PROMPT = `
 <role>
@@ -299,6 +300,9 @@ export function getHoroscopeInterpretationPrompt({
     userMainPoint,
     questionTopic,
     questionLanguage,
+    storedBirthChart,
+    isNatalChartReferenceQuestion,
+    calendarRecommendation,
 }: {
     question: string
     systemMode: "western_tropical" | "vedic_sidereal" | "both"
@@ -326,7 +330,53 @@ export function getHoroscopeInterpretationPrompt({
     userMainPoint?: string
     questionTopic?: QuestionTopicResult
     questionLanguage?: string
+    storedBirthChart?: {
+        houses?: Record<string, unknown> | null
+        planets?: Record<string, unknown> | null
+    } | null
+    isNatalChartReferenceQuestion?: boolean
+    calendarRecommendation?: CalendarQueryResult | null
 }) {
+    const hasStoredChart = Boolean(
+        storedBirthChart &&
+            (storedBirthChart.houses || storedBirthChart.planets),
+    )
+    const allowNatalReferences = Boolean(
+        hasStoredChart && isNatalChartReferenceQuestion,
+    )
+
+    const savedBirthChartBlock = hasStoredChart
+        ? `<saved_birth_chart>
+This is the user's previously computed natal chart, retrieved from their account. Treat it as the SOURCE OF TRUTH for any "my chart / my placements" questions and prefer it over recomputed natal positions when they conflict.
+${JSON.stringify({
+    houses: storedBirthChart?.houses ?? null,
+    planets: storedBirthChart?.planets ?? null,
+})}
+</saved_birth_chart>
+
+`
+        : ""
+
+    const terminologyRule = allowNatalReferences
+        ? `6) When the user is explicitly asking about a feature of their *own* birth chart (a placement, sign, house, or "what does my X mean"), you MAY name specific planets (Sun, Moon, Mars, Venus, etc.), zodiac signs (Aries, Pisces, ราศีเมษ, ราศีมีน), and houses in plain conversational language — but ONLY when it directly answers their natal-chart question. Avoid deep technical jargon such as "conjunction", "opposition", "square", "trine", "sextile", "orb", "transit", "เล็ง", "ตรีโกณ", "จตุโกณ", "ร่วม", "องศา". For everything else (general timing, life advice, mood), keep translating astrology into plain life impact.`
+        : `6) ABSOLUTELY FORBIDDEN in interpretation/conclusion text: planet names in ANY language (Saturn, Jupiter, Mars, Venus, Mercury, Rahu, Pluto, Neptune, Uranus, Moon, Sun, ดาวเสาร์, ดาวพฤหัส, ดาวอังคาร, ดาวศุกร์, ดาวพุธ, ราหู, ดาวพลูโต, ดาวเนปจูน, ดาวยูเรนัส, จันทร์, อาทิตย์, etc.), zodiac sign names (Aries, Taurus, ราศีเมษ, ราศีพฤษภ, etc.), and astrology jargon (conjunction, opposition, square, trine, sextile, orb, transit, เล็ง, ตรีโกณ, จตุโกณ, ร่วม, องศา, etc.). Instead, translate ALL astrological meaning into plain life impact: emotions, energy shifts, timing, and practical advice.`
+
+    const plainLanguageRule = allowNatalReferences
+        ? `- PLAIN LANGUAGE FIRST. The user has little astrology knowledge. Because they are asking about their OWN natal placements, you may briefly name the relevant planet, sign, or house, but always translate the meaning into everyday human terms in the same sentence.`
+        : `- PLAIN LANGUAGE ONLY. The user has ZERO astrology knowledge. Write as if explaining to a friend who has never heard of astrology.`
+
+    const neverMentionRule = allowNatalReferences
+        ? `- Avoid astrology jargon (conjunction, square, trine, orb, transit) even when naming the placement.`
+        : `- NEVER mention any planet name, zodiac sign, or astrology term. Translate everything into human feelings, life events, and practical advice.`
+
+    const calendarRecommendationBlock = calendarRecommendation
+        ? `<calendar_recommendation>
+${JSON.stringify(calendarRecommendation)}
+</calendar_recommendation>
+
+`
+        : ""
+
     return `<role>
 You are an expert astrologer AI system for 'AskingFate'.
 You respond as a female. Astra is a female oracle. Use feminine voice and perspective in all responses.
@@ -354,7 +404,7 @@ Codex coverage: expected=${codexCoverage.expectedDays}, actual=${codexCoverage.a
 ${chartData}
 </astrology_data>
 
-<transit_summary>
+${savedBirthChartBlock}${calendarRecommendationBlock}<transit_summary>
 ${JSON.stringify(codexTransitSummary ?? null)}
 </transit_summary>
 
@@ -371,24 +421,26 @@ ${question}
 </user_question>
 
 <instructions>
-1) Answer the <user_question> using ONLY the <astrology_data>, <transit_summary>, and <personalized_transit_aspects>.
-2) Identify the 1-3 strongest transit aspect windows from the data that are most relevant to the question topic. Anchor your answer around their exact start/end dates as recommended or cautionary periods. Weave them into a coherent narrative rather than a bullet-point timeline.
-3) When the user asks a "when" question, lead with the single most impactful date range as your primary recommendation in the first 1-2 sentences, then explain why.
-4) For every timing reference, cite the EXACT start date and end date from the aspect window data (e.g., "15 มิถุนายน 2026 ถึง 22 กรกฎาคม 2026" or "June 15, 2026 to July 22, 2026"). If a single peak date is most relevant, cite that specific date.
-5) Keep it practical and human-centered: what this means emotionally, behaviorally, and for real decisions right now.
-6) ABSOLUTELY FORBIDDEN in interpretation/conclusion text: planet names in ANY language (Saturn, Jupiter, Mars, Venus, Mercury, Rahu, Pluto, Neptune, Uranus, Moon, Sun, ดาวเสาร์, ดาวพฤหัส, ดาวอังคาร, ดาวศุกร์, ดาวพุธ, ราหู, ดาวพลูโต, ดาวเนปจูน, ดาวยูเรนัส, จันทร์, อาทิตย์, etc.), zodiac sign names (Aries, Taurus, ราศีเมษ, ราศีพฤษภ, etc.), and astrology jargon (conjunction, opposition, square, trine, sextile, orb, transit, เล็ง, ตรีโกณ, จตุโกณ, ร่วม, องศา, etc.). Instead, translate ALL astrological meaning into plain life impact: emotions, energy shifts, timing, and practical advice.
-7) If this is a birth-chart suitability style question, emphasize personal strengths, natural fit, and realistic caution points in plain language.
-8) <conversation_history> is optional background only. Use it only when directly relevant; otherwise ignore it.
-9) If the current <user_question> is a new topic, answer as a fresh reading and do not reuse old conclusions.
-10) Never output internal tokens or IDs such as aspectKey, {#...}, pipe-delimited markers, or raw event identifiers.
-11) Make every date/date-range visually prominent using natural sentence emphasis (for example, place the date early in the sentence). Do NOT use markdown syntax such as **, __, or backticks.
-12) If there is no exact event date, use the exact timeframe boundaries from Question timeframe start/end and format them in output language month names.
-13) Only discuss transit aspects from planets listed under "Question topic: ... (focus planets: ...)" in system_context. Ignore aspects from unrelated planets unless no focus-planet aspects exist.
+1) Answer the <user_question> using ONLY the provided grounding data blocks. When <calendar_recommendation> exists, treat it as the authoritative source for recommended days. Use <astrology_data>, <transit_summary>, and <personalized_transit_aspects> to explain the pattern around that recommendation.
+2) If <calendar_recommendation> exists and it has a topCandidate, lead with that exact day in the first 1-2 sentences. Do NOT invent a different day or recommend a date outside the candidates in <calendar_recommendation>.
+3) If <calendar_recommendation> exists but confidence is low, say there is no single perfect day and present the top candidate as the strongest available opening.
+4) When no <calendar_recommendation> exists, identify the 1-3 strongest transit aspect windows from the data that are most relevant to the question topic. Anchor your answer around their exact start/end dates as recommended or cautionary periods. Weave them into a coherent narrative rather than a bullet-point timeline.
+5) When the user asks a "when" question and <calendar_recommendation> does not exist, lead with the single most impactful date range as your primary recommendation in the first 1-2 sentences, then explain why.
+6) For every timing reference, cite the EXACT start date and end date from the aspect window data (e.g., "15 มิถุนายน 2026 ถึง 22 กรกฎาคม 2026" or "June 15, 2026 to July 22, 2026"). If a single peak date is most relevant, cite that specific date. If <calendar_recommendation> exists, use the exact topCandidate date from that block.
+7) Keep it practical and human-centered: what this means emotionally, behaviorally, and for real decisions right now.
+${terminologyRule}
+8) If this is a birth-chart suitability style question, emphasize personal strengths, natural fit, and realistic caution points in plain language.
+9) <conversation_history> is optional background only. Use it only when directly relevant; otherwise ignore it.
+10) If the current <user_question> is a new topic, answer as a fresh reading and do not reuse old conclusions.
+11) Never output internal tokens or IDs such as aspectKey, {#...}, pipe-delimited markers, or raw event identifiers.
+12) Make every date/date-range visually prominent using natural sentence emphasis (for example, place the date early in the sentence). Do NOT use markdown syntax such as **, __, or backticks.
+13) If there is no exact event date, use the exact timeframe boundaries from Question timeframe start/end and format them in output language month names.
+14) Only discuss transit aspects from planets listed under "Question topic: ... (focus planets: ...)" in system_context. Ignore aspects from unrelated planets unless no focus-planet aspects exist.
 </instructions>
 
 <critical_rules>
-- PLAIN LANGUAGE ONLY. The user has ZERO astrology knowledge. Write as if explaining to a friend who has never heard of astrology.
-- NEVER mention any planet name, zodiac sign, or astrology term. Translate everything into human feelings, life events, and practical advice.
+${plainLanguageRule}
+${neverMentionRule}
 - Write in a warm, conversational tone like a caring friend — not a formal report or textbook.
 - Focus on what the user is likely to experience and how to respond wisely.
 - Answer the user's question directly in everyday language.
