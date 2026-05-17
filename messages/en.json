@@ -397,11 +397,17 @@
     },
     "sanitizingPrompt": "Purifying",
     "horoscopeAuthGate": {
-      "intro": "This question would be better answered through your horoscope. You'll need to ",
+      "intro": "This question would be better answered through your <pill>horoscope</pill>. You'll need to ",
+      "introSignedIn": "This question is best answered through your <pill>horoscope</pill>.",
       "signInLabel": "sign in",
       "introSuffix": " to continue.",
       "fallback": "You can use a tarot card as well, but the accuracy will drop.",
-      "cardAriaLabel": "Tarot card teaser: {name}"
+      "cardAriaLabel": "Tarot card teaser: {name}",
+      "deckCaption": "Scroll the deck, tap a card, then swipe it up to pick one — a quick tarot preview without signing in.",
+      "deckCaptionSignedIn": "Scroll the deck, tap a card, then swipe it up to pick one — a quick tarot preview.",
+      "deckSwipeHint": "Tap a card, then swipe up to select it.",
+      "reversedMark": " (reversed)",
+      "pickedTeaser": "You chose {name}{reversedLabel}. Sign in above for your horoscope."
     }
   },
   "ActionTrigger": {
@@ -1041,6 +1047,7 @@
     "systemVedic": "Vedic (Sidereal)",
     "tabBirthChart": "Birth Chart",
     "tabTransitChart": "Transit Chart",
+    "loading": "Loading…",
     "houseMeanings": {
       "1": "Self & Identity",
       "2": "Money & Possessions",
@@ -1515,6 +1522,8 @@
         "linkCopiedDesc": "Link copied to clipboard",
         "shareDesc": "Share this reading",
         "share": "Share",
+        "downloadReadingText": "Download reading as a text file",
+        "downloadReadingImage": "Download reading as an image",
         "copyResult": "Copy Interpretation",
         "askFollowUp": "Ask Follow-up",
         "askFollowUpPrompt": "Can you expand on this reading for me?",
@@ -2498,15 +2507,15 @@
     "underAgeWarningClose": "Close",
     "tabs": {
       "overview": "Overview",
-      "aspect": "Aspect",
-      "transit": "Transit"
+      "aspect": "Impacting Aspects",
+      "transit": "Technical Information"
     },
     "verdict": {
       "moodGood": "Good Day",
       "moodCaution": "Be Mindful",
       "moodRest": "Rest Day",
-      "actionsHeading": "Try this",
-      "watchHeading": "Watch out",
+      "answerHeading": "For your question",
+      "watchHeading": "One caveat",
       "focusHeading": "Focus",
       "dateRelativeToday": "Today",
       "dateRelativeTomorrow": "Tomorrow",
@@ -2614,6 +2623,10 @@
     "showMore": "Show more",
     "showTechnical": "Show technical data",
     "hideTechnical": "Hide technical data",
+    "timelineAriaLabel": "Aspect from {start} through peak {peak} to {end}",
+    "timelineToday": "Today",
+    "timelineUpcoming": "in {days}d",
+    "timelinePassed": "{days}d ago",
     "defaultInsight": "This aspect marks a noticeable shift in the way this area of life asks for attention.",
     "impactLabel": "Domain: ",
     "intensityLabel": "Level: ",

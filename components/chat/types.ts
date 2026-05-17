@@ -31,10 +31,13 @@ export type RelevanceStat = {
 export type DailyVerdict = {
     mood: "good" | "caution" | "rest"
     headline: string
-    subtext: string
-    actions: string[]
+    detailedHtml: string
     watchOut?: string
     focusArea?: string
+    keyMessage?: {
+        headline: string
+        subtitle: string
+    }
 }
 
 export type SourceAspectEvent = {

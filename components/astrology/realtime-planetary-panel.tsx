@@ -2,30 +2,22 @@
 
 import { type ReactNode, useState } from "react"
 import Image from "next/image"
-import { ChevronDown, ChevronUp, Sparkles, Star } from "lucide-react"
+import {
+    ChevronDown,
+    ChevronUp,
+    Eye,
+    Flame,
+    Sparkles,
+    Star,
+} from "lucide-react"
 import { AspectIcon } from "@/components/astrology/aspect-icon"
-import { Eye } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
 import type {
     AspectInsightItem,
     SourceAspectEvent,
 } from "@/components/chat/types"
-
-const PLANET_IMAGE_KEYS = new Set([
-    "sun",
-    "moon",
-    "mercury",
-    "venus",
-    "mars",
-    "jupiter",
-    "saturn",
-    "uranus",
-    "neptune",
-    "pluto",
-    "rahu",
-    "ketu",
-])
+import { PLANET_IMAGE_KEYS } from "@/lib/astrology/planet-images"
 
 type PanelAspectEvent = {
     aspectKey: string
@@ -42,6 +34,16 @@ type PanelAspectEvent = {
     dateText: string
     peakText?: string
     endText?: string
+    /**
+     * Raw ISO date strings preserved from the upstream aspect calc. Exact
+     * events fill `dateIso`; range events fill the start/peak/end trio. Kept
+     * so the EventCard timeline can compute "today's position" inside the
+     * window instead of hardcoding it to the midpoint.
+     */
+    dateIso?: string
+    startDateIso?: string
+    peakDateIso?: string
+    endDateIso?: string
     tier: "main" | "minor"
     zodiacSign: string
     transitPositionText?: string
@@ -213,6 +215,33 @@ function formatDateIsoForLocale(dateIso: string, locale: string) {
     })
 }
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000
+
+/** UTC midnight epoch for a YYYY-MM-DD ISO date, or `null` if unparseable. */
+function parseIsoDay(iso: string | undefined | null): number | null {
+    if (typeof iso !== "string" || !iso) return null
+    const parsed = Date.parse(`${iso}T00:00:00.000Z`)
+    return Number.isFinite(parsed) ? parsed : null
+}
+
+/** UTC midnight epoch for "today" in the user's clock; collapsed to UTC day. */
+function todayUtcEpoch(): number {
+    const now = new Date()
+    return Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
+}
+
+function clamp01(n: number): number {
+    if (!Number.isFinite(n)) return 0
+    if (n < 0) return 0
+    if (n > 1) return 1
+    return n
+}
+
+/** Signed integer day difference between two UTC midnight epochs. */
+function daysBetween(a: number, b: number): number {
+    return Math.round((b - a) / MS_PER_DAY)
+}
+
 function formatPositionFromAbsolute(longitude: unknown) {
     const numericLongitude = toFiniteNumber(longitude)
     if (typeof numericLongitude !== "number") return null
@@ -275,6 +304,7 @@ function getPersonalizedAspectEvents(
             natalAbsoluteLongitude: toFiniteNumber(
                 event.natalAbsoluteLongitude,
             ),
+            dateIso: event.dateIso,
             dateText: t("exactDatePrefix", {
                 date: formatDateIsoForLocale(event.dateIso, locale),
             }),
@@ -310,6 +340,9 @@ function getPersonalizedAspectEvents(
             natalAbsoluteLongitude: toFiniteNumber(
                 event.natalAbsoluteLongitude,
             ),
+            startDateIso: event.startDateIso,
+            peakDateIso: event.peakDateIso,
+            endDateIso: event.endDateIso,
             dateText: t("rangeDateStart", {
                 start: formatDateIsoForLocale(event.startDateIso, locale),
             }),
@@ -345,7 +378,9 @@ function ToggleButtonGroup({
     const visible = items.filter(Boolean) as ToggleItem[]
     if (visible.length === 0) return null
 
-    const firstOpenIdx = visible.findIndex((item) => item.isOpen && item.content)
+    const firstOpenIdx = visible.findIndex(
+        (item) => item.isOpen && item.content,
+    )
 
     if (firstOpenIdx === -1) {
         return (
@@ -373,11 +408,185 @@ function ToggleButtonGroup({
                 </div>
             )}
             {openItem.content}
-            {after.length > 0 && (
-                <ToggleButtonGroup
-                    items={after}
+            {after.length > 0 && <ToggleButtonGroup items={after} />}
+        </div>
+    )
+}
+
+/**
+ * Visualises where the current moment sits within an aspect's window.
+ *
+ * - Range events (`startDateIso` / `peakDateIso` / `endDateIso` present):
+ *   Horizontal track from start → end with an amber peak dot and a small white
+ *   "today" tick that slides along the bar. The track is split visually so the
+ *   portion before today is dim and the portion ahead is brighter, giving a
+ *   "we are here" hint at a glance. If today is outside the window, the tick
+ *   pins to the nearest edge in a muted style with a small `before`/`after`
+ *   delta label.
+ * - Exact events (only `dateIso`): no bar — just a single amber dot + the
+ *   formatted date and a relative hint ("today" / "in N days" / "N days ago").
+ * - Fallback (no ISOs at all): keep the static start | peak | end text row so
+ *   we never regress to a worse layout than before.
+ */
+function AspectTimeline({
+    event,
+    dateStart,
+    datePeak,
+    dateEnd,
+    locale,
+    t,
+}: {
+    event: PanelAspectEvent
+    dateStart: string
+    datePeak: string
+    dateEnd: string
+    locale: string
+    t: (key: string, values?: Record<string, string | number>) => string
+}) {
+    const today = todayUtcEpoch()
+    const startMs = parseIsoDay(event.startDateIso)
+    const peakMs = parseIsoDay(event.peakDateIso)
+    const endMs = parseIsoDay(event.endDateIso)
+    const exactMs = parseIsoDay(event.dateIso)
+
+    // RANGE: start / peak / end all parseable and the window has non-zero span.
+    if (
+        startMs !== null &&
+        peakMs !== null &&
+        endMs !== null &&
+        endMs > startMs
+    ) {
+        const span = endMs - startMs
+        const peakProgress = clamp01((peakMs - startMs) / span)
+        const rawTodayProgress = (today - startMs) / span
+        const inWindow = rawTodayProgress >= 0 && rawTodayProgress <= 1
+        const todayProgress = clamp01(rawTodayProgress)
+        const todayPct = todayProgress * 100
+        const peakPct = peakProgress * 100
+
+        const beforeDays = daysBetween(today, startMs)
+        const afterDays = daysBetween(endMs, today)
+        const todayHint = inWindow
+            ? null
+            : rawTodayProgress < 0
+              ? t("timelineUpcoming", {
+                    days: beforeDays,
+                    defaultValue: `in ${beforeDays}d`,
+                })
+              : t("timelinePassed", {
+                    days: afterDays,
+                    defaultValue: `${afterDays}d ago`,
+                })
+
+        return (
+            <div className='space-y-2'>
+                <div className='relative pt-7'>
+                    {/* Peak date sits above the flame / track */}
+                    <span
+                        className='pointer-events-none absolute top-0 z-[3] -translate-x-1/2 whitespace-nowrap font-mono text-[10px] leading-none text-amber-200/90 tabular-nums'
+                        style={{ left: `${peakPct}%` }}
+                    >
+                        {datePeak}
+                    </span>
+                    <div
+                        className='relative h-[6px] rounded-full bg-white/[0.06]'
+                        role='img'
+                        aria-label={t("timelineAriaLabel", {
+                            start: dateStart,
+                            peak: datePeak,
+                            end: dateEnd,
+                            defaultValue: `${dateStart} - ${datePeak} - ${dateEnd}`,
+                        })}
+                    >
+                        {/* Filled portion up to today (or 100% if past) */}
+                        <div
+                            className='absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-white/15 via-amber-200/35 to-amber-200/45'
+                            style={{ width: `${todayPct}%` }}
+                        />
+                        {/* Peak marker — fire icon at exact peak */}
+                        <Flame
+                            className='pointer-events-none absolute top-1/2 z-[1] h-[18px] w-[18px] -translate-x-1/2 -translate-y-1/2 text-amber-400 drop-shadow-[0_0_10px_rgba(251,146,60,0.85)]'
+                            style={{ left: `${peakPct}%` }}
+                            aria-hidden
+                            strokeWidth={2}
+                            fill='currentColor'
+                        />
+                        {/* Today indicator — small white tick */}
+                        <div
+                            className={`absolute top-1/2 z-[2] h-[14px] w-[2px] -translate-x-1/2 -translate-y-1/2 rounded-full ${
+                                inWindow
+                                    ? "bg-white shadow-[0_0_8px_rgba(255,255,255,0.7)]"
+                                    : "bg-white/35"
+                            }`}
+                            style={{ left: `${todayPct}%` }}
+                            aria-hidden
+                        />
+                    </div>
+                </div>
+                {/* Start / end only — peak label is above the flame */}
+                <div className='flex min-h-[14px] justify-between gap-3 font-mono text-[10px] tabular-nums'>
+                    <span className='min-w-0 max-w-[48%] truncate text-left text-white/40'>
+                        {dateStart}
+                    </span>
+                    <span className='min-w-0 max-w-[48%] truncate text-right text-white/40'>
+                        {dateEnd}
+                    </span>
+                </div>
+                {todayHint && (
+                    <p className='text-center text-[10px] text-white/35'>
+                        {todayHint}
+                    </p>
+                )}
+            </div>
+        )
+    }
+
+    // EXACT: only a single date is meaningful.
+    if (exactMs !== null) {
+        const delta = daysBetween(today, exactMs)
+        const exactLabel =
+            delta === 0
+                ? t("timelineToday", { defaultValue: "Today" })
+                : delta > 0
+                  ? t("timelineUpcoming", {
+                        days: delta,
+                        defaultValue: `in ${delta}d`,
+                    })
+                  : t("timelinePassed", {
+                        days: Math.abs(delta),
+                        defaultValue: `${Math.abs(delta)}d ago`,
+                    })
+        const dateLabel = formatDateIsoForLocale(event.dateIso!, locale)
+        const muted = delta < 0
+        return (
+            <div className='flex items-center gap-2'>
+                <div
+                    className={`relative h-[10px] w-[10px] rounded-full ${
+                        muted
+                            ? "bg-white/30"
+                            : "bg-amber-300 shadow-[0_0_10px_2px_rgba(252,191,73,0.5)] ring-1 ring-amber-200/40"
+                    }`}
+                    aria-hidden
                 />
-            )}
+                <p
+                    className={`font-mono text-[11px] tabular-nums ${
+                        muted ? "text-white/40" : "text-white/75"
+                    }`}
+                >
+                    <span>{dateLabel}</span>
+                    <span className='ml-2 text-white/40'>·</span>
+                    <span className='ml-2 text-white/55'>{exactLabel}</span>
+                </p>
+            </div>
+        )
+    }
+
+    // FALLBACK: no ISOs → keep the legacy three-up text row.
+    return (
+        <div className='grid grid-cols-3 gap-2 font-mono text-[10px] tabular-nums text-white/45'>
+            <span>{dateStart}</span>
+            <span className='text-center text-amber-200/85'>{datePeak}</span>
+            <span className='text-right'>{dateEnd}</span>
         </div>
     )
 }
@@ -492,8 +701,7 @@ export default function RealtimePlanetaryPanel({
     )
     const allRemainingEvents = [
         ...discussedEvents.filter(
-            (e) =>
-                !featuredKeys.has(e.aspectKey) && !e.impact && !e.intensity,
+            (e) => !featuredKeys.has(e.aspectKey) && !e.impact && !e.intensity,
         ),
         ...undiscussedEvents,
     ]
@@ -600,84 +808,90 @@ export default function RealtimePlanetaryPanel({
         const dateEnd = event.endText?.replace(/^.*?\s/, "") || datePeak
         const transitLabel =
             t(`planets.${event.transitPlanet}`) ?? event.transitPlanet
-        const natalLabel = t(`planets.${event.natalPlanet}`) ?? event.natalPlanet
+        const natalLabel =
+            t(`planets.${event.natalPlanet}`) ?? event.natalPlanet
 
         return (
-            <div className='min-w-[260px] space-y-4 rounded-[16px] border border-white/10 bg-white/[0.04] p-4'>
-                <div className='flex flex-wrap items-center gap-2'>
-                    <span className='inline-flex items-center gap-1.5 rounded-full border border-violet-300/15 bg-violet-300/[0.08] px-2.5 py-1 text-[10px] font-medium text-violet-100'>
-                        {t("impactLabel")}
-                        <span>{event.impact || displayKeyword}</span>
+            <div className='min-w-[260px] space-y-5 rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.035] to-white/[0.015] p-5 transition duration-300 hover:bg-white/[0.045]'>
+                <div className='flex flex-wrap items-center gap-1.5'>
+                    <span className='inline-flex h-6 items-center gap-1.5 rounded-full border border-violet-300/15 bg-violet-300/[0.06] px-2.5 text-[10px] font-medium tracking-wide text-violet-100/90'>
+                        <span className='text-violet-200/55'>
+                            {t("impactLabel")}
+                        </span>
+                        <span className='text-violet-50'>
+                            {event.impact || displayKeyword}
+                        </span>
                     </span>
                     <span
-                        className='inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium'
+                        className='inline-flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[10px] font-medium tracking-wide'
                         style={{
-                            borderColor: `${intensityColor}55`,
-                            backgroundColor: `${intensityColor}1A`,
+                            borderColor: `${intensityColor}40`,
+                            backgroundColor: `${intensityColor}14`,
                             color: intensityColor,
                         }}
                     >
-                        {t("intensityLabel")}
+                        <span style={{ color: `${intensityColor}AA` }}>
+                            {t("intensityLabel")}
+                        </span>
                         <span>{t(`intensity.${intensity}`)}</span>
                     </span>
                 </div>
 
                 <div className='grid grid-cols-[1fr_auto_1fr] items-center gap-3'>
                     <div className='min-w-0 text-center'>
-                        <div className='mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.06]'>
-                            <PlanetAvatar planet={event.transitPlanet} />
+                        <div className='mx-auto mb-2 inline-flex'>
+                            <span className='relative inline-flex h-[44px] w-[44px] items-center justify-center rounded-full ring-1 ring-white/10'>
+                                <PlanetAvatar planet={event.transitPlanet} />
+                            </span>
                         </div>
-                        <p className='truncate text-sm font-medium text-white'>
+                        <p className='truncate text-[13px] font-medium tracking-tight text-white'>
                             {transitLabel}
                         </p>
-                        <p className='text-[10px] text-white/45'>
+                        <p className='text-[10px] tracking-wide text-white/35'>
                             {t("transitSuffix")}
                         </p>
                     </div>
-                    <div className='flex flex-col items-center gap-1 rounded-full border border-cyan-300/20 bg-cyan-300/[0.08] px-3 py-2 text-cyan-100'>
+                    <div className='flex flex-col items-center gap-1 text-cyan-200/85'>
                         <AspectIcon aspectType={event.aspectType} />
-                        <span className='text-[10px] font-medium'>
+                        <span className='text-[10px] font-medium uppercase tracking-[0.18em]'>
                             {t(`aspects.${event.aspectType}`) ??
                                 event.aspectType}
                         </span>
                     </div>
                     <div className='min-w-0 text-center'>
-                        <div className='mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.06]'>
-                            <PlanetAvatar planet={event.natalPlanet} />
+                        <div className='mx-auto mb-2 inline-flex'>
+                            <span className='relative inline-flex h-[44px] w-[44px] items-center justify-center rounded-full ring-1 ring-white/10'>
+                                <PlanetAvatar planet={event.natalPlanet} />
+                            </span>
                         </div>
-                        <p className='truncate text-sm font-medium text-white'>
+                        <p className='truncate text-[13px] font-medium tracking-tight text-white'>
                             {natalLabel}
                         </p>
-                        <p className='text-[10px] text-white/45'>
+                        <p className='text-[10px] tracking-wide text-white/35'>
                             {t("natalSuffix")}
                         </p>
                     </div>
                 </div>
 
-                <div className='border-l-2 border-cyan-300/55 bg-cyan-300/[0.05] px-3 py-2'>
-                    <p className='text-sm leading-6 text-white/82'>
+                <blockquote className='border-l border-white/15 pl-3'>
+                    <p className='font-serif text-[13.5px] italic leading-[1.65] text-white/82'>
                         {event.insight ||
                             (hasRealKeyword
                                 ? displayKeyword
                                 : t("defaultInsight"))}
                     </p>
-                </div>
+                </blockquote>
 
-                <div className='space-y-2'>
-                    <div className='relative h-2 rounded-full bg-white/10'>
-                        <div className='absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-gradient-to-r from-white/20 via-amber-200/45 to-white/20' />
-                        <div className='absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-300 shadow-[0_0_20px_4px_rgba(232,168,76,0.55)]' />
-                    </div>
-                    <div className='grid grid-cols-3 gap-2 text-[10px] text-white/45'>
-                        <span>{dateStart}</span>
-                        <span className='text-center text-amber-200/85'>
-                            {datePeak}
-                        </span>
-                        <span className='text-right'>{dateEnd}</span>
-                    </div>
-                </div>
+                <AspectTimeline
+                    event={event}
+                    dateStart={dateStart}
+                    datePeak={datePeak}
+                    dateEnd={dateEnd}
+                    locale={locale}
+                    t={t}
+                />
 
-                <div className='flex items-center justify-between gap-2'>
+                <div className='flex items-center justify-between gap-2 pt-1'>
                     <button
                         type='button'
                         onClick={() =>
@@ -686,7 +900,7 @@ export default function RealtimePlanetaryPanel({
                                 [event.aspectKey]: !prev[event.aspectKey],
                             }))
                         }
-                        className='text-[10px] text-white/45 underline decoration-white/15 underline-offset-4 hover:text-white/70'
+                        className='text-[11px] text-white/40 underline decoration-white/10 underline-offset-4 transition-colors hover:text-white/70'
                     >
                         {isTechnicalExpanded
                             ? t("hideTechnical")
@@ -705,7 +919,7 @@ export default function RealtimePlanetaryPanel({
                                     block: "start",
                                 })
                             }}
-                            className='inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-[10px] font-medium text-emerald-100 transition-colors hover:bg-emerald-500/20'
+                            className='inline-flex h-8 items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/[0.08] px-3 text-[11px] font-medium text-emerald-100 transition-colors hover:bg-emerald-500/15'
                         >
                             <Eye className='h-3.5 w-3.5 text-emerald-300' />
                             {t("readDescription")}
@@ -737,31 +951,52 @@ export default function RealtimePlanetaryPanel({
                                     behavior: "smooth",
                                 })
                             }}
-                            className='inline-flex items-center gap-1.5 rounded-lg border border-indigo-500/20 bg-indigo-500/10 px-3 py-2 text-[10px] font-medium text-indigo-100 transition-colors hover:bg-indigo-500/20'
+                            className='inline-flex h-8 items-center gap-1.5 rounded-full border border-indigo-500/25 bg-indigo-500/[0.08] px-3 text-[11px] font-medium text-indigo-100 transition-colors hover:bg-indigo-500/15'
                         >
                             <Sparkles className='h-3.5 w-3.5 text-indigo-300' />
-                            {t("askMore")}
-                            <Star className='h-3 w-3 fill-amber-300 text-amber-300' />
-                            <span className='text-amber-200'>1</span>
+                            <span>{t("askMore")}</span>
+                            <span className='ml-1 inline-flex items-center gap-0.5 text-amber-200/90'>
+                                <Star className='h-3 w-3 fill-amber-300 text-amber-300' />
+                                <span>1</span>
+                            </span>
                         </button>
                     )}
                 </div>
 
                 {isTechnicalExpanded && (
-                    <div className='grid gap-1 rounded-xl border border-white/10 bg-black/15 p-3 text-[10px] text-white/35'>
-                        <span>{`Transit: ${transitPosition} (${transitAbsoluteText})`}</span>
-                        <span>{`Natal: ${natalPosition} (${natalAbsoluteText})`}</span>
-                        <span>{`Orb: ${event.orb.toFixed(1)}°`}</span>
-                    </div>
+                    <dl className='grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 rounded-xl border border-white/[0.06] bg-white/[0.015] p-3 font-mono text-[10px] tabular-nums'>
+                        <dt className='uppercase tracking-[0.18em] text-white/35'>
+                            {t("transitSuffix")}
+                        </dt>
+                        <dd className='text-white/65'>
+                            <span>{transitPosition}</span>
+                            <span className='ml-1.5 text-white/30'>
+                                ({transitAbsoluteText})
+                            </span>
+                        </dd>
+                        <dt className='uppercase tracking-[0.18em] text-white/35'>
+                            {t("natalSuffix")}
+                        </dt>
+                        <dd className='text-white/65'>
+                            <span>{natalPosition}</span>
+                            <span className='ml-1.5 text-white/30'>
+                                ({natalAbsoluteText})
+                            </span>
+                        </dd>
+                        <dt className='uppercase tracking-[0.18em] text-white/35'>
+                            Orb
+                        </dt>
+                        <dd className='text-white/65'>{`${event.orb.toFixed(1)}°`}</dd>
+                    </dl>
                 )}
             </div>
         )
     }
 
     return (
-        <div className='space-y-4'>
+        <div className='space-y-5'>
             {featuredEvents.length > 0 && (
-                <div className='grid gap-3 grid-cols-1 sm:grid-cols-2'>
+                <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
                     {featuredEvents.map((event) => (
                         <EventCard key={event.aspectKey} event={event} />
                     ))}
@@ -792,7 +1027,7 @@ export default function RealtimePlanetaryPanel({
                                       </button>
                                   ) : null,
                               content: (
-                                  <div className='grid gap-3 grid-cols-1 sm:grid-cols-2'>
+                                  <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
                                       {relatedEvents
                                           .slice(0, visibleRelatedCount)
                                           .map((event) => (
@@ -815,11 +1050,12 @@ export default function RealtimePlanetaryPanel({
                                       <button
                                           type='button'
                                           onClick={() =>
-                                              setVisibleRemainingCount((count) =>
-                                                  Math.min(
-                                                      count + 3,
-                                                      allRemainingEvents.length,
-                                                  ),
+                                              setVisibleRemainingCount(
+                                                  (count) =>
+                                                      Math.min(
+                                                          count + 3,
+                                                          allRemainingEvents.length,
+                                                      ),
                                               )
                                           }
                                           className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
@@ -828,7 +1064,7 @@ export default function RealtimePlanetaryPanel({
                                       </button>
                                   ) : null,
                               content: (
-                                  <div className='grid gap-3 grid-cols-1 sm:grid-cols-2'>
+                                  <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
                                       {allRemainingEvents
                                           .slice(0, visibleRemainingCount)
                                           .map((event) => (

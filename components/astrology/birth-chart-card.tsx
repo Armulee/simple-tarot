@@ -43,6 +43,7 @@ import {
 } from "lucide-react"
 import { getPlanetDignity } from "@/lib/birth-chart-utils"
 import type { AstrologySystem } from "@/lib/astrology/types"
+import { PLANET_IMAGE_ASSETS } from "@/lib/astrology/planet-images"
 
 const PLANET_ICONS: Record<
     string,
@@ -90,19 +91,6 @@ const PLANET_ORDER = [
     "Rahu",
     "Ketu",
 ]
-
-const PLANET_IMAGE_ASSETS: Record<string, string> = {
-    Sun: "/assets/planetary/sun.png",
-    Moon: "/assets/planetary/moon.png",
-    Mercury: "/assets/planetary/mercury.png",
-    Venus: "/assets/planetary/venus.png",
-    Mars: "/assets/planetary/mars.png",
-    Jupiter: "/assets/planetary/jupiter.png",
-    Saturn: "/assets/planetary/saturn.png",
-    Rahu: "/assets/planetary/rahu.png",
-    Ketu: "/assets/planetary/rahu.png",
-    Uranus: "/assets/planetary/uranus.png",
-}
 
 const ZODIAC_SIGNS_EN = [
     "Aries",

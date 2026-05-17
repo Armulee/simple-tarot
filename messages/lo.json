@@ -409,11 +409,17 @@
     },
     "sanitizingPrompt": "ກຳລັງຊຳລະລ້າງ",
     "horoscopeAuthGate": {
-      "intro": "ຄຳຖາມນີ້ຄວນຕອບໂດຍດວງຊາຕາຂອງເຈົ້າ. ເຈົ້າຕ້ອງ",
+      "intro": "ຄຳຖາມນີ້ຄວນຕອບໂດຍ<pill>ດວງຊາຕາ</pill>ຂອງເຈົ້າ. ເຈົ້າຕ້ອງ",
+      "introSignedIn": "ຄຳຖາມນີ້ຄວນຕອບໂດຍ<pill>ດວງຊາຕາ</pill>ຂອງເຈົ້າ.",
       "signInLabel": "ເຂົ້າສູ່ລະບົບ",
       "introSuffix": "ກ່ອນຈຶ່ງສືບຕໍ່ໄດ້.",
       "fallback": "ເຈົ້າສາມາດໃຊ້ໄພ່ທາໂຣແທນກໍ່ໄດ້ ແຕ່ຄວາມແມ່ນຍຳຈະຫຼຸດລົງ.",
-      "cardAriaLabel": "ໄພ່ທາໂຣຕົວຢ່າງ: {name}"
+      "cardAriaLabel": "ໄພ່ທາໂຣຕົວຢ່າງ: {name}",
+      "deckCaption": "ເລື່ອນເບິ່ງໄພ່, ແຕະໜຶ່ງໃບ, ແລ້ວປັດຂຶ້ນເພື່ອເລືອກ — ລອງທາໂຣໄດ້ໂດຍບໍ່ຕ້ອງເຂົ້າສູ່ລະບົບ.",
+      "deckCaptionSignedIn": "ເລື່ອນເບິ່ງໄພ່, ແຕະໜຶ່ງໃບ, ແລ້ວປັດຂຶ້ນເພື່ອເລືອກ — ລອງທາໂຣແບບສັ້ນໆ.",
+      "deckSwipeHint": "ແຕະໄພ່ແລ້ວປັດຂຶ້ນເພື່ອເລືອກ.",
+      "reversedMark": " (ກັບຫົວ)",
+      "pickedTeaser": "ເຈົ້າເລືອກ {name}{reversedLabel}. ເຂົ້າສູ່ລະບົບຂ້າງເທິງເພື່ອດວງຊາຕາ."
     }
   },
   "ActionTrigger": {
@@ -897,6 +903,7 @@
     "systemVedic": "ເວທ (ໄຊດີເຣຍລ)",
     "tabBirthChart": "ດວງເກີດ",
     "tabTransitChart": "ດວງຈອນ",
+    "loading": "ກຳລັງໂຫຼດ…",
     "houseMeanings": {
       "1": "ຕົວຕົນ & ອັດຕະລັກ",
       "2": "ເງິນ & ຊັບສິນ",
@@ -1524,6 +1531,8 @@
         "linkCopiedDesc": "ຄັດລອກລິ້ງຮຽບຮ້ອຍ",
         "shareDesc": "ແຊຣ໌ການອ່ານນີ້",
         "share": "ແຊຣ໌",
+        "downloadReadingText": "ດາວໂຫຼດການອ່ານເປັນໄຟລ໌ຂໍ້ຄວາມ",
+        "downloadReadingImage": "ດາວໂຫຼດການອ່ານເປັນຮູບພາບ",
         "copyResult": "ຄັດລອກຄຳທຳນາຍ",
         "askFollowUp": "ຖາມຕໍ່",
         "askFollowUpPrompt": "ຊ່ວຍຂະຫຍາຍຄຳທຳນາຍນີ້ໃຫ້ເພີ່ມເຕີມໄດ້ບໍ?",
@@ -2495,15 +2504,15 @@
     "underAgeWarningClose": "ປິດ",
     "tabs": {
       "overview": "ພາບລວມ",
-      "aspect": "ແອັສເປັກ",
-      "transit": "ດາວຈອນ"
+      "aspect": "ມຸມກະທົບ",
+      "transit": "ຂໍ້ມູນທາງເຕັກນິກ"
     },
     "verdict": {
       "moodGood": "ມື້ທີ່ດີ",
       "moodCaution": "ລະວັງໄວ້",
       "moodRest": "ມື້ພັກ",
-      "actionsHeading": "ເຮັດໄດ້ເລີຍ",
-      "watchHeading": "ສິ່ງທີ່ຄວນລະວັງ",
+      "answerHeading": "ຄຳຕອບສຳລັບຄຳຖາມນີ້",
+      "watchHeading": "ຂໍ້ລະວັງເພີ່ມເຕີມ",
       "focusHeading": "ໂຟກັສມື້ນີ້",
       "dateRelativeToday": "ມື້ນີ້",
       "dateRelativeTomorrow": "ມື້ອື່ນ",
@@ -2611,6 +2620,10 @@
     "showMore": "ສະແດງເພີ່ມເຕີມ",
     "showTechnical": "ສະແດງຂໍ້ມູນເຕັກນິກ",
     "hideTechnical": "ເຊື່ອງຂໍ້ມູນເຕັກນິກ",
+    "timelineAriaLabel": "ຊ່ວງມຸມຈາກ {start} ຜ່ານຈຸດສູງສຸດ {peak} ເຖິງ {end}",
+    "timelineToday": "ມື້ນີ້",
+    "timelineUpcoming": "ອີກ {days} ມື້",
+    "timelinePassed": "ຜ່ານມາແລ້ວ {days} ມື້",
     "defaultInsight": "ພະລັງງານນີ້ກະທົບກັບຈັງຫວະຊີວິດຂອງທ່ານໃນຊ່ວງນີ້",
     "impactLabel": "ດ້ານ: ",
     "intensityLabel": "ລະດັບ: ",

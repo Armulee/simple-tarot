@@ -368,10 +368,17 @@ function normalizeDailyVerdict(
         | {
               mood?: string | null
               headline?: string | null
+              /** @deprecated — no longer generated; merged into detailedHtml for legacy payloads. */
               subtext?: string | null
+              detailedHtml?: string | null
+              /** @deprecated — older cached responses used `actions: string[]`. */
               actions?: Array<string | null | undefined> | null
               watchOut?: string | null
               focusArea?: string | null
+              keyMessage?: {
+                  headline?: string | null
+                  subtitle?: string | null
+              } | null
           }
         | null
         | undefined,
@@ -381,15 +388,47 @@ function normalizeDailyVerdict(
     if (mood !== "good" && mood !== "caution" && mood !== "rest") return undefined
     const headline = (verdict.headline ?? "").trim()
     if (!headline) return undefined
-    const subtext = (verdict.subtext ?? "").trim()
-    const actions = (verdict.actions ?? [])
-        .map((a) => (typeof a === "string" ? a.trim() : ""))
-        .filter(Boolean)
-        .slice(0, 3)
-    if (actions.length === 0) return undefined
+
+    // Prefer `detailedHtml`; fall back to legacy `actions` (ordered list) or
+    // legacy plain `subtext` wrapped as a single paragraph.
+    let detailedHtml = (verdict.detailedHtml ?? "").trim()
+    if (!detailedHtml && Array.isArray(verdict.actions)) {
+        const legacyActions = verdict.actions
+            .map((a) => (typeof a === "string" ? a.trim() : ""))
+            .filter(Boolean)
+            .slice(0, 3)
+        if (legacyActions.length > 0) {
+            detailedHtml = `<ol>${legacyActions
+                .map((a) => `<li>${a}</li>`)
+                .join("")}</ol>`
+        }
+    }
+    if (!detailedHtml) {
+        const legacySubtext = (verdict.subtext ?? "").trim()
+        if (legacySubtext) {
+            detailedHtml = `<p>${legacySubtext}</p>`
+        }
+    }
+    if (!detailedHtml) return undefined
+
     const watchOut = verdict.watchOut?.trim() || undefined
     const focusArea = verdict.focusArea?.trim() || undefined
-    return { mood, headline, subtext, actions, watchOut, focusArea }
+    const keyMessageHeadline = verdict.keyMessage?.headline?.trim() ?? ""
+    const keyMessageSubtitle = verdict.keyMessage?.subtitle?.trim() ?? ""
+    const keyMessage = keyMessageHeadline
+        ? {
+              headline: keyMessageHeadline,
+              subtitle: keyMessageSubtitle,
+          }
+        : undefined
+    return {
+        mood,
+        headline,
+        detailedHtml,
+        watchOut,
+        focusArea,
+        keyMessage,
+    }
 }
 
 function areDailyVerdictsEqual(
@@ -400,13 +439,13 @@ function areDailyVerdictsEqual(
     if (!a || !b) return false
     if (a.mood !== b.mood) return false
     if (a.headline !== b.headline) return false
-    if (a.subtext !== b.subtext) return false
     if ((a.watchOut ?? "") !== (b.watchOut ?? "")) return false
     if ((a.focusArea ?? "") !== (b.focusArea ?? "")) return false
-    if (a.actions.length !== b.actions.length) return false
-    for (let i = 0; i < a.actions.length; i++) {
-        if (a.actions[i] !== b.actions[i]) return false
-    }
+    if ((a.keyMessage?.headline ?? "") !== (b.keyMessage?.headline ?? ""))
+        return false
+    if ((a.keyMessage?.subtitle ?? "") !== (b.keyMessage?.subtitle ?? ""))
+        return false
+    if (a.detailedHtml !== b.detailedHtml) return false
     return true
 }
 
@@ -521,10 +560,10 @@ export default function ChatSession({
     const [readAloudDoNotShowAgain, setReadAloudDoNotShowAgain] =
         useState(false)
     const [composerSuggestionsEnabled, setComposerSuggestionsEnabled] =
-        useState(() => loadComposerSuggestionsEnabledFromStorage())
+        useState(true)
     const [sessionId] = useState<string | null>(initialSession?.id ?? null)
     const [privacyAliases, setPrivacyAliases] = useState<PromptAliasEntry[]>(
-        () => loadSessionAliases(initialSession?.id ?? null),
+        [],
     )
     const unmask = useCallback(
         (text?: string | null): string => {
@@ -549,24 +588,7 @@ export default function ChatSession({
         lat?: number
         lng?: number
         timezone?: number
-    } | null>(() => {
-        const saved = loadBirthFromStorage()
-        if (
-            saved?.country &&
-            saved.lat != null &&
-            saved.lng != null &&
-            saved.timezone != null
-        ) {
-            return {
-                country: saved.country,
-                state: saved.state ?? undefined,
-                lat: saved.lat,
-                lng: saved.lng,
-                timezone: saved.timezone,
-            }
-        }
-        return null
-    })
+    } | null>(null)
     const [showLocationDialog, setShowLocationDialog] = useState(false)
     const [locationDraftCountry, setLocationDraftCountry] = useState("")
     const [locationDraftState, setLocationDraftState] = useState("")
@@ -585,13 +607,11 @@ export default function ChatSession({
     const [showCardDraw, setShowCardDraw] = useState(
         initialSession?.showCardDraw ?? false,
     )
-    const [autoPickOn, setAutoPickOn] = useState(() =>
-        loadAutoPickFromStorage(),
-    )
+    const [autoPickOn, setAutoPickOn] = useState(false)
     const [interpretationMode, setInterpretationMode] =
-        useState<InterpretationMode>(() => loadInterpretationModeFromStorage())
+        useState<InterpretationMode>("auto")
     const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(
-        () => loadBirthFromStorage(),
+        null,
     )
     const [editingMessageId, setEditingMessageId] = useState<string | null>(
         null,
@@ -768,6 +788,58 @@ export default function ChatSession({
                             })
                             .catch(() => {
                                 /* chart-data fetch failed; cards just won't render */
+                            })
+
+                        // Dedicated VERDICT call — runs in parallel with the
+                        // long-form question stream and chart-data fetch so
+                        // the VerdictHero mounts as soon as the verdict
+                        // endpoint resolves (typically well before the body
+                        // stream completes). The server short-circuits to
+                        // `{ dailyVerdict: null }` for non-single-day
+                        // questions, so we don't need to gate here.
+                        fetch("/api/horoscope/verdict", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                question,
+                                birth,
+                                transit,
+                                system,
+                                locale,
+                                conversationContext:
+                                    bodyPayload?.conversationContext,
+                            }),
+                        })
+                            .then((r) => r.json())
+                            .then((data: Record<string, unknown>) => {
+                                if (data.error) return
+                                const verdict = normalizeDailyVerdict(
+                                    data.dailyVerdict as Parameters<
+                                        typeof normalizeDailyVerdict
+                                    >[0],
+                                )
+                                if (!verdict) return
+                                const msgId = targetId
+                                setMessages((prev) =>
+                                    prev.map((m) => {
+                                        if (m.id !== msgId) return m
+                                        if (
+                                            areDailyVerdictsEqual(
+                                                m.dailyVerdict,
+                                                verdict,
+                                            )
+                                        ) {
+                                            return m
+                                        }
+                                        return { ...m, dailyVerdict: verdict }
+                                    }),
+                                )
+                            })
+                            .catch(() => {
+                                /* verdict fetch failed; the body stream may
+                                 * still backfill dailyVerdict in older
+                                 * responses, otherwise overview falls back to
+                                 * the summary card */
                             })
                     }
                 } catch {
@@ -1592,6 +1664,33 @@ export default function ChatSession({
             autoPickTriggeredRef.current = false
         }
     }, [showCardDraw])
+
+    useEffect(() => {
+        setComposerSuggestionsEnabled(
+            loadComposerSuggestionsEnabledFromStorage(),
+        )
+        setAutoPickOn(loadAutoPickFromStorage())
+        setInterpretationMode(loadInterpretationModeFromStorage())
+        setPrivacyAliases(loadSessionAliases(sessionId))
+        const birth = loadBirthFromStorage()
+        setSavedBirth(birth)
+        if (
+            birth?.country &&
+            birth.lat != null &&
+            birth.lng != null &&
+            birth.timezone != null
+        ) {
+            setCurrentLocationFallback({
+                country: birth.country,
+                state: birth.state ?? undefined,
+                lat: birth.lat,
+                lng: birth.lng,
+                timezone: birth.timezone,
+            })
+        } else {
+            setCurrentLocationFallback(null)
+        }
+    }, [sessionId])
 
     useEffect(() => {
         if (user) return
@@ -3224,6 +3323,14 @@ export default function ChatSession({
         }
     }
 
+    const handleReadingTextDownloaded = (id: string) => {
+        setNotice(id, "Downloaded.")
+    }
+
+    const handleReadingTextDownloadFailed = (id: string) => {
+        setNotice(id, "Download failed.")
+    }
+
     const handleReport = (id: string, text: string) => {
         const unmaskedText = unmask(text)
         const subject = encodeURIComponent("Report AI response")
@@ -4293,6 +4400,7 @@ export default function ChatSession({
                 onSendEditAt={handleSendEditAt}
                 onAskAspectDetail={handleAskAspectDetail}
                 onUserDateFormSubmit={handleUserDateFormSubmit}
+                onHoroscopeAuthGateCardsSelected={handleCardsSelected}
                 onCancelHoroscopeLoading={handleCancelHoroscopeLoading}
                 onRegenerateHoroscope={regenerateHoroscopeAt}
                 onRegenerateTarot={regenerateTarotAt}
@@ -4301,6 +4409,10 @@ export default function ChatSession({
                 onToggleReaction={toggleReaction}
                 onReport={handleReport}
                 onShare={handleShare}
+                onReadingTextDownloaded={handleReadingTextDownloaded}
+                onReadingTextDownloadFailed={
+                    handleReadingTextDownloadFailed
+                }
                 onReadAloud={handleReadAloud}
                 unmask={unmask}
                 privacyAliases={privacyAliases}

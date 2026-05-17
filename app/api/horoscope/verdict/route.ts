@@ -1,28 +1,22 @@
-import { streamObject } from "ai"
+import { generateObject } from "ai"
 import { z } from "zod"
 import { buildChartData } from "@/lib/astrology/build-chart-data"
-import {
-    getDefaultAstrologySystem,
-    resolveBirthTime,
-} from "@/lib/astrology/intake"
-import { horoscopeInterpretationSchema } from "@/lib/astrology/schema"
-import { getHoroscopeInterpretationPrompt } from "@/lib/prompts"
+import { dailyVerdictSchema } from "@/lib/astrology/schema"
+import { getDailyVerdictPrompt } from "@/lib/prompts"
 import { resolveQuestionTimeRangeAsync } from "@/lib/astrology/question-time-range"
+import { isSingleDayQuestionRange } from "@/lib/astrology/single-day"
 import { getCodexTransitWindow } from "@/lib/astrology/ephemeris-codex"
-import {
-    isBirthChartSuitabilityQuestion,
-    classifyQuestionTopic,
-} from "@/lib/astrology/question-intent"
+import { classifyQuestionTopic } from "@/lib/astrology/question-intent"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
-import { normalizeConversationContext } from "@/lib/astrology/question-context"
 import {
     buildNatalLongitudes,
     buildPersonalizedTransitAspects,
     buildTransitLongitudesFromSwissPlanets,
 } from "@/lib/astrology/transit-aspects"
 
-// Chart data (with aspects) is now served separately via /api/horoscope/chart-data.
-// This route only streams the AI interpretation.
+// Dedicated verdict route. Runs in parallel with /api/horoscope/question and
+// /api/horoscope/chart-data so the VerdictHero can mount well before the
+// long-form interpretation finishes streaming.
 
 const MODEL = "deepseek/deepseek-v3.2"
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -121,10 +115,6 @@ const requestSchema = z.object({
     conversationContext: z
         .object({
             userMainPoint: z.string().optional(),
-            userMessageTimeline: z.array(z.string()).optional(),
-            assistantSummaryTimeline: z.array(z.string()).optional(),
-            contextText: z.string().optional(),
-            totalMessages: z.number().optional(),
         })
         .optional(),
 })
@@ -132,11 +122,7 @@ const requestSchema = z.object({
 export async function POST(req: Request) {
     try {
         const body = requestSchema.parse(await req.json())
-        const locale = body.locale || "en"
-        const system =
-            body.system ||
-            getDefaultAstrologySystem(locale) ||
-            ("vedic_sidereal" as const)
+
         const questionRange = await resolveQuestionTimeRangeAsync(
             body.question,
             {
@@ -149,6 +135,19 @@ export async function POST(req: Request) {
                     : null,
             },
         )
+
+        // Single-day gate: this route only generates a verdict for confidently
+        // single-day questions. For everything else we short-circuit with a
+        // null response so the client can skip the VerdictHero without
+        // burning an LLM call.
+        const singleDay = isSingleDayQuestionRange({
+            durationDays: questionRange.durationDays,
+            source: questionRange.source,
+        })
+        if (!singleDay) {
+            return Response.json({ dailyVerdict: null }, { status: 200 })
+        }
+
         const aspectRange = {
             ...questionRange,
             startDate: addUtcDays(
@@ -164,24 +163,22 @@ export async function POST(req: Request) {
             ),
             durationDays: questionRange.durationDays + ASPECT_PADDING_DAYS * 2,
         }
-        const [codexTransit, aspectCodexTransit] = await Promise.all([
-            getCodexTransitWindow(questionRange),
-            getCodexTransitWindow(aspectRange),
-        ])
-        const suitabilityQuestion = isBirthChartSuitabilityQuestion(
-            body.question,
-        )
-        const questionTopic = classifyQuestionTopic(body.question)
-        const conversationContext = normalizeConversationContext(
-            body.conversationContext,
-        )
-        const conversationContextText = conversationContext?.contextText ?? ""
 
-        const questionLang = detectQuestionLanguage(body.question)
+        // Fire BOTH codex queries in parallel; buildChartData only needs the
+        // question-range one so we start it as soon as that resolves and let
+        // the aspect codex round-trip hide behind ephemeris compute.
+        const codexTransitPromise = getCodexTransitWindow(questionRange)
+        const aspectCodexTransitPromise = getCodexTransitWindow(aspectRange)
+
+        const codexTransit = await codexTransitPromise
+
         const chartLocale =
-            questionLang === "Thai" || questionLang === "Lao" ? "th" : "en"
+            detectQuestionLanguage(body.question) === "Thai" ||
+            detectQuestionLanguage(body.question) === "Lao"
+                ? "th"
+                : "en"
 
-        const chartDataResult = await buildChartData(
+        const chartDataPromise = buildChartData(
             {
                 birth: body.birth,
                 system: body.system,
@@ -192,6 +189,12 @@ export async function POST(req: Request) {
             },
             chartLocale,
         )
+
+        const [chartDataResult, aspectCodexTransit] = await Promise.all([
+            chartDataPromise,
+            aspectCodexTransitPromise,
+        ])
+
         const primaryBirthChart = chartDataResult.charts?.[0]
         const primaryTransitChart = chartDataResult.transit?.charts?.[0]
         const natalLongitudes = buildNatalLongitudes(
@@ -211,6 +214,8 @@ export async function POST(req: Request) {
             codexRows: aspectCodexTransit.rows,
             fallbackExactTransitLongitudes,
         })
+
+        const questionTopic = classifyQuestionTopic(body.question)
         const personalizedTransitAspects =
             questionTopic.topic !== "general"
                 ? filterAspectsByRelevantPlanets(
@@ -218,17 +223,6 @@ export async function POST(req: Request) {
                       questionTopic.relevantPlanets,
                   )
                 : rawTransitAspects
-        const resolvedTime = resolveBirthTime({
-            hour: body.birth.hour ?? null,
-            minute: body.birth.minute ?? null,
-            timeHint: body.birth.timeHint ?? "unknown",
-        })
-
-        const chartDataForPrompt = {
-            ...chartDataResult,
-            personalizedTransitAspects: undefined,
-        }
-        const chartData = JSON.stringify(chartDataForPrompt)
 
         const now = new Date()
         const currentDateTime = now.toLocaleString("en-CA", {
@@ -236,13 +230,10 @@ export async function POST(req: Request) {
             timeStyle: "long",
             timeZone: "UTC",
         })
+        const questionLanguage = detectQuestionLanguage(body.question)
 
-        const prompt = getHoroscopeInterpretationPrompt({
+        const prompt = getDailyVerdictPrompt({
             question: body.question,
-            systemMode: system,
-            chartData,
-            isApproximateTime: resolvedTime.isApproximate,
-            usedLocationFallback: Boolean(body.birth.usedLocationFallback),
             currentDateTime,
             questionRange: {
                 startDateIso: questionRange.startDateIso,
@@ -250,59 +241,28 @@ export async function POST(req: Request) {
                 durationDays: questionRange.durationDays,
                 source: questionRange.source,
             },
-            transitDataSource: codexTransit.source,
-            codexTransitSummary: codexTransit.summary,
-            codexCoverage: codexTransit.coverage,
             personalizedTransitAspects,
-            isBirthChartSuitabilityQuestion: suitabilityQuestion,
-            conversationContextText,
-            userMainPoint: conversationContext?.userMainPoint ?? "",
-            questionTopic,
-            questionLanguage: questionLang,
+            questionLanguage,
+            userMainPoint: body.conversationContext?.userMainPoint ?? "",
         })
 
         console.log(
-            `[horoscope/question] prompt size: ${(prompt.length / 1024).toFixed(1)}KB (~${Math.ceil(prompt.length / 4)} tokens)`,
+            `[horoscope/verdict] prompt size: ${(prompt.length / 1024).toFixed(1)}KB (~${Math.ceil(prompt.length / 4)} tokens)`,
         )
 
-        const result = streamObject({
+        const result = await generateObject({
             model: MODEL,
-            // Force JSON streaming mode so partial fields stream to the client
-            // token-by-token. The default 'auto' often resolves to tool-call
-            // mode on DeepSeek, which buffers the whole JSON payload until the
-            // tool call completes (the response then "pops in" all at once).
-            mode: "json",
-            schema: horoscopeInterpretationSchema,
-            system: `You are an expert astrologer who writes for a general audience with ZERO astrology knowledge.
-You respond as a female. Astra is a female oracle. Use feminine voice and perspective in all responses.
-Be clear, kind, and practical. Never claim fixed destiny.
-Write like a caring friend giving life advice — warm, conversational, and in plain everyday language. Write the way a native speaker would text a close friend. NEVER sound like an astrology textbook.
-
-ABSOLUTELY FORBIDDEN in interpretation text: planet names (Saturn, Jupiter, Mars, Venus, Rahu, ดาวเสาร์, ดาวพฤหัส, ดาวอังคาร, ดาวศุกร์, ราหู, จันทร์, etc.), zodiac sign names (Aries, Pisces, ราศีเมษ, ราศีมีน, etc.), and astrology terms (conjunction, opposition, square, trine, sextile, orb, transit, เล็ง, ตรีโกณ, จตุโกณ, ร่วม, etc.). Translate all astrological meaning into life impact — emotions, energy, timing, advice.
-
-LANGUAGE DETECTION RESULT: The user's question is in ${questionLang}.
-CRITICAL: You MUST write your ENTIRE response (interpretation, conclusion, suggestions, aspectInsights) in ${questionLang}. Do NOT use any other language. If the question is in English, every single word of your output must be in English. If in Thai, every word in Thai. Ignore the language of any chart data or internal context — ONLY the user's question language matters.
-
-CRITICAL: When citing time periods, use dates in the SAME language as your output. Thai output = Thai month names (กุมภาพันธ์, มีนาคม, etc.). English output = English month names (February, March, etc.). Example: Thai "22 กุมภาพันธ์ 2026 ถึง 22 กุมภาพันธ์ 2028"; English "February 22, 2026 to February 22, 2028". Do NOT use ISO format (YYYY-MM-DD). Never mix languages (e.g. Thai text with "February").
-
-Output structure: Provide interpretation (main reading), conclusion (short calming wrap-up), and suggestions (EXACTLY 3–4 very short, casual follow-up prompts the user could ask next — single line each, like quick texts, not long formal questions).`,
+            schema: dailyVerdictSchema,
+            system: `You are Astra, a female oracle. Produce ONLY the daily verdict JSON. Plain language, no astrology jargon, no planet names. Output language: ${questionLanguage}.`,
             prompt,
-            temperature: 0.6,
+            temperature: 0.55,
         })
 
-        result.object
-            .then((obj) => {
-                console.log(obj)
-            })
-            .catch((err) => {
-                console.log(err)
-            })
-
-        return result.toTextStreamResponse()
+        return Response.json({ dailyVerdict: result.object }, { status: 200 })
     } catch (error) {
-        console.error("[horoscope/question] request failed:", error)
+        console.error("[horoscope/verdict] request failed:", error)
         const message =
-            error instanceof Error ? error.message : "HOROSCOPE_FAILED"
-        return new Response(message, { status: 400 })
+            error instanceof Error ? error.message : "VERDICT_FAILED"
+        return Response.json({ error: message }, { status: 400 })
     }
 }

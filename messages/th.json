@@ -410,11 +410,17 @@
     },
     "sanitizingPrompt": "กำลังชำระล้าง",
     "horoscopeAuthGate": {
-      "intro": "คำถามนี้น่าจะตอบได้ดีที่สุดด้วยดวงชะตา คุณต้อง",
+      "intro": "คำถามนี้น่าจะตอบได้ดีที่สุดด้วย<pill>ดวงชะตา</pill> คุณต้อง",
+      "introSignedIn": "คำถามนี้น่าจะตอบได้ดีที่สุดด้วย<pill>ดวงชะตา</pill>",
       "signInLabel": "เข้าสู่ระบบ",
       "introSuffix": "ก่อนจึงจะดำเนินการต่อได้",
       "fallback": "คุณสามารถใช้ไพ่ทาโรต์แทนได้เช่นกัน แต่ความแม่นยำจะลดลง",
-      "cardAriaLabel": "ไพ่ทาโรต์ตัวอย่าง: {name}"
+      "cardAriaLabel": "ไพ่ทาโรต์ตัวอย่าง: {name}",
+      "deckCaption": "เลื่อนดูไพ่ แตะหนึ่งใบ แล้วปัดขึ้นเพื่อเลือก — ลองทาโรต์ได้โดยไม่ต้องเข้าสู่ระบบ",
+      "deckCaptionSignedIn": "เลื่อนดูไพ่ แตะหนึ่งใบ แล้วปัดขึ้นเพื่อเลือก — ลองทาโรต์แบบรวดเร็ว",
+      "deckSwipeHint": "แตะไพ่แล้วปัดขึ้นเพื่อเลือก",
+      "reversedMark": " (กลับหัว)",
+      "pickedTeaser": "คุณเลือก {name}{reversedLabel} เข้าสู่ระบบด้านบนเพื่อดูดวงชะตา"
     }
   },
   "ActionTrigger": {
@@ -898,6 +904,7 @@
     "systemVedic": "เวท (ซีเดียเรียล)",
     "tabBirthChart": "ดวงเกิด",
     "tabTransitChart": "ดวงจร",
+    "loading": "กำลังโหลด…",
     "houseMeanings": {
       "1": "ตัวตน & อัตลักษณ์",
       "2": "เงิน & ทรัพย์สิน",
@@ -1528,6 +1535,8 @@
         "linkCopiedDesc": "คัดลอกลิงก์เรียบร้อย",
         "shareDesc": "แชร์การอ่านนี้",
         "share": "แชร์",
+        "downloadReadingText": "ดาวน์โหลดการอ่านเป็นไฟล์ข้อความ",
+        "downloadReadingImage": "ดาวน์โหลดการอ่านเป็นรูปภาพ",
         "copyResult": "คัดลอกคำทำนาย",
         "askFollowUp": "ถามต่อ",
         "askFollowUpPrompt": "ช่วยขยายความคำทำนายนี้เพิ่มเติมได้ไหม",
@@ -2499,15 +2508,15 @@
     "underAgeWarningClose": "ปิด",
     "tabs": {
       "overview": "ภาพรวม",
-      "aspect": "แอสเปกต์",
-      "transit": "ดาวจร"
+      "aspect": "มุมตกกระทบ",
+      "transit": "ข้อมูลทางเทคนิค"
     },
     "verdict": {
       "moodGood": "วันที่ดี",
       "moodCaution": "ระวังไว้",
       "moodRest": "วันพัก",
-      "actionsHeading": "ทำได้เลย",
-      "watchHeading": "สิ่งที่ควรเลี่ยง",
+      "answerHeading": "คำตอบสำหรับคำถามนี้",
+      "watchHeading": "ข้อควรระวังเพิ่มเติม",
       "focusHeading": "โฟกัสวันนี้",
       "dateRelativeToday": "วันนี้",
       "dateRelativeTomorrow": "พรุ่งนี้",
@@ -2615,6 +2624,10 @@
     "showMore": "แสดงเพิ่มเติม",
     "showTechnical": "ดูข้อมูลเทคนิค",
     "hideTechnical": "ซ่อนข้อมูลเทคนิค",
+    "timelineAriaLabel": "ช่วงมุมจาก {start} ผ่านจุดสูงสุด {peak} ถึง {end}",
+    "timelineToday": "วันนี้",
+    "timelineUpcoming": "อีก {days} วัน",
+    "timelinePassed": "ผ่านมาแล้ว {days} วัน",
     "defaultInsight": "พลังงานนี้กำลังส่งผลกับจังหวะชีวิตของคุณในช่วงนี้",
     "impactLabel": "ด้าน: ",
     "intensityLabel": "ระดับ: ",

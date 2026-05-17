@@ -1,3 +1,4 @@
+import { resolveLocationFromCountryState } from "@/lib/location"
 import type { HoroscopeBirthData } from "@/types/horoscope"
 
 /** Minimal profile fields needed to build natal input for horoscope / ephemeris. */
@@ -7,10 +8,28 @@ export type ProfileBirthFields = {
     birth_place: string | null
 }
 
+function parseProfileBirthPlace(place: string | null): {
+    country: string | null
+    state: string | null
+} {
+    if (!place) return { country: null, state: null }
+    const parts = place
+        .split(",")
+        .map((part) => part.trim())
+        .filter(Boolean)
+    if (parts.length === 0) return { country: null, state: null }
+    if (parts.length === 1) return { country: parts[0], state: null }
+
+    return {
+        country: parts[parts.length - 1],
+        state: parts[parts.length - 2],
+    }
+}
+
 /**
  * Maps DB profile birth fields to HoroscopeBirthData.
- * Birth place is free text: stored as `country`; lat/lng/tz stay null until
- * {@link applyEphemerisLocationTimeDefaults} (0, 0, 0 for calculations).
+ * Birth place is free text; when it matches a known country/state we resolve
+ * representative lat/lng/timezone so horoscope calculations can use it.
  */
 export function profileToHoroscopeBirthData(
     profile: ProfileBirthFields | null | undefined,
@@ -41,6 +60,13 @@ export function profileToHoroscopeBirthData(
     }
 
     const place = profile.birth_place?.trim() || null
+    const parsedPlace = parseProfileBirthPlace(place)
+    const resolvedPlace = parsedPlace.country
+        ? resolveLocationFromCountryState(
+              parsedPlace.country,
+              parsedPlace.state ?? undefined,
+          )
+        : null
 
     return {
         day,
@@ -49,12 +75,14 @@ export function profileToHoroscopeBirthData(
         hour,
         minute,
         timeHint: "unknown",
-        timezone: null,
-        lat: null,
-        lng: null,
-        country: place,
-        state: null,
-        usedLocationFallback: true,
+        timezone: resolvedPlace?.timezone ?? null,
+        lat: resolvedPlace?.latitude ?? null,
+        lng: resolvedPlace?.longitude ?? null,
+        country: resolvedPlace?.countryName ?? parsedPlace.country,
+        state: resolvedPlace?.stateName ?? parsedPlace.state,
+        // Profile has place text only; ephemeris may fill coords later. This is
+        // not the same as "birth place came from device current location".
+        usedLocationFallback: false,
     }
 }
 
@@ -109,7 +137,9 @@ export function applyEphemerisLocationTimeDefaults(
         lat: latMissing ? 0 : birth.lat!,
         lng: lngMissing ? 0 : birth.lng!,
         timezone: tzMissing ? 0 : birth.timezone!,
-        usedLocationFallback:
-            birth.usedLocationFallback || latMissing || lngMissing || tzMissing,
+        // Only preserve explicit "used current / client location for birth place"
+        // (extract route, inline form). Missing coords before 0-defaults are not
+        // that signal and would false-trigger the user-facing disclaimer.
+        usedLocationFallback: birth.usedLocationFallback,
     }
 }

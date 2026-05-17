@@ -21,7 +21,6 @@ import { hasCompleteBirthData, loadBirthFromStorage } from "@/lib/birth-storage"
 import { hasHoroscopeBirthDate } from "@/lib/horoscope-profile-birth"
 import InlineUserDateForm from "@/components/astrology/inline-user-date-form"
 import { BirthChartCard } from "@/components/astrology/birth-chart-card"
-import RealtimePlanetaryPanel from "@/components/astrology/realtime-planetary-panel"
 import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
 import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
 import { TarotAssistantInterpretation } from "@/components/chat/tarot-interpretation"
@@ -34,6 +33,7 @@ import {
 import { PrivacyRedactedNoticeHover } from "@/components/chat/privacy/privacy-redacted-notice-hover"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import type { HoroscopeBirthData } from "@/types/horoscope"
+import { PLANET_IMAGE_KEYS } from "@/lib/astrology/planet-images"
 import type { ChatMessage, SourceAspectEvent } from "./types"
 import { LoadingDotsText } from "./loading-dots-text"
 import { useTranslations } from "next-intl"
@@ -103,21 +103,6 @@ function getDisplayText(message: ChatMessage) {
 function getDisplayQuestion(message: ChatMessage) {
     return message.displayQuestion ?? message.question
 }
-
-const PLANET_IMAGE_KEYS = new Set([
-    "sun",
-    "moon",
-    "mercury",
-    "venus",
-    "mars",
-    "jupiter",
-    "saturn",
-    "uranus",
-    "neptune",
-    "pluto",
-    "rahu",
-    "ketu",
-])
 
 function AspectIcon({ aspectType }: { aspectType: string }) {
     if (aspectType === "conjunction") {
@@ -280,6 +265,9 @@ type MessageListProps = {
         event: SourceAspectEvent,
     ) => void
     onUserDateFormSubmit: (value: HoroscopeBirthData) => Promise<void>
+    onHoroscopeAuthGateCardsSelected: (
+        cards: { name: string; isReversed: boolean }[],
+    ) => void
     onCancelHoroscopeLoading: () => void
     onRegenerateHoroscope?: (messageId: string) => void
     onRegenerateTarot?: (messageId: string) => void
@@ -291,6 +279,8 @@ type MessageListProps = {
     onToggleReaction: (id: string, next: "like" | "dislike") => void
     onReport: (id: string, text: string) => void
     onShare: (id: string, text: string) => void
+    onReadingTextDownloaded?: (messageId: string) => void
+    onReadingTextDownloadFailed?: (messageId: string) => void
     onReadAloud: (id: string, text: string) => void
     /**
      * Replaces session-scoped privacy placeholders (e.g. `[Person_0]`) with the
@@ -349,6 +339,7 @@ export default function MessageList({
     onSendEditAt,
     onAskAspectDetail,
     onUserDateFormSubmit,
+    onHoroscopeAuthGateCardsSelected,
     onCancelHoroscopeLoading,
     onRegenerateHoroscope,
     onRegenerateTarot,
@@ -357,6 +348,8 @@ export default function MessageList({
     onToggleReaction,
     onReport,
     onShare,
+    onReadingTextDownloaded,
+    onReadingTextDownloadFailed,
     unmask,
     privacyAliases,
     lastAssistantMessageRef,
@@ -723,6 +716,12 @@ export default function MessageList({
                                             onTarotInterpretationChange
                                         }
                                         onShare={onShare}
+                                        onReadingTextDownloaded={
+                                            onReadingTextDownloaded
+                                        }
+                                        onReadingTextDownloadFailed={
+                                            onReadingTextDownloadFailed
+                                        }
                                         unmask={unmask}
                                         privacyAliases={privacyAliases}
                                     />
@@ -748,150 +747,129 @@ export default function MessageList({
                                                     question: displayQuestion,
                                                 }}
                                                 privacyAliases={privacyAliases}
-                                                aspectPanel={
-                                                    <RealtimePlanetaryPanel
-                                                        chartData={
-                                                            message.chartData
-                                                        }
-                                                        personalizedTransitAspects={
-                                                            message.personalizedTransitAspects
-                                                        }
-                                                        personalizedTransitAspectsMerged={
-                                                            message.personalizedTransitAspectsMerged
-                                                        }
-                                                        aspectInsights={
-                                                            message.aspectInsights
-                                                        }
-                                                        onAskAspectDetail={
-                                                            onAskAspectDetail
-                                                        }
-                                                        askedAspectKeys={
-                                                            askedAspectKeys
-                                                        }
-                                                        showBirthDetails={
-                                                            detailToggle.birth
-                                                        }
-                                                        showTransitDetails={
-                                                            detailToggle.transit
-                                                        }
-                                                        onToggleBirthDetails={() =>
-                                                            setPanelDetailToggles(
-                                                                (prev) => ({
-                                                                    ...prev,
-                                                                    [message.id]:
-                                                                        {
-                                                                            birth: !(
-                                                                                prev[
-                                                                                    message
-                                                                                        .id
-                                                                                ]
-                                                                                    ?.birth ??
-                                                                                false
-                                                                            ),
-                                                                            transit:
-                                                                                prev[
-                                                                                    message
-                                                                                        .id
-                                                                                ]
-                                                                                    ?.transit ??
-                                                                                false,
-                                                                        },
-                                                                }),
-                                                            )
-                                                        }
-                                                        onToggleTransitDetails={() =>
-                                                            setPanelDetailToggles(
-                                                                (prev) => ({
-                                                                    ...prev,
-                                                                    [message.id]:
-                                                                        {
-                                                                            birth:
-                                                                                prev[
-                                                                                    message
-                                                                                        .id
-                                                                                ]
-                                                                                    ?.birth ??
-                                                                                false,
-                                                                            transit:
-                                                                                !(
-                                                                                    prev[
-                                                                                        message
-                                                                                            .id
-                                                                                    ]
-                                                                                        ?.transit ??
-                                                                                    false
-                                                                                ),
-                                                                        },
-                                                                }),
-                                                            )
-                                                        }
-                                                        birthDetailsContent={
-                                                            message.chartData &&
-                                                            !message.isLoading ? (
-                                                                <BirthChartCard
-                                                                    chartData={
-                                                                        message.chartData as Parameters<
-                                                                            typeof BirthChartCard
-                                                                        >[0]["chartData"]
-                                                                    }
-                                                                    question={
-                                                                        displayQuestion
-                                                                    }
-                                                                    planetMeanings={
-                                                                        message.planetMeanings ??
-                                                                        undefined
-                                                                    }
-                                                                    houseMeanings={
-                                                                        message.houseMeanings ??
-                                                                        undefined
-                                                                    }
-                                                                    onRefetchWithSystem={(
-                                                                        system,
-                                                                    ) =>
-                                                                        onRefetchHoroscopeWithSystem(
-                                                                            message.id,
-                                                                            system,
-                                                                        )
-                                                                    }
-                                                                    showBirthDetails
-                                                                    renderFromPanel
-                                                                />
-                                                            ) : undefined
-                                                        }
-                                                        transitDetailsContent={
-                                                            message.chartData &&
-                                                            !message.isLoading ? (
-                                                                <BirthChartCard
-                                                                    chartData={
-                                                                        message.chartData as Parameters<
-                                                                            typeof BirthChartCard
-                                                                        >[0]["chartData"]
-                                                                    }
-                                                                    question={
-                                                                        displayQuestion
-                                                                    }
-                                                                    planetMeanings={
-                                                                        message.planetMeanings ??
-                                                                        undefined
-                                                                    }
-                                                                    houseMeanings={
-                                                                        message.houseMeanings ??
-                                                                        undefined
-                                                                    }
-                                                                    onRefetchWithSystem={(
-                                                                        system,
-                                                                    ) =>
-                                                                        onRefetchHoroscopeWithSystem(
-                                                                            message.id,
-                                                                            system,
-                                                                        )
-                                                                    }
-                                                                    showTransitDetails
-                                                                    renderFromPanel
-                                                                />
-                                                            ) : undefined
-                                                        }
-                                                    />
+                                                onAskAspectDetail={
+                                                    onAskAspectDetail
+                                                }
+                                                askedAspectKeys={
+                                                    askedAspectKeys
+                                                }
+                                                showBirthDetails={
+                                                    detailToggle.birth
+                                                }
+                                                showTransitDetails={
+                                                    detailToggle.transit
+                                                }
+                                                onToggleBirthDetails={() =>
+                                                    setPanelDetailToggles(
+                                                        (prev) => ({
+                                                            ...prev,
+                                                            [message.id]: {
+                                                                birth: !(
+                                                                    prev[
+                                                                        message
+                                                                            .id
+                                                                    ]?.birth ??
+                                                                    false
+                                                                ),
+                                                                transit:
+                                                                    prev[
+                                                                        message
+                                                                            .id
+                                                                    ]
+                                                                        ?.transit ??
+                                                                    false,
+                                                            },
+                                                        }),
+                                                    )
+                                                }
+                                                onToggleTransitDetails={() =>
+                                                    setPanelDetailToggles(
+                                                        (prev) => ({
+                                                            ...prev,
+                                                            [message.id]: {
+                                                                birth:
+                                                                    prev[
+                                                                        message
+                                                                            .id
+                                                                    ]?.birth ??
+                                                                    false,
+                                                                transit: !(
+                                                                    prev[
+                                                                        message
+                                                                            .id
+                                                                    ]
+                                                                        ?.transit ??
+                                                                    false
+                                                                ),
+                                                            },
+                                                        }),
+                                                    )
+                                                }
+                                                birthDetailsContent={
+                                                    message.chartData &&
+                                                    !message.isLoading ? (
+                                                        <BirthChartCard
+                                                            chartData={
+                                                                message.chartData as Parameters<
+                                                                    typeof BirthChartCard
+                                                                >[0]["chartData"]
+                                                            }
+                                                            question={
+                                                                displayQuestion
+                                                            }
+                                                            planetMeanings={
+                                                                message.planetMeanings ??
+                                                                undefined
+                                                            }
+                                                            houseMeanings={
+                                                                message.houseMeanings ??
+                                                                undefined
+                                                            }
+                                                            onRefetchWithSystem={(
+                                                                system,
+                                                            ) =>
+                                                                onRefetchHoroscopeWithSystem(
+                                                                    message.id,
+                                                                    system,
+                                                                )
+                                                            }
+                                                            showBirthDetails
+                                                            renderFromPanel
+                                                        />
+                                                    ) : undefined
+                                                }
+                                                transitDetailsContent={
+                                                    message.chartData &&
+                                                    !message.isLoading ? (
+                                                        <BirthChartCard
+                                                            chartData={
+                                                                message.chartData as Parameters<
+                                                                    typeof BirthChartCard
+                                                                >[0]["chartData"]
+                                                            }
+                                                            question={
+                                                                displayQuestion
+                                                            }
+                                                            planetMeanings={
+                                                                message.planetMeanings ??
+                                                                undefined
+                                                            }
+                                                            houseMeanings={
+                                                                message.houseMeanings ??
+                                                                undefined
+                                                            }
+                                                            onRefetchWithSystem={(
+                                                                system,
+                                                            ) =>
+                                                                onRefetchHoroscopeWithSystem(
+                                                                    message.id,
+                                                                    system,
+                                                                )
+                                                            }
+                                                            showTransitDetails
+                                                            renderFromPanel
+                                                        />
+                                                    ) : undefined
                                                 }
                                                 loadingNode={
                                                     message.isLoading ? (
@@ -1001,6 +979,9 @@ export default function MessageList({
                                     /* Anonymous horoscope: show sign-in CTA + tarot fallback teaser */
                                     <HoroscopeAuthGateBlock
                                         data={message.horoscopeAuthGate}
+                                        onCardsSelected={
+                                            onHoroscopeAuthGateCardsSelected
+                                        }
                                     />
                                 ) : (
                                     /* Plain variant: simple assistant text (chat decision, bridge message) */
