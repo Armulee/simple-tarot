@@ -336,7 +336,106 @@ async function handleTimingVerdict(body: VerdictRequestBody) {
         timingWindow: safeWindow,
         relevantPlanets: undefined,
     }
-    return Response.json({ dailyVerdict: safeVerdict }, { status: 200 })
+
+    // Now that we know the AI-picked peak window, compute a transit chart
+    // for its start date and trim the aspect events down to the window.
+    // We ship both back to the client so the 'Technical Information' and
+    // 'Aspect' tabs reflect THE VERDICT TIME instead of today.
+    const windowAspects = filterAspectsByDateRange(
+        rawTransitAspects,
+        safeWindow.startDateIso,
+        safeWindow.endDateIso,
+    )
+    const windowChartData = await buildChartDataForTimingWindow({
+        body,
+        chartLocale,
+        natalChartData: chartDataResult,
+        window: safeWindow,
+    })
+    return Response.json(
+        {
+            dailyVerdict: safeVerdict,
+            chartData: windowChartData,
+            personalizedTransitAspects: windowAspects,
+        },
+        { status: 200 },
+    )
+}
+
+function filterAspectsByDateRange(
+    aspects: PersonalizedTransitAspectsResult,
+    startIso: string,
+    endIso: string,
+): PersonalizedTransitAspectsResult {
+    return {
+        ...aspects,
+        exact: aspects.exact
+            ? {
+                  ...aspects.exact,
+                  events: aspects.exact.events.filter(
+                      (e) => e.dateIso >= startIso && e.dateIso <= endIso,
+                  ),
+              }
+            : null,
+        range: aspects.range
+            ? {
+                  ...aspects.range,
+                  // Keep range events whose peak OR any part overlaps the window.
+                  events: aspects.range.events.filter(
+                      (e) =>
+                          (e.peakDateIso >= startIso &&
+                              e.peakDateIso <= endIso) ||
+                          (e.startDateIso <= endIso &&
+                              e.endDateIso >= startIso),
+                  ),
+              }
+            : null,
+    }
+}
+
+async function buildChartDataForTimingWindow({
+    body,
+    chartLocale,
+    natalChartData,
+    window,
+}: {
+    body: VerdictRequestBody
+    chartLocale: string
+    natalChartData: Awaited<ReturnType<typeof buildChartData>>
+    window: { startDateIso: string; endDateIso: string }
+}): Promise<Awaited<ReturnType<typeof buildChartData>>> {
+    const startDate = new Date(`${window.startDateIso}T00:00:00Z`)
+    if (Number.isNaN(startDate.getTime())) {
+        return natalChartData
+    }
+    const endDate = new Date(`${window.endDateIso}T00:00:00Z`)
+    const durationDays =
+        Number.isFinite(endDate.getTime()) && endDate.getTime() >= startDate.getTime()
+            ? Math.max(
+                  1,
+                  Math.round(
+                      (endDate.getTime() - startDate.getTime()) /
+                          (24 * 60 * 60 * 1000),
+                  ) + 1,
+              )
+            : 1
+    const windowQuestionRange = {
+        startDate,
+        endDate: Number.isFinite(endDate.getTime()) ? endDate : startDate,
+        startDateIso: window.startDateIso,
+        endDateIso: window.endDateIso,
+        durationDays,
+        source: "explicit" as const,
+    }
+    const withTransit = await buildChartData(
+        {
+            birth: body.birth,
+            system: body.system,
+            questionRange: windowQuestionRange,
+        },
+        chartLocale,
+    )
+    return withTransit
 }
 
 function sanitizeTimingWindow(

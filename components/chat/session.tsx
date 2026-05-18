@@ -21,6 +21,7 @@ import {
     mergeAspectKeywordsIntoAspects,
     type AspectKeywordItem,
 } from "@/lib/astrology/transit-aspects"
+import { looksLikeTimingQuestion } from "@/lib/astrology/single-day"
 import { getDefaultAstrologySystem } from "@/lib/astrology/intake"
 import {
     buildConversationContextFromMessages,
@@ -865,7 +866,17 @@ export default function ChatSession({
                 try {
                     const { question, birth, transit, system, locale } =
                         bodyPayload ?? {}
-                    if (question && birth) {
+                    const questionText =
+                        typeof question === "string" ? question : ""
+                    // Timing-mode questions ("when will I be rich?") get
+                    // their chartData + personalizedTransitAspects bundled
+                    // in the verdict response, scoped to the AI-resolved
+                    // peak window. Calling /api/horoscope/chart-data here
+                    // would race and overwrite that with today's transit,
+                    // so we skip it entirely for timing questions.
+                    const skipParallelChartData =
+                        looksLikeTimingQuestion(questionText)
+                    if (question && birth && !skipParallelChartData) {
                         fetch("/api/horoscope/chart-data", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -905,6 +916,8 @@ export default function ChatSession({
                             .catch(() => {
                                 /* chart-data fetch failed; cards just won't render */
                             })
+                    }
+                    if (question && birth) {
 
                         // Dedicated VERDICT call — runs in parallel with the
                         // long-form question stream and chart-data fetch so
@@ -936,18 +949,56 @@ export default function ChatSession({
                                 )
                                 if (!verdict) return
                                 const msgId = targetId
+                                // Timing verdicts bundle the chartData +
+                                // personalizedTransitAspects for the AI-
+                                // resolved peak window. We merge them onto
+                                // the message so the Technical Information
+                                // and Aspect tabs reflect THAT window
+                                // rather than today.
+                                const bundledChartData =
+                                    data.chartData &&
+                                    typeof data.chartData === "object"
+                                        ? (data.chartData as Record<
+                                              string,
+                                              unknown
+                                          >)
+                                        : null
+                                const bundledAspects =
+                                    data.personalizedTransitAspects as
+                                        | ChatMessage["personalizedTransitAspects"]
+                                        | undefined
                                 setMessages((prev) =>
                                     prev.map((m) => {
                                         if (m.id !== msgId) return m
-                                        if (
+                                        const verdictUnchanged =
                                             areDailyVerdictsEqual(
                                                 m.dailyVerdict,
                                                 verdict,
                                             )
+                                        if (
+                                            verdictUnchanged &&
+                                            !bundledChartData &&
+                                            bundledAspects === undefined
                                         ) {
                                             return m
                                         }
-                                        return { ...m, dailyVerdict: verdict }
+                                        const next: ChatMessage = {
+                                            ...m,
+                                            dailyVerdict: verdict,
+                                        }
+                                        if (bundledChartData) {
+                                            next.chartData = bundledChartData
+                                        }
+                                        if (bundledAspects !== undefined) {
+                                            next.personalizedTransitAspects =
+                                                bundledAspects
+                                            next.personalizedTransitAspectsMerged =
+                                                buildDiscussedAspectsFromInsights(
+                                                    bundledAspects ?? null,
+                                                    m.aspectInsights,
+                                                )
+                                        }
+                                        return next
                                     }),
                                 )
                             })
