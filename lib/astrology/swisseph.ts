@@ -100,7 +100,14 @@ export async function calculateSwissEphChart(
     input: SwissEphInput,
     system: AstrologySystem
 ): Promise<SwissEphChart> {
-    const houseSystem = input.houseSystem || "P"
+    const isVedic = system === "vedic_sidereal"
+    // Vedic astrology reads houses with the WHOLE-SIGN system by default:
+    // house 1 spans the entire ascendant sign, house 2 the next sign, and
+    // so on. Defaulting to Placidus on a sidereal chart causes the 2nd /
+    // 10th / etc. cusps to land in adjacent signs and produces the wrong
+    // zodiac label per house. Tropical / Western continues to default to
+    // Placidus, which is its conventional house system.
+    const houseSystem = input.houseSystem || (isVedic ? "W" : "P")
     const swe = new SwissEph()
     await swe.initSwissEph()
 
@@ -112,7 +119,6 @@ export async function calculateSwissEphChart(
             input.day,
             utcHour
         )
-        const isVedic = system === "vedic_sidereal"
 
         if (isVedic) {
             swe.set_sid_mode(swe.SE_SIDM_LAHIRI, 0, 0)
