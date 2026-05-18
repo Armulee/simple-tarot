@@ -73,13 +73,23 @@ export function looksLikeTimingQuestion(question: string): boolean {
         return true
     }
 
-    // Thai timing markers — "when / what day / what month".
-    if (/(เมื่อไหร่|เมื่อใด|ตอนไหน|วันไหน|เดือนไหน|ปีไหน)/.test(trimmed)) {
+    // Thai timing markers — "when / what day / what week / what month /
+    // what year / what period / how many days/months/years / how long
+    // until / for how long". Also catches common typos like "เมื่อใหร่".
+    if (
+        /(เมื่อไหร่|เมื่อใหร่|เมื่อไร|เมื่อใด|ตอนไหน|ตอนใด|วันไหน|วันใด|สัปดาห์ไหน|อาทิตย์ไหน|เดือนไหน|เดือนใด|ปีไหน|ปีใด|ช่วงไหน|ช่วงใด|ระยะไหน|ระยะใด|อีกกี่วัน|อีกกี่สัปดาห์|อีกกี่เดือน|อีกกี่ปี|อีกกี่นาน|อีกนานไหม|อีกนานแค่ไหน|กี่วัน|กี่สัปดาห์|กี่เดือน|กี่ปี|อีกนาน|ยังอีกนาน)/.test(
+            trimmed,
+        )
+    ) {
         return true
     }
 
     // Lao timing markers.
-    if (/(ເມື່ອໃດ|ຕອນໃດ|ມື້ໃດ|ເດືອນໃດ|ປີໃດ)/.test(trimmed)) {
+    if (
+        /(ເມື່ອໃດ|ຕອນໃດ|ມື້ໃດ|ອາທິດໃດ|ເດືອນໃດ|ປີໃດ|ໄລຍະໃດ|ຊ່ວງໃດ|ອີກດົນບໍ່|ອີກຈັກວັນ|ອີກຈັກອາທິດ|ອີກຈັກເດືອນ|ອີກຈັກປີ|ຈັກວັນ|ຈັກອາທິດ|ຈັກເດືອນ|ຈັກປີ|ດົນປານໃດ)/.test(
+            trimmed,
+        )
+    ) {
         return true
     }
 

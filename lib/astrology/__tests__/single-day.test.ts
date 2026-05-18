@@ -146,6 +146,14 @@ test("looksLikeTimingQuestion: Thai/Lao timing markers → true", () => {
     assert.equal(looksLikeTimingQuestion("เมื่อไหร่ฉันจะรวย"), true)
     assert.equal(looksLikeTimingQuestion("วันไหนเหมาะกับการเริ่มต้น"), true)
     assert.equal(looksLikeTimingQuestion("ເມື່ອໃດຂ້ອຍຈະຮັ່ງມີ"), true)
+    // Informal Thai with "ช่วงไหน" (what period / window).
+    assert.equal(looksLikeTimingQuestion("มึงว่ากุจะรวย ช่วงไหน"), true)
+    assert.equal(looksLikeTimingQuestion("จะเจอเนื้อคู่ตอนไหน"), true)
+    assert.equal(looksLikeTimingQuestion("อีกกี่เดือนจะได้งานใหม่"), true)
+    assert.equal(looksLikeTimingQuestion("อีกนานไหมจะหายป่วย"), true)
+    // Lao "what period / how long".
+    assert.equal(looksLikeTimingQuestion("ຊ່ວງໃດຂ້ອຍຈະຮັ່ງມີ"), true)
+    assert.equal(looksLikeTimingQuestion("ອີກດົນບໍ່ຈະໄດ້ວຽກໃໝ່"), true)
 })
 
 test("looksLikeTimingQuestion: timeless / dated questions → false", () => {
