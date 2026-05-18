@@ -545,6 +545,8 @@ Required fields (every string in ${lang}):
 
 - headline: a short, punchy verdict line (2-8 words). Plain language only. NO planet names, NO zodiac signs, NO astrology jargon. Example tones: "A clear day to begin", "Pause before reacting", "Soft day, recharge well".
 
+- moodSubtitle: a SHORT decorative tagline (2-6 words, in ${lang}) rendered directly under the headline. Must capture THIS specific day's vibe / energy for THIS question — NOT a generic "Good Day" / "Be Mindful" / "Rest Day" label. Plain language, no planet names, no zodiac signs, no astrology jargon. Think of it as the line a calm friend would whisper under the headline.
+
 - keyMessage: an object { headline, subtitle } that compresses your day-answer into a key message. headline is a punchy short line (2-10 words); subtitle is one short sentence elaborating it. Both must agree with \`detailedHtml\` and the top \`headline\`.
 
 - detailedHtml: a SHORT (1-3 paragraphs) decorated HTML fragment that directly answers the user's question for this specific day, and may open with how the day feels emotionally/energetically before the concrete answer. It renders BELOW the headline/keyMessage and looks like the "Detailed" block on the tarot reading.
@@ -660,6 +662,8 @@ Required fields (every user-facing string in ${lang}):
   Derive the mood from the dignity, sign, and house of the relevant natal placements.
 
 - headline: a short, punchy verdict line (2-8 words). Plain language only. NO planet names, NO zodiac signs, NO astrology jargon. It should feel like a direct answer to the question.
+
+- moodSubtitle: a SHORT decorative tagline (2-6 words, in ${lang}) rendered directly under the headline in the verdict's mood pill. Must capture this CHART's natural leaning on the question — NOT a generic "Good Day" / "Be Mindful" / "Rest Day" label, since this answer is not bound to any date. Plain language, no planet names, no zodiac signs, no astrology jargon. Example shapes: "Steady builder energy", "Quietly magnetic gifts", "Patient road, deep wins" — but tailor to the user's question.
 
 - keyMessage: an object { headline, subtitle } that compresses your natal answer into a key message. headline is a punchy short line (2-10 words); subtitle is one short sentence elaborating it. Both must agree with \`detailedHtml\`, the top \`headline\`, and the planets you list in \`relevantPlanets\`.
 

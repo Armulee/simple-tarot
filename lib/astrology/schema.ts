@@ -21,6 +21,12 @@ export const dailyVerdictSchema = z.object({
         .describe(
             "Short, punchy verdict line (2-8 words). MUST be in the SAME language as the user's question. No astrology jargon.",
         ),
+    moodSubtitle: z
+        .string()
+        .optional()
+        .describe(
+            "Short AI-generated tagline (2-6 words) rendered in the verdict's mood pill, directly under the headline. Should evoke the chart's energy for THIS specific question instead of a generic 'Good Day' / 'Rest Day' label. SAME language as the question. Plain language, no astrology jargon, no planet/sign names.",
+        ),
     keyMessage: z
         .object({
             headline: z

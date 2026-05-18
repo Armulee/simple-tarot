@@ -30,6 +30,7 @@ export type DailyVerdict = {
     detailedHtml: string
     watchOut?: string
     focusArea?: string
+    moodSubtitle?: string
     keyMessage?: {
         headline: string
         subtitle: string
@@ -458,12 +459,21 @@ export default function VerdictHero({
         )
     }, [dateIso, formatter, t, verdict.mode])
 
-    const moodLabel =
-        verdict.mood === "good"
-            ? t("moodGood")
-            : verdict.mood === "caution"
-              ? t("moodCaution")
-              : t("moodRest")
+    // Prefer the AI-generated, question-aware tagline. The translated
+    // "Good Day" / "Be Mindful" / "Rest Day" templates are now only used
+    // for legacy / daily-mode payloads. Natal-mode verdicts deliberately
+    // hide the pill when the model didn't supply a tagline — a timeless
+    // birth-chart answer must never read "Good Day".
+    const aiMoodSubtitle = verdict.moodSubtitle?.trim()
+    const isNatalVerdictMode = verdict.mode === "natal"
+    const fallbackMoodLabel = isNatalVerdictMode
+        ? ""
+        : verdict.mood === "good"
+          ? t("moodGood")
+          : verdict.mood === "caution"
+            ? t("moodCaution")
+            : t("moodRest")
+    const moodLabel = aiMoodSubtitle || fallbackMoodLabel
 
     const detailedHtml = (verdict.detailedHtml ?? "").trim()
     const keyMessageHeadline = (verdict.keyMessage?.headline ?? "").trim()
@@ -529,11 +539,17 @@ export default function VerdictHero({
                         />
                     </h2>
 
-                    <div className='relative w-fit max-w-md rounded-xl border border-indigo-300/20 bg-gradient-to-br from-indigo-500/[0.08] via-purple-500/[0.06] to-cyan-500/[0.05] py-2.5 pr-4 pl-5 shadow-[0_8px_28px_-12px_rgba(129,140,248,0.55)] animate-fade-in before:absolute before:left-0 before:top-2 before:bottom-2 before:w-px before:bg-gradient-to-b before:from-transparent before:via-[#a78bfa]/70 before:to-transparent'>
-                        <p className='text-[11px] font-serif font-semibold italic uppercase leading-relaxed tracking-[0.18em] text-indigo-200/76'>
-                            {moodLabel}
-                        </p>
-                    </div>
+                    {moodLabel && (
+                        <div className='relative w-fit max-w-md rounded-xl border border-indigo-300/20 bg-gradient-to-br from-indigo-500/[0.08] via-purple-500/[0.06] to-cyan-500/[0.05] py-2.5 pr-4 pl-5 shadow-[0_8px_28px_-12px_rgba(129,140,248,0.55)] animate-fade-in before:absolute before:left-0 before:top-2 before:bottom-2 before:w-px before:bg-gradient-to-b before:from-transparent before:via-[#a78bfa]/70 before:to-transparent'>
+                            <p className='text-[11px] font-serif font-semibold italic uppercase leading-relaxed tracking-[0.18em] text-indigo-200/76'>
+                                <PrivacyHighlightedText
+                                    text={moodLabel}
+                                    aliases={aliases}
+                                    supportMarkdown
+                                />
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 {showReplyBubble && (

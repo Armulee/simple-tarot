@@ -373,6 +373,7 @@ function normalizeDailyVerdict(
         | {
               mood?: string | null
               headline?: string | null
+              moodSubtitle?: string | null
               /** @deprecated — no longer generated; merged into detailedHtml for legacy payloads. */
               subtext?: string | null
               detailedHtml?: string | null
@@ -427,6 +428,7 @@ function normalizeDailyVerdict(
 
     const watchOut = verdict.watchOut?.trim() || undefined
     const focusArea = verdict.focusArea?.trim() || undefined
+    const moodSubtitle = verdict.moodSubtitle?.trim() || undefined
     const keyMessageHeadline = verdict.keyMessage?.headline?.trim() ?? ""
     const keyMessageSubtitle = verdict.keyMessage?.subtitle?.trim() ?? ""
     const keyMessage = keyMessageHeadline
@@ -453,6 +455,7 @@ function normalizeDailyVerdict(
         detailedHtml,
         watchOut,
         focusArea,
+        moodSubtitle,
         keyMessage,
         mode,
         relevantPlanets:
@@ -472,6 +475,7 @@ function areDailyVerdictsEqual(
     if (a.headline !== b.headline) return false
     if ((a.watchOut ?? "") !== (b.watchOut ?? "")) return false
     if ((a.focusArea ?? "") !== (b.focusArea ?? "")) return false
+    if ((a.moodSubtitle ?? "") !== (b.moodSubtitle ?? "")) return false
     if ((a.keyMessage?.headline ?? "") !== (b.keyMessage?.headline ?? ""))
         return false
     if ((a.keyMessage?.subtitle ?? "") !== (b.keyMessage?.subtitle ?? ""))

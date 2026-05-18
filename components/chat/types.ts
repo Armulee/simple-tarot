@@ -35,6 +35,13 @@ export type DailyVerdict = {
     detailedHtml: string
     watchOut?: string
     focusArea?: string
+    /**
+     * Short AI-generated tagline (2-6 words) shown in the verdict mood pill
+     * directly under `headline`. Replaces the previous translated template
+     * label ("Good Day" / "Be Mindful" / "Rest Day") so the pill stays
+     * meaningful for natal questions that aren't bound to a date.
+     */
+    moodSubtitle?: string
     keyMessage?: {
         headline: string
         subtitle: string
