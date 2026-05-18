@@ -8,7 +8,10 @@ import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highli
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import RealtimePlanetaryPanel from "@/components/astrology/realtime-planetary-panel"
 import type { SourceAspectEvent } from "@/components/chat/types"
-import { looksLikeNatalQuestion } from "@/lib/astrology/single-day"
+import {
+    looksLikeNatalQuestion,
+    looksLikeTimingQuestion,
+} from "@/lib/astrology/single-day"
 import VerdictHero from "./horoscope/verdict-hero"
 import TransitPlanetGrid from "./horoscope/transit-planet-grid"
 import TransitOrbitVisual from "./horoscope/transit-orbit-visual"
@@ -147,8 +150,17 @@ export default function HoroscopeReadingTabs({
         () => looksLikeNatalQuestion(questionTextForNatalCheck),
         [questionTextForNatalCheck],
     )
+    const isTimingLikely = useMemo(
+        () => looksLikeTimingQuestion(questionTextForNatalCheck),
+        [questionTextForNatalCheck],
+    )
     const verdictIsNatal = message.dailyVerdict?.mode === "natal"
+    const verdictIsTiming = message.dailyVerdict?.mode === "timing"
     const isNatalMode = verdictIsNatal || isNatalLikely
+    // "When will I..?" questions also shouldn't auto-flip to the transit
+    // tab during loading — the verdict is about a forward date window, not
+    // today's transit, so the today-grid would be misleading.
+    const isTimingMode = verdictIsTiming || isTimingLikely
 
     // Reset auto-pilot whenever a new loading cycle starts (new question OR
     // regenerate). This way Regenerate flips us back to the technical-info
@@ -172,12 +184,15 @@ export default function HoroscopeReadingTabs({
     // Loading + no verdict yet → Transit (chartData lands first, no LLM
     // wait). Otherwise → Overview. An explicit user click always wins.
     //
-    // Natal-mode questions skip the "show today's transit while we wait"
-    // optimization — we stay on Overview so the verdict-hero's natal
-    // skeleton can take over without flashing the daily transit visual.
+    // Natal- and timing-mode questions skip the "show today's transit
+    // while we wait" optimization — both verdicts are about something
+    // other than today, so the today-grid would be misleading.
     const activeTab: HoroscopeTab =
         explicitTab ??
-        (message.isLoading && !hasDailyVerdict && !isNatalMode
+        (message.isLoading &&
+        !hasDailyVerdict &&
+        !isNatalMode &&
+        !isTimingMode
             ? "transit"
             : "overview")
 

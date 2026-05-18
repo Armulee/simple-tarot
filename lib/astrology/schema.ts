@@ -63,10 +63,27 @@ export const dailyVerdictSchema = z.object({
             "Optional single canonical life-area label that best summarizes the day's focus. MUST match the relevance.label canonical set in the same language.",
         ),
     mode: z
-        .enum(["daily", "natal"])
+        .enum(["daily", "natal", "timing"])
         .optional()
         .describe(
-            "Which lens produced this verdict. 'daily' = transit-driven single-day verdict (default). 'natal' = self/birth-chart verdict answering a non-date-bound question like 'which career fits me?'.",
+            "Which lens produced this verdict. 'daily' = transit-driven single-day verdict (default). 'natal' = self/birth-chart verdict answering a non-date-bound question like 'which career fits me?'. 'timing' = forward-looking search answering a 'when will X happen?' question, with the peak window returned in `timingWindow`.",
+        ),
+    timingWindow: z
+        .object({
+            startDateIso: z
+                .string()
+                .describe(
+                    "ISO date (YYYY-MM-DD) for the start of the peak window. MUST be a date that appears in (or directly bounds) the supplied personalized_transit_aspects window.",
+                ),
+            endDateIso: z
+                .string()
+                .describe(
+                    "ISO date (YYYY-MM-DD) for the end of the peak window. Equal to startDateIso when the answer is a single calendar day.",
+                ),
+        })
+        .optional()
+        .describe(
+            "Timing-mode only. The single best date or short date window when the user's chances peak for the outcome they asked about. Rendered in the hero crest as e.g. '1–16 AUG'. Omit entirely for daily / natal verdicts.",
         ),
     relevantPlanets: z
         .array(

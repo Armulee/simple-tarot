@@ -46,6 +46,47 @@ export function isNatalQuestionRange(
 }
 
 /**
+ * Detects open-ended timing questions like "When will I be rich?" or
+ * "เมื่อไหร่ฉันจะรวย?". These should NOT be treated as natal — the user
+ * is asking for a date or date window — so the verdict route runs a
+ * forward-looking transit search instead of the natal lens.
+ *
+ * Conservative: matches "when" only when it leads a question about the
+ * future (will/would/can/could/should/do/am). Bare "when" without a
+ * future-tense modal (e.g. "When I was a kid…") is treated as not-timing.
+ */
+export function looksLikeTimingQuestion(question: string): boolean {
+    if (typeof question !== "string") return false
+    const trimmed = question.trim()
+    if (!trimmed) return false
+
+    // English future-tense "when ... will/can/could/should ..." questions.
+    if (
+        /\bwhen\b[^?]*\b(will|would|can|could|should|do|am|are|is|going to|gonna)\b/i.test(
+            trimmed,
+        )
+    ) {
+        return true
+    }
+    // "by when", "how long until", "how soon"
+    if (/\b(by when|how long until|how soon|how long till)\b/i.test(trimmed)) {
+        return true
+    }
+
+    // Thai timing markers — "when / what day / what month".
+    if (/(เมื่อไหร่|เมื่อใด|ตอนไหน|วันไหน|เดือนไหน|ปีไหน)/.test(trimmed)) {
+        return true
+    }
+
+    // Lao timing markers.
+    if (/(ເມື່ອໃດ|ຕອນໃດ|ມື້ໃດ|ເດືອນໃດ|ປີໃດ)/.test(trimmed)) {
+        return true
+    }
+
+    return false
+}
+
+/**
  * Cheap, client-safe heuristic that mirrors the regex-based date detection
  * inside `resolveQuestionTimeRange` (server-side resolver). Returns true when
  * the question text contains NO explicit date, no relative single-day phrase
@@ -66,6 +107,10 @@ export function looksLikeNatalQuestion(question: string): boolean {
     if (typeof question !== "string") return false
     const trimmed = question.trim()
     if (!trimmed) return false
+
+    // Timing questions ("when will I..?") are not natal — they ask for a
+    // future date window, even when no explicit date is present.
+    if (looksLikeTimingQuestion(trimmed)) return false
 
     // Single-day relative phrases (English / Thai / Lao).
     if (/\b(today|this\s*day|tonight|tomorrow|yesterday)\b/i.test(trimmed)) {

@@ -394,6 +394,10 @@ function normalizeDailyVerdict(
                   | null
                   | undefined
               > | null
+              timingWindow?: {
+                  startDateIso?: string | null
+                  endDateIso?: string | null
+              } | null
           }
         | null
         | undefined,
@@ -437,7 +441,28 @@ function normalizeDailyVerdict(
               subtitle: keyMessageSubtitle,
           }
         : undefined
-    const mode = verdict.mode === "natal" ? "natal" : "daily"
+    const mode =
+        verdict.mode === "natal"
+            ? "natal"
+            : verdict.mode === "timing"
+              ? "timing"
+              : "daily"
+    const isoPattern = /^\d{4}-\d{2}-\d{2}$/
+    const timingWindow =
+        verdict.timingWindow &&
+        typeof verdict.timingWindow.startDateIso === "string" &&
+        typeof verdict.timingWindow.endDateIso === "string" &&
+        isoPattern.test(verdict.timingWindow.startDateIso) &&
+        isoPattern.test(verdict.timingWindow.endDateIso)
+            ? {
+                  startDateIso: verdict.timingWindow.startDateIso,
+                  endDateIso:
+                      verdict.timingWindow.endDateIso <
+                      verdict.timingWindow.startDateIso
+                          ? verdict.timingWindow.startDateIso
+                          : verdict.timingWindow.endDateIso,
+              }
+            : undefined
     const relevantPlanets = Array.isArray(verdict.relevantPlanets)
         ? verdict.relevantPlanets
               .map((rp) => {
@@ -462,6 +487,7 @@ function normalizeDailyVerdict(
             mode === "natal" && relevantPlanets && relevantPlanets.length > 0
                 ? relevantPlanets
                 : undefined,
+        timingWindow: mode === "timing" ? timingWindow : undefined,
     }
 }
 
@@ -489,6 +515,16 @@ function areDailyVerdictsEqual(
         if (aPlanets[i].planet !== bPlanets[i].planet) return false
         if (aPlanets[i].reason !== bPlanets[i].reason) return false
     }
+    if (
+        (a.timingWindow?.startDateIso ?? "") !==
+        (b.timingWindow?.startDateIso ?? "")
+    )
+        return false
+    if (
+        (a.timingWindow?.endDateIso ?? "") !==
+        (b.timingWindow?.endDateIso ?? "")
+    )
+        return false
     return true
 }
 

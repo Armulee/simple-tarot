@@ -5,12 +5,14 @@ import { dailyVerdictSchema } from "@/lib/astrology/schema"
 import {
     getDailyVerdictPrompt,
     getNatalVerdictPrompt,
+    getTimingVerdictPrompt,
     type NatalPlacementForPrompt,
 } from "@/lib/prompts"
 import { resolveQuestionTimeRangeAsync } from "@/lib/astrology/question-time-range"
 import {
     isNatalQuestionRange,
     isSingleDayQuestionRange,
+    looksLikeTimingQuestion,
 } from "@/lib/astrology/single-day"
 import { getCodexTransitWindow } from "@/lib/astrology/ephemeris-codex"
 import { classifyQuestionTopic } from "@/lib/astrology/question-intent"
@@ -129,10 +131,6 @@ const requestSchema = z.object({
 
 type VerdictRequestBody = z.infer<typeof requestSchema>
 
-type NatalQuestionRange = Awaited<
-    ReturnType<typeof resolveQuestionTimeRangeAsync>
->
-
 // Planets we expose to the natal verdict prompt. Outer planets share signs
 // across whole generations, so they tell us very little about an individual
 // answer; we ship the personally-meaningful set instead.
@@ -208,10 +206,159 @@ function buildHouseIndex(chart: SwissEphChart): HouseIndex {
     }
 }
 
-async function handleNatalVerdict(
-    body: VerdictRequestBody,
-    _questionRange: NatalQuestionRange,
-) {
+const TIMING_SEARCH_DAYS = 365
+
+async function handleTimingVerdict(body: VerdictRequestBody) {
+    const chartLocale =
+        detectQuestionLanguage(body.question) === "Thai" ||
+        detectQuestionLanguage(body.question) === "Lao"
+            ? "th"
+            : "en"
+
+    const today = new Date()
+    const searchStart = new Date(
+        Date.UTC(
+            today.getUTCFullYear(),
+            today.getUTCMonth(),
+            today.getUTCDate(),
+        ),
+    )
+    const searchEnd = addUtcDays(searchStart, TIMING_SEARCH_DAYS)
+    const searchRange = {
+        startDate: searchStart,
+        endDate: searchEnd,
+        startDateIso: toIsoDate(searchStart),
+        endDateIso: toIsoDate(searchEnd),
+        durationDays: TIMING_SEARCH_DAYS,
+        source: "explicit" as const,
+    }
+
+    // Pull the codex window for the entire forward search. The natal chart
+    // is also rebuilt without transit so we never compute "today" planets
+    // for a question that should be looking months ahead instead.
+    const codexPromise = getCodexTransitWindow(searchRange)
+    const chartDataPromise = buildChartData(
+        {
+            birth: body.birth,
+            system: body.system,
+        },
+        chartLocale,
+    )
+
+    const [codexResult, chartDataResult] = await Promise.all([
+        codexPromise,
+        chartDataPromise,
+    ])
+
+    const primaryBirthChart = chartDataResult.charts?.[0]
+    const natalLongitudes = buildNatalLongitudes(
+        primaryBirthChart?.planets ?? {},
+    )
+    const fallbackExactTransitLongitudes =
+        buildTransitLongitudesFromSwissPlanets({})
+    const rawTransitAspects = buildPersonalizedTransitAspects({
+        questionRange: {
+            source: "explicit",
+            startDateIso: searchRange.startDateIso,
+            endDateIso: searchRange.endDateIso,
+        },
+        natalLongitudes,
+        codexRows: codexResult.rows,
+        fallbackExactTransitLongitudes,
+    })
+
+    const questionTopic = classifyQuestionTopic(body.question)
+    const filteredAspects =
+        questionTopic.topic !== "general"
+            ? filterAspectsByRelevantPlanets(
+                  rawTransitAspects,
+                  questionTopic.relevantPlanets,
+              )
+            : rawTransitAspects
+
+    const natalPlacements = buildNatalPlacementsForPrompt(primaryBirthChart)
+    if (
+        !natalPlacements.length ||
+        ((filteredAspects.exact?.events.length ?? 0) === 0 &&
+            (filteredAspects.range?.events.length ?? 0) === 0)
+    ) {
+        // No usable transit data in the search window — fall back to a null
+        // verdict and let the long-form interpretation carry the answer.
+        return Response.json({ dailyVerdict: null }, { status: 200 })
+    }
+
+    const now = new Date()
+    const currentDateTime = now.toLocaleString("en-CA", {
+        dateStyle: "full",
+        timeStyle: "long",
+        timeZone: "UTC",
+    })
+    const questionLanguage = detectQuestionLanguage(body.question)
+
+    const prompt = getTimingVerdictPrompt({
+        question: body.question,
+        currentDateTime,
+        searchWindow: {
+            startDateIso: searchRange.startDateIso,
+            endDateIso: searchRange.endDateIso,
+            durationDays: searchRange.durationDays,
+        },
+        personalizedTransitAspects: filteredAspects,
+        natalPlacements,
+        questionTopic,
+        questionLanguage,
+        userMainPoint: body.conversationContext?.userMainPoint ?? "",
+    })
+
+    console.log(
+        `[horoscope/verdict] timing prompt size: ${(prompt.length / 1024).toFixed(1)}KB (~${Math.ceil(prompt.length / 4)} tokens)`,
+    )
+
+    const result = await generateObject({
+        model: MODEL,
+        schema: dailyVerdictSchema,
+        system: `You are Astra, a female oracle. Produce ONLY the daily verdict JSON for a TIMING question, including timingWindow.startDateIso and timingWindow.endDateIso. Plain language, no astrology jargon, no planet names in user-facing strings. Output language: ${questionLanguage}.`,
+        prompt,
+        temperature: 0.45,
+    })
+
+    const verdict = result.object
+    const safeWindow = sanitizeTimingWindow(verdict.timingWindow, {
+        searchStartIso: searchRange.startDateIso,
+        searchEndIso: searchRange.endDateIso,
+    })
+    if (!safeWindow) {
+        return Response.json({ dailyVerdict: null }, { status: 200 })
+    }
+    const safeVerdict = {
+        ...verdict,
+        mode: "timing" as const,
+        timingWindow: safeWindow,
+        relevantPlanets: undefined,
+    }
+    return Response.json({ dailyVerdict: safeVerdict }, { status: 200 })
+}
+
+function sanitizeTimingWindow(
+    raw: { startDateIso?: string; endDateIso?: string } | null | undefined,
+    bounds: { searchStartIso: string; searchEndIso: string },
+): { startDateIso: string; endDateIso: string } | null {
+    if (!raw) return null
+    const start = typeof raw.startDateIso === "string" ? raw.startDateIso : ""
+    const end = typeof raw.endDateIso === "string" ? raw.endDateIso : start
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(start)) return null
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(end)) return null
+    if (start < bounds.searchStartIso || start > bounds.searchEndIso) {
+        return null
+    }
+    if (end < bounds.searchStartIso || end > bounds.searchEndIso) {
+        return null
+    }
+    if (end < start) return { startDateIso: start, endDateIso: start }
+    return { startDateIso: start, endDateIso: end }
+}
+
+async function handleNatalVerdict(body: VerdictRequestBody) {
     const chartLocale =
         detectQuestionLanguage(body.question) === "Thai" ||
         detectQuestionLanguage(body.question) === "Lao"
@@ -298,15 +445,24 @@ export async function POST(req: Request) {
             },
         )
 
-        // This route now serves two distinct verdict flavors:
-        //   1. "daily"  → single, confidently dated questions (today, a
-        //                  specific calendar date). Driven by transit aspects.
-        //   2. "natal"  → questions with NO date or date-range, like
-        //                  "Which career fits me?" or "Am I lucky in love?".
-        //                  Driven by birth-chart placements only.
+        // This route now serves three distinct verdict flavors:
+        //   1. "daily"   → single, confidently dated questions (today, a
+        //                   specific calendar date). Driven by transit aspects.
+        //   2. "natal"   → questions with NO date or date-range, like
+        //                   "Which career fits me?" or "Am I lucky in love?".
+        //                   Driven by birth-chart placements only.
+        //   3. "timing"  → "when will X happen?" questions. We don't trust
+        //                   the resolver's default 30-day window here — the
+        //                   user is asking for a future date — so we run a
+        //                   forward-looking transit search instead.
         // Anything else (an explicit multi-day window like "next month") is
         // not a great fit for the verdict hero, so we still short-circuit
         // with null and let the long-form interpretation carry the answer.
+        const timingMode = looksLikeTimingQuestion(body.question)
+        if (timingMode) {
+            return await handleTimingVerdict(body)
+        }
+
         const singleDay = isSingleDayQuestionRange({
             durationDays: questionRange.durationDays,
             source: questionRange.source,
@@ -320,7 +476,7 @@ export async function POST(req: Request) {
         }
 
         if (natalMode) {
-            return await handleNatalVerdict(body, questionRange)
+            return await handleNatalVerdict(body)
         }
 
         const aspectRange = {

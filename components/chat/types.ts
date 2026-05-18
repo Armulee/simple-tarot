@@ -47,18 +47,31 @@ export type DailyVerdict = {
         subtitle: string
     }
     /**
-     * Verdict flavor. "daily" is the existing transit-driven single-day
-     * verdict. "natal" is rendered for questions with no date or date-range
-     * (e.g. "Which career fits me?") and is anchored in birth-chart
-     * placements instead of transits.
+     * Verdict flavor.
+     *   "daily"  — transit-driven single-day verdict.
+     *   "natal"  — birth-chart verdict for timeless questions ("Which
+     *              career fits me?").
+     *   "timing" — forward-looking transit search for "when will X
+     *              happen?" questions; carries the peak window in
+     *              `timingWindow`.
      */
-    mode?: "daily" | "natal"
+    mode?: "daily" | "natal" | "timing"
     /**
      * Natal-mode only. 1-4 birth-chart placements (canonical English planet
      * keys) the verdict is built on, each with a short plain-language reason.
      * Used to render the natal spotlight strip inside the verdict hero.
      */
     relevantPlanets?: NatalRelevantPlanet[]
+    /**
+     * Timing-mode only. The peak date or short window the AI picked for a
+     * "when will X happen?" question. Rendered in the hero crest in place
+     * of the mood icon. Always validated server-side against the forward
+     * search window before being attached to the verdict.
+     */
+    timingWindow?: {
+        startDateIso: string
+        endDateIso: string
+    }
 }
 
 export type NatalRelevantPlanet = {

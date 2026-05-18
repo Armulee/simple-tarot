@@ -35,8 +35,12 @@ export type DailyVerdict = {
         headline: string
         subtitle: string
     }
-    mode?: "daily" | "natal"
+    mode?: "daily" | "natal" | "timing"
     relevantPlanets?: NatalRelevantPlanet[]
+    timingWindow?: {
+        startDateIso: string
+        endDateIso: string
+    }
 }
 
 type VerdictHeroProps = {
@@ -92,6 +96,94 @@ function MoodIcon({
     if (mood === "good") return <Sparkles className={className} />
     if (mood === "caution") return <AlertTriangle className={className} />
     return <Moon className={className} />
+}
+
+/**
+ * Hero crest for timing-mode verdicts ("when will X happen?"). Renders the
+ * AI-picked date range (or single date) in the same vertical footprint the
+ * mood icon would have occupied. Uses the user's locale to format month
+ * names, falls back to numeric `YYYY-MM-DD` for unsupported locales.
+ */
+function TimingHeroCrest({
+    window,
+    accentClass,
+    moodShadow,
+}: {
+    window: { startDateIso: string; endDateIso: string }
+    accentClass: string
+    moodShadow: string
+}) {
+    const formatter = useFormatter()
+    const sameDay = window.startDateIso === window.endDateIso
+
+    const safeDate = (iso: string) => {
+        const parsed = new Date(`${iso}T00:00:00Z`)
+        if (Number.isNaN(parsed.getTime())) return null
+        return parsed
+    }
+
+    const start = safeDate(window.startDateIso)
+    const end = safeDate(window.endDateIso)
+    if (!start) return null
+
+    const startDay = formatter.dateTime(start, {
+        day: "numeric",
+        timeZone: "UTC",
+    })
+    const endDay =
+        end && !sameDay
+            ? formatter.dateTime(end, {
+                  day: "numeric",
+                  timeZone: "UTC",
+              })
+            : null
+    const startMonth = formatter
+        .dateTime(start, { month: "short", timeZone: "UTC" })
+        .toUpperCase()
+    const endMonth =
+        end && !sameDay
+            ? formatter
+                  .dateTime(end, { month: "short", timeZone: "UTC" })
+                  .toUpperCase()
+            : null
+    const year = formatter.dateTime(start, {
+        year: "numeric",
+        timeZone: "UTC",
+    })
+    const endYear =
+        end && !sameDay
+            ? formatter.dateTime(end, { year: "numeric", timeZone: "UTC" })
+            : year
+
+    const sameMonth = startMonth === endMonth
+    const sameYear = year === endYear
+
+    let primaryLine: string
+    if (sameDay) {
+        primaryLine = `${startDay} ${startMonth}`
+    } else if (sameMonth) {
+        primaryLine = `${startDay}–${endDay} ${startMonth}`
+    } else {
+        primaryLine = `${startDay} ${startMonth} – ${endDay} ${endMonth}`
+    }
+    const secondaryLine = sameYear ? year : `${year} – ${endYear}`
+
+    return (
+        <div className='flex flex-col items-center justify-center text-center mb-2'>
+            <span
+                aria-hidden
+                className='pointer-events-none absolute inset-x-0 -top-2 mx-auto h-24 w-[16rem] rounded-full bg-[radial-gradient(60%_60%_at_50%_50%,rgba(129,140,248,0.22),transparent_70%)] blur-2xl'
+            />
+            <p
+                className={`relative font-serif italic text-3xl sm:text-4xl leading-none tracking-tight ${accentClass} ${moodShadow}`}
+            >
+                {primaryLine}
+            </p>
+            <p className='relative mt-1.5 text-[11px] font-medium uppercase tracking-[0.32em] text-white/55'>
+                {secondaryLine}
+            </p>
+        </div>
+    )
 }
 
 const ZODIAC_CANONICAL: ReadonlyArray<string> = [
@@ -440,9 +532,11 @@ export default function VerdictHero({
     // Natal-mode verdicts answer questions like "Which career fits me?" —
     // they are timeless, so we deliberately suppress the date pill that
     // would otherwise read "Today · 18 May" and imply this is a daily
-    // forecast.
+    // forecast. Timing-mode verdicts already render the resolved date or
+    // window in the hero crest, so the smaller date pill below it would be
+    // redundant.
     const dateLabel = useMemo(() => {
-        if (verdict.mode === "natal") return null
+        if (verdict.mode === "natal" || verdict.mode === "timing") return null
         return formatDateLabel(
             dateIso,
             (date) =>
@@ -479,6 +573,7 @@ export default function VerdictHero({
     const keyMessageHeadline = (verdict.keyMessage?.headline ?? "").trim()
     const keyMessageSubtitle = (verdict.keyMessage?.subtitle ?? "").trim()
     const isNatalMode = verdict.mode === "natal"
+    const isTimingMode = verdict.mode === "timing"
     const relevantPlanets = useMemo<NatalRelevantPlanet[]>(
         () => (isNatalMode ? verdict.relevantPlanets ?? [] : []),
         [isNatalMode, verdict.relevantPlanets],
@@ -495,6 +590,7 @@ export default function VerdictHero({
         [isNatalMode, relevantPlanets, transitSourceMessage.chartData],
     )
     const showNatalHeroCrest = isNatalMode && heroPlacements.length > 0
+    const showTimingHeroCrest = isTimingMode && !!verdict.timingWindow
     // Daily verdicts hang their visual under the detailed HTML (the transit
     // feed). Natal verdicts use the relevant-planets spotlight instead. We
     // never show both at the same time.
@@ -516,6 +612,14 @@ export default function VerdictHero({
                         <div className='w-full mb-3 animate-fade-in'>
                             <NatalHeroCrest
                                 placements={heroPlacements}
+                                moodShadow={style.iconShadow}
+                            />
+                        </div>
+                    ) : showTimingHeroCrest && verdict.timingWindow ? (
+                        <div className='w-full animate-fade-in relative'>
+                            <TimingHeroCrest
+                                window={verdict.timingWindow}
+                                accentClass={style.accent}
                                 moodShadow={style.iconShadow}
                             />
                         </div>

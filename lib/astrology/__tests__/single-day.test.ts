@@ -4,6 +4,7 @@ import {
     isNatalQuestionRange,
     isSingleDayQuestionRange,
     looksLikeNatalQuestion,
+    looksLikeTimingQuestion,
     readQuestionRangeFromChartData,
 } from "../single-day.ts"
 
@@ -133,6 +134,44 @@ test("looksLikeNatalQuestion: explicit dates → false", () => {
 test("looksLikeNatalQuestion: empty / non-string input is safe", () => {
     assert.equal(looksLikeNatalQuestion(""), false)
     assert.equal(looksLikeNatalQuestion(undefined as unknown as string), false)
+})
+
+test("looksLikeTimingQuestion: 'when will I be rich?' → true", () => {
+    assert.equal(looksLikeTimingQuestion("When will I be rich?"), true)
+    assert.equal(looksLikeTimingQuestion("When can I find love?"), true)
+    assert.equal(looksLikeTimingQuestion("When should I quit my job?"), true)
+})
+
+test("looksLikeTimingQuestion: Thai/Lao timing markers → true", () => {
+    assert.equal(looksLikeTimingQuestion("เมื่อไหร่ฉันจะรวย"), true)
+    assert.equal(looksLikeTimingQuestion("วันไหนเหมาะกับการเริ่มต้น"), true)
+    assert.equal(looksLikeTimingQuestion("ເມື່ອໃດຂ້ອຍຈະຮັ່ງມີ"), true)
+})
+
+test("looksLikeTimingQuestion: timeless / dated questions → false", () => {
+    assert.equal(
+        looksLikeTimingQuestion("Which career fits me?"),
+        false,
+    )
+    assert.equal(looksLikeTimingQuestion("How is today for me?"), false)
+    assert.equal(
+        looksLikeTimingQuestion("When I was younger I was unhappy"),
+        false,
+    )
+})
+
+test("looksLikeTimingQuestion: empty / non-string input is safe", () => {
+    assert.equal(looksLikeTimingQuestion(""), false)
+    assert.equal(
+        looksLikeTimingQuestion(undefined as unknown as string),
+        false,
+    )
+})
+
+test("looksLikeNatalQuestion: timing questions are excluded", () => {
+    // 'when will I..?' is timing, not natal, even though it has no date.
+    assert.equal(looksLikeNatalQuestion("When will I be rich?"), false)
+    assert.equal(looksLikeNatalQuestion("เมื่อไหร่ฉันจะรวย"), false)
 })
 
 test("readQuestionRangeFromChartData returns null for missing/invalid data", () => {
