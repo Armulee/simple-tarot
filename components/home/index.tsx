@@ -42,7 +42,7 @@ export default function Home() {
     const locale = useLocale()
     const router = useRouter()
     const { user } = useAuth()
-    const { cookieConsent, ageGateState } = useStarConsent()
+    const { ageGateState } = useStarConsent()
     const [question, setQuestion] = useState("")
     const [isLinking, setIsLinking] = useState(false)
     const [linkingQuestion, setLinkingQuestion] = useState<string | null>(null)
@@ -305,9 +305,6 @@ export default function Home() {
 
     const shouldShowHero = !isLinking
     const shouldShowLearnMore = showLearnMore && !isLinking
-    const cookieBannerVisible = !cookieConsent.decisionMade
-    const showQuickCards = !cookieBannerVisible
-
     const randomQuestionPool = useMemo(() => {
         const prompts = tHome.raw("prompts")
         const arr = Array.isArray(prompts)
@@ -455,7 +452,7 @@ export default function Home() {
                         onScrollToDraw: () => {},
                     }}
                     actionTrigger={
-                        showQuickCards && !isLinking ? (
+                        !isLinking ? (
                             <div className='w-full space-y-2 text-left'>
                                 <p className='text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70'>
                                     {tHome("quickFeaturesLabel")}
