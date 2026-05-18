@@ -168,24 +168,27 @@ export default function VerdictHero({
     const style = MOOD_STYLES[verdict.mood]
     const aliases = privacyAliases ?? []
 
-    const dateLabel = useMemo(
-        () =>
-            formatDateLabel(
-                dateIso,
-                (date) =>
-                    formatter.dateTime(date, {
-                        day: "numeric",
-                        month: "short",
-                        timeZone: "UTC",
-                    }),
-                {
-                    today: t("dateRelativeToday"),
-                    tomorrow: t("dateRelativeTomorrow"),
-                    yesterday: t("dateRelativeYesterday"),
-                },
-            ),
-        [dateIso, formatter, t],
-    )
+    // Natal-mode verdicts answer questions like "Which career fits me?" —
+    // they are timeless, so we deliberately suppress the date pill that
+    // would otherwise read "Today · 18 May" and imply this is a daily
+    // forecast.
+    const dateLabel = useMemo(() => {
+        if (verdict.mode === "natal") return null
+        return formatDateLabel(
+            dateIso,
+            (date) =>
+                formatter.dateTime(date, {
+                    day: "numeric",
+                    month: "short",
+                    timeZone: "UTC",
+                }),
+            {
+                today: t("dateRelativeToday"),
+                tomorrow: t("dateRelativeTomorrow"),
+                yesterday: t("dateRelativeYesterday"),
+            },
+        )
+    }, [dateIso, formatter, t, verdict.mode])
 
     const moodLabel =
         verdict.mood === "good"

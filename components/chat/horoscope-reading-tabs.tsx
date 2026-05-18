@@ -8,9 +8,11 @@ import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highli
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import RealtimePlanetaryPanel from "@/components/astrology/realtime-planetary-panel"
 import type { SourceAspectEvent } from "@/components/chat/types"
+import { looksLikeNatalQuestion } from "@/lib/astrology/single-day"
 import VerdictHero from "./horoscope/verdict-hero"
 import TransitPlanetGrid from "./horoscope/transit-planet-grid"
 import TransitOrbitVisual from "./horoscope/transit-orbit-visual"
+import NatalChartDetail from "./horoscope/natal-chart-detail"
 
 function NatalChartCollapsible({
     chartData,
@@ -133,7 +135,20 @@ export default function HoroscopeReadingTabs({
     // Information" tab anchored in natal placements, and drop the aspect
     // tab entirely. The hero visual underneath the key message also flips
     // from transit feed → relevant-planet spotlight (see VerdictHero).
-    const isNatalMode = message.dailyVerdict?.mode === "natal"
+    //
+    // We commit to natal mode as soon as either signal is true:
+    //   • the verdict has streamed back with mode === "natal", OR
+    //   • the question text contains no date / date-range hints.
+    // The text-based heuristic lets us avoid flashing today's transit
+    // calculations while the natal verdict is still in flight.
+    const questionTextForNatalCheck =
+        message.displayQuestion ?? message.question ?? ""
+    const isNatalLikely = useMemo(
+        () => looksLikeNatalQuestion(questionTextForNatalCheck),
+        [questionTextForNatalCheck],
+    )
+    const verdictIsNatal = message.dailyVerdict?.mode === "natal"
+    const isNatalMode = verdictIsNatal || isNatalLikely
 
     // Reset auto-pilot whenever a new loading cycle starts (new question OR
     // regenerate). This way Regenerate flips us back to the technical-info
@@ -156,9 +171,15 @@ export default function HoroscopeReadingTabs({
 
     // Loading + no verdict yet → Transit (chartData lands first, no LLM
     // wait). Otherwise → Overview. An explicit user click always wins.
+    //
+    // Natal-mode questions skip the "show today's transit while we wait"
+    // optimization — we stay on Overview so the verdict-hero's natal
+    // skeleton can take over without flashing the daily transit visual.
     const activeTab: HoroscopeTab =
         explicitTab ??
-        (message.isLoading && !hasDailyVerdict ? "transit" : "overview")
+        (message.isLoading && !hasDailyVerdict && !isNatalMode
+            ? "transit"
+            : "overview")
 
     const handleSelectTab = (tab: HoroscopeTab) => setExplicitTab(tab)
 
@@ -314,11 +335,8 @@ export default function HoroscopeReadingTabs({
 
                 {activeTab === "transit" &&
                     (isNatalMode ? (
-                        <div className='space-y-5 rounded-[16px]'>
-                            <TransitPlanetGrid
-                                chartData={message.chartData}
-                                source='natal'
-                            />
+                        <div className='space-y-6 rounded-[16px]'>
+                            <NatalChartDetail chartData={message.chartData} />
 
                             {footerActions && !message.isLoading ? (
                                 <div className='border-t border-white/10 pt-4'>

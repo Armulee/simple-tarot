@@ -2,6 +2,7 @@ import { z } from "zod"
 import { buildChartData } from "@/lib/astrology/build-chart-data"
 import { resolveQuestionTimeRangeAsync } from "@/lib/astrology/question-time-range"
 import { getCodexTransitWindow } from "@/lib/astrology/ephemeris-codex"
+import { isNatalQuestionRange } from "@/lib/astrology/single-day"
 import {
     buildNatalLongitudes,
     buildPersonalizedTransitAspects,
@@ -71,6 +72,33 @@ export async function POST(req: Request) {
                     : null,
             },
         )
+
+        // Natal questions ("Which career fits me?") are not bound to a date
+        // or date-range, so today's transit calculation has nothing useful
+        // to contribute. Short-circuit straight to the natal chart and skip
+        // both codex queries + transit ephemeris compute entirely.
+        if (
+            isNatalQuestionRange({
+                durationDays: questionRange.durationDays,
+                source: questionRange.source,
+            }) &&
+            !body.transit
+        ) {
+            const chartDataResult = await buildChartData(
+                {
+                    birth: body.birth,
+                    system: body.system,
+                },
+                locale,
+            )
+            return Response.json(
+                {
+                    ...chartDataResult,
+                    personalizedTransitAspects: null,
+                },
+                { status: 200 },
+            )
+        }
 
         // Derive aspectRange synchronously so we can fire both codex queries
         // in parallel and overlap buildChartData with the slower of the two.

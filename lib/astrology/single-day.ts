@@ -46,6 +46,84 @@ export function isNatalQuestionRange(
 }
 
 /**
+ * Cheap, client-safe heuristic that mirrors the regex-based date detection
+ * inside `resolveQuestionTimeRange` (server-side resolver). Returns true when
+ * the question text contains NO explicit date, no relative single-day phrase
+ * ("today", "tomorrow"), and no relative window phrase ("this month", "next
+ * year", "within 7 days", etc.) in English/Thai/Lao.
+ *
+ * We use this on the client to suppress today's transit visuals before the
+ * server-side natal verdict has arrived — without it, the reading tabs would
+ * briefly auto-flip to "Technical Information" and run today's transit
+ * calculation while the natal verdict is still in flight.
+ *
+ * IMPORTANT: this is intentionally conservative. False positives (treating a
+ * date-bound question as natal) only delay the transit visual by a fraction
+ * of a second; false negatives (treating a natal question as date-bound)
+ * would re-introduce the very flicker we are trying to remove.
+ */
+export function looksLikeNatalQuestion(question: string): boolean {
+    if (typeof question !== "string") return false
+    const trimmed = question.trim()
+    if (!trimmed) return false
+
+    // Single-day relative phrases (English / Thai / Lao).
+    if (/\b(today|this\s*day|tonight|tomorrow|yesterday)\b/i.test(trimmed)) {
+        return false
+    }
+    if (/วันนี้|พรุ่งนี้|เมื่อวาน|เมื่อวานนี้|คืนนี้/.test(trimmed)) return false
+    if (/ມື້ນີ້|ມື້ອື່ນ|ມື້ວານ|ຄືນນີ້/.test(trimmed)) return false
+
+    // Calendar windows.
+    if (
+        /\b(this|next|last)\s+(week|fortnight|month|quarter|year|decade)\b/i.test(
+            trimmed,
+        )
+    ) {
+        return false
+    }
+    if (/เดือนนี้|เดือนหน้า|ปีนี้|ปีหน้า|สัปดาห์นี้|สัปดาห์หน้า/.test(trimmed)) {
+        return false
+    }
+    if (/ເດືອນນີ້|ເດືອນໜ້າ|ປີນີ້|ປີໜ້າ|ອາທິດນີ້|ອາທິດໜ້າ/.test(trimmed)) {
+        return false
+    }
+
+    // "within / in / for / next N day|days|week|...|year"
+    if (
+        /\b(within|in|for|next)\s+\d+\s+(day|days|week|weeks|month|months|year|years)\b/i.test(
+            trimmed,
+        )
+    ) {
+        return false
+    }
+    if (/(ในอีก|ภายใน|อีก)\s*\d+\s*(วัน|สัปดาห์|เดือน|ปี)/.test(trimmed)) {
+        return false
+    }
+    if (/(ໃນອີກ|ພາຍໃນ|ອີກ)\s*\d+\s*(ມື້|ອາທິດ|ເດືອນ|ປີ)/.test(trimmed)) return false
+
+    // ISO date / slash date / Month-Day-Year long form.
+    if (/\b(19|20)\d{2}-\d{1,2}-\d{1,2}\b/.test(trimmed)) return false
+    if (/\b\d{1,2}[\/\-]\d{1,2}[\/\-](?:19|20)\d{2}\b/.test(trimmed)) return false
+    if (
+        /\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}(?:,\s*\d{4})?\b/i.test(
+            trimmed,
+        )
+    ) {
+        return false
+    }
+    if (
+        /\b\d{1,2}\s+(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\b/i.test(
+            trimmed,
+        )
+    ) {
+        return false
+    }
+
+    return true
+}
+
+/**
  * Convenience for picking the questionRange off an arbitrary chart data blob
  * (the message stores chartData as Record<string, unknown> so callers don't
  * have to do their own type narrowing).

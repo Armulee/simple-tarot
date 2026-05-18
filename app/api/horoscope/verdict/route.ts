@@ -210,7 +210,7 @@ function buildHouseIndex(chart: SwissEphChart): HouseIndex {
 
 async function handleNatalVerdict(
     body: VerdictRequestBody,
-    questionRange: NatalQuestionRange,
+    _questionRange: NatalQuestionRange,
 ) {
     const chartLocale =
         detectQuestionLanguage(body.question) === "Thai" ||
@@ -218,14 +218,14 @@ async function handleNatalVerdict(
             ? "th"
             : "en"
 
-    // Natal verdict only needs the birth chart — skip codex / transit work
-    // entirely so this path stays fast.
+    // Natal verdict only needs the birth chart. We deliberately do NOT pass
+    // `transit` or `questionRange` to buildChartData — without them
+    // `buildChartData` short-circuits the transit ephemeris compute, so the
+    // natal path never runs today's planet calculation.
     const chartDataResult = await buildChartData(
         {
             birth: body.birth,
             system: body.system,
-            transit: body.transit ?? undefined,
-            questionRange,
         },
         chartLocale,
     )

@@ -3,6 +3,7 @@ import test from "node:test"
 import {
     isNatalQuestionRange,
     isSingleDayQuestionRange,
+    looksLikeNatalQuestion,
     readQuestionRangeFromChartData,
 } from "../single-day.ts"
 
@@ -89,6 +90,49 @@ test("isNatalQuestionRange: null/undefined → false", () => {
     assert.equal(isNatalQuestionRange(null), false)
     assert.equal(isNatalQuestionRange(undefined), false)
     assert.equal(isNatalQuestionRange({}), false)
+})
+
+test("looksLikeNatalQuestion: timeless self questions → true", () => {
+    assert.equal(looksLikeNatalQuestion("Which career fits me?"), true)
+    assert.equal(looksLikeNatalQuestion("Am I lucky in love?"), true)
+    assert.equal(
+        looksLikeNatalQuestion("งานแบบไหนที่เหมาะกับฉัน"),
+        true,
+    )
+})
+
+test("looksLikeNatalQuestion: today/tomorrow → false", () => {
+    assert.equal(looksLikeNatalQuestion("How is today for me?"), false)
+    assert.equal(looksLikeNatalQuestion("วันนี้เป็นอย่างไร"), false)
+    assert.equal(
+        looksLikeNatalQuestion("Will I have a good day tomorrow?"),
+        false,
+    )
+})
+
+test("looksLikeNatalQuestion: calendar windows → false", () => {
+    assert.equal(looksLikeNatalQuestion("How is this month?"), false)
+    assert.equal(looksLikeNatalQuestion("What about next year?"), false)
+    assert.equal(looksLikeNatalQuestion("เดือนหน้าจะเป็นยังไง"), false)
+})
+
+test("looksLikeNatalQuestion: 'within N days' → false", () => {
+    assert.equal(looksLikeNatalQuestion("Anything within 7 days?"), false)
+    assert.equal(
+        looksLikeNatalQuestion("Will I get the job in 30 days?"),
+        false,
+    )
+})
+
+test("looksLikeNatalQuestion: explicit dates → false", () => {
+    assert.equal(looksLikeNatalQuestion("How about 2026-06-12?"), false)
+    assert.equal(looksLikeNatalQuestion("What about 12/06/2026?"), false)
+    assert.equal(looksLikeNatalQuestion("June 12, 2026?"), false)
+})
+
+test("looksLikeNatalQuestion: empty / non-string input is safe", () => {
+    assert.equal(looksLikeNatalQuestion(""), false)
+    assert.equal(looksLikeNatalQuestion(undefined as unknown as string), false)
 })
 
 test("readQuestionRangeFromChartData returns null for missing/invalid data", () => {
