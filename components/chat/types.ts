@@ -81,6 +81,22 @@ export type NatalRelevantPlanet = {
     reason: string
 }
 
+export type PredictionTimelineSlot = {
+    slotKey: string
+    datetimeIso: string
+    label: string
+    mood: "good" | "caution" | "rest" | "mixed"
+    title: string
+    narrative: string
+    focusArea?: string
+    tags?: string[]
+}
+
+export type PredictionTimeline = {
+    granularity: "hourly" | "daily"
+    slots: PredictionTimelineSlot[]
+}
+
 export type SourceAspectEvent = {
     aspectKey: string
     transitPlanet: string
@@ -131,6 +147,12 @@ export type ChatMessage = {
     relevance?: RelevanceStat[]
     /** Single-day verdict, populated only when questionRange.durationDays === 1 */
     dailyVerdict?: DailyVerdict | null
+    /**
+     * Predictive timeline (hourly or daily) populated only when the question is
+     * a "what will happen" style ask. Streams in parallel with the main
+     * interpretation and renders inside the Overview tab.
+     */
+    timeline?: PredictionTimeline | null
     followUpConclusion?: string
     followUpSuggestions?: string[]
     followUpLoading?: boolean
@@ -180,6 +202,7 @@ export type ChatMessage = {
             aspectInsights?: AspectInsightItem[]
             relevance?: RelevanceStat[]
             dailyVerdict?: DailyVerdict | null
+            timeline?: PredictionTimeline | null
             personalizedTransitAspects?: PersonalizedTransitAspectsResult | null
             personalizedTransitAspectsMerged?: PersonalizedTransitAspectsResult | null
             followUpConclusion?: string

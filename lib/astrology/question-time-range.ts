@@ -3,7 +3,13 @@ import { resolveTimeRangeDaysWithAI } from "./ai-time-range"
 const DEFAULT_FALLBACK_DAYS = 30
 const DAY_MS = 24 * 60 * 60 * 1000
 
-export type TimeRangeSource = "explicit" | "relative" | "default_30d" | "ai_inferred"
+export type TimeRangeSource =
+    | "explicit"
+    | "relative"
+    | "default_30d"
+    | "ai_inferred"
+
+export type TimeRangeGranularity = "hourly" | "daily"
 
 export type QuestionTimeRange = {
     startDate: Date
@@ -12,6 +18,33 @@ export type QuestionTimeRange = {
     endDateIso: string
     durationDays: number
     source: TimeRangeSource
+    /**
+     * Best granularity for *predictive* downstream renderers (the timeline view).
+     * "hourly" only when the question is bound to a single specific day (or the
+     * user explicitly asked hourly). Everything else falls back to "daily".
+     */
+    granularity: TimeRangeGranularity
+}
+
+const HOURLY_INTENT_RE =
+    /รายชั่วโมง|รายช ?ม\.|ช่วงเวลาไหน|เวลาไหนของวัน|hour ?by ?hour|by the hour|hourly|ໂມງ ?ໃດ|ເປັນຊົ່ວໂມງ/i
+
+function isHourlyIntent(question: string): boolean {
+    return HOURLY_INTENT_RE.test(question)
+}
+
+function decideGranularity(
+    question: string,
+    durationDays: number,
+    source: TimeRangeSource,
+): TimeRangeGranularity {
+    if (durationDays === 1 && (source === "explicit" || source === "relative")) {
+        return "hourly"
+    }
+    if (isHourlyIntent(question) && durationDays <= 1) {
+        return "hourly"
+    }
+    return "daily"
 }
 
 type TransitDateHint = {
@@ -22,7 +55,11 @@ type TransitDateHint = {
 
 function startOfUtcDay(value: Date) {
     return new Date(
-        Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate())
+        Date.UTC(
+            value.getUTCFullYear(),
+            value.getUTCMonth(),
+            value.getUTCDate(),
+        ),
     )
 }
 
@@ -70,7 +107,11 @@ function parseMonthName(text: string) {
 }
 
 function toValidUtcDate(year: number, month: number, day: number) {
-    if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+    if (
+        !Number.isInteger(year) ||
+        !Number.isInteger(month) ||
+        !Number.isInteger(day)
+    ) {
         return null
     }
     if (month < 1 || month > 12 || day < 1 || day > 31) return null
@@ -91,12 +132,14 @@ function parseExplicitDate(question: string): Date | null {
         const parsed = toValidUtcDate(
             Number(isoMatch[1]),
             Number(isoMatch[2]),
-            Number(isoMatch[3])
+            Number(isoMatch[3]),
         )
         if (parsed) return parsed
     }
 
-    const slashMatch = question.match(/\b(\d{1,2})[\/\-](\d{1,2})[\/\-](19\d{2}|20\d{2})\b/)
+    const slashMatch = question.match(
+        /\b(\d{1,2})[\/\-](\d{1,2})[\/\-](19\d{2}|20\d{2})\b/,
+    )
     if (slashMatch) {
         const left = Number(slashMatch[1])
         const right = Number(slashMatch[2])
@@ -108,7 +151,7 @@ function parseExplicitDate(question: string): Date | null {
     }
 
     const longMonthMatch = question.match(
-        /\b([A-Za-z]{3,9})\s+(\d{1,2}),?\s+(19\d{2}|20\d{2})\b/
+        /\b([A-Za-z]{3,9})\s+(\d{1,2}),?\s+(19\d{2}|20\d{2})\b/,
     )
     if (longMonthMatch) {
         const month = parseMonthName(longMonthMatch[1])
@@ -121,7 +164,7 @@ function parseExplicitDate(question: string): Date | null {
     }
 
     const dayFirstLongMonthMatch = question.match(
-        /\b(\d{1,2})\s+([A-Za-z]{3,9})\s+(19\d{2}|20\d{2})\b/
+        /\b(\d{1,2})\s+([A-Za-z]{3,9})\s+(19\d{2}|20\d{2})\b/,
     )
     if (dayFirstLongMonthMatch) {
         const day = Number(dayFirstLongMonthMatch[1])
@@ -161,17 +204,35 @@ function parseRelativeRange(question: string, now: Date): RelativeRange | null {
 
     const lowered = question.toLowerCase()
     const withinMatch = lowered.match(
-        /\b(?:within|in|for|next)\s+(\d+)\s+(day|days|week|weeks|month|months|year|years)\b/
+        /\b(?:within|in|for|next)\s+(\d+)\s+(day|days|week|weeks|month|months|year|years)\b/,
     )
     if (withinMatch) {
         const amount = Number(withinMatch[1])
         const unit = withinMatch[2]
+        const factor = unit.startsWith("day")
+            ? 1
+            : unit.startsWith("week")
+              ? 7
+              : unit.startsWith("month")
+                ? 30
+                : 365
+        if (Number.isFinite(amount) && amount > 0) {
+            return { durationDays: amount * factor }
+        }
+    }
+
+    const thaiWithinMatch = question.match(
+        /(?:ในอีก|ภายใน|อีก)\s*(\d+)\s*(วัน|สัปดาห์|เดือน|ปี)/,
+    )
+    if (thaiWithinMatch) {
+        const amount = Number(thaiWithinMatch[1])
+        const unit = thaiWithinMatch[2]
         const factor =
-            unit.startsWith("day")
+            unit === "วัน"
                 ? 1
-                : unit.startsWith("week")
+                : unit === "สัปดาห์"
                   ? 7
-                  : unit.startsWith("month")
+                  : unit === "เดือน"
                     ? 30
                     : 365
         if (Number.isFinite(amount) && amount > 0) {
@@ -179,42 +240,44 @@ function parseRelativeRange(question: string, now: Date): RelativeRange | null {
         }
     }
 
-    const thaiWithinMatch = question.match(
-        /(?:ในอีก|ภายใน|อีก)\s*(\d+)\s*(วัน|สัปดาห์|เดือน|ปี)/
-    )
-    if (thaiWithinMatch) {
-        const amount = Number(thaiWithinMatch[1])
-        const unit = thaiWithinMatch[2]
-        const factor =
-            unit === "วัน" ? 1 : unit === "สัปดาห์" ? 7 : unit === "เดือน" ? 30 : 365
-        if (Number.isFinite(amount) && amount > 0) {
-            return { durationDays: amount * factor }
-        }
+    if (
+        /\bthis\s+week\b|สัปดาห์นี้|อาทิตย์นี้|ອາທິດນີ້|ສັບປະດານີ້/i.test(question)
+    ) {
+        return { durationDays: 7 }
     }
-
-    if (/\bthis\s+month\b|เดือนนี้/i.test(question)) {
+    if (
+        /\bnext\s+week\b|สัปดาห์หน้า|อาทิตย์หน้า|ອາທິດໜ້າ|ສັບປະດາໜ້າ/i.test(
+            question,
+        )
+    ) {
+        return { durationDays: 7 }
+    }
+    if (/\bthis\s+month\b|เดือนนี้|ເດືອນນີ້/i.test(question)) {
         return {
-            calendarEnd: lastDayOfMonthUtc(now.getUTCFullYear(), now.getUTCMonth()),
+            calendarEnd: lastDayOfMonthUtc(
+                now.getUTCFullYear(),
+                now.getUTCMonth(),
+            ),
         }
     }
-    if (/\bnext\s+month\b|เดือนหน้า/i.test(question)) {
+    if (/\bnext\s+month\b|เดือนหน้า|ເດືອນໜ້າ/i.test(question)) {
         const nextMonth = new Date(
-            Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)
+            Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
         )
         return {
             durationDays: 30,
             calendarEnd: lastDayOfMonthUtc(
                 nextMonth.getUTCFullYear(),
-                nextMonth.getUTCMonth()
+                nextMonth.getUTCMonth(),
             ),
         }
     }
-    if (/\bthis\s+year\b|ปีนี้/i.test(question)) {
+    if (/\bthis\s+year\b|ปีนี้|ປີນີ້/i.test(question)) {
         return {
             calendarEnd: new Date(Date.UTC(now.getUTCFullYear(), 11, 31)),
         }
     }
-    if (/\bnext\s+year\b|ปีหน้า/i.test(question)) {
+    if (/\bnext\s+year\b|ปีหน้า|ປີໜ້າ/i.test(question)) {
         return {
             calendarEnd: new Date(Date.UTC(now.getUTCFullYear() + 1, 11, 31)),
         }
@@ -238,7 +301,7 @@ export function resolveQuestionTimeRange(
     opts?: {
         now?: Date
         hintedTransitDate?: TransitDateHint
-    }
+    },
 ): QuestionTimeRange {
     const today = startOfUtcDay(opts?.now ?? new Date())
     const explicitDate =
@@ -279,6 +342,7 @@ export function resolveQuestionTimeRange(
         endDateIso: toIsoDate(endDate),
         durationDays,
         source,
+        granularity: decideGranularity(question, durationDays, source),
     }
 }
 
@@ -302,12 +366,14 @@ export async function resolveQuestionTimeRangeAsync(
 
     const endDate = addDays(result.startDate, aiDays)
     const durationDays = normalizeDurationDays(result.startDate, endDate)
+    const source: TimeRangeSource = "ai_inferred"
     return {
         startDate: result.startDate,
         endDate,
         startDateIso: result.startDateIso,
         endDateIso: toIsoDate(endDate),
         durationDays,
-        source: "ai_inferred",
+        source,
+        granularity: decideGranularity(question, durationDays, source),
     }
 }

@@ -202,7 +202,10 @@ export function getMonthOverview(
 // Decorative starfield (deterministic so SSR === CSR)
 // ---------------------------------------------------------------------------
 
-export function getStarField(seed: number = 1, count: number = 36): StarFieldDot[] {
+export function getStarField(
+    seed: number = 1,
+    count: number = 36,
+): StarFieldDot[] {
     const rng = mulberry32(seed)
     const dots: StarFieldDot[] = []
     const round = (n: number) => Math.round(n * 10) / 10

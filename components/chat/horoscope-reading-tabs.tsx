@@ -7,15 +7,19 @@ import type { ChatMessage } from "@/components/chat/types"
 import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import RealtimePlanetaryPanel from "@/components/astrology/realtime-planetary-panel"
+import CosmicCenteredLoader from "@/components/cosmic-centered-loader"
 import type { SourceAspectEvent } from "@/components/chat/types"
 import {
+    isDateBoundedQuestionRange,
+    isSingleDayQuestionRange,
     looksLikeNatalQuestion,
-    looksLikeTimingQuestion,
+    readQuestionRangeFromChartData,
 } from "@/lib/astrology/single-day"
 import VerdictHero from "./horoscope/verdict-hero"
 import TransitPlanetGrid from "./horoscope/transit-planet-grid"
 import TransitOrbitVisual from "./horoscope/transit-orbit-visual"
 import NatalChartDetail from "./horoscope/natal-chart-detail"
+import PredictionTimeline from "./horoscope/prediction-timeline"
 
 function NatalChartCollapsible({
     chartData,
@@ -125,13 +129,13 @@ export default function HoroscopeReadingTabs({
     birthDetailsContent?: ReactNode
     transitDetailsContent?: ReactNode
 }) {
-    // Track the user's explicit tab pick (if any). When null we derive the
-    // active tab from message state so the UI auto-flips between Transit
-    // (while the LLM is computing the verdict) and Overview (once the
-    // verdict has streamed in).
+    // Track the user's explicit tab pick (if any). When null we keep the user
+    // on Overview so the streamed explanation stays front and center.
     const [explicitTab, setExplicitTab] = useState<HoroscopeTab | null>(null)
+    const tChat = useTranslations("HoroscopeChat")
     const tTabs = useTranslations("HoroscopeChat.tabs")
     const tReading = useTranslations("ReadingPage.interpretation")
+    const summary = getOverviewSummary(message)
 
     // Natal-mode verdicts (no date/date-range, e.g. "Which career fits me?")
     // swap the right-hand "Technical Information" tab for a "Birth Chart
@@ -150,27 +154,30 @@ export default function HoroscopeReadingTabs({
         () => looksLikeNatalQuestion(questionTextForNatalCheck),
         [questionTextForNatalCheck],
     )
-    const isTimingLikely = useMemo(
-        () => looksLikeTimingQuestion(questionTextForNatalCheck),
-        [questionTextForNatalCheck],
+    const questionRangeFromChart = useMemo(
+        () => readQuestionRangeFromChartData(message.chartData),
+        [message.chartData],
+    )
+    const chartIsSingleDay = isSingleDayQuestionRange(questionRangeFromChart)
+    const chartIsDateBounded = isDateBoundedQuestionRange(
+        questionRangeFromChart,
     )
     const verdictIsNatal = message.dailyVerdict?.mode === "natal"
-    const verdictIsTiming = message.dailyVerdict?.mode === "timing"
-    const isNatalMode = verdictIsNatal || isNatalLikely
-    // "When will I..?" questions also shouldn't auto-flip to the transit
-    // tab during loading — the verdict is about a forward date window, not
-    // today's transit, so the today-grid would be misleading.
-    const isTimingMode = verdictIsTiming || isTimingLikely
-
+    // Prefer resolver output on the message once chartData lands — a question
+    // with no date words ("Is love good for me?") can still be a single-day
+    // reading when the user picked a transit date or AI locked to one day.
+    const isNatalMode =
+        verdictIsNatal ||
+        (isNatalLikely && !chartIsSingleDay && !chartIsDateBounded)
     // Reset auto-pilot whenever a new loading cycle starts (new question OR
-    // regenerate). This way Regenerate flips us back to the technical-info
-    // default and then back to overview when the verdict streams in.
-    const hasDailyVerdict = !!message.dailyVerdict
+    // regenerate). This way a fresh run returns to the overview tab and keeps
+    // the inline loader visible until the first overview text arrives.
+    const hasOverviewContent = summary.length > 0
     useEffect(() => {
-        if (message.isLoading && !hasDailyVerdict) {
+        if (message.isLoading && !hasOverviewContent) {
             setExplicitTab(null)
         }
-    }, [message.isLoading, hasDailyVerdict])
+    }, [message.isLoading, hasOverviewContent])
 
     // If the active tab is "aspect" but the message becomes natal-mode
     // (after the verdict resolves), snap back to overview so we don't strand
@@ -181,20 +188,10 @@ export default function HoroscopeReadingTabs({
         }
     }, [isNatalMode, explicitTab])
 
-    // Loading + no verdict yet → Transit (chartData lands first, no LLM
-    // wait). Otherwise → Overview. An explicit user click always wins.
-    //
-    // Natal- and timing-mode questions skip the "show today's transit
-    // while we wait" optimization — both verdicts are about something
-    // other than today, so the today-grid would be misleading.
-    const activeTab: HoroscopeTab =
-        explicitTab ??
-        (message.isLoading &&
-        !hasDailyVerdict &&
-        !isNatalMode &&
-        !isTimingMode
-            ? "transit"
-            : "overview")
+    // Default to Overview for every new reading (verdict hero + streamed text).
+    // Chart data may arrive before the verdict, but we keep the user on
+    // Overview until they choose Technical Information themselves.
+    const activeTab: HoroscopeTab = explicitTab ?? "overview"
 
     const handleSelectTab = (tab: HoroscopeTab) => setExplicitTab(tab)
 
@@ -212,7 +209,6 @@ export default function HoroscopeReadingTabs({
         ]
     }, [tTabs, isNatalMode])
 
-    const summary = getOverviewSummary(message)
     const aliases = privacyAliases ?? []
     // const relevanceStats = useMemo(
     //     () =>
@@ -226,11 +222,15 @@ export default function HoroscopeReadingTabs({
     //     [message.relevance],
     // )
 
-    // The hero only depends on `dailyVerdict` arriving — the schema + prompt
-    // already guarantee the model omits it for multi-day questions, so we do
-    // NOT wait on chartData.questionRange (which comes from a separate
-    // /api/horoscope/chart-data fetch and can lag behind the LLM stream).
-    const showVerdict = !!message.dailyVerdict
+    // Timeline takes precedence over the verdict hero — when the question is
+    // a "what will happen" predictive ask we render the Prediction Timeline
+    // instead, so the verdict and timeline never collide.
+    const hasTimeline =
+        !!message.timeline?.slots && message.timeline.slots.length > 0
+    // The hero still keys off `dailyVerdict`, but the inline loader now waits
+    // for the first streamed overview sentence/insight before clearing.
+    const showVerdict = !!message.dailyVerdict && !hasTimeline
+    const showOverviewLoader = message.isLoading && !hasOverviewContent
     const dateIso = useMemo(() => {
         if (!message.chartData || typeof message.chartData !== "object") {
             return null
@@ -245,9 +245,6 @@ export default function HoroscopeReadingTabs({
     return (
         <section className='relative overflow-hidden'>
             <div className='space-y-6'>
-                {message.isLoading && loadingNode ? (
-                    <div className='flex justify-start'>{loadingNode}</div>
-                ) : null}
                 <div
                     role='tablist'
                     aria-label='Horoscope reading sections'
@@ -288,9 +285,10 @@ export default function HoroscopeReadingTabs({
                     })}
                     {/* Hidden ordering anchor for aria/test stability */}
                     <span className='sr-only'>
-                        {(isNatalMode ? TAB_ORDER_NATAL : TAB_ORDER_DEFAULT).join(
-                            ",",
-                        )}
+                        {(isNatalMode
+                            ? TAB_ORDER_NATAL
+                            : TAB_ORDER_DEFAULT
+                        ).join(",")}
                     </span>
                 </div>
 
@@ -302,26 +300,29 @@ export default function HoroscopeReadingTabs({
                                 dateIso={dateIso}
                                 privacyAliases={aliases}
                                 isLoading={message.isLoading}
+                                overviewReady={hasOverviewContent}
                                 transitSourceMessage={message}
                             />
                         )}
 
-                        {message.isLoading && !showVerdict && (
-                            <div
-                                className='flex flex-col items-center gap-4 py-6 animate-pulse'
-                                aria-hidden
-                            >
-                                <div className='h-12 w-12 rounded-full bg-white/[0.07]' />
-                                <div className='h-6 w-2/3 rounded-full bg-white/[0.07]' />
-                                <div className='h-5 w-24 rounded-full bg-white/[0.05]' />
-                                <div className='mt-4 w-full max-w-md space-y-2 rounded-2xl border border-white/[0.06] bg-white/[0.03] px-4 py-4'>
-                                    <div className='h-5 w-3/4 rounded bg-white/[0.07]' />
-                                    <div className='h-3 w-5/6 rounded bg-white/[0.05]' />
-                                </div>
-                            </div>
+                        {message.timeline &&
+                            message.timeline.slots &&
+                            message.timeline.slots.length > 0 && (
+                                <PredictionTimeline
+                                    timeline={message.timeline}
+                                    isLoading={message.isLoading}
+                                    privacyAliases={aliases}
+                                />
+                            )}
+
+                        {!showVerdict && showOverviewLoader && (
+                            <CosmicCenteredLoader
+                                label={tChat("loading")}
+                                variant='embedded'
+                            />
                         )}
 
-                        {!message.isLoading && !showVerdict && summary && (
+                        {!showVerdict && summary && (
                             <div className='rounded-2xl border border-indigo-300/20 bg-indigo-400/[0.07] px-4 py-3 shadow-[0_8px_24px_-18px_rgba(129,140,248,0.75)]'>
                                 <div className='mb-1 flex items-start justify-between gap-3'>
                                     <div>

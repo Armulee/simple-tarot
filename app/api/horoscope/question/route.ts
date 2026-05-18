@@ -24,6 +24,11 @@ import {
 } from "@/lib/astrology/transit-aspects"
 import { queryCalendarDates } from "@/lib/calendar/query"
 import type { CalendarPlanTier } from "@/lib/calendar/access-window"
+import { isSingleDayQuestionRange } from "@/lib/astrology/single-day"
+import {
+    buildMyCalendarDaySnapshotForHoroscope,
+    resolveSessionPrimaryChartSystem,
+} from "@/lib/calendar/my-calendar-day-snapshot"
 
 // Chart data (with aspects) is now served separately via /api/horoscope/chart-data.
 // This route only streams the AI interpretation.
@@ -250,6 +255,28 @@ export async function POST(req: Request) {
                       questionTopic.relevantPlanets,
                   )
                 : rawTransitAspects
+
+        const sessionPrimarySystem = resolveSessionPrimaryChartSystem(
+            locale,
+            body.birth.country,
+            body.system,
+        )
+        const myCalendarDay =
+            isSingleDayQuestionRange({
+                durationDays: questionRange.durationDays,
+                source: questionRange.source,
+            }) && primaryBirthChart?.planets
+                ? await buildMyCalendarDaySnapshotForHoroscope({
+                      birth: body.birth,
+                      isoDate: questionRange.startDateIso,
+                      codexRows: codexTransit.rows,
+                      textLocale: locale,
+                      sessionChartSystem: sessionPrimarySystem,
+                      sessionNatalPlanets:
+                          primaryBirthChart.planets as Record<string, unknown>,
+                  })
+                : null
+
         const resolvedTime = resolveBirthTime({
             hour: body.birth.hour ?? null,
             minute: body.birth.minute ?? null,
@@ -312,6 +339,7 @@ export async function POST(req: Request) {
             storedBirthChart: body.storedBirthChart ?? null,
             isNatalChartReferenceQuestion: naturalNatalReference,
             calendarRecommendation,
+            myCalendarDay,
         })
 
         console.log(

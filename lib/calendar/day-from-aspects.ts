@@ -160,7 +160,9 @@ function resolveCalendarTextLocale(locale?: string): CalendarTextLocale {
 }
 
 function getPlanetLabel(planet: Planet, locale: CalendarTextLocale) {
-    return locale === "th" ? PLANET_TH[planet] ?? planet : PLANET_EN[planet] ?? planet
+    return locale === "th"
+        ? (PLANET_TH[planet] ?? planet)
+        : (PLANET_EN[planet] ?? planet)
 }
 
 function getAspectLabel(
@@ -491,9 +493,7 @@ function buildWarnings(
                 e.transitPlanet as Planet,
                 e.aspectType,
                 e.natalPlanet as Planet,
-                isMalefic(e.transitPlanet)
-                    ? "work_health"
-                    : "communication",
+                isMalefic(e.transitPlanet) ? "work_health" : "communication",
             ),
             severity: severityFromOrb(e.orb),
         }

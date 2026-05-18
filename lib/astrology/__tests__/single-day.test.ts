@@ -36,9 +36,16 @@ test("default 30-day fallback → false", () => {
     )
 })
 
-test("ai-inferred is never trusted as single day", () => {
+test("ai-inferred single day → true (dated day reading)", () => {
     assert.equal(
         isSingleDayQuestionRange({ durationDays: 1, source: "ai_inferred" }),
+        true,
+    )
+})
+
+test("ai-inferred multi-day → false for single-day helper", () => {
+    assert.equal(
+        isSingleDayQuestionRange({ durationDays: 7, source: "ai_inferred" }),
         false,
     )
 })
@@ -69,10 +76,17 @@ test("isNatalQuestionRange: default_30d → true", () => {
     )
 })
 
-test("isNatalQuestionRange: ai_inferred → true (no explicit date)", () => {
+test("isNatalQuestionRange: ai_inferred multi-day → true", () => {
     assert.equal(
         isNatalQuestionRange({ durationDays: 7, source: "ai_inferred" }),
         true,
+    )
+})
+
+test("isNatalQuestionRange: ai_inferred single day → false (daily verdict)", () => {
+    assert.equal(
+        isNatalQuestionRange({ durationDays: 1, source: "ai_inferred" }),
+        false,
     )
 })
 

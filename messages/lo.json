@@ -11,7 +11,7 @@
     "notice": "ພວກເຮົາຢູ່ໃນຊ່ວງເບຕ້າ! ທ່ານອາດພົບຂໍ້ຜິດພາດ ແລະ ບາງຟີເຈີຍັງຢູ່ລະຫວ່າງການພັດທະນາ"
   },
   "PageContextComposer": {
-    "eyebrow": "ໃນໜ້ານີ້",
+    "eyebrow": "ບໍລິບົດ",
     "hint": "ບໍລິບົດນີ້ຈະຖືກສົ່ງໃຫ້ AI",
     "error": "ຂໍອະໄພ ມີຂໍ້ຜິດພາດ ກະລຸນາລອງໃໝ່"
   },
@@ -915,6 +915,9 @@
       "Saturn": "ດາວເສົາ",
       "Rahu": "ຣາຫູ",
       "Ketu": "ເກດ",
+      "Uranus": "ດາວຢູເຣນັສ",
+      "Neptune": "ດາວເນບຈູນ",
+      "Pluto": "ດາວພລູໂຕ",
       "Ascendant": "ລັກນາ"
     },
     "in": "ໃນ",
@@ -1967,9 +1970,12 @@
       "cta": "ອັບເກຣດ ฿199/ເດືອນ"
     },
     "locked": {
-      "title": "ປົດລັອກປະຕິທິນຂອງທ່ານເພີ່ມເຕີມ",
-      "bodyFree": "ແພັກຟຣີເບິ່ງໄດ້ ±30 ວັນຈາກວັນນີ້ ອັບເກຣດເປັນ Basic ເພື່ອເບິ່ງ ±1 ປີ ຫຼື Pro ເພື່ອເບິ່ງໄດ້ບໍ່ຈຳກັດ",
-      "bodyBasic": "Basic ເບິ່ງໄດ້ ±1 ປີ ອັບເກຣດເປັນ Pro ເພື່ອເບິ່ງໄດ້ບໍ່ຈຳກັດ",
+      "title": "ປົດລັອກວັນນີ້",
+      "bodyFree": "ວັນນີ້ຢູ່ນອກແພັກຟຣີ (±30 ວັນ) — ສະໝັກ Basic ປົດລັອກປະຕິທິນ ±1 ປີທັນທີ ເລີ່ມປະມານ {price}/ເດືອນ ຊຳລະຜ່ານ Stripe ໃນໜ້າຕໍ່ໄປ",
+      "bodyBasic": "ວັນນີ້ຢູ່ນອກຊ່ວງ Basic (±1 ປີ) — ອັບເກຣດ Pro ເບິ່ງໄດ້ບໍ່ຈຳກັດ ເລີ່ມປະມານ {price}/ເດືອນ ຊຳລະຜ່ານ Stripe ໃນໜ້າຕໍ່ໄປ",
+      "noteFree": "ແຜນ Basic ມີດາວຕໍ່ເດືອນສຳລັບຖາມ-ຕອບໃນແອັບ; ການເບິ່ງປະຕິທິນບໍ່ໄດ້ເກັບເປັນວັນລະ 1 ດາວ",
+      "ctaFree": "ໄປສະໝັກ Basic (Stripe)",
+      "ctaBasic": "ໄປອັບເກຣດ Pro (Stripe)",
       "cta": "ອັບເກຣດ",
       "cellHint": "ໃຊ້ໄດ້ກັບ Basic ຂຶ້ນໄປ"
     },
@@ -2717,11 +2723,33 @@
       "transitLabel": "ດາວຈອນ",
       "natalLabel": "ດາວເກີດ",
       "emptyFallback": "ສະແດງຄຳທຳນາຍແບບເຕັມສຳລັບມື້ນີ້",
-      "aspectConjunction": "ຮ່ວມ",
-      "aspectOpposition": "ກົງຂ້າມ",
-      "aspectSquare": "ສີ່ແຍກ",
-      "aspectTrine": "ສາມຫຼ່ຽມ",
-      "aspectSextile": "ຫົກແຍກ"
+      "aspectConjunction": "ກຸມ",
+      "aspectOpposition": "ແລງ",
+      "aspectSquare": "ສາກ",
+      "aspectTrine": "ຕຣີໂກນ",
+      "aspectSextile": "ໂຍກ"
+    },
+    "timeline": {
+      "title": "ສາຍເວລາທີ່ອາດຈະເກີດຂຶ້ນ",
+      "subtitleHourly": "ເບິ່ງເປັນຊ່ວງເວລາໃນມື້ນີ້",
+      "subtitleDaily": "ເບິ່ງເປັນລາຍວັນຕະຫຼອດໄລຍະນີ້",
+      "granularityHourly": "ມຸມມອງລາຍຊົ່ວໂມງ",
+      "granularityDaily": "ມຸມມອງລາຍວັນ",
+      "loading": "ກຳລັງສ້າງສາຍເວລາ...",
+      "moodGood": "ພະລັງໄຫຼລື່ນ",
+      "moodCaution": "ລະວັງໄວ້",
+      "moodRest": "ຄ່ອຍໆ ໄປ",
+      "moodMixed": "ສະຫຼັບຂົ້ວ",
+      "focusHeading": "ໂຟກັສ",
+      "hourBuckets": {
+        "lateNight": "ດຶກ",
+        "dawn": "ເຊົ້າມືດ",
+        "morning": "ເຊົ້າ",
+        "midday": "ກາງເວັນ",
+        "afternoon": "ບ່າຍ",
+        "evening": "ແລງ",
+        "night": "ຄ່ຳ"
+      }
     }
   },
   "Settings": {

@@ -4,6 +4,7 @@ import { useMemo } from "react"
 import Image from "next/image"
 import { AlertTriangle, Moon, Sparkles, Target } from "lucide-react"
 import { useFormatter, useTranslations } from "next-intl"
+import CosmicCenteredLoader from "@/components/cosmic-centered-loader"
 import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
 import { PrivacyDetailedHtml } from "@/components/chat/privacy/privacy-detailed-html"
 import { InterpretationHeaderBar } from "@/components/chat/interpretation-header-bar"
@@ -13,6 +14,7 @@ import type {
 } from "@/components/chat/types"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import { getPlanetImageSrc } from "@/lib/astrology/planet-images"
+import { classifyQuestionTopic } from "@/lib/astrology/question-intent"
 import { getPlanetDignity } from "@/lib/birth-chart-utils"
 import TransitFeed from "@/components/chat/horoscope/transit-feed"
 import NatalPlanetSpotlight from "@/components/chat/horoscope/natal-planet-spotlight"
@@ -50,6 +52,8 @@ type VerdictHeroProps = {
     privacyAliases?: PromptAliasEntry[]
     /** When true, compact interpretation actions stay hidden (same as tarot). */
     isLoading?: boolean
+    /** True once the first overview sentence or aspect insight has streamed in. */
+    overviewReady?: boolean
     /** Same message as the horoscope reading; powers the transit aspect list under the verdict. */
     transitSourceMessage: ChatMessage
 }
@@ -522,8 +526,10 @@ export default function VerdictHero({
     dateIso,
     privacyAliases,
     isLoading = false,
+    overviewReady = false,
     transitSourceMessage,
 }: VerdictHeroProps) {
+    const tChat = useTranslations("HoroscopeChat")
     const t = useTranslations("HoroscopeChat.verdict")
     const formatter = useFormatter()
     const style = MOOD_STYLES[verdict.mood]
@@ -574,6 +580,30 @@ export default function VerdictHero({
     const keyMessageSubtitle = (verdict.keyMessage?.subtitle ?? "").trim()
     const isNatalMode = verdict.mode === "natal"
     const isTimingMode = verdict.mode === "timing"
+    const questionText = useMemo(
+        () =>
+            (
+                transitSourceMessage.question ??
+                transitSourceMessage.displayQuestion ??
+                ""
+            ).trim(),
+        [
+            transitSourceMessage.displayQuestion,
+            transitSourceMessage.question,
+        ],
+    )
+    const questionTopic = useMemo(
+        () => classifyQuestionTopic(questionText),
+        [questionText],
+    )
+    const transitPlanetFilter =
+        questionTopic.topic !== "general"
+            ? questionTopic.relevantPlanets
+            : undefined
+    const timingDateRange =
+        isTimingMode && verdict.timingWindow ? verdict.timingWindow : undefined
+    const showFocusAreaPill =
+        !!verdict.focusArea?.trim() && questionTopic.topic === "general"
     const relevantPlanets = useMemo<NatalRelevantPlanet[]>(
         () => (isNatalMode ? verdict.relevantPlanets ?? [] : []),
         [isNatalMode, verdict.relevantPlanets],
@@ -591,16 +621,23 @@ export default function VerdictHero({
     )
     const showNatalHeroCrest = isNatalMode && heroPlacements.length > 0
     const showTimingHeroCrest = isTimingMode && !!verdict.timingWindow
+    const hasVerdictText =
+        verdict.headline.trim().length > 0 ||
+        keyMessageHeadline.length > 0 ||
+        detailedHtml.length > 0
+    const showLoadingState = isLoading && !overviewReady && !hasVerdictText
     // Daily verdicts hang their visual under the detailed HTML (the transit
     // feed). Natal verdicts use the relevant-planets spotlight instead. We
     // never show both at the same time.
-    const showTransitFeed = !isLoading && !isNatalMode
-    const showNatalSpotlight = !isLoading && isNatalMode && hasRelevantPlanets
+    const showTransitFeed = overviewReady && !isLoading && !isNatalMode
+    const showNatalSpotlight =
+        overviewReady && !isLoading && isNatalMode && hasRelevantPlanets
     const showReplyBubble =
         keyMessageHeadline.length > 0 ||
         detailedHtml.length > 0 ||
         showTransitFeed ||
-        showNatalSpotlight
+        showNatalSpotlight ||
+        showLoadingState
 
     return (
         <section
@@ -659,8 +696,18 @@ export default function VerdictHero({
                 {showReplyBubble && (
                     <div className='w-full space-y-5 text-left text-white/90 leading-relaxed'>
                         <div className='w-full'>
-                            <InterpretationHeaderBar isLoading={isLoading} />
+                            <InterpretationHeaderBar
+                                isLoading={isLoading}
+                                showActions={overviewReady || !isLoading}
+                            />
                         </div>
+                        {showLoadingState && (
+                            <CosmicCenteredLoader
+                                label={tChat("loading")}
+                                variant='embedded'
+                                className='min-h-[280px] py-8'
+                            />
+                        )}
                         {keyMessageHeadline.length > 0 && (
                             <div className='rounded-2xl border border-indigo-300/20 bg-indigo-400/[0.07] px-4 py-4 shadow-[0_8px_24px_-18px_rgba(129,140,248,0.75)] animate-fade-in'>
                                 <h3 className='text-2xl sm:text-3xl font-semibold tracking-tight text-white leading-snug'>
@@ -682,9 +729,10 @@ export default function VerdictHero({
                             </div>
                         )}
 
-                        {(detailedHtml.length > 0 ||
-                            showTransitFeed ||
-                            showNatalSpotlight) && (
+                        {!showLoadingState &&
+                            (detailedHtml.length > 0 ||
+                                showTransitFeed ||
+                                showNatalSpotlight) && (
                             <div className='rounded-2xl shadow-lg animate-fade-in text-white/90 leading-relaxed'>
                                 {detailedHtml.length > 0 && (
                                     <PrivacyDetailedHtml
@@ -705,6 +753,15 @@ export default function VerdictHero({
                                         <TransitFeed
                                             message={transitSourceMessage}
                                             privacyAliases={aliases}
+                                            transitPlanetFilter={
+                                                transitPlanetFilter
+                                            }
+                                            dateRange={timingDateRange}
+                                            compact={
+                                                isTimingMode ||
+                                                !!transitPlanetFilter
+                                            }
+                                            maxVisible={3}
                                         />
                                     </div>
                                 )}
@@ -731,17 +788,17 @@ export default function VerdictHero({
                     </div>
                 )}
 
-                {verdict.focusArea && (
-                    <div className='flex items-center justify-center gap-2 pt-1'>
+                {showFocusAreaPill && (
+                    <div className='flex items-center justify-center gap-1.5 pt-0.5'>
                         <Target
                             aria-hidden
-                            className='h-3.5 w-3.5 text-white/40'
+                            className='h-3 w-3 text-white/35'
                         />
-                        <span className='text-[11px] uppercase tracking-[0.18em] text-white/45'>
+                        <span className='text-[10px] uppercase tracking-[0.14em] text-white/40'>
                             {t("focusHeading")}
                         </span>
                         <span
-                            className={`inline-flex items-center rounded-full border ${style.pillBorder} ${style.pillBg} px-3 py-0.5 text-[11px] font-medium ${style.accent}`}
+                            className={`inline-flex items-center rounded-full border ${style.pillBorder} ${style.pillBg} px-2 py-px text-[10px] font-medium ${style.accent}`}
                         >
                             {verdict.focusArea}
                         </span>

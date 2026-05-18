@@ -12,18 +12,22 @@ export type SingleDayCheckable = {
 }
 
 /**
- * Returns true iff the question references exactly one day AND the resolver
- * was confident about it (explicit date or unambiguous relative phrasing like
- * today/tomorrow). We deliberately exclude `default_30d` and `ai_inferred`
- * even when their durationDays happens to be 1, because those signals are not
- * trustworthy enough to swap the user into the "daily verdict" experience.
+ * Returns true iff the question references exactly one calendar day.
+ * Trusted anchors: explicit dates, relative single-day phrases (today), or
+ * AI-inferred spans that locked to a single day. We still exclude
+ * `default_30d` — that fallback is the open-ended "no date in question"
+ * path even when durationDays happens to be 1.
  */
 export function isSingleDayQuestionRange(
     range: SingleDayCheckable | null | undefined,
 ): boolean {
     if (!range) return false
     if (range.durationDays !== 1) return false
-    return range.source === "explicit" || range.source === "relative"
+    return (
+        range.source === "explicit" ||
+        range.source === "relative" ||
+        range.source === "ai_inferred"
+    )
 }
 
 /**
@@ -42,7 +46,25 @@ export function isNatalQuestionRange(
     range: SingleDayCheckable | null | undefined,
 ): boolean {
     if (!range) return false
-    return range.source === "default_30d" || range.source === "ai_inferred"
+    if (range.source === "default_30d") return true
+    // Multi-day AI spans still lack a calendar anchor in the question text;
+    // single-day AI spans are treated as a dated day reading, not natal.
+    if (range.source === "ai_inferred") {
+        return range.durationDays !== 1
+    }
+    return false
+}
+
+/**
+ * True when the resolver found an explicit calendar anchor in the question
+ * (a date, "today", "this month", "within 7 days", etc.) or an AI-inferred
+ * span. Open-ended timing questions that only hit the 30-day default are false.
+ */
+export function isDateBoundedQuestionRange(
+    range: SingleDayCheckable | null | undefined,
+): boolean {
+    if (!range) return false
+    return range.source !== "default_30d"
 }
 
 /**

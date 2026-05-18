@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import Image from "next/image"
 import { ChevronDown, Orbit } from "lucide-react"
-import { useFormatter, useLocale, useTranslations } from "next-intl"
+import { useFormatter, useLocale, useMessages, useTranslations } from "next-intl"
 import { AspectIcon } from "@/components/astrology/aspect-icon"
 import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
 import type { AspectInsightItem, ChatMessage } from "@/components/chat/types"
@@ -16,6 +16,7 @@ import { getPlanetImageSrc } from "@/lib/astrology/planet-images"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 
 const VISIBLE_DEFAULT = 6
+const VISIBLE_COMPACT = 3
 
 type FeedEvent = {
     aspectKey: string
@@ -88,6 +89,77 @@ function buildEvents(
         const bi = b.intensity ? (intensityRank[b.intensity] ?? 3) : 3
         if (ai !== bi) return ai - bi
         return a.primaryDateIso.localeCompare(b.primaryDateIso)
+    })
+}
+
+export function filterFeedEventsByTransitPlanets(
+    events: FeedEvent[],
+    transitPlanets: readonly string[] | undefined,
+): FeedEvent[] {
+    if (!transitPlanets?.length) return events
+    const allowed = new Set(transitPlanets)
+    return events.filter((e) => allowed.has(e.transitPlanet))
+}
+
+type AstroMessageSlice = {
+    BirthChart?: {
+        planets?: Record<string, string>
+        zodiacSigns?: Record<string, string>
+    }
+    PlanetaryPanel?: {
+        planets?: Record<string, string>
+        zodiac?: Record<string, string>
+    }
+}
+
+function resolvePlanetLabel(
+    planet: string,
+    messages: AstroMessageSlice,
+): string {
+    return (
+        messages.BirthChart?.planets?.[planet] ??
+        messages.PlanetaryPanel?.planets?.[planet] ??
+        planet
+    )
+}
+
+function resolveSignLabel(signKey: string, messages: AstroMessageSlice): string {
+    return (
+        messages.BirthChart?.zodiacSigns?.[signKey] ??
+        messages.PlanetaryPanel?.zodiac?.[signKey] ??
+        signKey
+    )
+}
+
+function localizePositionText(
+    positionText: string | undefined,
+    messages: AstroMessageSlice,
+): string | null {
+    if (!positionText?.trim()) return null
+    const parts = positionText.split("·").map((s) => s.trim())
+    if (parts.length < 2) return positionText.trim()
+    const signKey = parts[0]
+    const degreePart = parts.slice(1).join(" · ")
+    const signLabel = resolveSignLabel(signKey, messages)
+    return `${signLabel} · ${degreePart}`
+}
+
+export function filterFeedEventsByDateRange(
+    events: FeedEvent[],
+    startDateIso: string | undefined,
+    endDateIso: string | undefined,
+): FeedEvent[] {
+    if (!startDateIso || !endDateIso) return events
+    return events.filter((e) => {
+        if (e.isWindow && e.secondaryDateIso) {
+            return (
+                e.primaryDateIso <= endDateIso &&
+                e.secondaryDateIso >= startDateIso
+            )
+        }
+        return (
+            e.primaryDateIso >= startDateIso && e.primaryDateIso <= endDateIso
+        )
     })
 }
 
@@ -200,11 +272,22 @@ function IntensityMeter({
 export default function TransitFeed({
     message,
     privacyAliases,
+    transitPlanetFilter,
+    dateRange,
+    compact = false,
+    maxVisible,
 }: {
     message: ChatMessage
     privacyAliases?: PromptAliasEntry[]
+    /** When set, only aspects whose transit planet is in this list are shown. */
+    transitPlanetFilter?: readonly string[]
+    dateRange?: { startDateIso: string; endDateIso: string }
+    /** Tighter cards and fewer rows — used for timing verdicts. */
+    compact?: boolean
+    maxVisible?: number
 }) {
     const t = useTranslations("HoroscopeChat.transit")
+    const messages = useMessages() as AstroMessageSlice
     const locale = useLocale()
     const formatter = useFormatter()
     const aliases = privacyAliases ?? []
@@ -218,19 +301,31 @@ export default function TransitFeed({
         return map
     }, [message.aspectInsights])
 
-    const events = useMemo(
-        () =>
-            buildEvents(
-                message.personalizedTransitAspectsMerged ??
-                    message.personalizedTransitAspects,
-                insightsByKey,
-            ),
-        [
+    const events = useMemo(() => {
+        const built = buildEvents(
+            message.personalizedTransitAspectsMerged ??
+                message.personalizedTransitAspects,
             insightsByKey,
-            message.personalizedTransitAspects,
-            message.personalizedTransitAspectsMerged,
-        ],
-    )
+        )
+        const inRange = filterFeedEventsByDateRange(
+            built,
+            dateRange?.startDateIso,
+            dateRange?.endDateIso,
+        )
+        return filterFeedEventsByTransitPlanets(
+            inRange,
+            transitPlanetFilter,
+        )
+    }, [
+        dateRange?.endDateIso,
+        dateRange?.startDateIso,
+        insightsByKey,
+        message.personalizedTransitAspects,
+        message.personalizedTransitAspectsMerged,
+        transitPlanetFilter,
+    ])
+
+    const visibleLimit = maxVisible ?? (compact ? VISIBLE_COMPACT : VISIBLE_DEFAULT)
 
     const aspectLabel = (type: string) => {
         switch (type) {
@@ -248,6 +343,9 @@ export default function TransitFeed({
                 return type
         }
     }
+
+    const planetLabel = (planet: string) =>
+        resolvePlanetLabel(planet, messages)
 
     const formatDate = (iso: string) => {
         try {
@@ -295,13 +393,17 @@ export default function TransitFeed({
         )
     }
 
-    const visible = expanded ? events : events.slice(0, VISIBLE_DEFAULT)
-    const hasMore = events.length > VISIBLE_DEFAULT
-    const remaining = events.length - VISIBLE_DEFAULT
+    const visible = expanded ? events : events.slice(0, visibleLimit)
+    const hasMore = events.length > visibleLimit
+    const remaining = events.length - visibleLimit
+    const avatarSize = compact ? 28 : 36
+    const cardPadding = compact ? "py-3" : "py-4"
 
     return (
-        <div className='space-y-5'>
-            <div className='relative overflow-hidden rounded-2xl border border-indigo-300/20 bg-gradient-to-r from-indigo-500/[0.1] via-violet-500/[0.06] to-cyan-500/[0.05] px-4 py-3.5 shadow-[0_10px_36px_-18px_rgba(99,102,241,0.35)]'>
+        <div className={compact ? "space-y-3" : "space-y-5"}>
+            <div
+                className={`relative overflow-hidden rounded-2xl border border-indigo-300/20 bg-gradient-to-r from-indigo-500/[0.1] via-violet-500/[0.06] to-cyan-500/[0.05] shadow-[0_10px_36px_-18px_rgba(99,102,241,0.35)] ${compact ? "px-3 py-2.5" : "px-4 py-3.5"}`}
+            >
                 <div
                     aria-hidden
                     className='pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[radial-gradient(circle,rgba(129,140,248,0.18),transparent_70%)] blur-2xl'
@@ -336,7 +438,7 @@ export default function TransitFeed({
                     return (
                         <li
                             key={`${event.aspectKey}-${idx}`}
-                            className='group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.04] via-white/[0.02] to-white/[0.01] pl-4 pr-4 py-4 shadow-[0_8px_32px_-22px_rgba(0,0,0,0.65)] transition duration-300 hover:border-indigo-300/25 hover:from-white/[0.06] hover:shadow-[0_14px_44px_-20px_rgba(99,102,241,0.28)]'
+                            className={`group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.04] via-white/[0.02] to-white/[0.01] pl-4 pr-4 ${cardPadding} shadow-[0_8px_32px_-22px_rgba(0,0,0,0.65)] transition duration-300 hover:border-indigo-300/25 hover:from-white/[0.06] hover:shadow-[0_14px_44px_-20px_rgba(99,102,241,0.28)]`}
                         >
                             <span
                                 aria-hidden
@@ -352,6 +454,7 @@ export default function TransitFeed({
                                     <div className='flex min-w-0 items-center gap-2.5'>
                                         <PlanetAvatar
                                             name={event.transitPlanet}
+                                            size={avatarSize}
                                         />
                                         <span
                                             aria-hidden
@@ -363,7 +466,10 @@ export default function TransitFeed({
                                                 className='h-3.5 w-3.5'
                                             />
                                         </span>
-                                        <PlanetAvatar name={event.natalPlanet} />
+                                        <PlanetAvatar
+                                            name={event.natalPlanet}
+                                            size={avatarSize}
+                                        />
                                     </div>
                                     <time
                                         className='shrink-0 rounded-full border border-white/[0.08] bg-black/20 px-2.5 py-1 text-[11px] font-medium tabular-nums text-white/55'
@@ -375,28 +481,86 @@ export default function TransitFeed({
                                     </time>
                                 </div>
 
-                                <div className='flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[13px] leading-snug'>
-                                    <span className='font-medium text-white'>
-                                        {event.transitPlanet}
-                                    </span>
-                                    <span
-                                        className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${sStyle.accent}`}
-                                    >
-                                        {aspectLabel(event.aspectType)}
-                                    </span>
-                                    <span className='font-medium text-white'>
-                                        {event.natalPlanet}
-                                    </span>
-                                    <span className='ml-1 text-[11px] text-white/40'>
-                                        {t("transitLabel")}
-                                        <span className='mx-1 text-white/25'>
-                                            ·
-                                        </span>
-                                        {t("natalLabel")}
-                                    </span>
-                                </div>
+                                {compact && (
+                                    <div className='flex flex-col gap-1'>
+                                        <div className='flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[12px] leading-snug'>
+                                            <span className='font-medium text-white'>
+                                                {planetLabel(event.transitPlanet)}
+                                            </span>
+                                            <span
+                                                className={`text-[10px] font-semibold uppercase tracking-[0.14em] ${sStyle.accent}`}
+                                            >
+                                                {aspectLabel(event.aspectType)}
+                                            </span>
+                                            <span className='text-white/35'>
+                                                →
+                                            </span>
+                                            <span className='font-medium text-white'>
+                                                {planetLabel(event.natalPlanet)}
+                                            </span>
+                                        </div>
+                                        {(event.transitPositionText ||
+                                            event.natalPositionText) && (
+                                            <p className='text-[11px] leading-relaxed text-white/55'>
+                                                {event.transitPositionText && (
+                                                    <span>
+                                                        {planetLabel(
+                                                            event.transitPlanet,
+                                                        )}
+                                                        {": "}
+                                                        {localizePositionText(
+                                                            event.transitPositionText,
+                                                            messages,
+                                                        )}
+                                                    </span>
+                                                )}
+                                                {event.transitPositionText &&
+                                                    event.natalPositionText && (
+                                                        <span className='text-white/30'>
+                                                            {" · "}
+                                                        </span>
+                                                    )}
+                                                {event.natalPositionText && (
+                                                    <span>
+                                                        {planetLabel(
+                                                            event.natalPlanet,
+                                                        )}
+                                                        {": "}
+                                                        {localizePositionText(
+                                                            event.natalPositionText,
+                                                            messages,
+                                                        )}
+                                                    </span>
+                                                )}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
 
-                                {(event.intensity || event.keyword) && (
+                                {!compact && (
+                                    <div className='flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[13px] leading-snug'>
+                                        <span className='font-medium text-white'>
+                                            {planetLabel(event.transitPlanet)}
+                                        </span>
+                                        <span
+                                            className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${sStyle.accent}`}
+                                        >
+                                            {aspectLabel(event.aspectType)}
+                                        </span>
+                                        <span className='font-medium text-white'>
+                                            {planetLabel(event.natalPlanet)}
+                                        </span>
+                                        <span className='ml-1 text-[11px] text-white/40'>
+                                            {t("transitLabel")}
+                                            <span className='mx-1 text-white/25'>
+                                                ·
+                                            </span>
+                                            {t("natalLabel")}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {!compact && (event.intensity || event.keyword) && (
                                     <div className='flex flex-wrap items-center gap-2'>
                                         {event.intensity && (
                                             <span className='inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.04] px-2 py-1'>
@@ -420,7 +584,7 @@ export default function TransitFeed({
                                     </div>
                                 )}
 
-                                {event.insight && (
+                                {!compact && event.insight && (
                                     <p className='relative border-t border-white/[0.06] pt-3 text-sm leading-relaxed text-white/[0.82]'>
                                         <PrivacyHighlightedText
                                             text={event.insight}
@@ -429,7 +593,8 @@ export default function TransitFeed({
                                         />
                                     </p>
                                 )}
-                                {!event.insight &&
+                                {!compact &&
+                                    !event.insight &&
                                     (event.transitPositionText ||
                                         event.natalPositionText) && (
                                         <p
@@ -438,8 +603,14 @@ export default function TransitFeed({
                                         >
                                             {event.transitPositionText && (
                                                 <span>
-                                                    {t("transitLabel")}:{" "}
-                                                    {event.transitPositionText}
+                                                    {planetLabel(
+                                                        event.transitPlanet,
+                                                    )}
+                                                    {": "}
+                                                    {localizePositionText(
+                                                        event.transitPositionText,
+                                                        messages,
+                                                    )}
                                                 </span>
                                             )}
                                             {event.transitPositionText &&
@@ -450,8 +621,14 @@ export default function TransitFeed({
                                                 )}
                                             {event.natalPositionText && (
                                                 <span>
-                                                    {t("natalLabel")}:{" "}
-                                                    {event.natalPositionText}
+                                                    {planetLabel(
+                                                        event.natalPlanet,
+                                                    )}
+                                                    {": "}
+                                                    {localizePositionText(
+                                                        event.natalPositionText,
+                                                        messages,
+                                                    )}
                                                 </span>
                                             )}
                                         </p>

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { useTranslations, useLocale } from "next-intl"
 import { experimental_useObject as useObject } from "@ai-sdk/react"
+import { parsePartialJson } from "ai"
 import { useStars } from "@/contexts/stars-context"
 import Footer from "@/components/footer/footer"
 import { TypewriterText } from "@/components/typewriter-text"
@@ -15,6 +16,7 @@ import {
 } from "@/lib/tarot/schema"
 import {
     horoscopeInterpretationSchema,
+    streamingDailyVerdictSchema,
     type HoroscopeInterpretation,
 } from "@/lib/astrology/schema"
 import {
@@ -316,8 +318,7 @@ function normalizeRestoredMessages(messages: ChatMessage[]): ChatMessage[] {
         if (cleaned.length === 1) {
             return { ...m, followUpSuggestions: undefined }
         }
-        const capped =
-            cleaned.length > 4 ? cleaned.slice(0, 4) : cleaned
+        const capped = cleaned.length > 4 ? cleaned.slice(0, 4) : cleaned
         if (
             capped.length === m.followUpSuggestions.length &&
             capped.every((s, i) => s === m.followUpSuggestions![i])
@@ -402,10 +403,14 @@ function normalizeDailyVerdict(
           }
         | null
         | undefined,
+    options?: {
+        allowPartialDetailedHtml?: boolean
+    },
 ): ChatMessage["dailyVerdict"] | undefined {
     if (!verdict) return undefined
     const mood = verdict.mood
-    if (mood !== "good" && mood !== "caution" && mood !== "rest") return undefined
+    if (mood !== "good" && mood !== "caution" && mood !== "rest")
+        return undefined
     const headline = (verdict.headline ?? "").trim()
     if (!headline) return undefined
 
@@ -429,7 +434,7 @@ function normalizeDailyVerdict(
             detailedHtml = `<p>${legacySubtext}</p>`
         }
     }
-    if (!detailedHtml) return undefined
+    if (!detailedHtml && !options?.allowPartialDetailedHtml) return undefined
 
     const watchOut = verdict.watchOut?.trim() || undefined
     const focusArea = verdict.focusArea?.trim() || undefined
@@ -442,12 +447,6 @@ function normalizeDailyVerdict(
               subtitle: keyMessageSubtitle,
           }
         : undefined
-    const mode =
-        verdict.mode === "natal"
-            ? "natal"
-            : verdict.mode === "timing"
-              ? "timing"
-              : "daily"
     const isoPattern = /^\d{4}-\d{2}-\d{2}$/
     const timingWindow =
         verdict.timingWindow &&
@@ -475,6 +474,16 @@ function normalizeDailyVerdict(
               .filter((rp): rp is { planet: string; reason: string } => !!rp)
               .slice(0, 4)
         : undefined
+    const mode =
+        verdict.mode === "natal"
+            ? "natal"
+            : verdict.mode === "timing"
+              ? "timing"
+              : timingWindow
+                ? "timing"
+                : relevantPlanets && relevantPlanets.length > 0
+                  ? "natal"
+                  : "daily"
     return {
         mood,
         headline,
@@ -490,6 +499,29 @@ function normalizeDailyVerdict(
                 : undefined,
         timingWindow: mode === "timing" ? timingWindow : undefined,
     }
+}
+
+function extractVerdictPayload(
+    payload:
+        | ({
+              dailyVerdict?: unknown
+          } & Record<string, unknown>)
+        | null
+        | undefined,
+) {
+    if (!payload || typeof payload !== "object") return undefined
+    return "dailyVerdict" in payload ? payload.dailyVerdict : payload
+}
+
+/** Short plain `message.text` when the reading is verdict-only (no /question body). */
+function plainSummaryFromVerdict(
+    verdict: NonNullable<ChatMessage["dailyVerdict"]>,
+): string {
+    const h = verdict.keyMessage?.headline?.trim() ?? ""
+    const s = verdict.keyMessage?.subtitle?.trim() ?? ""
+    const joined = [h, s].filter(Boolean).join(" ").trim()
+    if (joined) return joined
+    return verdict.headline.trim()
 }
 
 function areDailyVerdictsEqual(
@@ -526,6 +558,106 @@ function areDailyVerdictsEqual(
         (b.timingWindow?.endDateIso ?? "")
     )
         return false
+    return true
+}
+
+type RawPredictionTimelineSlot = {
+    slotKey?: string | null
+    datetimeIso?: string | null
+    label?: string | null
+    mood?: string | null
+    title?: string | null
+    narrative?: string | null
+    focusArea?: string | null
+    tags?: Array<string | null | undefined> | null
+}
+
+type RawPredictionTimeline = {
+    granularity?: string | null
+    slots?: Array<RawPredictionTimelineSlot | null | undefined> | null
+}
+
+type NormalizedTimelineSlot = NonNullable<
+    NonNullable<ChatMessage["timeline"]>["slots"][number]
+>
+
+const horoscopeVerdictStreamSchema = streamingDailyVerdictSchema.passthrough()
+
+function normalizePredictionTimeline(
+    timeline: RawPredictionTimeline | null | undefined,
+): ChatMessage["timeline"] | undefined {
+    if (!timeline) return undefined
+    const granularity: "hourly" | "daily" | null =
+        timeline.granularity === "hourly" || timeline.granularity === "daily"
+            ? timeline.granularity
+            : null
+    if (!granularity) return undefined
+    const rawSlots = Array.isArray(timeline.slots) ? timeline.slots : []
+    const slots = rawSlots
+        .map((slot): NormalizedTimelineSlot | null => {
+            if (!slot) return null
+            const slotKey = (slot.slotKey ?? "").trim()
+            const datetimeIso = (slot.datetimeIso ?? "").trim()
+            const label = (slot.label ?? "").trim()
+            const title = (slot.title ?? "").trim()
+            const narrative = (slot.narrative ?? "").trim()
+            const moodRaw = slot.mood
+            const mood: NormalizedTimelineSlot["mood"] | null =
+                moodRaw === "good" ||
+                moodRaw === "caution" ||
+                moodRaw === "rest" ||
+                moodRaw === "mixed"
+                    ? moodRaw
+                    : null
+            if (!slotKey || !datetimeIso || !mood) return null
+            if (!label && !title && !narrative) return null
+            const focusAreaRaw = (slot.focusArea ?? "").trim()
+            const focusArea = focusAreaRaw || undefined
+            const tags = (slot.tags ?? [])
+                .map((tag) => (typeof tag === "string" ? tag.trim() : ""))
+                .filter((tag): tag is string => tag.length > 0)
+                .slice(0, 3)
+            return {
+                slotKey,
+                datetimeIso,
+                label: label || title || slotKey,
+                mood,
+                title: title || label || slotKey,
+                narrative,
+                focusArea,
+                tags: tags.length > 0 ? tags : undefined,
+            }
+        })
+        .filter((s): s is NormalizedTimelineSlot => s !== null)
+    if (slots.length === 0) return undefined
+    return { granularity, slots }
+}
+
+function arePredictionTimelinesEqual(
+    a: ChatMessage["timeline"] | null | undefined,
+    b: ChatMessage["timeline"] | null | undefined,
+) {
+    if (a === b) return true
+    if (!a || !b) return false
+    if (a.granularity !== b.granularity) return false
+    if (a.slots.length !== b.slots.length) return false
+    for (let i = 0; i < a.slots.length; i++) {
+        const sa = a.slots[i]
+        const sb = b.slots[i]
+        if (sa.slotKey !== sb.slotKey) return false
+        if (sa.datetimeIso !== sb.datetimeIso) return false
+        if (sa.mood !== sb.mood) return false
+        if (sa.label !== sb.label) return false
+        if (sa.title !== sb.title) return false
+        if (sa.narrative !== sb.narrative) return false
+        if ((sa.focusArea ?? "") !== (sb.focusArea ?? "")) return false
+        const tagsA = sa.tags ?? []
+        const tagsB = sb.tags ?? []
+        if (tagsA.length !== tagsB.length) return false
+        for (let j = 0; j < tagsA.length; j++) {
+            if (tagsA[j] !== tagsB[j]) return false
+        }
+    }
     return true
 }
 
@@ -665,9 +797,7 @@ export default function ChatSession({
     const [originContext] = useState<OriginContext | null>(
         initialSession?.originContext ?? null,
     )
-    const [privacyAliases, setPrivacyAliases] = useState<PromptAliasEntry[]>(
-        [],
-    )
+    const [privacyAliases, setPrivacyAliases] = useState<PromptAliasEntry[]>([])
     const unmask = useCallback(
         (text?: string | null): string => {
             if (typeof text !== "string" || !text) return text ?? ""
@@ -738,6 +868,7 @@ export default function ChatSession({
     const consultingLoadingIdRef = useRef<string | null>(null)
     const interpretationLoadingIdRef = useRef<string | null>(null)
     const horoscopeTargetMessageIdRef = useRef<string | null>(null)
+    const horoscopeVerdictTargetMessageIdRef = useRef<string | null>(null)
     const horoscopeIsRefetchRef = useRef(false)
     const horoscopeRefetchSystemRef = useRef<
         "western_tropical" | "vedic_sidereal" | null
@@ -746,6 +877,12 @@ export default function ChatSession({
         "western_tropical" | "vedic_sidereal" | null
     >(null)
     const horoscopeLastTransitRef = useRef<HoroscopeTransitData | null>(null)
+    /** When /verdict returns non-single-day first, we reuse prefetched /chart-data and skip a duplicate /verdict in the useObject sidecars. */
+    const horoscopePrefetchBundleRef = useRef<{
+        messageId: string
+        chartData: Record<string, unknown> | null
+        skipVerdictFetch: boolean
+    } | null>(null)
     const autoPickTriggeredRef = useRef(false)
     const readAloudAudioRef = useRef<HTMLAudioElement | null>(null)
     const readAloudObjectUrlsRef = useRef<Record<string, string>>({})
@@ -835,6 +972,21 @@ export default function ChatSession({
     })
 
     const {
+        submit: submitHoroscopeVerdict,
+        object: horoscopeVerdictObject,
+        stop: stopHoroscopeVerdict,
+    } = useObject({
+        api: "/api/horoscope/verdict",
+        schema: horoscopeVerdictStreamSchema,
+        onFinish: () => {
+            horoscopeVerdictTargetMessageIdRef.current = null
+        },
+        onError: () => {
+            horoscopeVerdictTargetMessageIdRef.current = null
+        },
+    })
+
+    const {
         submit: submitHoroscope,
         object: horoscopeObject,
         stop: stopHoroscope,
@@ -850,7 +1002,10 @@ export default function ChatSession({
                     bodyPayload =
                         typeof options.body === "string"
                             ? JSON.parse(options.body)
-                            : (options.body as unknown as Record<string, unknown>)
+                            : (options.body as unknown as Record<
+                                  string,
+                                  unknown
+                              >)
                     nextOptions.body = JSON.stringify({
                         ...bodyPayload,
                         planTier: subscription?.tier ?? "free",
@@ -868,56 +1023,76 @@ export default function ChatSession({
                         bodyPayload ?? {}
                     const questionText =
                         typeof question === "string" ? question : ""
-                    // Timing-mode questions ("when will I be rich?") get
-                    // their chartData + personalizedTransitAspects bundled
-                    // in the verdict response, scoped to the AI-resolved
-                    // peak window. Calling /api/horoscope/chart-data here
-                    // would race and overwrite that with today's transit,
-                    // so we skip it entirely for timing questions.
+                    // Timing-mode questions get chartData + aspects from the
+                    // verdict response; avoid racing chart-data with today's transit.
                     const skipParallelChartData =
                         looksLikeTimingQuestion(questionText)
-                    if (question && birth && !skipParallelChartData) {
-                        fetch("/api/horoscope/chart-data", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                question,
-                                birth,
-                                transit,
-                                system,
-                                locale,
-                            }),
-                        })
-                            .then((r) => r.json())
-                            .then((chartData: Record<string, unknown>) => {
-                                if (chartData.error) return
-                                const msgId = targetId
-                                const fullAspects =
-                                    (chartData.personalizedTransitAspects as ChatMessage["personalizedTransitAspects"]) ??
-                                    null
-                                setMessages((prev) =>
-                                    prev.map((m) =>
-                                        m.id === msgId
-                                            ? {
-                                                  ...m,
-                                                  chartData,
-                                                  personalizedTransitAspects:
-                                                      fullAspects,
-                                                  personalizedTransitAspectsMerged:
-                                                      buildDiscussedAspectsFromInsights(
-                                                          fullAspects,
-                                                          m.aspectInsights,
-                                                      ),
-                                              }
-                                            : m,
-                                    ),
-                                )
-                            })
-                            .catch(() => {
-                                /* chart-data fetch failed; cards just won't render */
-                            })
-                    }
                     if (question && birth) {
+                        const bundle = horoscopePrefetchBundleRef.current
+                        const prefetchedChart =
+                            bundle?.messageId === targetId
+                                ? bundle.chartData
+                                : undefined
+                        const skipVerdictFetch =
+                            bundle?.messageId === targetId &&
+                            bundle.skipVerdictFetch
+                        if (bundle?.messageId === targetId) {
+                            horoscopePrefetchBundleRef.current = null
+                        }
+
+                        const applyChartData = (
+                            chartData: Record<string, unknown>,
+                        ) => {
+                            if (chartData.error) return
+                            const msgId = targetId
+                            const fullAspects =
+                                (chartData.personalizedTransitAspects as ChatMessage["personalizedTransitAspects"]) ??
+                                null
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === msgId
+                                        ? {
+                                              ...m,
+                                              chartData,
+                                              personalizedTransitAspects:
+                                                  fullAspects,
+                                              personalizedTransitAspectsMerged:
+                                                  buildDiscussedAspectsFromInsights(
+                                                      fullAspects,
+                                                      m.aspectInsights,
+                                                  ),
+                                          }
+                                        : m,
+                                ),
+                            )
+                        }
+
+                        if (
+                            prefetchedChart &&
+                            typeof prefetchedChart === "object" &&
+                            !prefetchedChart.error
+                        ) {
+                            applyChartData(prefetchedChart)
+                        } else if (!skipParallelChartData) {
+                            fetch("/api/horoscope/chart-data", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    question,
+                                    birth,
+                                    transit,
+                                    system,
+                                    locale,
+                                }),
+                            })
+                                .then((r) => r.json())
+                                .then((chartData: Record<string, unknown>) => {
+                                    applyChartData(chartData)
+                                })
+                                .catch(() => {
+                                    /* chart-data fetch failed; cards just won't render */
+                                })
+                        }
 
                         // Dedicated VERDICT call — runs in parallel with the
                         // long-form question stream and chart-data fetch so
@@ -926,7 +1101,27 @@ export default function ChatSession({
                         // stream completes). The server short-circuits to
                         // `{ dailyVerdict: null }` for non-single-day
                         // questions, so we don't need to gate here.
-                        fetch("/api/horoscope/verdict", {
+                        if (!skipVerdictFetch) {
+                            horoscopeVerdictTargetMessageIdRef.current =
+                                targetId
+                            submitHoroscopeVerdict({
+                                question,
+                                birth,
+                                transit,
+                                system,
+                                locale,
+                                conversationContext:
+                                    bodyPayload?.conversationContext,
+                            })
+                        }
+
+                        // Dedicated TIMELINE call — runs in parallel with the
+                        // body stream and verdict. The server short-circuits
+                        // to `{ timeline: null }` when the question is not
+                        // predictive ("what will happen") or the range is the
+                        // default 30-day fallback, so we don't need to gate
+                        // here.
+                        fetch("/api/horoscope/timeline", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
@@ -942,71 +1137,29 @@ export default function ChatSession({
                             .then((r) => r.json())
                             .then((data: Record<string, unknown>) => {
                                 if (data.error) return
-                                const verdict = normalizeDailyVerdict(
-                                    data.dailyVerdict as Parameters<
-                                        typeof normalizeDailyVerdict
-                                    >[0],
+                                const timeline = normalizePredictionTimeline(
+                                    data.timeline as RawPredictionTimeline,
                                 )
-                                if (!verdict) return
+                                if (!timeline) return
                                 const msgId = targetId
-                                // Timing verdicts bundle the chartData +
-                                // personalizedTransitAspects for the AI-
-                                // resolved peak window. We merge them onto
-                                // the message so the Technical Information
-                                // and Aspect tabs reflect THAT window
-                                // rather than today.
-                                const bundledChartData =
-                                    data.chartData &&
-                                    typeof data.chartData === "object"
-                                        ? (data.chartData as Record<
-                                              string,
-                                              unknown
-                                          >)
-                                        : null
-                                const bundledAspects =
-                                    data.personalizedTransitAspects as
-                                        | ChatMessage["personalizedTransitAspects"]
-                                        | undefined
                                 setMessages((prev) =>
                                     prev.map((m) => {
                                         if (m.id !== msgId) return m
-                                        const verdictUnchanged =
-                                            areDailyVerdictsEqual(
-                                                m.dailyVerdict,
-                                                verdict,
-                                            )
                                         if (
-                                            verdictUnchanged &&
-                                            !bundledChartData &&
-                                            bundledAspects === undefined
+                                            arePredictionTimelinesEqual(
+                                                m.timeline,
+                                                timeline,
+                                            )
                                         ) {
                                             return m
                                         }
-                                        const next: ChatMessage = {
-                                            ...m,
-                                            dailyVerdict: verdict,
-                                        }
-                                        if (bundledChartData) {
-                                            next.chartData = bundledChartData
-                                        }
-                                        if (bundledAspects !== undefined) {
-                                            next.personalizedTransitAspects =
-                                                bundledAspects
-                                            next.personalizedTransitAspectsMerged =
-                                                buildDiscussedAspectsFromInsights(
-                                                    bundledAspects ?? null,
-                                                    m.aspectInsights,
-                                                )
-                                        }
-                                        return next
+                                        return { ...m, timeline }
                                     }),
                                 )
                             })
                             .catch(() => {
-                                /* verdict fetch failed; the body stream may
-                                 * still backfill dailyVerdict in older
-                                 * responses, otherwise overview falls back to
-                                 * the summary card */
+                                /* timeline fetch failed — overview just won't
+                                 * render the timeline section */
                             })
                     }
                 } catch {
@@ -1086,6 +1239,7 @@ export default function ChatSession({
                                 aspectInsights,
                                 relevance,
                                 dailyVerdict: dailyVerdict ?? null,
+                                timeline: m.timeline ?? null,
                                 personalizedTransitAspects: fullAspects,
                                 personalizedTransitAspectsMerged:
                                     mergedAspects ?? null,
@@ -1152,6 +1306,7 @@ export default function ChatSession({
                                 aspectInsights: cached.aspectInsights,
                                 relevance: cached.relevance,
                                 dailyVerdict: cached.dailyVerdict ?? null,
+                                timeline: cached.timeline ?? null,
                                 followUpConclusion: cached.followUpConclusion,
                                 followUpSuggestions: cached.followUpSuggestions,
                                 isLoading: false,
@@ -1174,11 +1329,280 @@ export default function ChatSession({
                 )
             }
             horoscopeTargetMessageIdRef.current = null
+            horoscopeVerdictTargetMessageIdRef.current = null
             horoscopeRefetchSystemRef.current = null
             horoscopeCachedBeforeRefetchRef.current = null
             setIsInterpreting(false)
         },
     })
+
+    const tryCompleteHoroscopeVerdictFirst = useCallback(
+        async (
+            loadingId: string,
+            bodyPayload: {
+                question: string
+                locale?: string
+                system?: "western_tropical" | "vedic_sidereal" | "both"
+                birth: Record<string, unknown>
+                transit: Record<string, unknown> | null
+                conversationContext?: unknown
+            },
+        ): Promise<boolean> => {
+            stopHoroscope()
+            stopHoroscopeVerdict()
+            horoscopeVerdictTargetMessageIdRef.current = null
+            let verdictRes: Response
+            let chartRes: Response
+            try {
+                ;[verdictRes, chartRes] = await Promise.all([
+                    fetch("/api/horoscope/verdict", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            question: bodyPayload.question,
+                            birth: bodyPayload.birth,
+                            transit: bodyPayload.transit,
+                            system: bodyPayload.system,
+                            locale: bodyPayload.locale,
+                            conversationContext:
+                                bodyPayload.conversationContext,
+                        }),
+                    }),
+                    fetch("/api/horoscope/chart-data", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            question: bodyPayload.question,
+                            birth: bodyPayload.birth,
+                            transit: bodyPayload.transit,
+                            system: bodyPayload.system,
+                            locale: bodyPayload.locale,
+                        }),
+                    }),
+                ])
+            } catch {
+                return false
+            }
+
+            if (!verdictRes.ok) {
+                return false
+            }
+
+            // Read chart-data in the background — we don't need it to start
+            // streaming the verdict into the hero, only to finalize the
+            // commit once the verdict text has finished arriving.
+            const chartJsonPromise: Promise<Record<string, unknown>> =
+                (async () => {
+                    if (!chartRes.ok) return { error: "bad_status" }
+                    try {
+                        return (await chartRes.json()) as Record<
+                            string,
+                            unknown
+                        >
+                    } catch {
+                        return { error: "parse_failed" }
+                    }
+                })()
+
+            // Stream the verdict response body so the VerdictHero paints the
+            // mood pill, headline, key message, and detailedHtml as they
+            // arrive — instead of holding the cosmic loader until the whole
+            // JSON object has finished. We accumulate the raw text deltas
+            // and parse them with the AI SDK's `parsePartialJson` helper,
+            // which gracefully repairs unfinished JSON.
+            let accumulatedText = ""
+            let lastDispatchedVerdict: ChatMessage["dailyVerdict"] | null =
+                null
+            if (verdictRes.body) {
+                const reader = verdictRes.body.getReader()
+                const decoder = new TextDecoder()
+                try {
+                    while (true) {
+                        const { value, done } = await reader.read()
+                        if (done) break
+                        if (!value || value.byteLength === 0) continue
+                        accumulatedText += decoder.decode(value, {
+                            stream: true,
+                        })
+
+                        const parsed = await parsePartialJson(accumulatedText)
+                        if (
+                            parsed.state !== "successful-parse" &&
+                            parsed.state !== "repaired-parse"
+                        ) {
+                            continue
+                        }
+                        const payload = (parsed.value ?? null) as
+                            | Record<string, unknown>
+                            | null
+                        if (!payload || typeof payload !== "object") continue
+                        const extracted = extractVerdictPayload(
+                            payload as {
+                                dailyVerdict?: unknown
+                            } & Record<string, unknown>,
+                        ) as
+                            | Parameters<typeof normalizeDailyVerdict>[0]
+                            | undefined
+                        const partialVerdict = normalizeDailyVerdict(
+                            extracted,
+                            { allowPartialDetailedHtml: true },
+                        )
+                        if (!partialVerdict) continue
+                        if (
+                            areDailyVerdictsEqual(
+                                lastDispatchedVerdict,
+                                partialVerdict,
+                            )
+                        ) {
+                            continue
+                        }
+                        lastDispatchedVerdict = partialVerdict
+                        // Keep `isLoading: true` while we're still streaming so
+                        // the cancel button stays visible at the top of the
+                        // reading. VerdictHero hides its inner loader as soon
+                        // as `dailyVerdict.headline` is non-empty.
+                        setMessages((prev) =>
+                            prev.map((m) =>
+                                m.id === loadingId
+                                    ? {
+                                          ...m,
+                                          dailyVerdict: partialVerdict,
+                                      }
+                                    : m,
+                            ),
+                        )
+                    }
+                    accumulatedText += decoder.decode()
+                } catch {
+                    return false
+                }
+            } else {
+                try {
+                    accumulatedText = await verdictRes.text()
+                } catch {
+                    return false
+                }
+            }
+
+            let verdictJson: Record<string, unknown>
+            try {
+                verdictJson =
+                    accumulatedText.trim().length > 0
+                        ? (JSON.parse(accumulatedText) as Record<
+                              string,
+                              unknown
+                          >)
+                        : {}
+            } catch {
+                return false
+            }
+
+            const chartJson = await chartJsonPromise
+
+            const verdict = normalizeDailyVerdict(
+                extractVerdictPayload(verdictJson) as
+                    | Parameters<typeof normalizeDailyVerdict>[0]
+                    | undefined,
+            )
+
+            if (!verdict) {
+                // The verdict endpoint returned an empty / unusable payload
+                // (e.g. multi-day window the hero can't summarize). Roll back
+                // any partial verdict we may have streamed in so the question
+                // route doesn't render a half-built hero, and hand off to the
+                // long-form interpretation stream.
+                if (lastDispatchedVerdict) {
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === loadingId
+                                ? { ...m, dailyVerdict: null }
+                                : m,
+                        ),
+                    )
+                }
+                horoscopePrefetchBundleRef.current = {
+                    messageId: loadingId,
+                    chartData: chartJson,
+                    skipVerdictFetch: true,
+                }
+                return false
+            }
+
+            const chartOk =
+                chartRes.ok &&
+                chartJson &&
+                typeof chartJson === "object" &&
+                !chartJson.error
+            const chartDataObj = chartOk ? chartJson : null
+            const fullAspects =
+                (chartDataObj?.personalizedTransitAspects as ChatMessage["personalizedTransitAspects"]) ??
+                null
+            const overviewText = plainSummaryFromVerdict(verdict)
+            const charts = chartDataObj?.charts as
+                | Array<{ system?: string }>
+                | undefined
+            const systemKey =
+                (charts?.[0]?.system as
+                    | "western_tropical"
+                    | "vedic_sidereal"
+                    | undefined) ??
+                (bodyPayload.system as
+                    | "western_tropical"
+                    | "vedic_sidereal"
+                    | undefined) ??
+                "vedic_sidereal"
+
+            setMessages((prev) =>
+                prev.map((m) => {
+                    if (m.id !== loadingId) return m
+                    const interpretationCache = chartDataObj
+                        ? {
+                              ...(m.interpretationCache ?? {}),
+                              [systemKey]: {
+                                  chartData: chartDataObj,
+                                  text: overviewText,
+                                  aspectInsights: undefined,
+                                  relevance: undefined,
+                                  dailyVerdict: verdict,
+                                  timeline: null,
+                                  personalizedTransitAspects: fullAspects,
+                                  personalizedTransitAspectsMerged: null,
+                                  followUpConclusion: undefined,
+                                  followUpSuggestions: undefined,
+                              },
+                          }
+                        : m.interpretationCache
+
+                    return {
+                        ...m,
+                        isLoading: false,
+                        streamStopped: false,
+                        text: overviewText,
+                        dailyVerdict: verdict,
+                        chartData: chartDataObj,
+                        aspectInsights: undefined,
+                        relevance: undefined,
+                        timeline: null,
+                        personalizedTransitAspects: fullAspects,
+                        personalizedTransitAspectsMerged: null,
+                        followUpConclusion: undefined,
+                        followUpSuggestions: undefined,
+                        interpretationCache,
+                    }
+                }),
+            )
+
+            horoscopeTargetMessageIdRef.current = null
+            horoscopeVerdictTargetMessageIdRef.current = null
+            horoscopeIsRefetchRef.current = false
+            horoscopeRefetchSystemRef.current = null
+            horoscopeCachedBeforeRefetchRef.current = null
+            setIsInterpreting(false)
+            stopHoroscope()
+            return true
+        },
+        [stopHoroscope, stopHoroscopeVerdict],
+    )
 
     const buildConversationContext = useCallback(
         (currentQuestion?: string) =>
@@ -1346,6 +1770,68 @@ export default function ChatSession({
         })
     }, [horoscopeObject])
 
+    useEffect(() => {
+        const targetId = horoscopeVerdictTargetMessageIdRef.current
+        if (!targetId || !horoscopeVerdictObject) return
+
+        const verdict = normalizeDailyVerdict(
+            extractVerdictPayload(
+                horoscopeVerdictObject as Record<string, unknown>,
+            ) as Parameters<typeof normalizeDailyVerdict>[0],
+            {
+                allowPartialDetailedHtml: true,
+            },
+        )
+        const bundledChartData =
+            horoscopeVerdictObject.chartData &&
+            typeof horoscopeVerdictObject.chartData === "object"
+                ? (horoscopeVerdictObject.chartData as Record<string, unknown>)
+                : null
+        const bundledAspects =
+            horoscopeVerdictObject.personalizedTransitAspects as
+                | ChatMessage["personalizedTransitAspects"]
+                | undefined
+
+        if (!verdict && !bundledChartData && bundledAspects === undefined)
+            return
+
+        setMessages((prev) =>
+            prev.map((m) => {
+                if (m.id !== targetId) return m
+
+                const nextDailyVerdict = verdict ?? m.dailyVerdict
+                const nextChartData = bundledChartData ?? m.chartData
+                const nextAspects =
+                    bundledAspects !== undefined
+                        ? bundledAspects
+                        : m.personalizedTransitAspects
+                const nextMergedAspects =
+                    bundledAspects !== undefined
+                        ? buildDiscussedAspectsFromInsights(
+                              bundledAspects ?? null,
+                              m.aspectInsights,
+                          )
+                        : m.personalizedTransitAspectsMerged
+
+                const changed =
+                    !areDailyVerdictsEqual(nextDailyVerdict, m.dailyVerdict) ||
+                    nextChartData !== m.chartData ||
+                    nextAspects !== m.personalizedTransitAspects ||
+                    nextMergedAspects !== m.personalizedTransitAspectsMerged
+
+                if (!changed) return m
+
+                return {
+                    ...m,
+                    dailyVerdict: nextDailyVerdict,
+                    chartData: nextChartData,
+                    personalizedTransitAspects: nextAspects,
+                    personalizedTransitAspectsMerged: nextMergedAspects,
+                }
+            }),
+        )
+    }, [horoscopeVerdictObject])
+
     const freezeStoppedPlainMessage = useCallback((targetId: string) => {
         setMessages((prev) => {
             const target = prev.find((m) => m.id === targetId)
@@ -1462,7 +1948,9 @@ export default function ChatSession({
             horoscopeObject?.conclusion?.trim() ?? undefined
         const streamedDailyVerdict = normalizeDailyVerdict(
             (horoscopeObject as { dailyVerdict?: unknown } | undefined)
-                ?.dailyVerdict as Parameters<typeof normalizeDailyVerdict>[0] | undefined,
+                ?.dailyVerdict as
+                | Parameters<typeof normalizeDailyVerdict>[0]
+                | undefined,
         )
 
         setMessages((prev) =>
@@ -1498,13 +1986,15 @@ export default function ChatSession({
         )
 
         horoscopeTargetMessageIdRef.current = null
+        horoscopeVerdictTargetMessageIdRef.current = null
         horoscopeIsRefetchRef.current = false
         horoscopeRefetchSystemRef.current = null
         horoscopeCachedBeforeRefetchRef.current = null
         setIsInterpreting(false)
         stopHoroscope()
+        stopHoroscopeVerdict()
         return true
-    }, [horoscopeObject, stopHoroscope])
+    }, [horoscopeObject, stopHoroscope, stopHoroscopeVerdict])
 
     useEffect(() => {
         return () => {
@@ -1513,8 +2003,9 @@ export default function ChatSession({
             }
             stopInterpretation()
             stopHoroscope()
+            stopHoroscopeVerdict()
         }
-    }, [stopInterpretation, stopHoroscope])
+    }, [stopInterpretation, stopHoroscope, stopHoroscopeVerdict])
 
     useEffect(() => {
         return () => {
@@ -1987,10 +2478,7 @@ export default function ChatSession({
             // contact, a specific tarot card, etc.). Anything else gets
             // downgraded to `chat` so reading flows are disabled here.
             if (interpretationMode === "chat") {
-                if (
-                    decision.type === "chat" ||
-                    decision.type === "support"
-                ) {
+                if (decision.type === "chat" || decision.type === "support") {
                     return decision
                 }
                 return {
@@ -2168,6 +2656,52 @@ export default function ChatSession({
                     },
                 ]
             })
+            const prefetchBody = {
+                question: questionText,
+                locale,
+                system: horoscopeSystem,
+                birth: {
+                    day: normalizedBirth.day,
+                    month: normalizedBirth.month,
+                    year: normalizedBirth.year,
+                    hour: normalizedBirth.hour,
+                    minute: normalizedBirth.minute,
+                    timeHint: normalizedBirth.timeHint,
+                    timezone: normalizedBirth.timezone,
+                    lat: normalizedBirth.lat,
+                    lng: normalizedBirth.lng,
+                    country: normalizedBirth.country,
+                    state: normalizedBirth.state,
+                    usedLocationFallback: normalizedBirth.usedLocationFallback,
+                },
+                transit: transit
+                    ? {
+                          day: transit.day,
+                          month: transit.month,
+                          year: transit.year,
+                          hour: transit.hour,
+                          minute: transit.minute,
+                          timezone: transit.timezone,
+                          lat: transit.lat,
+                          lng: transit.lng,
+                          country: transit.country,
+                          state: transit.state,
+                      }
+                    : null,
+                conversationContext:
+                    buildHoroscopeConversationContext(questionText),
+            }
+            const verdictOnly = await tryCompleteHoroscopeVerdictFirst(
+                loadingId,
+                prefetchBody,
+            )
+            if (verdictOnly) {
+                setHoroscopeBirth(null)
+                setHoroscopeQuestion(null)
+                setHoroscopeTransit(null)
+                return
+            }
+
             submitHoroscope({
                 question: questionText,
                 conversationContext:
@@ -2215,12 +2749,13 @@ export default function ChatSession({
             locale,
             storedBirthChartPayload,
             submitHoroscope,
+            tryCompleteHoroscopeVerdictFirst,
             user,
         ],
     )
 
     const regenerateHoroscopeAt = useCallback(
-        (messageId: string) => {
+        async (messageId: string) => {
             const msg = messages.find((m) => m.id === messageId)
             if (!msg || msg.variant !== "horoscope" || !msg.chartData) return
             if (!user) return
@@ -2259,6 +2794,7 @@ export default function ChatSession({
                               aspectInsights: undefined,
                               relevance: undefined,
                               dailyVerdict: null,
+                              timeline: null,
                               sourceAspectKey: undefined,
                               sourceAspectEvent: undefined,
                               personalizedTransitAspectsMerged: null,
@@ -2270,6 +2806,49 @@ export default function ChatSession({
                         : m,
                 ),
             )
+            const prefetchBody = {
+                question: questionText,
+                locale,
+                system: currentSystem,
+                birth: {
+                    day: birth.day,
+                    month: birth.month,
+                    year: birth.year,
+                    hour: birth.hour,
+                    minute: birth.minute,
+                    timeHint: birth.timeHint,
+                    timezone: birth.timezone,
+                    lat: birth.lat,
+                    lng: birth.lng,
+                    country: birth.country,
+                    state: birth.state,
+                    usedLocationFallback: birth.usedLocationFallback,
+                },
+                transit: transit
+                    ? {
+                          day: transit.day,
+                          month: transit.month,
+                          year: transit.year,
+                          hour: transit.hour,
+                          minute: transit.minute,
+                          timezone: transit.timezone,
+                          lat: transit.lat,
+                          lng: transit.lng,
+                          country: transit.country,
+                          state: transit.state,
+                      }
+                    : null,
+                conversationContext:
+                    buildHoroscopeConversationContext(questionText),
+            }
+            const verdictOnly = await tryCompleteHoroscopeVerdictFirst(
+                messageId,
+                prefetchBody,
+            )
+            if (verdictOnly) {
+                return
+            }
+
             submitHoroscope({
                 question: questionText,
                 conversationContext:
@@ -2313,6 +2892,7 @@ export default function ChatSession({
             messages,
             storedBirthChartPayload,
             submitHoroscope,
+            tryCompleteHoroscopeVerdictFirst,
             user,
         ],
     )
@@ -2472,6 +3052,7 @@ export default function ChatSession({
                                   aspectInsights: cached.aspectInsights,
                                   relevance: cached.relevance,
                                   dailyVerdict: cached.dailyVerdict ?? null,
+                                  timeline: cached.timeline ?? null,
                                   followUpConclusion: cached.followUpConclusion,
                                   followUpSuggestions:
                                       cached.followUpSuggestions,
@@ -2510,6 +3091,7 @@ export default function ChatSession({
                 aspectInsights: msg.aspectInsights,
                 relevance: msg.relevance,
                 dailyVerdict: msg.dailyVerdict ?? null,
+                timeline: msg.timeline ?? null,
                 personalizedTransitAspects:
                     msg.personalizedTransitAspects ?? null,
                 personalizedTransitAspectsMerged:
@@ -2534,6 +3116,7 @@ export default function ChatSession({
                               aspectInsights: undefined,
                               relevance: undefined,
                               dailyVerdict: null,
+                              timeline: null,
                               personalizedTransitAspectsMerged: null,
                               followUpConclusion: undefined,
                               followUpSuggestions: undefined,
@@ -2547,6 +3130,49 @@ export default function ChatSession({
                         : m,
                 ),
             )
+            const prefetchBody = {
+                question: questionText,
+                locale,
+                system: newSystem,
+                birth: {
+                    day: birth.day,
+                    month: birth.month,
+                    year: birth.year,
+                    hour: birth.hour,
+                    minute: birth.minute,
+                    timeHint: birth.timeHint,
+                    timezone: birth.timezone,
+                    lat: birth.lat,
+                    lng: birth.lng,
+                    country: birth.country,
+                    state: birth.state,
+                    usedLocationFallback: birth.usedLocationFallback,
+                },
+                transit: transit
+                    ? {
+                          day: transit.day,
+                          month: transit.month,
+                          year: transit.year,
+                          hour: transit.hour,
+                          minute: transit.minute,
+                          timezone: transit.timezone,
+                          lat: transit.lat,
+                          lng: transit.lng,
+                          country: transit.country,
+                          state: transit.state,
+                      }
+                    : null,
+                conversationContext:
+                    buildHoroscopeConversationContext(questionText),
+            }
+            const verdictOnly = await tryCompleteHoroscopeVerdictFirst(
+                messageId,
+                prefetchBody,
+            )
+            if (verdictOnly) {
+                return
+            }
+
             submitHoroscope({
                 question: questionText,
                 conversationContext:
@@ -2590,6 +3216,7 @@ export default function ChatSession({
             messages,
             storedBirthChartPayload,
             submitHoroscope,
+            tryCompleteHoroscopeVerdictFirst,
             user,
         ],
     )
@@ -2658,9 +3285,8 @@ export default function ChatSession({
                     nextBirth,
                     user ? profile : null,
                 )
-                const birthToUse = applyEphemerisLocationTimeDefaults(
-                    mergedWithProfile,
-                )
+                const birthToUse =
+                    applyEphemerisLocationTimeDefaults(mergedWithProfile)
                 setHoroscopeBirth(birthToUse)
 
                 if (
@@ -3005,7 +3631,9 @@ export default function ChatSession({
 
     const handleCancelHoroscopeLoading = useCallback(() => {
         stopHoroscope()
-    }, [stopHoroscope])
+        stopHoroscopeVerdict()
+        horoscopeVerdictTargetMessageIdRef.current = null
+    }, [stopHoroscope, stopHoroscopeVerdict])
 
     const setNotice = (id: string, text: string) => {
         setMessageNotices((prev) => ({ ...prev, [id]: text }))
@@ -4610,9 +5238,7 @@ export default function ChatSession({
                 onReport={handleReport}
                 onShare={handleShare}
                 onReadingTextDownloaded={handleReadingTextDownloaded}
-                onReadingTextDownloadFailed={
-                    handleReadingTextDownloadFailed
-                }
+                onReadingTextDownloadFailed={handleReadingTextDownloadFailed}
                 onReadAloud={handleReadAloud}
                 unmask={unmask}
                 privacyAliases={privacyAliases}

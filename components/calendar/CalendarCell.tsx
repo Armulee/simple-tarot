@@ -51,7 +51,8 @@ export function CalendarCell({
     const hasPeak = !isPlanLocked && peakSignal > 8
     const hasWarning = !isPlanLocked && (data?.warnings.length ?? 0) > 0
 
-    const disabled = isLocked || isMissingData
+    /** Plan-locked days stay tappable so the side panel can show upgrade / Stripe CTA. */
+    const disabled = isMissingData
     const bgClass = isPlanLocked
         ? "bg-white/[0.03] ring-1 ring-white/10"
         : data
@@ -62,7 +63,9 @@ export function CalendarCell({
         <button
             type='button'
             disabled={disabled}
-            onClick={() => !disabled && onSelect(cell)}
+            onClick={() => {
+                if (!disabled) onSelect(cell)
+            }}
             className={cn(
                 "group/cell relative aspect-square rounded-2xl p-2 flex flex-col items-start justify-between text-left transition-all duration-200 ease-out",
                 bgClass,
@@ -73,6 +76,9 @@ export function CalendarCell({
                 disabled
                     ? "opacity-50 cursor-not-allowed"
                     : "cursor-pointer hover:-translate-y-0.5",
+                isPlanLocked && !disabled
+                    ? "opacity-90 hover:opacity-100"
+                    : null,
             )}
             aria-label={formatDayAriaLabel(locale, cell)}
         >
@@ -135,7 +141,7 @@ export function CalendarCell({
             </div>
 
             {(isLocked || isMissingData) && (
-                <span className='absolute inset-0 flex items-center justify-center rounded-2xl bg-black/30 backdrop-blur-[1px]'>
+                <span className='pointer-events-none absolute inset-0 flex items-center justify-center rounded-2xl bg-black/30 backdrop-blur-[1px]'>
                     <Lock
                         className={cn(
                             "h-3.5 w-3.5",

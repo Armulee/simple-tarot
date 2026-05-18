@@ -1,7 +1,10 @@
-import { generateObject } from "ai"
+import { generateObject, streamObject } from "ai"
 import { z } from "zod"
 import { buildChartData } from "@/lib/astrology/build-chart-data"
-import { dailyVerdictSchema } from "@/lib/astrology/schema"
+import {
+    dailyVerdictSchema,
+    streamingDailyVerdictSchema,
+} from "@/lib/astrology/schema"
 import {
     getDailyVerdictPrompt,
     getNatalVerdictPrompt,
@@ -10,12 +13,16 @@ import {
 } from "@/lib/prompts"
 import { resolveQuestionTimeRangeAsync } from "@/lib/astrology/question-time-range"
 import {
+    isDateBoundedQuestionRange,
     isNatalQuestionRange,
     isSingleDayQuestionRange,
     looksLikeTimingQuestion,
 } from "@/lib/astrology/single-day"
 import { getCodexTransitWindow } from "@/lib/astrology/ephemeris-codex"
-import { classifyQuestionTopic } from "@/lib/astrology/question-intent"
+import {
+    classifyQuestionTopic,
+    detectPredictiveIntent,
+} from "@/lib/astrology/question-intent"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
 import {
     buildNatalLongitudes,
@@ -23,6 +30,10 @@ import {
     buildTransitLongitudesFromSwissPlanets,
 } from "@/lib/astrology/transit-aspects"
 import type { AstrologyPoint, SwissEphChart } from "@/lib/astrology/types"
+import {
+    buildMyCalendarDaySnapshotForHoroscope,
+    resolveSessionPrimaryChartSystem,
+} from "@/lib/calendar/my-calendar-day-snapshot"
 
 // Dedicated verdict route. Runs in parallel with /api/horoscope/question and
 // /api/horoscope/chart-data so the VerdictHero can mount well before the
@@ -208,6 +219,32 @@ function buildHouseIndex(chart: SwissEphChart): HouseIndex {
 
 const TIMING_SEARCH_DAYS = 365
 
+function streamDailyVerdictResponse({
+    system,
+    prompt,
+    temperature,
+}: {
+    system: string
+    prompt: string
+    temperature: number
+}) {
+    const result = streamObject({
+        model: MODEL,
+        // Force provider-native JSON streaming so the verdict hero can render
+        // headline / key message / detailed HTML incrementally instead of
+        // waiting for the whole object to finish.
+        mode: "json",
+        schema: streamingDailyVerdictSchema,
+        system: `${system}
+
+Return ONLY the verdict JSON object itself. Do NOT wrap it in another key like "dailyVerdict".`,
+        prompt,
+        temperature,
+    })
+
+    return result.toTextStreamResponse()
+}
+
 async function handleTimingVerdict(body: VerdictRequestBody) {
     const chartLocale =
         detectQuestionLanguage(body.question) === "Thai" ||
@@ -215,23 +252,52 @@ async function handleTimingVerdict(body: VerdictRequestBody) {
             ? "th"
             : "en"
 
+    const questionRange = await resolveQuestionTimeRangeAsync(body.question, {
+        hintedTransitDate: body.transit
+            ? {
+                  day: body.transit.day ?? null,
+                  month: body.transit.month ?? null,
+                  year: body.transit.year ?? null,
+              }
+            : null,
+    })
+
     const today = new Date()
-    const searchStart = new Date(
+    const todayUtc = new Date(
         Date.UTC(
             today.getUTCFullYear(),
             today.getUTCMonth(),
             today.getUTCDate(),
         ),
     )
-    const searchEnd = addUtcDays(searchStart, TIMING_SEARCH_DAYS)
+
+    // Date-bound timing ("which day this month?", "within 2 weeks") must search
+    // only inside the resolved window. Open-ended "when will I…?" keeps the
+    // long forward search because the resolver falls back to default_30d.
+    const useBoundedSearch = isDateBoundedQuestionRange(questionRange)
+    const searchStart = useBoundedSearch ? questionRange.startDate : todayUtc
+    const searchEnd = useBoundedSearch
+        ? questionRange.endDate
+        : addUtcDays(searchStart, TIMING_SEARCH_DAYS)
     const searchRange = {
         startDate: searchStart,
         endDate: searchEnd,
-        startDateIso: toIsoDate(searchStart),
-        endDateIso: toIsoDate(searchEnd),
-        durationDays: TIMING_SEARCH_DAYS,
-        source: "explicit" as const,
+        startDateIso: useBoundedSearch
+            ? questionRange.startDateIso
+            : toIsoDate(searchStart),
+        endDateIso: useBoundedSearch
+            ? questionRange.endDateIso
+            : toIsoDate(searchEnd),
+        durationDays: useBoundedSearch
+            ? questionRange.durationDays
+            : TIMING_SEARCH_DAYS,
+        source: useBoundedSearch ? questionRange.source : ("explicit" as const),
+        granularity: "daily" as const,
     }
+
+    console.log(
+        `[horoscope/verdict] timing search bounded=${useBoundedSearch} source=${searchRange.source} ${searchRange.startDateIso}→${searchRange.endDateIso} (${searchRange.durationDays}d)`,
+    )
 
     // Pull the codex window for the entire forward search. The natal chart
     // is also rebuilt without transit so we never compute "today" planets
@@ -284,7 +350,7 @@ async function handleTimingVerdict(body: VerdictRequestBody) {
     ) {
         // No usable transit data in the search window — fall back to a null
         // verdict and let the long-form interpretation carry the answer.
-        return Response.json({ dailyVerdict: null }, { status: 200 })
+        return Response.json({}, { status: 200 })
     }
 
     const now = new Date()
@@ -328,7 +394,7 @@ async function handleTimingVerdict(body: VerdictRequestBody) {
         searchEndIso: searchRange.endDateIso,
     })
     if (!safeWindow) {
-        return Response.json({ dailyVerdict: null }, { status: 200 })
+        return Response.json({}, { status: 200 })
     }
     const safeVerdict = {
         ...verdict,
@@ -354,7 +420,7 @@ async function handleTimingVerdict(body: VerdictRequestBody) {
     })
     return Response.json(
         {
-            dailyVerdict: safeVerdict,
+            ...safeVerdict,
             chartData: windowChartData,
             personalizedTransitAspects: windowAspects,
         },
@@ -426,6 +492,7 @@ async function buildChartDataForTimingWindow({
         endDateIso: window.endDateIso,
         durationDays,
         source: "explicit" as const,
+        granularity: "daily" as const,
     }
     const withTransit = await buildChartData(
         {
@@ -479,7 +546,7 @@ async function handleNatalVerdict(body: VerdictRequestBody) {
     const primaryBirthChart = chartDataResult.charts?.[0]
     const natalPlacements = buildNatalPlacementsForPrompt(primaryBirthChart)
     if (!natalPlacements.length) {
-        return Response.json({ dailyVerdict: null }, { status: 200 })
+        return Response.json({}, { status: 200 })
     }
 
     const now = new Date()
@@ -502,29 +569,11 @@ async function handleNatalVerdict(body: VerdictRequestBody) {
         `[horoscope/verdict] natal prompt size: ${(prompt.length / 1024).toFixed(1)}KB (~${Math.ceil(prompt.length / 4)} tokens)`,
     )
 
-    const result = await generateObject({
-        model: MODEL,
-        schema: dailyVerdictSchema,
-        system: `You are Astra, a female oracle. Produce ONLY the daily verdict JSON for a NATAL question. Plain language, no astrology jargon, no planet names in user-facing strings. Output language: ${questionLanguage}.`,
+    return streamDailyVerdictResponse({
+        system: `You are Astra, a female oracle. Produce ONLY the daily verdict JSON for a NATAL question. Plain language, no astrology jargon, no planet names in user-facing strings. Output language: ${questionLanguage}. Always set mode to "natal".`,
         prompt,
         temperature: 0.55,
     })
-
-    const verdict = result.object
-    // Force-tag the mode so the client UI can branch confidently even if the
-    // model omits the field. relevantPlanets is also pruned to only the keys
-    // the UI can actually render against the supplied chart.
-    const knownPlanets = new Set(natalPlacements.map((p) => p.planet))
-    const safeVerdict = {
-        ...verdict,
-        mode: "natal" as const,
-        relevantPlanets:
-            verdict.relevantPlanets
-                ?.filter((rp) => knownPlanets.has(rp.planet))
-                .slice(0, 4) ?? [],
-    }
-
-    return Response.json({ dailyVerdict: safeVerdict }, { status: 200 })
 }
 
 export async function POST(req: Request) {
@@ -550,10 +599,10 @@ export async function POST(req: Request) {
         //   2. "natal"   → questions with NO date or date-range, like
         //                   "Which career fits me?" or "Am I lucky in love?".
         //                   Driven by birth-chart placements only.
-        //   3. "timing"  → "when will X happen?" questions. We don't trust
-        //                   the resolver's default 30-day window here — the
-        //                   user is asking for a future date — so we run a
-        //                   forward-looking transit search instead.
+        //   3. "timing"  → "when will X happen?" questions. Date-bound timing
+        //                   ("which day this month?") searches only inside the
+        //                   resolved window; open-ended timing searches up to
+        //                   TIMING_SEARCH_DAYS ahead.
         // Anything else (an explicit multi-day window like "next month") is
         // not a great fit for the verdict hero, so we still short-circuit
         // with null and let the long-form interpretation carry the answer.
@@ -571,11 +620,20 @@ export async function POST(req: Request) {
             source: questionRange.source,
         })
         if (!singleDay && !natalMode) {
-            return Response.json({ dailyVerdict: null }, { status: 200 })
+            return Response.json({}, { status: 200 })
         }
 
         if (natalMode) {
             return await handleNatalVerdict(body)
+        }
+
+        // Predictive-intent gate: when the user asks a "what will happen"
+        // style question, the Prediction Timeline is the right answer — not
+        // the verdict hero. Short-circuiting here keeps the two views
+        // mutually exclusive and avoids burning a verdict LLM call we won't
+        // render.
+        if (detectPredictiveIntent(body.question)) {
+            return Response.json({}, { status: 200 })
         }
 
         const aspectRange = {
@@ -602,9 +660,10 @@ export async function POST(req: Request) {
 
         const codexTransit = await codexTransitPromise
 
+        const appLocale = body.locale || "en"
+        const questionLanguage = detectQuestionLanguage(body.question)
         const chartLocale =
-            detectQuestionLanguage(body.question) === "Thai" ||
-            detectQuestionLanguage(body.question) === "Lao"
+            questionLanguage === "Thai" || questionLanguage === "Lao"
                 ? "th"
                 : "en"
 
@@ -654,13 +713,30 @@ export async function POST(req: Request) {
                   )
                 : rawTransitAspects
 
+        const sessionPrimarySystem = resolveSessionPrimaryChartSystem(
+            appLocale,
+            body.birth.country,
+            body.system,
+        )
+        const myCalendarDay =
+            primaryBirthChart?.planets
+                ? await buildMyCalendarDaySnapshotForHoroscope({
+                      birth: body.birth,
+                      isoDate: questionRange.startDateIso,
+                      codexRows: codexTransit.rows,
+                      textLocale: appLocale,
+                      sessionChartSystem: sessionPrimarySystem,
+                      sessionNatalPlanets:
+                          primaryBirthChart.planets as Record<string, unknown>,
+                  })
+                : null
+
         const now = new Date()
         const currentDateTime = now.toLocaleString("en-CA", {
             dateStyle: "full",
             timeStyle: "long",
             timeZone: "UTC",
         })
-        const questionLanguage = detectQuestionLanguage(body.question)
 
         const prompt = getDailyVerdictPrompt({
             question: body.question,
@@ -674,26 +750,18 @@ export async function POST(req: Request) {
             personalizedTransitAspects,
             questionLanguage,
             userMainPoint: body.conversationContext?.userMainPoint ?? "",
+            myCalendarDay,
         })
 
         console.log(
             `[horoscope/verdict] prompt size: ${(prompt.length / 1024).toFixed(1)}KB (~${Math.ceil(prompt.length / 4)} tokens)`,
         )
 
-        const result = await generateObject({
-            model: MODEL,
-            schema: dailyVerdictSchema,
-            system: `You are Astra, a female oracle. Produce ONLY the daily verdict JSON. Plain language, no astrology jargon, no planet names. Output language: ${questionLanguage}.`,
+        return streamDailyVerdictResponse({
+            system: `You are Astra, a female oracle. Produce ONLY the daily verdict JSON. Plain language, no astrology jargon, no planet names. Output language: ${questionLanguage}. Always set mode to "daily".`,
             prompt,
             temperature: 0.55,
         })
-
-        const dailyVerdict = {
-            ...result.object,
-            mode: "daily" as const,
-            relevantPlanets: undefined,
-        }
-        return Response.json({ dailyVerdict }, { status: 200 })
     } catch (error) {
         console.error("[horoscope/verdict] request failed:", error)
         const message =

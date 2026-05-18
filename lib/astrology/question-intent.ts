@@ -7,6 +7,27 @@ export function isBirthChartSuitabilityQuestion(question: string) {
 }
 
 /**
+ * Detects predictive "what will happen" style questions. These deserve the
+ * Prediction Timeline UI on top of the regular horoscope reading.
+ *
+ * Matches:
+ * - Thai: "เกิดอะไร", "จะเกิดอะไร", "มีอะไรเกิด", "จะเป็นยังไง", "จะเป็นอย่างไร",
+ *   "อะไรจะเกิด", "จะมีอะไร"
+ * - English: "what will happen", "what is going to happen", "what might happen",
+ *   "what could happen", "what to expect", "how will/would/might ... go"
+ * - Lao: "ມີຫຍັງເກີດ", "ຈະເກີດຫຍັງ", "ຈະເປັນແນວໃດ"
+ */
+export function detectPredictiveIntent(question: string): boolean {
+    if (!question) return false
+    const th =
+        /(?:แล้ว)?(?:จะ)?(?:เกิด|มี)(?:อะไร|ไร)(?:เกิด)?(?:ขึ้น)?|อะไรจะเกิด|จะเป็น(?:ยังไง|อย่างไร|ไง|แบบไหน)/i
+    const en =
+        /\bwhat(?:'s| is| are| will| would| might| could)?\s+(?:going to\s+|gonna\s+)?(?:happen|expect|unfold|in store)|\bwhat (?:to|should i) expect|how (?:will|would|might|is) .{1,40}\bgo\b/i
+    const lao = /ມີຫຍັງເກີດ|ຈະເກີດຫຍັງ|ຈະເປັນແນວໃດ/i
+    return th.test(question) || en.test(question) || lao.test(question)
+}
+
+/**
  * Heuristic: detects when the user is explicitly asking about a placement,
  * sign, or feature of their *own* natal chart. When this is true and the
  * caller has stored chart data available, the answer is allowed to name

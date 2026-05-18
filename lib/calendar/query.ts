@@ -83,6 +83,7 @@ function toQuestionTimeRange(startDate: Date, endDate: Date): QuestionTimeRange 
         endDateIso: toIsoDate(safeEnd),
         durationDays,
         source: "default_30d",
+        granularity: "daily",
     }
 }
 
