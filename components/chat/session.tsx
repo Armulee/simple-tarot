@@ -384,6 +384,15 @@ function normalizeDailyVerdict(
                   headline?: string | null
                   subtitle?: string | null
               } | null
+              mode?: string | null
+              relevantPlanets?: Array<
+                  | {
+                        planet?: string | null
+                        reason?: string | null
+                    }
+                  | null
+                  | undefined
+              > | null
           }
         | null
         | undefined,
@@ -426,6 +435,18 @@ function normalizeDailyVerdict(
               subtitle: keyMessageSubtitle,
           }
         : undefined
+    const mode = verdict.mode === "natal" ? "natal" : "daily"
+    const relevantPlanets = Array.isArray(verdict.relevantPlanets)
+        ? verdict.relevantPlanets
+              .map((rp) => {
+                  const planet = (rp?.planet ?? "").trim()
+                  const reason = (rp?.reason ?? "").trim()
+                  if (!planet) return null
+                  return { planet, reason }
+              })
+              .filter((rp): rp is { planet: string; reason: string } => !!rp)
+              .slice(0, 4)
+        : undefined
     return {
         mood,
         headline,
@@ -433,6 +454,11 @@ function normalizeDailyVerdict(
         watchOut,
         focusArea,
         keyMessage,
+        mode,
+        relevantPlanets:
+            mode === "natal" && relevantPlanets && relevantPlanets.length > 0
+                ? relevantPlanets
+                : undefined,
     }
 }
 
@@ -451,6 +477,14 @@ function areDailyVerdictsEqual(
     if ((a.keyMessage?.subtitle ?? "") !== (b.keyMessage?.subtitle ?? ""))
         return false
     if (a.detailedHtml !== b.detailedHtml) return false
+    if ((a.mode ?? "daily") !== (b.mode ?? "daily")) return false
+    const aPlanets = a.relevantPlanets ?? []
+    const bPlanets = b.relevantPlanets ?? []
+    if (aPlanets.length !== bPlanets.length) return false
+    for (let i = 0; i < aPlanets.length; i++) {
+        if (aPlanets[i].planet !== bPlanets[i].planet) return false
+        if (aPlanets[i].reason !== bPlanets[i].reason) return false
+    }
     return true
 }
 

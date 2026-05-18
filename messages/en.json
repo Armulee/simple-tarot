@@ -2695,7 +2695,12 @@
     "tabs": {
       "overview": "Overview",
       "aspect": "Impacting Aspects",
-      "transit": "Technical Information"
+      "transit": "Technical Information",
+      "birthChartInfo": "Birth Chart Information"
+    },
+    "natalSpotlight": {
+      "title": "Your birth chart highlights",
+      "subtitle": "Placements that answer this question"
     },
     "verdict": {
       "moodGood": "Good Day",

@@ -57,7 +57,13 @@ function NatalChartCollapsible({
 
 type HoroscopeTab = "overview" | "aspect" | "transit"
 
-const TAB_ORDER: ReadonlyArray<HoroscopeTab> = ["overview", "transit", "aspect"]
+const TAB_ORDER_DEFAULT: ReadonlyArray<HoroscopeTab> = [
+    "overview",
+    "transit",
+    "aspect",
+]
+
+const TAB_ORDER_NATAL: ReadonlyArray<HoroscopeTab> = ["overview", "transit"]
 
 function stripMarkdownFormatting(text: string): string {
     return text.replace(/\*\*/g, "").replace(/`/g, "").trim()
@@ -122,6 +128,13 @@ export default function HoroscopeReadingTabs({
     const tTabs = useTranslations("HoroscopeChat.tabs")
     const tReading = useTranslations("ReadingPage.interpretation")
 
+    // Natal-mode verdicts (no date/date-range, e.g. "Which career fits me?")
+    // swap the right-hand "Technical Information" tab for a "Birth Chart
+    // Information" tab anchored in natal placements, and drop the aspect
+    // tab entirely. The hero visual underneath the key message also flips
+    // from transit feed → relevant-planet spotlight (see VerdictHero).
+    const isNatalMode = message.dailyVerdict?.mode === "natal"
+
     // Reset auto-pilot whenever a new loading cycle starts (new question OR
     // regenerate). This way Regenerate flips us back to the technical-info
     // default and then back to overview when the verdict streams in.
@@ -132,6 +145,15 @@ export default function HoroscopeReadingTabs({
         }
     }, [message.isLoading, hasDailyVerdict])
 
+    // If the active tab is "aspect" but the message becomes natal-mode
+    // (after the verdict resolves), snap back to overview so we don't strand
+    // the user on a tab we are no longer rendering.
+    useEffect(() => {
+        if (isNatalMode && explicitTab === "aspect") {
+            setExplicitTab(null)
+        }
+    }, [isNatalMode, explicitTab])
+
     // Loading + no verdict yet → Transit (chartData lands first, no LLM
     // wait). Otherwise → Overview. An explicit user click always wins.
     const activeTab: HoroscopeTab =
@@ -140,14 +162,19 @@ export default function HoroscopeReadingTabs({
 
     const handleSelectTab = (tab: HoroscopeTab) => setExplicitTab(tab)
 
-    const tabs = useMemo<Array<{ id: HoroscopeTab; label: string }>>(
-        () => [
+    const tabs = useMemo<Array<{ id: HoroscopeTab; label: string }>>(() => {
+        if (isNatalMode) {
+            return [
+                { id: "overview", label: tTabs("overview") },
+                { id: "transit", label: tTabs("birthChartInfo") },
+            ]
+        }
+        return [
             { id: "overview", label: tTabs("overview") },
             { id: "transit", label: tTabs("transit") },
             { id: "aspect", label: tTabs("aspect") },
-        ],
-        [tTabs],
-    )
+        ]
+    }, [tTabs, isNatalMode])
 
     const summary = getOverviewSummary(message)
     const aliases = privacyAliases ?? []
@@ -224,7 +251,11 @@ export default function HoroscopeReadingTabs({
                         )
                     })}
                     {/* Hidden ordering anchor for aria/test stability */}
-                    <span className='sr-only'>{TAB_ORDER.join(",")}</span>
+                    <span className='sr-only'>
+                        {(isNatalMode ? TAB_ORDER_NATAL : TAB_ORDER_DEFAULT).join(
+                            ",",
+                        )}
+                    </span>
                 </div>
 
                 {activeTab === "overview" && (
@@ -281,21 +312,37 @@ export default function HoroscopeReadingTabs({
                     </div>
                 )}
 
-                {activeTab === "transit" && (
-                    <div className='space-y-5 rounded-[16px]'>
-                        <TransitOrbitVisual chartData={message.chartData} />
-                        <TransitPlanetGrid chartData={message.chartData} />
-                        <NatalChartCollapsible chartData={message.chartData} />
+                {activeTab === "transit" &&
+                    (isNatalMode ? (
+                        <div className='space-y-5 rounded-[16px]'>
+                            <TransitPlanetGrid
+                                chartData={message.chartData}
+                                source='natal'
+                            />
 
-                        {footerActions && !message.isLoading ? (
-                            <div className='border-t border-white/10 pt-4'>
-                                {footerActions}
-                            </div>
-                        ) : null}
-                    </div>
-                )}
+                            {footerActions && !message.isLoading ? (
+                                <div className='border-t border-white/10 pt-4'>
+                                    {footerActions}
+                                </div>
+                            ) : null}
+                        </div>
+                    ) : (
+                        <div className='space-y-5 rounded-[16px]'>
+                            <TransitOrbitVisual chartData={message.chartData} />
+                            <TransitPlanetGrid chartData={message.chartData} />
+                            <NatalChartCollapsible
+                                chartData={message.chartData}
+                            />
 
-                {activeTab === "aspect" && (
+                            {footerActions && !message.isLoading ? (
+                                <div className='border-t border-white/10 pt-4'>
+                                    {footerActions}
+                                </div>
+                            ) : null}
+                        </div>
+                    ))}
+
+                {activeTab === "aspect" && !isNatalMode && (
                     <div>
                         <RealtimePlanetaryPanel
                             chartData={

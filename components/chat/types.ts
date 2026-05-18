@@ -39,6 +39,26 @@ export type DailyVerdict = {
         headline: string
         subtitle: string
     }
+    /**
+     * Verdict flavor. "daily" is the existing transit-driven single-day
+     * verdict. "natal" is rendered for questions with no date or date-range
+     * (e.g. "Which career fits me?") and is anchored in birth-chart
+     * placements instead of transits.
+     */
+    mode?: "daily" | "natal"
+    /**
+     * Natal-mode only. 1-4 birth-chart placements (canonical English planet
+     * keys) the verdict is built on, each with a short plain-language reason.
+     * Used to render the natal spotlight strip inside the verdict hero.
+     */
+    relevantPlanets?: NatalRelevantPlanet[]
+}
+
+export type NatalRelevantPlanet = {
+    /** Canonical English planet name (matches chartData.charts[0].planets key). */
+    planet: string
+    /** Short plain-language sentence explaining why this placement matters. */
+    reason: string
 }
 
 export type SourceAspectEvent = {

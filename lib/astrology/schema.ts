@@ -56,6 +56,32 @@ export const dailyVerdictSchema = z.object({
         .describe(
             "Optional single canonical life-area label that best summarizes the day's focus. MUST match the relevance.label canonical set in the same language.",
         ),
+    mode: z
+        .enum(["daily", "natal"])
+        .optional()
+        .describe(
+            "Which lens produced this verdict. 'daily' = transit-driven single-day verdict (default). 'natal' = self/birth-chart verdict answering a non-date-bound question like 'which career fits me?'.",
+        ),
+    relevantPlanets: z
+        .array(
+            z.object({
+                planet: z
+                    .string()
+                    .describe(
+                        "Canonical English planet name as it appears in chartData.charts[0].planets (e.g. 'Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Rahu', 'Ketu', 'Uranus', 'Neptune', 'Pluto'). Must EXACTLY match one of the supplied natal-placement keys so the UI can look it up.",
+                    ),
+                reason: z
+                    .string()
+                    .describe(
+                        "One short sentence (plain language, SAME language as the question, no astrology jargon, no planet names, no zodiac signs) explaining why this placement matters for the user's question.",
+                    ),
+            }),
+        )
+        .max(5)
+        .optional()
+        .describe(
+            "Natal-mode only. 1-4 birth-chart placements (planets) that most directly answer the user's question. Rendered as a spotlight strip inside the verdict hero. Omit entirely for daily / transit-driven verdicts.",
+        ),
 })
 
 export type DailyVerdict = z.infer<typeof dailyVerdictSchema>

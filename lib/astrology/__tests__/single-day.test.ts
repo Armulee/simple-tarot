@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 import {
+    isNatalQuestionRange,
     isSingleDayQuestionRange,
     readQuestionRangeFromChartData,
 } from "../single-day.ts"
@@ -57,6 +58,37 @@ test("readQuestionRangeFromChartData extracts shape", () => {
     const range = readQuestionRangeFromChartData(chartData)
     assert.deepEqual(range, { durationDays: 1, source: "explicit" })
     assert.equal(isSingleDayQuestionRange(range), true)
+})
+
+test("isNatalQuestionRange: default_30d → true", () => {
+    assert.equal(
+        isNatalQuestionRange({ durationDays: 30, source: "default_30d" }),
+        true,
+    )
+})
+
+test("isNatalQuestionRange: ai_inferred → true (no explicit date)", () => {
+    assert.equal(
+        isNatalQuestionRange({ durationDays: 7, source: "ai_inferred" }),
+        true,
+    )
+})
+
+test("isNatalQuestionRange: explicit / relative date → false", () => {
+    assert.equal(
+        isNatalQuestionRange({ durationDays: 1, source: "explicit" }),
+        false,
+    )
+    assert.equal(
+        isNatalQuestionRange({ durationDays: 30, source: "relative" }),
+        false,
+    )
+})
+
+test("isNatalQuestionRange: null/undefined → false", () => {
+    assert.equal(isNatalQuestionRange(null), false)
+    assert.equal(isNatalQuestionRange(undefined), false)
+    assert.equal(isNatalQuestionRange({}), false)
 })
 
 test("readQuestionRangeFromChartData returns null for missing/invalid data", () => {

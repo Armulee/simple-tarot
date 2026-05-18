@@ -27,6 +27,25 @@ export function isSingleDayQuestionRange(
 }
 
 /**
+ * Returns true iff the question does NOT pin to a specific date or
+ * date-range. These are "self / natal" questions like
+ *   "Which career fits me?"
+ *   "Am I lucky in love?"
+ *   "What is my purpose?"
+ * where the resolver had to fall back to the default 30-day window or to an
+ * AI-inferred duration because no explicit/relative timing was present.
+ *
+ * Used by the verdict route to swap from a transit-driven daily verdict to a
+ * natal-driven verdict that highlights the user's birth-chart placements.
+ */
+export function isNatalQuestionRange(
+    range: SingleDayCheckable | null | undefined,
+): boolean {
+    if (!range) return false
+    return range.source === "default_30d" || range.source === "ai_inferred"
+}
+
+/**
  * Convenience for picking the questionRange off an arbitrary chart data blob
  * (the message stores chartData as Record<string, unknown> so callers don't
  * have to do their own type narrowing).

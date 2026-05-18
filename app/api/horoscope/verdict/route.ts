@@ -2,9 +2,16 @@ import { generateObject } from "ai"
 import { z } from "zod"
 import { buildChartData } from "@/lib/astrology/build-chart-data"
 import { dailyVerdictSchema } from "@/lib/astrology/schema"
-import { getDailyVerdictPrompt } from "@/lib/prompts"
+import {
+    getDailyVerdictPrompt,
+    getNatalVerdictPrompt,
+    type NatalPlacementForPrompt,
+} from "@/lib/prompts"
 import { resolveQuestionTimeRangeAsync } from "@/lib/astrology/question-time-range"
-import { isSingleDayQuestionRange } from "@/lib/astrology/single-day"
+import {
+    isNatalQuestionRange,
+    isSingleDayQuestionRange,
+} from "@/lib/astrology/single-day"
 import { getCodexTransitWindow } from "@/lib/astrology/ephemeris-codex"
 import { classifyQuestionTopic } from "@/lib/astrology/question-intent"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
@@ -13,6 +20,7 @@ import {
     buildPersonalizedTransitAspects,
     buildTransitLongitudesFromSwissPlanets,
 } from "@/lib/astrology/transit-aspects"
+import type { AstrologyPoint, SwissEphChart } from "@/lib/astrology/types"
 
 // Dedicated verdict route. Runs in parallel with /api/horoscope/question and
 // /api/horoscope/chart-data so the VerdictHero can mount well before the
@@ -119,6 +127,160 @@ const requestSchema = z.object({
         .optional(),
 })
 
+type VerdictRequestBody = z.infer<typeof requestSchema>
+
+type NatalQuestionRange = Awaited<
+    ReturnType<typeof resolveQuestionTimeRangeAsync>
+>
+
+// Planets we expose to the natal verdict prompt. Outer planets share signs
+// across whole generations, so they tell us very little about an individual
+// answer; we ship the personally-meaningful set instead.
+const NATAL_VERDICT_PLANETS: ReadonlyArray<string> = [
+    "Sun",
+    "Moon",
+    "Mercury",
+    "Venus",
+    "Mars",
+    "Jupiter",
+    "Saturn",
+    "Rahu",
+    "Ketu",
+    "Uranus",
+    "Neptune",
+    "Pluto",
+]
+
+function buildNatalPlacementsForPrompt(
+    chart: SwissEphChart | undefined,
+): NatalPlacementForPrompt[] {
+    if (!chart) return []
+    const placements: NatalPlacementForPrompt[] = []
+    const houseIndex = buildHouseIndex(chart)
+    for (const planet of NATAL_VERDICT_PLANETS) {
+        const point = chart.planets[planet] as AstrologyPoint | undefined
+        if (!point) continue
+        if (!Number.isFinite(point.longitude)) continue
+        placements.push({
+            planet,
+            sign: point.sign,
+            degree: point.degree,
+            house: houseIndex.find(point.longitude),
+            retrograde: !!point.retrograde,
+        })
+    }
+    return placements
+}
+
+type HouseIndex = {
+    find: (longitude: number) => number | null
+}
+
+function buildHouseIndex(chart: SwissEphChart): HouseIndex {
+    // Houses come keyed by string house numbers "1".."12" with a cusp
+    // longitude each. We just iterate in order and bucket by [cusp_i, cusp_i+1)
+    // walking through 360°.
+    const cusps: Array<{ num: number; lng: number }> = []
+    for (let i = 1; i <= 12; i++) {
+        const h = chart.houses[String(i)]
+        if (h && Number.isFinite(h.longitude)) {
+            cusps.push({ num: i, lng: ((h.longitude % 360) + 360) % 360 })
+        }
+    }
+    if (cusps.length !== 12) {
+        return { find: () => null }
+    }
+    return {
+        find: (longitude: number) => {
+            const norm = ((longitude % 360) + 360) % 360
+            for (let i = 0; i < 12; i++) {
+                const start = cusps[i].lng
+                const end = cusps[(i + 1) % 12].lng
+                if (start === end) continue
+                if (start < end) {
+                    if (norm >= start && norm < end) return cusps[i].num
+                } else if (norm >= start || norm < end) {
+                    return cusps[i].num
+                }
+            }
+            return null
+        },
+    }
+}
+
+async function handleNatalVerdict(
+    body: VerdictRequestBody,
+    questionRange: NatalQuestionRange,
+) {
+    const chartLocale =
+        detectQuestionLanguage(body.question) === "Thai" ||
+        detectQuestionLanguage(body.question) === "Lao"
+            ? "th"
+            : "en"
+
+    // Natal verdict only needs the birth chart — skip codex / transit work
+    // entirely so this path stays fast.
+    const chartDataResult = await buildChartData(
+        {
+            birth: body.birth,
+            system: body.system,
+            transit: body.transit ?? undefined,
+            questionRange,
+        },
+        chartLocale,
+    )
+
+    const primaryBirthChart = chartDataResult.charts?.[0]
+    const natalPlacements = buildNatalPlacementsForPrompt(primaryBirthChart)
+    if (!natalPlacements.length) {
+        return Response.json({ dailyVerdict: null }, { status: 200 })
+    }
+
+    const now = new Date()
+    const currentDateTime = now.toLocaleString("en-CA", {
+        dateStyle: "full",
+        timeStyle: "long",
+        timeZone: "UTC",
+    })
+    const questionLanguage = detectQuestionLanguage(body.question)
+
+    const prompt = getNatalVerdictPrompt({
+        question: body.question,
+        currentDateTime,
+        natalPlacements,
+        questionLanguage,
+        userMainPoint: body.conversationContext?.userMainPoint ?? "",
+    })
+
+    console.log(
+        `[horoscope/verdict] natal prompt size: ${(prompt.length / 1024).toFixed(1)}KB (~${Math.ceil(prompt.length / 4)} tokens)`,
+    )
+
+    const result = await generateObject({
+        model: MODEL,
+        schema: dailyVerdictSchema,
+        system: `You are Astra, a female oracle. Produce ONLY the daily verdict JSON for a NATAL question. Plain language, no astrology jargon, no planet names in user-facing strings. Output language: ${questionLanguage}.`,
+        prompt,
+        temperature: 0.55,
+    })
+
+    const verdict = result.object
+    // Force-tag the mode so the client UI can branch confidently even if the
+    // model omits the field. relevantPlanets is also pruned to only the keys
+    // the UI can actually render against the supplied chart.
+    const knownPlanets = new Set(natalPlacements.map((p) => p.planet))
+    const safeVerdict = {
+        ...verdict,
+        mode: "natal" as const,
+        relevantPlanets:
+            verdict.relevantPlanets
+                ?.filter((rp) => knownPlanets.has(rp.planet))
+                .slice(0, 4) ?? [],
+    }
+
+    return Response.json({ dailyVerdict: safeVerdict }, { status: 200 })
+}
+
 export async function POST(req: Request) {
     try {
         const body = requestSchema.parse(await req.json())
@@ -136,16 +298,29 @@ export async function POST(req: Request) {
             },
         )
 
-        // Single-day gate: this route only generates a verdict for confidently
-        // single-day questions. For everything else we short-circuit with a
-        // null response so the client can skip the VerdictHero without
-        // burning an LLM call.
+        // This route now serves two distinct verdict flavors:
+        //   1. "daily"  → single, confidently dated questions (today, a
+        //                  specific calendar date). Driven by transit aspects.
+        //   2. "natal"  → questions with NO date or date-range, like
+        //                  "Which career fits me?" or "Am I lucky in love?".
+        //                  Driven by birth-chart placements only.
+        // Anything else (an explicit multi-day window like "next month") is
+        // not a great fit for the verdict hero, so we still short-circuit
+        // with null and let the long-form interpretation carry the answer.
         const singleDay = isSingleDayQuestionRange({
             durationDays: questionRange.durationDays,
             source: questionRange.source,
         })
-        if (!singleDay) {
+        const natalMode = isNatalQuestionRange({
+            durationDays: questionRange.durationDays,
+            source: questionRange.source,
+        })
+        if (!singleDay && !natalMode) {
             return Response.json({ dailyVerdict: null }, { status: 200 })
+        }
+
+        if (natalMode) {
+            return await handleNatalVerdict(body, questionRange)
         }
 
         const aspectRange = {
@@ -258,7 +433,12 @@ export async function POST(req: Request) {
             temperature: 0.55,
         })
 
-        return Response.json({ dailyVerdict: result.object }, { status: 200 })
+        const dailyVerdict = {
+            ...result.object,
+            mode: "daily" as const,
+            relevantPlanets: undefined,
+        }
+        return Response.json({ dailyVerdict }, { status: 200 })
     } catch (error) {
         console.error("[horoscope/verdict] request failed:", error)
         const message =

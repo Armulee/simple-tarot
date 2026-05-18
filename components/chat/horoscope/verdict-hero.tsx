@@ -6,9 +6,13 @@ import { useFormatter, useTranslations } from "next-intl"
 import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
 import { PrivacyDetailedHtml } from "@/components/chat/privacy/privacy-detailed-html"
 import { InterpretationHeaderBar } from "@/components/chat/interpretation-header-bar"
-import type { ChatMessage } from "@/components/chat/types"
+import type {
+    ChatMessage,
+    NatalRelevantPlanet,
+} from "@/components/chat/types"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import TransitFeed from "@/components/chat/horoscope/transit-feed"
+import NatalPlanetSpotlight from "@/components/chat/horoscope/natal-planet-spotlight"
 
 export type DailyVerdict = {
     mood: "good" | "caution" | "rest"
@@ -20,6 +24,8 @@ export type DailyVerdict = {
         headline: string
         subtitle: string
     }
+    mode?: "daily" | "natal"
+    relevantPlanets?: NatalRelevantPlanet[]
 }
 
 type VerdictHeroProps = {
@@ -191,11 +197,19 @@ export default function VerdictHero({
     const detailedHtml = (verdict.detailedHtml ?? "").trim()
     const keyMessageHeadline = (verdict.keyMessage?.headline ?? "").trim()
     const keyMessageSubtitle = (verdict.keyMessage?.subtitle ?? "").trim()
-    const showTransitFeed = !isLoading
+    const isNatalMode = verdict.mode === "natal"
+    const relevantPlanets = isNatalMode ? verdict.relevantPlanets ?? [] : []
+    const hasRelevantPlanets = relevantPlanets.length > 0
+    // Daily verdicts hang their visual under the detailed HTML (the transit
+    // feed). Natal verdicts use the relevant-planets spotlight instead. We
+    // never show both at the same time.
+    const showTransitFeed = !isLoading && !isNatalMode
+    const showNatalSpotlight = !isLoading && isNatalMode && hasRelevantPlanets
     const showReplyBubble =
         keyMessageHeadline.length > 0 ||
         detailedHtml.length > 0 ||
-        showTransitFeed
+        showTransitFeed ||
+        showNatalSpotlight
 
     return (
         <section
@@ -254,7 +268,9 @@ export default function VerdictHero({
                             </div>
                         )}
 
-                        {(detailedHtml.length > 0 || showTransitFeed) && (
+                        {(detailedHtml.length > 0 ||
+                            showTransitFeed ||
+                            showNatalSpotlight) && (
                             <div className='rounded-2xl shadow-lg animate-fade-in text-white/90 leading-relaxed'>
                                 {detailedHtml.length > 0 && (
                                     <PrivacyDetailedHtml
@@ -274,6 +290,24 @@ export default function VerdictHero({
                                     >
                                         <TransitFeed
                                             message={transitSourceMessage}
+                                            privacyAliases={aliases}
+                                        />
+                                    </div>
+                                )}
+
+                                {showNatalSpotlight && (
+                                    <div
+                                        className={
+                                            detailedHtml.length > 0
+                                                ? "mt-5"
+                                                : ""
+                                        }
+                                    >
+                                        <NatalPlanetSpotlight
+                                            chartData={
+                                                transitSourceMessage.chartData
+                                            }
+                                            relevantPlanets={relevantPlanets}
                                             privacyAliases={aliases}
                                         />
                                     </div>

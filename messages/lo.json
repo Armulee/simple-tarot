@@ -2692,7 +2692,12 @@
     "tabs": {
       "overview": "ພາບລວມ",
       "aspect": "ມຸມກະທົບ",
-      "transit": "ຂໍ້ມູນທາງເຕັກນິກ"
+      "transit": "ຂໍ້ມູນທາງເຕັກນິກ",
+      "birthChartInfo": "ຂໍ້ມູນດວງເກີດ"
+    },
+    "natalSpotlight": {
+      "title": "ຈຸດເດັ່ນຈາກດວງເກີດຂອງເຈົ້າ",
+      "subtitle": "ຕຳແໜ່ງດາວທີ່ຕອບຄຳຖາມນີ້"
     },
     "verdict": {
       "moodGood": "ມື້ທີ່ດີ",
