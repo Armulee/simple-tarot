@@ -167,10 +167,11 @@ function resolveHeroPlacements(
 
 /**
  * Replaces the mood icon at the top of the verdict hero for natal-mode
- * answers. Renders a cluster of planet portraits + compact placement chip
- * ("Sun · Leo 12.3°") for the planets the AI cited in `relevantPlanets`.
- * Falls back to nothing when no placements resolve so the caller can keep
- * the mood-icon path.
+ * answers. Renders a refined planetary crest: a soft cosmic backdrop, an
+ * eyebrow ribbon, and one vertical "portrait" per relevant planet —
+ * planet image on top, planet name directly under it, and the sign + degree
+ * on a separate line below. Falls back to nothing when no placements resolve
+ * so the caller can keep the mood-icon path.
  */
 function NatalHeroCrest({
     placements,
@@ -180,106 +181,172 @@ function NatalHeroCrest({
     moodShadow: string
 }) {
     const tAstro = useTranslations("BirthChart")
+    const tCrest = useTranslations("HoroscopeChat.natalSpotlight")
     if (placements.length === 0) return null
 
     const visible = placements.slice(0, 4)
     const single = visible.length === 1
-    const imageSize = single ? 72 : visible.length === 2 ? 60 : 52
+    const imageSize = single ? 96 : visible.length === 2 ? 80 : 68
 
     return (
-        <div className='flex flex-col items-center gap-3'>
-            <ul
-                className={`relative flex items-end justify-center gap-3 list-none p-0 m-0 ${
-                    single ? "" : "sm:gap-4"
-                }`}
-            >
-                {visible.map(({ planet, retrograde }) => {
-                    const planetName = tAstro(`planets.${planet}`, {
-                        defaultValue: planet,
-                    })
-                    const src = getPlanetImageSrc(planet)
-                    return (
-                        <li
-                            key={planet}
-                            className='relative flex shrink-0 items-center justify-center'
-                            style={{ width: imageSize, height: imageSize }}
-                        >
-                            {src ? (
-                                <Image
-                                    src={src}
-                                    alt={planetName}
-                                    width={imageSize}
-                                    height={imageSize}
-                                    className={`h-full w-full rounded-full object-cover ring-1 ring-white/15 ${moodShadow} ${
-                                        planet === "Ketu" ? "rotate-90" : ""
-                                    }`}
-                                />
-                            ) : (
-                                <span
-                                    className={`flex h-full w-full items-center justify-center rounded-full bg-white/[0.06] text-[12px] font-semibold uppercase tracking-wider text-white/75 ring-1 ring-white/15 ${moodShadow}`}
+        <div className='relative w-full max-w-xl mx-auto px-2 sm:px-4'>
+            {/* Cosmic backdrop — a soft, layered halo so the planet portraits
+                feel like they're floating in front of a small sky rather
+                than against the flat hero panel. */}
+            <div
+                aria-hidden
+                className='pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 mx-auto h-44 w-full max-w-md rounded-[40px] bg-[radial-gradient(60%_60%_at_50%_50%,rgba(129,140,248,0.22),rgba(168,85,247,0.10)_45%,rgba(34,211,238,0.06)_70%,transparent_85%)] blur-2xl'
+            />
+            <div
+                aria-hidden
+                className='pointer-events-none absolute inset-0 mx-auto h-full w-full bg-[radial-gradient(80%_60%_at_50%_30%,rgba(255,255,255,0.05),transparent_65%)]'
+            />
+
+            <div className='relative flex flex-col items-center gap-5'>
+                {/* Refined eyebrow ribbon, mirroring the gilded look of the
+                    birth-chart page. */}
+                <div className='inline-flex items-center justify-center gap-3'>
+                    <span className='h-px w-8 bg-gradient-to-r from-transparent to-amber-300/70' />
+                    <Sparkles
+                        aria-hidden
+                        className='h-3 w-3 text-amber-200/85'
+                    />
+                    <p className='text-[10px] font-medium uppercase tracking-[0.32em] text-amber-200/80'>
+                        {tCrest("title")}
+                    </p>
+                    <Sparkles
+                        aria-hidden
+                        className='h-3 w-3 text-amber-200/85'
+                    />
+                    <span className='h-px w-8 bg-gradient-to-l from-transparent to-amber-300/70' />
+                </div>
+
+                <ul
+                    className={`relative flex flex-wrap items-start justify-center gap-x-4 gap-y-5 list-none p-0 m-0 ${
+                        single ? "" : "sm:gap-x-6"
+                    }`}
+                >
+                    {visible.map(({ planet, sign, degree, retrograde }) => {
+                        const planetName = tAstro(`planets.${planet}`, {
+                            defaultValue: planet,
+                        })
+                        const src = getPlanetImageSrc(planet)
+                        const canonical = sign ? canonicalSign(sign) : null
+                        const signName = canonical
+                            ? tAstro(`zodiacSigns.${canonical}`, {
+                                  defaultValue: sign ?? "",
+                              })
+                            : null
+                        const dignity = canonical
+                            ? getPlanetDignity(planet, canonical)
+                            : null
+                        const dignityNameClass = dignity?.isExalted
+                            ? "text-amber-200"
+                            : dignity?.isOwnSign
+                              ? "text-sky-200"
+                              : dignity?.isDebilitated
+                                ? "text-rose-200"
+                                : "text-white"
+                        const ringClass = dignity?.isExalted
+                            ? "ring-amber-300/60"
+                            : dignity?.isOwnSign
+                              ? "ring-sky-300/60"
+                              : dignity?.isDebilitated
+                                ? "ring-rose-300/55"
+                                : "ring-white/20"
+                        const haloClass = dignity?.isExalted
+                            ? "bg-amber-300/15"
+                            : dignity?.isOwnSign
+                              ? "bg-sky-300/12"
+                              : dignity?.isDebilitated
+                                ? "bg-rose-300/12"
+                                : "bg-indigo-300/10"
+
+                        return (
+                            <li
+                                key={planet}
+                                className='flex w-[110px] shrink-0 flex-col items-center text-center'
+                            >
+                                <div
+                                    className='relative flex items-center justify-center'
+                                    style={{
+                                        width: imageSize,
+                                        height: imageSize,
+                                    }}
                                 >
-                                    {planet.slice(0, 2)}
-                                </span>
-                            )}
-                            {retrograde && (
-                                <span
-                                    aria-label='retrograde'
-                                    className='absolute -bottom-1 -right-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full border border-rose-300/40 bg-rose-500/20 px-1 text-[10px] font-semibold text-rose-100 shadow-[0_0_10px_-2px_rgba(244,114,182,0.45)]'
+                                    <span
+                                        aria-hidden
+                                        className={`pointer-events-none absolute inset-[-22%] rounded-full blur-2xl ${haloClass}`}
+                                    />
+                                    <span
+                                        aria-hidden
+                                        className={`pointer-events-none absolute inset-[-6%] rounded-full ring-1 ${ringClass} opacity-70`}
+                                    />
+                                    {src ? (
+                                        <Image
+                                            src={src}
+                                            alt={planetName}
+                                            width={imageSize}
+                                            height={imageSize}
+                                            className={`relative h-full w-full rounded-full object-cover ring-1 ${ringClass} ${moodShadow} ${
+                                                planet === "Ketu"
+                                                    ? "rotate-90"
+                                                    : ""
+                                            }`}
+                                        />
+                                    ) : (
+                                        <span
+                                            className={`relative flex h-full w-full items-center justify-center rounded-full bg-white/[0.06] text-[13px] font-semibold uppercase tracking-wider text-white/75 ring-1 ${ringClass} ${moodShadow}`}
+                                        >
+                                            {planet.slice(0, 2)}
+                                        </span>
+                                    )}
+                                    {retrograde && (
+                                        <span
+                                            aria-label='retrograde'
+                                            className='absolute -bottom-1 -right-1 z-10 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full border border-rose-300/40 bg-rose-500/25 px-1 text-[10px] font-semibold text-rose-100 shadow-[0_0_10px_-2px_rgba(244,114,182,0.45)]'
+                                        >
+                                            ℞
+                                        </span>
+                                    )}
+                                </div>
+                                <p
+                                    className={`mt-3 font-serif text-[15px] italic leading-tight tracking-wide ${dignityNameClass}`}
                                 >
-                                    ℞
-                                </span>
-                            )}
-                        </li>
-                    )
-                })}
-            </ul>
-            <ul className='flex flex-wrap items-center justify-center gap-1.5 list-none p-0 m-0'>
-                {visible.map(({ planet, sign, degree }) => {
-                    const planetName = tAstro(`planets.${planet}`, {
-                        defaultValue: planet,
-                    })
-                    const canonical = sign ? canonicalSign(sign) : null
-                    const signName = canonical
-                        ? tAstro(`zodiacSigns.${canonical}`, {
-                              defaultValue: sign ?? "",
-                          })
-                        : null
-                    const dignity = canonical
-                        ? getPlanetDignity(planet, canonical)
-                        : null
-                    const dignityChipClasses = dignity?.isExalted
-                        ? "border-amber-300/40 bg-amber-400/10 text-amber-100"
-                        : dignity?.isOwnSign
-                          ? "border-sky-300/40 bg-sky-400/10 text-sky-100"
-                          : dignity?.isDebilitated
-                            ? "border-red-300/40 bg-red-400/10 text-red-100"
-                            : "border-white/10 bg-white/[0.05] text-white/80"
-                    return (
-                        <li
-                            key={planet}
-                            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${dignityChipClasses}`}
-                        >
-                            <span className='font-semibold tracking-tight'>
-                                {planetName}
-                            </span>
-                            {signName && (
-                                <>
-                                    <span className='text-white/30'>·</span>
-                                    <span className='text-white/85'>
-                                        {signName}
-                                    </span>
-                                </>
-                            )}
-                            {typeof degree === "number" &&
-                                Number.isFinite(degree) && (
-                                    <span className='font-mono tabular-nums text-white/65'>
-                                        {degree.toFixed(1)}°
-                                    </span>
+                                    {planetName}
+                                </p>
+                                {(signName ||
+                                    (typeof degree === "number" &&
+                                        Number.isFinite(degree))) && (
+                                    <p className='mt-1 flex flex-wrap items-baseline justify-center gap-x-1.5 text-[12px] leading-tight text-white/70'>
+                                        {signName && (
+                                            <span className='font-medium text-white/85'>
+                                                {signName}
+                                            </span>
+                                        )}
+                                        {signName &&
+                                            typeof degree === "number" &&
+                                            Number.isFinite(degree) && (
+                                                <span
+                                                    aria-hidden
+                                                    className='text-white/30'
+                                                >
+                                                    ·
+                                                </span>
+                                            )}
+                                        {typeof degree === "number" &&
+                                            Number.isFinite(degree) && (
+                                                <span className='font-mono tabular-nums text-white/65'>
+                                                    {degree.toFixed(1)}°
+                                                </span>
+                                            )}
+                                    </p>
                                 )}
-                        </li>
-                    )
-                })}
-            </ul>
+                            </li>
+                        )
+                    })}
+                </ul>
+            </div>
         </div>
     )
 }
@@ -436,7 +503,7 @@ export default function VerdictHero({
             <div className='relative z-[1] flex flex-col gap-6 py-6 md:px-8 md:pt-10'>
                 <div className='flex flex-col items-center gap-3 text-center'>
                     {showNatalHeroCrest ? (
-                        <div className='mb-2'>
+                        <div className='w-full mb-3 animate-fade-in'>
                             <NatalHeroCrest
                                 placements={heroPlacements}
                                 moodShadow={style.iconShadow}
