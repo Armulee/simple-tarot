@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
+import Image from "next/image"
 import { AlertTriangle, Moon, Sparkles, Target } from "lucide-react"
 import { useFormatter, useTranslations } from "next-intl"
 import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
@@ -11,8 +12,17 @@ import type {
     NatalRelevantPlanet,
 } from "@/components/chat/types"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
+import { getPlanetImageSrc } from "@/lib/astrology/planet-images"
+import { getPlanetDignity } from "@/lib/birth-chart-utils"
 import TransitFeed from "@/components/chat/horoscope/transit-feed"
 import NatalPlanetSpotlight from "@/components/chat/horoscope/natal-planet-spotlight"
+
+type NatalPlacementForHero = {
+    planet: string
+    sign?: string
+    degree?: number
+    retrograde?: boolean
+}
 
 export type DailyVerdict = {
     mood: "good" | "caution" | "rest"
@@ -81,6 +91,197 @@ function MoodIcon({
     if (mood === "good") return <Sparkles className={className} />
     if (mood === "caution") return <AlertTriangle className={className} />
     return <Moon className={className} />
+}
+
+const ZODIAC_CANONICAL: ReadonlyArray<string> = [
+    "Aries",
+    "Taurus",
+    "Gemini",
+    "Cancer",
+    "Leo",
+    "Virgo",
+    "Libra",
+    "Scorpio",
+    "Sagittarius",
+    "Capricorn",
+    "Aquarius",
+    "Pisces",
+]
+
+const ZODIAC_ALIAS: Record<string, string> = {
+    เมษ: "Aries",
+    พฤษภ: "Taurus",
+    มิถุน: "Gemini",
+    กรกฎ: "Cancer",
+    สิงห์: "Leo",
+    กันย์: "Virgo",
+    ตุลย์: "Libra",
+    พิจิก: "Scorpio",
+    ธนู: "Sagittarius",
+    มกร: "Capricorn",
+    กุมภ์: "Aquarius",
+    มีน: "Pisces",
+}
+
+function canonicalSign(sign: string): string {
+    if (ZODIAC_CANONICAL.includes(sign)) return sign
+    return ZODIAC_ALIAS[sign] ?? sign
+}
+
+/**
+ * Looks up the natal placement (sign / degree / retrograde) for each
+ * planet returned by the natal verdict, by reading from
+ * `chartData.charts[0].planets`. Returns the entries in the same order the
+ * model picked them so the most-relevant placement renders first.
+ */
+function resolveHeroPlacements(
+    chartData: Record<string, unknown> | null | undefined,
+    relevantPlanets: NatalRelevantPlanet[],
+): NatalPlacementForHero[] {
+    if (!relevantPlanets.length) return []
+    const data = (chartData ?? null) as
+        | {
+              charts?: Array<{
+                  planets?: Record<
+                      string,
+                      {
+                          sign?: string
+                          degree?: number
+                          retrograde?: boolean
+                      }
+                  >
+              }>
+          }
+        | null
+    const planets = data?.charts?.[0]?.planets ?? {}
+    return relevantPlanets.map((rp) => {
+        const point = planets[rp.planet]
+        return {
+            planet: rp.planet,
+            sign: point?.sign,
+            degree: typeof point?.degree === "number" ? point.degree : undefined,
+            retrograde: !!point?.retrograde,
+        }
+    })
+}
+
+/**
+ * Replaces the mood icon at the top of the verdict hero for natal-mode
+ * answers. Renders a cluster of planet portraits + compact placement chip
+ * ("Sun · Leo 12.3°") for the planets the AI cited in `relevantPlanets`.
+ * Falls back to nothing when no placements resolve so the caller can keep
+ * the mood-icon path.
+ */
+function NatalHeroCrest({
+    placements,
+    moodShadow,
+}: {
+    placements: NatalPlacementForHero[]
+    moodShadow: string
+}) {
+    const tAstro = useTranslations("BirthChart")
+    if (placements.length === 0) return null
+
+    const visible = placements.slice(0, 4)
+    const single = visible.length === 1
+    const imageSize = single ? 72 : visible.length === 2 ? 60 : 52
+
+    return (
+        <div className='flex flex-col items-center gap-3'>
+            <ul
+                className={`relative flex items-end justify-center gap-3 list-none p-0 m-0 ${
+                    single ? "" : "sm:gap-4"
+                }`}
+            >
+                {visible.map(({ planet, retrograde }) => {
+                    const planetName = tAstro(`planets.${planet}`, {
+                        defaultValue: planet,
+                    })
+                    const src = getPlanetImageSrc(planet)
+                    return (
+                        <li
+                            key={planet}
+                            className='relative flex shrink-0 items-center justify-center'
+                            style={{ width: imageSize, height: imageSize }}
+                        >
+                            {src ? (
+                                <Image
+                                    src={src}
+                                    alt={planetName}
+                                    width={imageSize}
+                                    height={imageSize}
+                                    className={`h-full w-full rounded-full object-cover ring-1 ring-white/15 ${moodShadow} ${
+                                        planet === "Ketu" ? "rotate-90" : ""
+                                    }`}
+                                />
+                            ) : (
+                                <span
+                                    className={`flex h-full w-full items-center justify-center rounded-full bg-white/[0.06] text-[12px] font-semibold uppercase tracking-wider text-white/75 ring-1 ring-white/15 ${moodShadow}`}
+                                >
+                                    {planet.slice(0, 2)}
+                                </span>
+                            )}
+                            {retrograde && (
+                                <span
+                                    aria-label='retrograde'
+                                    className='absolute -bottom-1 -right-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full border border-rose-300/40 bg-rose-500/20 px-1 text-[10px] font-semibold text-rose-100 shadow-[0_0_10px_-2px_rgba(244,114,182,0.45)]'
+                                >
+                                    ℞
+                                </span>
+                            )}
+                        </li>
+                    )
+                })}
+            </ul>
+            <ul className='flex flex-wrap items-center justify-center gap-1.5 list-none p-0 m-0'>
+                {visible.map(({ planet, sign, degree }) => {
+                    const planetName = tAstro(`planets.${planet}`, {
+                        defaultValue: planet,
+                    })
+                    const canonical = sign ? canonicalSign(sign) : null
+                    const signName = canonical
+                        ? tAstro(`zodiacSigns.${canonical}`, {
+                              defaultValue: sign ?? "",
+                          })
+                        : null
+                    const dignity = canonical
+                        ? getPlanetDignity(planet, canonical)
+                        : null
+                    const dignityChipClasses = dignity?.isExalted
+                        ? "border-amber-300/40 bg-amber-400/10 text-amber-100"
+                        : dignity?.isOwnSign
+                          ? "border-sky-300/40 bg-sky-400/10 text-sky-100"
+                          : dignity?.isDebilitated
+                            ? "border-red-300/40 bg-red-400/10 text-red-100"
+                            : "border-white/10 bg-white/[0.05] text-white/80"
+                    return (
+                        <li
+                            key={planet}
+                            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${dignityChipClasses}`}
+                        >
+                            <span className='font-semibold tracking-tight'>
+                                {planetName}
+                            </span>
+                            {signName && (
+                                <>
+                                    <span className='text-white/30'>·</span>
+                                    <span className='text-white/85'>
+                                        {signName}
+                                    </span>
+                                </>
+                            )}
+                            {typeof degree === "number" &&
+                                Number.isFinite(degree) && (
+                                    <span className='font-mono tabular-nums text-white/65'>
+                                        {degree.toFixed(1)}°
+                                    </span>
+                                )}
+                        </li>
+                    )
+                })}
+            </ul>
+        </div>
+    )
 }
 
 /**
@@ -201,8 +402,22 @@ export default function VerdictHero({
     const keyMessageHeadline = (verdict.keyMessage?.headline ?? "").trim()
     const keyMessageSubtitle = (verdict.keyMessage?.subtitle ?? "").trim()
     const isNatalMode = verdict.mode === "natal"
-    const relevantPlanets = isNatalMode ? verdict.relevantPlanets ?? [] : []
+    const relevantPlanets = useMemo<NatalRelevantPlanet[]>(
+        () => (isNatalMode ? verdict.relevantPlanets ?? [] : []),
+        [isNatalMode, verdict.relevantPlanets],
+    )
     const hasRelevantPlanets = relevantPlanets.length > 0
+    const heroPlacements = useMemo(
+        () =>
+            isNatalMode
+                ? resolveHeroPlacements(
+                      transitSourceMessage.chartData,
+                      relevantPlanets,
+                  )
+                : [],
+        [isNatalMode, relevantPlanets, transitSourceMessage.chartData],
+    )
+    const showNatalHeroCrest = isNatalMode && heroPlacements.length > 0
     // Daily verdicts hang their visual under the detailed HTML (the transit
     // feed). Natal verdicts use the relevant-planets spotlight instead. We
     // never show both at the same time.
@@ -220,10 +435,19 @@ export default function VerdictHero({
         >
             <div className='relative z-[1] flex flex-col gap-6 py-6 md:px-8 md:pt-10'>
                 <div className='flex flex-col items-center gap-3 text-center'>
-                    <MoodIcon
-                        mood={verdict.mood}
-                        className={`h-12 w-12 mb-2 ${style.accent} ${style.iconShadow}`}
-                    />
+                    {showNatalHeroCrest ? (
+                        <div className='mb-2'>
+                            <NatalHeroCrest
+                                placements={heroPlacements}
+                                moodShadow={style.iconShadow}
+                            />
+                        </div>
+                    ) : (
+                        <MoodIcon
+                            mood={verdict.mood}
+                            className={`h-12 w-12 mb-2 ${style.accent} ${style.iconShadow}`}
+                        />
+                    )}
                     {dateLabel && (
                         <p className='text-center text-[11px] uppercase tracking-[0.22em] text-white/45'>
                             {dateLabel}
