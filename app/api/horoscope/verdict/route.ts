@@ -1,0 +1,268 @@
+import { generateObject } from "ai"
+import { z } from "zod"
+import { buildChartData } from "@/lib/astrology/build-chart-data"
+import { dailyVerdictSchema } from "@/lib/astrology/schema"
+import { getDailyVerdictPrompt } from "@/lib/prompts"
+import { resolveQuestionTimeRangeAsync } from "@/lib/astrology/question-time-range"
+import { isSingleDayQuestionRange } from "@/lib/astrology/single-day"
+import { getCodexTransitWindow } from "@/lib/astrology/ephemeris-codex"
+import { classifyQuestionTopic } from "@/lib/astrology/question-intent"
+import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
+import {
+    buildNatalLongitudes,
+    buildPersonalizedTransitAspects,
+    buildTransitLongitudesFromSwissPlanets,
+} from "@/lib/astrology/transit-aspects"
+
+// Dedicated verdict route. Runs in parallel with /api/horoscope/question and
+// /api/horoscope/chart-data so the VerdictHero can mount well before the
+// long-form interpretation finishes streaming.
+
+const MODEL = "deepseek/deepseek-v3.2"
+const DAY_MS = 24 * 60 * 60 * 1000
+const ASPECT_PADDING_DAYS = 90
+const MIN_FILTERED_EVENTS = 3
+
+function detectQuestionLanguage(text: string): string {
+    if (/[\u0E80-\u0EFF]/.test(text)) return "Lao"
+    if (/[\u0E00-\u0E7F]/.test(text)) return "Thai"
+    if (/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text)) return "Japanese"
+    if (/[\uAC00-\uD7AF]/.test(text)) return "Korean"
+    if (/[\u0400-\u04FF]/.test(text)) return "Russian"
+    return "English"
+}
+
+function addUtcDays(date: Date, days: number) {
+    return new Date(date.getTime() + days * DAY_MS)
+}
+
+function toIsoDate(date: Date) {
+    return date.toISOString().slice(0, 10)
+}
+
+function filterAspectsByRelevantPlanets(
+    aspects: PersonalizedTransitAspectsResult,
+    relevantPlanets: readonly string[],
+): PersonalizedTransitAspectsResult {
+    const planetSet = new Set(relevantPlanets)
+
+    const filteredExact = aspects.exact
+        ? {
+              ...aspects.exact,
+              events: aspects.exact.events.filter((e) =>
+                  planetSet.has(e.transitPlanet),
+              ),
+          }
+        : null
+    const filteredRange = aspects.range
+        ? {
+              ...aspects.range,
+              events: aspects.range.events.filter((e) =>
+                  planetSet.has(e.transitPlanet),
+              ),
+          }
+        : null
+
+    const exactTooFew =
+        filteredExact &&
+        filteredExact.events.length < MIN_FILTERED_EVENTS &&
+        (aspects.exact?.events.length ?? 0) >= MIN_FILTERED_EVENTS
+    const rangeTooFew =
+        filteredRange &&
+        filteredRange.events.length < MIN_FILTERED_EVENTS &&
+        (aspects.range?.events.length ?? 0) >= MIN_FILTERED_EVENTS
+
+    return {
+        ...aspects,
+        exact: exactTooFew ? aspects.exact : filteredExact,
+        range: rangeTooFew ? aspects.range : filteredRange,
+    }
+}
+
+const requestSchema = z.object({
+    question: z.string().trim().min(1),
+    locale: z.string().optional(),
+    birth: z.object({
+        day: z.number().int().min(1).max(31),
+        month: z.number().int().min(1).max(12),
+        year: z.number().int().min(1900).max(2100),
+        hour: z.number().int().min(0).max(23).nullable().optional(),
+        minute: z.number().int().min(0).max(59).nullable().optional(),
+        timeHint: z.enum(["day", "night", "unknown"]).optional(),
+        timezone: z.number(),
+        lat: z.number(),
+        lng: z.number(),
+        country: z.string().nullable().optional(),
+        state: z.string().nullable().optional(),
+        usedLocationFallback: z.boolean().optional(),
+    }),
+    system: z.enum(["western_tropical", "vedic_sidereal", "both"]).optional(),
+    transit: z
+        .object({
+            day: z.number().int().min(1).max(31).nullable().optional(),
+            month: z.number().int().min(1).max(12).nullable().optional(),
+            year: z.number().int().min(1900).max(2100).nullable().optional(),
+            hour: z.number().int().min(0).max(23).nullable().optional(),
+            minute: z.number().int().min(0).max(59).nullable().optional(),
+            timezone: z.number().nullable().optional(),
+            lat: z.number().nullable().optional(),
+            lng: z.number().nullable().optional(),
+            country: z.string().nullable().optional(),
+            state: z.string().nullable().optional(),
+        })
+        .nullable()
+        .optional(),
+    conversationContext: z
+        .object({
+            userMainPoint: z.string().optional(),
+        })
+        .optional(),
+})
+
+export async function POST(req: Request) {
+    try {
+        const body = requestSchema.parse(await req.json())
+
+        const questionRange = await resolveQuestionTimeRangeAsync(
+            body.question,
+            {
+                hintedTransitDate: body.transit
+                    ? {
+                          day: body.transit.day ?? null,
+                          month: body.transit.month ?? null,
+                          year: body.transit.year ?? null,
+                      }
+                    : null,
+            },
+        )
+
+        // Single-day gate: this route only generates a verdict for confidently
+        // single-day questions. For everything else we short-circuit with a
+        // null response so the client can skip the VerdictHero without
+        // burning an LLM call.
+        const singleDay = isSingleDayQuestionRange({
+            durationDays: questionRange.durationDays,
+            source: questionRange.source,
+        })
+        if (!singleDay) {
+            return Response.json({ dailyVerdict: null }, { status: 200 })
+        }
+
+        const aspectRange = {
+            ...questionRange,
+            startDate: addUtcDays(
+                questionRange.startDate,
+                -ASPECT_PADDING_DAYS,
+            ),
+            endDate: addUtcDays(questionRange.endDate, ASPECT_PADDING_DAYS),
+            startDateIso: toIsoDate(
+                addUtcDays(questionRange.startDate, -ASPECT_PADDING_DAYS),
+            ),
+            endDateIso: toIsoDate(
+                addUtcDays(questionRange.endDate, ASPECT_PADDING_DAYS),
+            ),
+            durationDays: questionRange.durationDays + ASPECT_PADDING_DAYS * 2,
+        }
+
+        // Fire BOTH codex queries in parallel; buildChartData only needs the
+        // question-range one so we start it as soon as that resolves and let
+        // the aspect codex round-trip hide behind ephemeris compute.
+        const codexTransitPromise = getCodexTransitWindow(questionRange)
+        const aspectCodexTransitPromise = getCodexTransitWindow(aspectRange)
+
+        const codexTransit = await codexTransitPromise
+
+        const chartLocale =
+            detectQuestionLanguage(body.question) === "Thai" ||
+            detectQuestionLanguage(body.question) === "Lao"
+                ? "th"
+                : "en"
+
+        const chartDataPromise = buildChartData(
+            {
+                birth: body.birth,
+                system: body.system,
+                transit: body.transit ?? undefined,
+                questionRange,
+                transitDataSource: codexTransit.source,
+                codexTransitSummary: codexTransit.summary,
+            },
+            chartLocale,
+        )
+
+        const [chartDataResult, aspectCodexTransit] = await Promise.all([
+            chartDataPromise,
+            aspectCodexTransitPromise,
+        ])
+
+        const primaryBirthChart = chartDataResult.charts?.[0]
+        const primaryTransitChart = chartDataResult.transit?.charts?.[0]
+        const natalLongitudes = buildNatalLongitudes(
+            primaryBirthChart?.planets ?? {},
+        )
+        const fallbackExactTransitLongitudes =
+            buildTransitLongitudesFromSwissPlanets(
+                primaryTransitChart?.planets ?? {},
+            )
+        const rawTransitAspects = buildPersonalizedTransitAspects({
+            questionRange: {
+                source: questionRange.source,
+                startDateIso: questionRange.startDateIso,
+                endDateIso: questionRange.endDateIso,
+            },
+            natalLongitudes,
+            codexRows: aspectCodexTransit.rows,
+            fallbackExactTransitLongitudes,
+        })
+
+        const questionTopic = classifyQuestionTopic(body.question)
+        const personalizedTransitAspects =
+            questionTopic.topic !== "general"
+                ? filterAspectsByRelevantPlanets(
+                      rawTransitAspects,
+                      questionTopic.relevantPlanets,
+                  )
+                : rawTransitAspects
+
+        const now = new Date()
+        const currentDateTime = now.toLocaleString("en-CA", {
+            dateStyle: "full",
+            timeStyle: "long",
+            timeZone: "UTC",
+        })
+        const questionLanguage = detectQuestionLanguage(body.question)
+
+        const prompt = getDailyVerdictPrompt({
+            question: body.question,
+            currentDateTime,
+            questionRange: {
+                startDateIso: questionRange.startDateIso,
+                endDateIso: questionRange.endDateIso,
+                durationDays: questionRange.durationDays,
+                source: questionRange.source,
+            },
+            personalizedTransitAspects,
+            questionLanguage,
+            userMainPoint: body.conversationContext?.userMainPoint ?? "",
+        })
+
+        console.log(
+            `[horoscope/verdict] prompt size: ${(prompt.length / 1024).toFixed(1)}KB (~${Math.ceil(prompt.length / 4)} tokens)`,
+        )
+
+        const result = await generateObject({
+            model: MODEL,
+            schema: dailyVerdictSchema,
+            system: `You are Astra, a female oracle. Produce ONLY the daily verdict JSON. Plain language, no astrology jargon, no planet names. Output language: ${questionLanguage}.`,
+            prompt,
+            temperature: 0.55,
+        })
+
+        return Response.json({ dailyVerdict: result.object }, { status: 200 })
+    } catch (error) {
+        console.error("[horoscope/verdict] request failed:", error)
+        const message =
+            error instanceof Error ? error.message : "VERDICT_FAILED"
+        return Response.json({ error: message }, { status: 400 })
+    }
+}

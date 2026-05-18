@@ -15,6 +15,9 @@ import {
     BookOpen,
     Star,
     ArrowDownRight,
+    ChevronDown,
+    CircleUser,
+    LogOut,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import {
@@ -25,7 +28,13 @@ import {
 } from "@/components/ui/sheet"
 import { ConsistentAvatar } from "@/components/ui/consistent-avatar"
 import { Skeleton } from "@/components/ui/skeleton"
-import { UserProfileDropdown } from "@/components/user-profile-dropdown"
+import {
+    UserProfileSidebarMenu,
+    useUserProfileMenu,
+} from "@/components/user-profile-dropdown"
+import { isUserSidebarSectionActive } from "@/lib/user-sidebar-nav"
+import { NotificationSheet } from "@/components/notifications/notification-sheet"
+import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/use-auth"
 import { useProfile } from "@/contexts/profile-context"
 import { useStars } from "@/contexts/stars-context"
@@ -73,6 +82,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
     const t = useTranslations("Sidebar")
     const starsT = useTranslations("StarsPage")
     const a = useTranslations("Auth.SignIn")
+    const profileMenu = useUserProfileMenu(() => onOpenChange(false))
     const [timeLeft, setTimeLeft] = useState(0)
     const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly")
     const [planChangeTarget, setPlanChangeTarget] = useState<string | null>(
@@ -81,6 +91,14 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
     const [pendingChange, setPendingChange] = useState<PlanChangePrompt | null>(
         null,
     )
+    const [userSubmenuOpen, setUserSubmenuOpen] = useState(false)
+
+    useEffect(() => {
+        if (user && isUserSidebarSectionActive(pathname)) {
+            setUserSubmenuOpen(true)
+        }
+    }, [user, pathname])
+
     useEffect(() => {
         if (!nextRefillAt) {
             setTimeLeft(0)
@@ -281,39 +299,35 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                     {/* User Profile Section */}
 
                     {!loading && user ? (
-                        <UserProfileDropdown
-                            onClose={() => onOpenChange(false)}
-                        >
-                            <div className='flex items-center gap-3 p-3 rounded-lg bg-white/10 border border-white/10 hover:bg-white/15 transition-colors cursor-pointer'>
-                                {profileLoading ? (
-                                    <>
-                                        <Skeleton className='w-10 h-10 rounded-full' />
-                                        <div className='flex-1 min-w-0 space-y-2'>
-                                            <Skeleton className='h-4 w-24' />
-                                            <Skeleton className='h-3 w-32' />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <ConsistentAvatar
-                                            data={{
-                                                name: profile?.name,
-                                                email: user?.email,
-                                            }}
-                                            size='md'
-                                        />
-                                        <div className='flex-1 min-w-0'>
-                                            <p className='text-sm font-medium text-white truncate'>
-                                                {getUserName()}
-                                            </p>
-                                            <p className='text-xs text-white/70 truncate'>
-                                                {user.email}
-                                            </p>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        </UserProfileDropdown>
+                        <div className='flex items-center gap-3 p-3 rounded-lg bg-white/10 border border-white/10 mt-3'>
+                            {profileLoading ? (
+                                <>
+                                    <Skeleton className='w-10 h-10 rounded-full' />
+                                    <div className='flex-1 min-w-0 space-y-2'>
+                                        <Skeleton className='h-4 w-24' />
+                                        <Skeleton className='h-3 w-32' />
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <ConsistentAvatar
+                                        data={{
+                                            name: profile?.name,
+                                            email: user?.email,
+                                        }}
+                                        size='md'
+                                    />
+                                    <div className='flex-1 min-w-0'>
+                                        <p className='text-sm font-medium text-white truncate'>
+                                            {getUserName()}
+                                        </p>
+                                        <p className='text-xs text-white/70 truncate'>
+                                            {user.email}
+                                        </p>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     ) : (
                         <Link
                             href='/signin'
@@ -672,6 +686,49 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                     <span>{t("home")}</span>
                                 </Link>
                             </li>
+                            {user ? (
+                                <li className='flex flex-col'>
+                                    <button
+                                        type='button'
+                                        onClick={() =>
+                                            setUserSubmenuOpen((o) => !o)
+                                        }
+                                        aria-expanded={userSubmenuOpen}
+                                        className={cn(
+                                            "flex w-full items-center gap-2 px-3 py-2 rounded-md transition-colors text-left",
+                                            isUserSidebarSectionActive(pathname)
+                                                ? "bg-accent text-white"
+                                                : userSubmenuOpen
+                                                  ? "text-white bg-white/10"
+                                                  : "text-cosmic-light hover:text-white hover:bg-white/10",
+                                        )}
+                                    >
+                                        <CircleUser className='w-4 h-4 shrink-0' />
+                                        <span className='flex-1 min-w-0'>
+                                            {t("userMenu")}
+                                        </span>
+                                        <ChevronDown
+                                            className={cn(
+                                                "h-4 w-4 shrink-0 transition-transform",
+                                                userSubmenuOpen &&
+                                                    "rotate-180",
+                                            )}
+                                            aria-hidden
+                                        />
+                                    </button>
+                                    {userSubmenuOpen ? (
+                                        <div className='mt-0.5 ml-3 border-l border-white/15 pl-2 py-0.5'>
+                                            <UserProfileSidebarMenu
+                                                menu={profileMenu}
+                                                onNavigate={() =>
+                                                    onOpenChange(false)
+                                                }
+                                                hideSignOut
+                                            />
+                                        </div>
+                                    ) : null}
+                                </li>
+                            ) : null}
                             <li>
                                 <Link
                                     href={"/about"}
@@ -747,7 +804,30 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                     <span>{t("termsOfService")}</span>
                                 </Link>
                             </li>
+                            {user ? (
+                                <li className='mt-3 border-t border-white/10 pt-2'>
+                                    <button
+                                        type='button'
+                                        onClick={profileMenu.handleSignOut}
+                                        disabled={profileMenu.isLoading}
+                                        className='flex w-full items-center gap-2 px-3 py-2 rounded-md text-left transition-colors text-white bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/30 disabled:opacity-50'
+                                    >
+                                        <LogOut className='w-4 h-4 shrink-0' />
+                                        <span>
+                                            {profileMenu.isLoading
+                                                ? profileMenu.t("signingOut")
+                                                : profileMenu.t("signOut")}
+                                        </span>
+                                    </button>
+                                </li>
+                            ) : null}
                         </ul>
+                        {profileMenu.user ? (
+                            <NotificationSheet
+                                open={profileMenu.notificationOpen}
+                                onOpenChange={profileMenu.setNotificationOpen}
+                            />
+                        ) : null}
                     </nav>
                 </div>
             </SheetContent>

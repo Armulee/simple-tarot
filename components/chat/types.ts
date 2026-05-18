@@ -7,6 +7,7 @@ import type {
 } from "@/types/horoscope"
 import type { PromptRedactionType } from "@/lib/privacy/prompt-redaction"
 import type { ConversationContextPayload } from "@/lib/astrology/question-context"
+import type { OriginContext } from "@/lib/chat/origin-context"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
 import type { QuestionDomain } from "@/lib/chat/situation-schema"
 import type {
@@ -31,10 +32,13 @@ export type RelevanceStat = {
 export type DailyVerdict = {
     mood: "good" | "caution" | "rest"
     headline: string
-    subtext: string
-    actions: string[]
+    detailedHtml: string
     watchOut?: string
     focusArea?: string
+    keyMessage?: {
+        headline: string
+        subtitle: string
+    }
 }
 
 export type SourceAspectEvent = {
@@ -152,6 +156,25 @@ export type ChatMessage = {
     supportTopic?: SupportTopic
     /** Concrete data the support tool block needs to render. */
     supportBlock?: SupportBlockPayload | null
+    /**
+     * Set when the AI classified the question as horoscope but the visitor is
+     * not signed in. The chat renders an inline sign-in CTA and a sample
+     * tarot card instead of streaming a normal assistant reply.
+     */
+    horoscopeAuthGate?: HoroscopeAuthGate | null
+}
+
+export type HoroscopeAuthGate = {
+    /** Localized sign-in link, e.g. `/signin?callbackUrl=/`. */
+    signInHref: string
+    /** Question the user asked, replayed if they choose the tarot fallback. */
+    question: string
+    /** Display name for the teaser tarot card (e.g. "The Star"). */
+    cardName: string
+    /** Kebab-case slug used to resolve the rider-waite image path. */
+    cardSlug: string
+    /** Whether the teaser card should render reversed. */
+    cardIsReversed: boolean
 }
 
 export type ChatDecision = {
@@ -275,6 +298,7 @@ export type ChatSessionPayload = {
     privacyRedactionTypes?: PromptRedactionType[]
     messages: ChatMessage[]
     decision: ChatDecision | null
+    originContext?: OriginContext | null
     owner_user_id?: string | null
     showInsufficientStars?: boolean
     showCardDraw?: boolean

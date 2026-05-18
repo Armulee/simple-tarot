@@ -71,7 +71,9 @@ export async function POST(req: Request) {
                     : null,
             },
         )
-        const codexTransit = await getCodexTransitWindow(questionRange)
+
+        // Derive aspectRange synchronously so we can fire both codex queries
+        // in parallel and overlap buildChartData with the slower of the two.
         const aspectRange = {
             ...questionRange,
             startDate: addUtcDays(
@@ -87,9 +89,17 @@ export async function POST(req: Request) {
             ),
             durationDays: questionRange.durationDays + ASPECT_PADDING_DAYS * 2,
         }
-        const aspectCodexTransit = await getCodexTransitWindow(aspectRange)
 
-        const chartDataResult = await buildChartData(
+        // Kick off BOTH codex queries simultaneously. `buildChartData` only
+        // needs `codexTransit`, so we await that one first and start the
+        // Swiss-ephemeris compute while the aspect codex query is still
+        // resolving on the side — its round-trip hides behind ephemeris work.
+        const codexTransitPromise = getCodexTransitWindow(questionRange)
+        const aspectCodexTransitPromise = getCodexTransitWindow(aspectRange)
+
+        const codexTransit = await codexTransitPromise
+
+        const chartDataPromise = buildChartData(
             {
                 birth: body.birth,
                 system: body.system,
@@ -100,6 +110,11 @@ export async function POST(req: Request) {
             },
             locale,
         )
+
+        const [chartDataResult, aspectCodexTransit] = await Promise.all([
+            chartDataPromise,
+            aspectCodexTransitPromise,
+        ])
 
         const primaryBirthChart = chartDataResult.charts?.[0]
         const primaryTransitChart = chartDataResult.transit?.charts?.[0]

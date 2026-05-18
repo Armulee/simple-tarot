@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { SensitiveDomainAdviceBadge } from "@/components/chat/sensitive-domain-advice-badge"
 import { CardImage } from "@/components/card-image"
 import ShareSection from "@/components/tarot/interpretation/share"
@@ -16,7 +16,55 @@ import {
 import { cn } from "@/lib/utils"
 import { isSensitiveQuestionDomain } from "@/lib/chat/situation-schema"
 import { useTranslations } from "next-intl"
-import { Loader2, Share } from "lucide-react"
+import { Download, Loader2, Share } from "lucide-react"
+
+const TAROT_READING_EXPORT_ICON_BTN =
+    "group relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/60 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl text-white shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] transition hover:scale-105 hover:border-accent/40 hover:shadow-[0_12px_32px_-10px_rgba(139,92,246,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+
+function triggerBlobDownload(filename: string, blob: Blob): void {
+    const url = URL.createObjectURL(blob)
+    try {
+        const a = document.createElement("a")
+        a.href = url
+        a.download = filename
+        a.rel = "noopener"
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+    } finally {
+        URL.revokeObjectURL(url)
+    }
+}
+
+async function fetchReadingShareImage({
+    question,
+    cards,
+    interpretation,
+    signal,
+}: {
+    question?: string
+    cards: string[]
+    interpretation: string
+    signal?: AbortSignal
+}): Promise<Blob> {
+    const res = await fetch("/api/share-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            question,
+            cards,
+            interpretation,
+            width: 1080,
+            height: 1920,
+            branding: "AskingFate",
+        }),
+        signal,
+    })
+    if (!res.ok) {
+        throw new Error(`Share image request failed (${res.status})`)
+    }
+    return await res.blob()
+}
 
 const INTERPRETATION_FILLER_PREFIXES = [
     /^(?:i\s+(?:feel|sense|believe|think)\s+(?:that\s+)*)/i,
@@ -130,6 +178,10 @@ export type TarotAssistantInterpretationProps = {
     onRegenerateTarot?: (messageId: string) => void
     onTarotInterpretationChange?: (messageId: string, text: string) => void
     onShare: (id: string, text: string) => void
+    /** Called after a successful PNG image export from the headline row download control. */
+    onReadingTextDownloaded?: (messageId: string) => void
+    /** Called when the headline row image export fails (network/blob/anchor error). */
+    onReadingTextDownloadFailed?: (messageId: string) => void
     /**
      * Replaces session-scoped privacy placeholders (e.g. `[Person_0]`) with the
      * original PII the user typed, for every user-facing render and share.
@@ -160,6 +212,8 @@ export function TarotAssistantInterpretation({
     onRegenerateTarot,
     onTarotInterpretationChange,
     onShare,
+    onReadingTextDownloaded,
+    onReadingTextDownloadFailed,
     unmask,
     privacyAliases,
 }: TarotAssistantInterpretationProps) {
@@ -184,6 +238,7 @@ export function TarotAssistantInterpretation({
     const isMultiCard = cardCount > 1
 
     const [activeCardIndex, setActiveCardIndex] = useState(0)
+    const [isImageDownloading, setIsImageDownloading] = useState(false)
     useEffect(() => {
         // Snap back to first card whenever the underlying spread changes
         // (e.g. when a new message streams or regenerate runs).
@@ -194,6 +249,59 @@ export function TarotAssistantInterpretation({
             ? Math.min(Math.max(activeCardIndex, 0), cardCount - 1)
             : 0
     const activeCard = cards[safeActiveIndex]
+
+    // Custom swipe gesture for the multi-card hero fan: the fan itself
+    // stays stationary (each card pinned to a fixed offset around the
+    // spread center); a horizontal swipe just shifts which card is
+    // highlighted as active, and click on any card selects it directly.
+    const swipeStartRef = useRef<{ x: number; y: number; t: number } | null>(
+        null,
+    )
+    const suppressClickRef = useRef(false)
+    const suppressClickTimeoutRef = useRef<number | null>(null)
+    useEffect(
+        () => () => {
+            if (suppressClickTimeoutRef.current !== null) {
+                window.clearTimeout(suppressClickTimeoutRef.current)
+            }
+        },
+        [],
+    )
+    const handleFanPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+        swipeStartRef.current = {
+            x: e.clientX,
+            y: e.clientY,
+            t: Date.now(),
+        }
+    }
+    const handleFanPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+        const start = swipeStartRef.current
+        swipeStartRef.current = null
+        if (!start) return
+        const dx = e.clientX - start.x
+        const dy = e.clientY - start.y
+        const elapsed = Date.now() - start.t
+        const isHorizontalSwipe =
+            Math.abs(dx) > 40 &&
+            Math.abs(dx) > Math.abs(dy) * 1.5 &&
+            elapsed < 700
+        if (!isHorizontalSwipe) return
+        suppressClickRef.current = true
+        if (suppressClickTimeoutRef.current !== null) {
+            window.clearTimeout(suppressClickTimeoutRef.current)
+        }
+        suppressClickTimeoutRef.current = window.setTimeout(() => {
+            suppressClickRef.current = false
+            suppressClickTimeoutRef.current = null
+        }, 350)
+        setActiveCardIndex((current) => {
+            const next = dx < 0 ? current + 1 : current - 1
+            return Math.min(cardCount - 1, Math.max(0, next))
+        })
+    }
+    const handleFanPointerCancel = () => {
+        swipeStartRef.current = null
+    }
 
     let spreadKey = "simple"
     if (cardCount === 1) spreadKey = "simple"
@@ -283,6 +391,12 @@ export function TarotAssistantInterpretation({
                   .join("\n\n")
             : ""
 
+    const readingExportText = (
+        tarotShareText ||
+        unmaskedMessageText ||
+        ""
+    ).trim()
+
     // B. Hero card area: enlarged centered card with a soft purple halo.
     // Multi-card spreads fan around the active card; tapping a card lifts
     // and scales it. The internal markup (number badge, tag label, name
@@ -293,41 +407,92 @@ export function TarotAssistantInterpretation({
         cardCount > 0 && activeCard ? (
             <div className='w-full md:max-w-[85%]'>
                 <div className='relative mx-auto flex w-full max-w-md flex-col items-center px-2 py-6'>
+                    {/* Layered ambient halo: purple core + indigo mid + cyan outer breath. */}
                     <div
                         aria-hidden
-                        className='pointer-events-none absolute left-1/2 top-[120px] -z-10 h-[260px] w-[260px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#a78bfa]/25 blur-3xl'
-                    />
+                        className='pointer-events-none absolute left-1/2 top-[120px] -z-10 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2'
+                    >
+                        <div className='absolute inset-0 rounded-full bg-[#a78bfa]/25 blur-3xl' />
+                        <div className='absolute inset-8 rounded-full bg-indigo-500/20 blur-3xl' />
+                        <div className='absolute inset-16 rounded-full bg-cyan-400/10 blur-2xl animate-pulse' />
+                    </div>
+
+                    {/* Floating decorative sparkles framing the spread. */}
+                    <div
+                        aria-hidden
+                        className='pointer-events-none absolute inset-0 -z-10 overflow-hidden'
+                    >
+                        <span className='absolute left-[10%] top-[14%] h-1 w-1 rounded-full bg-white/80 shadow-[0_0_8px_rgba(255,255,255,0.7)] animate-pulse' />
+                        <span className='absolute right-[12%] top-[6%] h-1.5 w-1.5 rounded-full bg-indigo-200/90 shadow-[0_0_10px_rgba(165,180,252,0.7)]' />
+                        <span className='absolute left-[18%] bottom-[22%] h-1 w-1 rounded-full bg-cyan-200/80 shadow-[0_0_8px_rgba(165,243,252,0.6)] animate-pulse' />
+                        <span className='absolute right-[16%] bottom-[10%] h-1 w-1 rounded-full bg-amber-200/70 shadow-[0_0_6px_rgba(252,211,77,0.5)]' />
+                        <span className='absolute left-[6%] top-[42%] h-0.5 w-0.5 rounded-full bg-white/60' />
+                        <span className='absolute right-[8%] top-[36%] h-0.5 w-0.5 rounded-full bg-white/50' />
+                    </div>
 
                     {isMultiCard ? (
-                        <div className='relative flex h-[300px] w-full items-end justify-center'>
+                        <div
+                            className='relative isolate flex min-h-[280px] w-full select-none items-end justify-center py-4 touch-pan-y'
+                            onPointerDown={handleFanPointerDown}
+                            onPointerUp={handleFanPointerUp}
+                            onPointerCancel={handleFanPointerCancel}
+                            role='group'
+                            aria-roledescription='Swipe or tap to change the active tarot card'
+                        >
                             {cards.map((card, index) => {
-                                const offsetFromActive = index - safeActiveIndex
+                                // Position is anchored to the SPREAD's center
+                                // (not the active card), so the fan layout is
+                                // visually stationary; only the highlight
+                                // (lift, scale, ring, glow) moves when
+                                // activeCardIndex changes.
+                                //
+                                // Reading-order deck: card 1 (index 0) sits
+                                // physically on top; each following card is
+                                // stepped down + slightly right so the stack
+                                // is visible (z-index alone was invisible when
+                                // the fan had almost no overlap).
+                                const offsetFromCenter =
+                                    index - (cardCount - 1) / 2
                                 const isActive = index === safeActiveIndex
-                                const rotateDeg = offsetFromActive * 8
-                                const translateXPx = offsetFromActive * 56
-                                const translateYPx = isActive
-                                    ? -10
-                                    : Math.abs(offsetFromActive) * 8
+                                const rotateDeg = offsetFromCenter * 8
+                                const fanXPx = offsetFromCenter * 52
+                                const stackDownPx = index * 8
+                                const stackRightPx = index * 5
+                                const translateXPx = fanXPx + stackRightPx
+                                const translateYPx =
+                                    stackDownPx +
+                                    (isActive
+                                        ? -12
+                                        : Math.abs(offsetFromCenter) * 3)
                                 const scale = isActive ? 1.06 : 0.92
-                                const zIndex = isActive
-                                    ? 30
-                                    : 20 - Math.abs(offsetFromActive)
+                                const zIndex = 40 + (cardCount - index)
                                 return (
                                     <button
                                         key={`${message.id}-card-${card.id}-${index}`}
                                         type='button'
-                                        onClick={() =>
+                                        onClick={(e) => {
+                                            if (suppressClickRef.current) {
+                                                e.preventDefault()
+                                                e.stopPropagation()
+                                                return
+                                            }
                                             setActiveCardIndex(index)
-                                        }
+                                        }}
                                         aria-label={`Card ${index + 1}: ${card.meaning}`}
                                         aria-pressed={isActive}
-                                        className='absolute bottom-0 left-1/2 -translate-x-1/2 outline-none transition-transform duration-300 ease-out focus-visible:ring-2 focus-visible:ring-[#a78bfa]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent'
+                                        className='absolute bottom-0 left-1/2 origin-bottom outline-none transition-transform duration-300 ease-out focus-visible:ring-2 focus-visible:ring-[#a78bfa]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent'
                                         style={{
                                             transform: `translate(calc(-50% + ${translateXPx}px), ${translateYPx}px) rotate(${rotateDeg}deg) scale(${scale})`,
                                             zIndex,
                                         }}
                                     >
-                                        <div className='w-36 sm:w-40 rounded-xl overflow-hidden border border-white/10 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.55)]'>
+                                        <div
+                                            className={`w-32 sm:w-40 rounded-xl overflow-hidden transition-shadow duration-300 ${
+                                                isActive
+                                                    ? "ring-1 ring-[#a78bfa]/55 shadow-[0_30px_70px_-18px_rgba(167,139,250,0.55),0_0_28px_-6px_rgba(56,189,248,0.25),0_18px_40px_-12px_rgba(0,0,0,0.55)]"
+                                                    : "ring-1 ring-white/10 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.55)]"
+                                            }`}
+                                        >
                                             <CardImage
                                                 card={card}
                                                 size='lg'
@@ -340,7 +505,7 @@ export function TarotAssistantInterpretation({
                             })}
                         </div>
                     ) : (
-                        <div className='w-fit rounded-2xl overflow-hidden border border-white/10 shadow-[0_24px_60px_-18px_rgba(0,0,0,0.6)]'>
+                        <div className='w-fit rounded-2xl overflow-hidden ring-1 ring-[#a78bfa]/40 shadow-[0_30px_70px_-18px_rgba(167,139,250,0.5),0_0_28px_-6px_rgba(56,189,248,0.25),0_24px_60px_-18px_rgba(0,0,0,0.6)]'>
                             <CardImage
                                 card={activeCard}
                                 size='lg'
@@ -355,13 +520,23 @@ export function TarotAssistantInterpretation({
                             stacked vertically and centered. */}
                     <div className='mt-6 flex w-full flex-col items-center text-center'>
                         <div className='relative flex flex-col items-center'>
-                            <p className='text-xs tracking-widest text-white/50 uppercase mb-1 opacity-80'>
+                            <p className='inline-flex items-center gap-2 text-[10px] tracking-[0.22em] uppercase text-white/55 mb-1.5'>
+                                <span
+                                    aria-hidden
+                                    className='block h-px w-5 bg-gradient-to-r from-transparent to-[#a78bfa]/60'
+                                />
                                 {activeLabel}
+                                <span
+                                    aria-hidden
+                                    className='block h-px w-5 bg-gradient-to-l from-transparent to-[#a78bfa]/60'
+                                />
                             </p>
 
-                            <span>{activeCard.meaning}</span>
+                            <span className='text-base sm:text-lg font-semibold tracking-wide bg-gradient-to-br from-white via-indigo-100 to-purple-200 bg-clip-text text-transparent drop-shadow-[0_1px_8px_rgba(167,139,250,0.35)]'>
+                                {activeCard.meaning}
+                            </span>
                         </div>
-                        <div className='mt-3 w-fit max-w-md rounded-xl border-l-2 border-indigo-300/60 bg-indigo-400/[0.04] py-2 pr-3 pl-4 animate-fade-in'>
+                        <div className='relative mt-4 w-fit max-w-md rounded-xl border border-indigo-300/20 bg-gradient-to-br from-indigo-500/[0.08] via-purple-500/[0.06] to-cyan-500/[0.05] py-2.5 pr-4 pl-5 shadow-[0_8px_28px_-12px_rgba(129,140,248,0.55)] animate-fade-in before:absolute before:left-0 before:top-2 before:bottom-2 before:w-px before:bg-gradient-to-b before:from-transparent before:via-[#a78bfa]/70 before:to-transparent'>
                             <p className='text-[11px] font-serif italic leading-relaxed text-indigo-200/76'>
                                 &ldquo;
                                 {message.isLoading &&
@@ -419,10 +594,10 @@ export function TarotAssistantInterpretation({
                                             onClick={() =>
                                                 setActiveCardIndex(index)
                                             }
-                                            className={`h-1.5 rounded-full transition-all ${
+                                            className={`h-1.5 rounded-full transition-all duration-300 ease-out ${
                                                 isActive
-                                                    ? "w-5 bg-[#a78bfa]"
-                                                    : "w-1.5 bg-white/30 hover:bg-white/50"
+                                                    ? "w-6 bg-gradient-to-r from-[#a78bfa] via-indigo-300 to-[#a78bfa] shadow-[0_0_10px_rgba(167,139,250,0.75)]"
+                                                    : "w-1.5 bg-white/30 hover:bg-white/55 hover:shadow-[0_0_6px_rgba(255,255,255,0.35)]"
                                             }`}
                                         />
                                     )
@@ -500,9 +675,9 @@ export function TarotAssistantInterpretation({
                                 </span>
                             ) : (
                                 <>
-                                    {/* A. Headline + subtitle box. The
-                                        existing share button stays inline on
-                                        the right exactly as before. */}
+                                    {/* A. Headline + subtitle box. Share +
+                                        download export the same text payload
+                                        as share (full reading .txt). */}
                                     {showHeadlineBox && (
                                         <div
                                             className={cn(
@@ -541,30 +716,120 @@ export function TarotAssistantInterpretation({
                                                         </p>
                                                     )}
                                                 </div>
-                                                <button
-                                                    type='button'
-                                                    onClick={() =>
-                                                        onShare(
-                                                            message.id,
-                                                            tarotShareText ||
-                                                                unmaskedMessageText ||
-                                                                "",
-                                                        )
-                                                    }
-                                                    className='group relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/60 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl text-white shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] transition hover:scale-105 hover:border-accent/40 hover:shadow-[0_12px_32px_-10px_rgba(139,92,246,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40'
-                                                    aria-label={tReading(
-                                                        "actions.share",
-                                                    )}
-                                                    title={tReading(
-                                                        "actions.share",
-                                                    )}
-                                                >
-                                                    <span
-                                                        aria-hidden
-                                                        className='pointer-events-none absolute inset-0 rounded-full bg-gradient-to-r from-indigo-400/45 via-purple-400/45 to-cyan-400/45 opacity-80 transition group-hover:opacity-0'
-                                                    />
-                                                    <Share className='relative z-10 h-4.5 w-4.5 shrink-0 drop-shadow-sm' />
-                                                </button>
+                                                <div className='flex shrink-0 items-start gap-2'>
+                                                    <button
+                                                        type='button'
+                                                        onClick={() =>
+                                                            onShare(
+                                                                message.id,
+                                                                tarotShareText ||
+                                                                    unmaskedMessageText ||
+                                                                    "",
+                                                            )
+                                                        }
+                                                        className={
+                                                            TAROT_READING_EXPORT_ICON_BTN
+                                                        }
+                                                        aria-label={tReading(
+                                                            "actions.share",
+                                                        )}
+                                                        title={tReading(
+                                                            "actions.share",
+                                                        )}
+                                                    >
+                                                        <span
+                                                            aria-hidden
+                                                            className='pointer-events-none absolute inset-0 rounded-full bg-gradient-to-r from-indigo-400/45 via-purple-400/45 to-cyan-400/45 opacity-80 transition group-hover:opacity-0'
+                                                        />
+                                                        <Share className='relative z-10 h-4.5 w-4.5 shrink-0 drop-shadow-sm' />
+                                                    </button>
+                                                    <button
+                                                        type='button'
+                                                        disabled={
+                                                            !readingExportText ||
+                                                            isImageDownloading
+                                                        }
+                                                        onClick={async () => {
+                                                            if (
+                                                                !readingExportText ||
+                                                                isImageDownloading
+                                                            )
+                                                                return
+                                                            const safeId =
+                                                                message.id
+                                                                    .replace(
+                                                                        /[^a-zA-Z0-9-_]/g,
+                                                                        "",
+                                                                    )
+                                                                    .slice(
+                                                                        0,
+                                                                        32,
+                                                                    ) ||
+                                                                "reading"
+                                                            const filename = `askingfate-reading-${safeId}.png`
+                                                            setIsImageDownloading(
+                                                                true,
+                                                            )
+                                                            try {
+                                                                const blob =
+                                                                    await fetchReadingShareImage(
+                                                                        {
+                                                                            question:
+                                                                                unmaskedQuestion,
+                                                                            cards:
+                                                                                message.cards?.map(
+                                                                                    (
+                                                                                        card,
+                                                                                    ) =>
+                                                                                        card.meaning,
+                                                                                ) ??
+                                                                                [],
+                                                                            interpretation:
+                                                                                readingExportText,
+                                                                        },
+                                                                    )
+                                                                triggerBlobDownload(
+                                                                    filename,
+                                                                    blob,
+                                                                )
+                                                                onReadingTextDownloaded?.(
+                                                                    message.id,
+                                                                )
+                                                            } catch {
+                                                                onReadingTextDownloadFailed?.(
+                                                                    message.id,
+                                                                )
+                                                            } finally {
+                                                                setIsImageDownloading(
+                                                                    false,
+                                                                )
+                                                            }
+                                                        }}
+                                                        className={cn(
+                                                            TAROT_READING_EXPORT_ICON_BTN,
+                                                            "disabled:pointer-events-none disabled:opacity-40 disabled:hover:scale-100",
+                                                        )}
+                                                        aria-label={tReading(
+                                                            "actions.downloadReadingImage",
+                                                        )}
+                                                        title={tReading(
+                                                            "actions.downloadReadingImage",
+                                                        )}
+                                                        aria-busy={
+                                                            isImageDownloading
+                                                        }
+                                                    >
+                                                        <span
+                                                            aria-hidden
+                                                            className='pointer-events-none absolute inset-0 rounded-full bg-gradient-to-r from-indigo-400/45 via-purple-400/45 to-cyan-400/45 opacity-80 transition group-hover:opacity-0'
+                                                        />
+                                                        {isImageDownloading ? (
+                                                            <Loader2 className='relative z-10 h-4.5 w-4.5 shrink-0 animate-spin drop-shadow-sm' />
+                                                        ) : (
+                                                            <Download className='relative z-10 h-4.5 w-4.5 shrink-0 drop-shadow-sm' />
+                                                        )}
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     )}

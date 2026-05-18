@@ -1,27 +1,63 @@
 "use client"
 
-import { type ReactNode, useMemo, useState } from "react"
+import { type ReactNode, useEffect, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
+import { ChevronDown, Sparkles } from "lucide-react"
 import type { ChatMessage } from "@/components/chat/types"
-import { resolveRelevanceColor } from "@/lib/horoscope/relevance-colors"
 import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
-import {
-    isSingleDayQuestionRange,
-    readQuestionRangeFromChartData,
-} from "@/lib/astrology/single-day"
-import { InterpretationHeaderBar } from "./interpretation-header-bar"
-import { RelevanceBreakdown } from "./relevance-breakdown"
+import RealtimePlanetaryPanel from "@/components/astrology/realtime-planetary-panel"
+import type { SourceAspectEvent } from "@/components/chat/types"
 import VerdictHero from "./horoscope/verdict-hero"
-import TransitFeed from "./horoscope/transit-feed"
+import TransitPlanetGrid from "./horoscope/transit-planet-grid"
+import TransitOrbitVisual from "./horoscope/transit-orbit-visual"
+
+function NatalChartCollapsible({
+    chartData,
+}: {
+    chartData: ChatMessage["chartData"]
+}) {
+    const [open, setOpen] = useState(false)
+    const tAstro = useTranslations("BirthChart")
+
+    return (
+        <div className='overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.02] transition'>
+            <button
+                type='button'
+                onClick={() => setOpen((v) => !v)}
+                aria-expanded={open}
+                className='group flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-white/[0.03]'
+            >
+                <span className='flex items-center gap-2'>
+                    <span className='relative inline-flex h-6 w-6 items-center justify-center rounded-full border border-indigo-300/30 bg-indigo-500/15 text-indigo-200 shadow-[0_0_12px_-2px_rgba(129,140,248,0.55)]'>
+                        <Sparkles className='h-3 w-3' />
+                    </span>
+                    <span className='bg-gradient-to-r from-indigo-200 via-violet-200 to-cyan-200 bg-clip-text text-[12px] font-semibold uppercase tracking-[0.22em] text-transparent'>
+                        {tAstro("tabBirthChart")}
+                    </span>
+                </span>
+                <ChevronDown
+                    className={`h-4 w-4 shrink-0 text-white/55 transition-transform duration-300 group-hover:text-white/80 ${
+                        open ? "rotate-180" : ""
+                    }`}
+                />
+            </button>
+            {open && (
+                <div className='border-t border-white/[0.06] px-4 py-4 animate-fade-in'>
+                    <TransitPlanetGrid
+                        chartData={chartData}
+                        source='natal'
+                        hideHeader
+                    />
+                </div>
+            )}
+        </div>
+    )
+}
 
 type HoroscopeTab = "overview" | "aspect" | "transit"
 
-const TAB_ORDER: ReadonlyArray<HoroscopeTab> = [
-    "overview",
-    "aspect",
-    "transit",
-]
+const TAB_ORDER: ReadonlyArray<HoroscopeTab> = ["overview", "transit", "aspect"]
 
 function stripMarkdownFormatting(text: string): string {
     return text.replace(/\*\*/g, "").replace(/`/g, "").trim()
@@ -45,13 +81,19 @@ function getOverviewSummary(message: ChatMessage): string {
 
 export default function HoroscopeReadingTabs({
     message,
-    aspectPanel,
     loadingNode,
     footerActions,
     privacyAliases,
+    onAskAspectDetail,
+    askedAspectKeys,
+    showBirthDetails,
+    showTransitDetails,
+    onToggleBirthDetails,
+    onToggleTransitDetails,
+    birthDetailsContent,
+    transitDetailsContent,
 }: {
     message: ChatMessage
-    aspectPanel: ReactNode
     loadingNode?: ReactNode
     footerActions?: ReactNode
     /**
@@ -59,40 +101,73 @@ export default function HoroscopeReadingTabs({
      * to the user's original PII and render them as emerald lock chips.
      */
     privacyAliases?: PromptAliasEntry[]
+    onAskAspectDetail?: (
+        question: string,
+        aspectKey: string,
+        event: SourceAspectEvent,
+    ) => void
+    askedAspectKeys?: Record<string, string>
+    showBirthDetails?: boolean
+    showTransitDetails?: boolean
+    onToggleBirthDetails?: () => void
+    onToggleTransitDetails?: () => void
+    birthDetailsContent?: ReactNode
+    transitDetailsContent?: ReactNode
 }) {
-    const [activeTab, setActiveTab] = useState<HoroscopeTab>("overview")
+    // Track the user's explicit tab pick (if any). When null we derive the
+    // active tab from message state so the UI auto-flips between Transit
+    // (while the LLM is computing the verdict) and Overview (once the
+    // verdict has streamed in).
+    const [explicitTab, setExplicitTab] = useState<HoroscopeTab | null>(null)
     const tTabs = useTranslations("HoroscopeChat.tabs")
     const tReading = useTranslations("ReadingPage.interpretation")
+
+    // Reset auto-pilot whenever a new loading cycle starts (new question OR
+    // regenerate). This way Regenerate flips us back to the technical-info
+    // default and then back to overview when the verdict streams in.
+    const hasDailyVerdict = !!message.dailyVerdict
+    useEffect(() => {
+        if (message.isLoading && !hasDailyVerdict) {
+            setExplicitTab(null)
+        }
+    }, [message.isLoading, hasDailyVerdict])
+
+    // Loading + no verdict yet → Transit (chartData lands first, no LLM
+    // wait). Otherwise → Overview. An explicit user click always wins.
+    const activeTab: HoroscopeTab =
+        explicitTab ??
+        (message.isLoading && !hasDailyVerdict ? "transit" : "overview")
+
+    const handleSelectTab = (tab: HoroscopeTab) => setExplicitTab(tab)
 
     const tabs = useMemo<Array<{ id: HoroscopeTab; label: string }>>(
         () => [
             { id: "overview", label: tTabs("overview") },
-            { id: "aspect", label: tTabs("aspect") },
             { id: "transit", label: tTabs("transit") },
+            { id: "aspect", label: tTabs("aspect") },
         ],
         [tTabs],
     )
 
     const summary = getOverviewSummary(message)
     const aliases = privacyAliases ?? []
-    const relevanceStats = useMemo(
-        () =>
-            (message.relevance ?? [])
-                .filter((s) => s && typeof s.pct === "number" && s.pct > 0)
-                .map(({ label, pct }) => ({
-                    label,
-                    pct,
-                    color: resolveRelevanceColor(label),
-                })),
-        [message.relevance],
-    )
+    // const relevanceStats = useMemo(
+    //     () =>
+    //         (message.relevance ?? [])
+    //             .filter((s) => s && typeof s.pct === "number" && s.pct > 0)
+    //             .map(({ label, pct }) => ({
+    //                 label,
+    //                 pct,
+    //                 color: resolveRelevanceColor(label),
+    //             })),
+    //     [message.relevance],
+    // )
 
-    const questionRange = useMemo(
-        () => readQuestionRangeFromChartData(message.chartData),
-        [message.chartData],
-    )
-    const isSingleDay = isSingleDayQuestionRange(questionRange)
-    const showVerdict = isSingleDay && !!message.dailyVerdict
+    // The hero only depends on `dailyVerdict` arriving — the schema + prompt
+    // already guarantee the model omits it for multi-day questions, so we do
+    // NOT wait on chartData.questionRange (which comes from a separate
+    // /api/horoscope/chart-data fetch and can lag behind the LLM stream).
+    const showVerdict = !!message.dailyVerdict
     const dateIso = useMemo(() => {
         if (!message.chartData || typeof message.chartData !== "object") {
             return null
@@ -107,6 +182,9 @@ export default function HoroscopeReadingTabs({
     return (
         <section className='relative overflow-hidden'>
             <div className='space-y-6'>
+                {message.isLoading && loadingNode ? (
+                    <div className='flex justify-start'>{loadingNode}</div>
+                ) : null}
                 <div
                     role='tablist'
                     aria-label='Horoscope reading sections'
@@ -120,7 +198,7 @@ export default function HoroscopeReadingTabs({
                                 role='tab'
                                 type='button'
                                 aria-selected={isActive}
-                                onClick={() => setActiveTab(tab.id)}
+                                onClick={() => handleSelectTab(tab.id)}
                                 className={`relative shrink-0 overflow-hidden rounded-full border px-4 py-2 text-sm font-medium transition duration-300 ${
                                     isActive
                                         ? "border-blue-400/40 text-white shadow-[0_10px_30px_-10px_rgba(96,165,250,0.38)] backdrop-blur-xl ring-1 ring-blue-400/25"
@@ -149,8 +227,6 @@ export default function HoroscopeReadingTabs({
                     <span className='sr-only'>{TAB_ORDER.join(",")}</span>
                 </div>
 
-                <InterpretationHeaderBar />
-
                 {activeTab === "overview" && (
                     <div className='space-y-6'>
                         {showVerdict && message.dailyVerdict && (
@@ -158,14 +234,27 @@ export default function HoroscopeReadingTabs({
                                 verdict={message.dailyVerdict}
                                 dateIso={dateIso}
                                 privacyAliases={aliases}
+                                isLoading={message.isLoading}
+                                transitSourceMessage={message}
                             />
                         )}
 
-                        {relevanceStats.length > 0 && (
-                            <RelevanceBreakdown stats={relevanceStats} />
+                        {message.isLoading && !showVerdict && (
+                            <div
+                                className='flex flex-col items-center gap-4 py-6 animate-pulse'
+                                aria-hidden
+                            >
+                                <div className='h-12 w-12 rounded-full bg-white/[0.07]' />
+                                <div className='h-6 w-2/3 rounded-full bg-white/[0.07]' />
+                                <div className='h-5 w-24 rounded-full bg-white/[0.05]' />
+                                <div className='mt-4 w-full max-w-md space-y-2 rounded-2xl border border-white/[0.06] bg-white/[0.03] px-4 py-4'>
+                                    <div className='h-5 w-3/4 rounded bg-white/[0.07]' />
+                                    <div className='h-3 w-5/6 rounded bg-white/[0.05]' />
+                                </div>
+                            </div>
                         )}
 
-                        {!showVerdict && summary && (
+                        {!message.isLoading && !showVerdict && summary && (
                             <div className='rounded-2xl border border-indigo-300/20 bg-indigo-400/[0.07] px-4 py-3 shadow-[0_8px_24px_-18px_rgba(129,140,248,0.75)]'>
                                 <div className='mb-1 flex items-start justify-between gap-3'>
                                     <div>
@@ -192,23 +281,45 @@ export default function HoroscopeReadingTabs({
                     </div>
                 )}
 
-                {activeTab === "aspect" && <div>{aspectPanel}</div>}
-
                 {activeTab === "transit" && (
-                    <div className='rounded-[16px] border border-white/10 bg-white/[0.04] p-5'>
-                        {loadingNode ? (
-                            loadingNode
-                        ) : (
-                            <TransitFeed
-                                message={message}
-                                privacyAliases={aliases}
-                            />
-                        )}
-                        {footerActions ? (
-                            <div className='mt-5 border-t border-white/10 pt-4'>
+                    <div className='space-y-5 rounded-[16px]'>
+                        <TransitOrbitVisual chartData={message.chartData} />
+                        <TransitPlanetGrid chartData={message.chartData} />
+                        <NatalChartCollapsible chartData={message.chartData} />
+
+                        {footerActions && !message.isLoading ? (
+                            <div className='border-t border-white/10 pt-4'>
                                 {footerActions}
                             </div>
                         ) : null}
+                    </div>
+                )}
+
+                {activeTab === "aspect" && (
+                    <div>
+                        <RealtimePlanetaryPanel
+                            chartData={
+                                message.chartData as
+                                    | Record<string, unknown>
+                                    | null
+                                    | undefined
+                            }
+                            personalizedTransitAspects={
+                                message.personalizedTransitAspects
+                            }
+                            personalizedTransitAspectsMerged={
+                                message.personalizedTransitAspectsMerged
+                            }
+                            aspectInsights={message.aspectInsights}
+                            onAskAspectDetail={onAskAspectDetail}
+                            askedAspectKeys={askedAspectKeys}
+                            showBirthDetails={showBirthDetails}
+                            showTransitDetails={showTransitDetails}
+                            onToggleBirthDetails={onToggleBirthDetails}
+                            onToggleTransitDetails={onToggleTransitDetails}
+                            birthDetailsContent={birthDetailsContent}
+                            transitDetailsContent={transitDetailsContent}
+                        />
                     </div>
                 )}
             </div>

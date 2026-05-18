@@ -169,6 +169,7 @@ function getChatDecisionPrompt({
     interpretationMode,
     contextSummary,
     savedBirthInfo,
+    hasStoredBirthChart,
     isAuthenticated,
 }: {
     question: string
@@ -176,6 +177,7 @@ function getChatDecisionPrompt({
     interpretationMode?: string | null
     contextSummary?: string | null
     savedBirthInfo?: string | null
+    hasStoredBirthChart?: boolean
     isAuthenticated: boolean
 }) {
     const historyText =
@@ -209,8 +211,12 @@ function getChatDecisionPrompt({
         ? `Saved birth profile: available (${savedBirthInfo}).`
         : "Saved birth profile: not available. If you choose horoscope, do not ask for birth date in the chat response; the app will collect or reuse birth data through the birth profile flow."
 
+    const storedChartBlock = hasStoredBirthChart
+        ? "\nSaved birth chart: available. The user has a previously computed natal chart stored on their account. Questions like \"what does my Saturn mean?\", \"what is my rising sign?\", or any reference to \"my chart / my placements\" should be classified as \"horoscope\" and the app will pass the stored chart to the horoscope reader so it can answer with real placements."
+        : "\nSaved birth chart: not available."
+
     const anonymousHoroscopeRule = !isAuthenticated
-        ? `\nIMPORTANT: The user is NOT signed in. Horoscope readings require an account. Never set type to "horoscope". For timing or astrology questions, choose "draw" or "chat". Even if session context mentions a prior horoscope reading, do not use "horoscope" while unsigned.\n`
+        ? `\nNote: The user is NOT signed in. Horoscope readings ultimately require an account, but you should STILL classify timing/astrology questions as "horoscope" so the app can show a sign-in prompt. Do not pretend the topic is "chat" just to avoid the auth requirement — the client handles the sign-in gate separately.\n`
         : ""
 
     return `
@@ -220,7 +226,7 @@ ${historyText}
 User message:
 ${question}
 ${modeInstruction}
-${savedBirthBlock}${anonymousHoroscopeRule}
+${savedBirthBlock}${storedChartBlock}${anonymousHoroscopeRule}
 DETECTED LANGUAGE: The user's message is in ${detectedLang}. Ignore the language of conversation history — only the current user message language matters.
 
 Classify the intent and return JSON.
@@ -257,6 +263,7 @@ export async function POST(req: Request) {
             question?: string
             history?: unknown
             savedBirthInfo?: string | null
+            hasStoredBirthChart?: boolean
             interpretationMode?: string | null
             contextSummary?: string | null
         }
@@ -273,6 +280,7 @@ export async function POST(req: Request) {
             interpretationMode: rawInterpretationMode,
             contextSummary,
             savedBirthInfo,
+            hasStoredBirthChart,
         } = body ?? {}
 
         const user = await getUserFromBearer(req)
@@ -299,6 +307,7 @@ export async function POST(req: Request) {
                 interpretationMode,
                 contextSummary,
                 savedBirthInfo,
+                hasStoredBirthChart: Boolean(hasStoredBirthChart),
                 isAuthenticated,
             }),
         })

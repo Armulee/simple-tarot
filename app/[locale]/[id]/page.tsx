@@ -5,12 +5,14 @@ import ChatSession from "@/components/chat/session"
 import type { ChatDecision } from "@/components/chat/session"
 import { getMetadataBase } from "@/lib/seo"
 import { getCleanQuestionText } from "@/lib/prompts/question-utils"
+import { normalizeOriginContext } from "@/lib/chat/origin-context"
 
 type ChatSessionData = {
     id: string
     question: string
     messages: unknown
     decision: unknown
+    origin_context: unknown
     owner_user_id: string | null
     show_insufficient_stars?: boolean
     show_card_draw?: boolean
@@ -33,7 +35,7 @@ async function getChatSession(id: string) {
     const { data } = await supabase
         .from("chat_sessions")
         .select(
-            "id, question, messages, decision, owner_user_id, show_insufficient_stars, show_card_draw",
+            "id, question, messages, decision, origin_context, owner_user_id, show_insufficient_stars, show_card_draw",
         )
         .eq("id", id)
         .maybeSingle()
@@ -102,6 +104,7 @@ export default async function ChatSessionPage({
                 question: data.question,
                 messages: Array.isArray(data.messages) ? data.messages : [],
                 decision: isChatDecision(data.decision) ? data.decision : null,
+                originContext: normalizeOriginContext(data.origin_context),
                 owner_user_id: data.owner_user_id,
                 showInsufficientStars: data.show_insufficient_stars,
                 showCardDraw: data.show_card_draw,
