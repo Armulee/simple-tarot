@@ -1574,15 +1574,35 @@ export default function ChatSession({
                 return false
             }
 
+            // Timing verdicts embed chartData + personalizedTransitAspects
+            // computed at the AI-picked peak window. The parallel /chart-data
+            // call uses the wide forward search window, which isn't useful
+            // for the Technical Information / Aspect tabs — so when verdict
+            // ships its own chart payload we prefer that.
+            const verdictEmbeddedChart =
+                verdictJson &&
+                typeof verdictJson.chartData === "object" &&
+                verdictJson.chartData !== null
+                    ? (verdictJson.chartData as Record<string, unknown>)
+                    : null
+            const verdictEmbeddedAspects =
+                verdictJson &&
+                "personalizedTransitAspects" in verdictJson
+                    ? (verdictJson.personalizedTransitAspects as ChatMessage["personalizedTransitAspects"]) ??
+                      null
+                    : null
+
             const chartOk =
                 chartRes.ok &&
                 chartJson &&
                 typeof chartJson === "object" &&
                 !chartJson.error
-            const chartDataObj = chartOk ? chartJson : null
+            const chartDataObj =
+                verdictEmbeddedChart ?? (chartOk ? chartJson : null)
             const fullAspects =
-                (chartDataObj?.personalizedTransitAspects as ChatMessage["personalizedTransitAspects"]) ??
-                null
+                verdictEmbeddedAspects ??
+                ((chartDataObj?.personalizedTransitAspects as ChatMessage["personalizedTransitAspects"]) ??
+                    null)
             const overviewText = plainSummaryFromVerdict(verdict)
             const charts = chartDataObj?.charts as
                 | Array<{ system?: string }>
