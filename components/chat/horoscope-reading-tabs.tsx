@@ -8,6 +8,12 @@ import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highli
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import RealtimePlanetaryPanel from "@/components/astrology/realtime-planetary-panel"
 import CosmicCenteredLoader from "@/components/cosmic-centered-loader"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import type { SourceAspectEvent } from "@/components/chat/types"
 import {
     isDateBoundedQuestionRange,
@@ -107,6 +113,7 @@ export default function HoroscopeReadingTabs({
     onToggleTransitDetails,
     birthDetailsContent,
     transitDetailsContent,
+    onPickTransitDate,
 }: {
     message: ChatMessage
     loadingNode?: ReactNode
@@ -128,6 +135,15 @@ export default function HoroscopeReadingTabs({
     onToggleTransitDetails?: () => void
     birthDetailsContent?: ReactNode
     transitDetailsContent?: ReactNode
+    /**
+     * For timeline-mode readings: pick which day inside the question's range
+     * the Technical Information / Aspect tabs should anchor to. The session
+     * fetches /chart-data for the chosen day and replaces `message.chartData`.
+     */
+    onPickTransitDate?: (
+        messageId: string,
+        datetimeIso: string,
+    ) => void
 }) {
     // Track the user's explicit tab pick (if any). When null we keep the user
     // on Overview so the streamed explanation stays front and center.
@@ -143,11 +159,10 @@ export default function HoroscopeReadingTabs({
     // tab entirely. The hero visual underneath the key message also flips
     // from transit feed → relevant-planet spotlight (see VerdictHero).
     //
-    // We commit to natal mode as soon as either signal is true:
-    //   • the verdict has streamed back with mode === "natal", OR
-    //   • the question text contains no date / date-range hints.
-    // The text-based heuristic lets us avoid flashing today's transit
-    // calculations while the natal verdict is still in flight.
+    // The extract route's classification is the source of truth: when the
+    // message carries replyStrategy we trust it directly. Otherwise we fall
+    // back to the legacy heuristic (verdict.mode + question-text + chartData
+    // questionRange) so older / regenerated messages keep working.
     const questionTextForNatalCheck =
         message.displayQuestion ?? message.question ?? ""
     const isNatalLikely = useMemo(
@@ -163,12 +178,19 @@ export default function HoroscopeReadingTabs({
         questionRangeFromChart,
     )
     const verdictIsNatal = message.dailyVerdict?.mode === "natal"
-    // Prefer resolver output on the message once chartData lands — a question
-    // with no date words ("Is love good for me?") can still be a single-day
-    // reading when the user picked a transit date or AI locked to one day.
-    const isNatalMode =
-        verdictIsNatal ||
-        (isNatalLikely && !chartIsSingleDay && !chartIsDateBounded)
+    const verdictIsTechnical = message.dailyVerdict?.mode === "technical"
+    // Technical replies are about planetary mechanics — they reuse the
+    // same "spotlight" layout as natal, but the data comes from the
+    // current transit chart instead of the asker's birth chart. From the
+    // tab layout's perspective both modes hide the Aspect tab and swap
+    // the Transit tab for the Birth Chart Information tab, so we treat
+    // technical the same as natal here.
+    const isNatalMode = message.replyStrategy
+        ? message.replyStrategy === "natal" ||
+          message.replyStrategy === "technical"
+        : verdictIsNatal ||
+          verdictIsTechnical ||
+          (isNatalLikely && !chartIsSingleDay && !chartIsDateBounded)
     // Reset auto-pilot whenever a new loading cycle starts (new question OR
     // regenerate). This way a fresh run returns to the overview tab and keeps
     // the inline loader visible until the first overview text arrives.
@@ -194,6 +216,88 @@ export default function HoroscopeReadingTabs({
     const activeTab: HoroscopeTab = explicitTab ?? "overview"
 
     const handleSelectTab = (tab: HoroscopeTab) => setExplicitTab(tab)
+
+    // Timeline-mode transit-date picker. The /timeline response carries an
+    // ordered list of slots (hourly or daily) covering the user's range.
+    // When the user picks a slot, the parent refetches /chart-data for that
+    // date and replaces `message.chartData`, so the Transit / Aspect tabs
+    // re-render against the picked moment.
+    const isTimelineMode = message.replyStrategy === "timeline"
+    const timelineSlots = useMemo(() => {
+        if (!isTimelineMode) return [] as Array<{
+            datetimeIso: string
+            label: string
+        }>
+        const slots = message.timeline?.slots ?? []
+        return slots
+            .filter(
+                (slot): slot is NonNullable<typeof slot> =>
+                    Boolean(slot?.datetimeIso),
+            )
+            .map((slot) => ({
+                datetimeIso: slot.datetimeIso,
+                label: slot.label || slot.datetimeIso,
+            }))
+    }, [isTimelineMode, message.timeline])
+    const currentTransitIso = useMemo(() => {
+        if (!isTimelineMode) return null
+        const chartData = message.chartData as
+            | {
+                  transit?: {
+                      date?: { day?: number; month?: number; year?: number }
+                  } | null
+              }
+            | null
+            | undefined
+        const tDate = chartData?.transit?.date
+        if (
+            tDate &&
+            typeof tDate.year === "number" &&
+            typeof tDate.month === "number" &&
+            typeof tDate.day === "number"
+        ) {
+            const yyyy = String(tDate.year).padStart(4, "0")
+            const mm = String(tDate.month).padStart(2, "0")
+            const dd = String(tDate.day).padStart(2, "0")
+            return `${yyyy}-${mm}-${dd}`
+        }
+        return timelineSlots[0]?.datetimeIso?.slice(0, 10) ?? null
+    }, [isTimelineMode, message.chartData, timelineSlots])
+    const currentSlotLabel = useMemo(() => {
+        if (!isTimelineMode || timelineSlots.length === 0) return null
+        const match = timelineSlots.find(
+            (slot) => slot.datetimeIso.slice(0, 10) === currentTransitIso,
+        )
+        return match?.label ?? timelineSlots[0]?.label ?? null
+    }, [isTimelineMode, timelineSlots, currentTransitIso])
+    const showTransitPicker =
+        isTimelineMode && timelineSlots.length > 1 && Boolean(onPickTransitDate)
+
+    const transitDatePickerNode = showTransitPicker ? (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <button
+                    type='button'
+                    className='inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-[12px] font-medium text-white/80 transition hover:border-white/25 hover:bg-white/[0.08]'
+                >
+                    {currentSlotLabel ?? currentTransitIso}
+                    <ChevronDown className='h-3.5 w-3.5 text-white/55' />
+                </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align='start' className='max-h-72 overflow-y-auto'>
+                {timelineSlots.map((slot) => (
+                    <DropdownMenuItem
+                        key={slot.datetimeIso}
+                        onSelect={() =>
+                            onPickTransitDate?.(message.id, slot.datetimeIso)
+                        }
+                    >
+                        {slot.label}
+                    </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+        </DropdownMenu>
+    ) : null
 
     const tabs = useMemo<Array<{ id: HoroscopeTab; label: string }>>(() => {
         if (isNatalMode) {
@@ -362,6 +466,14 @@ export default function HoroscopeReadingTabs({
                         </div>
                     ) : (
                         <div className='space-y-5 rounded-[16px]'>
+                            {transitDatePickerNode && (
+                                <div className='flex items-center gap-2'>
+                                    <span className='text-[11px] uppercase tracking-[0.18em] text-white/55'>
+                                        {tChat("transitDateLabel")}
+                                    </span>
+                                    {transitDatePickerNode}
+                                </div>
+                            )}
                             <TransitOrbitVisual chartData={message.chartData} />
                             <TransitPlanetGrid chartData={message.chartData} />
                             <NatalChartCollapsible
@@ -377,7 +489,15 @@ export default function HoroscopeReadingTabs({
                     ))}
 
                 {activeTab === "aspect" && !isNatalMode && (
-                    <div>
+                    <div className='space-y-3'>
+                        {transitDatePickerNode && (
+                            <div className='flex items-center gap-2'>
+                                <span className='text-[11px] uppercase tracking-[0.18em] text-white/55'>
+                                    {tChat("transitDateLabel")}
+                                </span>
+                                {transitDatePickerNode}
+                            </div>
+                        )}
                         <RealtimePlanetaryPanel
                             chartData={
                                 message.chartData as

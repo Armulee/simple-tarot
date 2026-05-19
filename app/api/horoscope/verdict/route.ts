@@ -8,10 +8,17 @@ import {
 import {
     getDailyVerdictPrompt,
     getNatalVerdictPrompt,
+    getTechnicalVerdictPrompt,
     getTimingVerdictPrompt,
     type NatalPlacementForPrompt,
 } from "@/lib/prompts"
-import { resolveQuestionTimeRangeAsync } from "@/lib/astrology/question-time-range"
+import { findNextSignIngresses } from "@/lib/astrology/next-ingress"
+import {
+    hydrateQuestionTimeRange,
+    questionTimeRangePayloadSchema,
+    resolveQuestionTimeRangeAsync,
+    type QuestionTimeRange,
+} from "@/lib/astrology/question-time-range"
 import {
     isDateBoundedQuestionRange,
     isNatalQuestionRange,
@@ -22,6 +29,10 @@ import { getCodexTransitWindow } from "@/lib/astrology/ephemeris-codex"
 import {
     classifyQuestionTopic,
     detectPredictiveIntent,
+    hydrateRelevantPlanets,
+    questionClassificationSchema,
+    type QuestionClassification,
+    type ReplyStrategy,
 } from "@/lib/astrology/question-intent"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
 import {
@@ -138,9 +149,50 @@ const requestSchema = z.object({
             userMainPoint: z.string().optional(),
         })
         .optional(),
+    classification: questionClassificationSchema.optional(),
+    questionRange: questionTimeRangePayloadSchema.optional(),
 })
 
 type VerdictRequestBody = z.infer<typeof requestSchema>
+
+function pickReplyStrategy(
+    body: VerdictRequestBody,
+    questionRange: QuestionTimeRange,
+): ReplyStrategy {
+    if (body.classification?.replyStrategy) {
+        return body.classification.replyStrategy
+    }
+    if (looksLikeTimingQuestion(body.question)) return "timing"
+    const singleDay = isSingleDayQuestionRange({
+        durationDays: questionRange.durationDays,
+        source: questionRange.source,
+    })
+    const natalMode = isNatalQuestionRange({
+        durationDays: questionRange.durationDays,
+        source: questionRange.source,
+    })
+    if (natalMode) return "natal"
+    if (!singleDay) return "general"
+    if (detectPredictiveIntent(body.question)) return "timeline"
+    return "daily"
+}
+
+function resolveClassification(
+    body: VerdictRequestBody,
+): QuestionClassification {
+    if (body.classification) {
+        return hydrateRelevantPlanets(body.classification)
+    }
+    const topic = classifyQuestionTopic(body.question)
+    return {
+        replyStrategy: "general",
+        questionTopic: { topic: topic.topic, relevantPlanets: [...topic.relevantPlanets] },
+        predictiveIntent: detectPredictiveIntent(body.question),
+        naturalNatalReference: false,
+        birthChartSuitability: false,
+        calendarRecommendationIntent: null,
+    }
+}
 
 // Planets we expose to the natal verdict prompt. Outer planets share signs
 // across whole generations, so they tell us very little about an individual
@@ -245,22 +297,18 @@ Return ONLY the verdict JSON object itself. Do NOT wrap it in another key like "
     return result.toTextStreamResponse()
 }
 
-async function handleTimingVerdict(body: VerdictRequestBody) {
+async function handleTimingVerdict(
+    body: VerdictRequestBody,
+    classification: QuestionClassification,
+    providedQuestionRange: QuestionTimeRange,
+) {
     const chartLocale =
         detectQuestionLanguage(body.question) === "Thai" ||
         detectQuestionLanguage(body.question) === "Lao"
             ? "th"
             : "en"
 
-    const questionRange = await resolveQuestionTimeRangeAsync(body.question, {
-        hintedTransitDate: body.transit
-            ? {
-                  day: body.transit.day ?? null,
-                  month: body.transit.month ?? null,
-                  year: body.transit.year ?? null,
-              }
-            : null,
-    })
+    const questionRange = providedQuestionRange
 
     const today = new Date()
     const todayUtc = new Date(
@@ -333,7 +381,11 @@ async function handleTimingVerdict(body: VerdictRequestBody) {
         fallbackExactTransitLongitudes,
     })
 
-    const questionTopic = classifyQuestionTopic(body.question)
+    const questionTopic = {
+        topic: classification.questionTopic.topic,
+        relevantPlanets:
+            classification.questionTopic.relevantPlanets ?? [],
+    }
     const filteredAspects =
         questionTopic.topic !== "general"
             ? filterAspectsByRelevantPlanets(
@@ -576,63 +628,154 @@ async function handleNatalVerdict(body: VerdictRequestBody) {
     })
 }
 
+/**
+ * Technical verdict: pure planetary-knowledge questions ("when does Jupiter
+ * become exalted?", "is Mars retrograde?"). Anchored in TODAY's transit chart
+ * (the planets' current positions) rather than the asker's natal placements.
+ */
+async function handleTechnicalVerdict(body: VerdictRequestBody) {
+    const chartLocale =
+        detectQuestionLanguage(body.question) === "Thai" ||
+        detectQuestionLanguage(body.question) === "Lao"
+            ? "th"
+            : "en"
+
+    // Build a transit chart for "right now" so the LLM has accurate
+    // current-position grounding for the answer. We also keep the natal
+    // chart in the response (so the existing chartData consumers don't
+    // choke), but the spotlight key the technical verdict points at is
+    // chartData.transit.charts[0].planets.
+    const now = new Date()
+    const todayUtc = new Date(
+        Date.UTC(
+            now.getUTCFullYear(),
+            now.getUTCMonth(),
+            now.getUTCDate(),
+            12,
+            0,
+            0,
+        ),
+    )
+    const todayQuestionRange = {
+        startDate: todayUtc,
+        endDate: todayUtc,
+        startDateIso: toIsoDate(todayUtc),
+        endDateIso: toIsoDate(todayUtc),
+        durationDays: 1,
+        source: "explicit" as const,
+        granularity: "daily" as const,
+    }
+
+    const chartDataResult = await buildChartData(
+        {
+            birth: body.birth,
+            system: body.system,
+            questionRange: todayQuestionRange,
+        },
+        chartLocale,
+    )
+
+    const primaryTransitChart = chartDataResult.transit?.charts?.[0]
+    const transitPlacements = buildNatalPlacementsForPrompt(
+        primaryTransitChart,
+    )
+    if (!transitPlacements.length) {
+        return Response.json({}, { status: 200 })
+    }
+
+    // Pre-compute next sign ingresses from the ephemeris codex so the LLM
+    // doesn't have to guess. We look up every planet in the transit chart;
+    // the prompt then quotes the ground-truth date instead of hallucinating
+    // one from training data.
+    const ingressSystem =
+        body.system === "western_tropical"
+            ? "western_tropical"
+            : "vedic_sidereal"
+    const ingresses = await findNextSignIngresses(
+        transitPlacements.map((p) => p.planet),
+        todayUtc,
+        ingressSystem,
+    )
+
+    const currentDateTime = now.toLocaleString("en-CA", {
+        dateStyle: "full",
+        timeStyle: "long",
+        timeZone: "UTC",
+    })
+    const questionLanguage = detectQuestionLanguage(body.question)
+
+    const prompt = getTechnicalVerdictPrompt({
+        question: body.question,
+        currentDateTime,
+        transitPlacements,
+        nextIngresses: ingresses,
+        questionLanguage,
+        userMainPoint: body.conversationContext?.userMainPoint ?? "",
+    })
+
+    console.log(
+        `[horoscope/verdict] technical prompt size: ${(prompt.length / 1024).toFixed(1)}KB (~${Math.ceil(prompt.length / 4)} tokens)`,
+    )
+
+    // Generate the verdict non-streamed so we can ship chartData alongside
+    // it in a single response (the same pattern as the timing verdict).
+    const result = await generateObject({
+        model: MODEL,
+        schema: dailyVerdictSchema,
+        system: `You are Astra, a female oracle. Produce ONLY the daily verdict JSON for a TECHNICAL ephemeris / astrology-knowledge question. Output language: ${questionLanguage}. Always set mode to "technical". Astrology vocabulary IS allowed because the user is asking about planetary mechanics.`,
+        prompt,
+        temperature: 0.35,
+    })
+
+    const verdict = {
+        ...result.object,
+        mode: "technical" as const,
+        relevantPlanets: result.object.relevantPlanets ?? [],
+        timingWindow: undefined,
+    }
+
+    return Response.json(
+        {
+            ...verdict,
+            chartData: chartDataResult,
+            personalizedTransitAspects: null,
+        },
+        { status: 200 },
+    )
+}
+
 export async function POST(req: Request) {
     try {
         const body = requestSchema.parse(await req.json())
 
-        const questionRange = await resolveQuestionTimeRangeAsync(
-            body.question,
-            {
-                hintedTransitDate: body.transit
-                    ? {
-                          day: body.transit.day ?? null,
-                          month: body.transit.month ?? null,
-                          year: body.transit.year ?? null,
-                      }
-                    : null,
-            },
-        )
+        const questionRange = body.questionRange
+            ? hydrateQuestionTimeRange(body.questionRange)
+            : await resolveQuestionTimeRangeAsync(body.question, {
+                  hintedTransitDate: body.transit
+                      ? {
+                            day: body.transit.day ?? null,
+                            month: body.transit.month ?? null,
+                            year: body.transit.year ?? null,
+                        }
+                      : null,
+              })
 
-        // This route now serves three distinct verdict flavors:
-        //   1. "daily"   → single, confidently dated questions (today, a
-        //                   specific calendar date). Driven by transit aspects.
-        //   2. "natal"   → questions with NO date or date-range, like
-        //                   "Which career fits me?" or "Am I lucky in love?".
-        //                   Driven by birth-chart placements only.
-        //   3. "timing"  → "when will X happen?" questions. Date-bound timing
-        //                   ("which day this month?") searches only inside the
-        //                   resolved window; open-ended timing searches up to
-        //                   TIMING_SEARCH_DAYS ahead.
-        // Anything else (an explicit multi-day window like "next month") is
-        // not a great fit for the verdict hero, so we still short-circuit
-        // with null and let the long-form interpretation carry the answer.
-        const timingMode = looksLikeTimingQuestion(body.question)
-        if (timingMode) {
-            return await handleTimingVerdict(body)
+        const classification = resolveClassification(body)
+        const strategy = pickReplyStrategy(body, questionRange)
+
+        // This route serves three verdict flavors (daily / natal / timing).
+        // For "timeline" or "general" strategies the long-form interpretation
+        // and/or the prediction timeline carry the answer, so we short-circuit.
+        if (strategy === "timing") {
+            return await handleTimingVerdict(body, classification, questionRange)
         }
-
-        const singleDay = isSingleDayQuestionRange({
-            durationDays: questionRange.durationDays,
-            source: questionRange.source,
-        })
-        const natalMode = isNatalQuestionRange({
-            durationDays: questionRange.durationDays,
-            source: questionRange.source,
-        })
-        if (!singleDay && !natalMode) {
-            return Response.json({}, { status: 200 })
-        }
-
-        if (natalMode) {
+        if (strategy === "natal") {
             return await handleNatalVerdict(body)
         }
-
-        // Predictive-intent gate: when the user asks a "what will happen"
-        // style question, the Prediction Timeline is the right answer — not
-        // the verdict hero. Short-circuiting here keeps the two views
-        // mutually exclusive and avoids burning a verdict LLM call we won't
-        // render.
-        if (detectPredictiveIntent(body.question)) {
+        if (strategy === "technical") {
+            return await handleTechnicalVerdict(body)
+        }
+        if (strategy !== "daily") {
             return Response.json({}, { status: 200 })
         }
 
@@ -704,7 +847,11 @@ export async function POST(req: Request) {
             fallbackExactTransitLongitudes,
         })
 
-        const questionTopic = classifyQuestionTopic(body.question)
+        const questionTopic = {
+            topic: classification.questionTopic.topic,
+            relevantPlanets:
+                classification.questionTopic.relevantPlanets ?? [],
+        }
         const personalizedTransitAspects =
             questionTopic.topic !== "general"
                 ? filterAspectsByRelevantPlanets(
