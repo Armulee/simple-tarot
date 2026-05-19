@@ -226,12 +226,22 @@ Birth / transit extraction rules:
   - If date is ambiguous and cannot be resolved to a single day/month/year, set mentioned=false.
   - Do not use birth date as transitDate unless user clearly asks forecast/transit for that same date.
 
-Classification rules (replyStrategy — pick ONE):
-- "timing": user asks WHEN something will happen or which day is best. Examples: "when will I get married", "เมื่อไหร่จะรวย", "best day to resign", "วันไหนดี", "how soon will I…".
-- "timeline": user asks WHAT WILL HAPPEN over a future window with no single date. Examples: "what will happen this month", "อะไรจะเกิดขึ้นในเดือนหน้า", "what is the next quarter like for me". Requires a multi-day window in the question — if no time window is present, prefer "natal" or "daily" instead.
-- "natal": open-ended self / personality question with NO date or window. Examples: "which career fits me", "am I lucky in love", "what is my life purpose", "ดวงของฉันเป็นยังไง", anything asking about birth-chart suitability.
-- "daily": short-range or single-day reading anchored to today / tomorrow / a specific date or a short relative window (this week, in 7 days). Use when the user wants a focused transit reading for a known day or short window.
-- "general": small talk, clarification, or anything that doesn't fit the four above. The verdict hero will not render.
+Classification rules (replyStrategy — pick ONE).
+
+PRIORITY ORDER — check in this exact order and return the first one that fits. Do NOT skip ahead. If the question contains ANY time anchor (an explicit date, date range, month, weekday, "today/tomorrow", "this week/month/year", "within N days", Thai "พค/มิย/วันนี้/พรุ่งนี้/เดือนนี้/เดือนหน้า/สัปดาห์นี้/ปีนี้", Lao equivalents, etc.), the answer CANNOT be "natal" — choose from "timing", "timeline", or "daily" instead.
+
+- "timing": the user is asking WHEN something will happen, or which day/week is best. Triggers: "when will…", "how soon…", "by when…", "best day to…", "วันไหน…", "เมื่อไหร่…", "ตอนไหน…", "ฤกษ์…". Use even if a search window is given.
+- "timeline": the user wants to know WHAT WILL HAPPEN across a multi-day window. Required: (a) a predictive phrasing like "what will happen / how will it go / จะเป็นยังไง / จะเป็นอย่างไร / อะไรจะเกิด / what's it like / ดวง…จะเป็น" AND (b) a window longer than one day (an explicit date range like "19-23 May / 19-23 พค", a relative window like "this month / next week / within 7 days / เดือนนี้ / สัปดาห์หน้า / ในอีก N วัน", or an explicit "daily / รายวัน" cue). Note: explicit date ranges ALWAYS count as a window, even with abbreviated Thai/Lao months.
+- "daily": single-day or short transit reading anchored to one date. Triggers: "today/tomorrow/วันนี้/พรุ่งนี้", a single explicit calendar date with no range, or a short relative window the user clearly wants treated as one bucket. Use when there IS a date anchor but the question isn't "when" and isn't predictive over a range.
+- "natal": ONLY when the question has NO time anchor at all AND is asking about the user's enduring nature, suitability, talents, or natal placements. Triggers: "which career fits me", "am I lucky in love", "what is my purpose", "ดวงของฉันเป็นยังไง" / "ดวงกูเป็นยังไง" WITHOUT any date or window, "ราศีของฉัน…", "my Saturn…", birth-chart suitability questions. If even one date / window word is present, this is NOT natal.
+- "general": small talk, clarification, or anything else. The verdict hero will not render.
+
+Examples (study the date handling):
+- "19-23 พค ดวงกูจะเป็นยังไง รายวัน" → "timeline" (date range + predictive + daily cue).
+- "ดวงกูเป็นยังไง" alone → "natal" (no date).
+- "ดวงวันนี้เป็นยังไง" → "daily" (single-day anchor).
+- "เมื่อไหร่ฉันจะรวย" → "timing".
+- "สัปดาห์หน้าจะเป็นยังไง" → "timeline" (relative window + predictive).
 
 Topic, intent, and hint rules:
 - questionTopic: pick the strongest life domain present in the question. "general" if none clearly apply.
