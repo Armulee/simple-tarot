@@ -143,11 +143,10 @@ export default function HoroscopeReadingTabs({
     // tab entirely. The hero visual underneath the key message also flips
     // from transit feed → relevant-planet spotlight (see VerdictHero).
     //
-    // We commit to natal mode as soon as either signal is true:
-    //   • the verdict has streamed back with mode === "natal", OR
-    //   • the question text contains no date / date-range hints.
-    // The text-based heuristic lets us avoid flashing today's transit
-    // calculations while the natal verdict is still in flight.
+    // The extract route's classification is the source of truth: when the
+    // message carries replyStrategy we trust it directly. Otherwise we fall
+    // back to the legacy heuristic (verdict.mode + question-text + chartData
+    // questionRange) so older / regenerated messages keep working.
     const questionTextForNatalCheck =
         message.displayQuestion ?? message.question ?? ""
     const isNatalLikely = useMemo(
@@ -163,12 +162,10 @@ export default function HoroscopeReadingTabs({
         questionRangeFromChart,
     )
     const verdictIsNatal = message.dailyVerdict?.mode === "natal"
-    // Prefer resolver output on the message once chartData lands — a question
-    // with no date words ("Is love good for me?") can still be a single-day
-    // reading when the user picked a transit date or AI locked to one day.
-    const isNatalMode =
-        verdictIsNatal ||
-        (isNatalLikely && !chartIsSingleDay && !chartIsDateBounded)
+    const isNatalMode = message.replyStrategy
+        ? message.replyStrategy === "natal"
+        : verdictIsNatal ||
+          (isNatalLikely && !chartIsSingleDay && !chartIsDateBounded)
     // Reset auto-pilot whenever a new loading cycle starts (new question OR
     // regenerate). This way a fresh run returns to the overview tab and keeps
     // the inline loader visible until the first overview text arrives.

@@ -2639,6 +2639,11 @@ export default function ChatSession({
                         : prev
                 const pendingAspect = pendingAspectDetailRef.current
                 const userPrivacy = lastUserPrivacyRef.current
+                const strategy = (
+                    horoscopeClassificationRef.current as
+                        | { replyStrategy?: ChatMessage["replyStrategy"] }
+                        | null
+                )?.replyStrategy
                 return [
                     ...withoutBridgeLoading,
                     {
@@ -2653,6 +2658,7 @@ export default function ChatSession({
                             displayQuestion: userPrivacy.rawText,
                         }),
                         horoscopeBirthData: normalizedBirth,
+                        ...(strategy && { replyStrategy: strategy }),
                         ...(pendingAspect && {
                             sourceAspectKey: pendingAspect.aspectKey,
                             sourceAspectEvent: pendingAspect.event,

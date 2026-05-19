@@ -6,6 +6,7 @@ import type { PromptRedactionType } from "@/lib/privacy/prompt-redaction"
 import type { ConversationContextPayload } from "@/lib/astrology/question-context"
 import type { OriginContext } from "@/lib/chat/origin-context"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
+import type { ReplyStrategy } from "@/lib/astrology/question-intent"
 import type { QuestionDomain } from "@/lib/chat/situation-schema"
 import type {
     SupportBlockKind,
@@ -129,6 +130,12 @@ export type ChatMessage = {
     /** New tarot result schema: soft, non-commanding next step. */
     nextStep?: string
     variant?: "plain" | "box" | "horoscope" | "paywall"
+    /**
+     * Reply strategy resolved by /api/horoscope/extract. Drives which
+     * downstream route renders the reading and which tabs the
+     * HoroscopeReadingTabs surfaces (natal mode vs transit mode).
+     */
+    replyStrategy?: ReplyStrategy
     cards?: TarotCard[]
     insights?: string[]
     /**
