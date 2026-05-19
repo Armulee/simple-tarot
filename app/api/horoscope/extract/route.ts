@@ -54,69 +54,54 @@ const CALENDAR_INTENT_VALUES = [
     "none",
 ] as const
 
+const PAID_TIERS = new Set(["basic", "pro"])
+
 const classificationSchema = z.object({
-    replyStrategy: z
-        .enum(REPLY_STRATEGY_VALUES)
-        .describe(
-            "Which downstream verdict flavor best fits the question: 'daily' (single-day or short-range transit reading), 'timing' (when will X happen / which day is best), 'natal' (open-ended self / personality question with no date), 'timeline' (predictive 'what will happen' over a multi-day window), or 'general' (no verdict hero — plain interpretation).",
-        ),
-    questionTopic: z
-        .enum(TOPIC_VALUES)
-        .describe(
-            "Primary life domain of the question. Use 'general' when none of the specific topics apply.",
-        ),
-    predictiveIntent: z
-        .boolean()
-        .describe(
-            "True when the user is asking a 'what will happen' / 'how will X go' style predictive question.",
-        ),
-    naturalNatalReference: z
-        .boolean()
-        .describe(
-            "True when the user explicitly references their own natal placements ('my Saturn', 'my Sun sign', 'ดวงของฉัน', 'ราศีของฉัน', etc.).",
-        ),
-    birthChartSuitability: z
-        .boolean()
-        .describe(
-            "True when the user asks what their birth chart is suitable for (career path, life purpose, talents, 'เหมาะกับ', 'พรสวรรค์').",
-        ),
-    calendarRecommendationIntent: z
-        .enum(CALENDAR_INTENT_VALUES)
-        .describe(
-            "When the user asks for the best day for a life action, classify which action. 'none' for non-calendar questions.",
-        ),
-    timeRangeDaysHint: z
-        .number()
-        .int()
-        .min(1)
-        .max(730)
-        .describe(
-            "How many days of transit data the question needs. 1 for today/tonight; 30 for short-term or vague; 90-180 for this year; 180-365 for long-term timing; 365-730 for life-long questions.",
-        ),
+    replyStrategy: z.enum(REPLY_STRATEGY_VALUES),
+    questionTopic: z.enum(TOPIC_VALUES),
+    predictiveIntent: z.boolean(),
+    naturalNatalReference: z.boolean(),
+    birthChartSuitability: z.boolean(),
+    calendarRecommendationIntent: z.enum(CALENDAR_INTENT_VALUES),
+    timeRangeDaysHint: z.number().int().min(1).max(730),
 })
 
+/**
+ * Detection schema for "is the user asking about someone else?". We pull
+ * any name / birth fact mentioned in the message so the server can
+ * compare against the asker's profile. The LLM also gives its own
+ * yes/no read — both sources combine on the server.
+ */
+const mentionedPersonSchema = z
+    .object({
+        namePresent: z.boolean(),
+        name: z.string().nullable(),
+        relationshipHint: z.string().nullable(),
+        birthDate: z
+            .object({
+                day: z.number().int().min(1).max(31).nullable(),
+                month: z.number().int().min(1).max(12).nullable(),
+                year: z.number().int().min(1857).max(2800).nullable(),
+            })
+            .nullable(),
+        birthTime: z
+            .object({
+                hour: z.number().int().min(0).max(23).nullable(),
+                minute: z.number().int().min(0).max(59).nullable(),
+            })
+            .nullable(),
+        birthPlace: z
+            .object({
+                country: z.string().trim().min(1).nullable(),
+                state: z.string().trim().min(1).nullable(),
+            })
+            .nullable(),
+        isOtherPerson: z.boolean(),
+    })
+    .nullable()
+
 const extractSchema = z.object({
-    birthDate: z
-        .object({
-            day: z.number().int().min(1).max(31).nullable(),
-            month: z.number().int().min(1).max(12).nullable(),
-            year: z.number().int().min(1857).max(2800).nullable(),
-        })
-        .nullable(),
-    birthTime: z
-        .object({
-            hour: z.number().int().min(0).max(23).nullable(),
-            minute: z.number().int().min(0).max(59).nullable(),
-            timeHint: z.enum(["day", "night", "unknown"]).default("unknown"),
-            isExact: z.boolean().default(false),
-        })
-        .nullable(),
-    location: z
-        .object({
-            country: z.string().trim().min(1).nullable(),
-            state: z.string().trim().min(1).nullable(),
-        })
-        .nullable(),
+    mentionedPerson: mentionedPersonSchema,
     systemPreference: z
         .enum(["western_tropical", "vedic_sidereal", "both", "unknown"])
         .default("unknown"),
@@ -131,6 +116,34 @@ const extractSchema = z.object({
     classification: classificationSchema,
 })
 
+const profileSchema = z
+    .object({
+        name: z.string().nullable().optional(),
+        birthDate: z
+            .object({
+                day: z.number().int().min(1).max(31).nullable().optional(),
+                month: z.number().int().min(1).max(12).nullable().optional(),
+                year: z
+                    .number()
+                    .int()
+                    .min(1857)
+                    .max(2800)
+                    .nullable()
+                    .optional(),
+            })
+            .nullable()
+            .optional(),
+        birthPlace: z
+            .object({
+                country: z.string().nullable().optional(),
+                state: z.string().nullable().optional(),
+            })
+            .nullable()
+            .optional(),
+    })
+    .nullable()
+    .optional()
+
 const requestSchema = z.object({
     message: z.string().trim().min(1),
     locale: z.string().optional(),
@@ -143,6 +156,8 @@ const requestSchema = z.object({
             timezone: z.number().optional(),
         })
         .optional(),
+    profile: profileSchema,
+    planTier: z.enum(["free", "basic", "pro"]).optional(),
 })
 
 const FALLBACK_CLASSIFICATION: z.infer<typeof classificationSchema> = {
@@ -174,20 +189,64 @@ function toQuestionClassification(
     }
 }
 
+function normalizeNameForCompare(name: string | null | undefined): string {
+    if (!name) return ""
+    return name.toLowerCase().replace(/[\s.\-']/g, "").trim()
+}
+
+type ProfileForCompare = z.infer<typeof profileSchema>
+type MentionedPerson = z.infer<typeof mentionedPersonSchema>
+
+/**
+ * Combine the LLM's `isOtherPerson` call with a deterministic server
+ * comparison against the asker's profile. Either signal alone is enough
+ * to flip the gate so a forgotten model call doesn't silently bypass
+ * the paywall, and a sloppy AI match doesn't lock the asker out of
+ * their own reading.
+ */
+function detectOtherPersonIntent(
+    mention: MentionedPerson,
+    profile: ProfileForCompare,
+): boolean {
+    if (!mention) return false
+    if (mention.isOtherPerson) return true
+    if (!profile) return mention.namePresent && Boolean(mention.name)
+
+    const mentionName = normalizeNameForCompare(mention.name)
+    const profileName = normalizeNameForCompare(profile.name ?? null)
+    if (mentionName && profileName && !mentionName.includes(profileName) && !profileName.includes(mentionName)) {
+        return true
+    }
+    if (mentionName && !profileName) {
+        // Name in message but no profile name to compare against — trust the
+        // AI's read; if it said this person isn't the asker we already returned.
+        return false
+    }
+
+    const mb = mention.birthDate
+    const pb = profile.birthDate
+    if (mb?.day && mb.month && mb.year && pb?.day && pb.month && pb.year) {
+        const normalizedMentionYear = normalizeCalendarYear(mb.year)
+        if (
+            mb.day !== pb.day ||
+            mb.month !== pb.month ||
+            normalizedMentionYear !== pb.year
+        ) {
+            return true
+        }
+    }
+
+    return false
+}
+
 export async function POST(req: Request) {
     try {
         const payload = requestSchema.parse(await req.json())
         const locale = payload.locale || "en"
+        const planTier = payload.planTier ?? "free"
 
         const fallbackExtracted: z.infer<typeof extractSchema> = {
-            birthDate: null,
-            birthTime: {
-                hour: null,
-                minute: null,
-                timeHint: "unknown",
-                isExact: false,
-            },
-            location: null,
+            mentionedPerson: null,
             systemPreference: "unknown",
             transitDate: null,
             classification: FALLBACK_CLASSIFICATION,
@@ -199,103 +258,65 @@ export async function POST(req: Request) {
                 model: MODEL,
                 schema: extractSchema,
                 temperature: 0,
-                system: `Extract birth data, transit date, AND classify the user's question for the horoscope reply strategy.
+                system: `Extract OTHER-PERSON references, transit date, and classify the question for the horoscope reply strategy.
 
-Birth / transit extraction rules:
-- Do not invent values.
-- Support varied birth date formats, including dd/mm/yyyy, mm-dd-yyyy, yyyy-mm-dd, textual month formats, and dates written with A.D./AD/CE or B.E./BE year notation.
-- Convert Buddhist Era (B.E.) years to Gregorian years before returning them when possible.
-- If exact time isn't present, default hour=0 and minute=0.
-- If text says daytime/morning/afternoon -> day.
-- If text says nighttime/evening/midnight -> night.
-- If no clue -> unknown.
-- If astrology system not specified, return "unknown".
-- Transit precision:
-  1) Exact full date has highest priority.
-  2) Relative day words (today/tomorrow) are second.
-  3) Day-only phrases (on 20 / วันที่ 20 / date 15) are third and should use current month/year.
-  4) Otherwise no transit date.
-- Transit: Set transitDate.mentioned=true ONLY when you can resolve a concrete calendar day/month/year for transit/forecast timing.
-- Transit examples:
-  - "today"/"วันนี้"/"this day" -> current date
-  - "tomorrow"/"พรุ่งนี้" -> tomorrow
-  - "วันที่ 20"/"on 20"/"date 15" -> that day in current month/year
-  - "15 Jan 2025"/"March 3" -> parse date
-- Transit negative rules:
-  - If message only says broad periods like "this month", "next year", "soon", "ช่วงนี้", "เดือนหน้า" with no specific day, set mentioned=false.
-  - If date is ambiguous and cannot be resolved to a single day/month/year, set mentioned=false.
-  - Do not use birth date as transitDate unless user clearly asks forecast/transit for that same date.
+The asker is signed in and their own birth data is already on file. Your job is NOT to re-extract the asker's own details. Your job is to detect when the question targets a DIFFERENT person and to classify the question.
 
-Classification rules (replyStrategy — pick ONE).
+Mentioned-person extraction rules (fill mentionedPerson, or set it to null):
+- Set mentionedPerson when the message contains ANY of: a personal name, a relationship word (boyfriend, girlfriend, husband, wife, mom, dad, son, daughter, friend, แฟน, สามี, ภรรยา, พ่อ, แม่, ลูก, เพื่อน, ແຟນ, etc.), a third-party birth fact ("my friend was born on…"), or pronouns clearly pointing at a third party (he, she, they, เขา, เธอ).
+- namePresent: true if a proper name appears in the message. name: the exact name as written; null when only a relationship word is used.
+- relationshipHint: the relationship word if any ("boyfriend", "mom", "แฟน"). null otherwise.
+- birthDate / birthTime / birthPlace: fill ONLY when the message explicitly attaches these facts to the third party. Leave null when the asker is talking about themself.
+- isOtherPerson: your call after reading the whole message. true when the question is asking about the chart, fortune, fate, compatibility, or future of someone other than the asker. false when the question is about the asker. false for compatibility questions phrased as "my partner and I…" only if there is no separately identifiable third party to read on; true when the asker wants a reading of a specific named person.
+- Self-references ("am I", "will I", "ดวงของฉัน", "ดวงกู") with no other person referenced → mentionedPerson = null.
 
-PRIORITY ORDER — check in this exact order and return the first one that fits. Do NOT skip ahead. If the question contains ANY time anchor (an explicit date, date range, month, weekday, "today/tomorrow", "this week/month/year", "within N days", Thai "พค/มิย/วันนี้/พรุ่งนี้/เดือนนี้/เดือนหน้า/สัปดาห์นี้/ปีนี้", Lao equivalents, etc.), the answer CANNOT be "natal" — choose from "timing", "timeline", or "daily" instead.
-
-- "timing": the user is asking WHEN something will happen, or which day/week is best. Triggers: "when will…", "how soon…", "by when…", "best day to…", "วันไหน…", "เมื่อไหร่…", "ตอนไหน…", "ฤกษ์…". Use even if a search window is given.
-- "timeline": the user wants to know WHAT WILL HAPPEN across a multi-day window. Required: (a) a predictive phrasing like "what will happen / how will it go / จะเป็นยังไง / จะเป็นอย่างไร / อะไรจะเกิด / what's it like / ดวง…จะเป็น" AND (b) a window longer than one day (an explicit date range like "19-23 May / 19-23 พค", a relative window like "this month / next week / within 7 days / เดือนนี้ / สัปดาห์หน้า / ในอีก N วัน", or an explicit "daily / รายวัน" cue). Note: explicit date ranges ALWAYS count as a window, even with abbreviated Thai/Lao months.
-- "daily": single-day or short transit reading anchored to one date. Triggers: "today/tomorrow/วันนี้/พรุ่งนี้", a single explicit calendar date with no range, or a short relative window the user clearly wants treated as one bucket. Use when there IS a date anchor but the question isn't "when" and isn't predictive over a range.
-- "natal": ONLY when the question has NO time anchor at all AND is asking about the user's enduring nature, suitability, talents, or natal placements. Triggers: "which career fits me", "am I lucky in love", "what is my purpose", "ดวงของฉันเป็นยังไง" / "ดวงกูเป็นยังไง" WITHOUT any date or window, "ราศีของฉัน…", "my Saturn…", birth-chart suitability questions. If even one date / window word is present, this is NOT natal.
-- "general": small talk, clarification, or anything else. The verdict hero will not render.
-
-Examples (study the date handling):
-- "19-23 พค ดวงกูจะเป็นยังไง รายวัน" → "timeline" (date range + predictive + daily cue).
-- "ดวงกูเป็นยังไง" alone → "natal" (no date).
-- "ดวงวันนี้เป็นยังไง" → "daily" (single-day anchor).
-- "เมื่อไหร่ฉันจะรวย" → "timing".
-- "สัปดาห์หน้าจะเป็นยังไง" → "timeline" (relative window + predictive).
-
-Topic, intent, and hint rules:
-- questionTopic: pick the strongest life domain present in the question. "general" if none clearly apply.
-- predictiveIntent: true for "what will happen / how will X go / อะไรจะเกิดขึ้น / จะเป็นยังไง". Should be true whenever replyStrategy="timeline".
-- naturalNatalReference: true when the user explicitly references their own placements ("my Saturn", "my Sun sign", "ดวงของฉัน", "ราศีของฉัน", "ลัคนาของฉัน").
-- birthChartSuitability: true when the user asks what they're suited for ("birth chart suitable for", "life purpose", "career path", "เหมาะกับ", "พรสวรรค์", "ดวงกำเนิด").
-- calendarRecommendationIntent: when the user asks for the BEST day for an action, classify the action. Otherwise "none".
-- timeRangeDaysHint: how many days of transit data should answer the question. "today" or "tonight" -> 1; short-term / vague -> 30; "this year" / "next few months" -> 90-180; long-term WHEN questions (career change, marriage, moving) -> 180-365; lifetime questions -> 365-730. Match explicit timeframes when given.`,
+Transit / classification rules unchanged — follow the previous spec:
+- transitDate.mentioned=true ONLY when a single concrete calendar day for transit/forecast is resolvable.
+- systemPreference: western_tropical / vedic_sidereal / both / unknown.
+- classification.replyStrategy priority order: timing → timeline → daily → natal → general. Any date or window in the question rules out "natal".
+- timing: WHEN questions ("when will…", "เมื่อไหร่…", "วันไหน…", "ฤกษ์…").
+- timeline: predictive phrasing ("จะเป็นยังไง / what will happen / how will it go") + a multi-day window (range, "this month", "within 7 days", explicit "daily/รายวัน" cue, or an explicit date range — even abbreviated Thai/Lao months count as a window).
+- daily: a date anchor for one day (or short relative window) with no "when" intent and no multi-day predictive cue.
+- natal: NO time anchor at all, asking about enduring nature, suitability, talents, placements ("ดวงของฉันเป็นยังไง" without a date, "which career fits me", "ราศีของฉัน").
+- general: small talk / clarification.
+- questionTopic: pick the strongest life domain or "general".
+- predictiveIntent: true for predictive phrasings. Should be true whenever replyStrategy="timeline".
+- naturalNatalReference: true when the user references their own placements ("my Saturn", "ลัคนาของฉัน").
+- birthChartSuitability: true for "what am I suited for" / "พรสวรรค์" / "เหมาะกับ".
+- calendarRecommendationIntent: classify the action for "best day to…" questions, else "none".
+- timeRangeDaysHint: 1 for today/tonight; 30 for vague short-term; 90-180 for "this year/next few months"; 180-365 for long-term timing; 365-730 for lifetime. Match explicit timeframes.`,
                 prompt: `User locale: ${locale}
 Current date: ${new Date().toISOString().slice(0, 10)}
+${payload.profile?.name ? `Asker's name: ${payload.profile.name}` : "Asker's name: (not provided)"}
 Message:
 ${payload.message}`,
             })
             extracted = extraction.object
         } catch {
-            // Fail-soft: keep request flowing with deterministic fallbacks instead of 400.
-            // This allows /api/horoscope/question to apply default timeframe fallback.
             extracted = fallbackExtracted
         }
 
-        const normalizedBirthYear = normalizeCalendarYear(
-            extracted.birthDate?.year ?? null,
+        const otherPerson = detectOtherPersonIntent(
+            extracted.mentionedPerson,
+            payload.profile ?? null,
         )
+
+        if (otherPerson && !PAID_TIERS.has(planTier)) {
+            return Response.json({
+                paywall: {
+                    reason: "other_person",
+                    requiredTier: "basic",
+                },
+                mentionedPerson: extracted.mentionedPerson,
+            })
+        }
+
         const normalizedTransitYear = normalizeCalendarYear(
             extracted.transitDate?.year ?? null,
         )
-        const normalizedBirthTime = {
-            hour: extracted.birthTime?.hour ?? 0,
-            minute: extracted.birthTime?.minute ?? 0,
-            timeHint: extracted.birthTime?.timeHint ?? "unknown",
-            isExact: Boolean(
-                extracted.birthTime?.isExact &&
-                    extracted.birthTime?.hour != null &&
-                    extracted.birthTime?.minute != null,
-            ),
-        }
 
-        const hasDate = Boolean(
-            extracted.birthDate?.day &&
-                extracted.birthDate?.month &&
-                normalizedBirthYear,
-        )
-
-        const hasTime = true
-
-        let country =
-            extracted.location?.country?.trim() ||
-            payload.currentLocation?.country?.trim() ||
-            ""
-        let state =
-            extracted.location?.state?.trim() ||
-            payload.currentLocation?.state?.trim() ||
-            ""
-
+        let country = payload.currentLocation?.country?.trim() || ""
+        let state = payload.currentLocation?.state?.trim() || ""
         let lat =
             typeof payload.currentLocation?.lat === "number"
                 ? payload.currentLocation.lat
@@ -308,7 +329,6 @@ ${payload.message}`,
             typeof payload.currentLocation?.timezone === "number"
                 ? payload.currentLocation.timezone
                 : null
-
         if (country && (lat == null || lng == null || timezone == null)) {
             const resolved = resolveLocationFromCountryState(
                 country,
@@ -323,8 +343,6 @@ ${payload.message}`,
             }
         }
 
-        const usedLocationFallback =
-            !extracted.location?.country && Boolean(country)
         const defaultSystem = getDefaultAstrologySystem(
             locale,
             country || undefined,
@@ -343,11 +361,6 @@ ${payload.message}`,
                   }
                 : null,
         })
-        const missingFields: string[] = []
-        if (!hasDate) missingFields.push("birthDate")
-        if (!(country && lat != null && lng != null && timezone != null)) {
-            missingFields.push("birthLocation")
-        }
 
         const classification = toQuestionClassification(extracted.classification)
         const questionRange = resolveQuestionTimeRangeWithHint(
@@ -372,41 +385,9 @@ ${payload.message}`,
         }
 
         return Response.json({
-            birthDate: extracted.birthDate
-                ? {
-                      ...extracted.birthDate,
-                      year: normalizedBirthYear,
-                  }
-                : null,
-            birthTime: {
-                hour: normalizedBirthTime.hour,
-                minute: normalizedBirthTime.minute,
-                timeHint: normalizedBirthTime.timeHint,
-                isExact: normalizedBirthTime.isExact,
-            },
-            location: {
-                country: country || null,
-                state: state || null,
-                lat,
-                lng,
-                timezone,
-                usedLocationFallback,
-            },
+            paywall: null,
+            mentionedPerson: extracted.mentionedPerson,
             systemPreference,
-            readiness: {
-                hasDate,
-                hasTime,
-                hasLocation: Boolean(country && lat != null && lng != null),
-                readyForCalculation:
-                    hasDate &&
-                    Boolean(
-                        country &&
-                            lat != null &&
-                            lng != null &&
-                            timezone != null,
-                    ),
-                missingFields,
-            },
             transit,
             classification,
             questionRange: questionRangePayload,

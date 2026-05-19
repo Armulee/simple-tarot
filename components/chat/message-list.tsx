@@ -25,6 +25,7 @@ import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
 import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
 import { TarotAssistantInterpretation } from "@/components/chat/tarot-interpretation"
 import { HoroscopeAuthGateBlock } from "@/components/chat/horoscope-auth-gate-block"
+import PaywallBlock from "@/components/chat/paywall-block"
 import { SupportBlock } from "@/components/chat/support/support-block"
 import {
     PrivacyHighlightedText,
@@ -983,6 +984,10 @@ export default function MessageList({
                                             onHoroscopeAuthGateCardsSelected
                                         }
                                     />
+                                ) : message.variant === "paywall" &&
+                                  message.paywall ? (
+                                    /* Free-tier user asked about someone else's chart */
+                                    <PaywallBlock data={message.paywall} />
                                 ) : (
                                     /* Plain variant: simple assistant text (chat decision, bridge message) */
                                     <>

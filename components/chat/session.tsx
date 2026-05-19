@@ -3319,12 +3319,47 @@ export default function ChatSession({
                     ])
                 }
 
+                const profilePayload = profile
+                    ? {
+                          name: profile.name ?? null,
+                          birthDate: (() => {
+                              const match = profile.birth_date
+                                  ? /^(\d{4})-(\d{2})-(\d{2})/.exec(
+                                        profile.birth_date.trim(),
+                                    )
+                                  : null
+                              if (!match) return null
+                              return {
+                                  year: Number.parseInt(match[1], 10),
+                                  month: Number.parseInt(match[2], 10),
+                                  day: Number.parseInt(match[3], 10),
+                              }
+                          })(),
+                          birthPlace: (() => {
+                              const parts = (profile.birth_place || "")
+                                  .split(",")
+                                  .map((p) => p.trim())
+                                  .filter(Boolean)
+                              if (parts.length === 0) return null
+                              return {
+                                  country: parts[parts.length - 1] || null,
+                                  state:
+                                      parts.length > 1
+                                          ? parts[parts.length - 2]
+                                          : null,
+                              }
+                          })(),
+                      }
+                    : null
+
                 const response = await fetch("/api/horoscope/extract", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         message: trimmed,
                         locale,
+                        profile: profilePayload,
+                        planTier: subscription?.tier ?? "free",
                     }),
                 })
 
@@ -3342,6 +3377,23 @@ export default function ChatSession({
                 }
 
                 const extracted = await response.json()
+
+                // Paywall gate: free-tier users asking about another person's
+                // chart get a red badge instead of the interpretation.
+                if (extracted?.paywall) {
+                    setMessages((prev) => [
+                        ...prev,
+                        {
+                            id: `assistant-paywall-${Date.now()}`,
+                            role: "assistant",
+                            text: "",
+                            variant: "paywall",
+                            paywall: extracted.paywall,
+                        },
+                    ])
+                    return
+                }
+
                 horoscopeClassificationRef.current =
                     extracted?.classification ?? null
                 horoscopeQuestionRangeRef.current =
@@ -3477,6 +3529,7 @@ export default function ChatSession({
             horoscopeTransit,
             user,
             profile,
+            subscription,
         ],
     )
 

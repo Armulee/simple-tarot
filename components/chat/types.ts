@@ -131,7 +131,7 @@ export type ChatMessage = {
     perCard?: PerCardSentence[]
     /** New tarot result schema: soft, non-commanding next step. */
     nextStep?: string
-    variant?: "plain" | "box" | "horoscope" | "tool"
+    variant?: "plain" | "box" | "horoscope" | "tool" | "paywall"
     cards?: TarotCard[]
     insights?: string[]
     /**
@@ -225,6 +225,17 @@ export type ChatMessage = {
      * tarot card instead of streaming a normal assistant reply.
      */
     horoscopeAuthGate?: HoroscopeAuthGate | null
+    /**
+     * Set when /api/horoscope/extract gates the question behind a paid plan
+     * (e.g. asking about another person's chart on the free tier). The chat
+     * renders a red error badge instead of running the interpretation.
+     */
+    paywall?: PaywallNotice | null
+}
+
+export type PaywallNotice = {
+    reason: "other_person"
+    requiredTier: "basic" | "pro"
 }
 
 export type HoroscopeAuthGate = {
