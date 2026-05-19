@@ -1,4 +1,4 @@
-import { generateObject } from "ai"
+import { streamObject } from "ai"
 import { z } from "zod"
 import { buildChartData } from "@/lib/astrology/build-chart-data"
 import { predictionTimelineSchema } from "@/lib/astrology/schema"
@@ -403,15 +403,21 @@ export async function POST(req: Request) {
             `[horoscope/timeline] granularity=${granularity} slots=${scaffold.length} prompt size: ${(prompt.length / 1024).toFixed(1)}KB`,
         )
 
-        const result = await generateObject({
+        const result = streamObject({
             model: MODEL,
+            // Force provider-native JSON streaming so the timeline slots
+            // arrive incrementally and the Overview tab paints slot-by-slot
+            // — instead of buffering until the whole object is ready.
+            mode: "json",
             schema: predictionTimelineSchema,
-            system: `You are Astra, a female oracle. Produce ONLY the predictionTimeline JSON. Plain language, no astrology jargon, no planet names. Output language: ${questionLanguage}.`,
+            system: `You are Astra, a female oracle. Produce ONLY the predictionTimeline JSON. Plain language, no astrology jargon, no planet names. Output language: ${questionLanguage}.
+
+Return ONLY the timeline JSON object itself. Do NOT wrap it in another key like "timeline".`,
             prompt,
             temperature: 0.6,
         })
 
-        return Response.json({ timeline: result.object }, { status: 200 })
+        return result.toTextStreamResponse()
     } catch (error) {
         console.error("[horoscope/timeline] request failed:", error)
         const message =

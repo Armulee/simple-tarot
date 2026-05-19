@@ -1670,6 +1670,192 @@ export default function ChatSession({
         [stopHoroscope, stopHoroscopeVerdict],
     )
 
+    /**
+     * Timeline-mode entry point. Fires /timeline (streaming JSON) and
+     * /chart-data in parallel, streams the timeline slots into the
+     * loading message as they arrive, and attaches chart data once
+     * available. /question is NOT called — the timeline slots are the
+     * reading.
+     */
+    const tryCompleteTimelineFirst = useCallback(
+        async (
+            loadingId: string,
+            bodyPayload: {
+                question: string
+                locale?: string
+                system?: "western_tropical" | "vedic_sidereal" | "both"
+                birth: Record<string, unknown>
+                transit: Record<string, unknown> | null
+                conversationContext?: unknown
+                classification?: Record<string, unknown>
+                questionRange?: Record<string, unknown>
+            },
+        ): Promise<boolean> => {
+            stopHoroscope()
+            stopHoroscopeVerdict()
+            horoscopeVerdictTargetMessageIdRef.current = null
+
+            let timelineRes: Response
+            let chartRes: Response
+            try {
+                ;[timelineRes, chartRes] = await Promise.all([
+                    fetch("/api/horoscope/timeline", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            question: bodyPayload.question,
+                            birth: bodyPayload.birth,
+                            transit: bodyPayload.transit,
+                            system: bodyPayload.system,
+                            locale: bodyPayload.locale,
+                            conversationContext:
+                                bodyPayload.conversationContext,
+                            ...(bodyPayload.classification
+                                ? { classification: bodyPayload.classification }
+                                : {}),
+                            ...(bodyPayload.questionRange
+                                ? { questionRange: bodyPayload.questionRange }
+                                : {}),
+                        }),
+                    }),
+                    fetch("/api/horoscope/chart-data", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            question: bodyPayload.question,
+                            birth: bodyPayload.birth,
+                            transit: bodyPayload.transit,
+                            system: bodyPayload.system,
+                            locale: bodyPayload.locale,
+                            ...(bodyPayload.classification
+                                ? { classification: bodyPayload.classification }
+                                : {}),
+                            ...(bodyPayload.questionRange
+                                ? { questionRange: bodyPayload.questionRange }
+                                : {}),
+                        }),
+                    }),
+                ])
+            } catch {
+                return false
+            }
+
+            if (!timelineRes.ok) return false
+
+            const chartJsonPromise: Promise<Record<string, unknown>> =
+                (async () => {
+                    if (!chartRes.ok) return { error: "bad_status" }
+                    try {
+                        return (await chartRes.json()) as Record<
+                            string,
+                            unknown
+                        >
+                    } catch {
+                        return { error: "parse_failed" }
+                    }
+                })()
+
+            // Stream the timeline body and update message.timeline slot-by-slot.
+            let accumulatedText = ""
+            if (timelineRes.body) {
+                const reader = timelineRes.body.getReader()
+                const decoder = new TextDecoder()
+                try {
+                    while (true) {
+                        const { value, done } = await reader.read()
+                        if (done) break
+                        if (!value || value.byteLength === 0) continue
+                        accumulatedText += decoder.decode(value, {
+                            stream: true,
+                        })
+
+                        const parsed = await parsePartialJson(accumulatedText)
+                        if (
+                            parsed.state !== "successful-parse" &&
+                            parsed.state !== "repaired-parse"
+                        ) {
+                            continue
+                        }
+                        const payload = (parsed.value ?? null) as
+                            | Record<string, unknown>
+                            | null
+                        if (!payload || typeof payload !== "object") continue
+                        const partialTimeline = normalizePredictionTimeline(
+                            payload as RawPredictionTimeline,
+                        )
+                        if (!partialTimeline) continue
+                        setMessages((prev) =>
+                            prev.map((m) =>
+                                m.id === loadingId
+                                    ? { ...m, timeline: partialTimeline }
+                                    : m,
+                            ),
+                        )
+                    }
+                    accumulatedText += decoder.decode()
+                } catch {
+                    return false
+                }
+            } else {
+                try {
+                    accumulatedText = await timelineRes.text()
+                } catch {
+                    return false
+                }
+            }
+
+            let finalTimeline: ChatMessage["timeline"] = null
+            if (accumulatedText.trim().length > 0) {
+                try {
+                    const parsed = JSON.parse(accumulatedText) as unknown
+                    finalTimeline = normalizePredictionTimeline(
+                        parsed as RawPredictionTimeline,
+                    )
+                } catch {
+                    /* keep the partial timeline already attached */
+                }
+            }
+
+            const chartJson = await chartJsonPromise
+            const chartOk =
+                chartRes.ok &&
+                chartJson &&
+                typeof chartJson === "object" &&
+                !chartJson.error
+            const chartDataObj = chartOk ? chartJson : null
+            const fullAspects =
+                (chartDataObj?.personalizedTransitAspects as ChatMessage["personalizedTransitAspects"]) ??
+                null
+
+            setMessages((prev) =>
+                prev.map((m) => {
+                    if (m.id !== loadingId) return m
+                    return {
+                        ...m,
+                        isLoading: false,
+                        streamStopped: false,
+                        text: "",
+                        dailyVerdict: null,
+                        chartData: chartDataObj,
+                        aspectInsights: undefined,
+                        relevance: undefined,
+                        timeline: finalTimeline ?? m.timeline ?? null,
+                        personalizedTransitAspects: fullAspects,
+                        personalizedTransitAspectsMerged: null,
+                        followUpConclusion: undefined,
+                        followUpSuggestions: undefined,
+                    }
+                }),
+            )
+
+            horoscopeTargetMessageIdRef.current = null
+            horoscopeIsRefetchRef.current = false
+            setIsInterpreting(false)
+            return true
+        },
+        [stopHoroscope, stopHoroscopeVerdict],
+    )
+
     const buildConversationContext = useCallback(
         (currentQuestion?: string) =>
             buildConversationContextFromMessages(messages, currentQuestion),
@@ -2705,17 +2891,62 @@ export default function ChatSession({
                 ...(classification ? { classification } : {}),
                 ...(questionRange ? { questionRange } : {}),
             }
-            const verdictOnly = await tryCompleteHoroscopeVerdictFirst(
-                loadingId,
-                prefetchBody,
-            )
-            if (verdictOnly) {
+            const strategy = (
+                classification as
+                    | { replyStrategy?: ChatMessage["replyStrategy"] }
+                    | null
+            )?.replyStrategy
+
+            const finishHandled = () => {
                 setHoroscopeBirth(null)
                 setHoroscopeQuestion(null)
                 setHoroscopeTransit(null)
+            }
+
+            const surfaceError = () => {
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === loadingId
+                            ? {
+                                  ...m,
+                                  text: tHoroscope("analysisFailed"),
+                                  isLoading: false,
+                              }
+                            : m,
+                    ),
+                )
+                setIsInterpreting(false)
+            }
+
+            // Strategy router: /question is only invoked for the "general"
+            // fallback. Daily / timing / natal each go through the verdict
+            // path; timeline streams /timeline + /chart-data and skips the
+            // long-form interpretation entirely.
+            if (strategy === "timeline") {
+                const ok = await tryCompleteTimelineFirst(
+                    loadingId,
+                    prefetchBody,
+                )
+                if (!ok) surfaceError()
+                finishHandled()
                 return
             }
 
+            if (
+                strategy === "daily" ||
+                strategy === "timing" ||
+                strategy === "natal"
+            ) {
+                const ok = await tryCompleteHoroscopeVerdictFirst(
+                    loadingId,
+                    prefetchBody,
+                )
+                if (!ok) surfaceError()
+                finishHandled()
+                return
+            }
+
+            // general / unknown classification → long-form /question stream.
             submitHoroscope({
                 question: questionText,
                 conversationContext:
@@ -2754,9 +2985,7 @@ export default function ChatSession({
                 ...(classification ? { classification } : {}),
                 ...(questionRange ? { questionRange } : {}),
             })
-            setHoroscopeBirth(null)
-            setHoroscopeQuestion(null)
-            setHoroscopeTransit(null)
+            finishHandled()
         },
         [
             buildHoroscopeConversationContext,
@@ -2765,7 +2994,9 @@ export default function ChatSession({
             locale,
             storedBirthChartPayload,
             submitHoroscope,
+            tHoroscope,
             tryCompleteHoroscopeVerdictFirst,
+            tryCompleteTimelineFirst,
             user,
         ],
     )
@@ -3662,6 +3893,109 @@ export default function ChatSession({
         stopHoroscopeVerdict()
         horoscopeVerdictTargetMessageIdRef.current = null
     }, [stopHoroscope, stopHoroscopeVerdict])
+
+    /**
+     * Re-fetch /chart-data for a timeline slot's date and replace the
+     * message's chartData / personalizedTransitAspects so the Transit and
+     * Aspect tabs re-render against the picked day. Hourly timelines pass a
+     * full ISO timestamp (with hour); daily timelines pass a date-only ISO.
+     */
+    const handlePickTransitDate = useCallback(
+        async (messageId: string, datetimeIso: string) => {
+            const msg = messages.find((m) => m.id === messageId)
+            if (!msg || msg.variant !== "horoscope") return
+            const chart = msg.chartData as
+                | {
+                      birth?: {
+                          date?: { day: number; month: number; year: number }
+                          time?: { hour: number; minute: number }
+                          location?: {
+                              country?: string | null
+                              state?: string | null
+                              lat?: number | null
+                              lng?: number | null
+                              timezone?: number | null
+                          }
+                      }
+                  }
+                | null
+                | undefined
+            if (!chart?.birth?.date || !chart.birth.location) return
+            const datePart = datetimeIso.slice(0, 10)
+            const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(datePart)
+            if (!dateMatch) return
+            const transitDay = Number.parseInt(dateMatch[3], 10)
+            const transitMonth = Number.parseInt(dateMatch[2], 10)
+            const transitYear = Number.parseInt(dateMatch[1], 10)
+            const isoHasTime = datetimeIso.length > 10
+            const timeMatch = isoHasTime
+                ? /T(\d{2}):(\d{2})/.exec(datetimeIso)
+                : null
+            const transitHour = timeMatch
+                ? Number.parseInt(timeMatch[1], 10)
+                : 12
+            const transitMinute = timeMatch
+                ? Number.parseInt(timeMatch[2], 10)
+                : 0
+            const transitBody = {
+                question: msg.question ?? "",
+                birth: {
+                    day: chart.birth.date.day,
+                    month: chart.birth.date.month,
+                    year: chart.birth.date.year,
+                    hour: chart.birth.time?.hour ?? null,
+                    minute: chart.birth.time?.minute ?? null,
+                    timezone: chart.birth.location.timezone ?? 0,
+                    lat: chart.birth.location.lat ?? 0,
+                    lng: chart.birth.location.lng ?? 0,
+                    country: chart.birth.location.country ?? null,
+                    state: chart.birth.location.state ?? null,
+                },
+                transit: {
+                    day: transitDay,
+                    month: transitMonth,
+                    year: transitYear,
+                    hour: transitHour,
+                    minute: transitMinute,
+                    timezone: chart.birth.location.timezone ?? 0,
+                    lat: chart.birth.location.lat ?? 0,
+                    lng: chart.birth.location.lng ?? 0,
+                    country: chart.birth.location.country ?? null,
+                    state: chart.birth.location.state ?? null,
+                },
+                locale,
+            }
+
+            try {
+                const res = await fetch("/api/horoscope/chart-data", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(transitBody),
+                })
+                if (!res.ok) return
+                const data = (await res.json()) as Record<string, unknown>
+                if (data.error) return
+                const fullAspects =
+                    (data.personalizedTransitAspects as ChatMessage["personalizedTransitAspects"]) ??
+                    null
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === messageId
+                            ? {
+                                  ...m,
+                                  chartData: data,
+                                  personalizedTransitAspects: fullAspects,
+                                  personalizedTransitAspectsMerged: null,
+                              }
+                            : m,
+                    ),
+                )
+            } catch {
+                /* swallow — old chart stays visible */
+            }
+        },
+        [locale, messages],
+    )
 
     const setNotice = (id: string, text: string) => {
         setMessageNotices((prev) => ({ ...prev, [id]: text }))
@@ -5233,6 +5567,7 @@ export default function ChatSession({
                 onCancelEdit={handleCancelEdit}
                 onSendEditAt={handleSendEditAt}
                 onAskAspectDetail={handleAskAspectDetail}
+                onPickTransitDate={handlePickTransitDate}
                 onHoroscopeAuthGateCardsSelected={handleCardsSelected}
                 onCancelHoroscopeLoading={handleCancelHoroscopeLoading}
                 onRegenerateHoroscope={regenerateHoroscopeAt}

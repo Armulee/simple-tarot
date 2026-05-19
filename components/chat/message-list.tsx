@@ -250,6 +250,7 @@ type MessageListProps = {
         aspectKey: string,
         event: SourceAspectEvent,
     ) => void
+    onPickTransitDate?: (messageId: string, datetimeIso: string) => void
     onHoroscopeAuthGateCardsSelected: (
         cards: { name: string; isReversed: boolean }[],
     ) => void
@@ -318,6 +319,7 @@ export default function MessageList({
     onCancelEdit,
     onSendEditAt,
     onAskAspectDetail,
+    onPickTransitDate,
     onHoroscopeAuthGateCardsSelected,
     onCancelHoroscopeLoading,
     onRegenerateHoroscope,
@@ -703,6 +705,9 @@ export default function MessageList({
                                                 }
                                                 askedAspectKeys={
                                                     askedAspectKeys
+                                                }
+                                                onPickTransitDate={
+                                                    onPickTransitDate
                                                 }
                                                 showBirthDetails={
                                                     detailToggle.birth

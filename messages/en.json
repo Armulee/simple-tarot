@@ -2695,6 +2695,7 @@
     "paywallOtherPersonTitle": "Reading another person needs a paid plan",
     "paywallOtherPersonBody": "Free accounts can only see their own chart. Upgrade to Basic or Pro to read for friends, family, or partners.",
     "paywallUpgradeCta": "Upgrade plan",
+    "transitDateLabel": "Transit date",
     "birthFormTitle": "Fill your birth details",
     "birthFormSubmit": "Use this birth data",
     "composerBirthPlaceholder": "Type your birth date, birth time, and location here. Any date format is okay.",
