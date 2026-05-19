@@ -113,33 +113,6 @@ export async function POST(req: Request) {
             )
         }
 
-        // Natal questions ("Which career fits me?") are not bound to a date
-        // or date-range, so today's transit calculation has nothing useful
-        // to contribute. Short-circuit straight to the natal chart and skip
-        // both codex queries + transit ephemeris compute entirely.
-        if (
-            isNatalQuestionRange({
-                durationDays: questionRange.durationDays,
-                source: questionRange.source,
-            }) &&
-            !body.transit
-        ) {
-            const chartDataResult = await buildChartData(
-                {
-                    birth: body.birth,
-                    system: body.system,
-                },
-                locale,
-            )
-            return Response.json(
-                {
-                    ...chartDataResult,
-                    personalizedTransitAspects: null,
-                },
-                { status: 200 },
-            )
-        }
-
         // Derive aspectRange synchronously so we can fire both codex queries
         // in parallel and overlap buildChartData with the slower of the two.
         const aspectRange = {
