@@ -290,9 +290,12 @@ function resolveHeroPlacements(
 function NatalHeroCrest({
     placements,
     moodShadow,
+    source = "natal",
 }: {
     placements: NatalPlacementForHero[]
     moodShadow: string
+    /** Which chart the placements were resolved from — drives the eyebrow label. */
+    source?: "natal" | "transit"
 }) {
     const tAstro = useTranslations("BirthChart")
     const tCrest = useTranslations("HoroscopeChat.natalSpotlight")
@@ -326,7 +329,9 @@ function NatalHeroCrest({
                         className='h-3 w-3 text-amber-200/85'
                     />
                     <p className='text-[10px] font-medium uppercase tracking-[0.32em] text-amber-200/80'>
-                        {tCrest("title")}
+                        {source === "transit"
+                            ? tCrest("titleTransit")
+                            : tCrest("title")}
                     </p>
                     <Sparkles
                         aria-hidden
@@ -678,6 +683,7 @@ export default function VerdictHero({
                             <NatalHeroCrest
                                 placements={heroPlacements}
                                 moodShadow={style.iconShadow}
+                                source={isTechnicalMode ? "transit" : "natal"}
                             />
                         </div>
                     ) : showTimingHeroCrest && verdict.timingWindow ? (
