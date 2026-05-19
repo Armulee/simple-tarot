@@ -287,14 +287,14 @@ DECISION 2 — replyStrategy and questionRange
 =============================
 Pick ONE strategy. Definitions are MUTUALLY EXCLUSIVE — for daily vs timeline the key signal is HOW MANY DAYS the question covers:
 
-- "technical" → IMPERSONAL question about a planet's own ASTRONOMICAL state: where it is in the sky, when it changes sign, when it goes retrograde or direct, when it becomes exalted / debilitated, its current degree, a conjunction between two planets. The user is NOT asking how the planet relates to them — they are asking about the planet itself as a celestial body. Examples: "when will Jupiter become exalted?", "when will Saturn move to another zodiac?", "is Mars currently retrograde?", "what sign is Venus in?", "ดาวพฤหัสจะย้ายราศีเมื่อไหร่", "ดาวเสาร์จะเข้าราศีอะไรต่อไป", "ราหูจะย้ายราศีตอนไหน". If the question contains a self-reference like "me / I / my / ฉัน / กู / หนู / ของฉัน / กับฉัน / กับกู" then it is NOT technical, even when a planet is named — pick "natal" instead so the answer can read the user's own placements.
+- "technical" → the question is about a PLANET (one or several) as the subject. This covers BOTH (a) impersonal questions about a planet's astronomical state — sign change, retrograde, exaltation, debilitation, current degree, a conjunction between two planets — AND (b) questions about a planet's INFLUENCE, MEANING, or POWER, even when the user phrases it personally ("how does Saturn affect me?", "what does Mars do?", "ดาวเสาร์มีผลอย่างไรกับกู / กับฉัน / กับหนู", "ดาวพฤหัสให้พรอะไรกับฉัน", "Saturn means what for my life?"). The deciding signal is that the planet is the FOCAL TOPIC. Use technical whenever the user is essentially asking "tell me about <planet>" — whether the framing is astronomical or personal. Examples: "when will Jupiter become exalted?", "when will Saturn move to another zodiac?", "is Mars retrograde?", "what sign is Venus in?", "how does Saturn affect me?", "ดาวเสาร์มีผลอย่างไรกับกู", "ดาวพฤหัสจะย้ายราศีเมื่อไหร่", "ราหูมีผลกับชีวิตยังไง".
 - "timing"    → the user is asking FOR a date or range as the ANSWER, AND the subject is the ASKER's outcome (not a planet's movement). Triggers: "when will I…", "เมื่อไหร่ฉัน…", "วันไหนดี…", "ฤกษ์…", "by when", "how soon", "best day to…". If the "when" question is about a planet rather than the asker, choose technical instead.
 - "timeline"  → MULTI-DAY range (2 or more days) anchored in the question. Whenever the question covers more than one day AND has any predictive / "what will it be" phrasing, choose timeline — regardless of word order, regardless of whether the user said "รายวัน". Phrasings that count as predictive include: "what will happen", "how will it go", "what's it like", "จะเป็นยังไง", "จะเป็นยังไงบ้าง", "จะเปนยังไงบ้าง", "อะไรจะเกิด", "เป็นยังไงบ้าง", "ดวงเป็นยังไง". Multi-day windows: explicit date ranges ("19-25 พค", "March to May"), week / month / quarter / year windows, "within N days", "for the next N days/weeks/months/years", etc. Two semantically equivalent multi-day predictive questions must always classify the same way no matter where the pronoun sits.
 - "daily"     → SINGLE-DAY anchor (exactly one calendar day). Use only when the resolved range is one day total: a specific date, "today / tonight / วันนี้", "tomorrow / พรุ่งนี้", "yesterday / เมื่อวาน", or a single named day. Never use daily for a date RANGE or a calendar window that spans more than one day.
-- "natal"     → NO time anchor at all, asker asks about themself or about how their CHART / a placement affects them. Triggers: "which career fits me", "what is my purpose", "ดวงของฉันเป็นยังไง" without a date, "my Saturn means", "what does my Saturn do", "how does Saturn affect me", "ดาวเสาร์มีผลอย่างไรกับฉัน / กับกู / กับหนู", "what does my Mars say about love", "ราศีของฉัน", "ลัคนาของฉัน", birth-chart suitability. If a planet is named BUT the sentence is about "me / my / ฉัน / กู / etc.", that is natal — the user wants you to read their own chart, not lecture them about astronomy. If even one date or window word is present, this is NOT natal.
+- "natal"     → NO time anchor, NO planet as focal topic; asker asks about themself or their chart in a general way. Triggers: "which career fits me", "what is my purpose", "ดวงของฉันเป็นยังไง" without a date, "am I lucky in love", "ราศีของฉัน", "ลัคนาของฉัน", birth-chart suitability. If the focal topic is a specific PLANET (with or without "me"), prefer technical instead so the answer can teach about that planet.
 - "general"   → small talk, clarification, or anything that doesn't fit the five above.
 
-Priority order when multiple could fit: technical → timing → timeline → daily → natal → general. Technical wins as soon as the subject is a planet AS A CELESTIAL BODY and there is no self-reference; the moment a self-reference appears, drop to natal. Timing wins after technical because the user is asking for a date about themself, not for content. Timeline beats daily whenever the range spans more than one day.
+Priority order when multiple could fit: technical → timing → timeline → daily → natal → general. Technical wins whenever the question's FOCAL TOPIC is a planet, regardless of whether the framing is "when does X happen" or "how does X affect me". Timing comes after technical because the user is asking for a date about themself, not for content. Timeline beats daily whenever the range spans more than one day.
 
 =============================
 What counts as a "time anchor" in the question
@@ -356,15 +356,15 @@ Worked examples
 - "วันนี้ดวงเป็นยังไง" → daily (single day).
 - "วันที่ 19 พค ดวงกูเป็นยังไง" → daily (single explicit date, NOT a range).
 - "เมื่อไหร่ฉันจะรวย" → timing.
-- "ดวงของฉันเป็นยังไง" alone → natal.
-- "which career fits me" → natal.
+- "ดวงของฉันเป็นยังไง" alone → natal (no planet as focal topic).
+- "which career fits me" → natal (no planet as focal topic).
 - "Best day to resign next month" → timing.
-- "When will Jupiter become exalted" → technical. The subject is Jupiter, no self-reference. questionRange = null.
-- "When will Saturn move to other zodiac" / "ดาวเสาร์จะย้ายราศีเมื่อไหร่" → technical (no self-reference).
+- "When will Jupiter become exalted" → technical (planet as subject, ephemeris question). questionRange = null.
+- "When will Saturn move to other zodiac" / "ดาวเสาร์จะย้ายราศีเมื่อไหร่" → technical.
 - "ราหูตอนนี้อยู่ราศีอะไร" / "What sign is Rahu in right now" → technical.
 - "Is Mars currently retrograde?" / "ดาวอังคารถอยหรือยัง" → technical.
-- "ดาวเสาร์มีผลอย่างไรกับกู" / "How does Saturn affect me" / "What does my Saturn mean" → natal. Self-reference ("กู" / "me" / "my") means the user wants their OWN natal Saturn read, not an astronomy lesson.
-- "ดาวศุกร์ของฉันบอกอะไรเรื่องความรัก" / "What does my Venus say about love" → natal.`,
+- "ดาวเสาร์มีผลอย่างไรกับกู" / "How does Saturn affect me" / "What does Saturn mean for my life" → technical. The planet IS the focal topic — the answer should describe Saturn's nature and how it shows up in life. Self-referential framing doesn't change this.
+- "ดาวพฤหัสให้พรอะไรกับฉัน" / "What blessings does Jupiter give me" → technical.`,
                 prompt: `User locale: ${locale}
 Current date (UTC): ${currentDateIso}
 ${payload.profile?.name ? `Asker's name: ${payload.profile.name}` : "Asker's name: (not provided)"}

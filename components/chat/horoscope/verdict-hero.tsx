@@ -18,6 +18,7 @@ import { classifyQuestionTopic } from "@/lib/astrology/question-intent"
 import { getPlanetDignity } from "@/lib/birth-chart-utils"
 import TransitFeed from "@/components/chat/horoscope/transit-feed"
 import NatalPlanetSpotlight from "@/components/chat/horoscope/natal-planet-spotlight"
+import TransitOrbitVisual from "@/components/chat/horoscope/transit-orbit-visual"
 
 type NatalPlacementForHero = {
     planet: string
@@ -808,18 +809,23 @@ export default function VerdictHero({
                                                 : ""
                                         }
                                     >
-                                        <NatalPlanetSpotlight
-                                            chartData={
-                                                transitSourceMessage.chartData
-                                            }
-                                            relevantPlanets={relevantPlanets}
-                                            privacyAliases={aliases}
-                                            source={
-                                                isTechnicalMode
-                                                    ? "transit"
-                                                    : "natal"
-                                            }
-                                        />
+                                        {isTechnicalMode ? (
+                                            <TransitOrbitVisual
+                                                chartData={
+                                                    transitSourceMessage.chartData
+                                                }
+                                            />
+                                        ) : (
+                                            <NatalPlanetSpotlight
+                                                chartData={
+                                                    transitSourceMessage.chartData
+                                                }
+                                                relevantPlanets={
+                                                    relevantPlanets
+                                                }
+                                                privacyAliases={aliases}
+                                            />
+                                        )}
                                     </div>
                                 )}
                             </div>
