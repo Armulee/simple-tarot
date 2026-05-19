@@ -600,9 +600,13 @@ function normalizePredictionTimeline(
             const title = (slot.title ?? "").trim()
             const narrative = (slot.narrative ?? "").trim()
             // The schema streams slotKey/datetimeIso/label/mood/title before
-            // narrative, so as soon as we have ANY visible text on the slot
-            // we surface it — even if a later field hasn't arrived yet.
-            if (!label && !title && !narrative) return null
+            // narrative. Surface the slot the moment ANY of its identifying
+            // or content fields is filled — that way the user sees a row
+            // appear with the date as soon as the LLM emits its first
+            // characters for that slot, and watches narrative fill in.
+            if (!slotKeyRaw && !datetimeIso && !label && !title && !narrative) {
+                return null
+            }
             const slotKey = slotKeyRaw || `slot-${idx}`
             const moodRaw = slot.mood
             const mood: NormalizedTimelineSlot["mood"] =
@@ -621,9 +625,9 @@ function normalizePredictionTimeline(
             return {
                 slotKey,
                 datetimeIso,
-                label: label || title || slotKey,
+                label: label || title || datetimeIso || slotKey,
                 mood,
-                title: title || label || slotKey,
+                title: title || label || datetimeIso || slotKey,
                 narrative,
                 focusArea,
                 tags: tags.length > 0 ? tags : undefined,

@@ -83,12 +83,19 @@ export async function POST(req: Request) {
         // or date-range, so today's transit calculation has nothing useful
         // to contribute. Short-circuit straight to the natal chart and skip
         // both codex queries + transit ephemeris compute entirely.
-        const isNatalStrategy =
-            body.classification?.replyStrategy === "natal" ||
-            isNatalQuestionRange({
-                durationDays: questionRange.durationDays,
-                source: questionRange.source,
-            })
+        //
+        // Classification is the source of truth — only when extract didn't
+        // ship one do we fall back to the legacy isNatalQuestionRange
+        // heuristic. Otherwise timeline ranges (which arrive as
+        // `ai_inferred` + multi-day) would false-positive that check and
+        // skip the transit chart even though the user clearly wants one.
+        const replyStrategy = body.classification?.replyStrategy
+        const isNatalStrategy = replyStrategy
+            ? replyStrategy === "natal"
+            : isNatalQuestionRange({
+                  durationDays: questionRange.durationDays,
+                  source: questionRange.source,
+              })
         if (isNatalStrategy && !body.transit) {
             const chartDataResult = await buildChartData(
                 {
