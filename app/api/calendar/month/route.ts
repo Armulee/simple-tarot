@@ -48,6 +48,7 @@ function monthRangeUtc(year: number, month: number): QuestionTimeRange {
         endDateIso: toIsoDate(endDate),
         durationDays,
         source: "default_30d",
+        granularity: "daily",
     }
 }
 

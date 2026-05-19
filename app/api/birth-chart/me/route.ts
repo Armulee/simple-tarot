@@ -48,6 +48,84 @@ function normalizeChart(row: BirthChartRow) {
     }
 }
 
+const WHOLE_SIGN_TOLERANCE_DEG = 0.05
+
+/**
+ * Vedic charts are now computed with the WHOLE-SIGN house system, where
+ * every house begins exactly on a sign boundary (0° / 30° / 60° / …).
+ * Returns true when the stored cusps look like whole-sign (the cusp degree
+ * is ~0 and consecutive cusps are 30° apart in longitude); false when the
+ * stored data was saved by the old Placidus default and needs a refresh.
+ *
+ * We use this to transparently backfill stored `birth_charts` rows on read
+ * so existing users see the corrected 2nd / 10th-house labels without
+ * having to manually re-save their chart.
+ */
+function looksLikeWholeSignHouses(houses: unknown): boolean {
+    if (!houses || typeof houses !== "object") return false
+    const record = houses as Record<string, unknown>
+    for (let i = 1; i <= 12; i++) {
+        const entry = record[String(i)]
+        if (!entry || typeof entry !== "object") return false
+        const point = entry as { degree?: unknown; longitude?: unknown }
+        const degree = typeof point.degree === "number" ? point.degree : NaN
+        if (
+            !Number.isFinite(degree) ||
+            Math.abs(degree) > WHOLE_SIGN_TOLERANCE_DEG
+        ) {
+            return false
+        }
+    }
+    return true
+}
+
+async function recomputeChartForRow(
+    row: BirthChartRow,
+): Promise<BirthChartRow | null> {
+    if (!supabaseAdmin) return null
+    if (
+        !Number.isFinite(row.day) ||
+        !Number.isFinite(row.month) ||
+        !Number.isFinite(row.year)
+    ) {
+        return null
+    }
+    const chart = await calculateSwissEphChart(
+        {
+            year: row.year,
+            month: row.month,
+            day: row.day,
+            hour: Number.isFinite(row.hour) ? row.hour : 12,
+            minute: Number.isFinite(row.minute) ? row.minute : 0,
+            timezone: Number.isFinite(row.timezone) ? row.timezone : 0,
+            lat: Number.isFinite(row.lat) ? row.lat : 0,
+            lng: Number.isFinite(row.lng) ? row.lng : 0,
+        },
+        "vedic_sidereal",
+    )
+    const { data: updated, error } = await supabaseAdmin
+        .from("birth_charts")
+        .update({
+            houses: chart.houses,
+            planets: chart.planets,
+            updated_at: new Date().toISOString(),
+        })
+        .eq("id", row.id)
+        .select("*")
+        .single()
+    if (error || !updated) {
+        // If the update failed (e.g. RLS or transient), fall back to
+        // returning the freshly-computed shape in-memory so the page still
+        // renders correctly for this request.
+        return {
+            ...row,
+            houses: chart.houses as unknown,
+            planets: chart.planets as unknown,
+        }
+    }
+    return normalizeChart(updated as BirthChartRow) as unknown as BirthChartRow
+}
+
 async function getAuthedUser(req: NextRequest) {
     if (!supabaseAdmin) return null
     const authHeader =
@@ -109,9 +187,33 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: error.message }, { status: 400 })
         }
 
-        return NextResponse.json({
-            chart: data ? normalizeChart(data as BirthChartRow) : null,
-        })
+        if (!data) {
+            return NextResponse.json({ chart: null })
+        }
+
+        const normalized = normalizeChart(data as BirthChartRow)
+
+        // Backfill: older rows were saved when the Vedic chart calculator
+        // defaulted to Placidus houses, which mislabels the 2nd / 10th
+        // (and other) house signs vs. the conventional Vedic whole-sign
+        // reading. Recompute once, persist, and serve the corrected chart.
+        if (normalized.planets && !looksLikeWholeSignHouses(normalized.houses)) {
+            try {
+                const refreshed = await recomputeChartForRow(
+                    normalized as BirthChartRow,
+                )
+                if (refreshed) {
+                    return NextResponse.json({ chart: refreshed })
+                }
+            } catch (recomputeError) {
+                console.error(
+                    "[birth-chart/me] house-system backfill failed:",
+                    recomputeError,
+                )
+            }
+        }
+
+        return NextResponse.json({ chart: normalized })
     } catch (e: unknown) {
         const message = e instanceof Error ? e.message : "INTERNAL_ERROR"
         return NextResponse.json({ error: message }, { status: 500 })

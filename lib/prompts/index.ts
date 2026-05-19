@@ -12,6 +12,8 @@ import type {
 } from "@/lib/astrology/transit-aspects"
 import type { QuestionTopicResult } from "@/lib/astrology/question-intent"
 import type { CalendarQueryResult } from "@/lib/calendar-helper"
+import type { MyCalendarDaySnapshotJson } from "@/lib/calendar/my-calendar-day-snapshot"
+import { mapMyCalendarQualityToVerdictMood } from "@/lib/calendar/my-calendar-day-snapshot"
 
 export const TAROT_SYSTEM_PROMPT = `
 <role>
@@ -303,6 +305,7 @@ export function getHoroscopeInterpretationPrompt({
     storedBirthChart,
     isNatalChartReferenceQuestion,
     calendarRecommendation,
+    myCalendarDay,
 }: {
     question: string
     systemMode: "western_tropical" | "vedic_sidereal" | "both"
@@ -336,6 +339,8 @@ export function getHoroscopeInterpretationPrompt({
     } | null
     isNatalChartReferenceQuestion?: boolean
     calendarRecommendation?: CalendarQueryResult | null
+    /** Same per-day model as My Calendar (`/api/calendar/month`) for confident single-day questions */
+    myCalendarDay?: MyCalendarDaySnapshotJson | null
 }) {
     const hasStoredChart = Boolean(
         storedBirthChart &&
@@ -377,6 +382,19 @@ ${JSON.stringify(calendarRecommendation)}
 `
         : ""
 
+    const myCalendarDayBlock = myCalendarDay
+        ? `<my_calendar_day>
+Authoritative My Calendar snapshot for ${myCalendarDay.isoDate} (same server scoring as /api/calendar/month). overall=${myCalendarDay.overall}/10, quality="${myCalendarDay.quality}".
+${JSON.stringify(myCalendarDay)}
+</my_calendar_day>
+
+`
+        : ""
+
+    const conclusionInstruction = myCalendarDay
+        ? `- conclusion: A short closing that matches the My Calendar day tone (quality "${myCalendarDay.quality}", score ${myCalendarDay.overall}/10) — warm and supportive, not contradictory, and not a generic unrelated platitude.`
+        : `- conclusion: A short, calming wrap-up that concludes the reading without sounding like a tagline.`
+
     return `<role>
 You are an expert astrologer AI system for 'AskingFate'.
 You respond as a female. Astra is a female oracle. Use feminine voice and perspective in all responses.
@@ -404,7 +422,7 @@ Codex coverage: expected=${codexCoverage.expectedDays}, actual=${codexCoverage.a
 ${chartData}
 </astrology_data>
 
-${savedBirthChartBlock}${calendarRecommendationBlock}<transit_summary>
+${savedBirthChartBlock}${calendarRecommendationBlock}${myCalendarDayBlock}<transit_summary>
 ${JSON.stringify(codexTransitSummary ?? null)}
 </transit_summary>
 
@@ -421,7 +439,7 @@ ${question}
 </user_question>
 
 <instructions>
-1) Answer the <user_question> using ONLY the provided grounding data blocks. When <calendar_recommendation> exists, treat it as the authoritative source for recommended days. Use <astrology_data>, <transit_summary>, and <personalized_transit_aspects> to explain the pattern around that recommendation.
+1) Answer the <user_question> using ONLY the provided grounding data blocks. When <calendar_recommendation> exists, treat it as the authoritative source for recommended days. When <my_calendar_day> exists, treat it as the authoritative source for how favorable THIS calendar day is on the user's My Calendar (same scoring as the calendar grid). Use <astrology_data>, <transit_summary>, and <personalized_transit_aspects> to explain the pattern; if <my_calendar_day> disagrees in tone with aspects, follow <my_calendar_day> for the day's favorability and explain nuances without contradicting it.
 2) If <calendar_recommendation> exists and it has a topCandidate, lead with that exact day in the first 1-2 sentences. Do NOT invent a different day or recommend a date outside the candidates in <calendar_recommendation>.
 3) If <calendar_recommendation> exists but confidence is low, say there is no single perfect day and present the top candidate as the strongest available opening.
 4) When no <calendar_recommendation> exists, identify the 1-3 strongest transit aspect windows from the data that are most relevant to the question topic. Anchor your answer around their exact start/end dates as recommended or cautionary periods. Weave them into a coherent narrative rather than a bullet-point timeline.
@@ -436,6 +454,7 @@ ${terminologyRule}
 12) Make every date/date-range visually prominent using natural sentence emphasis (for example, place the date early in the sentence). Do NOT use markdown syntax such as **, __, or backticks.
 13) If there is no exact event date, use the exact timeframe boundaries from Question timeframe start/end and format them in output language month names.
 14) Only discuss transit aspects from planets listed under "Question topic: ... (focus planets: ...)" in system_context. Ignore aspects from unrelated planets unless no focus-planet aspects exist.
+15) When <my_calendar_day> is present, interpretation and conclusion MUST align with its quality tier and overall score — do not call an excellent/good calendar day mostly catastrophic, and do not call a caution/avoid calendar day an effortless win. You may translate highlight/warning ideas into plain language (do not paste long internal strings verbatim).
 </instructions>
 
 <critical_rules>
@@ -465,7 +484,7 @@ ${neverMentionRule}
 - impact: a life-area label such as "Career", "Finance", "Relationship", "Health", "Family", "Personal Growth", "Education", or "Travel". Write in the SAME language as the output (Thai question = Thai label e.g. "การงาน", "การเงิน", "ความรัก").
 - intensity: exactly one of "low", "medium", or "high". Use "high" only for the 1-2 strongest aspects most relevant to the question. Use "medium" for supporting aspects. Use "low" for subtle or background influences.
 - interpretation: 4-8 short sentences answering the question.
-- conclusion: A short, calming wrap-up that concludes the reading without sounding like a tagline.
+${conclusionInstruction}
 - suggestions: EXACTLY 3–4 very short, casual follow-up prompts the user could ask next (single line each; conversational tone, not long formal questions).
 - relevance: an array of up to 5 dominant life-areas that this reading actually covers, used to render a proportional relevance bar above the answer.
 - relevance items must contain { label, pct } only. Integer pcts MUST sum to exactly 100. Sort the array descending by pct.
@@ -496,6 +515,7 @@ export function getDailyVerdictPrompt({
     personalizedTransitAspects,
     questionLanguage,
     userMainPoint,
+    myCalendarDay,
 }: {
     question: string
     currentDateTime: string
@@ -508,8 +528,21 @@ export function getDailyVerdictPrompt({
     personalizedTransitAspects: PersonalizedTransitAspectsResult | null
     questionLanguage?: string
     userMainPoint?: string
+    myCalendarDay?: MyCalendarDaySnapshotJson | null
 }) {
     const lang = questionLanguage || "English"
+    const myCalendarDayBlock = myCalendarDay
+        ? `<my_calendar_day>
+My Calendar ground truth for ${myCalendarDay.isoDate} (same scoring as /api/calendar/month): overall=${myCalendarDay.overall}/10, quality="${myCalendarDay.quality}".
+${JSON.stringify(myCalendarDay)}
+</my_calendar_day>
+
+`
+        : ""
+    const myCalendarMoodLock = myCalendarDay
+        ? `LOCKED MOOD (My Calendar): set \`mood\` EXACTLY to "${mapMyCalendarQualityToVerdictMood(myCalendarDay.quality)}" — derived from calendar quality "${myCalendarDay.quality}". headline, keyMessage, and detailedHtml MUST agree with this mood (no opposite framing). Personalized aspects explain texture only; they must not override the calendar day's favorability tier.
+`
+        : ""
     return `<role>
 You are Astra, an expert astrologer AI for 'AskingFate'. Astra is a female oracle — use feminine voice and perspective.
 Your ONLY job in this call is to produce a short, plain-language single-day verdict (the "verdict hero") for the user's question, grounded in the personalized transit aspects active on that day.
@@ -524,7 +557,7 @@ Question timeframe days: ${questionRange.durationDays}
 Question timeframe source: ${questionRange.source}
 </system_context>
 
-<personalized_transit_aspects>
+${myCalendarDayBlock}<personalized_transit_aspects>
 ${compactTransitAspects(personalizedTransitAspects)}
 </personalized_transit_aspects>
 
@@ -535,15 +568,18 @@ ${question}
 <verdict_rules>
 This call ALWAYS targets a single calendar day. Output ONLY the dailyVerdict object — no other fields.
 
+${myCalendarMoodLock}
 Required fields (every string in ${lang}):
 
 - mood: exactly one of "good", "caution", "rest".
   - "good" = supportive flow with mostly positive aspects active that day; the user can take action and start things.
   - "caution" = high-friction or pressured day with one or more high/medium intensity bad aspects; the user should slow down and be careful.
   - "rest" = mixed-but-low intensity, scattered, or quiet planetary day; the user should recharge instead of pushing.
-  Derive the mood from the dominant sentiments + intensities of the personalized transit aspects.
+  ${myCalendarDay ? `When <my_calendar_day> is present, IGNORE the bullet definitions above for choosing mood — use the LOCKED MOOD line instead.` : `Derive the mood from the dominant sentiments + intensities of the personalized transit aspects.`}
 
 - headline: a short, punchy verdict line (2-8 words). Plain language only. NO planet names, NO zodiac signs, NO astrology jargon. Example tones: "A clear day to begin", "Pause before reacting", "Soft day, recharge well".
+
+- moodSubtitle: a SHORT decorative tagline (2-6 words, in ${lang}) rendered directly under the headline. Must capture THIS specific day's vibe / energy for THIS question — NOT a generic "Good Day" / "Be Mindful" / "Rest Day" label. Plain language, no planet names, no zodiac signs, no astrology jargon. Think of it as the line a calm friend would whisper under the headline.
 
 - keyMessage: an object { headline, subtitle } that compresses your day-answer into a key message. headline is a punchy short line (2-10 words); subtitle is one short sentence elaborating it. Both must agree with \`detailedHtml\` and the top \`headline\`.
 
@@ -571,6 +607,493 @@ Required fields (every string in ${lang}):
 - TONE: warm, conversational, like a caring friend texting — not a formal report. Phrase the day as a leaning/tendency, never an absolute verdict (avoid "definitely", "absolutely", "guaranteed", "no doubt", "แน่นอน", "รับรอง", "ฟันธง").
 - LANGUAGE: write every string in ${lang} only. Do not mix languages.
 - Output ONLY the dailyVerdict JSON. No extra commentary, no markdown fences.
+</critical_rules>
+
+<privacy_rules>
+${PRIVACY_REDACTION_PROMPT_RULE}
+</privacy_rules>`
+}
+
+// --- Horoscope verdict (timing + natal) — must stay immediately after
+// getDailyVerdictPrompt so merges never drop the declarations below.
+export type NatalPlacementForPrompt = {
+    planet: string
+    sign: string
+    degree: number
+    house?: number | null
+    retrograde?: boolean
+}
+
+/**
+ * Compact prompt for "when will X happen?" timing questions. Receives a
+ * forward-looking personalized transit-aspect window filtered to the
+ * domain-relevant planets, plus the user's natal placements for context.
+ * The model must pick THE ONE peak date or date-range where the chances
+ * for the asked outcome are strongest and return it in `timingWindow`.
+ */
+export function getTimingVerdictPrompt({
+    question,
+    currentDateTime,
+    searchWindow,
+    personalizedTransitAspects,
+    natalPlacements,
+    questionTopic,
+    questionLanguage,
+    userMainPoint,
+}: {
+    question: string
+    currentDateTime: string
+    searchWindow: {
+        startDateIso: string
+        endDateIso: string
+        durationDays: number
+    }
+    personalizedTransitAspects: PersonalizedTransitAspectsResult | null
+    natalPlacements: NatalPlacementForPrompt[]
+    questionTopic: QuestionTopicResult | null
+    questionLanguage?: string
+    userMainPoint?: string
+}) {
+    const lang = questionLanguage || "English"
+    const topicLabel = questionTopic?.topic ?? "general"
+    const topicPlanets = questionTopic?.relevantPlanets?.length
+        ? JSON.stringify(questionTopic.relevantPlanets)
+        : "[]"
+    return `<role>
+You are Astra, an expert astrologer AI for 'AskingFate'. Astra is a female oracle — use feminine voice and perspective.
+Your ONLY job in this call is to answer a TIMING question ("when will X happen?") by picking the single best date or short date-window within the supplied forward-looking transit window. Anchor the choice in the personalized aspects that involve the user's natal planets and the planets relevant to the question's domain.
+</role>
+
+<system_context>
+Current date and time (use as "now"): ${currentDateTime}
+Session main point: ${userMainPoint || "N/A"}
+Search window start: ${searchWindow.startDateIso}
+Search window end: ${searchWindow.endDateIso}
+Search window days: ${searchWindow.durationDays}
+Question topic: ${topicLabel}
+Topic-relevant planets: ${topicPlanets}
+Verdict mode: timing
+</system_context>
+
+<natal_placements>
+${compactNatalPlacements(natalPlacements)}
+</natal_placements>
+
+<personalized_transit_aspects>
+${compactTransitAspects(personalizedTransitAspects)}
+</personalized_transit_aspects>
+
+<user_question>
+${question}
+</user_question>
+
+<verdict_rules>
+This call targets a TIMING question. Output ONLY the dailyVerdict object — no other fields.
+
+Required fields (every user-facing string in ${lang}):
+
+- mode: MUST be the literal string "timing".
+
+- timingWindow: { startDateIso, endDateIso }. Required. Both dates MUST fall inside the supplied search window (${searchWindow.startDateIso} → ${searchWindow.endDateIso}) and SHOULD line up with the personalized aspect events listed above (use the aspect's dateIso for exact hits, or the start/peak/end of a range event for window answers). When the answer is a single day, set startDateIso === endDateIso. Keep the window short (1-31 days). NEVER invent a date outside the supplied search window.
+
+- mood: exactly one of "good", "caution", "rest".
+  - "good" = the chosen window is genuinely supportive (mostly positive aspects, dignified placements involved).
+  - "caution" = the chosen window has timing potential but also notable friction the user must navigate.
+  - "rest" = the closest window is mixed/quiet; the user should be patient. Use this when no strongly supportive window exists.
+
+- headline: a short, punchy verdict line (2-8 words) directly answering "when?" in plain language. Examples: "Late summer turns the tide", "Early September opens the door". NO planet names, NO zodiac signs, NO astrology jargon.
+
+- moodSubtitle: a SHORT decorative tagline (2-6 words, in ${lang}) rendered directly under the headline in the verdict's mood pill. Captures the energy of THIS specific window. Plain language, no planet names, no zodiac signs, no astrology jargon.
+
+- keyMessage: an object { headline, subtitle } that compresses the timing answer. headline is a punchy short line (2-10 words). subtitle is one short sentence elaborating it. Both must agree with the top \`headline\`, \`timingWindow\`, and \`detailedHtml\`.
+
+- detailedHtml: a SHORT (1-3 paragraphs) decorated HTML fragment that explains why the chosen window is the answer for this question. It renders BELOW the headline/keyMessage.
+  - ALLOWED TAGS ONLY: <p>, <strong>, <em>, <b>, <i>, <ul>, <ol>, <li>, <br>, and <span class="highlight-gold">. No other tags, attributes, classes, inline styles, scripts, links, or images.
+  - FORBIDDEN TAGS: <h1>-<h6>.
+  - Use <span class="highlight-gold">…</span> to highlight 1-3 key phrases — typically the date or a single concrete next step. Highlight WORDS or short phrases — never whole paragraphs.
+  - Use <strong> for secondary emphasis and <em> for soft emphasis.
+  - Same forbidden vocabulary as everything else: NO planet names, NO zodiac signs, NO astrology jargon.
+  - Phrase the timing as a tendency / opening, never as an absolute guarantee.
+  - Do NOT use Markdown syntax or wrap in containers.
+  - Write the HTML content in the SAME language as the user's question.
+
+- watchOut (optional): exactly ONE short sentence cautioning what could spoil the window if the user isn't careful. Omit if the chosen window has no meaningful caution.
+
+- focusArea (optional): a SINGLE canonical life-area label that best summarizes where the answer concentrates (Career/การงาน, Finance/การเงิน, Love/ความรัก, Family/ครอบครัว, Health/สุขภาพ, Relationships/ความสัมพันธ์, Education/การศึกษา, Travel/การเดินทาง, Luck/โชคลาภ, Spirituality/จิตวิญญาณ, Reputation/ชื่อเสียง, Caution/คำเตือน). Use the SAME language as the output.
+</verdict_rules>
+
+<critical_rules>
+- PLAIN LANGUAGE ONLY in every user-facing string. The user has ZERO astrology knowledge. Translate astrological reasoning into "what changes for the user in everyday life" terms.
+- ABSOLUTELY FORBIDDEN inside headline, moodSubtitle, keyMessage, detailedHtml, watchOut, and focusArea: planet names in any language, zodiac sign names, and astrology jargon (conjunction, opposition, square, trine, sextile, orb, transit, retrograde, exalted, debilitated, etc.).
+- TONE: warm, conversational. Phrase the timing as a leaning / opening, never an absolute verdict (avoid "definitely", "absolutely", "guaranteed", "no doubt", "แน่นอน", "รับรอง", "ฟันธง").
+- LANGUAGE: write every user-facing string in ${lang} only. Do not mix languages.
+- timingWindow dates MUST be valid ISO YYYY-MM-DD and MUST fall within ${searchWindow.startDateIso} → ${searchWindow.endDateIso}.
+- Output ONLY the dailyVerdict JSON. No extra commentary, no markdown fences.
+</critical_rules>
+
+<privacy_rules>
+${PRIVACY_REDACTION_PROMPT_RULE}
+</privacy_rules>`
+}
+
+function compactNatalPlacements(placements: NatalPlacementForPrompt[]): string {
+    if (!placements.length) return "null"
+    return JSON.stringify(
+        placements.map((p) => ({
+            planet: p.planet,
+            sign: p.sign,
+            degree: Number(p.degree.toFixed(2)),
+            house: p.house ?? null,
+            retrograde: p.retrograde ?? false,
+        })),
+    )
+}
+
+/**
+ * Compact prompt for the dedicated `/api/horoscope/verdict` route when the
+ * user's question is NOT bound to a specific date or date-range (a
+ * "natal / self" question such as "Which career fits me?"). It produces the
+ * same dailyVerdict shape as `getDailyVerdictPrompt`, but anchored in the
+ * user's birth-chart placements rather than transit aspects, and additionally
+ * fills in `relevantPlanets` so the verdict hero can spotlight the natal
+ * placements that drove the answer.
+ */
+export function getNatalVerdictPrompt({
+    question,
+    currentDateTime,
+    natalPlacements,
+    questionLanguage,
+    userMainPoint,
+}: {
+    question: string
+    currentDateTime: string
+    natalPlacements: NatalPlacementForPrompt[]
+    questionLanguage?: string
+    userMainPoint?: string
+}) {
+    const lang = questionLanguage || "English"
+    const planetKeys = natalPlacements.map((p) => p.planet)
+    return `<role>
+You are Astra, an expert astrologer AI for 'AskingFate'. Astra is a female oracle — use feminine voice and perspective.
+Your ONLY job in this call is to produce a short, plain-language "natal verdict" (the "verdict hero") for a question that is NOT tied to a specific date or date-range — for example "Which career fits me?", "Am I lucky in love?", "Is my chart good for business?". Anchor the answer in the user's BIRTH-CHART placements (not transits).
+</role>
+
+<system_context>
+Current date and time (use only as conversational context): ${currentDateTime}
+Session main point: ${userMainPoint || "N/A"}
+Verdict mode: natal (no date or date-range in question)
+</system_context>
+
+<natal_placements>
+${compactNatalPlacements(natalPlacements)}
+</natal_placements>
+
+<allowed_planet_keys>
+${JSON.stringify(planetKeys)}
+</allowed_planet_keys>
+
+<user_question>
+${question}
+</user_question>
+
+<verdict_rules>
+This call targets a NATAL question (no calendar timing). Output ONLY the dailyVerdict object — no other fields.
+
+Required fields (every user-facing string in ${lang}):
+
+- mode: MUST be the literal string "natal".
+
+- mood: exactly one of "good", "caution", "rest".
+  - "good" = the chart strongly supports the user on this topic.
+  - "caution" = the chart shows friction or trade-offs the user should plan around.
+  - "rest" = the chart is mixed/quiet on this topic; the user should be patient and observe.
+  Derive the mood from the dignity, sign, and house of the relevant natal placements.
+
+- headline: a short, punchy verdict line (2-8 words). Plain language only. NO planet names, NO zodiac signs, NO astrology jargon. It should feel like a direct answer to the question.
+
+- moodSubtitle: a SHORT decorative tagline (2-6 words, in ${lang}) rendered directly under the headline in the verdict's mood pill. Must capture this CHART's natural leaning on the question — NOT a generic "Good Day" / "Be Mindful" / "Rest Day" label, since this answer is not bound to any date. Plain language, no planet names, no zodiac signs, no astrology jargon. Example shapes: "Steady builder energy", "Quietly magnetic gifts", "Patient road, deep wins" — but tailor to the user's question.
+
+- keyMessage: an object { headline, subtitle } that compresses your natal answer into a key message. headline is a punchy short line (2-10 words); subtitle is one short sentence elaborating it. Both must agree with \`detailedHtml\`, the top \`headline\`, and the planets you list in \`relevantPlanets\`.
+
+- detailedHtml: a SHORT (1-3 paragraphs) decorated HTML fragment that directly answers the user's question by reading their natal chart. It renders BELOW the headline/keyMessage and looks like the "Detailed" block on the tarot reading.
+  - ALLOWED TAGS ONLY: <p>, <strong>, <em>, <b>, <i>, <ul>, <ol>, <li>, <br>, and <span class="highlight-gold">. No other tags, attributes, classes, inline styles, scripts, links, or images.
+  - FORBIDDEN TAGS: <h1>, <h2>, <h3>, <h4>, <h5>, <h6>. Never emit a heading element — the verdict headline above already plays that role.
+  - Use <span class="highlight-gold">…</span> to highlight 1-3 key phrases the user should not miss (a strength, a watch-out, a concrete suggestion). Highlight WORDS or short phrases — never whole paragraphs.
+  - Use <strong> for secondary emphasis and <em> for soft emphasis.
+  - Use <ul>/<ol> ONLY when a small list (2-4 items) genuinely makes the message easier to scan. Never force a list.
+  - Total length must stay between 1 and 3 paragraphs of human-readable content. Punchy and specific, not verbose.
+  - Same forbidden vocabulary as everything else: NO planet names, NO zodiac signs, NO astrology jargon.
+  - Phrase the answer as a leaning/tendency, never as an absolute verdict.
+  - Do NOT use Markdown syntax. Do NOT wrap the output in <html>, <body>, code fences, or any container element. Output the HTML fragment directly.
+  - Write the HTML content in the SAME language as the user's question.
+  - The detailedHtml COMPLEMENTS (not duplicates) the headline + keyMessage.
+
+- watchOut (optional): exactly ONE short sentence cautioning where this chart tends to struggle on this topic. Omit if the chart shows no meaningful tension.
+
+- focusArea (optional): a SINGLE canonical life-area label that best summarizes where this chart's energy concentrates for THIS question. Choose from: Career/การงาน, Finance/การเงิน, Love/ความรัก, Family/ครอบครัว, Health/สุขภาพ, Relationships/ความสัมพันธ์, Education/การศึกษา, Travel/การเดินทาง, Luck/โชคลาภ, Spirituality/จิตวิญญาณ, Reputation/ชื่อเสียง, Caution/คำเตือน. Use the SAME language as the output. Omit if no single area dominates.
+
+- relevantPlanets: REQUIRED for natal mode. An array of 1-4 items. Each item is { planet, reason }:
+  - planet: MUST be one of the keys listed in <allowed_planet_keys>. Pick the placements that most directly answer the user's question.
+  - reason: ONE short sentence (in ${lang}) explaining WHY this placement matters for the question. Plain language — NO planet names, NO zodiac signs, NO astrology jargon. Talk about the underlying drive, strength, blocker, or instinct that the placement represents in everyday terms.
+  Sort the array from most to least relevant. Do NOT invent planet keys not present in <allowed_planet_keys>.
+</verdict_rules>
+
+<critical_rules>
+- PLAIN LANGUAGE ONLY in every user-facing string. The user has ZERO astrology knowledge. Translate placements into life impact — drives, instincts, strengths, blockers, practical advice.
+- ABSOLUTELY FORBIDDEN inside headline, keyMessage, detailedHtml, watchOut, focusArea, and reason: planet names in any language (Saturn, Jupiter, Mars, Venus, Mercury, Rahu, Pluto, Neptune, Uranus, Moon, Sun, ดาวเสาร์, ดาวพฤหัส, ดาวอังคาร, ดาวศุกร์, ดาวพุธ, ราหู, จันทร์, อาทิตย์, etc.), zodiac signs (Aries, Taurus, ราศีเมษ, etc.), and astrology jargon (conjunction, opposition, square, trine, sextile, house, orb, transit, retrograde, exalted, debilitated, etc.). The ONLY place a planet name appears is in \`relevantPlanets[].planet\`, where it MUST be the canonical English key (e.g. "Sun"). The reason text MUST NOT name the planet.
+- TONE: warm, conversational, like a caring friend texting — not a formal report. Phrase the answer as a leaning/tendency, never an absolute verdict (avoid "definitely", "absolutely", "guaranteed", "no doubt", "แน่นอน", "รับรอง", "ฟันธง").
+- LANGUAGE: write every user-facing string in ${lang} only. Do not mix languages. (Planet keys in \`relevantPlanets[].planet\` stay in canonical English regardless of the output language.)
+- Output ONLY the dailyVerdict JSON. No extra commentary, no markdown fences.
+</critical_rules>
+
+<privacy_rules>
+${PRIVACY_REDACTION_PROMPT_RULE}
+</privacy_rules>`
+}
+
+/**
+ * Compact, ephemeris-driven prompt for the dedicated `/api/horoscope/verdict`
+ * route when the user's question is about PLANETARY MECHANICS rather than
+ * their own life — e.g. "when will Jupiter become exalted?", "when will
+ * Saturn change zodiac?", "is Mars retrograde now?". The verdict is
+ * impersonal: it talks about what the planet itself is doing, and lists
+ * one or more planets in `relevantPlanets` so the verdict hero can
+ * spotlight their CURRENT transit position to the user.
+ */
+export type TechnicalIngressFact = {
+    planet: string
+    /** ISO date (YYYY-MM-DD) the planet first appears in toSign. */
+    dateIso: string
+    fromSign: string
+    toSign: string
+    system: "western_tropical" | "vedic_sidereal"
+}
+
+function compactIngressFacts(facts: TechnicalIngressFact[]): string {
+    if (!facts.length) return "null"
+    return JSON.stringify(
+        facts.map((f) => ({
+            planet: f.planet,
+            dateIso: f.dateIso,
+            fromSign: f.fromSign,
+            toSign: f.toSign,
+            system: f.system,
+        })),
+    )
+}
+
+export function getTechnicalVerdictPrompt({
+    question,
+    currentDateTime,
+    transitPlacements,
+    nextIngresses,
+    questionLanguage,
+    userMainPoint,
+}: {
+    question: string
+    currentDateTime: string
+    transitPlacements: NatalPlacementForPrompt[]
+    nextIngresses?: TechnicalIngressFact[]
+    questionLanguage?: string
+    userMainPoint?: string
+}) {
+    const lang = questionLanguage || "English"
+    const planetKeys = transitPlacements.map((p) => p.planet)
+    return `<role>
+You are Astra, an expert astrologer AI for 'AskingFate'. Astra is a female oracle — use feminine voice and perspective.
+Your ONLY job in this call is to produce a short, accurate "technical verdict" (the "verdict hero") for a question whose FOCAL TOPIC is a planet (one or several). The planet — not the asker's chart — is the centerpiece of the answer. There are two flavors:
+
+  • EPHEMERIS flavor — pure astronomy: when the planet changes sign, when it goes retrograde or direct, when it becomes exalted / debilitated, what sign it is in right now, its current degree, a conjunction with another planet. Answer with concrete future date / month / year details.
+  • INFLUENCE flavor — what the planet MEANS or how it tends to act in someone's life ("How does Saturn affect me?", "ดาวเสาร์มีผลอย่างไรกับกู", "What blessings does Jupiter give me?", "What does Mars do?"). Describe the planet's classical nature — the themes it rules, the strengths it gives, the lessons / pressures it tends to bring, the life areas it touches. Make it concrete and grounded.
+
+Pick the flavor that fits the user's question. Many questions blend both — answer the dominant intent, mention the other briefly if helpful.
+</role>
+
+<system_context>
+Current date and time (use this as the anchor for "right now" / "next" / "upcoming"): ${currentDateTime}
+Session main point: ${userMainPoint || "N/A"}
+Verdict mode: technical (planet-focused, not anchored to the asker's chart or any calendar window).
+</system_context>
+
+<current_transit_placements>
+${compactNatalPlacements(transitPlacements)}
+</current_transit_placements>
+
+<next_sign_ingresses>
+${compactIngressFacts(nextIngresses ?? [])}
+</next_sign_ingresses>
+
+<allowed_planet_keys>
+${JSON.stringify(planetKeys)}
+</allowed_planet_keys>
+
+<user_question>
+${question}
+</user_question>
+
+<verdict_rules>
+This call targets a TECHNICAL question. Output ONLY the dailyVerdict object — no other fields.
+
+Required fields (every user-facing string in ${lang}):
+
+- mode: MUST be the literal string "technical".
+
+- mood: exactly one of "good", "caution", "rest". Pick the mood that best fits the planet's current state with respect to the question. Use "good" when the planet is in / approaching a strong placement (exaltation, own sign, direct motion after retrograde), "caution" when it is in a difficult placement or about to enter one (debilitation, square / opposition tension, going retrograde), and "rest" when the planet is in a quiet or slow phase relative to the question.
+
+- headline: a short, punchy verdict line (2-10 words) that DIRECTLY answers the user's question. Plain language. Planet names and astrology terms ARE allowed here. For ephemeris-flavor questions: be concrete — e.g. "Jupiter exalted from May 2026" or "Saturn enters Aries 24 April 2028". Any date MUST be in the FUTURE relative to "Current date and time" shown above — never quote a past event as the answer. For influence-flavor questions: capture the planet's defining role — e.g. "Saturn teaches through discipline" or "Jupiter blesses expansion and luck".
+
+- moodSubtitle: a SHORT decorative tagline (2-6 words, in ${lang}) rendered directly under the headline in the verdict's mood pill. Should capture the planet's current vibe (e.g. "Slow but constructive", "Retrograde recheck", "Direct and decisive"). NOT a generic "Good Day" / "Be Mindful".
+
+- keyMessage: an object { headline, subtitle } that compresses your answer. headline is a punchy short line (2-12 words); subtitle is one short sentence elaborating it. Both must agree with \`detailedHtml\`, the top \`headline\`, and the planets listed in \`relevantPlanets\`.
+
+- detailedHtml: a SHORT (1-3 paragraphs) decorated HTML fragment expanding on the headline.
+  • For EPHEMERIS-flavor questions: be ACCURATE — use the data in <current_transit_placements> for "right now". The answer is the NEXT occurrence AFTER the current date shown in <system_context>. Reason from the planet's CURRENT sign / degree (in <current_transit_placements>) and its known cycle (Jupiter ~1 year per sign, Saturn ~2.5 years per sign, Rahu/Ketu ~18 months per sign moving backward, Uranus ~7 years per sign, Neptune ~14 years per sign, Pluto ~12-30 years per sign). The next ingress is roughly: ((30° − current degree) / 30°) × time-per-sign, added to the current date. NEVER answer with a date that has already passed — if the most famous example in your training is in the past, skip past it and use the cycle math to project the NEXT one.
+  • For INFLUENCE-flavor questions: describe what this planet RULES and how its energy tends to show up in life. Cover its themes (e.g. Saturn → discipline, structure, time, karma, hard-earned wisdom; Jupiter → luck, expansion, beliefs, teachers, blessings; Mars → drive, courage, conflict, athletics; Venus → love, beauty, harmony, art; Mercury → communication, learning, trade; Sun → identity, ego, vitality; Moon → emotions, home, intuition; Rahu → ambition, obsession, foreign / unconventional; Ketu → detachment, spirituality, past skills). Talk about strengths the planet gives AND lessons it pressures the person to learn. Keep it grounded in everyday life, not abstract jargon.
+  • For BOTH flavors: same HTML formatting rules as the natal verdict — allowed tags only, no h1-h6, gold highlight on the 1-3 most important facts.
+  - ALLOWED TAGS ONLY: <p>, <strong>, <em>, <b>, <i>, <ul>, <ol>, <li>, <br>, and <span class="highlight-gold">. No other tags, attributes, classes, inline styles, scripts, links, or images.
+  - FORBIDDEN TAGS: <h1>–<h6>.
+  - Use <span class="highlight-gold">…</span> on the 1-3 key facts (a date, a sign change, a duration).
+  - Same formatting / language rules as the rest of the verdict: stay in ${lang}, no markdown fences, no wrapper element.
+
+- watchOut (optional): exactly ONE short sentence if there is a meaningful caveat the user should know (e.g. "Retrograde portions can shift this date by a few weeks"). Omit if not relevant.
+
+- focusArea (optional): a SINGLE canonical life-area label that best summarizes the topic ONLY if obvious from the question (e.g. "Luck/โชคลาภ" for Jupiter dignity questions). Use the SAME language as the output. Omit when the question is purely about planetary motion.
+
+- relevantPlanets: REQUIRED for technical mode. An array of 1-4 items (use multiple ONLY when the question explicitly involves more than one planet — e.g. a conjunction between two planets, or "when do Jupiter and Saturn change signs?"). Each item is { planet, reason }:
+  - planet: MUST be one of the keys listed in <allowed_planet_keys>. Pick the planet(s) the question is about.
+  - reason: ONE short sentence (in ${lang}) describing the planet's CURRENT state in a way that supports the answer (e.g. "Currently in late Gemini, moving direct, about to enter Cancer where it is strong"). Plain language with astrology terms allowed because this is a technical question.
+  Sort the array from most to least relevant. Do NOT invent planet keys not present in <allowed_planet_keys>.
+</verdict_rules>
+
+<critical_rules>
+- USE THE INGRESS DATABASE. <next_sign_ingresses> is a precomputed list from our ephemeris of WHEN each visible planet next enters a new zodiac sign, in the SAME zodiac system the user is reading (system field on each row tells you tropical vs sidereal). When the question asks "when does <planet> enter <sign>" or "when does <planet> change sign", FIND the matching row by planet (and toSign when the user named one), and quote dateIso EXACTLY in headline / keyMessage / detailedHtml. Translate the ISO date into the user's language (e.g. "9 มิถุนายน 2569" in Thai). Do NOT invent or "round to the month" any date that already exists in <next_sign_ingresses> — the row IS the ground truth. If the requested sign doesn't appear in <next_sign_ingresses>, say so plainly and tell the user the next ingress (any sign) we DO have data for, rather than guessing.
+- FUTURE-ONLY DATES (ephemeris flavor). Every date you return MUST be strictly AFTER the "Current date and time" shown in <system_context>. <next_sign_ingresses> already satisfies this — but if you ever fall back to your own knowledge (e.g. retrograde / direct stations, exaltation degrees that aren't in our database), still verify the year and month are in the future. Famous past dates from training data (e.g. "Saturn entered Pisces on 29 March 2025") are never the answer when "today" is later than that date. This rule does NOT apply to influence-flavor questions that aren't asking about a specific date — those don't need any dates at all.
+- ACCURACY OVER POETRY. For ephemeris questions where the answer is NOT in <next_sign_ingresses> (e.g. exaltation date, retrograde station), reason from the planet's CURRENT sign / degree plus its canonical periods (Jupiter ≈ 1 year per sign, Saturn ≈ 2.5 years per sign, Rahu/Ketu ≈ 18-month nodal shift moving BACKWARD through the zodiac, Uranus ≈ 7 years per sign, Neptune ≈ 14 years per sign, Pluto ≈ 12-30 years per sign). Estimate the next ingress as: time-to-next-sign ≈ ((30° − current degree) / 30°) × time-per-sign. Add that to today's date and round to month/year. If you genuinely don't know, give a month-and-year range rather than inventing a precise day. For influence questions, prioritize classical accuracy about the planet's domain over invented dates — do NOT shoehorn a date into the answer if the user didn't ask for one.
+- The vocabulary RESTRICTIONS that apply to natal / daily verdicts (no planet names, no zodiac signs, no astrology jargon) are LIFTED for technical mode — the user asked a technical question and expects technical vocabulary. Still avoid filler jargon (orbs, mutual reception, parallel, midpoints, etc.) unless directly necessary.
+- DO NOT pretend the question is about the asker. Never insert "you" / "for you" / "ของคุณ" framings. The answer is about the planet.
+- LANGUAGE: write every user-facing string in ${lang} only. Do not mix languages. (Planet keys in \`relevantPlanets[].planet\` stay in canonical English regardless of the output language.)
+- Output ONLY the dailyVerdict JSON. No extra commentary, no markdown fences.
+</critical_rules>
+
+<privacy_rules>
+${PRIVACY_REDACTION_PROMPT_RULE}
+</privacy_rules>`
+}
+
+export type PredictionTimelineSlotScaffold = {
+    slotKey: string
+    datetimeIso: string
+    /** Hour-of-day for hourly slots (0-23). Omitted for daily slots. */
+    hour?: number
+    /** Coarse hour-bucket key (e.g. "dawn", "morning"). Omitted for daily slots. */
+    hourBucket?: string
+    /** Calendar date label (e.g. weekday name). Filled by the server for daily slots. */
+    dateLabel?: string
+    /** Server-side compacted aspect picture for this slot. */
+    aspects: PersonalizedTransitAspectsResult | null
+    /** Optional one-liner the server already knows (e.g. "weekend" or "peak day"). */
+    serverHint?: string
+}
+
+export function getPredictionTimelinePrompt({
+    question,
+    currentDateTime,
+    granularity,
+    questionRange,
+    slots,
+    questionLanguage,
+    userMainPoint,
+    questionTopic,
+}: {
+    question: string
+    currentDateTime: string
+    granularity: "hourly" | "daily"
+    questionRange: {
+        startDateIso: string
+        endDateIso: string
+        durationDays: number
+        source: "explicit" | "relative" | "default_30d" | "ai_inferred"
+    }
+    slots: PredictionTimelineSlotScaffold[]
+    questionLanguage?: string
+    userMainPoint?: string
+    questionTopic?: QuestionTopicResult
+}) {
+    const lang = questionLanguage || "English"
+    const topicLine = questionTopic
+        ? `Question topic focus: ${questionTopic.topic} (relevant planets: ${questionTopic.relevantPlanets.join(", ")})`
+        : "Question topic focus: general"
+
+    const slotsBlock = slots
+        .map((slot) => {
+            const meta: Record<string, unknown> = {
+                slotKey: slot.slotKey,
+                datetimeIso: slot.datetimeIso,
+            }
+            if (typeof slot.hour === "number") meta.hour = slot.hour
+            if (slot.hourBucket) meta.hourBucket = slot.hourBucket
+            if (slot.dateLabel) meta.dateLabel = slot.dateLabel
+            if (slot.serverHint) meta.hint = slot.serverHint
+            const aspects = compactTransitAspects(slot.aspects)
+            return `<slot id="${slot.slotKey}">
+meta: ${JSON.stringify(meta)}
+aspects: ${aspects}
+</slot>`
+        })
+        .join("\n")
+
+    return `<role>
+You are Astra, a female oracle. ${femalePersonaRule}
+Your ONLY job in this call is to fill the Prediction Timeline — a list of short, plain-language slots that describe what the user is likely to experience across the resolved question range.
+</role>
+
+<system_context>
+Current date and time (use as "now"): ${currentDateTime}
+Session main point: ${userMainPoint || "N/A"}
+Question timeframe start: ${questionRange.startDateIso}
+Question timeframe end: ${questionRange.endDateIso}
+Question timeframe days: ${questionRange.durationDays}
+Question timeframe source: ${questionRange.source}
+Timeline granularity: ${granularity}
+${topicLine}
+</system_context>
+
+<user_question>
+${question}
+</user_question>
+
+<timeline_slots>
+The server has pre-built ${slots.length} slot(s). For each slot, the aspects block holds the personalized transit-to-natal aspects that are active during that slot. Use it as the GROUND TRUTH for what the user will likely feel during that slot.
+
+${slotsBlock}
+</timeline_slots>
+
+<timeline_rules>
+- Return ONE slot object per input slot, in the SAME order, echoing back the server's slotKey and datetimeIso EXACTLY. Do not invent new slots, drop slots, or rename slotKey/datetimeIso.
+- granularity in the response MUST equal "${granularity}".
+- For each slot fill these fields (every string in ${lang}):
+  - label: short slot label (≤ 6 words). Hourly example: "ช่วงเช้า 09:00" / "Morning · 9 AM". Daily example: "จันทร์ 19 พ.ค." / "Mon · 19 May".
+  - mood: one of "good", "caution", "rest", "mixed".
+    - good = supportive flow; the user can act.
+    - caution = friction / pressure; slow down.
+    - rest = low momentum; recharge instead of pushing.
+    - mixed = both supportive and tense forces are active.
+    Derive mood from the dominant aspect sentiments + intensities in the slot's aspects block.
+  - title: 3-6 word punchy headline summarizing the slot. Plain language only, no astrology jargon.
+  - narrative: 1-2 sentences explaining what is realistically likely to happen in this slot, grounded in the slot's aspect events. Ground it in everyday life — energy, mood, decisions, social/work/love/health/etc. Avoid future-certain wording.
+  - focusArea (optional): a SINGLE canonical life-area label that best fits the slot's energy. Choose from: Career/การงาน, Finance/การเงิน, Love/ความรัก, Family/ครอบครัว, Health/สุขภาพ, Relationships/ความสัมพันธ์, Education/การศึกษา, Travel/การเดินทาง, Luck/โชคลาภ, Spirituality/จิตวิญญาณ, Reputation/ชื่อเสียง, Caution/คำเตือน. Omit if the slot has no clear focus.
+  - tags: 0-3 short keyword tags. Plain language. Same SAME ${lang} as the rest.
+- Slots should TELL A STORY together (a building arc, a turning point, a quiet stretch) — do not produce six interchangeable paragraphs. If the day/range has a peak slot, lean into it.
+- For hourly granularity, the hour bucket hint (dawn / morning / midday / afternoon / evening / night) is the user's natural mental model — use it.
+- For daily granularity, anchor every slot in its calendar date and the surrounding flow (weekday/weekend, what comes before vs. after).
+</timeline_rules>
+
+<critical_rules>
+- PLAIN LANGUAGE ONLY. The user has ZERO astrology knowledge. Translate ALL astrological meaning into life impact — emotions, energy, timing, and practical advice.
+- ABSOLUTELY FORBIDDEN: planet names in any language (Saturn, Jupiter, Mars, Venus, Mercury, Rahu, Pluto, Neptune, Uranus, Moon, Sun, ดาวเสาร์, ดาวพฤหัส, ดาวอังคาร, ดาวศุกร์, ดาวพุธ, ราหู, ดาวพลูโต, ดาวเนปจูน, ดาวยูเรนัส, จันทร์, อาทิตย์, etc.), zodiac signs (Aries, Taurus, ราศีเมษ, etc.), and astrology jargon (conjunction, opposition, square, trine, sextile, orb, transit, เล็ง, ตรีโกณ, จตุโกณ, ร่วม, องศา, etc.).
+- TONE: warm, conversational, like a caring friend texting — not a formal report. Phrase every slot as a leaning/tendency, never an absolute verdict (avoid "definitely", "absolutely", "guaranteed", "no doubt", "แน่นอน", "รับรอง", "ฟันธง").
+- LANGUAGE: write every string in ${lang} only. Do not mix languages.
+- Output ONLY the predictionTimeline JSON object (granularity + slots). No extra commentary, no markdown fences.
 </critical_rules>
 
 <privacy_rules>

@@ -1,9 +1,31 @@
+import { z } from "zod"
 import type { CalendarQueryIntent } from "@/lib/calendar-helper"
 
 export function isBirthChartSuitabilityQuestion(question: string) {
     return /(birth chart|suitable for|life purpose|career path|พรสวรรค์|เหมาะกับ|ดวงกำเนิด)/i.test(
         question
     )
+}
+
+/**
+ * Detects predictive "what will happen" style questions. These deserve the
+ * Prediction Timeline UI on top of the regular horoscope reading.
+ *
+ * Matches:
+ * - Thai: "เกิดอะไร", "จะเกิดอะไร", "มีอะไรเกิด", "จะเป็นยังไง", "จะเป็นอย่างไร",
+ *   "อะไรจะเกิด", "จะมีอะไร"
+ * - English: "what will happen", "what is going to happen", "what might happen",
+ *   "what could happen", "what to expect", "how will/would/might ... go"
+ * - Lao: "ມີຫຍັງເກີດ", "ຈະເກີດຫຍັງ", "ຈະເປັນແນວໃດ"
+ */
+export function detectPredictiveIntent(question: string): boolean {
+    if (!question) return false
+    const th =
+        /(?:แล้ว)?(?:จะ)?(?:เกิด|มี)(?:อะไร|ไร)(?:เกิด)?(?:ขึ้น)?|อะไรจะเกิด|จะเป็น(?:ยังไง|อย่างไร|ไง|แบบไหน)/i
+    const en =
+        /\bwhat(?:'s| is| are| will| would| might| could)?\s+(?:going to\s+|gonna\s+)?(?:happen|expect|unfold|in store)|\bwhat (?:to|should i) expect|how (?:will|would|might|is) .{1,40}\bgo\b/i
+    const lao = /ມີຫຍັງເກີດ|ຈະເກີດຫຍັງ|ຈະເປັນແນວໃດ/i
+    return th.test(question) || en.test(question) || lao.test(question)
 }
 
 /**
@@ -150,6 +172,85 @@ export function classifyQuestionTopic(question: string): QuestionTopicResult {
         }
     }
     return { topic: "general", relevantPlanets: ALL_PLANETS }
+}
+
+export function getRelevantPlanetsForTopic(
+    topic: QuestionTopic,
+): readonly string[] {
+    const rule = TOPIC_RULES.find((r) => r.topic === topic)
+    return rule?.planets ?? ALL_PLANETS
+}
+
+export type ReplyStrategy =
+    | "daily"
+    | "timing"
+    | "natal"
+    | "timeline"
+    | "technical"
+    | "rejected"
+    | "general"
+
+const CALENDAR_INTENT_VALUES = [
+    "resignation",
+    "job_change",
+    "contract_sign",
+    "marriage",
+    "travel_long",
+    "major_purchase",
+] as const satisfies readonly CalendarQueryIntent[]
+
+const QUESTION_TOPIC_VALUES = [
+    "career",
+    "love",
+    "money",
+    "health",
+    "travel",
+    "education",
+    "family",
+    "general",
+] as const satisfies readonly QuestionTopic[]
+
+export const questionClassificationSchema = z.object({
+    replyStrategy: z.enum([
+        "daily",
+        "timing",
+        "natal",
+        "timeline",
+        "technical",
+        "rejected",
+        "general",
+    ]),
+    questionTopic: z.object({
+        topic: z.enum(QUESTION_TOPIC_VALUES),
+        relevantPlanets: z.array(z.string()).optional(),
+    }),
+    predictiveIntent: z.boolean(),
+    naturalNatalReference: z.boolean(),
+    birthChartSuitability: z.boolean(),
+    calendarRecommendationIntent: z
+        .object({ intent: z.enum(CALENDAR_INTENT_VALUES) })
+        .nullable(),
+})
+
+export type QuestionClassification = z.infer<
+    typeof questionClassificationSchema
+>
+
+export function hydrateRelevantPlanets(
+    classification: QuestionClassification,
+): QuestionClassification {
+    if (classification.questionTopic.relevantPlanets?.length) {
+        return classification
+    }
+    return {
+        ...classification,
+        questionTopic: {
+            topic: classification.questionTopic.topic,
+            relevantPlanets: [
+                ...getRelevantPlanetsForTopic(classification.questionTopic.topic),
+            ],
+        },
+    }
 }
 
 export function detectCalendarRecommendationIntent(

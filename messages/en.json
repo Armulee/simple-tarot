@@ -11,7 +11,7 @@
     "notice": "We're in beta! You may encounter bugs and some features are still in development."
   },
   "PageContextComposer": {
-    "eyebrow": "On this page",
+    "eyebrow": "Context",
     "hint": "this context will be sent to the AI",
     "error": "Sorry, something went wrong. Please try again."
   },
@@ -1059,6 +1059,9 @@
       "Saturn": "Saturn",
       "Rahu": "Rahu",
       "Ketu": "Ketu",
+      "Uranus": "Uranus",
+      "Neptune": "Neptune",
+      "Pluto": "Pluto",
       "Ascendant": "Ascendant"
     },
     "in": "in",
@@ -2053,9 +2056,12 @@
       "cta": "Upgrade ฿199/month"
     },
     "locked": {
-      "title": "Unlock more of your calendar",
-      "bodyFree": "Your free plan shows ±30 days. Upgrade to Basic for a full year, or Pro for unlimited history and forecast.",
-      "bodyBasic": "Basic shows ±1 year. Upgrade to Pro for unlimited history and forecast.",
+      "title": "Unlock this day",
+      "bodyFree": "This date is outside your free window (±30 days). Subscribe to Basic to unlock immediately — about {price}/month for ±1 year of calendar access. Checkout is powered by Stripe on the next page.",
+      "bodyBasic": "This date is outside your Basic window (±1 year). Upgrade to Pro for unlimited calendar access — from {price}/month. Checkout is powered by Stripe on the next page.",
+      "noteFree": "Basic includes a monthly star allowance for chat readings; the calendar unlock is not billed per day.",
+      "ctaFree": "Go to Basic checkout (Stripe)",
+      "ctaBasic": "Go to Pro checkout (Stripe)",
       "cta": "Upgrade",
       "cellHint": "Available on Basic"
     },
@@ -2686,6 +2692,10 @@
     "askBirthPlace": "Please share your birth place (city/country). If unknown, I can use your current location but the reading may be less accurate.",
     "usingLocationFallback": "Using your current location as fallback. This can reduce precision for houses and ascendant.",
     "processFailed": "Sorry, I couldn't process horoscope details right now.",
+    "paywallOtherPersonTitle": "Reading another person needs a paid plan",
+    "paywallOtherPersonBody": "Free accounts can only see their own chart. Upgrade to Basic or Pro to read for friends, family, or partners.",
+    "paywallUpgradeCta": "Upgrade plan",
+    "transitDateLabel": "Transit date",
     "birthFormTitle": "Fill your birth details",
     "birthFormSubmit": "Use this birth data",
     "composerBirthPlaceholder": "Type your birth date, birth time, and location here. Any date format is okay.",
@@ -2695,7 +2705,14 @@
     "tabs": {
       "overview": "Overview",
       "aspect": "Impacting Aspects",
-      "transit": "Technical Information"
+      "transit": "Technical Information",
+      "birthChartInfo": "Birth Chart Information"
+    },
+    "natalSpotlight": {
+      "title": "Your birth chart highlights",
+      "subtitle": "Placements that answer this question",
+      "titleTransit": "Current sky positions",
+      "subtitleTransit": "Where these planets are right now"
     },
     "verdict": {
       "moodGood": "Good Day",
@@ -2715,11 +2732,33 @@
       "transitLabel": "Transit",
       "natalLabel": "Natal",
       "emptyFallback": "Showing the full reading for this day.",
-      "aspectConjunction": "conjunct",
-      "aspectOpposition": "opposite",
-      "aspectSquare": "square",
-      "aspectTrine": "trine",
-      "aspectSextile": "sextile"
+      "aspectConjunction": "Conjunct",
+      "aspectOpposition": "Opposite",
+      "aspectSquare": "Square",
+      "aspectTrine": "Trine",
+      "aspectSextile": "Sextile"
+    },
+    "timeline": {
+      "title": "What could unfold",
+      "subtitleHourly": "Hour by hour for this day",
+      "subtitleDaily": "Day by day across this stretch",
+      "granularityHourly": "Hourly view",
+      "granularityDaily": "Daily view",
+      "loading": "Building your timeline...",
+      "moodGood": "Flowing",
+      "moodCaution": "Be mindful",
+      "moodRest": "Slow down",
+      "moodMixed": "Mixed signals",
+      "focusHeading": "Focus",
+      "hourBuckets": {
+        "lateNight": "Late night",
+        "dawn": "Dawn",
+        "morning": "Morning",
+        "midday": "Midday",
+        "afternoon": "Afternoon",
+        "evening": "Evening",
+        "night": "Night"
+      }
     }
   },
   "Settings": {

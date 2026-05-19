@@ -7,13 +7,20 @@ import {
 } from "@/lib/astrology/intake"
 import { horoscopeInterpretationSchema } from "@/lib/astrology/schema"
 import { getHoroscopeInterpretationPrompt } from "@/lib/prompts"
-import { resolveQuestionTimeRangeAsync } from "@/lib/astrology/question-time-range"
+import {
+    hydrateQuestionTimeRange,
+    questionTimeRangePayloadSchema,
+    resolveQuestionTimeRangeAsync,
+} from "@/lib/astrology/question-time-range"
 import { getCodexTransitWindow } from "@/lib/astrology/ephemeris-codex"
 import {
     isBirthChartSuitabilityQuestion,
     classifyQuestionTopic,
     isNatalChartReferenceQuestion,
     detectCalendarRecommendationIntent,
+    hydrateRelevantPlanets,
+    questionClassificationSchema,
+    type QuestionClassification,
 } from "@/lib/astrology/question-intent"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
 import { normalizeConversationContext } from "@/lib/astrology/question-context"
@@ -24,6 +31,11 @@ import {
 } from "@/lib/astrology/transit-aspects"
 import { queryCalendarDates } from "@/lib/calendar/query"
 import type { CalendarPlanTier } from "@/lib/calendar/access-window"
+import { isSingleDayQuestionRange } from "@/lib/astrology/single-day"
+import {
+    buildMyCalendarDaySnapshotForHoroscope,
+    resolveSessionPrimaryChartSystem,
+} from "@/lib/calendar/my-calendar-day-snapshot"
 
 // Chart data (with aspects) is now served separately via /api/horoscope/chart-data.
 // This route only streams the AI interpretation.
@@ -145,6 +157,8 @@ const requestSchema = z.object({
         .nullable()
         .optional(),
     planTier: z.enum(["free", "basic", "pro"]).optional(),
+    classification: questionClassificationSchema.optional(),
+    questionRange: questionTimeRangePayloadSchema.optional(),
 })
 
 function startOfLocalDay(date: Date) {
@@ -163,18 +177,39 @@ export async function POST(req: Request) {
             body.system ||
             getDefaultAstrologySystem(locale) ||
             ("vedic_sidereal" as const)
-        const questionRange = await resolveQuestionTimeRangeAsync(
-            body.question,
-            {
-                hintedTransitDate: body.transit
-                    ? {
-                          day: body.transit.day ?? null,
-                          month: body.transit.month ?? null,
-                          year: body.transit.year ?? null,
+        const questionRange = body.questionRange
+            ? hydrateQuestionTimeRange(body.questionRange)
+            : await resolveQuestionTimeRangeAsync(body.question, {
+                  hintedTransitDate: body.transit
+                      ? {
+                            day: body.transit.day ?? null,
+                            month: body.transit.month ?? null,
+                            year: body.transit.year ?? null,
+                        }
+                      : null,
+              })
+
+        const classification: QuestionClassification = body.classification
+            ? hydrateRelevantPlanets(body.classification)
+            : {
+                  replyStrategy: "general",
+                  questionTopic: (() => {
+                      const t = classifyQuestionTopic(body.question)
+                      return {
+                          topic: t.topic,
+                          relevantPlanets: [...t.relevantPlanets],
                       }
-                    : null,
-            },
-        )
+                  })(),
+                  predictiveIntent: false,
+                  naturalNatalReference: isNatalChartReferenceQuestion(
+                      body.question,
+                  ),
+                  birthChartSuitability: isBirthChartSuitabilityQuestion(
+                      body.question,
+                  ),
+                  calendarRecommendationIntent:
+                      detectCalendarRecommendationIntent(body.question),
+              }
         const aspectRange = {
             ...questionRange,
             startDate: addUtcDays(
@@ -194,16 +229,15 @@ export async function POST(req: Request) {
             getCodexTransitWindow(questionRange),
             getCodexTransitWindow(aspectRange),
         ])
-        const suitabilityQuestion = isBirthChartSuitabilityQuestion(
-            body.question,
-        )
-        const naturalNatalReference = isNatalChartReferenceQuestion(
-            body.question,
-        )
-        const questionTopic = classifyQuestionTopic(body.question)
-        const calendarRecommendationIntent = detectCalendarRecommendationIntent(
-            body.question,
-        )
+        const suitabilityQuestion = classification.birthChartSuitability
+        const naturalNatalReference = classification.naturalNatalReference
+        const questionTopic = {
+            topic: classification.questionTopic.topic,
+            relevantPlanets:
+                classification.questionTopic.relevantPlanets ?? [],
+        }
+        const calendarRecommendationIntent =
+            classification.calendarRecommendationIntent
         const conversationContext = normalizeConversationContext(
             body.conversationContext,
         )
@@ -250,6 +284,28 @@ export async function POST(req: Request) {
                       questionTopic.relevantPlanets,
                   )
                 : rawTransitAspects
+
+        const sessionPrimarySystem = resolveSessionPrimaryChartSystem(
+            locale,
+            body.birth.country,
+            body.system,
+        )
+        const myCalendarDay =
+            isSingleDayQuestionRange({
+                durationDays: questionRange.durationDays,
+                source: questionRange.source,
+            }) && primaryBirthChart?.planets
+                ? await buildMyCalendarDaySnapshotForHoroscope({
+                      birth: body.birth,
+                      isoDate: questionRange.startDateIso,
+                      codexRows: codexTransit.rows,
+                      textLocale: locale,
+                      sessionChartSystem: sessionPrimarySystem,
+                      sessionNatalPlanets:
+                          primaryBirthChart.planets as Record<string, unknown>,
+                  })
+                : null
+
         const resolvedTime = resolveBirthTime({
             hour: body.birth.hour ?? null,
             minute: body.birth.minute ?? null,
@@ -312,6 +368,7 @@ export async function POST(req: Request) {
             storedBirthChart: body.storedBirthChart ?? null,
             isNatalChartReferenceQuestion: naturalNatalReference,
             calendarRecommendation,
+            myCalendarDay,
         })
 
         console.log(

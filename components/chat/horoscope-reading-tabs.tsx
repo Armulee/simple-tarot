@@ -7,10 +7,25 @@ import type { ChatMessage } from "@/components/chat/types"
 import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import RealtimePlanetaryPanel from "@/components/astrology/realtime-planetary-panel"
+import CosmicCenteredLoader from "@/components/cosmic-centered-loader"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import type { SourceAspectEvent } from "@/components/chat/types"
+import {
+    isDateBoundedQuestionRange,
+    isSingleDayQuestionRange,
+    looksLikeNatalQuestion,
+    readQuestionRangeFromChartData,
+} from "@/lib/astrology/single-day"
 import VerdictHero from "./horoscope/verdict-hero"
 import TransitPlanetGrid from "./horoscope/transit-planet-grid"
 import TransitOrbitVisual from "./horoscope/transit-orbit-visual"
+import NatalChartDetail from "./horoscope/natal-chart-detail"
+import PredictionTimeline from "./horoscope/prediction-timeline"
 
 function NatalChartCollapsible({
     chartData,
@@ -57,7 +72,13 @@ function NatalChartCollapsible({
 
 type HoroscopeTab = "overview" | "aspect" | "transit"
 
-const TAB_ORDER: ReadonlyArray<HoroscopeTab> = ["overview", "transit", "aspect"]
+const TAB_ORDER_DEFAULT: ReadonlyArray<HoroscopeTab> = [
+    "overview",
+    "transit",
+    "aspect",
+]
+
+const TAB_ORDER_NATAL: ReadonlyArray<HoroscopeTab> = ["overview", "transit"]
 
 function stripMarkdownFormatting(text: string): string {
     return text.replace(/\*\*/g, "").replace(/`/g, "").trim()
@@ -92,6 +113,7 @@ export default function HoroscopeReadingTabs({
     onToggleTransitDetails,
     birthDetailsContent,
     transitDetailsContent,
+    onPickTransitDate,
 }: {
     message: ChatMessage
     loadingNode?: ReactNode
@@ -113,43 +135,184 @@ export default function HoroscopeReadingTabs({
     onToggleTransitDetails?: () => void
     birthDetailsContent?: ReactNode
     transitDetailsContent?: ReactNode
+    /**
+     * For timeline-mode readings: pick which day inside the question's range
+     * the Technical Information / Aspect tabs should anchor to. The session
+     * fetches /chart-data for the chosen day and replaces `message.chartData`.
+     */
+    onPickTransitDate?: (
+        messageId: string,
+        datetimeIso: string,
+    ) => void
 }) {
-    // Track the user's explicit tab pick (if any). When null we derive the
-    // active tab from message state so the UI auto-flips between Transit
-    // (while the LLM is computing the verdict) and Overview (once the
-    // verdict has streamed in).
+    // Track the user's explicit tab pick (if any). When null we keep the user
+    // on Overview so the streamed explanation stays front and center.
     const [explicitTab, setExplicitTab] = useState<HoroscopeTab | null>(null)
+    const tChat = useTranslations("HoroscopeChat")
     const tTabs = useTranslations("HoroscopeChat.tabs")
     const tReading = useTranslations("ReadingPage.interpretation")
+    const summary = getOverviewSummary(message)
 
+    // Natal-mode verdicts (no date/date-range, e.g. "Which career fits me?")
+    // swap the right-hand "Technical Information" tab for a "Birth Chart
+    // Information" tab anchored in natal placements, and drop the aspect
+    // tab entirely. The hero visual underneath the key message also flips
+    // from transit feed → relevant-planet spotlight (see VerdictHero).
+    //
+    // The extract route's classification is the source of truth: when the
+    // message carries replyStrategy we trust it directly. Otherwise we fall
+    // back to the legacy heuristic (verdict.mode + question-text + chartData
+    // questionRange) so older / regenerated messages keep working.
+    const questionTextForNatalCheck =
+        message.displayQuestion ?? message.question ?? ""
+    const isNatalLikely = useMemo(
+        () => looksLikeNatalQuestion(questionTextForNatalCheck),
+        [questionTextForNatalCheck],
+    )
+    const questionRangeFromChart = useMemo(
+        () => readQuestionRangeFromChartData(message.chartData),
+        [message.chartData],
+    )
+    const chartIsSingleDay = isSingleDayQuestionRange(questionRangeFromChart)
+    const chartIsDateBounded = isDateBoundedQuestionRange(
+        questionRangeFromChart,
+    )
+    const verdictIsNatal = message.dailyVerdict?.mode === "natal"
+    const verdictIsTechnical = message.dailyVerdict?.mode === "technical"
+    // Technical replies are about planetary mechanics — they reuse the
+    // same "spotlight" layout as natal, but the data comes from the
+    // current transit chart instead of the asker's birth chart. From the
+    // tab layout's perspective both modes hide the Aspect tab and swap
+    // the Transit tab for the Birth Chart Information tab, so we treat
+    // technical the same as natal here.
+    const isNatalMode = message.replyStrategy
+        ? message.replyStrategy === "natal" ||
+          message.replyStrategy === "technical"
+        : verdictIsNatal ||
+          verdictIsTechnical ||
+          (isNatalLikely && !chartIsSingleDay && !chartIsDateBounded)
     // Reset auto-pilot whenever a new loading cycle starts (new question OR
-    // regenerate). This way Regenerate flips us back to the technical-info
-    // default and then back to overview when the verdict streams in.
-    const hasDailyVerdict = !!message.dailyVerdict
+    // regenerate). This way a fresh run returns to the overview tab and keeps
+    // the inline loader visible until the first overview text arrives.
+    const hasOverviewContent = summary.length > 0
     useEffect(() => {
-        if (message.isLoading && !hasDailyVerdict) {
+        if (message.isLoading && !hasOverviewContent) {
             setExplicitTab(null)
         }
-    }, [message.isLoading, hasDailyVerdict])
+    }, [message.isLoading, hasOverviewContent])
 
-    // Loading + no verdict yet → Transit (chartData lands first, no LLM
-    // wait). Otherwise → Overview. An explicit user click always wins.
-    const activeTab: HoroscopeTab =
-        explicitTab ??
-        (message.isLoading && !hasDailyVerdict ? "transit" : "overview")
+    // If the active tab is "aspect" but the message becomes natal-mode
+    // (after the verdict resolves), snap back to overview so we don't strand
+    // the user on a tab we are no longer rendering.
+    useEffect(() => {
+        if (isNatalMode && explicitTab === "aspect") {
+            setExplicitTab(null)
+        }
+    }, [isNatalMode, explicitTab])
+
+    // Default to Overview for every new reading (verdict hero + streamed text).
+    // Chart data may arrive before the verdict, but we keep the user on
+    // Overview until they choose Technical Information themselves.
+    const activeTab: HoroscopeTab = explicitTab ?? "overview"
 
     const handleSelectTab = (tab: HoroscopeTab) => setExplicitTab(tab)
 
-    const tabs = useMemo<Array<{ id: HoroscopeTab; label: string }>>(
-        () => [
+    // Timeline-mode transit-date picker. The /timeline response carries an
+    // ordered list of slots (hourly or daily) covering the user's range.
+    // When the user picks a slot, the parent refetches /chart-data for that
+    // date and replaces `message.chartData`, so the Transit / Aspect tabs
+    // re-render against the picked moment.
+    const isTimelineMode = message.replyStrategy === "timeline"
+    const timelineSlots = useMemo(() => {
+        if (!isTimelineMode) return [] as Array<{
+            datetimeIso: string
+            label: string
+        }>
+        const slots = message.timeline?.slots ?? []
+        return slots
+            .filter(
+                (slot): slot is NonNullable<typeof slot> =>
+                    Boolean(slot?.datetimeIso),
+            )
+            .map((slot) => ({
+                datetimeIso: slot.datetimeIso,
+                label: slot.label || slot.datetimeIso,
+            }))
+    }, [isTimelineMode, message.timeline])
+    const currentTransitIso = useMemo(() => {
+        if (!isTimelineMode) return null
+        const chartData = message.chartData as
+            | {
+                  transit?: {
+                      date?: { day?: number; month?: number; year?: number }
+                  } | null
+              }
+            | null
+            | undefined
+        const tDate = chartData?.transit?.date
+        if (
+            tDate &&
+            typeof tDate.year === "number" &&
+            typeof tDate.month === "number" &&
+            typeof tDate.day === "number"
+        ) {
+            const yyyy = String(tDate.year).padStart(4, "0")
+            const mm = String(tDate.month).padStart(2, "0")
+            const dd = String(tDate.day).padStart(2, "0")
+            return `${yyyy}-${mm}-${dd}`
+        }
+        return timelineSlots[0]?.datetimeIso?.slice(0, 10) ?? null
+    }, [isTimelineMode, message.chartData, timelineSlots])
+    const currentSlotLabel = useMemo(() => {
+        if (!isTimelineMode || timelineSlots.length === 0) return null
+        const match = timelineSlots.find(
+            (slot) => slot.datetimeIso.slice(0, 10) === currentTransitIso,
+        )
+        return match?.label ?? timelineSlots[0]?.label ?? null
+    }, [isTimelineMode, timelineSlots, currentTransitIso])
+    const showTransitPicker =
+        isTimelineMode && timelineSlots.length > 1 && Boolean(onPickTransitDate)
+
+    const transitDatePickerNode = showTransitPicker ? (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <button
+                    type='button'
+                    className='inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-[12px] font-medium text-white/80 transition hover:border-white/25 hover:bg-white/[0.08]'
+                >
+                    {currentSlotLabel ?? currentTransitIso}
+                    <ChevronDown className='h-3.5 w-3.5 text-white/55' />
+                </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align='start' className='max-h-72 overflow-y-auto'>
+                {timelineSlots.map((slot) => (
+                    <DropdownMenuItem
+                        key={slot.datetimeIso}
+                        onSelect={() =>
+                            onPickTransitDate?.(message.id, slot.datetimeIso)
+                        }
+                    >
+                        {slot.label}
+                    </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+        </DropdownMenu>
+    ) : null
+
+    const tabs = useMemo<Array<{ id: HoroscopeTab; label: string }>>(() => {
+        if (isNatalMode) {
+            return [
+                { id: "overview", label: tTabs("overview") },
+                { id: "transit", label: tTabs("birthChartInfo") },
+            ]
+        }
+        return [
             { id: "overview", label: tTabs("overview") },
             { id: "transit", label: tTabs("transit") },
             { id: "aspect", label: tTabs("aspect") },
-        ],
-        [tTabs],
-    )
+        ]
+    }, [tTabs, isNatalMode])
 
-    const summary = getOverviewSummary(message)
     const aliases = privacyAliases ?? []
     // const relevanceStats = useMemo(
     //     () =>
@@ -163,11 +326,15 @@ export default function HoroscopeReadingTabs({
     //     [message.relevance],
     // )
 
-    // The hero only depends on `dailyVerdict` arriving — the schema + prompt
-    // already guarantee the model omits it for multi-day questions, so we do
-    // NOT wait on chartData.questionRange (which comes from a separate
-    // /api/horoscope/chart-data fetch and can lag behind the LLM stream).
-    const showVerdict = !!message.dailyVerdict
+    // Timeline takes precedence over the verdict hero — when the question is
+    // a "what will happen" predictive ask we render the Prediction Timeline
+    // instead, so the verdict and timeline never collide.
+    const hasTimeline =
+        !!message.timeline?.slots && message.timeline.slots.length > 0
+    // The hero still keys off `dailyVerdict`, but the inline loader now waits
+    // for the first streamed overview sentence/insight before clearing.
+    const showVerdict = !!message.dailyVerdict && !hasTimeline
+    const showOverviewLoader = message.isLoading && !hasOverviewContent
     const dateIso = useMemo(() => {
         if (!message.chartData || typeof message.chartData !== "object") {
             return null
@@ -182,9 +349,6 @@ export default function HoroscopeReadingTabs({
     return (
         <section className='relative overflow-hidden'>
             <div className='space-y-6'>
-                {message.isLoading && loadingNode ? (
-                    <div className='flex justify-start'>{loadingNode}</div>
-                ) : null}
                 <div
                     role='tablist'
                     aria-label='Horoscope reading sections'
@@ -224,7 +388,12 @@ export default function HoroscopeReadingTabs({
                         )
                     })}
                     {/* Hidden ordering anchor for aria/test stability */}
-                    <span className='sr-only'>{TAB_ORDER.join(",")}</span>
+                    <span className='sr-only'>
+                        {(isNatalMode
+                            ? TAB_ORDER_NATAL
+                            : TAB_ORDER_DEFAULT
+                        ).join(",")}
+                    </span>
                 </div>
 
                 {activeTab === "overview" && (
@@ -235,26 +404,29 @@ export default function HoroscopeReadingTabs({
                                 dateIso={dateIso}
                                 privacyAliases={aliases}
                                 isLoading={message.isLoading}
+                                overviewReady={hasOverviewContent}
                                 transitSourceMessage={message}
                             />
                         )}
 
-                        {message.isLoading && !showVerdict && (
-                            <div
-                                className='flex flex-col items-center gap-4 py-6 animate-pulse'
-                                aria-hidden
-                            >
-                                <div className='h-12 w-12 rounded-full bg-white/[0.07]' />
-                                <div className='h-6 w-2/3 rounded-full bg-white/[0.07]' />
-                                <div className='h-5 w-24 rounded-full bg-white/[0.05]' />
-                                <div className='mt-4 w-full max-w-md space-y-2 rounded-2xl border border-white/[0.06] bg-white/[0.03] px-4 py-4'>
-                                    <div className='h-5 w-3/4 rounded bg-white/[0.07]' />
-                                    <div className='h-3 w-5/6 rounded bg-white/[0.05]' />
-                                </div>
-                            </div>
+                        {message.timeline &&
+                            message.timeline.slots &&
+                            message.timeline.slots.length > 0 && (
+                                <PredictionTimeline
+                                    timeline={message.timeline}
+                                    isLoading={message.isLoading}
+                                    privacyAliases={aliases}
+                                />
+                            )}
+
+                        {!showVerdict && showOverviewLoader && (
+                            <CosmicCenteredLoader
+                                label={tChat("loading")}
+                                variant='embedded'
+                            />
                         )}
 
-                        {!message.isLoading && !showVerdict && summary && (
+                        {!showVerdict && summary && (
                             <div className='rounded-2xl border border-indigo-300/20 bg-indigo-400/[0.07] px-4 py-3 shadow-[0_8px_24px_-18px_rgba(129,140,248,0.75)]'>
                                 <div className='mb-1 flex items-start justify-between gap-3'>
                                     <div>
@@ -281,22 +453,51 @@ export default function HoroscopeReadingTabs({
                     </div>
                 )}
 
-                {activeTab === "transit" && (
-                    <div className='space-y-5 rounded-[16px]'>
-                        <TransitOrbitVisual chartData={message.chartData} />
-                        <TransitPlanetGrid chartData={message.chartData} />
-                        <NatalChartCollapsible chartData={message.chartData} />
+                {activeTab === "transit" &&
+                    (isNatalMode ? (
+                        <div className='space-y-6 rounded-[16px]'>
+                            <NatalChartDetail chartData={message.chartData} />
 
-                        {footerActions && !message.isLoading ? (
-                            <div className='border-t border-white/10 pt-4'>
-                                {footerActions}
+                            {footerActions && !message.isLoading ? (
+                                <div className='border-t border-white/10 pt-4'>
+                                    {footerActions}
+                                </div>
+                            ) : null}
+                        </div>
+                    ) : (
+                        <div className='space-y-5 rounded-[16px]'>
+                            {transitDatePickerNode && (
+                                <div className='flex items-center gap-2'>
+                                    <span className='text-[11px] uppercase tracking-[0.18em] text-white/55'>
+                                        {tChat("transitDateLabel")}
+                                    </span>
+                                    {transitDatePickerNode}
+                                </div>
+                            )}
+                            <TransitOrbitVisual chartData={message.chartData} />
+                            <TransitPlanetGrid chartData={message.chartData} />
+                            <NatalChartCollapsible
+                                chartData={message.chartData}
+                            />
+
+                            {footerActions && !message.isLoading ? (
+                                <div className='border-t border-white/10 pt-4'>
+                                    {footerActions}
+                                </div>
+                            ) : null}
+                        </div>
+                    ))}
+
+                {activeTab === "aspect" && !isNatalMode && (
+                    <div className='space-y-3'>
+                        {transitDatePickerNode && (
+                            <div className='flex items-center gap-2'>
+                                <span className='text-[11px] uppercase tracking-[0.18em] text-white/55'>
+                                    {tChat("transitDateLabel")}
+                                </span>
+                                {transitDatePickerNode}
                             </div>
-                        ) : null}
-                    </div>
-                )}
-
-                {activeTab === "aspect" && (
-                    <div>
+                        )}
                         <RealtimePlanetaryPanel
                             chartData={
                                 message.chartData as

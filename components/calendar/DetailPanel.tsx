@@ -1,10 +1,15 @@
 "use client"
 
 import { Crown, Lock, Sparkles } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { Link } from "@/i18n/navigation"
 import type { DayData } from "@/lib/calendar-helper"
 import type { CalendarPlanTier } from "@/lib/calendar/access-window"
+import {
+    formatCurrency,
+    type CurrencyCode,
+} from "@/lib/payments/currency-utils"
+import { getPlanPrice } from "@/lib/payments/subscription-plans"
 import type { HoroscopeBirthData } from "@/types/horoscope"
 import { AskCalendarAI } from "./AskCalendarAI"
 import { DetailHeaderCard } from "./DetailHeaderCard"
@@ -82,8 +87,19 @@ export function DetailPanel({
 
 function LockedDetailCard({ planTier }: { planTier: CalendarPlanTier }) {
     const t = useTranslations("Calendar")
+    const locale = useLocale()
+    const currency: CurrencyCode = locale === "th" ? "THB" : "USD"
+    const targetTier = planTier === "basic" ? "pro" : "basic"
+    const subscribeHash =
+        targetTier === "basic" ? "subscribe-basic" : "subscribe-pro"
     const bodyKey =
         planTier === "basic" ? "locked.bodyBasic" : "locked.bodyFree"
+    const ctaKey = planTier === "basic" ? "locked.ctaBasic" : "locked.ctaFree"
+    const priceAmount = getPlanPrice(targetTier, "monthly", currency)
+    const priceLabel = formatCurrency(priceAmount, currency, locale).replace(
+        /^US(?=\$)/,
+        "",
+    )
 
     return (
         <div className='relative overflow-hidden rounded-3xl border border-amber-300/40 bg-gradient-to-br from-amber-400/15 via-amber-300/5 to-transparent backdrop-blur-xl p-6 space-y-4'>
@@ -100,15 +116,21 @@ function LockedDetailCard({ planTier }: { planTier: CalendarPlanTier }) {
             </div>
 
             <p className='relative text-sm text-white/75 leading-relaxed'>
-                {t(bodyKey)}
+                {t(bodyKey, { price: priceLabel })}
             </p>
 
+            {planTier === "free" ? (
+                <p className='relative text-xs text-white/55 leading-relaxed'>
+                    {t("locked.noteFree")}
+                </p>
+            ) : null}
+
             <Link
-                href='/billing'
+                href={`/stars#${subscribeHash}`}
                 className='relative inline-flex w-full items-center justify-center gap-2 rounded-xl bg-amber-300 px-4 py-2.5 text-sm font-medium text-black hover:bg-amber-200 transition-colors shadow-[0_8px_24px_-8px_rgba(252,211,77,0.6)]'
             >
                 <Sparkles className='h-4 w-4' />
-                {t("locked.cta")}
+                {t(ctaKey)}
             </Link>
         </div>
     )

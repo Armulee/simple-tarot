@@ -57,6 +57,21 @@ export default function SubscribeSection() {
     }, [activePlan])
 
     useEffect(() => {
+        if (typeof window === "undefined") return
+        const id = window.location.hash.replace(/^#/, "")
+        if (id !== "subscribe-basic" && id !== "subscribe-pro") return
+        const scrollToPlan = () => {
+            document.getElementById(id)?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+            })
+        }
+        scrollToPlan()
+        const t = window.setTimeout(scrollToPlan, 400)
+        return () => window.clearTimeout(t)
+    }, [])
+
+    useEffect(() => {
         const fetchActivePlan = async () => {
             if (!user) {
                 setActivePlan(null)
@@ -314,7 +329,14 @@ export default function SubscribeSection() {
                             return (
                                 <div
                                     key={plan.id}
-                                    className='rounded-2xl border border-white/10 bg-black/40 p-6 flex items-center justify-between gap-4'
+                                    id={
+                                        plan.id === "basic"
+                                            ? "subscribe-basic"
+                                            : plan.id === "pro"
+                                              ? "subscribe-pro"
+                                              : undefined
+                                    }
+                                    className='rounded-2xl border border-white/10 bg-black/40 p-6 flex items-center justify-between gap-4 scroll-mt-24'
                                 >
                                     <div className='flex-1'>
                                         <div className='flex flex-wrap items-center gap-2 mb-1'>
