@@ -585,30 +585,33 @@ function normalizePredictionTimeline(
     timeline: RawPredictionTimeline | null | undefined,
 ): ChatMessage["timeline"] | undefined {
     if (!timeline) return undefined
-    const granularity: "hourly" | "daily" | null =
-        timeline.granularity === "hourly" || timeline.granularity === "daily"
-            ? timeline.granularity
-            : null
-    if (!granularity) return undefined
+    // Streaming-friendly: until the LLM has emitted granularity we still
+    // want to start showing slots, so default to "daily". The final chunk
+    // overrides this with the correct value.
+    const granularity: "hourly" | "daily" =
+        timeline.granularity === "hourly" ? "hourly" : "daily"
     const rawSlots = Array.isArray(timeline.slots) ? timeline.slots : []
     const slots = rawSlots
-        .map((slot): NormalizedTimelineSlot | null => {
+        .map((slot, idx): NormalizedTimelineSlot | null => {
             if (!slot) return null
-            const slotKey = (slot.slotKey ?? "").trim()
+            const slotKeyRaw = (slot.slotKey ?? "").trim()
             const datetimeIso = (slot.datetimeIso ?? "").trim()
             const label = (slot.label ?? "").trim()
             const title = (slot.title ?? "").trim()
             const narrative = (slot.narrative ?? "").trim()
+            // The schema streams slotKey/datetimeIso/label/mood/title before
+            // narrative, so as soon as we have ANY visible text on the slot
+            // we surface it — even if a later field hasn't arrived yet.
+            if (!label && !title && !narrative) return null
+            const slotKey = slotKeyRaw || `slot-${idx}`
             const moodRaw = slot.mood
-            const mood: NormalizedTimelineSlot["mood"] | null =
+            const mood: NormalizedTimelineSlot["mood"] =
                 moodRaw === "good" ||
                 moodRaw === "caution" ||
                 moodRaw === "rest" ||
                 moodRaw === "mixed"
                     ? moodRaw
-                    : null
-            if (!slotKey || !datetimeIso || !mood) return null
-            if (!label && !title && !narrative) return null
+                    : "mixed"
             const focusAreaRaw = (slot.focusArea ?? "").trim()
             const focusArea = focusAreaRaw || undefined
             const tags = (slot.tags ?? [])
