@@ -178,9 +178,18 @@ export default function HoroscopeReadingTabs({
         questionRangeFromChart,
     )
     const verdictIsNatal = message.dailyVerdict?.mode === "natal"
+    const verdictIsTechnical = message.dailyVerdict?.mode === "technical"
+    // Technical replies are about planetary mechanics — they reuse the
+    // same "spotlight" layout as natal, but the data comes from the
+    // current transit chart instead of the asker's birth chart. From the
+    // tab layout's perspective both modes hide the Aspect tab and swap
+    // the Transit tab for the Birth Chart Information tab, so we treat
+    // technical the same as natal here.
     const isNatalMode = message.replyStrategy
-        ? message.replyStrategy === "natal"
+        ? message.replyStrategy === "natal" ||
+          message.replyStrategy === "technical"
         : verdictIsNatal ||
+          verdictIsTechnical ||
           (isNatalLikely && !chartIsSingleDay && !chartIsDateBounded)
     // Reset auto-pilot whenever a new loading cycle starts (new question OR
     // regenerate). This way a fresh run returns to the overview tab and keeps

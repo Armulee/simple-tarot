@@ -37,7 +37,7 @@ export type DailyVerdict = {
         headline: string
         subtitle: string
     }
-    mode?: "daily" | "natal" | "timing"
+    mode?: "daily" | "natal" | "timing" | "technical"
     relevantPlanets?: NatalRelevantPlanet[]
     timingWindow?: {
         startDateIso: string
@@ -234,8 +234,10 @@ function canonicalSign(sign: string): string {
 function resolveHeroPlacements(
     chartData: Record<string, unknown> | null | undefined,
     relevantPlanets: NatalRelevantPlanet[],
+    options?: { source?: "natal" | "transit" },
 ): NatalPlacementForHero[] {
     if (!relevantPlanets.length) return []
+    const source = options?.source ?? "natal"
     const data = (chartData ?? null) as
         | {
               charts?: Array<{
@@ -248,9 +250,24 @@ function resolveHeroPlacements(
                       }
                   >
               }>
+              transit?: {
+                  charts?: Array<{
+                      planets?: Record<
+                          string,
+                          {
+                              sign?: string
+                              degree?: number
+                              retrograde?: boolean
+                          }
+                      >
+                  }>
+              } | null
           }
         | null
-    const planets = data?.charts?.[0]?.planets ?? {}
+    const planets =
+        source === "transit"
+            ? data?.transit?.charts?.[0]?.planets ?? {}
+            : data?.charts?.[0]?.planets ?? {}
     return relevantPlanets.map((rp) => {
         const point = planets[rp.planet]
         return {
@@ -580,6 +597,11 @@ export default function VerdictHero({
     const keyMessageSubtitle = (verdict.keyMessage?.subtitle ?? "").trim()
     const isNatalMode = verdict.mode === "natal"
     const isTimingMode = verdict.mode === "timing"
+    const isTechnicalMode = verdict.mode === "technical"
+    // Both natal and technical use the same planet-spotlight visual; the
+    // difference is which chart we read the placements from (birth chart
+    // for natal, current transit chart for technical).
+    const isSpotlightMode = isNatalMode || isTechnicalMode
     const questionText = useMemo(
         () =>
             (
@@ -605,33 +627,39 @@ export default function VerdictHero({
     const showFocusAreaPill =
         !!verdict.focusArea?.trim() && questionTopic.topic === "general"
     const relevantPlanets = useMemo<NatalRelevantPlanet[]>(
-        () => (isNatalMode ? verdict.relevantPlanets ?? [] : []),
-        [isNatalMode, verdict.relevantPlanets],
+        () => (isSpotlightMode ? verdict.relevantPlanets ?? [] : []),
+        [isSpotlightMode, verdict.relevantPlanets],
     )
     const hasRelevantPlanets = relevantPlanets.length > 0
     const heroPlacements = useMemo(
         () =>
-            isNatalMode
+            isSpotlightMode
                 ? resolveHeroPlacements(
                       transitSourceMessage.chartData,
                       relevantPlanets,
+                      { source: isTechnicalMode ? "transit" : "natal" },
                   )
                 : [],
-        [isNatalMode, relevantPlanets, transitSourceMessage.chartData],
+        [
+            isSpotlightMode,
+            isTechnicalMode,
+            relevantPlanets,
+            transitSourceMessage.chartData,
+        ],
     )
-    const showNatalHeroCrest = isNatalMode && heroPlacements.length > 0
+    const showNatalHeroCrest = isSpotlightMode && heroPlacements.length > 0
     const showTimingHeroCrest = isTimingMode && !!verdict.timingWindow
     const hasVerdictText =
         verdict.headline.trim().length > 0 ||
         keyMessageHeadline.length > 0 ||
         detailedHtml.length > 0
     const showLoadingState = isLoading && !overviewReady && !hasVerdictText
-    // Daily verdicts hang their visual under the detailed HTML (the transit
-    // feed). Natal verdicts use the relevant-planets spotlight instead. We
-    // never show both at the same time.
-    const showTransitFeed = overviewReady && !isLoading && !isNatalMode
+    // Daily / timing verdicts hang their visual under the detailed HTML (the
+    // transit feed). Natal and technical verdicts use the planet spotlight
+    // instead. We never show both at the same time.
+    const showTransitFeed = overviewReady && !isLoading && !isSpotlightMode
     const showNatalSpotlight =
-        overviewReady && !isLoading && isNatalMode && hasRelevantPlanets
+        overviewReady && !isLoading && isSpotlightMode && hasRelevantPlanets
     const showReplyBubble =
         keyMessageHeadline.length > 0 ||
         detailedHtml.length > 0 ||
@@ -780,6 +808,11 @@ export default function VerdictHero({
                                             }
                                             relevantPlanets={relevantPlanets}
                                             privacyAliases={aliases}
+                                            source={
+                                                isTechnicalMode
+                                                    ? "transit"
+                                                    : "natal"
+                                            }
                                         />
                                     </div>
                                 )}

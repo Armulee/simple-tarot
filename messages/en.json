@@ -2710,7 +2710,9 @@
     },
     "natalSpotlight": {
       "title": "Your birth chart highlights",
-      "subtitle": "Placements that answer this question"
+      "subtitle": "Placements that answer this question",
+      "titleTransit": "Current sky positions",
+      "subtitleTransit": "Where these planets are right now"
     },
     "verdict": {
       "moodGood": "Good Day",

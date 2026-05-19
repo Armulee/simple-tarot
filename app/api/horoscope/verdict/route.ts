@@ -8,6 +8,7 @@ import {
 import {
     getDailyVerdictPrompt,
     getNatalVerdictPrompt,
+    getTechnicalVerdictPrompt,
     getTimingVerdictPrompt,
     type NatalPlacementForPrompt,
 } from "@/lib/prompts"
@@ -626,6 +627,107 @@ async function handleNatalVerdict(body: VerdictRequestBody) {
     })
 }
 
+/**
+ * Technical verdict: pure planetary-knowledge questions ("when does Jupiter
+ * become exalted?", "is Mars retrograde?"). Anchored in TODAY's transit chart
+ * (the planets' current positions) rather than the asker's natal placements.
+ */
+async function handleTechnicalVerdict(body: VerdictRequestBody) {
+    const chartLocale =
+        detectQuestionLanguage(body.question) === "Thai" ||
+        detectQuestionLanguage(body.question) === "Lao"
+            ? "th"
+            : "en"
+
+    // Build a transit chart for "right now" so the LLM has accurate
+    // current-position grounding for the answer. We also keep the natal
+    // chart in the response (so the existing chartData consumers don't
+    // choke), but the spotlight key the technical verdict points at is
+    // chartData.transit.charts[0].planets.
+    const now = new Date()
+    const todayUtc = new Date(
+        Date.UTC(
+            now.getUTCFullYear(),
+            now.getUTCMonth(),
+            now.getUTCDate(),
+            12,
+            0,
+            0,
+        ),
+    )
+    const todayQuestionRange = {
+        startDate: todayUtc,
+        endDate: todayUtc,
+        startDateIso: toIsoDate(todayUtc),
+        endDateIso: toIsoDate(todayUtc),
+        durationDays: 1,
+        source: "explicit" as const,
+        granularity: "daily" as const,
+    }
+
+    const chartDataResult = await buildChartData(
+        {
+            birth: body.birth,
+            system: body.system,
+            questionRange: todayQuestionRange,
+        },
+        chartLocale,
+    )
+
+    const primaryTransitChart = chartDataResult.transit?.charts?.[0]
+    const transitPlacements = buildNatalPlacementsForPrompt(
+        primaryTransitChart,
+    )
+    if (!transitPlacements.length) {
+        return Response.json({}, { status: 200 })
+    }
+
+    const currentDateTime = now.toLocaleString("en-CA", {
+        dateStyle: "full",
+        timeStyle: "long",
+        timeZone: "UTC",
+    })
+    const questionLanguage = detectQuestionLanguage(body.question)
+
+    const prompt = getTechnicalVerdictPrompt({
+        question: body.question,
+        currentDateTime,
+        transitPlacements,
+        questionLanguage,
+        userMainPoint: body.conversationContext?.userMainPoint ?? "",
+    })
+
+    console.log(
+        `[horoscope/verdict] technical prompt size: ${(prompt.length / 1024).toFixed(1)}KB (~${Math.ceil(prompt.length / 4)} tokens)`,
+    )
+
+    // Generate the verdict non-streamed so we can ship chartData alongside
+    // it in a single response (the same pattern as the timing verdict).
+    const result = await generateObject({
+        model: MODEL,
+        schema: dailyVerdictSchema,
+        system: `You are Astra, a female oracle. Produce ONLY the daily verdict JSON for a TECHNICAL ephemeris / astrology-knowledge question. Output language: ${questionLanguage}. Always set mode to "technical". Astrology vocabulary IS allowed because the user is asking about planetary mechanics.`,
+        prompt,
+        temperature: 0.35,
+    })
+
+    const verdict = {
+        ...result.object,
+        mode: "technical" as const,
+        relevantPlanets: result.object.relevantPlanets ?? [],
+        timingWindow: undefined,
+    }
+
+    return Response.json(
+        {
+            ...verdict,
+            chartData: chartDataResult,
+            personalizedTransitAspects: null,
+        },
+        { status: 200 },
+    )
+}
+
 export async function POST(req: Request) {
     try {
         const body = requestSchema.parse(await req.json())
@@ -653,6 +755,9 @@ export async function POST(req: Request) {
         }
         if (strategy === "natal") {
             return await handleNatalVerdict(body)
+        }
+        if (strategy === "technical") {
+            return await handleTechnicalVerdict(body)
         }
         if (strategy !== "daily") {
             return Response.json({}, { status: 200 })

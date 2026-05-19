@@ -1145,7 +1145,8 @@ export default function ChatSession({
                             replyStrategy == null ||
                             replyStrategy === "daily" ||
                             replyStrategy === "timing" ||
-                            replyStrategy === "natal"
+                            replyStrategy === "natal" ||
+                            replyStrategy === "technical"
                         if (!skipVerdictFetch && verdictWouldRender) {
                             horoscopeVerdictTargetMessageIdRef.current =
                                 targetId
@@ -2942,7 +2943,8 @@ export default function ChatSession({
             if (
                 strategy === "daily" ||
                 strategy === "timing" ||
-                strategy === "natal"
+                strategy === "natal" ||
+                strategy === "technical"
             ) {
                 const ok = await tryCompleteHoroscopeVerdictFirst(
                     loadingId,

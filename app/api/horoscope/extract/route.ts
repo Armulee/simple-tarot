@@ -37,6 +37,7 @@ const LLM_STRATEGY_VALUES = [
     "timing",
     "natal",
     "timeline",
+    "technical",
     "general",
 ] as const
 
@@ -286,13 +287,14 @@ DECISION 2 — replyStrategy and questionRange
 =============================
 Pick ONE strategy. Definitions are MUTUALLY EXCLUSIVE — for daily vs timeline the key signal is HOW MANY DAYS the question covers:
 
-- "timing"   → the user is asking FOR a date or range as the ANSWER. Triggers: "when will…", "เมื่อไหร่…", "วันไหน…", "ฤกษ์…", "by when", "how soon", "best day to…". Even if a search window is given.
-- "timeline" → MULTI-DAY range (2 or more days) anchored in the question. Whenever the question covers more than one day AND has any predictive / "what will it be" phrasing, choose timeline — regardless of word order, regardless of whether the user said "รายวัน". Phrasings that count as predictive include: "what will happen", "how will it go", "what's it like", "จะเป็นยังไง", "จะเป็นยังไงบ้าง", "จะเปนยังไงบ้าง", "อะไรจะเกิด", "เป็นยังไงบ้าง", "ดวงเป็นยังไง". Multi-day windows: explicit date ranges ("19-25 พค", "March to May"), week / month / quarter / year windows, "within N days", "for the next N days/weeks/months/years", etc. Two semantically equivalent multi-day predictive questions must always classify the same way no matter where the pronoun sits.
-- "daily"    → SINGLE-DAY anchor (exactly one calendar day). Use only when the resolved range is one day total: a specific date, "today / tonight / วันนี้", "tomorrow / พรุ่งนี้", "yesterday / เมื่อวาน", or a single named day. Never use daily for a date RANGE or a calendar window that spans more than one day.
-- "natal"    → NO time anchor at all, asker asks about their enduring self / nature / suitability / placements. Triggers: "which career fits me", "what is my purpose", "ดวงของฉันเป็นยังไง" without a date, "my Saturn means", "ราศีของฉัน", "ลัคนาของฉัน", birth-chart suitability. If even one date or window word is present, this is NOT natal.
-- "general"  → small talk, clarification, or anything that doesn't fit the four above.
+- "technical" → the question is about PLANETARY MECHANICS or ASTROLOGY KNOWLEDGE, not about the asker's life or chart. The subject is a planet (or several planets) — its sign, dignity, retrograde status, sign change, exaltation, debilitation, conjunction with another planet, etc. The question is impersonal: "when will Jupiter become exalted?", "when will Saturn move to another zodiac?", "is Mars currently retrograde?", "what sign is Venus in right now?", "ดาวพฤหัสจะย้ายราศีเมื่อไหร่", "ดาวเสาร์จะเข้าราศีอะไรต่อไป", "ราหูจะย้ายราศีตอนไหน". Even though these often contain "when", they are NOT timing questions about the asker's future — they ask about an astronomical event. ALWAYS choose technical when the focal subject is a planet's own movement / dignity, not the asker's outcome.
+- "timing"    → the user is asking FOR a date or range as the ANSWER, AND the subject is the ASKER's outcome (not a planet's movement). Triggers: "when will I…", "เมื่อไหร่ฉัน…", "วันไหนดี…", "ฤกษ์…", "by when", "how soon", "best day to…". If the "when" question is about a planet rather than the asker, choose technical instead.
+- "timeline"  → MULTI-DAY range (2 or more days) anchored in the question. Whenever the question covers more than one day AND has any predictive / "what will it be" phrasing, choose timeline — regardless of word order, regardless of whether the user said "รายวัน". Phrasings that count as predictive include: "what will happen", "how will it go", "what's it like", "จะเป็นยังไง", "จะเป็นยังไงบ้าง", "จะเปนยังไงบ้าง", "อะไรจะเกิด", "เป็นยังไงบ้าง", "ดวงเป็นยังไง". Multi-day windows: explicit date ranges ("19-25 พค", "March to May"), week / month / quarter / year windows, "within N days", "for the next N days/weeks/months/years", etc. Two semantically equivalent multi-day predictive questions must always classify the same way no matter where the pronoun sits.
+- "daily"     → SINGLE-DAY anchor (exactly one calendar day). Use only when the resolved range is one day total: a specific date, "today / tonight / วันนี้", "tomorrow / พรุ่งนี้", "yesterday / เมื่อวาน", or a single named day. Never use daily for a date RANGE or a calendar window that spans more than one day.
+- "natal"     → NO time anchor at all, asker asks about their enduring self / nature / suitability / placements. Triggers: "which career fits me", "what is my purpose", "ดวงของฉันเป็นยังไง" without a date, "my Saturn means", "ราศีของฉัน", "ลัคนาของฉัน", birth-chart suitability. If even one date or window word is present, this is NOT natal.
+- "general"   → small talk, clarification, or anything that doesn't fit the five above.
 
-Priority order when multiple could fit: timing → timeline → daily → natal → general. (Timing always wins because the user is asking for a date, not for content. Timeline beats daily whenever the range spans more than one day.)
+Priority order when multiple could fit: technical → timing → timeline → daily → natal → general. Technical wins as soon as the subject is a planet rather than the asker. Timing wins after technical because the user is asking for a date about themself, not for content. Timeline beats daily whenever the range spans more than one day.
 
 =============================
 What counts as a "time anchor" in the question
@@ -324,7 +326,7 @@ Resolve the date(s) the question is bound to. Today is ${currentDateIso} (UTC).
 - Single-day question with an explicit "by the hour / hourly / รายชั่วโมง / ໂມງໃດ" cue: keep duration = 1 but granularity = "hourly".
 - Multi-day window with a "by the hour" cue: still daily.
 
-Set questionRange = null ONLY when replyStrategy is "natal" or "general". For daily/timing/timeline you MUST return a concrete questionRange.
+Set questionRange = null when replyStrategy is "natal", "technical", or "general" — those aren't anchored to the asker's calendar window. For daily/timing/timeline you MUST return a concrete questionRange.
 
 If the user wrote a Buddhist Era year (e.g. 2568), convert to Gregorian (2025) before returning.
 
@@ -356,7 +358,11 @@ Worked examples
 - "เมื่อไหร่ฉันจะรวย" → timing.
 - "ดวงของฉันเป็นยังไง" alone → natal.
 - "which career fits me" → natal.
-- "Best day to resign next month" → timing.`,
+- "Best day to resign next month" → timing.
+- "When will Jupiter become exalted" → technical. The subject is Jupiter, not the asker. questionRange = null.
+- "When will Saturn move to other zodiac" / "ดาวเสาร์จะย้ายราศีเมื่อไหร่" → technical.
+- "ราหูตอนนี้อยู่ราศีอะไร" / "What sign is Rahu in right now" → technical.
+- "Is Mars currently retrograde?" / "ดาวอังคารถอยหรือยัง" → technical.`,
                 prompt: `User locale: ${locale}
 Current date (UTC): ${currentDateIso}
 ${payload.profile?.name ? `Asker's name: ${payload.profile.name}` : "Asker's name: (not provided)"}

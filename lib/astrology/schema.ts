@@ -63,10 +63,10 @@ export const dailyVerdictSchema = z.object({
             "Optional single canonical life-area label that best summarizes the day's focus. MUST match the relevance.label canonical set in the same language.",
         ),
     mode: z
-        .enum(["daily", "natal", "timing"])
+        .enum(["daily", "natal", "timing", "technical"])
         .optional()
         .describe(
-            "Which lens produced this verdict. 'daily' = transit-driven single-day verdict (default). 'natal' = self/birth-chart verdict answering a non-date-bound question like 'which career fits me?'. 'timing' = forward-looking search answering a 'when will X happen?' question, with the peak window returned in `timingWindow`.",
+            "Which lens produced this verdict. 'daily' = transit-driven single-day verdict (default). 'natal' = self/birth-chart verdict answering a non-date-bound question like 'which career fits me?'. 'timing' = forward-looking search answering a 'when will X happen?' question, with the peak window returned in `timingWindow`. 'technical' = pure ephemeris/astrology-knowledge question about planetary mechanics (exaltation, sign changes, retrogrades) — not anchored to the asker's chart.",
         ),
     timingWindow: z
         .object({

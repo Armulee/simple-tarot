@@ -186,6 +186,7 @@ export type ReplyStrategy =
     | "timing"
     | "natal"
     | "timeline"
+    | "technical"
     | "rejected"
     | "general"
 
@@ -215,6 +216,7 @@ export const questionClassificationSchema = z.object({
         "timing",
         "natal",
         "timeline",
+        "technical",
         "rejected",
         "general",
     ]),

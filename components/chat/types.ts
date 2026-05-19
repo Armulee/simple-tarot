@@ -46,14 +46,17 @@ export type DailyVerdict = {
     }
     /**
      * Verdict flavor.
-     *   "daily"  — transit-driven single-day verdict.
-     *   "natal"  — birth-chart verdict for timeless questions ("Which
-     *              career fits me?").
-     *   "timing" — forward-looking transit search for "when will X
-     *              happen?" questions; carries the peak window in
-     *              `timingWindow`.
+     *   "daily"     — transit-driven single-day verdict.
+     *   "natal"     — birth-chart verdict for timeless questions ("Which
+     *                 career fits me?").
+     *   "timing"    — forward-looking transit search for "when will X
+     *                 happen?" questions; carries the peak window in
+     *                 `timingWindow`.
+     *   "technical" — planetary-mechanics verdict ("when will Jupiter
+     *                 become exalted?", "is Mars retrograde?"). Spotlight
+     *                 reads CURRENT transit positions instead of natal.
      */
-    mode?: "daily" | "natal" | "timing"
+    mode?: "daily" | "natal" | "timing" | "technical"
     /**
      * Natal-mode only. 1-4 birth-chart placements (canonical English planet
      * keys) the verdict is built on, each with a short plain-language reason.
