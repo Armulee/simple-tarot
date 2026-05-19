@@ -93,6 +93,28 @@ test("Thai 'this month' timing question ends on last day of current month", () =
     assert.equal(range.granularity, "daily")
 })
 
+test("day-of-month range with daily phrasing resolves to explicit daily window", () => {
+    const range = resolveQuestionTimeRange(
+        "What will happen to me on 19-23 in daily",
+        { now: new Date("2026-05-10T00:00:00.000Z") },
+    )
+    assert.equal(range.source, "explicit")
+    assert.equal(range.startDateIso, "2026-05-19")
+    assert.equal(range.endDateIso, "2026-05-23")
+    assert.equal(range.granularity, "daily")
+})
+
+test("Thai day-of-month range resolves to explicit daily window", () => {
+    const range = resolveQuestionTimeRange(
+        "จะเกิดอะไรขึ้นกับกูในวันที่ 19-23 รายวัน",
+        { now: new Date("2026-05-10T00:00:00.000Z") },
+    )
+    assert.equal(range.source, "explicit")
+    assert.equal(range.startDateIso, "2026-05-19")
+    assert.equal(range.endDateIso, "2026-05-23")
+    assert.equal(range.granularity, "daily")
+})
+
 test("async: returns default_30d when regex has no match and AI returns 30", async () => {
     const range = await resolveQuestionTimeRangeAsync("Tell me about my love life", {
         now: new Date("2026-03-01T00:00:00.000Z"),

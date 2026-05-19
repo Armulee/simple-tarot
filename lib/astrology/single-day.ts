@@ -1,5 +1,29 @@
 import type { TimeRangeSource } from "./question-time-range"
 
+const DAILY_DISTRIBUTION_RE =
+    /รายวัน|วันต่อวัน|\b(daily|day by day|each day|per day)\b|ແບບລາຍວັນ/i
+
+function looksLikeDayOfMonthRange(question: string): boolean {
+    if (
+        /\b(?:on|from|during|between)\s*\d{1,2}\s*(?:-|–|—|to|through|thru)\s*\d{1,2}\b/i.test(
+            question,
+        )
+    ) {
+        return true
+    }
+    if (
+        /(?:ในวันที่|วันที่|วันที|ช่วงวันที่|ระหว่างวันที่)\s*\d{1,2}\s*(?:-|–|—|ถึง)\s*\d{1,2}/i.test(
+            question,
+        )
+    ) {
+        return true
+    }
+    if (!DAILY_DISTRIBUTION_RE.test(question)) return false
+    return /(?:^|[^\d/])\d{1,2}\s*(?:-|–|—|to|through|thru|ถึง)\s*\d{1,2}(?=$|[^\d/])/i.test(
+        question,
+    )
+}
+
 /**
  * Minimal shape needed to decide single-day rendering. We keep this loose so
  * the helper can accept either the full `QuestionTimeRange` from the resolver
@@ -178,6 +202,7 @@ export function looksLikeNatalQuestion(question: string): boolean {
         return false
     }
     if (/(ໃນອີກ|ພາຍໃນ|ອີກ)\s*\d+\s*(ມື້|ອາທິດ|ເດືອນ|ປີ)/.test(trimmed)) return false
+    if (looksLikeDayOfMonthRange(trimmed)) return false
 
     // ISO date / slash date / Month-Day-Year long form.
     if (/\b(19|20)\d{2}-\d{1,2}-\d{1,2}\b/.test(trimmed)) return false

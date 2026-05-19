@@ -145,6 +145,17 @@ test("looksLikeNatalQuestion: explicit dates → false", () => {
     assert.equal(looksLikeNatalQuestion("June 12, 2026?"), false)
 })
 
+test("looksLikeNatalQuestion: day-of-month ranges → false", () => {
+    assert.equal(
+        looksLikeNatalQuestion("What will happen to me on 19-23 in daily"),
+        false,
+    )
+    assert.equal(
+        looksLikeNatalQuestion("จะเกิดอะไรขึ้นกับกูในวันที่ 19-23 รายวัน"),
+        false,
+    )
+})
+
 test("looksLikeNatalQuestion: empty / non-string input is safe", () => {
     assert.equal(looksLikeNatalQuestion(""), false)
     assert.equal(looksLikeNatalQuestion(undefined as unknown as string), false)

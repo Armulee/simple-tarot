@@ -2,6 +2,8 @@ import { resolveTimeRangeDaysWithAI } from "./ai-time-range"
 
 const DEFAULT_FALLBACK_DAYS = 30
 const DAY_MS = 24 * 60 * 60 * 1000
+const DAILY_DISTRIBUTION_RE =
+    /รายวัน|วันต่อวัน|\b(daily|day by day|each day|per day)\b|ແບບລາຍວັນ/i
 
 export type TimeRangeSource =
     | "explicit"
@@ -124,6 +126,72 @@ function toValidUtcDate(year: number, month: number, day: number) {
         return null
     }
     return date
+}
+
+type ExplicitDateRange = {
+    startDate: Date
+    endDate: Date
+}
+
+function resolveCurrentMonthDayRange(
+    now: Date,
+    startDay: number,
+    endDay: number,
+): ExplicitDateRange | null {
+    if (!Number.isInteger(startDay) || !Number.isInteger(endDay)) return null
+    if (startDay < 1 || startDay > 31 || endDay < 1 || endDay > 31) return null
+
+    const currentYear = now.getUTCFullYear()
+    const currentMonth = now.getUTCMonth() + 1
+    const startDate = toValidUtcDate(currentYear, currentMonth, startDay)
+    if (!startDate) return null
+
+    if (endDay >= startDay) {
+        const endDate = toValidUtcDate(currentYear, currentMonth, endDay)
+        return endDate ? { startDate, endDate } : null
+    }
+
+    const nextMonth = new Date(Date.UTC(currentYear, now.getUTCMonth() + 1, 1))
+    const endDate = toValidUtcDate(
+        nextMonth.getUTCFullYear(),
+        nextMonth.getUTCMonth() + 1,
+        endDay,
+    )
+    return endDate ? { startDate, endDate } : null
+}
+
+function parseExplicitDateRange(
+    question: string,
+    now: Date,
+): ExplicitDateRange | null {
+    const contextualMatch =
+        question.match(
+            /\b(?:on|from|during|between)\s*(\d{1,2})\s*(?:-|–|—|to|through|thru)\s*(\d{1,2})\b/i,
+        ) ||
+        question.match(
+            /(?:ในวันที่|วันที่|วันที|ช่วงวันที่|ระหว่างวันที่)\s*(\d{1,2})\s*(?:-|–|—|ถึง)\s*(\d{1,2})/i,
+        )
+
+    if (contextualMatch) {
+        return resolveCurrentMonthDayRange(
+            now,
+            Number(contextualMatch[1]),
+            Number(contextualMatch[2]),
+        )
+    }
+
+    if (!DAILY_DISTRIBUTION_RE.test(question)) return null
+
+    const bareRangeMatch = question.match(
+        /(?:^|[^\d/])(\d{1,2})\s*(?:-|–|—|to|through|thru|ถึง)\s*(\d{1,2})(?=$|[^\d/])/i,
+    )
+    if (!bareRangeMatch) return null
+
+    return resolveCurrentMonthDayRange(
+        now,
+        Number(bareRangeMatch[1]),
+        Number(bareRangeMatch[2]),
+    )
 }
 
 function parseExplicitDate(question: string): Date | null {
@@ -304,17 +372,23 @@ export function resolveQuestionTimeRange(
     },
 ): QuestionTimeRange {
     const today = startOfUtcDay(opts?.now ?? new Date())
+    const explicitRange = parseExplicitDateRange(question, today)
     const explicitDate =
-        parseExplicitDate(question) ||
-        parseRelativeSingleDayDate(question, today) ||
-        getHintDate(opts?.hintedTransitDate ?? null)
-    const relativeRange = parseRelativeRange(question, today)
+        (explicitRange
+            ? null
+            : parseExplicitDate(question) ||
+              parseRelativeSingleDayDate(question, today) ||
+              getHintDate(opts?.hintedTransitDate ?? null))
+    const relativeRange = explicitRange ? null : parseRelativeRange(question, today)
 
-    const startDate = explicitDate ?? today
+    const startDate = explicitRange?.startDate ?? explicitDate ?? today
     let source: TimeRangeSource = "default_30d"
     let endDate = addDays(startDate, DEFAULT_FALLBACK_DAYS)
 
-    if (explicitDate && !relativeRange) {
+    if (explicitRange) {
+        endDate = explicitRange.endDate
+        source = "explicit"
+    } else if (explicitDate && !relativeRange) {
         endDate = addDays(startDate, 1)
         source = "explicit"
     } else if (relativeRange?.calendarEnd) {
@@ -329,9 +403,9 @@ export function resolveQuestionTimeRange(
         source = source === "default_30d" ? "explicit" : source
     }
 
-    if (endDate.getTime() <= startDate.getTime()) {
+    if (endDate.getTime() < startDate.getTime()) {
         endDate = addDays(startDate, DEFAULT_FALLBACK_DAYS)
-        source = explicitDate ? "explicit" : "default_30d"
+        source = explicitDate || explicitRange ? "explicit" : "default_30d"
     }
 
     const durationDays = normalizeDurationDays(startDate, endDate)
