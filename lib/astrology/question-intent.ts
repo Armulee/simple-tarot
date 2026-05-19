@@ -186,6 +186,7 @@ export type ReplyStrategy =
     | "timing"
     | "natal"
     | "timeline"
+    | "rejected"
     | "general"
 
 const CALENDAR_INTENT_VALUES = [
@@ -209,7 +210,14 @@ const QUESTION_TOPIC_VALUES = [
 ] as const satisfies readonly QuestionTopic[]
 
 export const questionClassificationSchema = z.object({
-    replyStrategy: z.enum(["daily", "timing", "natal", "timeline", "general"]),
+    replyStrategy: z.enum([
+        "daily",
+        "timing",
+        "natal",
+        "timeline",
+        "rejected",
+        "general",
+    ]),
     questionTopic: z.object({
         topic: z.enum(QUESTION_TOPIC_VALUES),
         relevantPlanets: z.array(z.string()).optional(),

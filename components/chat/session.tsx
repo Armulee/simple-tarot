@@ -3298,8 +3298,13 @@ export default function ChatSession({
                 const extracted = await response.json()
 
                 // Paywall gate: free-tier users asking about another person's
-                // chart get a red badge instead of the interpretation.
-                if (extracted?.paywall) {
+                // chart get a red badge instead of the interpretation. We
+                // accept either the explicit paywall field or the unified
+                // `replyStrategy === "rejected"` strategy from extract.
+                if (
+                    extracted?.paywall ||
+                    extracted?.classification?.replyStrategy === "rejected"
+                ) {
                     setMessages((prev) => [
                         ...prev,
                         {
@@ -3307,7 +3312,11 @@ export default function ChatSession({
                             role: "assistant",
                             text: "",
                             variant: "paywall",
-                            paywall: extracted.paywall,
+                            paywall:
+                                extracted.paywall ?? {
+                                    reason: "other_person",
+                                    requiredTier: "basic",
+                                },
                         },
                     ])
                     return
