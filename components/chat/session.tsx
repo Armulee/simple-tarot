@@ -477,11 +477,13 @@ function normalizeDailyVerdict(
             ? "natal"
             : verdict.mode === "timing"
               ? "timing"
-              : timingWindow
-                ? "timing"
-                : relevantPlanets && relevantPlanets.length > 0
-                  ? "natal"
-                  : "daily"
+              : verdict.mode === "technical"
+                ? "technical"
+                : timingWindow
+                  ? "timing"
+                  : relevantPlanets && relevantPlanets.length > 0
+                    ? "natal"
+                    : "daily"
     return {
         mood,
         headline,
@@ -492,7 +494,9 @@ function normalizeDailyVerdict(
         keyMessage,
         mode,
         relevantPlanets:
-            mode === "natal" && relevantPlanets && relevantPlanets.length > 0
+            (mode === "natal" || mode === "technical") &&
+            relevantPlanets &&
+            relevantPlanets.length > 0
                 ? relevantPlanets
                 : undefined,
         timingWindow: mode === "timing" ? timingWindow : undefined,
