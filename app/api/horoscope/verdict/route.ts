@@ -12,6 +12,7 @@ import {
     getTimingVerdictPrompt,
     type NatalPlacementForPrompt,
 } from "@/lib/prompts"
+import { findNextSignIngresses } from "@/lib/astrology/next-ingress"
 import {
     hydrateQuestionTimeRange,
     questionTimeRangePayloadSchema,
@@ -682,6 +683,20 @@ async function handleTechnicalVerdict(body: VerdictRequestBody) {
         return Response.json({}, { status: 200 })
     }
 
+    // Pre-compute next sign ingresses from the ephemeris codex so the LLM
+    // doesn't have to guess. We look up every planet in the transit chart;
+    // the prompt then quotes the ground-truth date instead of hallucinating
+    // one from training data.
+    const ingressSystem =
+        body.system === "western_tropical"
+            ? "western_tropical"
+            : "vedic_sidereal"
+    const ingresses = await findNextSignIngresses(
+        transitPlacements.map((p) => p.planet),
+        todayUtc,
+        ingressSystem,
+    )
+
     const currentDateTime = now.toLocaleString("en-CA", {
         dateStyle: "full",
         timeStyle: "long",
@@ -693,6 +708,7 @@ async function handleTechnicalVerdict(body: VerdictRequestBody) {
         question: body.question,
         currentDateTime,
         transitPlacements,
+        nextIngresses: ingresses,
         questionLanguage,
         userMainPoint: body.conversationContext?.userMainPoint ?? "",
     })

@@ -860,16 +860,40 @@ ${PRIVACY_REDACTION_PROMPT_RULE}
  * one or more planets in `relevantPlanets` so the verdict hero can
  * spotlight their CURRENT transit position to the user.
  */
+export type TechnicalIngressFact = {
+    planet: string
+    /** ISO date (YYYY-MM-DD) the planet first appears in toSign. */
+    dateIso: string
+    fromSign: string
+    toSign: string
+    system: "western_tropical" | "vedic_sidereal"
+}
+
+function compactIngressFacts(facts: TechnicalIngressFact[]): string {
+    if (!facts.length) return "null"
+    return JSON.stringify(
+        facts.map((f) => ({
+            planet: f.planet,
+            dateIso: f.dateIso,
+            fromSign: f.fromSign,
+            toSign: f.toSign,
+            system: f.system,
+        })),
+    )
+}
+
 export function getTechnicalVerdictPrompt({
     question,
     currentDateTime,
     transitPlacements,
+    nextIngresses,
     questionLanguage,
     userMainPoint,
 }: {
     question: string
     currentDateTime: string
     transitPlacements: NatalPlacementForPrompt[]
+    nextIngresses?: TechnicalIngressFact[]
     questionLanguage?: string
     userMainPoint?: string
 }) {
@@ -894,6 +918,10 @@ Verdict mode: technical (planet-focused, not anchored to the asker's chart or an
 <current_transit_placements>
 ${compactNatalPlacements(transitPlacements)}
 </current_transit_placements>
+
+<next_sign_ingresses>
+${compactIngressFacts(nextIngresses ?? [])}
+</next_sign_ingresses>
 
 <allowed_planet_keys>
 ${JSON.stringify(planetKeys)}
@@ -938,8 +966,9 @@ Required fields (every user-facing string in ${lang}):
 </verdict_rules>
 
 <critical_rules>
-- FUTURE-ONLY DATES (ephemeris flavor). When the question is asking WHEN a planet event happens, every date you return — in headline, keyMessage, detailedHtml, anywhere — MUST be strictly AFTER the "Current date and time" shown in <system_context>. Before emitting, check the year and month: if the date is earlier than today, that event has already happened and is the WRONG answer. Skip past it and project the next one using the planet's cycle math. Famous past dates from training data (e.g. "Saturn entered Pisces on 29 March 2025") are never the answer when "today" is later than that date. This rule does NOT apply to influence-flavor questions that aren't asking about a specific date — those don't need any dates at all.
-- ACCURACY OVER POETRY. For ephemeris questions, use the values in <current_transit_placements> as the source of truth for "right now". For future events, reason from the planet's CURRENT sign / degree plus its canonical periods (Jupiter ≈ 1 year per sign, Saturn ≈ 2.5 years per sign, Rahu/Ketu ≈ 18-month nodal shift moving BACKWARD through the zodiac, Uranus ≈ 7 years per sign, Neptune ≈ 14 years per sign, Pluto ≈ 12-30 years per sign). Estimate the next ingress as: time-to-next-sign ≈ ((30° − current degree) / 30°) × time-per-sign. Add that to today's date and round to month/year. If you genuinely don't know an exact date, give the month and year range rather than inventing a precise day. For influence questions, prioritize classical accuracy about the planet's domain over invented dates — do NOT shoehorn a date into the answer if the user didn't ask for one.
+- USE THE INGRESS DATABASE. <next_sign_ingresses> is a precomputed list from our ephemeris of WHEN each visible planet next enters a new zodiac sign, in the SAME zodiac system the user is reading (system field on each row tells you tropical vs sidereal). When the question asks "when does <planet> enter <sign>" or "when does <planet> change sign", FIND the matching row by planet (and toSign when the user named one), and quote dateIso EXACTLY in headline / keyMessage / detailedHtml. Translate the ISO date into the user's language (e.g. "9 มิถุนายน 2569" in Thai). Do NOT invent or "round to the month" any date that already exists in <next_sign_ingresses> — the row IS the ground truth. If the requested sign doesn't appear in <next_sign_ingresses>, say so plainly and tell the user the next ingress (any sign) we DO have data for, rather than guessing.
+- FUTURE-ONLY DATES (ephemeris flavor). Every date you return MUST be strictly AFTER the "Current date and time" shown in <system_context>. <next_sign_ingresses> already satisfies this — but if you ever fall back to your own knowledge (e.g. retrograde / direct stations, exaltation degrees that aren't in our database), still verify the year and month are in the future. Famous past dates from training data (e.g. "Saturn entered Pisces on 29 March 2025") are never the answer when "today" is later than that date. This rule does NOT apply to influence-flavor questions that aren't asking about a specific date — those don't need any dates at all.
+- ACCURACY OVER POETRY. For ephemeris questions where the answer is NOT in <next_sign_ingresses> (e.g. exaltation date, retrograde station), reason from the planet's CURRENT sign / degree plus its canonical periods (Jupiter ≈ 1 year per sign, Saturn ≈ 2.5 years per sign, Rahu/Ketu ≈ 18-month nodal shift moving BACKWARD through the zodiac, Uranus ≈ 7 years per sign, Neptune ≈ 14 years per sign, Pluto ≈ 12-30 years per sign). Estimate the next ingress as: time-to-next-sign ≈ ((30° − current degree) / 30°) × time-per-sign. Add that to today's date and round to month/year. If you genuinely don't know, give a month-and-year range rather than inventing a precise day. For influence questions, prioritize classical accuracy about the planet's domain over invented dates — do NOT shoehorn a date into the answer if the user didn't ask for one.
 - The vocabulary RESTRICTIONS that apply to natal / daily verdicts (no planet names, no zodiac signs, no astrology jargon) are LIFTED for technical mode — the user asked a technical question and expects technical vocabulary. Still avoid filler jargon (orbs, mutual reception, parallel, midpoints, etc.) unless directly necessary.
 - DO NOT pretend the question is about the asker. Never insert "you" / "for you" / "ของคุณ" framings. The answer is about the planet.
 - LANGUAGE: write every user-facing string in ${lang} only. Do not mix languages. (Planet keys in \`relevantPlanets[].planet\` stay in canonical English regardless of the output language.)
