@@ -34,11 +34,10 @@ import {
     type OriginContext,
 } from "@/lib/chat/origin-context"
 import { chartDataToBirth, chartDataToTransit } from "@/lib/chart-data-to-birth"
-import { loadBirthFromStorage, saveBirthToStorage } from "@/lib/birth-storage"
+import { loadBirthFromStorage } from "@/lib/birth-storage"
 import {
     applyEphemerisLocationTimeDefaults,
-    hasHoroscopeBirthDate,
-    mergeHoroscopeBirthWithProfile,
+    profileToHoroscopeBirthData,
 } from "@/lib/horoscope-profile-birth"
 import {
     loadAutoPickFromStorage,
@@ -89,7 +88,6 @@ import type {
     AspectInsightItem,
     ChatSessionPayload,
     HoroscopeAuthGate,
-    HoroscopeExtractResponse,
     SourceAspectEvent,
 } from "@/components/chat/types"
 import { parseQuestionDomain } from "@/lib/chat/situation-schema"
@@ -1317,24 +1315,7 @@ export default function ChatSession({
             const isAbort = e?.name === "AbortError"
             const isRefetch = horoscopeIsRefetchRef.current
             if (isAbort && !isRefetch) {
-                setMessages((prev) => {
-                    const msg = prev.find((m) => m.id === targetId)
-                    const birth = msg?.horoscopeBirthData
-                    const withoutLoading = prev.filter((m) => m.id !== targetId)
-                    return [
-                        ...withoutLoading,
-                        {
-                            id: `assistant-tool-user-date-form-${Date.now()}`,
-                            role: "assistant",
-                            text: "",
-                            variant: "tool",
-                            toolType: "user-date-form",
-                            toolBirthPrefill: birth ?? null,
-                            toolTransitPrefill: horoscopeLastTransitRef.current,
-                            toolFromCancel: true,
-                        },
-                    ]
-                })
+                setMessages((prev) => prev.filter((m) => m.id !== targetId))
             } else if (isAbort && isRefetch) {
                 const cachedSystem = horoscopeCachedBeforeRefetchRef.current
                 setMessages((prev) =>
@@ -2611,62 +2592,8 @@ export default function ChatSession({
         [],
     )
 
-    const isHoroscopeReady = useCallback((data: HoroscopeBirthData | null) => {
-        if (!data) return false
-        return hasHoroscopeBirthDate(data)
-    }, [])
-
     const hasBirthDate = useCallback((data: HoroscopeBirthData | null) => {
         return Boolean(data?.day && data?.month && data?.year)
-    }, [])
-
-    const mergeHoroscopeBirth = useCallback(
-        (
-            current: HoroscopeBirthData | null,
-            incoming: HoroscopeExtractResponse,
-        ): HoroscopeBirthData => {
-            const merged: HoroscopeBirthData = {
-                day: incoming?.birthDate?.day ?? current?.day ?? null,
-                month: incoming?.birthDate?.month ?? current?.month ?? null,
-                year: incoming?.birthDate?.year ?? current?.year ?? null,
-                hour: incoming?.birthTime?.hour ?? current?.hour ?? null,
-                minute: incoming?.birthTime?.minute ?? current?.minute ?? null,
-                timeHint:
-                    incoming?.birthTime?.timeHint ??
-                    current?.timeHint ??
-                    "unknown",
-                timezone:
-                    incoming?.location?.timezone ?? current?.timezone ?? null,
-                lat: incoming?.location?.lat ?? current?.lat ?? null,
-                lng: incoming?.location?.lng ?? current?.lng ?? null,
-                country:
-                    incoming?.location?.country ?? current?.country ?? null,
-                state: incoming?.location?.state ?? current?.state ?? null,
-                usedLocationFallback:
-                    incoming?.location?.usedLocationFallback ??
-                    current?.usedLocationFallback ??
-                    false,
-            }
-            return ensureBirthTimeDefaults(merged) ?? merged
-        },
-        [ensureBirthTimeDefaults],
-    )
-
-    const pushToolCard = useCallback((birth: HoroscopeBirthData | null) => {
-        setMessages((prev) => [
-            ...prev.filter(
-                (m) =>
-                    !(m.variant === "tool" && m.toolType === "user-date-form"),
-            ),
-            {
-                id: `assistant-tool-user-date-form-${Date.now()}`,
-                role: "assistant",
-                text: "",
-                variant: "tool",
-                toolType: "user-date-form",
-                toolBirthPrefill: birth,
-            },
-        ])
     }, [])
 
     const runHoroscopeReading = useCallback(
@@ -2683,21 +2610,13 @@ export default function ChatSession({
             horoscopeTargetMessageIdRef.current = loadingId
             horoscopeLastTransitRef.current = transit ?? null
             setMessages((prev) => {
-                const withoutForms = prev.filter(
-                    (m) =>
-                        !(
-                            m.variant === "tool" &&
-                            (m.toolType === "user-date-form" ||
-                                m.toolType === "transit-date-form")
-                        ),
-                )
-                const last = withoutForms[withoutForms.length - 1]
+                const last = prev[prev.length - 1]
                 const withoutBridgeLoading =
                     last?.role === "assistant" &&
                     (last.variant === "plain" || !last.variant) &&
                     last.isLoading === true
-                        ? withoutForms.slice(0, -1)
-                        : withoutForms
+                        ? prev.slice(0, -1)
+                        : prev
                 const pendingAspect = pendingAspectDetailRef.current
                 const userPrivacy = lastUserPrivacyRef.current
                 return [
@@ -3398,22 +3317,28 @@ export default function ChatSession({
                     extracted?.classification ?? null
                 horoscopeQuestionRangeRef.current =
                     extracted?.questionRange ?? null
-                const extractedHasBirthDate = Boolean(
-                    extracted?.birthDate?.day &&
-                        extracted?.birthDate?.month &&
-                        extracted?.birthDate?.year,
-                )
-                const storedBirth = loadBirthFromStorage()
-                const currentBirth = extractedHasBirthDate
-                    ? horoscopeBirth
-                    : (storedBirth ?? horoscopeBirth)
-                const nextBirth = mergeHoroscopeBirth(currentBirth, extracted)
-                const mergedWithProfile = mergeHoroscopeBirthWithProfile(
-                    nextBirth,
+
+                // Onboarding makes birth data mandatory, so the profile is
+                // the single source of truth. If it's somehow missing, the
+                // reading can't run — surface a generic failure.
+                const profileBirth = profileToHoroscopeBirthData(
                     user ? profile : null,
                 )
-                const birthToUse =
-                    applyEphemerisLocationTimeDefaults(mergedWithProfile)
+                const birthToUse = profileBirth
+                    ? applyEphemerisLocationTimeDefaults(profileBirth)
+                    : null
+                if (!birthToUse) {
+                    setMessages((prev) => [
+                        ...prev,
+                        {
+                            id: `assistant-error-${Date.now()}`,
+                            role: "assistant",
+                            text: tHoroscope("processFailed"),
+                            variant: "plain",
+                        },
+                    ])
+                    return
+                }
                 setHoroscopeBirth(birthToUse)
 
                 if (
@@ -3434,7 +3359,6 @@ export default function ChatSession({
                     )
                 }
 
-                const ready = isHoroscopeReady(birthToUse)
                 const transitMentioned = Boolean(extracted?.transit?.mentioned)
                 const hasTransitFromExtract =
                     transitMentioned &&
@@ -3459,10 +3383,6 @@ export default function ChatSession({
                 if (hasTransitFromExtract) {
                     setHoroscopeTransit(transitToUse)
                 }
-                if (!ready) {
-                    pushToolCard(birthToUse)
-                    return
-                }
 
                 const questionText = options.birthDetailsOnly
                     ? horoscopeQuestion ||
@@ -3474,21 +3394,6 @@ export default function ChatSession({
                       "General horoscope reading"
                 const normalizedBirth =
                     ensureBirthTimeDefaults(birthToUse) ?? birthToUse
-                if (normalizedBirth) {
-                    saveBirthToStorage(normalizedBirth)
-                    setSavedBirth(normalizedBirth)
-                }
-                if (birthToUse.usedLocationFallback) {
-                    setMessages((prev) => [
-                        ...prev,
-                        {
-                            id: `assistant-${Date.now()}`,
-                            role: "assistant",
-                            text: tHoroscope("usingLocationFallback"),
-                            variant: "plain",
-                        },
-                    ])
-                }
                 const starOk = spendStars(1)
                 if (!starOk) {
                     setShowInsufficientStars(true)
@@ -3515,13 +3420,9 @@ export default function ChatSession({
             }
         },
         [
-            horoscopeBirth,
             horoscopeQuestion,
-            isHoroscopeReady,
             lastQuestion,
             locale,
-            mergeHoroscopeBirth,
-            pushToolCard,
             ensureBirthTimeDefaults,
             runHoroscopeReading,
             spendStars,
@@ -3530,42 +3431,6 @@ export default function ChatSession({
             user,
             profile,
             subscription,
-        ],
-    )
-
-    const handleUserDateFormSubmit = useCallback(
-        async (value: HoroscopeBirthData) => {
-            if (!user) return
-            const merged = mergeHoroscopeBirthWithProfile(value, profile)
-            const normalized = applyEphemerisLocationTimeDefaults(merged)
-            setHoroscopeBirth(normalized)
-            setSavedBirth(loadBirthFromStorage() ?? normalized)
-            const questionText =
-                horoscopeQuestion || lastQuestion || "General horoscope reading"
-            if (!isHoroscopeReady(normalized)) {
-                return
-            }
-            const starOk = spendStars(1)
-            if (!starOk) {
-                setShowInsufficientStars(true)
-                setInsufficientStarsType("horoscope")
-                return
-            }
-            await runHoroscopeReading(
-                normalized,
-                questionText,
-                horoscopeTransit,
-            )
-        },
-        [
-            horoscopeQuestion,
-            lastQuestion,
-            isHoroscopeReady,
-            runHoroscopeReading,
-            spendStars,
-            horoscopeTransit,
-            user,
-            profile,
         ],
     )
 
@@ -4813,14 +4678,10 @@ export default function ChatSession({
         [],
     )
 
-    const clearHoroscopeIntakeMessages = useCallback(() => {
-        setMessages((prev) =>
-            prev.filter(
-                (m) =>
-                    !(m.variant === "tool" && m.toolType === "user-date-form"),
-            ),
-        )
-    }, [])
+    // Form-card intake was removed — there are no longer any intake
+    // messages to clear, so this is a no-op kept only because callers
+    // still invoke it on flow transitions.
+    const clearHoroscopeIntakeMessages = useCallback(() => {}, [])
 
     const hasMessages = messages.length > 0
     const hasInterpretation = messages.some(
@@ -4890,24 +4751,11 @@ export default function ChatSession({
         />
     ) : null
 
-    const activeHoroscopeIntakeMessage = useMemo(() => {
-        let latest: ChatMessage | null = null
-        for (let i = messages.length - 1; i >= 0; i -= 1) {
-            const message = messages[i]
-            if (message.variant === "horoscope" && !message.isLoading) {
-                break
-            }
-            if (
-                message.variant === "tool" &&
-                message.toolType === "user-date-form"
-            ) {
-                latest = message
-                break
-            }
-        }
-        return latest
-    }, [messages])
-    const isHoroscopeIntakeActive = Boolean(activeHoroscopeIntakeMessage)
+    // Form-card intake was removed — onboarding makes birth data mandatory,
+    // so the chat never asks for it. The flag is a constant `false` so
+    // downstream UI code that branched on intake mode collapses to its
+    // normal path.
+    const isHoroscopeIntakeActive = false
 
     const composerFollowUpHost = useMemo(() => {
         if (messages.length === 0) return null
@@ -5334,10 +5182,7 @@ export default function ChatSession({
                 hasInterpretation={hasInterpretation}
                 assistantReactions={assistantReactions}
                 messageNotices={messageNotices}
-                horoscopeBirth={horoscopeBirth}
-                currentLocationFallback={currentLocationFallback}
                 isHoroscopeIntakeActive={isHoroscopeIntakeActive}
-                profileHasBirthDate={Boolean(user?.id && profile?.birth_date)}
                 isCheckingStars={isCheckingStars}
                 checkingStarsText={tHome("checkingStars")}
                 showInsufficientStars={showInsufficientStars}
@@ -5348,14 +5193,11 @@ export default function ChatSession({
                 cardDrawSection={cardDrawSection}
                 hasAssistantResponse={hasAssistantResponse}
                 disclaimerText={disclaimerText}
-                birthFormTitle={tHoroscope("birthFormTitle")}
-                birthFormSubmit={tHoroscope("birthFormSubmit")}
                 onRegenerateAt={handleRegenerateAt}
                 onStartEditAt={handleStartEditAt}
                 onCancelEdit={handleCancelEdit}
                 onSendEditAt={handleSendEditAt}
                 onAskAspectDetail={handleAskAspectDetail}
-                onUserDateFormSubmit={handleUserDateFormSubmit}
                 onHoroscopeAuthGateCardsSelected={handleCardsSelected}
                 onCancelHoroscopeLoading={handleCancelHoroscopeLoading}
                 onRegenerateHoroscope={regenerateHoroscopeAt}

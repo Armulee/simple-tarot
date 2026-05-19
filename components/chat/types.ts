@@ -1,10 +1,7 @@
 "use client"
 
 import type { TarotCard } from "@/contexts/tarot-context"
-import type {
-    HoroscopeBirthData,
-    HoroscopeTransitData,
-} from "@/types/horoscope"
+import type { HoroscopeBirthData } from "@/types/horoscope"
 import type { PromptRedactionType } from "@/lib/privacy/prompt-redaction"
 import type { ConversationContextPayload } from "@/lib/astrology/question-context"
 import type { OriginContext } from "@/lib/chat/origin-context"
@@ -131,7 +128,7 @@ export type ChatMessage = {
     perCard?: PerCardSentence[]
     /** New tarot result schema: soft, non-commanding next step. */
     nextStep?: string
-    variant?: "plain" | "box" | "horoscope" | "tool" | "paywall"
+    variant?: "plain" | "box" | "horoscope" | "paywall"
     cards?: TarotCard[]
     insights?: string[]
     /**
@@ -156,11 +153,6 @@ export type ChatMessage = {
     followUpConclusion?: string
     followUpSuggestions?: string[]
     followUpLoading?: boolean
-    toolType?: "user-date-form" | "transit-date-form"
-    toolBirthPrefill?: HoroscopeBirthData | null
-    /** True when form was shown after user clicked loading to cancel */
-    toolFromCancel?: boolean
-    toolTransitPrefill?: HoroscopeTransitData | null
     /** Raw Swiss Ephemeris chart data passed to the AI for interpretation */
     chartData?: Record<string, unknown> | null
     /** Personalized transit aspects extracted from chartData for UI usage */

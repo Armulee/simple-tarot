@@ -17,9 +17,6 @@ import ActionSection from "@/components/tarot/interpretation/action"
 import ShareSection from "@/components/tarot/interpretation/share"
 import InsufficientStarsBlock from "@/components/stars/insufficient-stars-block"
 import { ConsultingBadge } from "@/components/consulting-badge"
-import { hasCompleteBirthData, loadBirthFromStorage } from "@/lib/birth-storage"
-import { hasHoroscopeBirthDate } from "@/lib/horoscope-profile-birth"
-import InlineUserDateForm from "@/components/astrology/inline-user-date-form"
 import { BirthChartCard } from "@/components/astrology/birth-chart-card"
 import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
 import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
@@ -236,17 +233,7 @@ type MessageListProps = {
     hasInterpretation: boolean
     assistantReactions: Record<string, "like" | "dislike" | null>
     messageNotices: Record<string, string>
-    horoscopeBirth: HoroscopeBirthData | null
-    currentLocationFallback: {
-        country?: string
-        state?: string
-        lat?: number
-        lng?: number
-        timezone?: number
-    } | null
     isHoroscopeIntakeActive?: boolean
-    /** Logged-in user has birth_date on profile — hide inline birth form per product rules. */
-    profileHasBirthDate?: boolean
     isCheckingStars: boolean
     checkingStarsText: string
     showInsufficientStars: boolean
@@ -254,8 +241,6 @@ type MessageListProps = {
     cardDrawSection: ReactNode
     hasAssistantResponse: boolean
     disclaimerText: string
-    birthFormTitle: string
-    birthFormSubmit: string
     onRegenerateAt: (messageIndex: number) => void
     onStartEditAt: (messageIndex: number) => void
     onCancelEdit: () => void
@@ -265,7 +250,6 @@ type MessageListProps = {
         aspectKey: string,
         event: SourceAspectEvent,
     ) => void
-    onUserDateFormSubmit: (value: HoroscopeBirthData) => Promise<void>
     onHoroscopeAuthGateCardsSelected: (
         cards: { name: string; isReversed: boolean }[],
     ) => void
@@ -321,10 +305,7 @@ export default function MessageList({
     hasInterpretation,
     assistantReactions,
     messageNotices,
-    horoscopeBirth,
-    currentLocationFallback,
     isHoroscopeIntakeActive = false,
-    profileHasBirthDate = false,
     isCheckingStars,
     checkingStarsText,
     showInsufficientStars,
@@ -332,14 +313,11 @@ export default function MessageList({
     cardDrawSection,
     hasAssistantResponse,
     disclaimerText,
-    birthFormTitle,
-    birthFormSubmit,
     onRegenerateAt,
     onStartEditAt,
     onCancelEdit,
     onSendEditAt,
     onAskAspectDetail,
-    onUserDateFormSubmit,
     onHoroscopeAuthGateCardsSelected,
     onCancelHoroscopeLoading,
     onRegenerateHoroscope,
@@ -656,34 +634,6 @@ export default function MessageList({
                             )
                         }
 
-                        // --- Tool message (birth/transit form): hide once horoscope result exists ---
-                        if (
-                            message.variant === "tool" &&
-                            (message.toolType === "user-date-form" ||
-                                message.toolType === "transit-date-form")
-                        ) {
-                            const hasHoroscopeResultAfter = messages
-                                .slice(messageIndex + 1)
-                                .some(
-                                    (m) =>
-                                        m.variant === "horoscope" &&
-                                        !m.isLoading,
-                                )
-                            if (hasHoroscopeResultAfter) {
-                                return null
-                            }
-                            // Hide birth form when we have saved data, unless user clicked loading to edit
-                            if (
-                                message.toolType === "user-date-form" &&
-                                !message.toolFromCancel &&
-                                (hasCompleteBirthData(loadBirthFromStorage()) ||
-                                    profileHasBirthDate ||
-                                    hasHoroscopeBirthDate(horoscopeBirth))
-                            ) {
-                                return null
-                            }
-                        }
-
                         // --- Assistant message: cards, interpretation, actions ---
                         return (
                             <div
@@ -958,24 +908,6 @@ export default function MessageList({
                                             />
                                         </div>
                                     </>
-                                ) : /* Tool variant: inline birth/transit date form */
-                                message.variant === "tool" &&
-                                  message.toolType ===
-                                      "user-date-form" ? null : message.variant ===
-                                  "tool" ? (
-                                    <InlineUserDateForm
-                                        initial={
-                                            message.toolBirthPrefill ||
-                                            horoscopeBirth
-                                        }
-                                        currentLocation={
-                                            currentLocationFallback
-                                        }
-                                        onSubmit={onUserDateFormSubmit}
-                                        title={birthFormTitle}
-                                        submitLabel={birthFormSubmit}
-                                        variant='inlineSticky'
-                                    />
                                 ) : message.horoscopeAuthGate ? (
                                     /* Anonymous horoscope: show sign-in CTA + tarot fallback teaser */
                                     <HoroscopeAuthGateBlock
@@ -1078,7 +1010,6 @@ export default function MessageList({
                                     </>
                                 )}
                                 {message.role === "assistant" &&
-                                    message.variant !== "tool" &&
                                     messageIndex === lastAssistantIndex && (
                                         <div
                                             ref={interpretationSentinelRef}
@@ -1087,7 +1018,6 @@ export default function MessageList({
                                         />
                                     )}
                                 {message.role === "assistant" &&
-                                    message.variant !== "tool" &&
                                     message.streamStopped && (
                                         <div className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90'>
                                             <Square className='h-3.5 w-3.5 shrink-0 fill-current' />
@@ -1095,8 +1025,7 @@ export default function MessageList({
                                         </div>
                                     )}
                                 {/* Assistant actions: like/dislike/report/share (plain only) */}
-                                {message.role === "assistant" &&
-                                    message.variant !== "tool" && (
+                                {message.role === "assistant" && (
                                         <div className='flex items-center gap-2 text-[11px] text-white/60'>
                                             {!isChatLoading &&
                                                 message.variant === "plain" &&
