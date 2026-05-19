@@ -1,3 +1,4 @@
+import { z } from "zod"
 import type { CalendarQueryIntent } from "@/lib/calendar-helper"
 
 export function isBirthChartSuitabilityQuestion(question: string) {
@@ -171,6 +172,85 @@ export function classifyQuestionTopic(question: string): QuestionTopicResult {
         }
     }
     return { topic: "general", relevantPlanets: ALL_PLANETS }
+}
+
+export function getRelevantPlanetsForTopic(
+    topic: QuestionTopic,
+): readonly string[] {
+    const rule = TOPIC_RULES.find((r) => r.topic === topic)
+    return rule?.planets ?? ALL_PLANETS
+}
+
+export type ReplyStrategy =
+    | "daily"
+    | "timing"
+    | "natal"
+    | "timeline"
+    | "technical"
+    | "rejected"
+    | "general"
+
+const CALENDAR_INTENT_VALUES = [
+    "resignation",
+    "job_change",
+    "contract_sign",
+    "marriage",
+    "travel_long",
+    "major_purchase",
+] as const satisfies readonly CalendarQueryIntent[]
+
+const QUESTION_TOPIC_VALUES = [
+    "career",
+    "love",
+    "money",
+    "health",
+    "travel",
+    "education",
+    "family",
+    "general",
+] as const satisfies readonly QuestionTopic[]
+
+export const questionClassificationSchema = z.object({
+    replyStrategy: z.enum([
+        "daily",
+        "timing",
+        "natal",
+        "timeline",
+        "technical",
+        "rejected",
+        "general",
+    ]),
+    questionTopic: z.object({
+        topic: z.enum(QUESTION_TOPIC_VALUES),
+        relevantPlanets: z.array(z.string()).optional(),
+    }),
+    predictiveIntent: z.boolean(),
+    naturalNatalReference: z.boolean(),
+    birthChartSuitability: z.boolean(),
+    calendarRecommendationIntent: z
+        .object({ intent: z.enum(CALENDAR_INTENT_VALUES) })
+        .nullable(),
+})
+
+export type QuestionClassification = z.infer<
+    typeof questionClassificationSchema
+>
+
+export function hydrateRelevantPlanets(
+    classification: QuestionClassification,
+): QuestionClassification {
+    if (classification.questionTopic.relevantPlanets?.length) {
+        return classification
+    }
+    return {
+        ...classification,
+        questionTopic: {
+            topic: classification.questionTopic.topic,
+            relevantPlanets: [
+                ...getRelevantPlanetsForTopic(classification.questionTopic.topic),
+            ],
+        },
+    }
 }
 
 export function detectCalendarRecommendationIntent(

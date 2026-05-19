@@ -1,14 +1,12 @@
 "use client"
 
 import type { TarotCard } from "@/contexts/tarot-context"
-import type {
-    HoroscopeBirthData,
-    HoroscopeTransitData,
-} from "@/types/horoscope"
+import type { HoroscopeBirthData } from "@/types/horoscope"
 import type { PromptRedactionType } from "@/lib/privacy/prompt-redaction"
 import type { ConversationContextPayload } from "@/lib/astrology/question-context"
 import type { OriginContext } from "@/lib/chat/origin-context"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
+import type { ReplyStrategy } from "@/lib/astrology/question-intent"
 import type { QuestionDomain } from "@/lib/chat/situation-schema"
 import type {
     SupportBlockKind,
@@ -48,14 +46,17 @@ export type DailyVerdict = {
     }
     /**
      * Verdict flavor.
-     *   "daily"  — transit-driven single-day verdict.
-     *   "natal"  — birth-chart verdict for timeless questions ("Which
-     *              career fits me?").
-     *   "timing" — forward-looking transit search for "when will X
-     *              happen?" questions; carries the peak window in
-     *              `timingWindow`.
+     *   "daily"     — transit-driven single-day verdict.
+     *   "natal"     — birth-chart verdict for timeless questions ("Which
+     *                 career fits me?").
+     *   "timing"    — forward-looking transit search for "when will X
+     *                 happen?" questions; carries the peak window in
+     *                 `timingWindow`.
+     *   "technical" — planetary-mechanics verdict ("when will Jupiter
+     *                 become exalted?", "is Mars retrograde?"). Spotlight
+     *                 reads CURRENT transit positions instead of natal.
      */
-    mode?: "daily" | "natal" | "timing"
+    mode?: "daily" | "natal" | "timing" | "technical"
     /**
      * Natal-mode only. 1-4 birth-chart placements (canonical English planet
      * keys) the verdict is built on, each with a short plain-language reason.
@@ -131,7 +132,13 @@ export type ChatMessage = {
     perCard?: PerCardSentence[]
     /** New tarot result schema: soft, non-commanding next step. */
     nextStep?: string
-    variant?: "plain" | "box" | "horoscope" | "tool"
+    variant?: "plain" | "box" | "horoscope" | "paywall"
+    /**
+     * Reply strategy resolved by /api/horoscope/extract. Drives which
+     * downstream route renders the reading and which tabs the
+     * HoroscopeReadingTabs surfaces (natal mode vs transit mode).
+     */
+    replyStrategy?: ReplyStrategy
     cards?: TarotCard[]
     insights?: string[]
     /**
@@ -156,11 +163,6 @@ export type ChatMessage = {
     followUpConclusion?: string
     followUpSuggestions?: string[]
     followUpLoading?: boolean
-    toolType?: "user-date-form" | "transit-date-form"
-    toolBirthPrefill?: HoroscopeBirthData | null
-    /** True when form was shown after user clicked loading to cancel */
-    toolFromCancel?: boolean
-    toolTransitPrefill?: HoroscopeTransitData | null
     /** Raw Swiss Ephemeris chart data passed to the AI for interpretation */
     chartData?: Record<string, unknown> | null
     /** Personalized transit aspects extracted from chartData for UI usage */
@@ -225,6 +227,17 @@ export type ChatMessage = {
      * tarot card instead of streaming a normal assistant reply.
      */
     horoscopeAuthGate?: HoroscopeAuthGate | null
+    /**
+     * Set when /api/horoscope/extract gates the question behind a paid plan
+     * (e.g. asking about another person's chart on the free tier). The chat
+     * renders a red error badge instead of running the interpretation.
+     */
+    paywall?: PaywallNotice | null
+}
+
+export type PaywallNotice = {
+    reason: "other_person"
+    requiredTier: "basic" | "pro"
 }
 
 export type HoroscopeAuthGate = {

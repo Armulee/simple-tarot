@@ -23,6 +23,7 @@ type NatalChart = {
 
 type NatalChartData = {
     charts?: NatalChart[] | null
+    transit?: { charts?: NatalChart[] | null } | null
 } | null
 
 const ZODIAC_CANONICAL: ReadonlyArray<string> = [
@@ -77,10 +78,19 @@ export default function NatalPlanetSpotlight({
     chartData,
     relevantPlanets,
     privacyAliases,
+    source = "natal",
 }: {
     chartData: Record<string, unknown> | null | undefined
     relevantPlanets: NatalRelevantPlanet[]
     privacyAliases?: PromptAliasEntry[]
+    /**
+     * Which chart inside `chartData` to read planet positions from. "natal"
+     * (default) reads from the birth chart and is used by the natal verdict.
+     * "transit" reads from the current transit chart and is used by the
+     * technical verdict so the spotlight reflects each planet's CURRENT
+     * sign / degree / retrograde state.
+     */
+    source?: "natal" | "transit"
 }) {
     const tAstro = useTranslations("BirthChart")
     const tChat = useTranslations("HoroscopeChat.natalSpotlight")
@@ -88,7 +98,10 @@ export default function NatalPlanetSpotlight({
 
     const cards = useMemo(() => {
         const data = (chartData ?? null) as NatalChartData
-        const planets = data?.charts?.[0]?.planets ?? {}
+        const planets =
+            source === "transit"
+                ? data?.transit?.charts?.[0]?.planets ?? {}
+                : data?.charts?.[0]?.planets ?? {}
         return relevantPlanets
             .map((rp) => {
                 const point = planets[rp.planet]
@@ -108,7 +121,7 @@ export default function NatalPlanetSpotlight({
                     point: NatalPlanet
                 } => item !== null,
             )
-    }, [relevantPlanets, chartData])
+    }, [relevantPlanets, chartData, source])
 
     if (cards.length === 0) return null
 
@@ -126,10 +139,14 @@ export default function NatalPlanetSpotlight({
                         </span>
                         <div className='min-w-0'>
                             <h3 className='text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-100/85'>
-                                {tChat("title")}
+                                {source === "transit"
+                                    ? tChat("titleTransit")
+                                    : tChat("title")}
                             </h3>
                             <p className='mt-0.5 truncate text-[11px] text-white/55'>
-                                {tChat("subtitle")}
+                                {source === "transit"
+                                    ? tChat("subtitleTransit")
+                                    : tChat("subtitle")}
                             </p>
                         </div>
                     </div>

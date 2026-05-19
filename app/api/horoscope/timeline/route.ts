@@ -1,4 +1,4 @@
-import { generateObject } from "ai"
+import { streamObject } from "ai"
 import { z } from "zod"
 import { buildChartData } from "@/lib/astrology/build-chart-data"
 import { predictionTimelineSchema } from "@/lib/astrology/schema"
@@ -6,12 +6,19 @@ import {
     getPredictionTimelinePrompt,
     type PredictionTimelineSlotScaffold,
 } from "@/lib/prompts"
-import { resolveQuestionTimeRangeAsync } from "@/lib/astrology/question-time-range"
+import {
+    hydrateQuestionTimeRange,
+    questionTimeRangePayloadSchema,
+    resolveQuestionTimeRangeAsync,
+} from "@/lib/astrology/question-time-range"
 import { getCodexTransitWindow } from "@/lib/astrology/ephemeris-codex"
 import type { EphemerisCodexRow } from "@/lib/astrology/ephemeris-codex"
 import {
     classifyQuestionTopic,
     detectPredictiveIntent,
+    hydrateRelevantPlanets,
+    questionClassificationSchema,
+    type QuestionClassification,
 } from "@/lib/astrology/question-intent"
 import {
     buildHourlyTransitSlots,
@@ -120,6 +127,8 @@ const requestSchema = z.object({
             userMainPoint: z.string().optional(),
         })
         .optional(),
+    classification: questionClassificationSchema.optional(),
+    questionRange: questionTimeRangePayloadSchema.optional(),
 })
 
 function buildHourlySlots({
@@ -225,10 +234,14 @@ export async function POST(req: Request) {
     try {
         const body = requestSchema.parse(await req.json())
 
-        // Predictive intent gate: short-circuit immediately when the question
-        // is not a "what will happen" style ask. This keeps the route cheap
-        // for every other horoscope question.
-        const predictive = detectPredictiveIntent(body.question)
+        // Reply-strategy gate: when extract has already classified the
+        // question, only build a timeline if it explicitly asked for one.
+        // Falls back to the predictive-intent regex when no classification
+        // is provided (legacy callers).
+        const usingProvidedClassification = Boolean(body.classification)
+        const predictive = usingProvidedClassification
+            ? body.classification?.replyStrategy === "timeline"
+            : detectPredictiveIntent(body.question)
         console.log(
             `[horoscope/timeline] enter — predictive=${predictive} qLen=${body.question.length}`,
         )
@@ -242,18 +255,17 @@ export async function POST(req: Request) {
             getDefaultAstrologySystem(locale) ||
             ("vedic_sidereal" as const)
 
-        const questionRange = await resolveQuestionTimeRangeAsync(
-            body.question,
-            {
-                hintedTransitDate: body.transit
-                    ? {
-                          day: body.transit.day ?? null,
-                          month: body.transit.month ?? null,
-                          year: body.transit.year ?? null,
-                      }
-                    : null,
-            },
-        )
+        const questionRange = body.questionRange
+            ? hydrateQuestionTimeRange(body.questionRange)
+            : await resolveQuestionTimeRangeAsync(body.question, {
+                  hintedTransitDate: body.transit
+                      ? {
+                            day: body.transit.day ?? null,
+                            month: body.transit.month ?? null,
+                            year: body.transit.year ?? null,
+                        }
+                      : null,
+              })
         console.log(
             `[horoscope/timeline] range source=${questionRange.source} duration=${questionRange.durationDays} granularity=${questionRange.granularity}`,
         )
@@ -349,7 +361,27 @@ export async function POST(req: Request) {
             timeZone: "UTC",
         })
         const questionLanguage = detectQuestionLanguage(body.question)
-        const questionTopic = classifyQuestionTopic(body.question)
+        const resolvedClassification: QuestionClassification = body.classification
+            ? hydrateRelevantPlanets(body.classification)
+            : (() => {
+                  const t = classifyQuestionTopic(body.question)
+                  return {
+                      replyStrategy: "timeline" as const,
+                      questionTopic: {
+                          topic: t.topic,
+                          relevantPlanets: [...t.relevantPlanets],
+                      },
+                      predictiveIntent: true,
+                      naturalNatalReference: false,
+                      birthChartSuitability: false,
+                      calendarRecommendationIntent: null,
+                  }
+              })()
+        const questionTopic = {
+            topic: resolvedClassification.questionTopic.topic,
+            relevantPlanets:
+                resolvedClassification.questionTopic.relevantPlanets ?? [],
+        }
 
         const prompt = getPredictionTimelinePrompt({
             question: body.question,
@@ -371,15 +403,21 @@ export async function POST(req: Request) {
             `[horoscope/timeline] granularity=${granularity} slots=${scaffold.length} prompt size: ${(prompt.length / 1024).toFixed(1)}KB`,
         )
 
-        const result = await generateObject({
+        const result = streamObject({
             model: MODEL,
+            // Force provider-native JSON streaming so the timeline slots
+            // arrive incrementally and the Overview tab paints slot-by-slot
+            // — instead of buffering until the whole object is ready.
+            mode: "json",
             schema: predictionTimelineSchema,
-            system: `You are Astra, a female oracle. Produce ONLY the predictionTimeline JSON. Plain language, no astrology jargon, no planet names. Output language: ${questionLanguage}.`,
+            system: `You are Astra, a female oracle. Produce ONLY the predictionTimeline JSON. Plain language, no astrology jargon, no planet names. Output language: ${questionLanguage}.
+
+Return ONLY the timeline JSON object itself. Do NOT wrap it in another key like "timeline".`,
             prompt,
             temperature: 0.6,
         })
 
-        return Response.json({ timeline: result.object }, { status: 200 })
+        return result.toTextStreamResponse()
     } catch (error) {
         console.error("[horoscope/timeline] request failed:", error)
         const message =

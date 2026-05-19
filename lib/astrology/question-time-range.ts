@@ -1,7 +1,20 @@
+import { z } from "zod"
 import { resolveTimeRangeDaysWithAI } from "./ai-time-range"
 
 const DEFAULT_FALLBACK_DAYS = 30
 const DAY_MS = 24 * 60 * 60 * 1000
+
+export const questionTimeRangePayloadSchema = z.object({
+    startDateIso: z.string(),
+    endDateIso: z.string(),
+    durationDays: z.number().int().positive(),
+    source: z.enum(["explicit", "relative", "default_30d", "ai_inferred"]),
+    granularity: z.enum(["hourly", "daily"]),
+})
+
+export type QuestionTimeRangePayload = z.infer<
+    typeof questionTimeRangePayloadSchema
+>
 
 export type TimeRangeSource =
     | "explicit"
@@ -343,6 +356,64 @@ export function resolveQuestionTimeRange(
         durationDays,
         source,
         granularity: decideGranularity(question, durationDays, source),
+    }
+}
+
+/**
+ * Sync variant: runs the regex resolver first, then if the result is the
+ * default 30-day fallback uses `hintedDays` (e.g. a hint returned by the
+ * extract route's LLM call) instead of making another AI round-trip.
+ */
+export function resolveQuestionTimeRangeWithHint(
+    question: string,
+    hintedDays: number | null | undefined,
+    opts?: {
+        now?: Date
+        hintedTransitDate?: TransitDateHint
+    },
+): QuestionTimeRange {
+    const result = resolveQuestionTimeRange(question, opts)
+    if (result.source !== "default_30d") return result
+    if (
+        !hintedDays ||
+        !Number.isFinite(hintedDays) ||
+        hintedDays === DEFAULT_FALLBACK_DAYS
+    ) {
+        return result
+    }
+    const clamped = Math.min(Math.max(Math.round(hintedDays), 1), 730)
+    const endDate = addDays(result.startDate, clamped)
+    const durationDays = normalizeDurationDays(result.startDate, endDate)
+    const source: TimeRangeSource = "ai_inferred"
+    return {
+        startDate: result.startDate,
+        endDate,
+        startDateIso: result.startDateIso,
+        endDateIso: toIsoDate(endDate),
+        durationDays,
+        source,
+        granularity: decideGranularity(question, durationDays, source),
+    }
+}
+
+/**
+ * Re-hydrate a `QuestionTimeRange` from a payload that was computed upstream
+ * (e.g. inside the extract route) and serialized over JSON. We trust the ISO
+ * dates and durationDays from the payload but re-derive the `Date` objects.
+ */
+export function hydrateQuestionTimeRange(
+    payload: QuestionTimeRangePayload,
+): QuestionTimeRange {
+    const startDate = new Date(`${payload.startDateIso}T00:00:00.000Z`)
+    const endDate = new Date(`${payload.endDateIso}T00:00:00.000Z`)
+    return {
+        startDate,
+        endDate,
+        startDateIso: payload.startDateIso,
+        endDateIso: payload.endDateIso,
+        durationDays: payload.durationDays,
+        source: payload.source,
+        granularity: payload.granularity,
     }
 }
 
