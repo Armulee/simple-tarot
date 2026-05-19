@@ -877,6 +877,18 @@ export default function ChatSession({
         "western_tropical" | "vedic_sidereal" | null
     >(null)
     const horoscopeLastTransitRef = useRef<HoroscopeTransitData | null>(null)
+    /**
+     * Latest question classification + resolved time range returned by
+     * `/api/horoscope/extract`. We forward these to the downstream verdict,
+     * question, timeline, and chart-data routes so they don't need to
+     * re-run classification / `resolveQuestionTimeRangeAsync` themselves.
+     */
+    const horoscopeClassificationRef = useRef<Record<string, unknown> | null>(
+        null,
+    )
+    const horoscopeQuestionRangeRef = useRef<Record<string, unknown> | null>(
+        null,
+    )
     /** When /verdict returns non-single-day first, we reuse prefetched /chart-data and skip a duplicate /verdict in the useObject sidecars. */
     const horoscopePrefetchBundleRef = useRef<{
         messageId: string
@@ -1019,14 +1031,26 @@ export default function ChatSession({
             const targetId = horoscopeTargetMessageIdRef.current
             if (targetId && bodyPayload) {
                 try {
-                    const { question, birth, transit, system, locale } =
-                        bodyPayload ?? {}
+                    const {
+                        question,
+                        birth,
+                        transit,
+                        system,
+                        locale,
+                        classification,
+                        questionRange,
+                    } = bodyPayload ?? {}
                     const questionText =
                         typeof question === "string" ? question : ""
+                    const replyStrategy =
+                        (classification as { replyStrategy?: string } | undefined)
+                            ?.replyStrategy ?? null
                     // Timing-mode questions get chartData + aspects from the
                     // verdict response; avoid racing chart-data with today's transit.
                     const skipParallelChartData =
-                        looksLikeTimingQuestion(questionText)
+                        replyStrategy === "timing" ||
+                        (replyStrategy == null &&
+                            looksLikeTimingQuestion(questionText))
                     if (question && birth) {
                         const bundle = horoscopePrefetchBundleRef.current
                         const prefetchedChart =
@@ -1083,6 +1107,12 @@ export default function ChatSession({
                                     transit,
                                     system,
                                     locale,
+                                    ...(classification
+                                        ? { classification }
+                                        : {}),
+                                    ...(questionRange
+                                        ? { questionRange }
+                                        : {}),
                                 }),
                             })
                                 .then((r) => r.json())
@@ -1101,7 +1131,17 @@ export default function ChatSession({
                         // stream completes). The server short-circuits to
                         // `{ dailyVerdict: null }` for non-single-day
                         // questions, so we don't need to gate here.
-                        if (!skipVerdictFetch) {
+                        // When extract has classified the question, only
+                        // call /verdict for the three flavors that produce
+                        // a hero (daily/timing/natal). "timeline" and
+                        // "general" never render a verdict, so skip the
+                        // network round-trip entirely.
+                        const verdictWouldRender =
+                            replyStrategy == null ||
+                            replyStrategy === "daily" ||
+                            replyStrategy === "timing" ||
+                            replyStrategy === "natal"
+                        if (!skipVerdictFetch && verdictWouldRender) {
                             horoscopeVerdictTargetMessageIdRef.current =
                                 targetId
                             submitHoroscopeVerdict({
@@ -1112,28 +1152,38 @@ export default function ChatSession({
                                 locale,
                                 conversationContext:
                                     bodyPayload?.conversationContext,
+                                ...(classification ? { classification } : {}),
+                                ...(questionRange ? { questionRange } : {}),
                             })
                         }
 
                         // Dedicated TIMELINE call — runs in parallel with the
-                        // body stream and verdict. The server short-circuits
-                        // to `{ timeline: null }` when the question is not
-                        // predictive ("what will happen") or the range is the
-                        // default 30-day fallback, so we don't need to gate
-                        // here.
-                        fetch("/api/horoscope/timeline", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                question,
-                                birth,
-                                transit,
-                                system,
-                                locale,
-                                conversationContext:
-                                    bodyPayload?.conversationContext,
-                            }),
-                        })
+                        // body stream and verdict. Only fire when extract
+                        // selected the timeline strategy; legacy callers
+                        // without classification still hit the route (the
+                        // route will short-circuit when it isn't predictive).
+                        const shouldFetchTimeline =
+                            replyStrategy == null || replyStrategy === "timeline"
+                        if (shouldFetchTimeline) {
+                            fetch("/api/horoscope/timeline", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    question,
+                                    birth,
+                                    transit,
+                                    system,
+                                    locale,
+                                    conversationContext:
+                                        bodyPayload?.conversationContext,
+                                    ...(classification
+                                        ? { classification }
+                                        : {}),
+                                    ...(questionRange
+                                        ? { questionRange }
+                                        : {}),
+                                }),
+                            })
                             .then((r) => r.json())
                             .then((data: Record<string, unknown>) => {
                                 if (data.error) return
@@ -1161,6 +1211,7 @@ export default function ChatSession({
                                 /* timeline fetch failed — overview just won't
                                  * render the timeline section */
                             })
+                        }
                     }
                 } catch {
                     /* body parse failed */
@@ -1346,6 +1397,8 @@ export default function ChatSession({
                 birth: Record<string, unknown>
                 transit: Record<string, unknown> | null
                 conversationContext?: unknown
+                classification?: Record<string, unknown>
+                questionRange?: Record<string, unknown>
             },
         ): Promise<boolean> => {
             stopHoroscope()
@@ -1366,6 +1419,12 @@ export default function ChatSession({
                             locale: bodyPayload.locale,
                             conversationContext:
                                 bodyPayload.conversationContext,
+                            ...(bodyPayload.classification
+                                ? { classification: bodyPayload.classification }
+                                : {}),
+                            ...(bodyPayload.questionRange
+                                ? { questionRange: bodyPayload.questionRange }
+                                : {}),
                         }),
                     }),
                     fetch("/api/horoscope/chart-data", {
@@ -1377,6 +1436,12 @@ export default function ChatSession({
                             transit: bodyPayload.transit,
                             system: bodyPayload.system,
                             locale: bodyPayload.locale,
+                            ...(bodyPayload.classification
+                                ? { classification: bodyPayload.classification }
+                                : {}),
+                            ...(bodyPayload.questionRange
+                                ? { questionRange: bodyPayload.questionRange }
+                                : {}),
                         }),
                     }),
                 ])
@@ -2656,6 +2721,8 @@ export default function ChatSession({
                     },
                 ]
             })
+            const classification = horoscopeClassificationRef.current
+            const questionRange = horoscopeQuestionRangeRef.current
             const prefetchBody = {
                 question: questionText,
                 locale,
@@ -2690,6 +2757,8 @@ export default function ChatSession({
                     : null,
                 conversationContext:
                     buildHoroscopeConversationContext(questionText),
+                ...(classification ? { classification } : {}),
+                ...(questionRange ? { questionRange } : {}),
             }
             const verdictOnly = await tryCompleteHoroscopeVerdictFirst(
                 loadingId,
@@ -2737,6 +2806,8 @@ export default function ChatSession({
                       }
                     : null,
                 storedBirthChart: storedBirthChartPayload,
+                ...(classification ? { classification } : {}),
+                ...(questionRange ? { questionRange } : {}),
             })
             setHoroscopeBirth(null)
             setHoroscopeQuestion(null)
@@ -3271,6 +3342,10 @@ export default function ChatSession({
                 }
 
                 const extracted = await response.json()
+                horoscopeClassificationRef.current =
+                    extracted?.classification ?? null
+                horoscopeQuestionRangeRef.current =
+                    extracted?.questionRange ?? null
                 const extractedHasBirthDate = Boolean(
                     extracted?.birthDate?.day &&
                         extracted?.birthDate?.month &&
