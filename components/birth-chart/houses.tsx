@@ -27,6 +27,24 @@ const PLANET_IMAGE: Record<string, { src: string; mirror?: boolean }> = {
     Pluto: { src: "/assets/planetary/pluto.png" },
 }
 
+// Traditional (Jyotish) sign rulers. Each zodiac sign has a single
+// planetary ruler; this is the planet that "owns" the house whose cusp
+// falls in that sign.
+const SIGN_RULER: Record<string, string> = {
+    Aries: "Mars",
+    Taurus: "Venus",
+    Gemini: "Mercury",
+    Cancer: "Moon",
+    Leo: "Sun",
+    Virgo: "Mercury",
+    Libra: "Venus",
+    Scorpio: "Mars",
+    Sagittarius: "Jupiter",
+    Capricorn: "Saturn",
+    Aquarius: "Saturn",
+    Pisces: "Jupiter",
+}
+
 export default function BirthChartHouses({
     houses,
     planets,
@@ -134,6 +152,9 @@ export default function BirthChartHouses({
                                   defaultValue: normalizedSign,
                               })
                             : ""
+                        const ruler = normalizedSign
+                            ? SIGN_RULER[normalizedSign] ?? null
+                            : null
 
                         return (
                             <HouseCard
@@ -150,6 +171,8 @@ export default function BirthChartHouses({
                                 meaningFor={(p) =>
                                     getPlanetInHouseMeaning(p, houseNum)
                                 }
+                                ruler={ruler}
+                                rulerLabel={t("houseRuler")}
                             />
                         )
                     })}
@@ -170,6 +193,8 @@ function HouseCard({
     planetNameOf,
     inLabel,
     meaningFor,
+    ruler,
+    rulerLabel,
 }: {
     houseNum: string
     suffix: string
@@ -181,6 +206,10 @@ function HouseCard({
     planetNameOf: (planet: string) => string
     inLabel: string
     meaningFor: (planet: string) => string
+    /** Canonical English planet name that rules this house's sign. */
+    ruler: string | null
+    /** Translated "House Ruler" eyebrow label. */
+    rulerLabel: string
 }) {
     const hasPlanets = planetsInHouse.length > 0
     return (
@@ -252,6 +281,18 @@ function HouseCard({
                 <p className='text-[13px] sm:text-sm leading-relaxed text-white/60'>
                     {description}
                 </p>
+
+                {ruler ? (
+                    <div className='flex flex-wrap items-center gap-2 pt-1'>
+                        <span className='text-[10px] font-medium uppercase tracking-[0.22em] text-white/45'>
+                            {rulerLabel}
+                        </span>
+                        <span className='inline-flex items-center gap-2 rounded-full border border-amber-300/30 bg-amber-300/[0.06] py-1 pl-1 pr-2.5 text-[11px] font-medium text-amber-100'>
+                            <PlanetIcon planet={ruler} size={18} ring />
+                            {planetNameOf(ruler)}
+                        </span>
+                    </div>
+                ) : null}
 
                 {hasPlanets ? (
                     <div className='pt-4 border-t border-white/10 space-y-3'>
