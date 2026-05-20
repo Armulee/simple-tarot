@@ -89,7 +89,7 @@ export const dailyVerdictSchema = z.object({
         .string()
         .optional()
         .describe(
-            "Technical-mode ephemeris answers only. ISO date (YYYY-MM-DD) for the future event the headline refers to (e.g. the day Jupiter ingresses into Cancer). MUST exactly match a row in <next_sign_ingresses> when one was used, otherwise the cycle-math projection rounded to the first of the month. Omit for influence-flavor technical questions ('How does Saturn affect me?') and for non-technical verdicts.",
+            "Technical-mode only. ISO date (YYYY-MM-DD) the orbit visual should anchor on so the rendered chart visibly illustrates the answer. Set this for FUTURE-EVENT questions (sign ingress, retrograde station, exaltation entry, conjunction) or PAST-EVENT questions (when did Saturn enter Pisces?). OMIT for CURRENT-STATE questions ('Where is Saturn now?', 'Is Mercury retrograde right now?') and for INFLUENCE questions ('How does Saturn affect me?') — both default to today's chart, which is already the right visual answer.",
         ),
     relevantPlanets: z
         .array(

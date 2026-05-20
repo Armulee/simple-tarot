@@ -74,11 +74,13 @@ export type DailyVerdict = {
         endDateIso: string
     }
     /**
-     * Technical-mode (ephemeris flavor) only. The future date the AI's
-     * answer points at — e.g. when Jupiter ingresses into Cancer. The
-     * verdict route rebuilds chartData.transit for this date so the orbit
-     * visual reflects the answer instead of today's positions. Omitted for
-     * influence-flavor technical answers ("How does Saturn affect me?").
+     * Technical-mode only. The date the AI picked for the orbit visual to
+     * anchor on — typically a future ingress / retrograde station, or a
+     * past event when the question is retrospective. Omitted for current-
+     * state ("Where is Saturn now?") and influence questions ("How does
+     * Saturn affect me?"), where today's chart is already the right
+     * answer. When set, the verdict route rebuilds chartData.transit for
+     * this date so the orbit visual matches the user's question.
      */
     targetDateIso?: string
 }

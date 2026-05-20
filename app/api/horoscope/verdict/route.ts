@@ -734,17 +734,19 @@ async function handleTechnicalVerdict(body: VerdictRequestBody) {
         timingWindow: undefined,
     }
 
-    // Ephemeris-flavor technical answers ("when does Jupiter ingress into
-    // Cancer?") name a specific future date. Rebuild the transit chart for
-    // that date so the orbit visual draws the planet positions the user is
-    // asking about — falling back to today's chart for influence-flavor
-    // answers that omit the date.
+    // Technical-mode targetDateIso lets the AI tell the UI which day the
+    // orbit visual should anchor on — a future ingress, a past retrograde,
+    // anything that visibly illustrates the answer. Current-state questions
+    // ("Where is Saturn now?") and influence questions deliberately leave
+    // it OFF so we keep today's chart we already built above. We accept any
+    // valid YYYY-MM-DD, but treat "today" as no-op since the existing
+    // chartDataResult already covers it.
     const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/
     const todayIso = toIsoDate(todayUtc)
     const targetIso =
         typeof verdict.targetDateIso === "string" &&
         isoDatePattern.test(verdict.targetDateIso) &&
-        verdict.targetDateIso > todayIso
+        verdict.targetDateIso !== todayIso
             ? verdict.targetDateIso
             : null
 

@@ -964,7 +964,13 @@ Required fields (every user-facing string in ${lang}):
   - reason: ONE short sentence (in ${lang}) describing the planet's CURRENT state in a way that supports the answer (e.g. "Currently in late Gemini, moving direct, about to enter Cancer where it is strong"). Plain language with astrology terms allowed because this is a technical question.
   Sort the array from most to least relevant. Do NOT invent planet keys not present in <allowed_planet_keys>.
 
-- targetDateIso (optional, EPHEMERIS flavor only): ISO date string "YYYY-MM-DD" for the future event the headline refers to (sign ingress, retrograde station, exaltation entry, conjunction). When you sourced the date from <next_sign_ingresses>, echo that row's dateIso EXACTLY here. When you projected the date from cycle math (no matching ingress row), use the first day of the month/year you estimated (e.g. project "May 2026" as "2026-05-01"). MUST be strictly AFTER the current date shown in <system_context>. OMIT this field entirely for influence-flavor questions ("How does Saturn affect me?", "What does Jupiter bless?") or whenever the answer does not anchor on a specific future calendar date.
+- targetDateIso (optional): ISO date string "YYYY-MM-DD" that tells the UI which day to render the orbit visual for. Pick the date that BEST illustrates the answer for the user's question:
+  • CURRENT-STATE questions ("Where is Saturn now?", "What sign is Saturn in?", "Is Mercury retrograde right now?", "ดาวเสาร์อยู่ราศีไหน", "ตอนนี้ดาวพุธพักร์ไหม") → OMIT this field. The orbit then defaults to today, which IS the answer to "now / current / right now".
+  • FUTURE-EVENT questions ("When does Jupiter enter Cancer?", "When does Saturn become exalted?", "When is Mercury's next retrograde?", "ดาวพฤหัสย้ายเมื่อไหร่") → emit the ISO date of that future event. If <next_sign_ingresses> has the matching row, echo its dateIso EXACTLY. If you projected the date from cycle math, use the first day of the month you estimated (e.g. "May 2026" → "2026-05-01").
+  • PAST-EVENT questions ("When did Saturn enter Pisces?", "When was Mars retrograde last?") → emit the past ISO date the answer refers to.
+  • INFLUENCE questions ("How does Saturn affect me?", "What does Jupiter bless?") → OMIT — there's no specific calendar date for the orbit to anchor on, so today is the right default.
+  • RANGE / DURATION questions ("How long is Jupiter in Cancer?", "When does the retrograde end?") → emit the date of the event the user actually asked about (start for "when does it begin", end for "when does it end").
+  Rule of thumb: only emit targetDateIso when the orbit visual rendered for THAT specific day would visibly illustrate the answer (planet sitting at the new sign cusp, retrograde station, etc.). If the answer is about NOW or about a planet's nature in general, leave it OFF.
 </verdict_rules>
 
 <critical_rules>
