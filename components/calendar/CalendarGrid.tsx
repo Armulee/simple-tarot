@@ -17,6 +17,7 @@ export function CalendarGrid({
     windowDays,
     loading,
     error,
+    unlockedDates,
 }: {
     matrix: (Date | null)[][] | null
     today: Date | null
@@ -26,6 +27,7 @@ export function CalendarGrid({
     windowDays: number
     loading: boolean
     error: string | null
+    unlockedDates?: Set<string>
 }) {
     const t = useTranslations("Calendar")
 
@@ -68,6 +70,15 @@ export function CalendarGrid({
                                   }
                                   windowDays={windowDays}
                                   loading={loading && Boolean(cell)}
+                                  isUnlocked={
+                                      cell
+                                          ? Boolean(
+                                                unlockedDates?.has(
+                                                    toLocalIsoDate(cell),
+                                                ),
+                                            )
+                                          : false
+                                  }
                               />
                           ))
                     : Array.from({ length: 42 }).map((_, idx) => (

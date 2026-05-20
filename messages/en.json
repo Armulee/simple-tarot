@@ -2068,6 +2068,12 @@
       "cta": "Upgrade",
       "cellHint": "Available on Basic"
     },
+    "starUnlock": {
+      "description": "Or spend a star to uncover just this date. The unlock is saved to your account and stays available forever.",
+      "cta": "Unlock with {cost} Star",
+      "insufficient": "You don't have enough stars to unlock this date.",
+      "error": "Couldn't unlock this date. Please try again."
+    },
     "ai": {
       "title": "Ask your calendar",
       "body": "Pick a question and I'll scan your accessible days for the strongest opening.",
