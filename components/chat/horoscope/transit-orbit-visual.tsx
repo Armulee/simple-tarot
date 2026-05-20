@@ -376,6 +376,28 @@ export default function TransitOrbitVisual({
                             stopOpacity='0'
                         />
                     </radialGradient>
+                    <radialGradient
+                        id='planet-spotlight'
+                        cx='50%'
+                        cy='50%'
+                        r='50%'
+                    >
+                        <stop
+                            offset='0%'
+                            stopColor='#c084fc'
+                            stopOpacity='0.85'
+                        />
+                        <stop
+                            offset='40%'
+                            stopColor='#a855f7'
+                            stopOpacity='0.4'
+                        />
+                        <stop
+                            offset='100%'
+                            stopColor='#7e22ce'
+                            stopOpacity='0'
+                        />
+                    </radialGradient>
                 </defs>
 
                 <rect width={VB_W} height={VB_H} fill='url(#orbit-sky)' />
@@ -515,7 +537,9 @@ export default function TransitOrbitVisual({
                     const planetName = tAstro(`planets.${name}`, {
                         defaultValue: name,
                     })
-                    const isFaded = highlightSet ? !highlightSet.has(name) : false
+                    const isHighlighted = highlightSet
+                        ? highlightSet.has(name)
+                        : false
                     return (
                         <PlanetMark
                             key={name}
@@ -527,7 +551,7 @@ export default function TransitOrbitVisual({
                             retrograde={Boolean(point.retrograde)}
                             mirrorKetu={false}
                             labelBelow={y < CY + 50}
-                            faded={isFaded}
+                            highlighted={isHighlighted}
                         />
                     )
                 })}
@@ -559,7 +583,7 @@ function PlanetMark({
     retrograde,
     mirrorKetu,
     labelBelow,
-    faded = false,
+    highlighted = false,
 }: {
     x: number
     y: number
@@ -569,18 +593,26 @@ function PlanetMark({
     retrograde: boolean
     mirrorKetu: boolean
     labelBelow: boolean
-    /** When true, dim the planet image + label + degree (asked-planet highlight). */
-    faded?: boolean
+    /** When true, render a purple aura behind the planet image (asked-planet spotlight). */
+    highlighted?: boolean
 }) {
     const half = vis.size / 2
     // Stack the label group either below or above the planet image.
     const baseY = labelBelow ? y + half + 22 : y - half - 16 - 50
     const nameY = baseY
     const degreeY = baseY + 28
-    const groupOpacity = faded ? 0.22 : 1
+    const auraRadius = vis.size * 1.6
 
     return (
-        <g opacity={groupOpacity}>
+        <g>
+            {highlighted && (
+                <circle
+                    cx={x}
+                    cy={y}
+                    r={auraRadius}
+                    fill='url(#planet-spotlight)'
+                />
+            )}
             {vis.glow && (
                 <>
                     <circle
