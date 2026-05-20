@@ -653,7 +653,11 @@ export default function VerdictHero({
             transitSourceMessage.chartData,
         ],
     )
-    const showNatalHeroCrest = isSpotlightMode && heroPlacements.length > 0
+    // Technical verdicts hoist the orbit visual into the hero slot (replacing
+    // the planet portraits). Natal verdicts keep the planet-portrait crest.
+    const showTechnicalOrbit = isTechnicalMode
+    const showNatalHeroCrest =
+        isNatalMode && heroPlacements.length > 0
     const showTimingHeroCrest = isTimingMode && !!verdict.timingWindow
     const hasVerdictText =
         verdict.headline.trim().length > 0 ||
@@ -661,11 +665,12 @@ export default function VerdictHero({
         detailedHtml.length > 0
     const showLoadingState = isLoading && !overviewReady && !hasVerdictText
     // Daily / timing verdicts hang their visual under the detailed HTML (the
-    // transit feed). Natal and technical verdicts use the planet spotlight
-    // instead. We never show both at the same time.
+    // transit feed). Natal verdicts use the planet spotlight there. Technical
+    // verdicts already render the orbit visual at the top of the hero, so the
+    // below-verdict slot stays empty for them.
     const showTransitFeed = overviewReady && !isLoading && !isSpotlightMode
     const showNatalSpotlight =
-        overviewReady && !isLoading && isSpotlightMode && hasRelevantPlanets
+        overviewReady && !isLoading && isNatalMode && hasRelevantPlanets
     const showReplyBubble =
         keyMessageHeadline.length > 0 ||
         detailedHtml.length > 0 ||
@@ -679,12 +684,21 @@ export default function VerdictHero({
         >
             <div className='relative z-[1] flex flex-col gap-6 py-6 md:px-8 md:pt-10'>
                 <div className='flex flex-col items-center gap-3 text-center'>
-                    {showNatalHeroCrest ? (
+                    {showTechnicalOrbit ? (
+                        <div className='w-full animate-fade-in'>
+                            <TransitOrbitVisual
+                                chartData={transitSourceMessage.chartData}
+                                highlightPlanets={relevantPlanets.map(
+                                    (rp) => rp.planet,
+                                )}
+                            />
+                        </div>
+                    ) : showNatalHeroCrest ? (
                         <div className='w-full mb-3 animate-fade-in'>
                             <NatalHeroCrest
                                 placements={heroPlacements}
                                 moodShadow={style.iconShadow}
-                                source={isTechnicalMode ? "transit" : "natal"}
+                                source='natal'
                             />
                         </div>
                     ) : showTimingHeroCrest && verdict.timingWindow ? (
@@ -809,23 +823,13 @@ export default function VerdictHero({
                                                 : ""
                                         }
                                     >
-                                        {isTechnicalMode ? (
-                                            <TransitOrbitVisual
-                                                chartData={
-                                                    transitSourceMessage.chartData
-                                                }
-                                            />
-                                        ) : (
-                                            <NatalPlanetSpotlight
-                                                chartData={
-                                                    transitSourceMessage.chartData
-                                                }
-                                                relevantPlanets={
-                                                    relevantPlanets
-                                                }
-                                                privacyAliases={aliases}
-                                            />
-                                        )}
+                                        <NatalPlanetSpotlight
+                                            chartData={
+                                                transitSourceMessage.chartData
+                                            }
+                                            relevantPlanets={relevantPlanets}
+                                            privacyAliases={aliases}
+                                        />
                                     </div>
                                 )}
                             </div>

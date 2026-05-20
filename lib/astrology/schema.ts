@@ -85,6 +85,12 @@ export const dailyVerdictSchema = z.object({
         .describe(
             "Timing-mode only. The single best date or short date window when the user's chances peak for the outcome they asked about. Rendered in the hero crest as e.g. '1–16 AUG'. Omit entirely for daily / natal verdicts.",
         ),
+    targetDateIso: z
+        .string()
+        .optional()
+        .describe(
+            "Technical-mode only. ISO date (YYYY-MM-DD) the orbit visual should anchor on so the rendered chart visibly illustrates the answer. Set this for FUTURE-EVENT questions (sign ingress, retrograde station, exaltation entry, conjunction) or PAST-EVENT questions (when did Saturn enter Pisces?). OMIT for CURRENT-STATE questions ('Where is Saturn now?', 'Is Mercury retrograde right now?') and for INFLUENCE questions ('How does Saturn affect me?') — both default to today's chart, which is already the right visual answer.",
+        ),
     relevantPlanets: z
         .array(
             z.object({
@@ -136,6 +142,7 @@ export const streamingDailyVerdictSchema = z.object({
             endDateIso: z.string().optional(),
         })
         .optional(),
+    targetDateIso: z.string().optional(),
     relevantPlanets: z
         .array(
             z.object({

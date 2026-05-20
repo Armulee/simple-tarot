@@ -17,7 +17,6 @@ import ActionSection from "@/components/tarot/interpretation/action"
 import ShareSection from "@/components/tarot/interpretation/share"
 import InsufficientStarsBlock from "@/components/stars/insufficient-stars-block"
 import { ConsultingBadge } from "@/components/consulting-badge"
-import { BirthChartCard } from "@/components/astrology/birth-chart-card"
 import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
 import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
 import { TarotAssistantInterpretation } from "@/components/chat/tarot-interpretation"
@@ -342,9 +341,6 @@ export default function MessageList({
     const t = useTranslations("Home")
     const tPanel = useTranslations("PlanetaryPanel")
     const consultingBase = t("consulting")
-    const [panelDetailToggles, setPanelDetailToggles] = useState<
-        Record<string, { birth: boolean; transit: boolean }>
-    >({})
 
     const askedAspectKeys = useMemo(() => {
         const map: Record<string, string> = {}
@@ -448,10 +444,6 @@ export default function MessageList({
             >
                 <div className='mx-auto max-w-3xl space-y-6 text-left'>
                     {messages.map((message, messageIndex) => {
-                        const detailToggle = panelDetailToggles[message.id] ?? {
-                            birth: false,
-                            transit: false,
-                        }
                         const displayText = getDisplayText(message)
                         const displayQuestion = getDisplayQuestion(message)
 
@@ -708,124 +700,6 @@ export default function MessageList({
                                                 }
                                                 onPickTransitDate={
                                                     onPickTransitDate
-                                                }
-                                                showBirthDetails={
-                                                    detailToggle.birth
-                                                }
-                                                showTransitDetails={
-                                                    detailToggle.transit
-                                                }
-                                                onToggleBirthDetails={() =>
-                                                    setPanelDetailToggles(
-                                                        (prev) => ({
-                                                            ...prev,
-                                                            [message.id]: {
-                                                                birth: !(
-                                                                    prev[
-                                                                        message
-                                                                            .id
-                                                                    ]?.birth ??
-                                                                    false
-                                                                ),
-                                                                transit:
-                                                                    prev[
-                                                                        message
-                                                                            .id
-                                                                    ]
-                                                                        ?.transit ??
-                                                                    false,
-                                                            },
-                                                        }),
-                                                    )
-                                                }
-                                                onToggleTransitDetails={() =>
-                                                    setPanelDetailToggles(
-                                                        (prev) => ({
-                                                            ...prev,
-                                                            [message.id]: {
-                                                                birth:
-                                                                    prev[
-                                                                        message
-                                                                            .id
-                                                                    ]?.birth ??
-                                                                    false,
-                                                                transit: !(
-                                                                    prev[
-                                                                        message
-                                                                            .id
-                                                                    ]
-                                                                        ?.transit ??
-                                                                    false
-                                                                ),
-                                                            },
-                                                        }),
-                                                    )
-                                                }
-                                                birthDetailsContent={
-                                                    message.chartData &&
-                                                    !message.isLoading ? (
-                                                        <BirthChartCard
-                                                            chartData={
-                                                                message.chartData as Parameters<
-                                                                    typeof BirthChartCard
-                                                                >[0]["chartData"]
-                                                            }
-                                                            question={
-                                                                displayQuestion
-                                                            }
-                                                            planetMeanings={
-                                                                message.planetMeanings ??
-                                                                undefined
-                                                            }
-                                                            houseMeanings={
-                                                                message.houseMeanings ??
-                                                                undefined
-                                                            }
-                                                            onRefetchWithSystem={(
-                                                                system,
-                                                            ) =>
-                                                                onRefetchHoroscopeWithSystem(
-                                                                    message.id,
-                                                                    system,
-                                                                )
-                                                            }
-                                                            showBirthDetails
-                                                            renderFromPanel
-                                                        />
-                                                    ) : undefined
-                                                }
-                                                transitDetailsContent={
-                                                    message.chartData &&
-                                                    !message.isLoading ? (
-                                                        <BirthChartCard
-                                                            chartData={
-                                                                message.chartData as Parameters<
-                                                                    typeof BirthChartCard
-                                                                >[0]["chartData"]
-                                                            }
-                                                            question={
-                                                                displayQuestion
-                                                            }
-                                                            planetMeanings={
-                                                                message.planetMeanings ??
-                                                                undefined
-                                                            }
-                                                            houseMeanings={
-                                                                message.houseMeanings ??
-                                                                undefined
-                                                            }
-                                                            onRefetchWithSystem={(
-                                                                system,
-                                                            ) =>
-                                                                onRefetchHoroscopeWithSystem(
-                                                                    message.id,
-                                                                    system,
-                                                                )
-                                                            }
-                                                            showTransitDetails
-                                                            renderFromPanel
-                                                        />
-                                                    ) : undefined
                                                 }
                                                 loadingNode={
                                                     message.isLoading ? (

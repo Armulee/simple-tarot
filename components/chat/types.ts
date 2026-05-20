@@ -73,6 +73,16 @@ export type DailyVerdict = {
         startDateIso: string
         endDateIso: string
     }
+    /**
+     * Technical-mode only. The date the AI picked for the orbit visual to
+     * anchor on — typically a future ingress / retrograde station, or a
+     * past event when the question is retrospective. Omitted for current-
+     * state ("Where is Saturn now?") and influence questions ("How does
+     * Saturn affect me?"), where today's chart is already the right
+     * answer. When set, the verdict route rebuilds chartData.transit for
+     * this date so the orbit visual matches the user's question.
+     */
+    targetDateIso?: string
 }
 
 export type NatalRelevantPlanet = {

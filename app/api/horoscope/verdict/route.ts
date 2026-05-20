@@ -734,10 +734,59 @@ async function handleTechnicalVerdict(body: VerdictRequestBody) {
         timingWindow: undefined,
     }
 
+    // Technical-mode targetDateIso lets the AI tell the UI which day the
+    // orbit visual should anchor on — a future ingress, a past retrograde,
+    // anything that visibly illustrates the answer. Current-state questions
+    // ("Where is Saturn now?") and influence questions deliberately leave
+    // it OFF so we keep today's chart we already built above. We accept any
+    // valid YYYY-MM-DD, but treat "today" as no-op since the existing
+    // chartDataResult already covers it.
+    const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/
+    const todayIso = toIsoDate(todayUtc)
+    const targetIso =
+        typeof verdict.targetDateIso === "string" &&
+        isoDatePattern.test(verdict.targetDateIso) &&
+        verdict.targetDateIso !== todayIso
+            ? verdict.targetDateIso
+            : null
+
+    let finalChartData = chartDataResult
+    if (targetIso) {
+        const [yyyy, mm, dd] = targetIso.split("-").map(Number)
+        const targetUtc = new Date(Date.UTC(yyyy, mm - 1, dd, 12, 0, 0))
+        if (!Number.isNaN(targetUtc.getTime())) {
+            const targetQuestionRange = {
+                startDate: targetUtc,
+                endDate: targetUtc,
+                startDateIso: targetIso,
+                endDateIso: targetIso,
+                durationDays: 1,
+                source: "ai_inferred" as const,
+                granularity: "daily" as const,
+            }
+            try {
+                finalChartData = await buildChartData(
+                    {
+                        birth: body.birth,
+                        system: body.system,
+                        questionRange: targetQuestionRange,
+                    },
+                    chartLocale,
+                )
+            } catch (error) {
+                console.warn(
+                    "[horoscope/verdict] technical targetDateIso chart rebuild failed; falling back to today's chart",
+                    error,
+                )
+            }
+        }
+    }
+
     return Response.json(
         {
             ...verdict,
-            chartData: chartDataResult,
+            targetDateIso: targetIso ?? undefined,
+            chartData: finalChartData,
             personalizedTransitAspects: null,
         },
         { status: 200 },

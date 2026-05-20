@@ -107,12 +107,6 @@ export default function HoroscopeReadingTabs({
     privacyAliases,
     onAskAspectDetail,
     askedAspectKeys,
-    showBirthDetails,
-    showTransitDetails,
-    onToggleBirthDetails,
-    onToggleTransitDetails,
-    birthDetailsContent,
-    transitDetailsContent,
     onPickTransitDate,
 }: {
     message: ChatMessage
@@ -129,12 +123,6 @@ export default function HoroscopeReadingTabs({
         event: SourceAspectEvent,
     ) => void
     askedAspectKeys?: Record<string, string>
-    showBirthDetails?: boolean
-    showTransitDetails?: boolean
-    onToggleBirthDetails?: () => void
-    onToggleTransitDetails?: () => void
-    birthDetailsContent?: ReactNode
-    transitDetailsContent?: ReactNode
     /**
      * For timeline-mode readings: pick which day inside the question's range
      * the Technical Information / Aspect tabs should anchor to. The session
@@ -514,12 +502,6 @@ export default function HoroscopeReadingTabs({
                             aspectInsights={message.aspectInsights}
                             onAskAspectDetail={onAskAspectDetail}
                             askedAspectKeys={askedAspectKeys}
-                            showBirthDetails={showBirthDetails}
-                            showTransitDetails={showTransitDetails}
-                            onToggleBirthDetails={onToggleBirthDetails}
-                            onToggleTransitDetails={onToggleTransitDetails}
-                            birthDetailsContent={birthDetailsContent}
-                            transitDetailsContent={transitDetailsContent}
                         />
                     </div>
                 )}
