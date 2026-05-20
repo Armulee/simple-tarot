@@ -171,6 +171,7 @@ function getChatDecisionPrompt({
     savedBirthInfo,
     hasStoredBirthChart,
     isAuthenticated,
+    planTier,
 }: {
     question: string
     history?: Array<{ role: "user" | "assistant"; text: string }>
@@ -179,6 +180,7 @@ function getChatDecisionPrompt({
     savedBirthInfo?: string | null
     hasStoredBirthChart?: boolean
     isAuthenticated: boolean
+    planTier?: "free" | "basic" | "pro"
 }) {
     const historyText =
         history && history.length
@@ -219,6 +221,12 @@ function getChatDecisionPrompt({
         ? `\nNote: The user is NOT signed in. Horoscope readings ultimately require an account, but you should STILL classify timing/astrology questions as "horoscope" so the app can show a sign-in prompt. Do not pretend the topic is "chat" just to avoid the auth requirement — the client handles the sign-in gate separately.\n`
         : ""
 
+    const effectivePlanTier = planTier ?? "free"
+    const planTierRule =
+        effectivePlanTier === "free"
+            ? `\nUser plan: FREE tier. The free tier is LIMITED TO A MAXIMUM OF 3 CARDS per draw. If type is "draw", you MUST choose only "simple" (1 card) or "general" (3 cards). Do NOT choose "detailed" (5), "expanded" (7), or "celtic" (10) for free-tier users — the client will downgrade them anyway.\n`
+            : `\nUser plan: ${effectivePlanTier.toUpperCase()} tier. The user has access to all spread sizes (up to 10 cards).\n`
+
     return `
 ${contextBlock}Recent conversation:
 ${historyText}
@@ -226,7 +234,7 @@ ${historyText}
 User message:
 ${question}
 ${modeInstruction}
-${savedBirthBlock}${storedChartBlock}${anonymousHoroscopeRule}
+${savedBirthBlock}${storedChartBlock}${anonymousHoroscopeRule}${planTierRule}
 DETECTED LANGUAGE: The user's message is in ${detectedLang}. Ignore the language of conversation history — only the current user message language matters.
 
 Classify the intent and return JSON.
@@ -266,6 +274,7 @@ export async function POST(req: Request) {
             hasStoredBirthChart?: boolean
             interpretationMode?: string | null
             contextSummary?: string | null
+            planTier?: "free" | "basic" | "pro"
         }
         try {
             body = await req.json()
@@ -281,7 +290,12 @@ export async function POST(req: Request) {
             contextSummary,
             savedBirthInfo,
             hasStoredBirthChart,
+            planTier: rawPlanTier,
         } = body ?? {}
+        const planTier =
+            rawPlanTier === "basic" || rawPlanTier === "pro"
+                ? rawPlanTier
+                : "free"
 
         const user = await getUserFromBearer(req)
         const isAuthenticated = Boolean(user)
@@ -309,6 +323,7 @@ export async function POST(req: Request) {
                 savedBirthInfo,
                 hasStoredBirthChart: Boolean(hasStoredBirthChart),
                 isAuthenticated,
+                planTier,
             }),
         })
 
