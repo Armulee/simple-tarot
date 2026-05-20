@@ -751,7 +751,12 @@ export default function ChatSession({
         [storedBirthChart],
     )
     const [aiLocale, setAiLocale] = useState<"en" | "th" | "lo" | null>(null)
-    const { stars, spendStars, initialized: starsInitialized } = useStars()
+    const {
+        stars,
+        spendStars,
+        addStars,
+        initialized: starsInitialized,
+    } = useStars()
     const [question, setQuestion] = useState("")
     const promptsRaw = tHome.raw("prompts")
     const prompts = Array.isArray(promptsRaw)
@@ -3502,6 +3507,25 @@ export default function ChatSession({
             if (!trimmed) return
             if (!user) return
             setConsulting(true)
+
+            // Charge the star up front so the cost is visible immediately;
+            // refund it below if the request can't actually run (paywall,
+            // extract failure, missing birth data, etc.).
+            const starOk = spendStars(1)
+            if (!starOk) {
+                setConsulting(false)
+                setShowInsufficientStars(true)
+                setInsufficientStarsType("horoscope")
+                return
+            }
+            let starsToRefund = 1
+            const refundChargedStars = () => {
+                if (starsToRefund > 0) {
+                    addStars(starsToRefund)
+                    starsToRefund = 0
+                }
+            }
+
             try {
                 const appendUserMessage = options.appendUserMessage !== false
                 if (appendUserMessage) {
@@ -3561,6 +3585,7 @@ export default function ChatSession({
                 })
 
                 if (!response.ok) {
+                    refundChargedStars()
                     setMessages((prev) => [
                         ...prev,
                         {
@@ -3579,10 +3604,13 @@ export default function ChatSession({
                 // chart get a red badge instead of the interpretation. We
                 // accept either the explicit paywall field or the unified
                 // `replyStrategy === "rejected"` strategy from extract.
+                // The star was charged upfront — refund it because the
+                // request never actually ran.
                 if (
                     extracted?.paywall ||
                     extracted?.classification?.replyStrategy === "rejected"
                 ) {
+                    refundChargedStars()
                     setMessages((prev) => [
                         ...prev,
                         {
@@ -3615,6 +3643,7 @@ export default function ChatSession({
                     ? applyEphemerisLocationTimeDefaults(profileBirth)
                     : null
                 if (!birthToUse) {
+                    refundChargedStars()
                     setMessages((prev) => [
                         ...prev,
                         {
@@ -3681,18 +3710,16 @@ export default function ChatSession({
                       "General horoscope reading"
                 const normalizedBirth =
                     ensureBirthTimeDefaults(birthToUse) ?? birthToUse
-                const starOk = spendStars(1)
-                if (!starOk) {
-                    setShowInsufficientStars(true)
-                    setInsufficientStarsType("horoscope")
-                    return
-                }
+                // Commit the upfront charge — from here on the reading is
+                // actually running, so the catch below should not refund.
+                starsToRefund = 0
                 await runHoroscopeReading(
                     normalizedBirth,
                     questionText,
                     transitToUse,
                 )
             } catch {
+                refundChargedStars()
                 setMessages((prev) => [
                     ...prev,
                     {
@@ -3713,6 +3740,7 @@ export default function ChatSession({
             ensureBirthTimeDefaults,
             runHoroscopeReading,
             spendStars,
+            addStars,
             tHoroscope,
             horoscopeTransit,
             user,
