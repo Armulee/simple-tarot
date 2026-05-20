@@ -106,12 +106,18 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     // Track previous user ID to detect login/logout and reset state
     const prevUserIdRef = useRef<string | undefined>(user?.id)
 
-    // Tracks the most recent spendStars server commit so that addStars (used
-    // for refunds) can serialize after it. Without this, /api/stars/add can
-    // read the pre-spend balance (e.g. daily already at cap), clamp the
-    // refund to a no-op, and then /api/stars/spend lands on top — leaving
-    // the user at the spent balance even though the UI flashed the refund.
-    const pendingSpendCommitRef = useRef<Promise<void> | null>(null)
+    // Serial queue for every server-touching stars operation (spend, add,
+    // reconcile, set). Each enqueued op awaits the previous one before
+    // hitting the network, so a refund can't read pre-spend state and a
+    // background reconcile can't apply stale data on top of a fresh write.
+    const starsOpQueueRef = useRef<Promise<void>>(Promise.resolve())
+    const enqueueStarsOp = useCallback((op: () => Promise<void>) => {
+        const next = starsOpQueueRef.current
+            .catch(() => {})
+            .then(() => op().catch(() => {}))
+        starsOpQueueRef.current = next
+        return next
+    }, [])
 
     // Compute next Bangkok midnight (UTC+7) as an absolute timestamp in ms
     const getNextBangkokMidnightMs = useCallback((baseMs?: number): number => {
@@ -303,25 +309,29 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         // if (!initialized) return
         let cancelled = false
-        const reconcile = async () => {
-            try {
-                if (document.visibilityState !== "visible") return
-                void refreshSubscription()
-                const state = await starGetOrCreate(user ?? null)
-                if (cancelled) return
-                applyStarState(state)
-                setNextRefillAt(
-                    computeNextRefillAt(
-                        state.dailyStars,
-                        state.dailyLastRefillAt,
-                        refillCap,
-                        Boolean(user),
-                    ),
-                )
-                setFirstLoginBonusGranted(state.firstLoginBonusGranted)
-                setFirstTimeLoginGrant(state.firstTimeLoginGrant)
-            } catch {}
-        }
+        const reconcile = () =>
+            // Queue the read so it can't fire its starGetOrCreate request
+            // before a freshly enqueued spend/add commit has finished — and
+            // can't apply stale data on top of a newer write.
+            enqueueStarsOp(async () => {
+                try {
+                    if (document.visibilityState !== "visible") return
+                    void refreshSubscription()
+                    const state = await starGetOrCreate(user ?? null)
+                    if (cancelled) return
+                    applyStarState(state)
+                    setNextRefillAt(
+                        computeNextRefillAt(
+                            state.dailyStars,
+                            state.dailyLastRefillAt,
+                            refillCap,
+                            Boolean(user),
+                        ),
+                    )
+                    setFirstLoginBonusGranted(state.firstLoginBonusGranted)
+                    setFirstTimeLoginGrant(state.firstTimeLoginGrant)
+                } catch {}
+            })
 
         const onVisibility = () => {
             if (document.visibilityState === "visible") {
@@ -364,6 +374,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
         computeNextRefillAt,
         refreshSubscription,
         applyStarState,
+        enqueueStarsOp,
     ])
 
     const addStars = useCallback(
@@ -383,16 +394,10 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             setEngagementStarsTotal((prev: number | null) =>
                 Math.max(0, (prev ?? 0) + amount),
             )
-            ;(async () => {
-                // Wait for any in-flight spend to commit first so refunds
-                // don't race the spend at /api/stars/add (which reads-then-
-                // writes and would clamp the refund to a no-op).
-                const pendingSpend = pendingSpendCommitRef.current
-                if (pendingSpend) {
-                    try {
-                        await pendingSpend
-                    } catch {}
-                }
+            // Queue the server commit so it runs after any in-flight spend
+            // (refund-after-spend would otherwise race /api/stars/add and
+            // get clamped to a no-op by the daily cap).
+            void enqueueStarsOp(async () => {
                 try {
                     void refreshSubscription()
                     const state = await starAdd(user ?? null, amount)
@@ -423,7 +428,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                         broadcastStarsUpdate()
                     } catch {}
                 }
-            })()
+            })
         },
         [
             user,
@@ -432,6 +437,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             broadcastStarsUpdate,
             refreshSubscription,
             applyStarState,
+            enqueueStarsOp,
         ],
     )
 
@@ -550,12 +556,10 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                     setNextRefillAt(Date.now() + REFILL_INTERVAL_MS_AUTH)
                 }
             }
-            if (!success)
-                return false
-                // Commit in background; reconcile with server state.
-                // Capture the promise so refunds (addStars after spendStars)
-                // can serialize after the spend has hit the database.
-            const commitPromise = (async () => {
+            if (!success) return false
+            // Commit through the serial queue so refunds and reconciles
+            // run after this spend has hit the database.
+            void enqueueStarsOp(async () => {
                 try {
                     void refreshSubscription()
                     const { ok, state } = await starSpend(user ?? null, amount)
@@ -600,12 +604,6 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                         broadcastStarsUpdate()
                     } catch {}
                 }
-            })()
-            pendingSpendCommitRef.current = commitPromise
-            void commitPromise.finally(() => {
-                if (pendingSpendCommitRef.current === commitPromise) {
-                    pendingSpendCommitRef.current = null
-                }
             })
             return true
         },
@@ -620,6 +618,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             planStars,
             addonStars,
             applyStarState,
+            enqueueStarsOp,
         ],
     )
 
