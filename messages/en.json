@@ -1461,10 +1461,10 @@
       "upright": "Upright",
       "reversedTab": "Reversed",
       "freeTierMaxCardsHint": "Free plan can draw up to {max} cards. Upgrade for more.",
-      "manualPickPaywallTitle": "Manual card pick is a Pro feature",
-      "manualPickPaywallDesc": "Choose any card you like from the full deck. Upgrade to Pro to unlock — checkout is powered by Stripe on the next page.",
+      "manualPickPaywallTitle": "Manual card pick is a subscriber feature",
+      "manualPickPaywallDesc": "Choose any card you like from the full deck. Upgrade to Basic or Pro to unlock — checkout is powered by Stripe on the next page.",
       "manualPickPaywallFeature": "Manual card selection from the full deck",
-      "manualPickPaywallInsufficient": "Not included on Basic",
+      "manualPickPaywallInsufficient": "Upgrade required",
       "manualPickPaywallNote": "Selecting a plan takes you to secure Stripe checkout."
     },
     "editQuestion": {

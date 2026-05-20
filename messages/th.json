@@ -1474,10 +1474,10 @@
       "upright": "หน้าตั้ง",
       "reversedTab": "กลับหัว",
       "freeTierMaxCardsHint": "แพ็กเกจฟรีจั่วได้สูงสุด {max} ใบ อัปเกรดเพื่อจั่วได้มากขึ้น",
-      "manualPickPaywallTitle": "การเลือกไพ่ด้วยตนเองเป็นฟีเจอร์ของ Pro",
-      "manualPickPaywallDesc": "เลือกไพ่ใบใดก็ได้จากสำรับเต็ม อัปเกรดเป็น Pro เพื่อปลดล็อก — ชำระเงินผ่าน Stripe ในหน้าต่อไป",
+      "manualPickPaywallTitle": "การเลือกไพ่ด้วยตนเองสำหรับสมาชิกเท่านั้น",
+      "manualPickPaywallDesc": "เลือกไพ่ใบใดก็ได้จากสำรับเต็ม อัปเกรดเป็น Basic หรือ Pro เพื่อปลดล็อก — ชำระเงินผ่าน Stripe ในหน้าต่อไป",
       "manualPickPaywallFeature": "เลือกไพ่ด้วยตนเองจากสำรับเต็ม",
-      "manualPickPaywallInsufficient": "ไม่รวมในแพ็กเกจ Basic",
+      "manualPickPaywallInsufficient": "ต้องอัปเกรดแพ็กเกจ",
       "manualPickPaywallNote": "เลือกแพ็กเกจเพื่อไปยังหน้าชำระเงิน Stripe ที่ปลอดภัย"
     },
     "editQuestion": {

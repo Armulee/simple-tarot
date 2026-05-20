@@ -15,7 +15,7 @@ import type { RefObject } from "react"
 import { useTranslations } from "next-intl"
 import { LinearCardSpread } from "@/components/tarot/card-selection/linear-card-spread"
 import { ManualCardSelectionDialog } from "@/components/tarot/card-selection/manual-card-selection-dialog"
-import { ManualPickPaywallDialog } from "@/components/tarot/card-selection/manual-pick-paywall-dialog"
+import { PaywallDialog } from "@/components/subscription/paywall-dialog"
 import {
     Popover,
     PopoverTrigger,
@@ -226,10 +226,17 @@ export default function DrawCardSection({
                 onCardsSelected={onCardsSelected}
             />
 
-            <ManualPickPaywallDialog
+            <PaywallDialog
                 open={paywallDialogOpen}
                 onOpenChange={setPaywallDialogOpen}
+                requiredTier='basic'
                 currentTier={planTier ?? "free"}
+                title={t("manualPickPaywallTitle")}
+                description={t("manualPickPaywallDesc")}
+                feature={t("manualPickPaywallFeature")}
+                icon={<Hand className='h-6 w-6 text-indigo-300' />}
+                footnote={t("manualPickPaywallNote")}
+                insufficientLabel={t("manualPickPaywallInsufficient")}
             />
         </div>
     )

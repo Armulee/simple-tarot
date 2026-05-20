@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { CheckCircle2, Crown, Hand, Lock, Star } from "lucide-react"
+import { CheckCircle2, Crown, Lock, Sparkles, Star } from "lucide-react"
 import {
     Dialog,
     DialogContent,
@@ -24,22 +24,53 @@ import {
 } from "@/lib/payments/currency-utils"
 import { cn } from "@/lib/utils"
 
-type ManualPickPaywallDialogProps = {
-    open: boolean
-    onOpenChange: (open: boolean) => void
-    currentTier?: SubscriptionPlanTier | "free" | null
+export type PaywallTier = SubscriptionPlanTier | "free"
+
+const TIER_RANK: Record<PaywallTier, number> = {
+    free: 0,
+    basic: 1,
+    pro: 2,
 }
 
-export function ManualPickPaywallDialog({
+export type PaywallDialogProps = {
+    open: boolean
+    onOpenChange: (open: boolean) => void
+    /** Minimum subscription tier that unlocks the gated feature. */
+    requiredTier: SubscriptionPlanTier
+    /** The user's current tier; used to label "Current plan". */
+    currentTier?: PaywallTier | null
+    /** Dialog title. */
+    title: string
+    /** Short description shown beneath the title. */
+    description: string
+    /** A single-line label describing what the feature is. */
+    feature: string
+    /** Optional icon shown above the title. Defaults to a sparkles icon. */
+    icon?: ReactNode
+    /** Optional small note rendered at the bottom of the dialog. */
+    footnote?: string
+    /** Label shown on a disabled plan card that doesn't satisfy the gate. */
+    insufficientLabel?: string
+}
+
+export function PaywallDialog({
     open,
     onOpenChange,
+    requiredTier,
     currentTier,
-}: ManualPickPaywallDialogProps) {
+    title,
+    description,
+    feature,
+    icon,
+    footnote,
+    insufficientLabel,
+}: PaywallDialogProps) {
     const t = useTranslations("Pricing")
-    const tCards = useTranslations("ReadingPage.chooseCards")
     const locale = useLocale()
     const currency: CurrencyCode = locale === "th" ? "THB" : "USD"
     const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly")
+
+    const requiredRank = TIER_RANK[requiredTier]
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -47,14 +78,16 @@ export function ManualPickPaywallDialog({
                 <DialogHeader className='px-6 pt-6 pb-2'>
                     <div className='flex items-center justify-center mb-2'>
                         <span className='inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-indigo-500/15 border border-indigo-500/25'>
-                            <Hand className='h-6 w-6 text-indigo-300' />
+                            {icon ?? (
+                                <Sparkles className='h-6 w-6 text-indigo-300' />
+                            )}
                         </span>
                     </div>
                     <DialogTitle className='text-white text-center text-xl'>
-                        {tCards("manualPickPaywallTitle")}
+                        {title}
                     </DialogTitle>
                     <DialogDescription className='text-center text-purple-200/70'>
-                        {tCards("manualPickPaywallDesc")}
+                        {description}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -122,7 +155,7 @@ export function ManualPickPaywallDialog({
                                       )
                                     : null
 
-                            const unlocksManualPick = tier === "pro"
+                            const meetsGate = TIER_RANK[tier] >= requiredRank
                             const isCurrent = currentTier === tier
 
                             return (
@@ -130,7 +163,7 @@ export function ManualPickPaywallDialog({
                                     key={plan.id}
                                     className={cn(
                                         "relative flex flex-col gap-3 rounded-2xl border p-4",
-                                        unlocksManualPick
+                                        meetsGate
                                             ? "border-indigo-400/40 bg-indigo-500/10 shadow-lg shadow-indigo-500/10"
                                             : "border-white/10 bg-black/30 opacity-80",
                                     )}
@@ -140,7 +173,7 @@ export function ManualPickPaywallDialog({
                                             <Crown
                                                 className={cn(
                                                     "h-4 w-4",
-                                                    unlocksManualPick
+                                                    meetsGate
                                                         ? "text-indigo-300"
                                                         : "text-white/40",
                                                 )}
@@ -196,20 +229,18 @@ export function ManualPickPaywallDialog({
 
                                     <ul className='space-y-1 text-[11px] text-white/75'>
                                         <li className='flex items-center gap-1.5'>
-                                            {unlocksManualPick ? (
+                                            {meetsGate ? (
                                                 <CheckCircle2 className='h-3 w-3 text-indigo-300 shrink-0' />
                                             ) : (
                                                 <Lock className='h-3 w-3 text-white/40 shrink-0' />
                                             )}
                                             <span
                                                 className={cn(
-                                                    !unlocksManualPick &&
+                                                    !meetsGate &&
                                                         "text-white/50",
                                                 )}
                                             >
-                                                {tCards(
-                                                    "manualPickPaywallFeature",
-                                                )}
+                                                {feature}
                                             </span>
                                         </li>
                                         <li className='flex items-center gap-1.5'>
@@ -222,7 +253,7 @@ export function ManualPickPaywallDialog({
                                         </li>
                                     </ul>
 
-                                    {unlocksManualPick ? (
+                                    {meetsGate ? (
                                         <Checkout
                                             mode='subscribe'
                                             plan={billingCycle}
@@ -237,9 +268,8 @@ export function ManualPickPaywallDialog({
                                         >
                                             {isCurrent
                                                 ? t("currentPlan")
-                                                : tCards(
-                                                      "manualPickPaywallInsufficient",
-                                                  )}
+                                                : (insufficientLabel ??
+                                                  t("upgradePlan"))}
                                         </button>
                                     )}
                                 </div>
@@ -247,9 +277,11 @@ export function ManualPickPaywallDialog({
                         })}
                     </div>
 
-                    <p className='text-center text-[11px] text-white/50'>
-                        {tCards("manualPickPaywallNote")}
-                    </p>
+                    {footnote && (
+                        <p className='text-center text-[11px] text-white/50'>
+                            {footnote}
+                        </p>
+                    )}
                 </div>
             </DialogContent>
         </Dialog>

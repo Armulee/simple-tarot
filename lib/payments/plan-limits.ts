@@ -13,7 +13,7 @@ export function getMaxCardsForTier(tier: PlanTier | null | undefined): number {
 export function canUseManualCardPick(
     tier: PlanTier | null | undefined,
 ): boolean {
-    return tier === "pro"
+    return tier === "basic" || tier === "pro"
 }
 
 export function clampCardCountToTier(

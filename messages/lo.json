@@ -1473,10 +1473,10 @@
       "upright": "ໜ້າຕັ້ງ",
       "reversedTab": "ກັບຫົວ",
       "freeTierMaxCardsHint": "ແພັກເກດຟຣີຈັ່ວໄດ້ສູງສຸດ {max} ໃບ. ອັບເກຣດເພື່ອຈັ່ວໄດ້ຫຼາຍຂຶ້ນ",
-      "manualPickPaywallTitle": "ການເລືອກໄພ່ດ້ວຍຕົນເອງເປັນຄຸນສົມບັດຂອງ Pro",
-      "manualPickPaywallDesc": "ເລືອກໄພ່ໃບໃດກໍ່ໄດ້ຈາກສຳຫຼັບເຕັມ. ອັບເກຣດເປັນ Pro ເພື່ອປົດລັອກ — ຊຳລະເງິນຜ່ານ Stripe ໃນໜ້າຕໍ່ໄປ",
+      "manualPickPaywallTitle": "ການເລືອກໄພ່ດ້ວຍຕົນເອງສຳລັບສະມາຊິກເທົ່ານັ້ນ",
+      "manualPickPaywallDesc": "ເລືອກໄພ່ໃບໃດກໍ່ໄດ້ຈາກສຳຫຼັບເຕັມ. ອັບເກຣດເປັນ Basic ຫຼື Pro ເພື່ອປົດລັອກ — ຊຳລະເງິນຜ່ານ Stripe ໃນໜ້າຕໍ່ໄປ",
       "manualPickPaywallFeature": "ເລືອກໄພ່ດ້ວຍຕົນເອງຈາກສຳຫຼັບເຕັມ",
-      "manualPickPaywallInsufficient": "ບໍ່ລວມຢູ່ໃນແພັກເກດ Basic",
+      "manualPickPaywallInsufficient": "ຕ້ອງອັບເກຣດແພັກເກດ",
       "manualPickPaywallNote": "ເລືອກແພັກເກດເພື່ອໄປຍັງໜ້າຊຳລະເງິນ Stripe ທີ່ປອດໄພ"
     },
     "editQuestion": {
